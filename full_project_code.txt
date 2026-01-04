@@ -1,0 +1,1648 @@
+package com.finovara.finovarabackend.config;
+
+import com.finovara.finovarabackend.exception.UserNotFoundException;
+import com.finovara.finovarabackend.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@Configuration
+@RequiredArgsConstructor
+public class ApplicationConfig {
+
+    private final UserRepository userRepository;
+
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return username -> userRepository.findByEmail(username)
+                .map(user -> org.springframework.security.core.userdetails.User.builder()
+                        .username(user.getEmail())
+                        .password(user.getPassword())
+                        .build())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
+
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService());
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
+        return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+package com.finovara.finovarabackend.config;
+
+import com.finovara.finovarabackend.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
+
+@Configuration
+@EnableWebSecurity
+@RequiredArgsConstructor
+public class SecurityFilterChainConfig {
+
+    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final AuthenticationProvider authenticationProvider;
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/register", "/login").permitAll()
+                        .requestMatchers("/addExpense").authenticated()
+                        .requestMatchers("/addRevenue").authenticated()
+                        .requestMatchers("/wallet").authenticated()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+}
+package com.finovara.finovarabackend.exception;
+
+public class EmailAlreadyExistsException extends RuntimeException {
+    public EmailAlreadyExistsException(String message) {
+        super(message);
+    }
+}
+package com.finovara.finovarabackend.exception;
+
+public record ErrorResponseDTO(
+        int status,
+        String error,
+        String message,
+        String path,
+        long timestamp
+) {
+
+    public ErrorResponseDTO(int status, String error, String message, String path) {
+        this(status, error, message, path, System.currentTimeMillis());
+    }
+}
+package com.finovara.finovarabackend.exception;
+
+public class ExpenseNotFoundException extends RuntimeException {
+    public ExpenseNotFoundException(String message) {
+        super(message);
+    }
+}
+package com.finovara.finovarabackend.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler({EmailAlreadyExistsException.class, UsernameAlreadyExistsException.class})
+    public ResponseEntity<ErrorResponseDTO> handleConflictExceptions(RuntimeException exception, WebRequest webRequest) {
+        ErrorResponseDTO body = new ErrorResponseDTO(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler({UserNotFoundException.class, ExpenseNotFoundException.class, RevenueNotFoundException.class, WalletNotFoundException.class, PiggyBankNotFoundException.class})
+    public ResponseEntity<ErrorResponseDTO> handleNotFoundException(RuntimeException exception, WebRequest webRequest) {
+        ErrorResponseDTO body = new ErrorResponseDTO(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(WrongPasswordException.class)
+    public ResponseEntity<ErrorResponseDTO> handleWrongPassword(WrongPasswordException exception, WebRequest webRequest) {
+        ErrorResponseDTO body = new ErrorResponseDTO(
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(MissingRequirementException.class)
+    public ResponseEntity<ErrorResponseDTO> handleMissingRequirement(MissingRequirementException exception, WebRequest webRequest) {
+        ErrorResponseDTO body = new ErrorResponseDTO(
+                HttpStatus.UNPROCESSABLE_CONTENT.value(),
+                HttpStatus.UNPROCESSABLE_CONTENT.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+
+    @ExceptionHandler(InvalidInputException.class)
+    public ResponseEntity<ErrorResponseDTO> handleBadRequest(InvalidInputException exception, WebRequest webRequest) {
+        ErrorResponseDTO body = new ErrorResponseDTO(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDTO> handleAll(WebRequest webRequest) {
+        ErrorResponseDTO body = new ErrorResponseDTO(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                "An unexpected error occurred. Please contact your administrator.",
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+}
+package com.finovara.finovarabackend.exception;
+
+public class InvalidInputException extends RuntimeException {
+    public InvalidInputException(String message) {
+        super(message);
+    }
+}
+package com.finovara.finovarabackend.exception;
+
+public class MissingRequirementException extends RuntimeException {
+    public MissingRequirementException(String message) {
+        super(message);
+    }
+}
+package com.finovara.finovarabackend.exception;
+
+public class PiggyBankNotFoundException extends RuntimeException {
+    public PiggyBankNotFoundException(String message) {
+        super(message);
+    }
+}
+package com.finovara.finovarabackend.exception;
+
+public class RevenueNotFoundException extends RuntimeException {
+    public RevenueNotFoundException(String message) {
+        super(message);
+    }
+}
+package com.finovara.finovarabackend.exception;
+
+public class UsernameAlreadyExistsException extends RuntimeException {
+    public UsernameAlreadyExistsException(String message) {
+        super(message);
+    }
+}
+package com.finovara.finovarabackend.exception;
+
+public class UserNotFoundException extends RuntimeException {
+    public UserNotFoundException(String message) {
+        super(message);
+    }
+}
+package com.finovara.finovarabackend.exception;
+
+public class WalletNotFoundException extends RuntimeException {
+    public WalletNotFoundException(String message) {
+        super(message);
+    }
+}
+package com.finovara.finovarabackend.exception;
+
+public class WrongPasswordException extends RuntimeException {
+    public WrongPasswordException(String message) {
+        super(message);
+    }
+}
+package com.finovara.finovarabackend.expense.controller;
+
+import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.service.ExpenseService;
+import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Objects;
+
+@RestController
+@RequiredArgsConstructor
+public class ExpenseController {
+
+    private final ExpenseService expenseService;
+
+    @PostMapping("/addExpense")
+    public ResponseEntity<ExpenseDTO> addExpense(@RequestBody @Valid ExpenseDTO expenseDTO) {
+        String email = Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getName();
+        return ResponseEntity.ok(expenseService.addExpense(expenseDTO, email));
+    }
+
+    @PutMapping("/editExpense/{expenseId}")
+    public ResponseEntity<ExpenseDTO> editExpense(@RequestBody @Valid ExpenseDTO expenseDTO, @PathVariable Long expenseId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(expenseService.editExpense(expenseDTO, email, expenseId));
+    }
+
+    @DeleteMapping("/deleteExpense/{expenseId}")
+    public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        expenseService.deleteExpense(expenseId, email);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/getExpense")
+    public ResponseEntity<List<ExpenseDTO>> getExpense(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(expenseService.getExpense(email));
+    }
+
+
+
+
+}
+package com.finovara.finovarabackend.expense.dto;
+
+import com.finovara.finovarabackend.expense.model.ExpenseCategory;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+public record ExpenseDTO(
+
+        Long id,
+        Long userId,
+
+        @DecimalMin("0.01") @DecimalMax("5000000") BigDecimal amount,
+        ExpenseCategory category,
+        LocalDateTime createdAt,
+        String description
+
+) {
+}
+package com.finovara.finovarabackend.expense.model;
+
+import com.finovara.finovarabackend.user.model.User;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "expenses")
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Builder
+public class Expense {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private BigDecimal amount;
+    private ExpenseCategory category;
+    private LocalDateTime createdAt;
+    private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User userAssigned;
+
+}
+package com.finovara.finovarabackend.expense.model;
+
+public enum ExpenseCategory {
+    FOOD, // Żywność
+    TRANSPORT, // Transport
+    HOUSING, // Mieszkanie
+    CLOTHING, // Ubrania
+    EDUCATION, // Edukacja
+    HEALTH, // Zdrowie
+    ENTERTAINMENT, // Rozrywka
+    FAMILY, // Rodzina
+    SAVINGS, // Oszczędności
+    VACATIONS, // Wakacje
+    BILLS, // Opłaty
+    OTHERS // Inne
+}
+
+package com.finovara.finovarabackend.expense.repository;
+
+import com.finovara.finovarabackend.expense.model.Expense;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface ExpenseRepository extends JpaRepository<Expense, Long> {
+
+    Optional<Expense> findByIdAndUserAssignedId(Long expenseId, Long userId);
+
+    List<Expense> findAllByUserAssignedId(Long userId);
+}
+package com.finovara.finovarabackend.expense.service;
+
+import com.finovara.finovarabackend.exception.ExpenseNotFoundException;
+import com.finovara.finovarabackend.exception.UserNotFoundException;
+import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.model.Expense;
+import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.wallet.repository.WalletRepository;
+import com.finovara.finovarabackend.wallet.service.WalletService;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ExpenseService {
+
+    private final ExpenseRepository expenseRepository;
+    private final UserRepository userRepository;
+    private final WalletService walletService;
+    private final WalletRepository walletRepository;
+
+    public User getUserEmailOrThrow(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User Not Found"));
+    }
+
+    public Expense getExpenseOrThrow(Long expenseId) {
+        return expenseRepository.findById(expenseId)
+                .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
+    }
+
+    @Transactional
+    public ExpenseDTO addExpense(ExpenseDTO expenseDTO, String email) {
+        User user = getUserEmailOrThrow(email);
+
+        Expense expense = Expense.builder()
+                .amount(expenseDTO.amount())
+                .category(expenseDTO.category())
+                .createdAt(LocalDateTime.now())
+                .description(expenseDTO.description())
+                .userAssigned(user)
+                .build();
+
+        walletService.removeBalanceFromWallet(email, expense.getAmount());
+        expenseRepository.save(expense);
+
+        return new ExpenseDTO(
+                expense.getId(),
+                user.getId(),
+                expense.getAmount(),
+                expense.getCategory(),
+                expense.getCreatedAt(),
+                expense.getDescription()
+
+        );
+    }
+
+    @Transactional
+    public ExpenseDTO editExpense(ExpenseDTO expenseDTO, String email, Long expenseId) {
+        Expense existingExpense = getExpenseOrThrow(expenseId);
+        User user = getUserEmailOrThrow(email);
+
+        if (!existingExpense.getUserAssigned().getId().equals(user.getId())) {
+            throw new ExpenseNotFoundException("Expense not found for this user");
+        }
+
+        walletService.addBalanceToWallet(email, existingExpense.getAmount());
+        walletService.removeBalanceFromWallet(email, expenseDTO.amount());
+
+        existingExpense.setAmount(expenseDTO.amount());
+        existingExpense.setCategory(expenseDTO.category());
+        existingExpense.setCreatedAt(LocalDateTime.now());
+        existingExpense.setDescription(expenseDTO.description());
+
+        expenseRepository.save(existingExpense);
+
+        return new ExpenseDTO(
+                existingExpense.getId(),
+                existingExpense.getUserAssigned().getId(),
+                existingExpense.getAmount(),
+                existingExpense.getCategory(),
+                existingExpense.getCreatedAt(),
+                existingExpense.getDescription()
+
+        );
+
+    }
+
+    public List<ExpenseDTO> getExpense(String email) {
+        User user = getUserEmailOrThrow(email);
+        List<Expense> expenses = expenseRepository.findAllByUserAssignedId(user.getId());
+
+        return expenses.stream()
+                .map(this::mapExpenseToDTO)
+                .toList();
+    }
+
+    public ExpenseDTO mapExpenseToDTO(Expense expense) {
+        return new ExpenseDTO(
+                expense.getId(),
+                expense.getUserAssigned().getId(),
+                expense.getAmount(),
+                expense.getCategory(),
+                expense.getCreatedAt(),
+                expense.getDescription()
+        );
+    }
+
+    @Transactional
+    public void deleteExpense(Long expenseId, String email) {
+        User user = getUserEmailOrThrow(email);
+        Expense expense = expenseRepository.findByIdAndUserAssignedId(expenseId, user.getId())
+                .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
+        walletService.addBalanceToWallet(email, expense.getAmount());
+        expenseRepository.delete(expense);
+
+    }
+}
+package com.finovara.finovarabackend.piggybank.controller;
+
+public class PiggyBankController {
+}
+package com.finovara.finovarabackend.piggybank.dto;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+public record PiggyBankDTO(
+        Long id,
+        Long userId,
+
+        String name,
+        BigDecimal amount,
+        LocalDate createdAt
+){
+}
+package com.finovara.finovarabackend.piggybank.model;
+
+import com.finovara.finovarabackend.user.model.User;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Setter
+@Getter
+@Table(name = "piggyBanks")
+public class PiggyBank {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private BigDecimal amount;
+    private LocalDate createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User userAssigned;
+
+}
+package com.finovara.finovarabackend.piggybank.repository;
+
+import com.finovara.finovarabackend.piggybank.model.PiggyBank;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface PiggyBankRepository extends JpaRepository<PiggyBank, Long> {
+    Optional<PiggyBank> findByIdAndUserAssignedEmail(Long id, String email);
+}
+package com.finovara.finovarabackend.piggybank.service;
+
+import com.finovara.finovarabackend.exception.InvalidInputException;
+import com.finovara.finovarabackend.exception.PiggyBankNotFoundException;
+import com.finovara.finovarabackend.exception.UserNotFoundException;
+import com.finovara.finovarabackend.exception.WalletNotFoundException;
+import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.model.PiggyBank;
+import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.wallet.model.Wallet;
+import com.finovara.finovarabackend.wallet.repository.WalletRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
+@Service
+@RequiredArgsConstructor
+public class PiggyBankService {
+
+    private final UserRepository userRepository;
+    private final PiggyBankRepository piggyBankRepository;
+    private final WalletRepository walletRepository;
+
+    private User getUserByEmailOrThrow(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
+
+    private PiggyBank getPiggyBankByUserEmail(Long piggyBankId, String email) {
+        return piggyBankRepository.findByIdAndUserAssignedEmail(piggyBankId, email)
+                .orElseThrow(() -> new PiggyBankNotFoundException("Piggy Bank not found"));
+    }
+
+    private Wallet getWalletByUserEmail(String email) {
+        return walletRepository.findByUserAssignedEmail(email)
+                .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
+    }
+
+    private PiggyBankDTO buildDTO(PiggyBank piggyBank, User user) {
+        return new PiggyBankDTO(
+                piggyBank.getId(),
+                user.getId(),
+                piggyBank.getName(),
+                piggyBank.getAmount(),
+                piggyBank.getCreatedAt()
+        );
+    }
+
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidInputException("Amount must be non negative");
+        }
+    }
+
+    private void validateSufficientFunds(BigDecimal sourceAmount, BigDecimal amount) {
+        if (sourceAmount.compareTo(amount) < 0) {
+            throw new InvalidInputException("Insufficient funds");
+        }
+    }
+
+    private record Entities(Wallet wallet, PiggyBank piggyBank, User user) {}
+
+    private Entities getEntitiesForTransaction(String email, Long piggyBankId) {
+        User user = getUserByEmailOrThrow(email);
+        PiggyBank piggyBank = getPiggyBankByUserEmail(piggyBankId, email);
+        Wallet wallet = getWalletByUserEmail(email);
+
+        return new Entities(wallet, piggyBank, user);
+    }
+
+    @Transactional
+    public PiggyBankDTO addPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
+        User user = getUserByEmailOrThrow(email);
+
+        PiggyBank piggyBank = PiggyBank.builder()
+                .name(piggyBankDTO.name())
+                .amount(BigDecimal.ZERO)
+                .createdAt(LocalDate.now())
+                .userAssigned(user)
+                .build();
+
+        piggyBankRepository.save(piggyBank);
+
+        return buildDTO(piggyBank, user);
+    }
+
+    @Transactional
+    public PiggyBankDTO addBalanceToPiggyBank(String email, Long piggyBankId, BigDecimal amount) {
+
+        Entities e = getEntitiesForTransaction(email, piggyBankId);
+
+        validateAmount(amount);
+        validateSufficientFunds(e.wallet.getBalance(), amount);
+
+        e.wallet.setBalance(e.wallet.getBalance().subtract(amount));
+        e.piggyBank.setAmount(e.piggyBank.getAmount().add(amount));
+
+        walletRepository.save(e.wallet);
+        piggyBankRepository.save(e.piggyBank);
+
+        return buildDTO(e.piggyBank, e.user);
+
+    }
+
+    @Transactional
+    public PiggyBankDTO removeBalanceFromPiggyBank(String email, Long piggyBankId, BigDecimal amount) {
+
+        Entities e = getEntitiesForTransaction(email, piggyBankId);
+
+        validateAmount(amount);
+        validateSufficientFunds(e.piggyBank.getAmount(), amount);
+
+        e.piggyBank.setAmount(e.piggyBank.getAmount().subtract(amount));
+        e.wallet.setBalance(e.wallet.getBalance().add(amount));
+
+        walletRepository.save(e.wallet);
+        piggyBankRepository.save(e.piggyBank);
+
+        return buildDTO(e.piggyBank, e.user);
+
+    }
+
+
+    //najpierw zwykle odkladanie pieniedzy przelew i wyplywy, pozniej ustawienei celu np cel 1000 zl na mieszaknie i odkladasz sobie
+}
+package com.finovara.finovarabackend.reports.controller;
+
+import com.finovara.finovarabackend.reports.dto.ReportsAverageDTO;
+import com.finovara.finovarabackend.reports.dto.ReportsHighestExpense;
+import com.finovara.finovarabackend.reports.dto.ReportsSumDTO;
+import com.finovara.finovarabackend.reports.service.ReportsService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+public class ReportsController {
+    public final ReportsService reportsService;
+
+    @GetMapping("/sumRevenueAndExpense/{userId}")
+    public ResponseEntity<ReportsSumDTO> sumRevenueAndExpense(@PathVariable Long userId) {
+        return ResponseEntity.ok(reportsService.sumRevenueAndExpense(userId));
+    }
+
+    @GetMapping("/avgRevenueAndExpense/{userId}")
+    public ResponseEntity<ReportsAverageDTO> avgRevenueAndExpense(@PathVariable Long userId) {
+        return ResponseEntity.ok(reportsService.averageRevenueAndExpense(userId));
+    }
+
+    @GetMapping("/highestExpense/{userId}")
+    public ResponseEntity<List<ReportsHighestExpense>> highestExpense(@PathVariable Long userId) {
+        return ResponseEntity.ok(reportsService.highestExpense(userId));
+    }
+}
+package com.finovara.finovarabackend.reports.dto;
+
+import java.math.BigDecimal;
+
+public record ReportsAverageDTO(
+        BigDecimal averageRevenue,
+        BigDecimal averageExpense
+) {
+}
+package com.finovara.finovarabackend.reports.dto;
+
+import com.finovara.finovarabackend.expense.model.ExpenseCategory;
+
+import java.math.BigDecimal;
+
+public record ReportsHighestExpense(
+        ExpenseCategory expenseCategory,
+        BigDecimal amount
+) {
+}
+package com.finovara.finovarabackend.reports.dto;
+
+import java.math.BigDecimal;
+
+public record ReportsSumDTO(
+    BigDecimal sumRevenue,
+    BigDecimal sumExpense
+) {
+}
+package com.finovara.finovarabackend.reports.service;
+
+import com.finovara.finovarabackend.expense.model.Expense;
+import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
+import com.finovara.finovarabackend.reports.dto.ReportsAverageDTO;
+import com.finovara.finovarabackend.reports.dto.ReportsHighestExpense;
+import com.finovara.finovarabackend.reports.dto.ReportsSumDTO;
+import com.finovara.finovarabackend.revenue.model.Revenue;
+import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ReportsService {
+    private final RevenueRepository revenueRepository;
+    private final ExpenseRepository expenseRepository;
+
+
+    public List<Revenue> findRevenueByUserId(Long userId) {
+        return revenueRepository.findAllByUserAssignedId(userId);
+    }
+
+    public List<Expense> findExpenseByUserId(Long userId) {
+        return expenseRepository.findAllByUserAssignedId(userId);
+    }
+
+
+    public ReportsSumDTO sumRevenueAndExpense(Long userId) {
+        List<Revenue> revenues = findRevenueByUserId(userId);
+        List<Expense> expenses = findExpenseByUserId(userId);
+
+
+        BigDecimal sumRevenue = revenues.stream()
+                .map(Revenue::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal sumExpense = expenses.stream()
+                .map(Expense::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new ReportsSumDTO(sumRevenue, sumExpense);
+    }
+
+    public ReportsAverageDTO averageRevenueAndExpense(Long userId) {
+        ReportsSumDTO sums = sumRevenueAndExpense(userId);
+
+        List<Revenue> revenues = findRevenueByUserId(userId);
+        List<Expense> expenses = findExpenseByUserId(userId);
+
+        BigDecimal avgRevenue = BigDecimal.ZERO;
+        if (!revenues.isEmpty()) {
+            avgRevenue = sums.sumRevenue()
+                    .divide(BigDecimal.valueOf(revenues.size()), 2, RoundingMode.HALF_UP);
+        }
+
+        BigDecimal avgExpense = BigDecimal.ZERO;
+        if (!expenses.isEmpty()) {
+            avgExpense = sums.sumExpense()
+                    .divide(BigDecimal.valueOf(expenses.size()), 2, RoundingMode.HALF_UP);
+        }
+
+        return new ReportsAverageDTO(avgRevenue, avgExpense);
+    }
+
+
+    public List<ReportsHighestExpense> highestExpense(Long userId) {
+        ReportsSumDTO sum = sumRevenueAndExpense(userId);
+
+        List<Expense> expenses = findExpenseByUserId(userId);
+
+        BigDecimal totalExpense = BigDecimal.ZERO;
+        if (!expenses.isEmpty()) {
+            totalExpense = sum.sumExpense();
+        }
+
+        return expenses.stream()
+                .sorted(Comparator.comparing(Expense::getAmount).reversed())
+                .limit(3)
+                .map(exp -> new ReportsHighestExpense(
+                        exp.getCategory(),
+                        exp.getAmount()
+                ))
+                .toList();
+    }
+}
+package com.finovara.finovarabackend.revenue.controller;
+
+import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.service.RevenueService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+public class RevenueController {
+    private final RevenueService revenueService;
+
+    @PostMapping("/addRevenue")
+    public ResponseEntity<RevenueDTO> addRevenue(@RequestBody @Valid RevenueDTO revenueDTO) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(revenueService.addRevenue(revenueDTO, email));
+    }
+
+    @PutMapping("/editRevenue/{revenueId}")
+    public ResponseEntity<RevenueDTO> editRevenue(@RequestBody @Valid RevenueDTO revenueDTO, @PathVariable Long revenueId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(revenueService.editRevenue(revenueDTO, revenueId, email));
+    }
+
+    @DeleteMapping("/deleteRevenue/{revenueId}")
+    public ResponseEntity<Void> deleteRevenue(@PathVariable Long revenueId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        revenueService.deleteRevenue(revenueId, email);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/getRevenue")
+    public ResponseEntity<List<RevenueDTO>> getRevenue(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(revenueService.getRevenue(email));
+    }
+}
+package com.finovara.finovarabackend.revenue.dto;
+
+import com.finovara.finovarabackend.revenue.model.RevenueCategory;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+public record RevenueDTO(
+        Long id,
+        Long userId,
+
+        @DecimalMin("1") @DecimalMax("5000000") BigDecimal amount,
+        RevenueCategory category,
+        LocalDateTime createdAt,
+        String description
+
+
+) {
+}
+package com.finovara.finovarabackend.revenue.model;
+
+import com.finovara.finovarabackend.user.model.User;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "revenues")
+public class Revenue {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private BigDecimal amount;
+    private RevenueCategory category;
+    private LocalDateTime createdAt;
+    private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User userAssigned;
+}
+package com.finovara.finovarabackend.revenue.model;
+
+public enum RevenueCategory {
+    SALARY,     // Pensja
+    BUSINESS,   // Działalność
+    BONUS,      // Premia
+    INVESTMENT, // Inwestycje
+    RENT,       // Wynajem
+    GIFT,       // Prezent
+    REFUND,     // Zwrot
+    BENEFIT,    // Świadczenia
+    OTHER       // Inne
+}
+package com.finovara.finovarabackend.revenue.repository;
+
+import com.finovara.finovarabackend.revenue.model.Revenue;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface RevenueRepository extends JpaRepository<Revenue, Long> {
+
+    Optional<Revenue> findByIdAndUserAssignedId(Long revenueId, Long userId);
+
+    List<Revenue> findAllByUserAssignedId(Long userId);
+}
+package com.finovara.finovarabackend.revenue.service;
+
+import com.finovara.finovarabackend.exception.RevenueNotFoundException;
+import com.finovara.finovarabackend.exception.UserNotFoundException;
+import com.finovara.finovarabackend.exception.WalletNotFoundException;
+import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.model.Revenue;
+import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.wallet.model.Wallet;
+import com.finovara.finovarabackend.wallet.repository.WalletRepository;
+import com.finovara.finovarabackend.wallet.service.WalletService;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class RevenueService {
+
+    private final UserRepository userRepository;
+    private final RevenueRepository revenueRepository;
+    private final WalletRepository walletRepository;
+    private final WalletService walletService;
+
+    public User getUserEmailOrThrow(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
+
+    public Revenue getRevenueOrThrow(Long revenueId) {
+        return revenueRepository.findById(revenueId)
+                .orElseThrow(() -> new RevenueNotFoundException("Revenue not found"));
+    }
+
+    @Transactional
+    public RevenueDTO editRevenue(RevenueDTO revenueDTO, Long revenueId, String email) {
+        Revenue existingRevenue = getRevenueOrThrow(revenueId);
+        User user = getUserEmailOrThrow(email);
+
+        if (!existingRevenue.getUserAssigned().getId().equals(user.getId())) {
+            throw new RevenueNotFoundException("Revenue not found for this user");
+        }
+
+        Wallet wallet = walletRepository.findByUserAssignedEmail(email)
+                .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
+
+        wallet.setBalance(wallet.getBalance().subtract(existingRevenue.getAmount()));
+        wallet.setBalance(wallet.getBalance().add(revenueDTO.amount()));
+        walletRepository.save(wallet);
+
+        existingRevenue.setAmount(revenueDTO.amount());
+        existingRevenue.setCategory(revenueDTO.category());
+        existingRevenue.setCreatedAt(LocalDateTime.now());
+        existingRevenue.setDescription(revenueDTO.description());
+
+        revenueRepository.save(existingRevenue);
+
+        return new RevenueDTO(
+                existingRevenue.getId(),
+                existingRevenue.getUserAssigned().getId(),
+                existingRevenue.getAmount(),
+                existingRevenue.getCategory(),
+                existingRevenue.getCreatedAt(),
+                existingRevenue.getDescription()
+        );
+    }
+
+    @Transactional
+    public RevenueDTO addRevenue(RevenueDTO revenueDTO, String email) {
+        User user = getUserEmailOrThrow(email);
+
+        Revenue revenue = Revenue.builder()
+                .amount(revenueDTO.amount())
+                .category(revenueDTO.category())
+                .createdAt(LocalDateTime.now())
+                .description(revenueDTO.description())
+                .userAssigned(user)
+                .build();
+        walletService.addBalanceToWallet(email, revenue.getAmount());
+        //wallet jest zapisywany w repo klasie WalletService
+        revenueRepository.save(revenue);
+
+        return new RevenueDTO(
+                revenue.getId(),
+                user.getId(),
+                revenue.getAmount(),
+                revenue.getCategory(),
+                revenue.getCreatedAt(),
+                revenue.getDescription()
+        );
+    }
+
+    public List<RevenueDTO> getRevenue(String email) {
+        User user = getUserEmailOrThrow(email);
+        List<Revenue> revenue = revenueRepository.findAllByUserAssignedId(user.getId());
+
+        return revenue.stream()
+                .map(this::mapRevenueToDTO)
+                .toList();
+    }
+
+    public RevenueDTO mapRevenueToDTO(Revenue revenue) {
+        return new RevenueDTO(
+                revenue.getId(),
+                revenue.getUserAssigned().getId(),
+                revenue.getAmount(),
+                revenue.getCategory(),
+                revenue.getCreatedAt(),
+                revenue.getDescription()
+        );
+    }
+
+
+    @Transactional
+    public void deleteRevenue(Long revenueId, String email) {
+        User user = getUserEmailOrThrow(email);
+        Revenue revenue = revenueRepository.findByIdAndUserAssignedId(revenueId, user.getId())
+                .orElseThrow(() -> new RevenueNotFoundException("Revenue not found"));
+        walletService.removeBalanceFromWallet(email, revenue.getAmount());
+        revenueRepository.delete(revenue);
+
+    }
+
+
+}
+package com.finovara.finovarabackend.security.service;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import java.security.Key;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+@Service
+public class JwtService {
+
+    @Value("${application.security.jwt.secret-key}")
+    private String secretKey;
+
+    @Value("${application.security.jwt.expiration}")
+    private long jwtExpiration;
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public String generateToken(UserDetails userDetails) {
+        return generateToken(new HashMap<>(), userDetails);
+    }
+
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+    }
+
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private String generateToken(
+            Map<String, Object> extraClaims,
+            UserDetails userDetails
+    ) {
+        return Jwts
+                .builder()
+                .setClaims(extraClaims)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts
+                .parserBuilder()
+                .setSigningKey(getSignInKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    private Key getSignInKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+}
+package com.finovara.finovarabackend.security;
+
+import com.finovara.finovarabackend.security.service.JwtService;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+
+@Component
+@RequiredArgsConstructor
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
+
+    @Override
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain
+    ) throws ServletException, IOException {
+
+        final String authHeader = request.getHeader("Authorization");
+        final String jwt;
+        final String userEmail;
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        jwt = authHeader.substring(7);
+        userEmail = jwtService.extractUsername(jwt);
+
+        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+
+            if (jwtService.isTokenValid(jwt, userDetails)) {
+
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+
+                authToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+        }
+        filterChain.doFilter(request, response);
+    }
+}
+package com.finovara.finovarabackend.user.controller;
+
+import com.finovara.finovarabackend.user.dto.UserRegisterLoginDTO;
+import com.finovara.finovarabackend.user.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@RequiredArgsConstructor
+@RestController
+public class UserController {
+
+    private final UserService userService;
+
+    @PostMapping("/register")
+    public ResponseEntity<UserRegisterLoginDTO> registerUser(@RequestBody @Valid UserRegisterLoginDTO userRegisterLoginDTO) {
+        return ResponseEntity.ok(userService.registerUser(userRegisterLoginDTO));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<UserRegisterLoginDTO> loginUser(@RequestBody @Valid UserRegisterLoginDTO userLogin) {
+        return ResponseEntity.ok(userService.loginUser(userLogin.email(), userLogin.password()));
+    }
+}
+
+package com.finovara.finovarabackend.user.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public record UserRegisterLoginDTO(
+        Long id,
+        String username,
+        @NotBlank
+        String password,
+
+        @Email
+        String email,
+
+        String jwtToken
+
+) {
+}
+package com.finovara.finovarabackend.user.model;
+
+import com.finovara.finovarabackend.expense.model.Expense;
+import com.finovara.finovarabackend.piggybank.model.PiggyBank;
+import com.finovara.finovarabackend.revenue.model.Revenue;
+import com.finovara.finovarabackend.wallet.model.Wallet;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Entity
+@Table(name = "users")
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Builder
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String username;
+    private String password;
+    private String email;
+    private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "userAssigned", cascade =  CascadeType.REMOVE)
+    private List<Expense> expenses;
+
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.REMOVE)
+    private List<Revenue> revenues;
+
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    private List<PiggyBank> piggyBanks;
+
+    @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    private Wallet wallet;
+}
+package com.finovara.finovarabackend.user.repository;
+
+import com.finovara.finovarabackend.user.model.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+    Optional<User> findByEmail(String email);
+
+    boolean existsByUsername(String username);
+
+    boolean existsByEmail(String email);
+}
+package com.finovara.finovarabackend.user.service;
+
+import com.finovara.finovarabackend.exception.EmailAlreadyExistsException;
+import com.finovara.finovarabackend.exception.UserNotFoundException;
+import com.finovara.finovarabackend.exception.NameAlreadyExistsException;
+import com.finovara.finovarabackend.exception.WrongPasswordException;
+import com.finovara.finovarabackend.security.service.JwtService;
+import com.finovara.finovarabackend.user.dto.UserRegisterLoginDTO;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+
+    public UserRegisterLoginDTO registerUser(UserRegisterLoginDTO userRegisterLoginDTO) {
+
+        if (userRepository.existsByUsername(userRegisterLoginDTO.username())) {
+            throw new UsernameAlreadyExistsException("Username is already taken");
+        }
+
+        if (userRepository.existsByEmail(userRegisterLoginDTO.email())) {
+            throw new EmailAlreadyExistsException("Email is already taken");
+        }
+
+        User user = User.builder()
+                .username(userRegisterLoginDTO.username())
+                .email(userRegisterLoginDTO.email())
+                .password(passwordEncoder.encode(userRegisterLoginDTO.password()))
+                .createdAt(LocalDateTime.now())
+                .build();
+        User savedUser = userRepository.save(user);
+
+        String jwtToken = jwtService.generateToken(
+                new org.springframework.security.core.userdetails.User(
+                        savedUser.getEmail(),
+                        savedUser.getPassword(),
+                        List.of()
+                )
+        );
+
+        return new UserRegisterLoginDTO(user.getId(), savedUser.getUsername(), null, savedUser.getEmail(), jwtToken);
+
+    }
+
+    public UserRegisterLoginDTO loginUser(String email, String rawPassword) {
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, rawPassword)
+            );
+        } catch (AuthenticationException e) {
+            throw new WrongPasswordException("Incorrect email or password");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
+                user.getPassword(),
+                List.of()
+        );
+        String jwtToken = jwtService.generateToken(userDetails);
+
+        return new UserRegisterLoginDTO(user.getId(), user.getUsername(), null, user.getEmail(), jwtToken);
+    }
+
+    public Optional<User> getUserById(Long userId) {
+        return userRepository.findById(userId);
+    }
+
+
+}
+package com.finovara.finovarabackend.wallet.controller;
+
+import com.finovara.finovarabackend.wallet.dto.WalletDTO;
+import com.finovara.finovarabackend.wallet.service.WalletService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+public class WalletController {
+    private final WalletService walletService;
+
+    @GetMapping("/wallet")
+    public ResponseEntity<WalletDTO> getWallet() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(walletService.getWalletForUser(email));
+    }
+}
+
+package com.finovara.finovarabackend.wallet.dto;
+
+import java.math.BigDecimal;
+
+public record WalletDTO(
+        Long id,
+        Long userId,
+
+        BigDecimal balance
+) {
+}
+package com.finovara.finovarabackend.wallet.model;
+
+import com.finovara.finovarabackend.user.model.User;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
+@Entity
+@Table(name = "wallets")
+public class Wallet {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private BigDecimal balance;
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User userAssigned;
+}
+package com.finovara.finovarabackend.wallet.repository;
+
+import com.finovara.finovarabackend.wallet.model.Wallet;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface WalletRepository extends JpaRepository<Wallet, Long> {
+
+    Optional<Wallet> findByUserAssignedEmail(String email);
+}
+package com.finovara.finovarabackend.wallet.service;
+
+import com.finovara.finovarabackend.exception.InvalidInputException;
+import com.finovara.finovarabackend.exception.UserNotFoundException;
+import com.finovara.finovarabackend.exception.WalletNotFoundException;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.wallet.dto.WalletDTO;
+import com.finovara.finovarabackend.wallet.model.Wallet;
+import com.finovara.finovarabackend.wallet.repository.WalletRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.function.BiFunction;
+
+@Service
+@RequiredArgsConstructor
+public class WalletService {
+    private final WalletRepository walletRepository;
+    private final UserRepository userRepository;
+
+    private User getUserByEmailOrThrow(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
+
+    private Wallet getWalletOrThrow(String email) {
+        return walletRepository.findByUserAssignedEmail(email)
+                .orElseThrow(() -> new WalletNotFoundException("Wallet not found for this user"));
+    }
+
+    private WalletDTO returnNewWalletDTO(User user, Wallet wallet) {
+        return new WalletDTO(
+                wallet.getId(),
+                user.getId(),
+                wallet.getBalance());
+    }
+
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Amount must be non negative");
+        }
+    }
+
+    private WalletDTO modifyWalletBalance(String email, BigDecimal amount, BiFunction<BigDecimal, BigDecimal, BigDecimal> operation) {
+        validateAmount(amount);
+
+        User user = getUserByEmailOrThrow(email);
+        Wallet wallet = getWalletOrThrow(email);
+
+        BigDecimal newBalance = operation.apply(wallet.getBalance(), amount);
+        wallet.setBalance(newBalance);
+
+        walletRepository.save(wallet);
+        return returnNewWalletDTO(user, wallet);
+    }
+
+    public WalletDTO addBalanceToWallet(String email, BigDecimal amount) {
+        return modifyWalletBalance(email, amount, BigDecimal::add);
+    }
+
+    public WalletDTO removeBalanceFromWallet(String email, BigDecimal amount) {
+        Wallet wallet = getWalletOrThrow(email);
+        if (wallet.getBalance().compareTo(amount) < 0) {
+            throw new InvalidInputException("Insufficient funds");
+        }
+        return modifyWalletBalance(email, amount, BigDecimal::subtract);
+    }
+
+    public WalletDTO getWalletForUser(String email) {
+        User user = getUserByEmailOrThrow(email);
+
+        Wallet wallet = walletRepository.findByUserAssignedEmail(email).orElse(null);
+        if (wallet == null) {
+            wallet = Wallet.builder()
+                    .balance(BigDecimal.ZERO)
+                    .userAssigned(user).build();
+            walletRepository.save(wallet);
+        }
+
+        return returnNewWalletDTO(user, wallet);
+    }
+}
+package com.finovara.finovarabackend;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class FinovaraBackendApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(FinovaraBackendApplication.class, args);
+	}
+
+}
+package com.finovara.finovarabackend;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class FinovaraBackendApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
