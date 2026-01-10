@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.reports.controller;
 
+import com.finovara.finovarabackend.reports.dto.ReportMonthlyChartDTO;
 import com.finovara.finovarabackend.reports.dto.ReportsAverageDTO;
 import com.finovara.finovarabackend.reports.dto.ReportsHighestExpense;
 import com.finovara.finovarabackend.reports.dto.ReportsSumDTO;
@@ -31,5 +32,10 @@ public class ReportsController {
     @GetMapping("/highestExpense/{userId}")
     public ResponseEntity<List<ReportsHighestExpense>> highestExpense(@PathVariable Long userId) {
         return ResponseEntity.ok(reportsService.highestExpense(userId));
+    }
+
+    @GetMapping("/monthly-chart/{userId}")
+    public List<ReportMonthlyChartDTO> getChart(@PathVariable Long userId) {
+        return reportsService.getMonthlyChart(userId);
     }
 }
