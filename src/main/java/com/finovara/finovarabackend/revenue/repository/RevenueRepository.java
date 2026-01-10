@@ -16,5 +16,4 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<Revenue> findAllByUserAssignedId(Long userId);
 
     List<Revenue> findAllByUserAssignedIdAndCreatedAtBetween(Long userId, LocalDate from, LocalDate to);
-
 }
