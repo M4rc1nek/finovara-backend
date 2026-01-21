@@ -4,9 +4,10 @@ import com.finovara.finovarabackend.wallet.dto.WalletDTO;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUserEmail;
 
 @RestController
 @RequiredArgsConstructor
@@ -15,8 +16,7 @@ public class WalletController {
 
     @GetMapping("/wallet")
     public ResponseEntity<WalletDTO> getWallet() {
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return ResponseEntity.ok(walletService.getWalletForUser(email));
+        return ResponseEntity.ok(walletService.getWalletForUser(getCurrentUserEmail()));
     }
 }
 
