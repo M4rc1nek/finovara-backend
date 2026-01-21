@@ -5,11 +5,12 @@ import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+
+import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUserEmail;
 
 @RestController
 @RequestMapping("/api/piggy-banks")
@@ -17,9 +18,7 @@ import java.util.List;
 public class PiggyBankController {
     private final PiggyBankService piggyBankService;
 
-    private String getCurrentUserEmail() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
-    }
+    // sprawdz czy jest edytowanie skarbonki
 
     @PostMapping
     public ResponseEntity<PiggyBankDTO> createPiggyBank(@RequestBody @Valid PiggyBankDTO piggyBankDTO) {

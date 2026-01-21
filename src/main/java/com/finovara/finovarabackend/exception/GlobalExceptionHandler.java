@@ -9,7 +9,7 @@ import org.springframework.web.context.request.WebRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({EmailAlreadyExistsException.class, NameAlreadyExistsException.class})
+    @ExceptionHandler({EmailAlreadyExistsException.class, NameAlreadyExistsException.class, LimitAlreadyExistsException.class})
     public ResponseEntity<ErrorResponseDTO> handleConflictExceptions(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDTO body = new ErrorResponseDTO(
                 HttpStatus.CONFLICT.value(),
@@ -20,7 +20,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler({UserNotFoundException.class, ExpenseNotFoundException.class, RevenueNotFoundException.class, WalletNotFoundException.class, PiggyBankNotFoundException.class})
+    @ExceptionHandler({UserNotFoundException.class, ExpenseNotFoundException.class, RevenueNotFoundException.class,
+            WalletNotFoundException.class, PiggyBankNotFoundException.class, ActiveLimitNotFoundException.class})
     public ResponseEntity<ErrorResponseDTO> handleNotFoundException(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDTO body = new ErrorResponseDTO(
                 HttpStatus.NOT_FOUND.value(),
@@ -42,8 +43,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(MissingRequirementException.class)
-    public ResponseEntity<ErrorResponseDTO> handleMissingRequirement(MissingRequirementException exception, WebRequest webRequest) {
+    @ExceptionHandler({MissingRequirementException.class, LimitExceededException.class}) // NOWY KOD 422
+    public ResponseEntity<ErrorResponseDTO> handleUnprocessableEntity(MissingRequirementException exception, WebRequest webRequest) {
         ErrorResponseDTO body = new ErrorResponseDTO(
                 HttpStatus.UNPROCESSABLE_CONTENT.value(),
                 HttpStatus.UNPROCESSABLE_CONTENT.getReasonPhrase(),

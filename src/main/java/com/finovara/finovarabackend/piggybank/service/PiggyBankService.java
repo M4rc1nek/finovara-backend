@@ -25,82 +25,11 @@ public class PiggyBankService {
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
 
-    private User getUserByEmailOrThrow(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-    }
-
-    private PiggyBank getPiggyBankByUserEmail(Long piggyBankId, String email) {
-        return piggyBankRepository.findByIdAndUserAssignedEmail(piggyBankId, email)
-                .orElseThrow(() -> new PiggyBankNotFoundException("Piggy Bank not found"));
-    }
-
-    private Wallet getWalletByUserEmail(String email) {
-        return walletRepository.findByUserAssignedEmail(email)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
-    }
-
-    private PiggyBankDTO buildDTO(PiggyBank piggyBank, User user) {
-        Double progress = null;
-        boolean goalCompleted = false;
-        if (piggyBank.getGoalAmount() != null && piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) > 0) {
-            progress =
-                    piggyBank.getAmount()
-                            .divide(piggyBank.getGoalAmount(), 4, RoundingMode.HALF_UP)
-                            .multiply(BigDecimal.valueOf(100))
-                            .doubleValue();
-            goalCompleted = piggyBank.getAmount()
-                    .compareTo(piggyBank.getGoalAmount()) >= 0;
-        }
-
-        return new PiggyBankDTO(
-                piggyBank.getId(),
-                user.getId(),
-                piggyBank.getName(),
-                piggyBank.getAmount(),
-                piggyBank.getCreatedAt(),
-                piggyBank.getGoalType(),
-                piggyBank.getGoalAmount(),
-                progress,
-                goalCompleted
-        );
-    }
-
-    private void validateAmount(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidInputException("Amount must be non negative");
-        }
-    }
-
-    private void validateSufficientFunds(BigDecimal sourceAmount, BigDecimal amount) {
-        if (sourceAmount.compareTo(amount) < 0) {
-            throw new InvalidInputException("Insufficient funds");
-        }
-    }
-
-    private record UserContext(Wallet wallet, PiggyBank piggyBank, User user) {
-    }
-
-    private UserContext getEntitiesForTransaction(String email, Long piggyBankId) {
-        User user = getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = getPiggyBankByUserEmail(piggyBankId, email);
-        Wallet wallet = getWalletByUserEmail(email);
-
-        return new UserContext(wallet, piggyBank, user);
-    }
-
-    private boolean isGoalCompleted(PiggyBank piggyBank) {
-        if (piggyBank.getGoalAmount() == null) {
-            return false;
-        }
-        return piggyBank.getAmount().compareTo(piggyBank.getGoalAmount()) >= 0;
-    }
-
     @Transactional
     public PiggyBankDTO addPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
         User user = getUserByEmailOrThrow(email);
 
-        if(piggyBankRepository.existsByName(piggyBankDTO.name())){
+        if (piggyBankRepository.existsByName(piggyBankDTO.name())) {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
 
@@ -171,15 +100,85 @@ public class PiggyBankService {
                 .toList();
     }
 
-
     @Transactional
     public void deletePiggyBank(String email, Long piggyBankId) {
         PiggyBank piggyBank = getPiggyBankByUserEmail(piggyBankId, email);
 
-        if (piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+        if (piggyBank == null || piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             throw new InvalidInputException("Cannot delete piggy bank with balance.  Withdraw funds first.");
         }
         piggyBankRepository.delete(piggyBank);
+    }
+
+    private User getUserByEmailOrThrow(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
+
+    private PiggyBank getPiggyBankByUserEmail(Long piggyBankId, String email) {
+        return piggyBankRepository.findByIdAndUserAssignedEmail(piggyBankId, email)
+                .orElseThrow(() -> new PiggyBankNotFoundException("Piggy Bank not found"));
+    }
+
+    private Wallet getWalletByUserEmail(String email) {
+        return walletRepository.findByUserAssignedEmail(email)
+                .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
+    }
+
+    private PiggyBankDTO buildDTO(PiggyBank piggyBank, User user) {
+        Double progress = null;
+        boolean goalCompleted = false;
+        if (piggyBank.getGoalAmount() != null && piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) > 0) {
+            progress =
+                    piggyBank.getAmount()
+                            .divide(piggyBank.getGoalAmount(), 4, RoundingMode.HALF_UP)
+                            .multiply(BigDecimal.valueOf(100))
+                            .doubleValue();
+            goalCompleted = piggyBank.getAmount()
+                    .compareTo(piggyBank.getGoalAmount()) >= 0;
+        }
+
+        return new PiggyBankDTO(
+                piggyBank.getId(),
+                user.getId(),
+                piggyBank.getName(),
+                piggyBank.getAmount(),
+                piggyBank.getCreatedAt(),
+                piggyBank.getGoalType(),
+                piggyBank.getGoalAmount(),
+                progress,
+                goalCompleted
+        );
+    }
+
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidInputException("Amount must be non negative");
+        }
+    }
+
+    private void validateSufficientFunds(BigDecimal sourceAmount, BigDecimal amount) {
+        if (sourceAmount == null || sourceAmount.compareTo(amount) < 0) {
+            throw new InvalidInputException("Insufficient funds");
+        }
+    }
+
+    private record UserContext(Wallet wallet, PiggyBank piggyBank, User user) {
+    }
+
+    private UserContext getEntitiesForTransaction(String email, Long piggyBankId) {
+        User user = getUserByEmailOrThrow(email);
+        PiggyBank piggyBank = getPiggyBankByUserEmail(piggyBankId, email);
+        Wallet wallet = getWalletByUserEmail(email);
+
+        return new UserContext(wallet, piggyBank, user);
+    }
+
+    private boolean isGoalCompleted(PiggyBank piggyBank) {
+        if (piggyBank.getGoalAmount() == null) {
+            return false;
+        }
+        return piggyBank.getAmount().compareTo(piggyBank.getGoalAmount()) >= 0;
     }
 
 }

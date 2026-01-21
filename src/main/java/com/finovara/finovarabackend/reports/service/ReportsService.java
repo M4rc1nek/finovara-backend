@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.BiFunction;
 
 @Service
 @RequiredArgsConstructor
@@ -24,33 +25,21 @@ public class ReportsService {
     private final RevenueRepository revenueRepository;
     private final ExpenseRepository expenseRepository;
 
-
-    private LocalDate monthStart(int year, int month) {
-        return LocalDate.of(year, month, 1);
-    }
-
-    private LocalDate monthEnd(int year, int month) {
-        LocalDate start = monthStart(year, month);
-        return start.withDayOfMonth(start.lengthOfMonth());
-    }
-
     public List<Revenue> findRevenueForMonth(Long userId, int year, int month) {
-        LocalDate from = monthStart(year, month);
-        LocalDate to = monthEnd(year, month);
+        LocalDate from = getMonthBegin(year, month);
+        LocalDate to = getMonthEnd(year, month);
         return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, to);
     }
 
     public List<Expense> findExpenseForMonth(Long userId, int year, int month) {
-        LocalDate from = monthStart(year, month);
-        LocalDate to = monthEnd(year, month);
+        LocalDate from = getMonthBegin(year, month);
+        LocalDate to = getMonthEnd(year, month);
         return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, to);
     }
-
 
     public ReportsSumDTO sumRevenueAndExpense(Long userId, int year, int month) {
         List<Revenue> revenues = findRevenueForMonth(userId, year, month);
         List<Expense> expenses = findExpenseForMonth(userId, year, month);
-
 
         BigDecimal sumRevenue = revenues.stream()
                 .map(Revenue::getAmount)
@@ -79,7 +68,6 @@ public class ReportsService {
 
         return new ReportsAverageDTO(avgRevenue, avgExpense);
     }
-
 
     public List<ReportsHighestExpense> highestExpense(Long userId, int year, int month) {
         List<Expense> expenses = findExpenseForMonth(userId, year, month);
@@ -118,14 +106,23 @@ public class ReportsService {
             // Tworzysz datę dla konkretnego dnia
             LocalDate targetDate = LocalDate.of(now.getYear(), now.getMonthValue(), day);
 
-            BigDecimal dayIncome = revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, targetDate, targetDate)
-                    .stream().map(Revenue::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal dayExpense = expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, targetDate, targetDate)
-                    .stream().map(Expense::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal dayIncome = revenueRepository.sumRevenueForDay(userId, targetDate);
+            BigDecimal dayExpense = expenseRepository.sumExpenseForDay(userId, targetDate);
 
             chartData.add(new ReportMonthlyChartDTO(day, dayIncome, dayExpense));
         }
         return chartData;
+    }
+
+
+    private LocalDate getMonthBegin(int year, int month) {
+        return LocalDate.of(year, month, 1);
+    }
+
+    private LocalDate getMonthEnd(int year, int month) {
+        LocalDate start = getMonthBegin(year, month);
+        return start.withDayOfMonth(start.lengthOfMonth());
     }
 
 }

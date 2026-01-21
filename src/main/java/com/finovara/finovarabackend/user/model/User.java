@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.user.model;
 
 import com.finovara.finovarabackend.expense.model.Expense;
+import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.wallet.model.Wallet;
@@ -28,7 +29,7 @@ public class User {
     private String email;
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "userAssigned", cascade =  CascadeType.REMOVE)
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.REMOVE)
     private List<Expense> expenses;
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.REMOVE)
@@ -36,6 +37,9 @@ public class User {
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private List<PiggyBank> piggyBanks;
+
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    private List<Limit> limits;
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private Wallet wallet;
