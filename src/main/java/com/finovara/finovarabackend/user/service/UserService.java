@@ -1,8 +1,8 @@
 package com.finovara.finovarabackend.user.service;
 
 import com.finovara.finovarabackend.exception.EmailAlreadyExistsException;
-import com.finovara.finovarabackend.exception.UserNotFoundException;
 import com.finovara.finovarabackend.exception.NameAlreadyExistsException;
+import com.finovara.finovarabackend.exception.UserNotFoundException;
 import com.finovara.finovarabackend.exception.WrongPasswordException;
 import com.finovara.finovarabackend.security.service.JwtService;
 import com.finovara.finovarabackend.user.dto.UserRegisterLoginDTO;
@@ -84,6 +84,5 @@ public class UserService {
     public Optional<User> getUserById(Long userId) {
         return userRepository.findById(userId);
     }
-
 
 }

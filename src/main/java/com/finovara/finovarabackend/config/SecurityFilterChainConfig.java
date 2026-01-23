@@ -46,9 +46,8 @@ public class SecurityFilterChainConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/register", "/login").permitAll()
-                        .requestMatchers("/addExpense").authenticated()
-                        .requestMatchers("/addRevenue").authenticated()
-                        .requestMatchers("/wallet").authenticated()
+                        .requestMatchers("/api/profile-image/**").permitAll()
+                        .requestMatchers("/profile-images/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
