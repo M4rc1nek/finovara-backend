@@ -28,11 +28,13 @@ public class User {
     private String password;
     private String email;
     private LocalDateTime createdAt;
+    @Column(name = "profile_image_path")
+    private String profileImagePath;
 
-    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private List<Expense> expenses;
 
-    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private List<Revenue> revenues;
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
