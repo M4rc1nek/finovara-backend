@@ -27,6 +27,9 @@ public class PiggyBank {
     private GoalType goalType;
     private BigDecimal goalAmount;
 
+    private boolean automationActive;
+    private BigDecimal automationPercentage;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User userAssigned;

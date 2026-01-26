@@ -3,6 +3,8 @@ package com.finovara.finovarabackend.revenue.service;
 import com.finovara.finovarabackend.exception.RevenueNotFoundException;
 import com.finovara.finovarabackend.exception.UserNotFoundException;
 import com.finovara.finovarabackend.exception.WalletNotFoundException;
+import com.finovara.finovarabackend.piggybank.model.PiggyBank;
+import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
 import com.finovara.finovarabackend.revenue.mapper.RevenueMapper;
 import com.finovara.finovarabackend.revenue.model.Revenue;
@@ -26,6 +28,7 @@ public class RevenueService {
 
     private final UserRepository userRepository;
     private final RevenueRepository revenueRepository;
+    private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
     private final WalletService walletService;
     private final RevenueMapper revenueMapper;
@@ -44,6 +47,8 @@ public class RevenueService {
         walletService.addBalanceToWallet(email, revenue.getAmount());
         //wallet jest zapisywany w repo klasie WalletService
         revenueRepository.save(revenue);
+
+        applyRevenueToPiggyBanks(email, revenue.getAmount());
 
         return revenue.getId();
     }
@@ -96,6 +101,13 @@ public class RevenueService {
 
     }
 
+    private BigDecimal calculatedUpdatedBalance(BigDecimal currentBalance, BigDecimal amountToAdd, BigDecimal amountToSubtract) {
+
+        return currentBalance
+                .subtract(amountToSubtract)
+                .add(amountToAdd);
+    }
+
     private User getUserByEmailOrThrow(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
@@ -106,11 +118,29 @@ public class RevenueService {
                 .orElseThrow(() -> new RevenueNotFoundException("Revenue not found"));
     }
 
-    private BigDecimal calculatedUpdatedBalance(BigDecimal currentBalance, BigDecimal amountToAdd, BigDecimal amountToSubtract) {
+    public void applyRevenueToPiggyBanks(String email, BigDecimal revenueAmount) {
+        User user = getUserByEmailOrThrow(email);
+        List<PiggyBank> piggyBanks = user.getPiggyBanks();
+        Wallet wallet = walletRepository.findByUserAssignedEmail(email)
+                .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
 
-        return currentBalance
-                .subtract(amountToSubtract)
-                .add(amountToAdd);
+        if (piggyBanks == null || piggyBanks.isEmpty()) return;
+
+        for (PiggyBank piggyBank : piggyBanks) {
+            if (piggyBank.isAutomationActive()) {
+                BigDecimal amountToAdd = revenueAmount
+                        .multiply(piggyBank.getAutomationPercentage())
+                        .divide(BigDecimal.valueOf(100));
+
+                piggyBank.setAmount(piggyBank.getAmount().add(amountToAdd));
+                wallet.setBalance(wallet.getBalance().subtract(amountToAdd));
+
+                piggyBankRepository.save(piggyBank);
+            }
+        }
     }
 
 }
+
+
+
