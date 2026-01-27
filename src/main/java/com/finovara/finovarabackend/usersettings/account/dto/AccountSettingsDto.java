@@ -14,7 +14,3 @@ public record AccountSettingsDto(
 
 ) {
 }
-
-// i zdjecie profilowe.. zdjecie zaraz bedzie jak cos.
-//Dam caly kod a ty dostosuj caly frontend pod to co wyslalem, utworz wszelkie walidacje i czerwone komunikaty jezeli cos pojdzie nie tak.
-//Tu masz caly kod:

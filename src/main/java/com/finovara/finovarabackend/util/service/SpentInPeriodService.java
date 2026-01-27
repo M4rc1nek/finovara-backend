@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.limit.service;
+package com.finovara.finovarabackend.util.service;
 
 import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
@@ -36,7 +36,7 @@ public class SpentInPeriodService {
         return getSpentInPeriod(userId, startMonth, today);
     }
 
-    public BigDecimal getSpentInPeriod(Long userId, LocalDate from, LocalDate to) {
+    private BigDecimal getSpentInPeriod(Long userId, LocalDate from, LocalDate to) {
         BigDecimal spent = expenseRepository.sumExpensesByUserAndDateRange(userId, from, to);
         return spent != null ? spent : BigDecimal.ZERO;
     }
