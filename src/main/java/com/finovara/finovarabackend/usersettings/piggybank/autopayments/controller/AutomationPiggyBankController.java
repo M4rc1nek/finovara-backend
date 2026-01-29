@@ -1,15 +1,17 @@
-package com.finovara.finovarabackend.usersettings.finance.controller;
+package com.finovara.finovarabackend.usersettings.piggybank.autopayments.controller;
 
 import com.finovara.finovarabackend.security.SecurityUtils;
-import com.finovara.finovarabackend.usersettings.finance.dto.AutomationPiggyBankDto;
-import com.finovara.finovarabackend.usersettings.finance.service.AutomationPiggyBankService;
+import com.finovara.finovarabackend.usersettings.piggybank.autopayments.dto.AutomationPiggyBankDto;
+import com.finovara.finovarabackend.usersettings.piggybank.autopayments.service.AutomationPiggyBankService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/finance-settings")
+@RequestMapping("/api/finance-autopayment")
 @RequiredArgsConstructor
 public class AutomationPiggyBankController {
 
@@ -18,6 +20,12 @@ public class AutomationPiggyBankController {
     @PutMapping("/{piggyBankId}")
     public ResponseEntity<Void> createAutomation(@PathVariable Long piggyBankId, @Valid @RequestBody AutomationPiggyBankDto automationPiggyBankDto) {
         automationPiggyBankService.createAutomation(SecurityUtils.getCurrentUserEmail(), piggyBankId, automationPiggyBankDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping
+    public ResponseEntity<Void> updateRoundUpSettings(@RequestBody List<AutomationPiggyBankDto> settings) {
+        automationPiggyBankService.updatePiggyBank(SecurityUtils.getCurrentUserEmail(), settings);
         return ResponseEntity.noContent().build();
     }
 

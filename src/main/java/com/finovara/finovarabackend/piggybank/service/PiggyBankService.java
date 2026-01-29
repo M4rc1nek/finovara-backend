@@ -29,6 +29,13 @@ public class PiggyBankService {
     public PiggyBankDTO addPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
         User user = getUserByEmailOrThrow(email);
 
+        long currentPiggyBanks = piggyBankRepository.countPiggyBanksByUserId(user.getId());
+
+        int maxPiggyBanks = 5;
+        if(currentPiggyBanks >= maxPiggyBanks){
+            throw new InvalidInputException("you have reached the maximum number of piggy banks: " + maxPiggyBanks);
+        }
+
         if (piggyBankRepository.existsByName(piggyBankDTO.name())) {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
@@ -49,6 +56,32 @@ public class PiggyBankService {
         piggyBankRepository.save(piggyBank);
 
         return buildDTO(piggyBank, user);
+    }
+
+    private PiggyBankDTO buildDTO(PiggyBank piggyBank, User user) {
+        Double progress = null;
+        boolean goalCompleted = false;
+        if (piggyBank.getGoalAmount() != null && piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) > 0) {
+            progress =
+                    piggyBank.getAmount()
+                            .divide(piggyBank.getGoalAmount(), 4, RoundingMode.HALF_UP)
+                            .multiply(BigDecimal.valueOf(100))
+                            .doubleValue();
+            goalCompleted = piggyBank.getAmount()
+                    .compareTo(piggyBank.getGoalAmount()) >= 0;
+        }
+
+        return new PiggyBankDTO(
+                piggyBank.getId(),
+                user.getId(),
+                piggyBank.getName(),
+                piggyBank.getAmount(),
+                piggyBank.getCreatedAt(),
+                piggyBank.getGoalType(),
+                piggyBank.getGoalAmount(),
+                progress,
+                goalCompleted
+        );
     }
 
     @Transactional
@@ -123,32 +156,6 @@ public class PiggyBankService {
     private Wallet getWalletByUserEmail(String email) {
         return walletRepository.findByUserAssignedEmail(email)
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
-    }
-
-    private PiggyBankDTO buildDTO(PiggyBank piggyBank, User user) {
-        Double progress = null;
-        boolean goalCompleted = false;
-        if (piggyBank.getGoalAmount() != null && piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) > 0) {
-            progress =
-                    piggyBank.getAmount()
-                            .divide(piggyBank.getGoalAmount(), 4, RoundingMode.HALF_UP)
-                            .multiply(BigDecimal.valueOf(100))
-                            .doubleValue();
-            goalCompleted = piggyBank.getAmount()
-                    .compareTo(piggyBank.getGoalAmount()) >= 0;
-        }
-
-        return new PiggyBankDTO(
-                piggyBank.getId(),
-                user.getId(),
-                piggyBank.getName(),
-                piggyBank.getAmount(),
-                piggyBank.getCreatedAt(),
-                piggyBank.getGoalType(),
-                piggyBank.getGoalAmount(),
-                progress,
-                goalCompleted
-        );
     }
 
     private void validateAmount(BigDecimal amount) {
