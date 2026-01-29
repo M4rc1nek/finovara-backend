@@ -30,6 +30,8 @@ public class PiggyBank {
     private boolean automationActive;
     private BigDecimal automationPercentage;
 
+    private boolean roundUpActive;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User userAssigned;

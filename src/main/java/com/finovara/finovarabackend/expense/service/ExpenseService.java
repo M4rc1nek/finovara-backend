@@ -2,6 +2,7 @@ package com.finovara.finovarabackend.expense.service;
 
 import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.exception.ExpenseNotFoundException;
+import com.finovara.finovarabackend.exception.InvalidInputException;
 import com.finovara.finovarabackend.exception.LimitExceededException;
 import com.finovara.finovarabackend.exception.UserNotFoundException;
 import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
@@ -10,6 +11,8 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
+import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.PiggyBankAutomationMode;
+import com.finovara.finovarabackend.usersettings.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.service.SpentInPeriodService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
@@ -30,8 +33,9 @@ public class ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final UserRepository userRepository;
     private final LimitRepository limitRepository;
-    private final ExpenseMapper expenseMapper;
     private final WalletService walletService;
+    private final RoundUpService  roundUpService;
+    private final ExpenseMapper expenseMapper;
     private final SpentInPeriodService spentInPeriodService;
     private final TimeConfig timeConfig;
 
@@ -49,8 +53,15 @@ public class ExpenseService {
                 .userAssigned(user)
                 .build();
 
+        if (expenseDTO.amount().compareTo(BigDecimal.ONE) < 0) {
+            throw new InvalidInputException("Expense amount must be positive");
+        }
+
         walletService.removeBalanceFromWallet(email, expense.getAmount());
         expenseRepository.save(expense);
+
+        roundUpService.handleExpenseForRoundUp(email, expense.getId(), PiggyBankAutomationMode.APPLY);
+
 
         return expense.getId();
     }
@@ -68,12 +79,17 @@ public class ExpenseService {
 
         walletService.addBalanceToWallet(email, existingExpense.getAmount());
         walletService.removeBalanceFromWallet(email, expenseDTO.amount());
+        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.ROLLBACK);
+
 
         existingExpense.setAmount(expenseDTO.amount());
         existingExpense.setCategory(expenseDTO.category());
         existingExpense.setDescription(expenseDTO.description());
 
         expenseRepository.save(existingExpense);
+
+        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.APPLY);
+
 
         return expenseId;
 
@@ -93,6 +109,7 @@ public class ExpenseService {
         User user = getUserByEmailOrThrow(email);
         Expense expense = expenseRepository.findByIdAndUserAssignedId(expenseId, user.getId())
                 .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
+        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.ROLLBACK);
         walletService.addBalanceToWallet(email, expense.getAmount());
         expenseRepository.delete(expense);
 

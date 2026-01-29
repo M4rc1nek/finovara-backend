@@ -65,6 +65,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(NotAuthorizedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleForbidden(NotAuthorizedException exception, WebRequest webRequest) {
+        ErrorResponseDTO body = new ErrorResponseDTO(
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleAll(WebRequest webRequest) {
         ErrorResponseDTO body = new ErrorResponseDTO(
