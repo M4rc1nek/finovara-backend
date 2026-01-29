@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -79,10 +78,6 @@ public class UserService {
         String jwtToken = jwtService.generateToken(userDetails);
 
         return new UserRegisterLoginDTO(user.getId(), user.getUsername(), null, user.getEmail(), jwtToken);
-    }
-
-    public Optional<User> getUserById(Long userId) {
-        return userRepository.findById(userId);
     }
 
 }

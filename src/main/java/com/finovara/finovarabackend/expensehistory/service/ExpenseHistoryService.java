@@ -8,7 +8,8 @@ import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
-import com.finovara.finovarabackend.util.service.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +21,12 @@ import java.util.List;
 public class ExpenseHistoryService {
     private final ExpenseRepository expenseRepository;
     private final SpentInPeriodService spentInPeriodService;
-    private final UserRepository userRepository;
+    private final UserManagerService userManagerService;
     private final ExpenseMapper expenseMapper;
 
     public List<ExpenseDTO> getExpenseByCategory(String email, ExpenseCategory category) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = userManagerService.getUserByEmailOrThrow(email);
+
 
         LocalDate startMonth = spentInPeriodService.today().withDayOfMonth(1);
         LocalDate today = spentInPeriodService.today();

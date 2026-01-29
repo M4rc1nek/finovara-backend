@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
@@ -21,13 +22,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PiggyBankService {
 
-    private final UserRepository userRepository;
+    private final UserManagerService userManagerService;
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
 
     @Transactional
     public PiggyBankDTO addPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
 
         long currentPiggyBanks = piggyBankRepository.countPiggyBanksByUserId(user.getId());
 
@@ -125,7 +126,7 @@ public class PiggyBankService {
     }
 
     public List<PiggyBankDTO> getAllPiggyBanks(String email) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(email);
 
         return piggyBanks.stream()
@@ -141,11 +142,6 @@ public class PiggyBankService {
             throw new InvalidInputException("Cannot delete piggy bank with balance.  Withdraw funds first.");
         }
         piggyBankRepository.delete(piggyBank);
-    }
-
-    private User getUserByEmailOrThrow(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     private PiggyBank getPiggyBankByUserEmail(Long piggyBankId, String email) {
@@ -174,7 +170,7 @@ public class PiggyBankService {
     }
 
     private UserContext getEntitiesForTransaction(String email, Long piggyBankId) {
-        User user = getUserByEmailOrThrow(email);
+       User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBank piggyBank = getPiggyBankByUserEmail(piggyBankId, email);
         Wallet wallet = getWalletByUserEmail(email);
 

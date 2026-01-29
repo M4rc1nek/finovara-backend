@@ -10,6 +10,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.dto.AutoPaymentsDto;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
@@ -24,13 +25,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AutoPaymentsService {
 
-    private final UserRepository userRepository;
+    private final UserManagerService userManagerService;
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
 
     @Transactional
     public void createAutomation(String email, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBank piggyBank = getPiggyBankOrThrow(piggyBankId);
 
         if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
@@ -50,7 +51,7 @@ public class AutoPaymentsService {
 
     @Transactional
     public AutoPaymentsDto getAutomation(String email, Long piggyBankId) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBank piggyBank = getPiggyBankOrThrow(piggyBankId);
 
         if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
@@ -66,7 +67,7 @@ public class AutoPaymentsService {
 
     @Transactional
     public void updatePiggyBank(String email, List<AutoPaymentsDto> settings) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
 
         for (AutoPaymentsDto dto : settings) {
             PiggyBank piggyBank = getPiggyBankOrThrow(dto.piggyBankId());
@@ -83,7 +84,7 @@ public class AutoPaymentsService {
     }
 
     public void handleRevenuePiggyBankAutomation(String email, BigDecimal revenueAmount, AutoPaymentsMode mode) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
         List<PiggyBank> piggyBanks = user.getPiggyBanks();
         Wallet wallet = getWalletOrThrow(email);
 
@@ -124,12 +125,6 @@ public class AutoPaymentsService {
         }
 
     }
-
-    private User getUserByEmailOrThrow(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-    }
-
     private PiggyBank getPiggyBankOrThrow(Long piggyBankId) {
         return piggyBankRepository.findById(piggyBankId)
                 .orElseThrow(() -> new PiggyBankNotFoundException("PiggyBank not found"));

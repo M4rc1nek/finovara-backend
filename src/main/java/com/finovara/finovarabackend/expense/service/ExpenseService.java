@@ -13,9 +13,10 @@ import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersettings.piggybank.roundup.service.RoundUpService;
-import com.finovara.finovarabackend.util.service.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -31,17 +32,17 @@ import java.util.Optional;
 public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
-    private final UserRepository userRepository;
     private final LimitRepository limitRepository;
     private final WalletService walletService;
     private final RoundUpService  roundUpService;
+    private final UserManagerService userManagerService;
     private final ExpenseMapper expenseMapper;
     private final SpentInPeriodService spentInPeriodService;
     private final TimeConfig timeConfig;
 
     @Transactional
     public Long addExpense(ExpenseDTO expenseDTO, String email, LimitType limitType) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
 
         validateLimitOrThrow(user.getId(), limitType, BigDecimal.ZERO, expenseDTO.amount());
 
@@ -69,7 +70,8 @@ public class ExpenseService {
     @Transactional
     public Long editExpense(ExpenseDTO expenseDTO, String email, Long expenseId, LimitType limitType) {
         Expense existingExpense = getExpenseOrThrow(expenseId);
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
+
 
         if (!existingExpense.getUserAssigned().getId().equals(user.getId())) {
             throw new ExpenseNotFoundException("Expense not found for this user");
@@ -96,7 +98,7 @@ public class ExpenseService {
     }
 
     public List<ExpenseDTO> getExpense(String email) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
         List<Expense> expenses = expenseRepository.findAllByUserAssignedId(user.getId());
 
         return expenses.stream()
@@ -106,18 +108,13 @@ public class ExpenseService {
 
     @Transactional
     public void deleteExpense(Long expenseId, String email) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
         Expense expense = expenseRepository.findByIdAndUserAssignedId(expenseId, user.getId())
                 .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.ROLLBACK);
         walletService.addBalanceToWallet(email, expense.getAmount());
         expenseRepository.delete(expense);
 
-    }
-
-    private User getUserByEmailOrThrow(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User Not Found"));
     }
 
     private Expense getExpenseOrThrow(Long expenseId) {

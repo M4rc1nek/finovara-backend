@@ -8,9 +8,9 @@ import com.finovara.finovarabackend.revenue.mapper.RevenueMapper;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.service.AutoPaymentsService;
+import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import com.finovara.finovarabackend.wallet.service.WalletService;
@@ -26,7 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RevenueService {
 
-    private final UserRepository userRepository;
+    private final UserManagerService userManagerService;
     private final RevenueRepository revenueRepository;
     private final WalletRepository walletRepository;
     private final WalletService walletService;
@@ -35,7 +35,7 @@ public class RevenueService {
 
     @Transactional
     public Long addRevenue(RevenueDTO revenueDTO, String email) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
 
         Revenue revenue = Revenue.builder()
                 .amount(revenueDTO.amount())
@@ -56,7 +56,7 @@ public class RevenueService {
     @Transactional
     public Long editRevenue(RevenueDTO revenueDTO, Long revenueId, String email) {
         Revenue existingRevenue = getRevenueOrThrow(revenueId);
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
 
         if (!existingRevenue.getUserAssigned().getId().equals(user.getId())) {
             throw new RevenueNotFoundException("Revenue not found for this user");
@@ -86,7 +86,7 @@ public class RevenueService {
     }
 
     public List<RevenueDTO> getRevenue(String email) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
         List<Revenue> revenue = revenueRepository.findAllByUserAssignedId(user.getId());
 
         return revenue.stream()
@@ -96,18 +96,13 @@ public class RevenueService {
 
     @Transactional
     public void deleteRevenue(Long revenueId, String email) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
         Revenue revenue = revenueRepository.findByIdAndUserAssignedId(revenueId, user.getId())
                 .orElseThrow(() -> new RevenueNotFoundException("Revenue not found"));
         autoPaymentsService.handleRevenuePiggyBankAutomation(email, revenue.getAmount(), AutoPaymentsMode.ROLLBACK);
         walletService.removeBalanceFromWallet(email, revenue.getAmount());
         revenueRepository.delete(revenue);
 
-    }
-
-    private User getUserByEmailOrThrow(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     private Revenue getRevenueOrThrow(Long revenueId) {

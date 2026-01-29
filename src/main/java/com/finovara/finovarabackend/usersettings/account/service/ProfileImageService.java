@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.usersettings.account.service;
 import com.finovara.finovarabackend.exception.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,13 +21,14 @@ import java.util.UUID;
 public class ProfileImageService {
 
     private final UserRepository userRepository;
+    private final UserManagerService userManagerService;
 
     @Value("${application.upload.profile-images-directory}")
     private String profileImagesDirectory;
 
     @Transactional
     public void uploadProfileImage(MultipartFile file, Long userId) {
-        User user = getUserByIdOrThrow(userId);
+        User user = userManagerService.getUserByIdOrThrow(userId);
         validateFile(file);
 
         // Pobierz STARY plik PRZED zmianami (ważne!)
@@ -61,7 +63,7 @@ public class ProfileImageService {
 
     @Transactional
     public void deleteProfileImage(Long userId) {
-        User user = getUserByIdOrThrow(userId);
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         if (user.getProfileImagePath() == null) {
             throw new IllegalArgumentException("Profile image does not exist");
@@ -77,10 +79,6 @@ public class ProfileImageService {
         }
     }
 
-    private User getUserByIdOrThrow(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-    }
 
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {

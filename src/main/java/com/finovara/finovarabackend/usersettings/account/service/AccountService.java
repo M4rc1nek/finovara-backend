@@ -7,6 +7,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersettings.account.dto.AccountSettingsDto;
 import com.finovara.finovarabackend.usersettings.account.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,10 +20,12 @@ import java.nio.file.Paths;
 public class AccountService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserManagerService userManagerService;
 
     @Transactional
     public AccountSettingsDto updateUsername(AccountSettingsDto accountSettingsDto, Long userId) {
-        User user = getUserByIdOrThrow(userId);
+        User user = userManagerService.getUserByIdOrThrow(userId);
+
 
         if (userRepository.existsByUsername(accountSettingsDto.username())) {
             throw new NameAlreadyExistsException("Username is already taken");
@@ -36,7 +39,7 @@ public class AccountService {
 
     @Transactional
     public void deleteAccount(ConfirmPasswordDto confirmPasswordDto, Long userId) {
-        User user = getUserByIdOrThrow(userId);
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         if (!passwordEncoder.matches(confirmPasswordDto.password(), user.getPassword())) {
             throw new WrongPasswordException("You cannot delete your account, incorrect password");
@@ -47,9 +50,7 @@ public class AccountService {
 
     @Transactional
     public AccountSettingsDto getAccountSettings(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
+        User user = userManagerService.getUserByEmailOrThrow(email);
         String profileImageUrl = buildProfileImageUrl(user.getProfileImagePath());
 
         return new AccountSettingsDto(user.getUsername(), user.getEmail(), user.getCreatedAt(), profileImageUrl);
@@ -63,8 +64,4 @@ public class AccountService {
         return "/profile-images/" + filename;
     }
 
-    private User getUserByIdOrThrow(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-    }
 }

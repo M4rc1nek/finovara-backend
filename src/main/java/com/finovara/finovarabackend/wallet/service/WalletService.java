@@ -1,10 +1,9 @@
 package com.finovara.finovarabackend.wallet.service;
 
 import com.finovara.finovarabackend.exception.InvalidInputException;
-import com.finovara.finovarabackend.exception.UserNotFoundException;
 import com.finovara.finovarabackend.exception.WalletNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import com.finovara.finovarabackend.wallet.dto.WalletDTO;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
@@ -18,7 +17,7 @@ import java.util.function.BiFunction;
 @RequiredArgsConstructor
 public class WalletService {
     private final WalletRepository walletRepository;
-    private final UserRepository userRepository;
+    private final UserManagerService userManagerService;
 
     public WalletDTO addBalanceToWallet(String email, BigDecimal amount) {
         return modifyWalletBalance(email, amount, BigDecimal::add);
@@ -33,7 +32,7 @@ public class WalletService {
     }
 
     public WalletDTO getWalletForUser(String email) {
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
 
         Wallet wallet = walletRepository.findByUserAssignedEmail(email).orElse(null);
         if (wallet == null) {
@@ -49,7 +48,7 @@ public class WalletService {
     private WalletDTO modifyWalletBalance(String email, BigDecimal amount, BiFunction<BigDecimal, BigDecimal, BigDecimal> operation) {
         validateAmount(amount);
 
-        User user = getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
         Wallet wallet = getWalletOrThrow(email);
 
         BigDecimal newBalance = operation.apply(wallet.getBalance(), amount);
@@ -57,11 +56,6 @@ public class WalletService {
 
         walletRepository.save(wallet);
         return returnNewWalletDTO(user, wallet);
-    }
-
-    private User getUserByEmailOrThrow(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     private Wallet getWalletOrThrow(String email) {

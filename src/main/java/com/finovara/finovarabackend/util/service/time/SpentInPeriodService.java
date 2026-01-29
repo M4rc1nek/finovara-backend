@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.util.service;
+package com.finovara.finovarabackend.util.service.time;
 
 import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
