@@ -1,12 +1,14 @@
 package com.finovara.finovarabackend.piggybank.service;
 
-import com.finovara.finovarabackend.exception.*;
+import com.finovara.finovarabackend.exception.InvalidInputException;
+import com.finovara.finovarabackend.exception.NameAlreadyExistsException;
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.UserManagerService;
+import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
@@ -24,6 +26,8 @@ public class PiggyBankService {
 
     private final UserManagerService userManagerService;
     private final PiggyBankRepository piggyBankRepository;
+    private final PiggyBankManagerService piggyBankManagerService;
+    private final WalletManagerService walletManagerService;
     private final WalletRepository walletRepository;
 
     @Transactional
@@ -33,7 +37,7 @@ public class PiggyBankService {
         long currentPiggyBanks = piggyBankRepository.countPiggyBanksByUserId(user.getId());
 
         int maxPiggyBanks = 5;
-        if(currentPiggyBanks >= maxPiggyBanks){
+        if (currentPiggyBanks >= maxPiggyBanks) {
             throw new InvalidInputException("you have reached the maximum number of piggy banks: " + maxPiggyBanks);
         }
 
@@ -136,22 +140,12 @@ public class PiggyBankService {
 
     @Transactional
     public void deletePiggyBank(String email, Long piggyBankId) {
-        PiggyBank piggyBank = getPiggyBankByUserEmail(piggyBankId, email);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
 
         if (piggyBank == null || piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             throw new InvalidInputException("Cannot delete piggy bank with balance.  Withdraw funds first.");
         }
         piggyBankRepository.delete(piggyBank);
-    }
-
-    private PiggyBank getPiggyBankByUserEmail(Long piggyBankId, String email) {
-        return piggyBankRepository.findByIdAndUserAssignedEmail(piggyBankId, email)
-                .orElseThrow(() -> new PiggyBankNotFoundException("Piggy Bank not found"));
-    }
-
-    private Wallet getWalletByUserEmail(String email) {
-        return walletRepository.findByUserAssignedEmail(email)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
     }
 
     private void validateAmount(BigDecimal amount) {
@@ -170,9 +164,9 @@ public class PiggyBankService {
     }
 
     private UserContext getEntitiesForTransaction(String email, Long piggyBankId) {
-       User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = getPiggyBankByUserEmail(piggyBankId, email);
-        Wallet wallet = getWalletByUserEmail(email);
+        User user = userManagerService.getUserByEmailOrThrow(email);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+        Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
 
         return new UserContext(wallet, piggyBank, user);
     }

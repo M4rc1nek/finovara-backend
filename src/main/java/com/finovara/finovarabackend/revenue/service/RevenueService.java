@@ -10,6 +10,7 @@ import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.service.AutoPaymentsService;
+import com.finovara.finovarabackend.util.service.revenue.RevenueManagerService;
 import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
@@ -30,6 +31,7 @@ public class RevenueService {
     private final RevenueRepository revenueRepository;
     private final WalletRepository walletRepository;
     private final WalletService walletService;
+    private final RevenueManagerService revenueManagerService;
     private final RevenueMapper revenueMapper;
     private final AutoPaymentsService autoPaymentsService;
 
@@ -55,7 +57,7 @@ public class RevenueService {
 
     @Transactional
     public Long editRevenue(RevenueDTO revenueDTO, Long revenueId, String email) {
-        Revenue existingRevenue = getRevenueOrThrow(revenueId);
+        Revenue existingRevenue = revenueManagerService.getRevenueOrThrow(revenueId);
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         if (!existingRevenue.getUserAssigned().getId().equals(user.getId())) {
@@ -103,11 +105,6 @@ public class RevenueService {
         walletService.removeBalanceFromWallet(email, revenue.getAmount());
         revenueRepository.delete(revenue);
 
-    }
-
-    private Revenue getRevenueOrThrow(Long revenueId) {
-        return revenueRepository.findById(revenueId)
-                .orElseThrow(() -> new RevenueNotFoundException("Revenue not found"));
     }
 
 }

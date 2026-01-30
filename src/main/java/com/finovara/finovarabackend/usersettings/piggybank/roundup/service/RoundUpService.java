@@ -2,15 +2,15 @@ package com.finovara.finovarabackend.usersettings.piggybank.roundup.service;
 
 import com.finovara.finovarabackend.exception.*;
 import com.finovara.finovarabackend.expense.model.Expense;
-import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersettings.piggybank.roundup.dto.RoundUpDto;
+import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
+import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
@@ -27,15 +27,16 @@ import java.util.List;
 public class RoundUpService {
 
     private final UserManagerService userManagerService;
-    private final PiggyBankRepository piggyBankRepository;
-    private final ExpenseRepository expenseRepository;
+    private final ExpenseManagerService expenseManagerService;
     private final PiggyBankService piggyBankService;
+    private final PiggyBankManagerService piggyBankManagerService;
+    private final PiggyBankRepository piggyBankRepository;;
     private final WalletRepository walletRepository;
 
     @Transactional
     public void createRoundUp(RoundUpDto roundUpDto, Long piggyBankId, String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = getPiggyBankOrThrow(piggyBankId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankOrThrow(piggyBankId);
 
         if (user.getPiggyBanks().isEmpty()) {
             throw new MissingRequirementException("Piggy banks not found for you");
@@ -53,7 +54,7 @@ public class RoundUpService {
     @Transactional
     public RoundUpDto getRoundUp(String email, Long piggyBankId) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = getPiggyBankOrThrow(piggyBankId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankOrThrow(piggyBankId);
 
         if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
             throw new NotAuthorizedException("Not your piggy bank");
@@ -73,7 +74,7 @@ public class RoundUpService {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         for (RoundUpDto dto : settings) {
-            PiggyBank piggyBank = getPiggyBankOrThrow(dto.piggyBankId());
+            PiggyBank piggyBank = piggyBankManagerService.getPiggyBankOrThrow(dto.piggyBankId());
 
             if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
                 throw new NotAuthorizedException("Not your piggy bank");
@@ -85,7 +86,7 @@ public class RoundUpService {
     @Transactional
     public void handleExpenseForRoundUp(String email, Long expenseId, AutoPaymentsMode mode) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        Expense expense = getExpenseOrThrow(expenseId, user.getId());
+        Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, user.getId());
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(email);
         Wallet wallet = walletRepository.findByUserAssignedEmail(email)
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
@@ -114,16 +115,6 @@ public class RoundUpService {
                 }
             }
         }
-    }
-
-    private PiggyBank getPiggyBankOrThrow(Long piggyBankId) {
-        return piggyBankRepository.findById(piggyBankId)
-                .orElseThrow(() -> new PiggyBankNotFoundException("Piggy Bank not found"));
-    }
-
-    private Expense getExpenseOrThrow(Long expenseId, Long userId) {
-        return expenseRepository.findByIdAndUserAssignedId(expenseId, userId)
-                .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
     }
 
 }

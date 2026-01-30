@@ -4,18 +4,17 @@ import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.exception.ExpenseNotFoundException;
 import com.finovara.finovarabackend.exception.InvalidInputException;
 import com.finovara.finovarabackend.exception.LimitExceededException;
-import com.finovara.finovarabackend.exception.UserNotFoundException;
 import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
 import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
+import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersettings.piggybank.roundup.service.RoundUpService;
+import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
 import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import jakarta.transaction.Transactional;
@@ -34,7 +33,8 @@ public class ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final LimitRepository limitRepository;
     private final WalletService walletService;
-    private final RoundUpService  roundUpService;
+    private final RoundUpService roundUpService;
+    private final ExpenseManagerService expenseManagerService;
     private final UserManagerService userManagerService;
     private final ExpenseMapper expenseMapper;
     private final SpentInPeriodService spentInPeriodService;
@@ -63,15 +63,13 @@ public class ExpenseService {
 
         roundUpService.handleExpenseForRoundUp(email, expense.getId(), AutoPaymentsMode.APPLY);
 
-
         return expense.getId();
     }
 
     @Transactional
     public Long editExpense(ExpenseDTO expenseDTO, String email, Long expenseId, LimitType limitType) {
-        Expense existingExpense = getExpenseOrThrow(expenseId);
+        Expense existingExpense = expenseManagerService.getExpenseByIdOrThrow(expenseId);
         User user = userManagerService.getUserByEmailOrThrow(email);
-
 
         if (!existingExpense.getUserAssigned().getId().equals(user.getId())) {
             throw new ExpenseNotFoundException("Expense not found for this user");
@@ -83,7 +81,6 @@ public class ExpenseService {
         walletService.removeBalanceFromWallet(email, expenseDTO.amount());
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.ROLLBACK);
 
-
         existingExpense.setAmount(expenseDTO.amount());
         existingExpense.setCategory(expenseDTO.category());
         existingExpense.setDescription(expenseDTO.description());
@@ -91,7 +88,6 @@ public class ExpenseService {
         expenseRepository.save(existingExpense);
 
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.APPLY);
-
 
         return expenseId;
 
@@ -115,11 +111,6 @@ public class ExpenseService {
         walletService.addBalanceToWallet(email, expense.getAmount());
         expenseRepository.delete(expense);
 
-    }
-
-    private Expense getExpenseOrThrow(Long expenseId) {
-        return expenseRepository.findById(expenseId)
-                .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
     }
 
     private BigDecimal checkSpentInPeriod(LimitType limitType, Long userId) {

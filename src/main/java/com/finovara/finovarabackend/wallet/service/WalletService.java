@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.wallet.service;
 
 import com.finovara.finovarabackend.exception.InvalidInputException;
-import com.finovara.finovarabackend.exception.WalletNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.UserManagerService;
+import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.dto.WalletDTO;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
@@ -18,13 +18,14 @@ import java.util.function.BiFunction;
 public class WalletService {
     private final WalletRepository walletRepository;
     private final UserManagerService userManagerService;
+    private final WalletManagerService walletManagerService;
 
     public WalletDTO addBalanceToWallet(String email, BigDecimal amount) {
         return modifyWalletBalance(email, amount, BigDecimal::add);
     }
 
     public WalletDTO removeBalanceFromWallet(String email, BigDecimal amount) {
-        Wallet wallet = getWalletOrThrow(email);
+        Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
         if (wallet == null || wallet.getBalance().compareTo(amount) < 0) {
             throw new InvalidInputException("Insufficient funds");
         }
@@ -49,18 +50,13 @@ public class WalletService {
         validateAmount(amount);
 
         User user = userManagerService.getUserByEmailOrThrow(email);
-        Wallet wallet = getWalletOrThrow(email);
+        Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
 
         BigDecimal newBalance = operation.apply(wallet.getBalance(), amount);
         wallet.setBalance(newBalance);
 
         walletRepository.save(wallet);
         return returnNewWalletDTO(user, wallet);
-    }
-
-    private Wallet getWalletOrThrow(String email) {
-        return walletRepository.findByUserAssignedEmail(email)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found for this user"));
     }
 
     private WalletDTO returnNewWalletDTO(User user, Wallet wallet) {
