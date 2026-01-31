@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.piggybank.model;
 
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersettings.piggybank.completion.model.GoalCompletionStrategy;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,12 +26,15 @@ public class PiggyBank {
     private LocalDate createdAt;
 
     private GoalType goalType;
+
     private BigDecimal goalAmount;
 
     private boolean automationActive;
     private BigDecimal automationPercentage;
 
     private boolean roundUpActive;
+
+    private GoalCompletionStrategy goalCompletionStrategy;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

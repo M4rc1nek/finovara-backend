@@ -17,9 +17,7 @@ import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUser
 @RequiredArgsConstructor
 public class PiggyBankController {
     private final PiggyBankService piggyBankService;
-
-    // sprawdz czy jest edytowanie skarbonki
-
+    
     @PostMapping
     public ResponseEntity<PiggyBankDTO> createPiggyBank(@RequestBody @Valid PiggyBankDTO piggyBankDTO) {
         return ResponseEntity.ok(piggyBankService.addPiggyBank(piggyBankDTO, getCurrentUserEmail()));

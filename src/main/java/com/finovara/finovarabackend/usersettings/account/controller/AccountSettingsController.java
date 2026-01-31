@@ -16,7 +16,7 @@ public class AccountSettingsController {
     private final AccountService accountService;
 
     @PutMapping("/{userId}/username")
-    public ResponseEntity<AccountSettingsDto> updateUsername(@Valid @RequestBody AccountSettingsDto accountSettingsDto, @PathVariable Long userId) {
+    public ResponseEntity<AccountSettingsDto> updateUsername(@RequestBody AccountSettingsDto accountSettingsDto, @PathVariable Long userId) {
         return ResponseEntity.ok(accountService.updateUsername(accountSettingsDto, userId));
     }
 
@@ -26,7 +26,7 @@ public class AccountSettingsController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteAccount(@Valid @RequestBody ConfirmPasswordDto confirmPasswordDto, @PathVariable Long userId) {
+    public ResponseEntity<Void> deleteAccount(@RequestBody ConfirmPasswordDto confirmPasswordDto, @PathVariable Long userId) {
         accountService.deleteAccount(confirmPasswordDto,userId);
         return ResponseEntity.noContent().build();
     }

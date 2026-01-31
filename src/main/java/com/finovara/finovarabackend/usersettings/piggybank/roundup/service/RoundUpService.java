@@ -70,7 +70,7 @@ public class RoundUpService {
     }
 
     @Transactional
-    public void updatePiggyBank(String email, List<RoundUpDto> settings) {
+    public void saveRoundUpPiggyBank(String email, List<RoundUpDto> settings) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         for (RoundUpDto dto : settings) {

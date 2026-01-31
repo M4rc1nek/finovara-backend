@@ -64,7 +64,7 @@ public class AutoPaymentsService {
     }
 
     @Transactional
-    public void updatePiggyBank(String email, List<AutoPaymentsDto> settings) {
+    public void saveAutoPaymentsPiggyBank(String email, List<AutoPaymentsDto> settings) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         for (AutoPaymentsDto dto : settings) {
