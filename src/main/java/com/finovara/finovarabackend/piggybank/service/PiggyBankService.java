@@ -6,6 +6,8 @@ import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersettings.piggybank.completion.service.GoalCompletionService;
+import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.UserManagerService;
 import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
@@ -28,7 +30,10 @@ public class PiggyBankService {
     private final PiggyBankRepository piggyBankRepository;
     private final PiggyBankManagerService piggyBankManagerService;
     private final WalletManagerService walletManagerService;
+    private final GoalCompletionService goalCompletionService;
     private final WalletRepository walletRepository;
+
+    private final PiggyBankCheckGoalCompletion piggyBankCheckGoalCompletion;
 
     @Transactional
     public PiggyBankDTO addPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
@@ -94,10 +99,6 @@ public class PiggyBankService {
 
         UserContext userContext = getEntitiesForTransaction(email, piggyBankId);
 
-        if (isGoalCompleted(userContext.piggyBank)) {
-            throw new InvalidInputException("Goal is already completed. You can only withdraw funds.");
-        }
-
         validateAmount(amount);
         validateSufficientFunds(userContext.wallet.getBalance(), amount);
 
@@ -106,6 +107,10 @@ public class PiggyBankService {
 
         walletRepository.save(userContext.wallet);
         piggyBankRepository.save(userContext.piggyBank);
+
+        if (piggyBankCheckGoalCompletion.isGoalCompleted(userContext.piggyBank)) {
+            goalCompletionService.handleGoalCompletion(email);
+        }
 
         return buildDTO(userContext.piggyBank, userContext.user);
 
@@ -161,6 +166,7 @@ public class PiggyBankService {
     }
 
     private record UserContext(Wallet wallet, PiggyBank piggyBank, User user) {
+
     }
 
     private UserContext getEntitiesForTransaction(String email, Long piggyBankId) {
@@ -169,13 +175,6 @@ public class PiggyBankService {
         Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
 
         return new UserContext(wallet, piggyBank, user);
-    }
-
-    private boolean isGoalCompleted(PiggyBank piggyBank) {
-        if (piggyBank.getGoalAmount() == null) {
-            return false;
-        }
-        return piggyBank.getAmount().compareTo(piggyBank.getGoalAmount()) >= 0;
     }
 
 }
