@@ -26,6 +26,9 @@ public class Expense {
     private LocalDate createdAt;
     private String description;
 
+    private boolean expenseAmountThresholdEnabled;
+    private BigDecimal blockedAmount;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User userAssigned;

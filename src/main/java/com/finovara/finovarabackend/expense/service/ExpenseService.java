@@ -11,6 +11,7 @@ import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersettings.finances.expense.service.ExpenseControlAmountService;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersettings.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
@@ -34,6 +35,7 @@ public class ExpenseService {
     private final LimitRepository limitRepository;
     private final WalletService walletService;
     private final RoundUpService roundUpService;
+    private final ExpenseControlAmountService expenseControlAmountService;
     private final ExpenseManagerService expenseManagerService;
     private final UserManagerService userManagerService;
     private final ExpenseMapper expenseMapper;
@@ -63,6 +65,8 @@ public class ExpenseService {
 
         roundUpService.handleExpenseForRoundUp(email, expense.getId(), AutoPaymentsMode.APPLY);
 
+        expenseControlAmountService.handleExpenseAmountControl(email, expense.getId(), expense.getAmount());
+
         return expense.getId();
     }
 
@@ -88,6 +92,8 @@ public class ExpenseService {
         expenseRepository.save(existingExpense);
 
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.APPLY);
+
+        expenseControlAmountService.handleExpenseAmountControl(email, expenseId, expenseDTO.amount());
 
         return expenseId;
 

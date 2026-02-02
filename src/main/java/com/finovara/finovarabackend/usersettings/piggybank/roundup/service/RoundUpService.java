@@ -30,7 +30,7 @@ public class RoundUpService {
     private final ExpenseManagerService expenseManagerService;
     private final PiggyBankService piggyBankService;
     private final PiggyBankManagerService piggyBankManagerService;
-    private final PiggyBankRepository piggyBankRepository;;
+    private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
 
     @Transactional
