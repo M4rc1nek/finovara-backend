@@ -25,6 +25,10 @@ public class PiggyBank {
     private BigDecimal amount;
     private LocalDate createdAt;
 
+    private GoalType goalType;
+
+    private BigDecimal goalAmount;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User userAssigned;

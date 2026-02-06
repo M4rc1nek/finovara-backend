@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.dto.AutoPaymentsDto;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersettings.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
@@ -28,70 +29,58 @@ public class AutoPaymentsService {
     private final WalletRepository walletRepository;
 
     @Transactional
-    public void createAutomation(String email, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
+    public void createAutomation(String email, AutoPaymentsDto autoPaymentsDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankOrThrow(piggyBankId);
+        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
-        if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
-            throw new NotAuthorizedException("Not your piggy bank");
-        }
 
-        piggyBank.setAutomationActive(autoPaymentsDto.isAutomationActive());
+        piggyBankSettings.setAutomationActive(autoPaymentsDto.isAutomationActive());
 
-        if (piggyBank.isAutomationActive()) {
+        if (piggyBankSettings.isAutomationActive()) {
             validatePercentage(autoPaymentsDto);
-            piggyBank.setAutomationPercentage(autoPaymentsDto.percentage());
+            piggyBankSettings.setAutomationPercentage(autoPaymentsDto.percentage());
         } else {
-            piggyBank.setAutomationPercentage(BigDecimal.ZERO);
+            piggyBankSettings.setAutomationPercentage(BigDecimal.ZERO);
         }
 
     }
 
     @Transactional
-    public AutoPaymentsDto getAutomation(String email, Long piggyBankId) {
+    public AutoPaymentsDto getAutomation(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankOrThrow(piggyBankId);
+        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
-        if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
-            throw new NotAuthorizedException("Not your piggy bank");
-        }
 
         return new AutoPaymentsDto(
-                piggyBankId,
-                piggyBank.isAutomationActive(),
-                piggyBank.getAutomationPercentage()
+                piggyBankSettings.isAutomationActive(),
+                piggyBankSettings.getAutomationPercentage()
         );
     }
 
     @Transactional
-    public void saveAutoPaymentsPiggyBank(String email, List<AutoPaymentsDto> settings) {
+    public void saveAutoPaymentsPiggyBank(String email, AutoPaymentsDto settings) {
         User user = userManagerService.getUserByEmailOrThrow(email);
+        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
-        for (AutoPaymentsDto dto : settings) {
-            PiggyBank piggyBank = piggyBankManagerService.getPiggyBankOrThrow(dto.piggyBankId());
+            validatePercentage(settings);
 
-            if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
-                throw new NotAuthorizedException("Not your piggy bank");
-            }
-
-            validatePercentage(dto);
-
-            piggyBank.setAutomationActive(dto.isAutomationActive());
-            piggyBank.setAutomationPercentage(dto.isAutomationActive() ? dto.percentage() : BigDecimal.ZERO);
+            piggyBankSettings.setAutomationActive(settings.isAutomationActive());
+            piggyBankSettings.setAutomationPercentage(settings.isAutomationActive() ? settings.percentage() : BigDecimal.ZERO);
         }
-    }
+
 
     public void handleRevenuePiggyBankAutomation(String email, BigDecimal revenueAmount, AutoPaymentsMode mode) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         List<PiggyBank> piggyBanks = user.getPiggyBanks();
+        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
         Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
 
         if (piggyBanks == null || piggyBanks.isEmpty()) return;
 
         for (PiggyBank piggyBank : piggyBanks) {
-            if (piggyBank.isAutomationActive()) { // albo zostawić jak jest albo pomyslec o !piggyBank.isAutomationActive()) continue;
+            if (piggyBankSettings.isAutomationActive()) { // albo zostawić jak jest albo pomyslec o !piggyBank.isAutomationActive()) continue;
                 BigDecimal automationAmount = revenueAmount
-                        .multiply(piggyBank.getAutomationPercentage())
+                        .multiply(piggyBankSettings.getAutomationPercentage())
                         .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
                 switch (mode) {

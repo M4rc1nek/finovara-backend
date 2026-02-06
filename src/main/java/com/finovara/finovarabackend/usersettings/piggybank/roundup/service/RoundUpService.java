@@ -1,6 +1,9 @@
 package com.finovara.finovarabackend.usersettings.piggybank.roundup.service;
 
-import com.finovara.finovarabackend.exception.*;
+import com.finovara.finovarabackend.exception.InvalidInputException;
+import com.finovara.finovarabackend.exception.MissingRequirementException;
+import com.finovara.finovarabackend.exception.NotAuthorizedException;
+import com.finovara.finovarabackend.exception.WalletNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
@@ -8,6 +11,7 @@ import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersettings.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersettings.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
@@ -29,38 +33,16 @@ public class RoundUpService {
     private final UserManagerService userManagerService;
     private final ExpenseManagerService expenseManagerService;
     private final PiggyBankService piggyBankService;
-    private final PiggyBankManagerService piggyBankManagerService;
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
 
     @Transactional
-    public void createRoundUp(RoundUpDto roundUpDto, Long piggyBankId, String email) {
+    public RoundUpDto getRoundUp(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankOrThrow(piggyBankId);
+        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
-        if (user.getPiggyBanks().isEmpty()) {
-            throw new MissingRequirementException("Piggy banks not found for you");
-        }
 
-        piggyBank.setRoundUpActive(roundUpDto.roundUpActive());
-
-        if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
-            throw new NotAuthorizedException("Not your Piggy Bank");
-
-        }
-
-    }
-
-    @Transactional
-    public RoundUpDto getRoundUp(String email, Long piggyBankId) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankOrThrow(piggyBankId);
-
-        if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
-            throw new NotAuthorizedException("Not your piggy bank");
-        }
-
-        return new RoundUpDto(piggyBankId, piggyBank.isRoundUpActive());
+        return new RoundUpDto(piggyBankSettings.isRoundUpActive());
     }
 
     @Transactional
@@ -70,31 +52,27 @@ public class RoundUpService {
     }
 
     @Transactional
-    public void saveRoundUpPiggyBank(String email, List<RoundUpDto> settings) {
+    public void saveRoundUpPiggyBank(String email, RoundUpDto settings) {
         User user = userManagerService.getUserByEmailOrThrow(email);
+        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
-        for (RoundUpDto dto : settings) {
-            PiggyBank piggyBank = piggyBankManagerService.getPiggyBankOrThrow(dto.piggyBankId());
-
-            if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
-                throw new NotAuthorizedException("Not your piggy bank");
-            }
-            piggyBank.setRoundUpActive(dto.roundUpActive());
+        piggyBankSettings.setRoundUpActive(settings.roundUpActive());
         }
-    }
 
     @Transactional
     public void handleExpenseForRoundUp(String email, Long expenseId, AutoPaymentsMode mode) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, user.getId());
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(email);
+        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
         Wallet wallet = walletRepository.findByUserAssignedEmail(email)
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
+
 
         if (piggyBanks == null || piggyBanks.isEmpty()) return;
 
         for (PiggyBank piggyBank : piggyBanks) {
-            if (piggyBank.isRoundUpActive()) {
+            if (piggyBankSettings.isRoundUpActive()) {
                 BigDecimal expenseAmount = expense.getAmount();
                 BigDecimal roundUpAmount = expenseAmount.setScale(0, RoundingMode.CEILING).subtract(expenseAmount);
                 if (wallet.getBalance().compareTo(roundUpAmount) < 0) {

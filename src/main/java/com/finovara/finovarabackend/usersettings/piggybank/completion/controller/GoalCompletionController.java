@@ -20,9 +20,9 @@ public class GoalCompletionController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{piggyBankId}")
-    public ResponseEntity<GoalCompletionDto> getCompletionDto(@PathVariable Long piggyBankId) {
-        return ResponseEntity.ok(goalCompletionService.getCompletionDto(SecurityUtils.getCurrentUserEmail(), piggyBankId));
+    @GetMapping
+    public ResponseEntity<GoalCompletionDto> getCompletionDto() {
+        return ResponseEntity.ok(goalCompletionService.getCompletionDto(SecurityUtils.getCurrentUserEmail()));
     }
 
 }

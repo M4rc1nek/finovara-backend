@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.piggybank.completion.dto.GoalCompletionDto;
+import com.finovara.finovarabackend.usersettings.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -35,40 +36,31 @@ public class GoalCompletionService {
     public void addGoalCompletion(Long piggyBankId, String email, GoalCompletionDto goalCompletionDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, user.getEmail());
+        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
-        if (piggyBank.getGoalAmount() == null || piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) <= 0 ) {
+        if (piggyBank.getGoalAmount() == null || piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidInputException("Cannot set goal completion strategy for a piggy bank without a goal.");
         }
 
-        piggyBank.setGoalCompletionStrategy(goalCompletionDto.strategy());
+        piggyBankSettings.setGoalCompletionStrategy(goalCompletionDto.strategy());
         piggyBankRepository.save(piggyBank);
 
     }
 
     @Transactional
-    public void saveGoalCompletion(String email, List<GoalCompletionDto> settings) {
+    public void saveGoalCompletion(String email, GoalCompletionDto settings) {
         User user = userManagerService.getUserByEmailOrThrow(email);
+        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
-        for (GoalCompletionDto dto : settings) {
-            PiggyBank piggyBank = piggyBankManagerService.getPiggyBankOrThrow(dto.piggyBankId());
-
-            if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
-                throw new NotAuthorizedException("Not your piggy bank");
-            }
-            piggyBank.setGoalCompletionStrategy(dto.strategy());
-        }
+        piggyBankSettings.setGoalCompletionStrategy(settings.strategy());
     }
 
     @Transactional
-    public GoalCompletionDto getCompletionDto(String email, Long piggyBankId) {
+    public GoalCompletionDto getCompletionDto(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankOrThrow(piggyBankId);
+        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
-        if (!piggyBank.getUserAssigned().getId().equals(user.getId())) {
-            throw new NotAuthorizedException("Not your piggy bank");
-        }
-
-        return new GoalCompletionDto(piggyBankId, piggyBank.getGoalCompletionStrategy());
+        return new GoalCompletionDto(piggyBankSettings.getGoalCompletionStrategy());
     }
 
     @Transactional
@@ -76,13 +68,15 @@ public class GoalCompletionService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(user.getEmail());
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(user.getEmail());
+        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
+
 
         for (PiggyBank piggyBank : piggyBanks) {
             if (!piggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)) {
                 continue;
             }
 
-            switch (piggyBank.getGoalCompletionStrategy()) {
+            switch (piggyBankSettings.getGoalCompletionStrategy()) {
                 case NONE -> {
                 }
 
