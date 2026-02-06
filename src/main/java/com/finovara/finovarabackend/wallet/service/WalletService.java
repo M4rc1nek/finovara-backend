@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.wallet.service;
 
 import com.finovara.finovarabackend.exception.InvalidInputException;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.user.UserManagerService;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.dto.WalletDTO;
 import com.finovara.finovarabackend.wallet.model.Wallet;

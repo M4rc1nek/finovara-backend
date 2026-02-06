@@ -1,7 +1,6 @@
 package com.finovara.finovarabackend.revenue.service;
 
 import com.finovara.finovarabackend.exception.RevenueNotFoundException;
-import com.finovara.finovarabackend.exception.UserNotFoundException;
 import com.finovara.finovarabackend.exception.WalletNotFoundException;
 import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
 import com.finovara.finovarabackend.revenue.mapper.RevenueMapper;
@@ -11,7 +10,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.finovarabackend.util.service.revenue.RevenueManagerService;
-import com.finovara.finovarabackend.util.service.user.UserManagerService;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import com.finovara.finovarabackend.wallet.service.WalletService;

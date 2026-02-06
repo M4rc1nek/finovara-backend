@@ -9,6 +9,7 @@ import com.finovara.finovarabackend.user.dto.UserRegisterLoginDTO;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -31,10 +33,12 @@ public class UserService {
     public UserRegisterLoginDTO registerUser(UserRegisterLoginDTO userRegisterLoginDTO) {
 
         if (userRepository.existsByUsername(userRegisterLoginDTO.username())) {
+            log.info("User cannot register. Username is already taken. Username: {}", userRegisterLoginDTO.username());
             throw new NameAlreadyExistsException("Username is already taken");
         }
 
         if (userRepository.existsByEmail(userRegisterLoginDTO.email())) {
+            log.info("User cannot register. Email is already taken.  UserEmail: {}", userRegisterLoginDTO.email());
             throw new EmailAlreadyExistsException("Email is already taken");
         }
 

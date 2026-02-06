@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.util.service.user;
+package com.finovara.finovarabackend.util.service.user.service;
 
 import com.finovara.finovarabackend.exception.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;

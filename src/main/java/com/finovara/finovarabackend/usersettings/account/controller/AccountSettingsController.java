@@ -2,9 +2,8 @@ package com.finovara.finovarabackend.usersettings.account.controller;
 
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.usersettings.account.dto.AccountSettingsDto;
-import com.finovara.finovarabackend.usersettings.account.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.service.user.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.usersettings.account.service.AccountService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

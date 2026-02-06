@@ -1,13 +1,12 @@
 package com.finovara.finovarabackend.usersettings.account.service;
 
 import com.finovara.finovarabackend.exception.NameAlreadyExistsException;
-import com.finovara.finovarabackend.exception.UserNotFoundException;
 import com.finovara.finovarabackend.exception.WrongPasswordException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersettings.account.dto.AccountSettingsDto;
-import com.finovara.finovarabackend.usersettings.account.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.service.user.UserManagerService;
+import com.finovara.finovarabackend.util.service.user.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

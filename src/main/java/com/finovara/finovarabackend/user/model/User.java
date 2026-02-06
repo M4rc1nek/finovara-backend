@@ -36,7 +36,6 @@ public class User {
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private List<Revenue> revenues;
-
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private List<PiggyBank> piggyBanks;
 
@@ -45,4 +44,5 @@ public class User {
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private Wallet wallet;
+
 }

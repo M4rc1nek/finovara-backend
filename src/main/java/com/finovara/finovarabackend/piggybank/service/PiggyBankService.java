@@ -9,7 +9,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
-import com.finovara.finovarabackend.util.service.user.UserManagerService;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;

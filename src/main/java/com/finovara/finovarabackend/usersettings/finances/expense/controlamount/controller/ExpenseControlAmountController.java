@@ -1,8 +1,8 @@
-package com.finovara.finovarabackend.usersettings.finances.expense.controller;
+package com.finovara.finovarabackend.usersettings.finances.expense.controlamount.controller;
 
 import com.finovara.finovarabackend.security.SecurityUtils;
-import com.finovara.finovarabackend.usersettings.finances.expense.dto.ExpenseControlAmountDto;
-import com.finovara.finovarabackend.usersettings.finances.expense.service.ExpenseControlAmountService;
+import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.dto.ExpenseControlAmountDto;
+import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.service.ExpenseControlAmountService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

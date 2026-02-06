@@ -1,12 +1,12 @@
-package com.finovara.finovarabackend.usersettings.finances.expense.service;
+package com.finovara.finovarabackend.usersettings.finances.expense.controlamount.service;
 
 import com.finovara.finovarabackend.exception.InvalidInputException;
 import com.finovara.finovarabackend.exception.NotAuthorizedException;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersettings.finances.expense.dto.ExpenseControlAmountDto;
+import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.dto.ExpenseControlAmountDto;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
-import com.finovara.finovarabackend.util.service.user.UserManagerService;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

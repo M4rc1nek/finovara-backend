@@ -11,15 +11,16 @@ import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersettings.finances.expense.service.ExpenseControlAmountService;
+import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.service.ExpenseControlAmountService;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersettings.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
 import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
-import com.finovara.finovarabackend.util.service.user.UserManagerService;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExpenseService {

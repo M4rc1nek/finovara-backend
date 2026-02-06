@@ -11,7 +11,7 @@ import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.Au
 import com.finovara.finovarabackend.usersettings.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
-import com.finovara.finovarabackend.util.service.user.UserManagerService;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;

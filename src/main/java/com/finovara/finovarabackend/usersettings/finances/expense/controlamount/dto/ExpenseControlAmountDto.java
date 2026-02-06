@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersettings.finances.expense.dto;
+package com.finovara.finovarabackend.usersettings.finances.expense.controlamount.dto;
 
 import java.math.BigDecimal;
 
