@@ -7,8 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/expense-and-revenue/expense-control-amount")
 @RequiredArgsConstructor
@@ -16,21 +14,14 @@ public class ExpenseControlAmountController {
 
     private final ExpenseControlAmountService expenseControlAmountService;
 
-    @PutMapping("/{expenseId}")
-    public ResponseEntity<Void> addExpenseAmountControl(@PathVariable Long expenseId, @RequestBody ExpenseControlAmountDto expenseControlAmountDto) {
-        expenseControlAmountService.addExpenseAmountControl(SecurityUtils.getCurrentUserEmail(), expenseId, expenseControlAmountDto);
-        return ResponseEntity.noContent().build();
-    }
-
     @PutMapping
-    public ResponseEntity<Void> saveExpenseAmountControl(@RequestBody List<ExpenseControlAmountDto> expenseControlAmountDto) {
+    public ResponseEntity<Void> saveExpenseAmountControl(@RequestBody ExpenseControlAmountDto expenseControlAmountDto) {
         expenseControlAmountService.saveExpenseAmountControl(SecurityUtils.getCurrentUserEmail(), expenseControlAmountDto);
         return ResponseEntity.noContent().build();
     }
-
-    @GetMapping("/{expenseId}")
-    public ResponseEntity<ExpenseControlAmountDto> getExpenseAmountControl(@PathVariable Long expenseId) {
-        return ResponseEntity.ok(expenseControlAmountService.getExpenseAmountControl(SecurityUtils.getCurrentUserEmail(), expenseId));
+    @GetMapping
+    public ResponseEntity<ExpenseControlAmountDto> getExpenseAmountControl() {
+        return ResponseEntity.ok(expenseControlAmountService.getExpenseAmountControl(SecurityUtils.getCurrentUserEmail()));
     }
 
 }

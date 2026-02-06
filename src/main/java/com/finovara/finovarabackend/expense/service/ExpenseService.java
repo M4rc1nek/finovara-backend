@@ -67,7 +67,7 @@ public class ExpenseService {
 
         roundUpService.handleExpenseForRoundUp(email, expense.getId(), AutoPaymentsMode.APPLY);
 
-        expenseControlAmountService.handleExpenseAmountControl(email, expense.getId(), expense.getAmount());
+        expenseControlAmountService.handleExpenseAmountControl(email, expense.getAmount());
 
         return expense.getId();
     }
@@ -95,7 +95,7 @@ public class ExpenseService {
 
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.APPLY);
 
-        expenseControlAmountService.handleExpenseAmountControl(email, expenseId, expenseDTO.amount());
+        expenseControlAmountService.handleExpenseAmountControl(email, expenseDTO.amount());
 
         return expenseId;
 

@@ -10,6 +10,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -29,6 +30,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public UserRegisterLoginDTO registerUser(UserRegisterLoginDTO userRegisterLoginDTO) {
 
@@ -80,7 +83,6 @@ public class UserService {
                 List.of()
         );
         String jwtToken = jwtService.generateToken(userDetails);
-
         return new UserRegisterLoginDTO(user.getId(), user.getUsername(), null, user.getEmail(), jwtToken);
     }
 

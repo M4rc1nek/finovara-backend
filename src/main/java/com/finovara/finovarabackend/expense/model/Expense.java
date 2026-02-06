@@ -21,13 +21,12 @@ public class Expense {
     private Long id;
 
     private BigDecimal amount;
+
     @Enumerated(EnumType.STRING)
     private ExpenseCategory category;
+
     private LocalDate createdAt;
     private String description;
-
-    private boolean expenseAmountThresholdEnabled;
-    private BigDecimal blockedAmount;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

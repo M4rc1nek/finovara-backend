@@ -1,18 +1,15 @@
 package com.finovara.finovarabackend.usersettings.finances.expense.controlamount.service;
 
 import com.finovara.finovarabackend.exception.InvalidInputException;
-import com.finovara.finovarabackend.exception.NotAuthorizedException;
-import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.dto.ExpenseControlAmountDto;
-import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
+import com.finovara.finovarabackend.usersettings.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,63 +17,36 @@ import java.util.Optional;
 public class ExpenseControlAmountService {
 
     private final UserManagerService userManagerService;
-    private final ExpenseManagerService expenseManagerService;
 
     @Transactional
-    public void addExpenseAmountControl(String email, Long expenseId, ExpenseControlAmountDto expenseControlAmountDto) {
+    public void saveExpenseAmountControl(String email, ExpenseControlAmountDto expenseControlAmountDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, user.getId());
+        ExpenseSettings expenseSettings = user.getExpenseSettings();
 
-        if (!expense.getUserAssigned().getId().equals(user.getId())) {
-            throw new NotAuthorizedException("Not your Expense");
-        }
-
-        expense.setExpenseAmountThresholdEnabled(expenseControlAmountDto.expenseAmountThresholdEnabled());
-        expense.setBlockedAmount(expenseControlAmountDto.blockedAmount());
+        expenseSettings.setExpenseAmountThresholdEnabled(expenseControlAmountDto.expenseAmountThresholdEnabled());
+        expenseSettings.setBlockedAmount(expenseControlAmountDto.blockedAmount());
     }
 
     @Transactional
-    public ExpenseControlAmountDto getExpenseAmountControl(String email, Long expenseId) {
+    public ExpenseControlAmountDto getExpenseAmountControl(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, user.getId());
+        ExpenseSettings expenseSettings = user.getExpenseSettings();
 
-        if (!expense.getUserAssigned().getId().equals(user.getId())) {
-            throw new NotAuthorizedException("Not your expense");
-        }
-
-        return new ExpenseControlAmountDto(expenseId, expense.isExpenseAmountThresholdEnabled(), expense.getBlockedAmount());
+        return new ExpenseControlAmountDto(expenseSettings.isExpenseAmountThresholdEnabled(), expenseSettings.getBlockedAmount());
     }
 
-    @Transactional
-    public void saveExpenseAmountControl(String email, List<ExpenseControlAmountDto> settings) {
+    public void handleExpenseAmountControl(String email, BigDecimal newAmount) {
         User user = userManagerService.getUserByEmailOrThrow(email);
+        ExpenseSettings expenseSettings = user.getExpenseSettings();
 
-        for (ExpenseControlAmountDto expenseControlAmountDto : settings) {
-            Expense expense = expenseManagerService.getExpenseByIdOrThrow(expenseControlAmountDto.expenseId());
-
-            if (!expense.getUserAssigned().getId().equals(user.getId())) {
-                throw new NotAuthorizedException("Not your expense");
-            }
-
-            expense.setExpenseAmountThresholdEnabled(expenseControlAmountDto.expenseAmountThresholdEnabled());
-            expense.setBlockedAmount(expenseControlAmountDto.blockedAmount());
+        if (expenseSettings.getBlockedAmount() == null) {
+            expenseSettings.setBlockedAmount(BigDecimal.ZERO);
         }
 
-    }
+        BigDecimal blockedAmount = Optional.ofNullable(expenseSettings.getBlockedAmount()).orElse(BigDecimal.ZERO);
 
-    public void handleExpenseAmountControl(String email, Long expenseId, BigDecimal newAmount) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, user.getId());
-
-        if (expense.getBlockedAmount() == null) {
-            expense.setBlockedAmount(BigDecimal.ZERO);
-        }
-
-        BigDecimal blockedAmount = Optional.ofNullable(expense.getBlockedAmount()).orElse(BigDecimal.ZERO);
-
-        if (expense.isExpenseAmountThresholdEnabled() && newAmount.compareTo(blockedAmount) > 0) {
+        if (expenseSettings.isExpenseAmountThresholdEnabled() && newAmount.compareTo(blockedAmount) > 0) {
             throw new InvalidInputException("You have exceeded the amount, your amount: " + newAmount + " , amount blocked: " + blockedAmount);
         }
     }
-
 }

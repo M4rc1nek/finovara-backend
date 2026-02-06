@@ -25,17 +25,6 @@ public class PiggyBank {
     private BigDecimal amount;
     private LocalDate createdAt;
 
-    private GoalType goalType;
-
-    private BigDecimal goalAmount;
-
-    private boolean automationActive;
-    private BigDecimal automationPercentage;
-
-    private boolean roundUpActive;
-
-    private GoalCompletionStrategy goalCompletionStrategy;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User userAssigned;
