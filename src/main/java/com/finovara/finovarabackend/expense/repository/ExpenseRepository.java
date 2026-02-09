@@ -25,6 +25,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT e FROM Expense e WHERE e.userAssigned.id = :userId ORDER BY e.id DESC")
     List<Expense> findFiveLastByUserAssignedId(@Param("userId") Long userId, Pageable pageable);
 
+    @Query("SELECT COUNT(e) FROM Expense e WHERE e.userAssigned.id = :userId")
+    long countExpensesByUserAssignedId(Long userId);
+
     // coalesce zwroci mi wydatki lub 0 jest wydatki sa null
     @Query("SELECT coalesce(sum(e.amount),0) from Expense e WHERE e.userAssigned.id = :userId AND e.createdAt = :date")
     BigDecimal sumExpenseForDay(@Param("userId") Long userId, @Param("date") LocalDate date);

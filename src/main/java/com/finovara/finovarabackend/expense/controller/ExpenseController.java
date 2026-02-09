@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.expense.controller;
 
 import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
 import com.finovara.finovarabackend.limit.model.LimitType;
 import jakarta.validation.Valid;
@@ -19,13 +20,13 @@ public class ExpenseController {
     private final ExpenseService expenseService;
 
     @PostMapping("/addExpense")
-    public ResponseEntity<Long> addExpense(@RequestBody @Valid ExpenseDTO expenseDTO, @RequestParam(required = false) LimitType limitType) {
-        return ResponseEntity.ok(expenseService.addExpense(expenseDTO, getCurrentUserEmail(), limitType));
+    public ResponseEntity<Long> addExpense(@RequestBody ExpenseRequestDto expenseRequestDto, @RequestParam(required = false) LimitType limitType) {
+        return ResponseEntity.ok(expenseService.addExpense(expenseRequestDto, getCurrentUserEmail(), limitType));
     }
 
     @PutMapping("/editExpense/{expenseId}")
-    public ResponseEntity<Long> editExpense(@RequestBody @Valid ExpenseDTO expenseDTO, @PathVariable Long expenseId, @RequestParam(required = false) LimitType limitType) {
-        return ResponseEntity.ok(expenseService.editExpense(expenseDTO, getCurrentUserEmail(), expenseId, limitType));
+    public ResponseEntity<Long> editExpense(@RequestBody ExpenseRequestDto expenseRequestDto, @PathVariable Long expenseId, @RequestParam(required = false) LimitType limitType) {
+        return ResponseEntity.ok(expenseService.editExpense(expenseRequestDto, getCurrentUserEmail(), expenseId, limitType));
     }
 
     @DeleteMapping("/deleteExpense/{expenseId}")

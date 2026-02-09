@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.exception.ExpenseNotFoundException;
 import com.finovara.finovarabackend.exception.InvalidInputException;
 import com.finovara.finovarabackend.exception.LimitExceededException;
 import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
 import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
@@ -12,6 +13,8 @@ import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.service.ExpenseControlAmountService;
+import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.dto.SmartScanMode;
+import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersettings.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
@@ -20,7 +23,6 @@ import com.finovara.finovarabackend.util.service.user.service.UserManagerService
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,7 +30,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExpenseService {
@@ -38,6 +39,7 @@ public class ExpenseService {
     private final WalletService walletService;
     private final RoundUpService roundUpService;
     private final ExpenseControlAmountService expenseControlAmountService;
+    private final SmartScanService smartScanService;
     private final ExpenseManagerService expenseManagerService;
     private final UserManagerService userManagerService;
     private final ExpenseMapper expenseMapper;
@@ -45,22 +47,24 @@ public class ExpenseService {
     private final TimeConfig timeConfig;
 
     @Transactional
-    public Long addExpense(ExpenseDTO expenseDTO, String email, LimitType limitType) {
+    public Long addExpense(ExpenseRequestDto expenseRequestDto, String email, LimitType limitType) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
-        validateLimitOrThrow(user.getId(), limitType, BigDecimal.ZERO, expenseDTO.amount());
+        validateLimitOrThrow(user.getId(), limitType, BigDecimal.ZERO, expenseRequestDto.expenseDTO().amount());
 
         Expense expense = Expense.builder()
-                .amount(expenseDTO.amount())
-                .category(expenseDTO.category())
+                .amount(expenseRequestDto.expenseDTO().amount())
+                .category(expenseRequestDto.expenseDTO().category())
                 .createdAt(LocalDate.now(timeConfig.clock()))
-                .description(expenseDTO.description())
+                .description(expenseRequestDto.expenseDTO().description())
                 .userAssigned(user)
                 .build();
 
-        if (expenseDTO.amount().compareTo(BigDecimal.ONE) < 0) {
+        if (expenseRequestDto.expenseDTO().amount().compareTo(BigDecimal.ONE) < 0) {
             throw new InvalidInputException("Expense amount must be positive");
         }
+
+        smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDTO().amount(), SmartScanMode.ADD);
 
         walletService.removeBalanceFromWallet(email, expense.getAmount());
         expenseRepository.save(expense);
@@ -73,7 +77,7 @@ public class ExpenseService {
     }
 
     @Transactional
-    public Long editExpense(ExpenseDTO expenseDTO, String email, Long expenseId, LimitType limitType) {
+    public Long editExpense(ExpenseRequestDto expenseRequestDto, String email, Long expenseId, LimitType limitType) {
         Expense existingExpense = expenseManagerService.getExpenseByIdOrThrow(expenseId);
         User user = userManagerService.getUserByEmailOrThrow(email);
 
@@ -81,21 +85,23 @@ public class ExpenseService {
             throw new ExpenseNotFoundException("Expense not found for this user");
         }
 
-        validateLimitOrThrow(user.getId(), limitType, existingExpense.getAmount(), expenseDTO.amount());
+        validateLimitOrThrow(user.getId(), limitType, existingExpense.getAmount(), expenseRequestDto.expenseDTO().amount());
 
         walletService.addBalanceToWallet(email, existingExpense.getAmount());
-        walletService.removeBalanceFromWallet(email, expenseDTO.amount());
+        walletService.removeBalanceFromWallet(email, expenseRequestDto.expenseDTO().amount());
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.ROLLBACK);
 
-        existingExpense.setAmount(expenseDTO.amount());
-        existingExpense.setCategory(expenseDTO.category());
-        existingExpense.setDescription(expenseDTO.description());
+        existingExpense.setAmount(expenseRequestDto.expenseDTO().amount());
+        existingExpense.setCategory(expenseRequestDto.expenseDTO().category());
+        existingExpense.setDescription(expenseRequestDto.expenseDTO().description());
+
+        smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDTO().amount(), SmartScanMode.EDIT);
 
         expenseRepository.save(existingExpense);
 
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.APPLY);
 
-        expenseControlAmountService.handleExpenseAmountControl(email, expenseDTO.amount());
+        expenseControlAmountService.handleExpenseAmountControl(email, expenseRequestDto.expenseDTO().amount());
 
         return expenseId;
 
