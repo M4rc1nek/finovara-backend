@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/api/expense-and-revenue/smart-scan")
+@RequestMapping("/api/expense-settings/smart-scan")
 @RequiredArgsConstructor
 public class SmartScanController {
 

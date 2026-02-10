@@ -2,37 +2,40 @@ package com.finovara.finovarabackend.usersettings.finances.expense.controlamount
 
 import com.finovara.finovarabackend.exception.InvalidInputException;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.dto.ExpenseControlAmountDto;
+import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.finovarabackend.usersettings.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class ExpenseControlAmountService {
+public class ControlAmountService {
 
     private final UserManagerService userManagerService;
 
     @Transactional
-    public void saveExpenseAmountControl(String email, ExpenseControlAmountDto expenseControlAmountDto) {
+    public void saveExpenseAmountControl(String email, ControlAmountDto controlAmountDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
-        expenseSettings.setExpenseAmountThresholdEnabled(expenseControlAmountDto.expenseAmountThresholdEnabled());
-        expenseSettings.setBlockedAmount(expenseControlAmountDto.blockedAmount());
+        expenseSettings.setExpenseAmountThresholdEnabled(controlAmountDto.expenseAmountThresholdEnabled());
+        expenseSettings.setBlockedAmount(controlAmountDto.blockedAmount());
+        log.info("Saved ExpenseAmountControl settings. IsEnabled: {}, BlockedAmount: {}", controlAmountDto.expenseAmountThresholdEnabled(), controlAmountDto.blockedAmount());
     }
 
     @Transactional
-    public ExpenseControlAmountDto getExpenseAmountControl(String email) {
+    public ControlAmountDto getExpenseAmountControl(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
-        return new ExpenseControlAmountDto(expenseSettings.isExpenseAmountThresholdEnabled(), expenseSettings.getBlockedAmount());
+        return new ControlAmountDto(expenseSettings.isExpenseAmountThresholdEnabled(), expenseSettings.getBlockedAmount());
     }
 
     public void handleExpenseAmountControl(String email, BigDecimal newAmount) {

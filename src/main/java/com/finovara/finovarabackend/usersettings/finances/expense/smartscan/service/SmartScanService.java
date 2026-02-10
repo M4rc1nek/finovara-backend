@@ -36,6 +36,7 @@ public class SmartScanService {
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         expenseSettings.setSmartScanEnabled(settings.smartScanEnabled());
+        log.info("Saved SmartScan settings. IsEnabled: {}", settings.smartScanEnabled());
     }
 
     @Transactional
@@ -80,7 +81,7 @@ public class SmartScanService {
             if (!passwordEncoder.matches(confirmPasswordDto.password(), user.getPassword())) {
                 throw new WrongPasswordException("You cannot add new expense, incorrect password");
             }
-            log.info("Expense added successfully . UserId {}, Expense amount: {}", user.getId(), newExpenseAmount);
+            log.info("Expense added successfully. Expense amount: {}", newExpenseAmount);
         }
 
     }

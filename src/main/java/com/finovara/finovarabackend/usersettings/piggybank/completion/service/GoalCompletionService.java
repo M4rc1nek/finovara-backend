@@ -15,13 +15,14 @@ import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-
+@Slf4j
 @RequiredArgsConstructor
 public class GoalCompletionService {
     private final UserManagerService userManagerService;
@@ -53,6 +54,7 @@ public class GoalCompletionService {
         PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
         piggyBankSettings.setGoalCompletionStrategy(settings.strategy());
+        log.info("Saved GoalCompletion settings");
     }
 
     @Transactional

@@ -12,7 +12,7 @@ import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.service.ExpenseControlAmountService;
+import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.service.ControlAmountService;
 import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.service.CountQuantityLimitService;
 import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.service.SmartScanService;
@@ -40,7 +40,7 @@ public class ExpenseService {
     private final WalletService walletService;
     private final RoundUpService roundUpService;
     private final CountQuantityLimitService countQuantityLimitService;
-    private final ExpenseControlAmountService expenseControlAmountService;
+    private final ControlAmountService controlAmountService;
     private final SmartScanService smartScanService;
     private final ExpenseManagerService expenseManagerService;
     private final UserManagerService userManagerService;
@@ -77,7 +77,7 @@ public class ExpenseService {
 
         roundUpService.handleExpenseForRoundUp(email, expense.getId(), AutoPaymentsMode.APPLY);
 
-        expenseControlAmountService.handleExpenseAmountControl(email, expense.getAmount());
+        controlAmountService.handleExpenseAmountControl(email, expense.getAmount());
 
         return expense.getId();
     }
@@ -107,7 +107,7 @@ public class ExpenseService {
 
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.APPLY);
 
-        expenseControlAmountService.handleExpenseAmountControl(email, expenseRequestDto.expenseDTO().amount());
+        controlAmountService.handleExpenseAmountControl(email, expenseRequestDto.expenseDTO().amount());
 
         return expenseId;
 

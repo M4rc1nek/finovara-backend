@@ -41,7 +41,7 @@ public class CountQuantityLimitService {
 
         expenseSettings.setNumberOfQuantityLimit(dto.numberOfQuantityLimit());
         expenseSettings.setCountQuantityLimitStrategy(dto.countQuantityLimitStrategy());
-        log.info("Saved CountQuantityLimit settings. IsActive: {}, Limit: {}, Strategy: {}", expenseSettings.isExpenseCountQuantityLimitEnabled(),
+        log.info("Saved CountQuantityLimit settings. IsEnabled: {}, Limit: {}, Strategy: {}", expenseSettings.isExpenseCountQuantityLimitEnabled(),
                 expenseSettings.getNumberOfQuantityLimit(), expenseSettings.getCountQuantityLimitStrategy());
     }
 

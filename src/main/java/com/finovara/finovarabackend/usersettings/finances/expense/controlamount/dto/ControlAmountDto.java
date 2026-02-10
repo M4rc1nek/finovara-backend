@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.usersettings.finances.expense.controlamount
 
 import java.math.BigDecimal;
 
-public record ExpenseControlAmountDto(
+public record ControlAmountDto(
         Boolean expenseAmountThresholdEnabled,
         BigDecimal blockedAmount
 ) {

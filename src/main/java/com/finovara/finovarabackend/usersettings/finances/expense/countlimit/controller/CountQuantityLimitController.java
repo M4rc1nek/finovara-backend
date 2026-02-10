@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/expense-and-revenue/count-quantity-expense")
+@RequestMapping("/api/expense-settings/count-quantity-expense")
 @RequiredArgsConstructor
 public class CountQuantityLimitController {
 

@@ -24,9 +24,7 @@ import java.util.List;
 public class AutoPaymentsService {
 
     private final UserManagerService userManagerService;
-    private final PiggyBankManagerService piggyBankManagerService;
     private final WalletManagerService walletManagerService;
-    private final WalletRepository walletRepository;
 
     @Transactional
     public void createAutomation(String email, AutoPaymentsDto autoPaymentsDto) {
