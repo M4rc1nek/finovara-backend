@@ -13,6 +13,7 @@ import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.service.ExpenseControlAmountService;
+import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.service.CountQuantityLimitService;
 import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
@@ -38,6 +39,7 @@ public class ExpenseService {
     private final LimitRepository limitRepository;
     private final WalletService walletService;
     private final RoundUpService roundUpService;
+    private final CountQuantityLimitService countQuantityLimitService;
     private final ExpenseControlAmountService expenseControlAmountService;
     private final SmartScanService smartScanService;
     private final ExpenseManagerService expenseManagerService;
@@ -52,6 +54,9 @@ public class ExpenseService {
 
         validateLimitOrThrow(user.getId(), limitType, BigDecimal.ZERO, expenseRequestDto.expenseDTO().amount());
 
+        countQuantityLimitService.calculateCountQuantityLimit(email, expenseRequestDto.countQuantityLimitDto(),
+                expenseRequestDto.countQuantityLimitDto().countQuantityLimitStrategy());
+
         Expense expense = Expense.builder()
                 .amount(expenseRequestDto.expenseDTO().amount())
                 .category(expenseRequestDto.expenseDTO().category())
@@ -63,6 +68,7 @@ public class ExpenseService {
         if (expenseRequestDto.expenseDTO().amount().compareTo(BigDecimal.ONE) < 0) {
             throw new InvalidInputException("Expense amount must be positive");
         }
+
 
         smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDTO().amount(), SmartScanMode.ADD);
 
