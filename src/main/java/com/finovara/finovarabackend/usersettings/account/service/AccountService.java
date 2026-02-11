@@ -1,15 +1,14 @@
 package com.finovara.finovarabackend.usersettings.account.service;
 
 import com.finovara.finovarabackend.exception.NameAlreadyExistsException;
-import com.finovara.finovarabackend.exception.WrongPasswordException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersettings.account.dto.AccountSettingsDto;
-import com.finovara.finovarabackend.util.service.user.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Paths;
@@ -18,13 +17,12 @@ import java.nio.file.Paths;
 @RequiredArgsConstructor
 public class AccountService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final UserManagerService userManagerService;
+    private final PasswordConfirmationService passwordConfirmationService;
 
     @Transactional
     public AccountSettingsDto updateUsername(AccountSettingsDto accountSettingsDto, Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
-
 
         if (userRepository.existsByUsername(accountSettingsDto.username())) {
             throw new NameAlreadyExistsException("Username is already taken");
@@ -40,9 +38,7 @@ public class AccountService {
     public void deleteAccount(ConfirmPasswordDto confirmPasswordDto, Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
-        if (!passwordEncoder.matches(confirmPasswordDto.password(), user.getPassword())) {
-            throw new WrongPasswordException("You cannot delete your account, incorrect password");
-        }
+        passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
 
         userRepository.delete(user);
     }

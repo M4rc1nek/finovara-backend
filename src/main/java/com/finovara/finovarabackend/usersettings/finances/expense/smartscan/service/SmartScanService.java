@@ -8,7 +8,8 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.dto.SmartScanDto;
 import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.dto.SmartScanMode;
-import com.finovara.finovarabackend.util.service.user.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class SmartScanService {
 
     private final UserManagerService userManagerService;
     private final ExpenseRepository expenseRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordConfirmationService passwordConfirmationService;
 
     @Transactional
     public void saveSmartScan(String email, SmartScanDto settings) {
@@ -78,9 +79,8 @@ public class SmartScanService {
                 throw new SmartScanConfirmationRequiredException("Unusual expense detected. Password confirmation required.");
             }
 
-            if (!passwordEncoder.matches(confirmPasswordDto.password(), user.getPassword())) {
-                throw new WrongPasswordException("You cannot add new expense, incorrect password");
-            }
+            passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
+
             log.info("Expense added successfully. Expense amount: {}", newExpenseAmount);
         }
 

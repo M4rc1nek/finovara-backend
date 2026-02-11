@@ -1,0 +1,26 @@
+package com.finovara.finovarabackend.util.confirmationpassword.service;
+
+import com.finovara.finovarabackend.exception.WrongPasswordException;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class PasswordConfirmationService {
+
+    private final UserManagerService userManagerService;
+    private final PasswordEncoder passwordEncoder;
+
+    public void confirmPassword(String email, ConfirmPasswordDto confirmPasswordDto) {
+        User user = userManagerService.getUserByEmailOrThrow(email);
+
+        if (!passwordEncoder.matches(confirmPasswordDto.password(), user.getPassword())) {
+            throw new WrongPasswordException("Incorrect password");
+        }
+    }
+
+}
