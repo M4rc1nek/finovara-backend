@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.usersettings.finances.expense.controlamount
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.service.ControlAmountService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ public class ControlAmountController {
     private final ControlAmountService controlAmountService;
 
     @PutMapping
-    public ResponseEntity<Void> saveExpenseAmountControl(@RequestBody ControlAmountDto controlAmountDto) {
+    public ResponseEntity<Void> saveExpenseAmountControl(@RequestBody @Valid ControlAmountDto controlAmountDto) {
         controlAmountService.saveExpenseAmountControl(SecurityUtils.getCurrentUserEmail(), controlAmountDto);
         return ResponseEntity.noContent().build();
     }

@@ -1,9 +1,12 @@
 package com.finovara.finovarabackend.usersettings.finances.expense.controlamount.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+
 import java.math.BigDecimal;
 
 public record ControlAmountDto(
         Boolean expenseAmountThresholdEnabled,
-        BigDecimal blockedAmount
+       @DecimalMin("1") @DecimalMax("1000000") BigDecimal blockedAmount
 ) {
 }

@@ -8,9 +8,9 @@ import com.finovara.finovarabackend.security.service.JwtService;
 import com.finovara.finovarabackend.user.dto.UserRegisterLoginDTO;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.usersettings.factory.SettingsFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -31,7 +31,7 @@ public class UserService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final SettingsFactory settingsFactory;
 
     public UserRegisterLoginDTO registerUser(UserRegisterLoginDTO userRegisterLoginDTO) {
 
@@ -51,6 +51,8 @@ public class UserService {
                 .password(passwordEncoder.encode(userRegisterLoginDTO.password()))
                 .createdAt(LocalDateTime.now())
                 .build();
+        user.setPiggyBankSettings(settingsFactory.createDefaultPiggyBankSettings(user));
+        user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         User savedUser = userRepository.save(user);
 
         String jwtToken = jwtService.generateToken(

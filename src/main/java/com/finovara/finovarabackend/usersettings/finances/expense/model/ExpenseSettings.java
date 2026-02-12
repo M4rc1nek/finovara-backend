@@ -3,10 +3,7 @@ package com.finovara.finovarabackend.usersettings.finances.expense.model;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.model.CountQuantityLimitStrategy;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -16,6 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 public class ExpenseSettings {
 
     @Id
@@ -38,6 +36,8 @@ public class ExpenseSettings {
 
     @Enumerated(EnumType.STRING)
     private CountQuantityLimitStrategy countQuantityLimitStrategy;
+
+    private boolean expenseQuantityLimitEmergencyModeEnabled;
 
     @OneToOne
     @JoinColumn(name = "user_id")

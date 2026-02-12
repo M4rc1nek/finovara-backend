@@ -8,7 +8,6 @@ import com.finovara.finovarabackend.util.service.user.service.UserManagerService
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.config.authentication.JdbcUserServiceBeanDefinitionParser;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -26,8 +25,10 @@ public class ControlAmountService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
+        BigDecimal blockedAmount = Optional.ofNullable(expenseSettings.getBlockedAmount()).orElse(BigDecimal.ZERO);
+
         expenseSettings.setExpenseAmountThresholdEnabled(controlAmountDto.expenseAmountThresholdEnabled());
-        expenseSettings.setBlockedAmount(controlAmountDto.blockedAmount());
+        expenseSettings.setBlockedAmount(blockedAmount);
         log.info("Saved ExpenseAmountControl settings. IsEnabled: {}, BlockedAmount: {}", controlAmountDto.expenseAmountThresholdEnabled(), controlAmountDto.blockedAmount());
     }
 
@@ -50,7 +51,6 @@ public class ControlAmountService {
         BigDecimal blockedAmount = Optional.ofNullable(expenseSettings.getBlockedAmount()).orElse(BigDecimal.ZERO);
 
         if (expenseSettings.isExpenseAmountThresholdEnabled() && newAmount.compareTo(blockedAmount) > 0) {
-
             throw new InvalidInputException("You have exceeded the amount, your amount: " + newAmount + " , amount blocked: " + blockedAmount);
 
         }

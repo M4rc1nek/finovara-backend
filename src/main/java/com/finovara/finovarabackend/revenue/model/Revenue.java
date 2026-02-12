@@ -21,6 +21,7 @@ public class Revenue {
     private Long id;
 
     private BigDecimal amount;
+    @Enumerated(EnumType.STRING)
     private RevenueCategory category;
     private LocalDate createdAt;
     private String description;

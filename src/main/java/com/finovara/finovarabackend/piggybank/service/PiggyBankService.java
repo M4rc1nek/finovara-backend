@@ -46,7 +46,7 @@ public class PiggyBankService {
             throw new InvalidInputException("you have reached the maximum number of piggy banks: " + maxPiggyBanks);
         }
 
-        if (piggyBankRepository.existsByName(piggyBankDTO.name())) {
+        if (piggyBankRepository.existsByNameAndUserAssignedId(piggyBankDTO.name(), user.getId())) {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
 

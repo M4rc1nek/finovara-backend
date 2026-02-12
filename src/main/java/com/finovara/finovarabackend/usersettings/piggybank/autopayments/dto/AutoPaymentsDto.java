@@ -1,9 +1,12 @@
 package com.finovara.finovarabackend.usersettings.piggybank.autopayments.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+
 import java.math.BigDecimal;
 
 public record AutoPaymentsDto(
         Boolean isAutomationActive,
-        BigDecimal percentage
+        @DecimalMin("1") @DecimalMax("100") BigDecimal percentage
 ) {
 }

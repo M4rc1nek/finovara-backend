@@ -19,7 +19,7 @@ public interface PiggyBankRepository extends JpaRepository<PiggyBank, Long> {
     long countPiggyBanksByUserId(@Param("userId") Long userId);
 
 
-    boolean existsByName(String Name);
+    boolean existsByNameAndUserAssignedId(String Name, Long userId);
 
     // UsernameAlreadyExistsException zamienilem na NameAlreadyExistsException - wykorzystuje w UserService i PiggyBankService, czy tak moze byc?
 

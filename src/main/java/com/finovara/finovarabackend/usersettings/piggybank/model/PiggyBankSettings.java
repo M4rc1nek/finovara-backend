@@ -3,10 +3,7 @@ package com.finovara.finovarabackend.usersettings.piggybank.model;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.piggybank.completion.model.GoalCompletionStrategy;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -16,6 +13,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 public class PiggyBankSettings {
 
     @Id
@@ -32,6 +30,7 @@ public class PiggyBankSettings {
     private boolean roundUpActive;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private GoalCompletionStrategy goalCompletionStrategy;
 
     @OneToOne

@@ -1,7 +1,6 @@
 package com.finovara.finovarabackend.piggybank.model;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersettings.piggybank.completion.model.GoalCompletionStrategy;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +24,7 @@ public class PiggyBank {
     private BigDecimal amount;
     private LocalDate createdAt;
 
+    @Enumerated(EnumType.STRING)
     private GoalType goalType;
 
     private BigDecimal goalAmount;
