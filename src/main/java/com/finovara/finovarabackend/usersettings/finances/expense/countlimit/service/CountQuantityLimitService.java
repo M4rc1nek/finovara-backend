@@ -1,11 +1,14 @@
 package com.finovara.finovarabackend.usersettings.finances.expense.countlimit.service;
 
+import com.finovara.finovarabackend.exception.MissingRequirementException;
 import com.finovara.finovarabackend.exception.StateConflictException;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.model.CountQuantityLimitStrategy;
 import com.finovara.finovarabackend.usersettings.finances.expense.model.ExpenseSettings;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
@@ -24,6 +27,7 @@ public class CountQuantityLimitService {
     private final SpentInPeriodService spentInPeriodService;
     private final UserManagerService userManagerService;
     private final ExpenseRepository expenseRepository;
+    private final PasswordConfirmationService passwordConfirmationService;
 
     @Transactional
     public void saveCountQuantityLimit(String email, CountQuantityLimitDto dto) {
@@ -31,7 +35,10 @@ public class CountQuantityLimitService {
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         expenseSettings.setExpenseCountQuantityLimitEnabled(dto.expenseCountLimitEnabled());
-        if(!dto.expenseCountLimitEnabled()) return;
+        if (!dto.expenseCountLimitEnabled()) {
+            expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(false);
+            return;
+        }
 
         long countedExpenses = countExpensesInPeriod(user, dto.countQuantityLimitStrategy());
         if (dto.numberOfQuantityLimit() < countedExpenses) {
@@ -39,14 +46,16 @@ public class CountQuantityLimitService {
                     + countedExpenses + " expenses in that period");
         }
 
+        if(expenseSettings.getCountQuantityLimitStrategy() != dto.countQuantityLimitStrategy()){
+            expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(false);
+        }
+
         expenseSettings.setNumberOfQuantityLimit(dto.numberOfQuantityLimit());
         expenseSettings.setCountQuantityLimitStrategy(dto.countQuantityLimitStrategy());
-        log.info("Saved CountQuantityLimit settings. IsEnabled: {}, Limit: {}, Strategy: {}", expenseSettings.isExpenseCountQuantityLimitEnabled(),
-                expenseSettings.getNumberOfQuantityLimit(), expenseSettings.getCountQuantityLimitStrategy());
     }
 
     @Transactional
-    public void calculateCountQuantityLimit(String email, CountQuantityLimitDto dto, CountQuantityLimitStrategy strategy) {
+    public void calculateCountQuantityLimit(String email, CountQuantityLimitDto dto, CountQuantityLimitStrategy strategy, ConfirmPasswordDto confirmPasswordDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
@@ -54,8 +63,25 @@ public class CountQuantityLimitService {
 
         long countedExpenses = countExpensesInPeriod(user, strategy);
         if (countedExpenses + 1 > dto.numberOfQuantityLimit()) {
-            log.info("The user's expense exceeds the limit");
-            throw new StateConflictException("Quantity Limit Exceeded, you have already added " + countedExpenses + " expenses");
+
+            if (expenseSettings.isExpenseQuantityLimitEmergencyModeUsed()) {
+                throw new StateConflictException("Emergency mode already used. You have already added an expense using emergency mode in this period. You cannot add more expenses until the limit is increased or the period resets.");
+            }
+
+            if (!expenseSettings.isExpenseQuantityLimitEmergencyModeEnabled()) {
+                log.info("Quantity limit exceeded. Current count: {}, Limit: {}", countedExpenses, dto.numberOfQuantityLimit());
+                throw new StateConflictException("Quantity Limit Exceeded, you have already added " + countedExpenses + " expenses");
+            }
+
+            log.info("The user's expense exceeds the limit, but emergency mode is enabled");
+            if (confirmPasswordDto == null) {
+                throw new MissingRequirementException("Emergency mode password confirmation required to continue");
+            }
+
+            passwordConfirmationService.confirmPassword(email, confirmPasswordDto);
+            expenseSettings.setExpenseQuantityLimitEmergencyModeEnabled(false);
+            expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(true);
+            log.info("User confirmed password. Expense added");
         }
     }
 
@@ -78,5 +104,5 @@ public class CountQuantityLimitService {
 
         return expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(user.getId(), start, today);
     }
-}
 
+}

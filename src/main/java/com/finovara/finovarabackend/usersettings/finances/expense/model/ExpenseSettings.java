@@ -38,6 +38,7 @@ public class ExpenseSettings {
     private CountQuantityLimitStrategy countQuantityLimitStrategy;
 
     private boolean expenseQuantityLimitEmergencyModeEnabled;
+    private boolean expenseQuantityLimitEmergencyModeUsed;
 
     @OneToOne
     @JoinColumn(name = "user_id")
