@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.util.service.wallet;
 
-import com.finovara.finovarabackend.exception.WalletNotFoundException;
+import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;

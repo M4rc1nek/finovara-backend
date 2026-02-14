@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.config;
 
-import com.finovara.finovarabackend.exception.UserNotFoundException;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

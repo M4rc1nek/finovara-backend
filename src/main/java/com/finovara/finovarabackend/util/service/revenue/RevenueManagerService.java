@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.util.service.revenue;
 
-import com.finovara.finovarabackend.exception.RevenueNotFoundException;
+import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import lombok.RequiredArgsConstructor;

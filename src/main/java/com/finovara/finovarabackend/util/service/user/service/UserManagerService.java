@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.util.service.user.service;
 
-import com.finovara.finovarabackend.exception.UserNotFoundException;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

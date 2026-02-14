@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.util.service.expense;
 
-import com.finovara.finovarabackend.exception.ExpenseNotFoundException;
+import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import lombok.RequiredArgsConstructor;

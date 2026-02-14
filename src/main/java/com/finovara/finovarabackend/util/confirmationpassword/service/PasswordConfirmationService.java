@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.util.confirmationpassword.service;
 
-import com.finovara.finovarabackend.exception.WrongPasswordException;
+import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;

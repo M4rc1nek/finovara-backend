@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.expense.service;
 
 import com.finovara.finovarabackend.config.TimeConfig;
-import com.finovara.finovarabackend.exception.ExpenseNotFoundException;
-import com.finovara.finovarabackend.exception.InvalidInputException;
-import com.finovara.finovarabackend.exception.LimitExceededException;
+import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.limit.exception.unprocessablecontent.LimitExceededException;
 import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
 import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
 import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;

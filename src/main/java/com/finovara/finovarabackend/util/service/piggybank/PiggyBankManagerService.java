@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.util.service.piggybank;
 
-import com.finovara.finovarabackend.exception.PiggyBankNotFoundException;
+import com.finovara.finovarabackend.util.service.piggybank.exception.notfound.PiggyBankNotFoundException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import lombok.RequiredArgsConstructor;

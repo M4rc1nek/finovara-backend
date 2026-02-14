@@ -1,7 +1,6 @@
 package com.finovara.finovarabackend.usersettings.piggybank.completion.service;
 
-import com.finovara.finovarabackend.exception.InvalidInputException;
-import com.finovara.finovarabackend.exception.NotAuthorizedException;
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;

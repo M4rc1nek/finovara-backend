@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.limit.service;
 
-import com.finovara.finovarabackend.exception.ActiveLimitNotFoundException;
-import com.finovara.finovarabackend.exception.LimitAlreadyExistsException;
+import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
+import com.finovara.finovarabackend.limit.exception.conflict.LimitAlreadyExistsException;
 import com.finovara.finovarabackend.limit.dto.LimitDTO;
 import com.finovara.finovarabackend.limit.dto.LimitStatsDTO;
 import com.finovara.finovarabackend.limit.model.Limit;

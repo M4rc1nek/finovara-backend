@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.user.service;
 
-import com.finovara.finovarabackend.exception.EmailAlreadyExistsException;
-import com.finovara.finovarabackend.exception.NameAlreadyExistsException;
-import com.finovara.finovarabackend.exception.UserNotFoundException;
-import com.finovara.finovarabackend.exception.WrongPasswordException;
+import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.security.service.JwtService;
 import com.finovara.finovarabackend.user.dto.UserRegisterLoginDTO;
 import com.finovara.finovarabackend.user.model.User;

@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.revenue.service;
 
-import com.finovara.finovarabackend.exception.RevenueNotFoundException;
-import com.finovara.finovarabackend.exception.WalletNotFoundException;
+import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
+import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
 import com.finovara.finovarabackend.revenue.mapper.RevenueMapper;
 import com.finovara.finovarabackend.revenue.model.Revenue;

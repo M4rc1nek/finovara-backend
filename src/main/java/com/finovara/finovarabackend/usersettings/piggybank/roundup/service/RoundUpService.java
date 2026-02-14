@@ -1,9 +1,7 @@
 package com.finovara.finovarabackend.usersettings.piggybank.roundup.service;
 
-import com.finovara.finovarabackend.exception.InvalidInputException;
-import com.finovara.finovarabackend.exception.MissingRequirementException;
-import com.finovara.finovarabackend.exception.NotAuthorizedException;
-import com.finovara.finovarabackend.exception.WalletNotFoundException;
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
@@ -14,7 +12,6 @@ import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.Au
 import com.finovara.finovarabackend.usersettings.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersettings.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;

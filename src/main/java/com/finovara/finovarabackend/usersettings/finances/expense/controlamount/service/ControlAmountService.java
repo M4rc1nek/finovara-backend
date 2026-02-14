@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.usersettings.finances.expense.controlamount.service;
 
-import com.finovara.finovarabackend.exception.InvalidInputException;
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.finovarabackend.usersettings.finances.expense.model.ExpenseSettings;

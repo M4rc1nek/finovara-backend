@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.piggybank.service;
 
-import com.finovara.finovarabackend.exception.InvalidInputException;
-import com.finovara.finovarabackend.exception.NameAlreadyExistsException;
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;

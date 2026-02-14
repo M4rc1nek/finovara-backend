@@ -1,7 +1,6 @@
 package com.finovara.finovarabackend.usersettings.finances.expense.smartscan.service;
 
-import com.finovara.finovarabackend.exception.SmartScanConfirmationRequiredException;
-import com.finovara.finovarabackend.exception.WrongPasswordException;
+import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.model.User;
@@ -15,7 +14,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.usersettings.account.service;
 
-import com.finovara.finovarabackend.exception.NameAlreadyExistsException;
+import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersettings.account.dto.AccountSettingsDto;
