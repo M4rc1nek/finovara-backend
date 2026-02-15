@@ -10,6 +10,20 @@ spring:
       hibernate:
         format_sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: smtp.gmail.com
+    port: 465
+    username: finovaracenter@gmail.com
+    password: hzpd mbww lheh jhck
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: false
+          ssl:
+            enable: true
+            trust: smtp.gmail.com
 application:
   security:
     jwt:
@@ -17,3 +31,8 @@ application:
       expiration: 86400000
   upload:
     profile-images-directory: uploads/profile-images
+
+
+mail:
+  recipient:
+    address: finovaracenter@gmail.com

@@ -18,6 +18,7 @@ public class ChangePasswordService {
     private final PasswordConfirmationService passwordConfirmationService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordChangeEmailService passwordChangeEmailService;
 
     public void changePassword(String email, ChangePasswordRequestDto changePasswordRequestDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
@@ -35,7 +36,7 @@ public class ChangePasswordService {
 
         user.setPassword(passwordEncoder.encode(changePasswordRequestDto.changePasswordDto().newPassword()));
         userRepository.save(user);
+        passwordChangeEmailService.sendEmail(user);
 
     }
-
 }
