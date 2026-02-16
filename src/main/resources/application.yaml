@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/finovara
     username: postgres
-    password: Marcinek92
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -14,7 +14,7 @@ spring:
     host: smtp.gmail.com
     port: 465
     username: finovaracenter@gmail.com
-    password: hzpd mbww lheh jhck
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -27,7 +27,7 @@ spring:
 application:
   security:
     jwt:
-      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      secret-key: ${JWT_SECRET_KEY}
       expiration: 86400000
   upload:
     profile-images-directory: uploads/profile-images
