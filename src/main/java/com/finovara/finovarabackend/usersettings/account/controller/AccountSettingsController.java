@@ -2,9 +2,9 @@ package com.finovara.finovarabackend.usersettings.account.controller;
 
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.usersettings.account.dto.AccountSettingsDto;
-import com.finovara.finovarabackend.usersettings.account.dto.ChangePasswordRequestDto;
+import com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy.PasswordRequestDto;
 import com.finovara.finovarabackend.usersettings.account.service.AccountService;
-import com.finovara.finovarabackend.usersettings.account.service.ChangePasswordService;
+import com.finovara.finovarabackend.usersettings.account.service.passwordpolicy.ChangePasswordService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +35,8 @@ public class AccountSettingsController {
     }
 
     @PutMapping
-    public ResponseEntity<Void> changeUserPassword(@RequestBody @Valid ChangePasswordRequestDto changePasswordRequestDto) {
-        changePasswordService.changePassword(SecurityUtils.getCurrentUserEmail(), changePasswordRequestDto);
+    public ResponseEntity<Void> changeUserPassword(@RequestBody @Valid PasswordRequestDto passwordRequestDto) {
+        changePasswordService.changePassword(SecurityUtils.getCurrentUserEmail(), passwordRequestDto);
         return ResponseEntity.noContent().build();
     }
 

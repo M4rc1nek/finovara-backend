@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersettings.account.service;
+package com.finovara.finovarabackend.usersettings.account.service.passwordpolicy;
 
 import com.finovara.finovarabackend.user.model.User;
 import lombok.RequiredArgsConstructor;
