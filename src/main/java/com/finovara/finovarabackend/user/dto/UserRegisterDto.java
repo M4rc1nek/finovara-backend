@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record UserRegisterLoginDTO(
+public record UserRegisterDto(
         Long id,
         @Size(min = 3, max = 13)
         String username,
@@ -23,6 +23,5 @@ public record UserRegisterLoginDTO(
         String email,
 
         String jwtToken
-
 ) {
 }

@@ -1,4 +1,209 @@
 
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\accountactivity\login\controller\UserActivityLoginController.java ---
+
+package com.finovara.finovarabackend.accountactivity.login.controller;
+
+import com.finovara.finovarabackend.accountactivity.login.dto.UserActivityLoginDto;
+import com.finovara.finovarabackend.accountactivity.login.service.UserActivityLoginService;
+import com.finovara.finovarabackend.security.SecurityUtils;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/account-activity/account-security")
+@RequiredArgsConstructor
+public class UserActivityLoginController {
+    private final UserActivityLoginService userActivityLoginService;
+
+    @GetMapping
+    public ResponseEntity<List<UserActivityLoginDto>> getUserActivityLogin() {
+        return ResponseEntity.ok(userActivityLoginService.getUserActivityLogin(SecurityUtils.getCurrentUserEmail()));
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> confirmPasswordToUserActivityLogin(@RequestBody ConfirmPasswordDto confirmPasswordDto) {
+        userActivityLoginService.confirmPasswordToUserActivityLogin(SecurityUtils.getCurrentUserEmail(), confirmPasswordDto);
+        return ResponseEntity.noContent().build();
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\accountactivity\login\dto\UserActivityLoginDto.java ---
+
+package com.finovara.finovarabackend.accountactivity.login.dto;
+
+import com.finovara.finovarabackend.accountactivity.login.model.UserActivityLoginStatus;
+
+import java.time.LocalDateTime;
+
+public record UserActivityLoginDto(
+        String type,
+        UserActivityLoginStatus status,
+        LocalDateTime date,
+        String browser,
+        String ipAddress,
+        String location
+) {
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\accountactivity\login\model\UserActivityLogin.java ---
+
+package com.finovara.finovarabackend.accountactivity.login.model;
+
+import com.finovara.finovarabackend.user.model.User;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
+@Builder
+@Entity
+@Table(name = "user_activity_login")
+public class UserActivityLogin {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String type;
+
+    @Enumerated(EnumType.STRING)
+    private UserActivityLoginStatus status;
+
+    private LocalDateTime date;
+
+    private String browser;
+
+    private String ipAddress;
+
+    private String location;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User userAssigned;
+
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\accountactivity\login\model\UserActivityLoginStatus.java ---
+
+package com.finovara.finovarabackend.accountactivity.login.model;
+
+public enum UserActivityLoginStatus {
+    successful,
+    unsuccessful
+
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\accountactivity\login\repository\UserActivityLoginRepository.java ---
+
+package com.finovara.finovarabackend.accountactivity.login.repository;
+
+import com.finovara.finovarabackend.accountactivity.login.model.UserActivityLogin;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+
+public interface UserActivityLoginRepository extends JpaRepository<UserActivityLogin, Long> {
+
+    @Query("SELECT u FROM UserActivityLogin u WHERE u.userAssigned.email = :email ORDER BY u.id DESC")
+    List<UserActivityLogin> findByUserAssignedEmailAndOrderByDateDesc(@Param("email") String email);
+
+    @Query("SELECT COUNT(u) FROM UserActivityLogin u WHERE u.userAssigned.id = :userId")
+    int countLoginActivityByUserAssignedId(Long userId);
+
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\accountactivity\login\service\UserActivityLoginService.java ---
+
+package com.finovara.finovarabackend.accountactivity.login.service;
+
+import com.finovara.finovarabackend.accountactivity.login.dto.UserActivityLoginDto;
+import com.finovara.finovarabackend.accountactivity.login.model.UserActivityLogin;
+import com.finovara.finovarabackend.accountactivity.login.model.UserActivityLoginStatus;
+import com.finovara.finovarabackend.accountactivity.login.repository.UserActivityLoginRepository;
+import com.finovara.finovarabackend.config.TimeConfig;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class UserActivityLoginService {
+
+    private final UserManagerService userManagerService;
+    private final TimeConfig timeConfig;
+    private final UserActivityLoginRepository userActivityLoginRepository;
+
+    private final ClientData clientData;
+
+    private final PasswordConfirmationService passwordConfirmationService;
+
+    @Transactional
+    public void createUserActivityLogin(String email, UserActivityLoginStatus userActivityLoginStatus, HttpServletRequest request) {
+        User user = userManagerService.getUserByEmailOrThrow(email);
+        String ipAddress = clientData.getClientIp(request);
+
+        UserActivityLogin userActivityLogin = UserActivityLogin.builder()
+                .userAssigned(user)
+                .type("Logowanie")
+                .status(userActivityLoginStatus)
+                .date(LocalDateTime.now(timeConfig.clock()))
+                .browser(clientData.getUserBrowser(request))
+                .ipAddress(ipAddress)
+                .location(clientData.getUserLocation(ipAddress))
+                .build();
+
+        userActivityLoginRepository.save(userActivityLogin);
+
+
+        /*
+        int countLoginActivity = userActivityLoginRepository.countLoginActivityByUserAssignedId(user.getId());
+
+        if countLoginActivity equals 12 records - delete all
+
+        */
+    }
+
+    public List<UserActivityLoginDto> getUserActivityLogin(String email) {
+        return userActivityLoginRepository
+                .findByUserAssignedEmailAndOrderByDateDesc(email)
+                .stream()
+                .map(activity -> new UserActivityLoginDto(
+                        activity.getType(),
+                        activity.getStatus(),
+                        activity.getDate(),
+                        activity.getBrowser(),
+                        activity.getIpAddress(),
+                        activity.getLocation()
+                ))
+                .toList();
+
+    }
+
+    public void confirmPasswordToUserActivityLogin(String email, ConfirmPasswordDto confirmPasswordDto) {
+        passwordConfirmationService.confirmPassword(email, confirmPasswordDto);
+    }
+
+}
+
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\config\ApplicationConfig.java ---
 
 package com.finovara.finovarabackend.config;
@@ -102,6 +307,7 @@ public class SecurityFilterChainConfig {
                         .requestMatchers("/register", "/login").permitAll()
                         .requestMatchers("/api/profile-image/**").permitAll()
                         .requestMatchers("/profile-images/**").permitAll()
+                        .requestMatchers("/api/forgot-password/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -151,22 +357,72 @@ public class WebConfig implements WebMvcConfigurer {
     }
 }
 
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\ActiveLimitNotFoundException.java ---
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\badrequest\InvalidInputException.java ---
 
-package com.finovara.finovarabackend.exception;
+package com.finovara.finovarabackend.exception.badrequest;
 
-public class ActiveLimitNotFoundException extends RuntimeException {
-    public ActiveLimitNotFoundException(String message) {
+public class InvalidInputException extends RuntimeException {
+    public InvalidInputException(String message) {
         super(message);
     }
 }
 
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\EmailAlreadyExistsException.java ---
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\conflict\NameAlreadyExistsException.java ---
 
-package com.finovara.finovarabackend.exception;
+package com.finovara.finovarabackend.exception.conflict;
 
-public class EmailAlreadyExistsException extends RuntimeException {
-    public EmailAlreadyExistsException(String message) {
+public class NameAlreadyExistsException extends RuntimeException {
+    public NameAlreadyExistsException(String message) {
+        super(message);
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\conflict\StateConflictException.java ---
+
+package com.finovara.finovarabackend.exception.conflict;
+
+public class StateConflictException extends RuntimeException {
+    public StateConflictException(String message) {
+        super(message);
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\forbidden\NotAuthorizedException.java ---
+
+package com.finovara.finovarabackend.exception.forbidden;
+
+public class NotAuthorizedException extends RuntimeException {
+    public NotAuthorizedException(String message) {
+        super(message);
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\notfound\WalletNotFoundException.java ---
+
+package com.finovara.finovarabackend.exception.notfound;
+
+public class WalletNotFoundException extends RuntimeException {
+    public WalletNotFoundException(String message) {
+        super(message);
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\unauthorized\WrongPasswordException.java ---
+
+package com.finovara.finovarabackend.exception.unauthorized;
+
+public class WrongPasswordException extends RuntimeException {
+    public WrongPasswordException(String message) {
+        super(message);
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\unprocessablecontent\MissingRequirementException.java ---
+
+package com.finovara.finovarabackend.exception.unprocessablecontent;
+
+public class MissingRequirementException extends RuntimeException {
+    public MissingRequirementException(String message) {
         super(message);
     }
 }
@@ -188,20 +444,26 @@ public record ErrorResponseDTO(
     }
 }
 
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\ExpenseNotFoundException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class ExpenseNotFoundException extends RuntimeException {
-    public ExpenseNotFoundException(String message) {
-        super(message);
-    }
-}
-
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\GlobalExceptionHandler.java ---
 
 package com.finovara.finovarabackend.exception;
 
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
+import com.finovara.finovarabackend.exception.conflict.StateConflictException;
+import com.finovara.finovarabackend.exception.forbidden.NotAuthorizedException;
+import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
+import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
+import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
+import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
+import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
+import com.finovara.finovarabackend.limit.exception.conflict.LimitAlreadyExistsException;
+import com.finovara.finovarabackend.limit.exception.unprocessablecontent.LimitExceededException;
+import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
+import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
+import com.finovara.finovarabackend.util.service.piggybank.exception.notfound.PiggyBankNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -246,7 +508,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({MissingRequirementException.class, LimitExceededException.class}) // NOWY KOD 422
-    public ResponseEntity<ErrorResponseDTO> handleUnprocessableEntity(MissingRequirementException exception, WebRequest webRequest) {
+    public ResponseEntity<ErrorResponseDTO> handleUnprocessableEntity(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDTO body = new ErrorResponseDTO(
                 HttpStatus.UNPROCESSABLE_CONTENT.value(),
                 HttpStatus.UNPROCESSABLE_CONTENT.getReasonPhrase(),
@@ -289,136 +551,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\InvalidInputException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class InvalidInputException extends RuntimeException {
-    public InvalidInputException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\LimitAlreadyExistsException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class LimitAlreadyExistsException extends RuntimeException {
-    public LimitAlreadyExistsException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\LimitExceededException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class LimitExceededException extends RuntimeException {
-    public LimitExceededException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\MissingRequirementException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class MissingRequirementException extends RuntimeException {
-    public MissingRequirementException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\NameAlreadyExistsException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class NameAlreadyExistsException extends RuntimeException {
-    public NameAlreadyExistsException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\NotAuthorizedException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class NotAuthorizedException extends RuntimeException {
-    public NotAuthorizedException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\PiggyBankNotFoundException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class PiggyBankNotFoundException extends RuntimeException {
-    public PiggyBankNotFoundException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\RevenueNotFoundException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class RevenueNotFoundException extends RuntimeException {
-    public RevenueNotFoundException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\SmartScanConfirmationRequiredException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class SmartScanConfirmationRequiredException extends RuntimeException {
-    public SmartScanConfirmationRequiredException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\StateConflictException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class StateConflictException extends RuntimeException {
-    public StateConflictException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\UserNotFoundException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class UserNotFoundException extends RuntimeException {
-    public UserNotFoundException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\WalletNotFoundException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class WalletNotFoundException extends RuntimeException {
-    public WalletNotFoundException(String message) {
-        super(message);
-    }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\exception\WrongPasswordException.java ---
-
-package com.finovara.finovarabackend.exception;
-
-public class WrongPasswordException extends RuntimeException {
-    public WrongPasswordException(String message) {
-        super(message);
-    }
 }
 
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\expense\controller\ExpenseController.java ---
@@ -503,6 +635,16 @@ public record ExpenseRequestDto(
         ConfirmPasswordDto confirmPasswordDto,
         CountQuantityLimitDto countQuantityLimitDto
 ){
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\expense\exception\notfound\ExpenseNotFoundException.java ---
+
+package com.finovara.finovarabackend.expense.exception.notfound;
+
+public class ExpenseNotFoundException extends RuntimeException {
+    public ExpenseNotFoundException(String message) {
+        super(message);
+    }
 }
 
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\expense\mapper\ExpenseMapper.java ---
@@ -692,7 +834,7 @@ public class ExpenseService {
         validateLimitOrThrow(user.getId(), limitType, BigDecimal.ZERO, expenseRequestDto.expenseDTO().amount());
 
         countQuantityLimitService.calculateCountQuantityLimit(email, expenseRequestDto.countQuantityLimitDto(),
-                expenseRequestDto.countQuantityLimitDto().countQuantityLimitStrategy());
+                expenseRequestDto.countQuantityLimitDto().countQuantityLimitStrategy(), expenseRequestDto.confirmPasswordDto());
 
         Expense expense = Expense.builder()
                 .amount(expenseRequestDto.expenseDTO().amount())
@@ -957,6 +1099,36 @@ public record LimitStatsDTO(
         LocalDate date
 
 ) {
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\limit\exception\conflict\LimitAlreadyExistsException.java ---
+
+package com.finovara.finovarabackend.limit.exception.conflict;
+
+public class LimitAlreadyExistsException extends RuntimeException {
+    public LimitAlreadyExistsException(String message) {
+        super(message);
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\limit\exception\notfound\ActiveLimitNotFoundException.java ---
+
+package com.finovara.finovarabackend.limit.exception.notfound;
+
+public class ActiveLimitNotFoundException extends RuntimeException {
+    public ActiveLimitNotFoundException(String message) {
+        super(message);
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\limit\exception\unprocessablecontent\LimitExceededException.java ---
+
+package com.finovara.finovarabackend.limit.exception.unprocessablecontent;
+
+public class LimitExceededException extends RuntimeException {
+    public LimitExceededException(String message) {
+        super(message);
+    }
 }
 
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\limit\mapper\LimitMapper.java ---
@@ -1349,7 +1521,6 @@ public enum GoalType {
 package com.finovara.finovarabackend.piggybank.model;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersettings.piggybank.completion.model.GoalCompletionStrategy;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -1373,6 +1544,7 @@ public class PiggyBank {
     private BigDecimal amount;
     private LocalDate createdAt;
 
+    @Enumerated(EnumType.STRING)
     private GoalType goalType;
 
     private BigDecimal goalAmount;
@@ -1406,7 +1578,7 @@ public interface PiggyBankRepository extends JpaRepository<PiggyBank, Long> {
     long countPiggyBanksByUserId(@Param("userId") Long userId);
 
 
-    boolean existsByName(String Name);
+    boolean existsByNameAndUserAssignedId(String Name, Long userId);
 
     // UsernameAlreadyExistsException zamienilem na NameAlreadyExistsException - wykorzystuje w UserService i PiggyBankService, czy tak moze byc?
 
@@ -1462,7 +1634,7 @@ public class PiggyBankService {
             throw new InvalidInputException("you have reached the maximum number of piggy banks: " + maxPiggyBanks);
         }
 
-        if (piggyBankRepository.existsByName(piggyBankDTO.name())) {
+        if (piggyBankRepository.existsByNameAndUserAssignedId(piggyBankDTO.name(), user.getId())) {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
 
@@ -1599,11 +1771,11 @@ public class PiggyBankService {
 
 package com.finovara.finovarabackend.reports.controller;
 
-import com.finovara.finovarabackend.reports.dto.ReportMonthlyChartDTO;
-import com.finovara.finovarabackend.reports.dto.ReportsAverageDTO;
-import com.finovara.finovarabackend.reports.dto.ReportsHighestExpense;
-import com.finovara.finovarabackend.reports.dto.ReportsSumDTO;
+import com.finovara.finovarabackend.expense.model.ExpenseCategory;
+import com.finovara.finovarabackend.reports.dto.*;
+import com.finovara.finovarabackend.reports.service.ReportsCategorySpendingService;
 import com.finovara.finovarabackend.reports.service.ReportsService;
+import com.finovara.finovarabackend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -1615,6 +1787,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ReportsController {
     private final ReportsService reportsService;
+    private final ReportsCategorySpendingService reportsCategorySpendingService;
 
     @GetMapping("/sum/{userId}")
     public ResponseEntity<ReportsSumDTO> sumRevenueAndExpense(@PathVariable Long userId) {
@@ -1635,6 +1808,26 @@ public class ReportsController {
     public List<ReportMonthlyChartDTO> getChart(@PathVariable Long userId) {
         return reportsService.getMonthlyChart(userId);
     }
+
+    @GetMapping
+    public ResponseEntity<CategorySpendingDto> getCategorySpending(ExpenseCategory category) {
+        return ResponseEntity.ok(reportsCategorySpendingService.getCategorySpendingReport(SecurityUtils.getCurrentUserEmail(), category));
+    }
+
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\reports\dto\CategorySpendingDto.java ---
+
+package com.finovara.finovarabackend.reports.dto;
+
+import com.finovara.finovarabackend.expense.model.ExpenseCategory;
+
+import java.math.BigDecimal;
+
+public record CategorySpendingDto(
+        BigDecimal percentage,
+        ExpenseCategory category
+) {
 }
 
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\reports\dto\ReportMonthlyChartDTO.java ---
@@ -1686,6 +1879,61 @@ public record ReportsSumDTO(
     BigDecimal sumRevenue,
     BigDecimal sumExpense
 ) {
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\reports\service\ReportsCategorySpendingService.java ---
+
+package com.finovara.finovarabackend.reports.service;
+
+import com.finovara.finovarabackend.expense.model.Expense;
+import com.finovara.finovarabackend.expense.model.ExpenseCategory;
+import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
+import com.finovara.finovarabackend.reports.dto.CategorySpendingDto;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class ReportsCategorySpendingService {
+    private final UserManagerService userManagerService;
+    private final SpentInPeriodService spentInPeriodService;
+    private final ExpenseRepository expenseRepository;
+
+    public CategorySpendingDto getCategorySpendingReport(String email, ExpenseCategory category) {
+        User user = userManagerService.getUserByEmailOrThrow(email);
+
+        LocalDate startMonth = spentInPeriodService.today().withDayOfMonth(1);
+        LocalDate today = spentInPeriodService.today();
+
+        List<Expense> expenses = expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), category, startMonth, today);
+
+        BigDecimal sumExpensesAmount = Optional.ofNullable(expenseRepository.sumExpensesByUserAndDateRange(user.getId(), startMonth, today))
+                .orElse(BigDecimal.ZERO);
+
+        BigDecimal sumExpensesCategory = expenses.stream()
+                .map(Expense::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal percentage = BigDecimal.ZERO;
+
+        if (sumExpensesAmount.compareTo(BigDecimal.ZERO) > 0) {
+            percentage = sumExpensesCategory
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(sumExpensesAmount, 2, RoundingMode.HALF_UP);
+        }
+        return new CategorySpendingDto(percentage, category);
+    }
 }
 
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\reports\service\ReportsService.java ---
@@ -1885,6 +2133,16 @@ public record RevenueDTO(
 ) {
 }
 
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\revenue\exception\notfound\RevenueNotFoundException.java ---
+
+package com.finovara.finovarabackend.revenue.exception.notfound;
+
+public class RevenueNotFoundException extends RuntimeException {
+    public RevenueNotFoundException(String message) {
+        super(message);
+    }
+}
+
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\revenue\mapper\RevenueMapper.java ---
 
 package com.finovara.finovarabackend.revenue.mapper;
@@ -1932,6 +2190,7 @@ public class Revenue {
     private Long id;
 
     private BigDecimal amount;
+    @Enumerated(EnumType.STRING)
     private RevenueCategory category;
     private LocalDate createdAt;
     private String description;
@@ -2273,10 +2532,13 @@ public class SecurityUtils {
 
 package com.finovara.finovarabackend.user.controller;
 
-import com.finovara.finovarabackend.user.dto.UserRegisterLoginDTO;
+import com.finovara.finovarabackend.user.dto.UserLoginDto;
+import com.finovara.finovarabackend.user.dto.UserRegisterDto;
 import com.finovara.finovarabackend.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.catalina.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -2289,18 +2551,39 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserRegisterLoginDTO> registerUser(@RequestBody @Valid UserRegisterLoginDTO userRegisterLoginDTO) {
-        return ResponseEntity.ok(userService.registerUser(userRegisterLoginDTO));
+    public ResponseEntity<UserRegisterDto> registerUser(@RequestBody @Valid UserRegisterDto userRegisterDto) {
+        return ResponseEntity.ok(userService.registerUser(userRegisterDto));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserRegisterLoginDTO> loginUser(@RequestBody @Valid UserRegisterLoginDTO userLogin) {
-        return ResponseEntity.ok(userService.loginUser(userLogin.email(), userLogin.password()));
+    public ResponseEntity<UserLoginDto> loginUser(@RequestBody @Valid UserLoginDto userLogin, HttpServletRequest request) {
+        return ResponseEntity.ok(userService.loginUser(userLogin.email(), userLogin.password(), request));
     }
 }
 
 
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\user\dto\UserRegisterLoginDTO.java ---
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\user\dto\UserLoginDto.java ---
+
+package com.finovara.finovarabackend.user.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public record UserLoginDto(
+        Long id,
+
+        @Email
+        @NotBlank
+        String email,
+
+        @NotBlank
+        String password,
+
+        String jwtToken
+) {
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\user\dto\UserRegisterDto.java ---
 
 package com.finovara.finovarabackend.user.dto;
 
@@ -2309,7 +2592,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record UserRegisterLoginDTO(
+public record UserRegisterDto(
         Long id,
         @Size(min = 3, max = 13)
         String username,
@@ -2327,18 +2610,39 @@ public record UserRegisterLoginDTO(
         String email,
 
         String jwtToken
-
 ) {
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\user\exception\conflict\EmailAlreadyExistsException.java ---
+
+package com.finovara.finovarabackend.user.exception.conflict;
+
+public class EmailAlreadyExistsException extends RuntimeException {
+    public EmailAlreadyExistsException(String message) {
+        super(message);
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\user\exception\notfound\UserNotFoundException.java ---
+
+package com.finovara.finovarabackend.user.exception.notfound;
+
+public class UserNotFoundException extends RuntimeException {
+    public UserNotFoundException(String message) {
+        super(message);
+    }
 }
 
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\user\model\User.java ---
 
 package com.finovara.finovarabackend.user.model;
 
+import com.finovara.finovarabackend.accountactivity.login.model.UserActivityLogin;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.revenue.model.Revenue;
+import com.finovara.finovarabackend.usersettings.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersettings.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersettings.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.wallet.model.Wallet;
@@ -2379,15 +2683,20 @@ public class User {
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private List<Limit> limits;
 
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    private List<UserActivityLogin> userActivityLogins;
+
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private Wallet wallet;
 
-    @OneToOne(mappedBy = "userAssigned", cascade =  CascadeType.ALL)
+    @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private ExpenseSettings expenseSettings;
 
-    @OneToOne(mappedBy = "userAssigned", cascade =  CascadeType.ALL)
+    @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private PiggyBankSettings piggyBankSettings;
 
+    @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    private AccountSettings accountSettings;
 
 }
 
@@ -2414,17 +2723,21 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 package com.finovara.finovarabackend.user.service;
 
-import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.finovarabackend.accountactivity.login.model.UserActivityLoginStatus;
+import com.finovara.finovarabackend.accountactivity.login.service.UserActivityLoginService;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
-import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.security.service.JwtService;
-import com.finovara.finovarabackend.user.dto.UserRegisterLoginDTO;
+import com.finovara.finovarabackend.user.dto.UserLoginDto;
+import com.finovara.finovarabackend.user.dto.UserRegisterDto;
+import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.usersettings.factory.SettingsFactory;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -2445,26 +2758,29 @@ public class UserService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final SettingsFactory settingsFactory;
+    private final UserActivityLoginService userActivityLoginService;
 
-    public UserRegisterLoginDTO registerUser(UserRegisterLoginDTO userRegisterLoginDTO) {
+    public UserRegisterDto registerUser(UserRegisterDto userRegisterDto) {
 
-        if (userRepository.existsByUsername(userRegisterLoginDTO.username())) {
-            log.info("User cannot register. Username is already taken. Username: {}", userRegisterLoginDTO.username());
+        if (userRepository.existsByUsername(userRegisterDto.username())) {
+            log.info("User cannot register. Username is already taken. Username: {}", userRegisterDto.username());
             throw new NameAlreadyExistsException("Username is already taken");
         }
 
-        if (userRepository.existsByEmail(userRegisterLoginDTO.email())) {
-            log.info("User cannot register. Email is already taken.  UserEmail: {}", userRegisterLoginDTO.email());
+        if (userRepository.existsByEmail(userRegisterDto.email())) {
+            log.info("User cannot register. Email is already taken.  UserEmail: {}", userRegisterDto.email());
             throw new EmailAlreadyExistsException("Email is already taken");
         }
 
         User user = User.builder()
-                .username(userRegisterLoginDTO.username())
-                .email(userRegisterLoginDTO.email())
-                .password(passwordEncoder.encode(userRegisterLoginDTO.password()))
+                .username(userRegisterDto.username())
+                .email(userRegisterDto.email())
+                .password(passwordEncoder.encode(userRegisterDto.password()))
                 .createdAt(LocalDateTime.now())
                 .build();
+        user.setPiggyBankSettings(settingsFactory.createDefaultPiggyBankSettings(user));
+        user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         User savedUser = userRepository.save(user);
 
         String jwtToken = jwtService.generateToken(
@@ -2475,16 +2791,17 @@ public class UserService {
                 )
         );
 
-        return new UserRegisterLoginDTO(user.getId(), savedUser.getUsername(), null, savedUser.getEmail(), jwtToken);
+        return new UserRegisterDto(user.getId(), savedUser.getUsername(), null, savedUser.getEmail(), jwtToken);
 
     }
 
-    public UserRegisterLoginDTO loginUser(String email, String rawPassword) {
+    public UserLoginDto loginUser(String email, String rawPassword, HttpServletRequest request) {
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, rawPassword)
-            );
+                    new UsernamePasswordAuthenticationToken(email, rawPassword));
+            userActivityLoginService.createUserActivityLogin(email, UserActivityLoginStatus.successful, request);
         } catch (AuthenticationException e) {
+            userActivityLoginService.createUserActivityLogin(email, UserActivityLoginStatus.unsuccessful, request);
             throw new WrongPasswordException("Incorrect email or password");
         }
 
@@ -2497,7 +2814,7 @@ public class UserService {
                 List.of()
         );
         String jwtToken = jwtService.generateToken(userDetails);
-        return new UserRegisterLoginDTO(user.getId(), user.getUsername(), null, user.getEmail(), jwtToken);
+        return new UserLoginDto(user.getId(), email, null, jwtToken);
     }
 
 }
@@ -2508,8 +2825,11 @@ package com.finovara.finovarabackend.usersettings.account.controller;
 
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.usersettings.account.dto.AccountSettingsDto;
-import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy.PasswordRequestDto;
 import com.finovara.finovarabackend.usersettings.account.service.AccountService;
+import com.finovara.finovarabackend.usersettings.account.service.passwordpolicy.ChangePasswordService;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -2519,6 +2839,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/account-settings")
 public class AccountSettingsController {
     private final AccountService accountService;
+    private final ChangePasswordService changePasswordService;
 
     @PutMapping("/{userId}/username")
     public ResponseEntity<AccountSettingsDto> updateUsername(@RequestBody AccountSettingsDto accountSettingsDto, @PathVariable Long userId) {
@@ -2532,7 +2853,58 @@ public class AccountSettingsController {
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteAccount(@RequestBody ConfirmPasswordDto confirmPasswordDto, @PathVariable Long userId) {
-        accountService.deleteAccount(confirmPasswordDto,userId);
+        accountService.deleteAccount(confirmPasswordDto, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping
+    public ResponseEntity<Void> changeUserPassword(@RequestBody @Valid PasswordRequestDto passwordRequestDto) {
+        changePasswordService.changePassword(SecurityUtils.getCurrentUserEmail(), passwordRequestDto);
+        return ResponseEntity.noContent().build();
+    }
+
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\account\controller\ForgotPasswordController.java ---
+
+package com.finovara.finovarabackend.usersettings.account.controller;
+
+import com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy.ForgotPasswordDto;
+import com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy.PasswordRequestDto;
+import com.finovara.finovarabackend.usersettings.account.service.passwordpolicy.ForgotPasswordService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/forgot-password")
+@RequiredArgsConstructor
+public class ForgotPasswordController {
+
+    private final ForgotPasswordService forgotPasswordService;
+
+    @PostMapping("/validateEmailExists")
+    public ResponseEntity<Void> isEmailExists(@RequestBody @Valid ForgotPasswordDto forgotPasswordDto) {
+        forgotPasswordService.validateEmailExists(forgotPasswordDto.email());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> sendEmail(@RequestBody @Valid ForgotPasswordDto forgotPasswordDto) {
+        forgotPasswordService.emailSend(forgotPasswordDto.email(), forgotPasswordDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/verify-code")
+    public ResponseEntity<Void> verifyCode(@RequestBody @Valid ForgotPasswordDto forgotPasswordDto) {
+        forgotPasswordService.verifyCode(forgotPasswordDto.email(), forgotPasswordDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<Void> changePasswordWithCode(@RequestBody @Valid PasswordRequestDto passwordRequestDto) {
+        forgotPasswordService.changePasswordWithCode(passwordRequestDto.forgotPasswordDto().email(), passwordRequestDto);
         return ResponseEntity.noContent().build();
     }
 
@@ -2565,6 +2937,54 @@ public class ProfileImageController {
     }
 }
 
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\account\dto\passwordpolicy\ChangePasswordDto.java ---
+
+package com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy;
+
+import jakarta.validation.constraints.Pattern;
+
+public record ChangePasswordDto(
+        @Pattern(
+                regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).*$",
+                message = "Hasło musi mieć min. 8 znaków, jedną dużą literę, jedną cyfrę i jeden znak specjalny"
+        )
+        String newPassword,
+
+        @Pattern(
+                regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).*$",
+                message = "Hasło musi mieć min. 8 znaków, jedną dużą literę, jedną cyfrę i jeden znak specjalny"
+        )
+        String confirmNewPassword
+) {
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\account\dto\passwordpolicy\ForgotPasswordDto.java ---
+
+package com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public record ForgotPasswordDto(
+        @Email @NotBlank String email,
+        int code
+) {
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\account\dto\passwordpolicy\PasswordRequestDto.java ---
+
+package com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy;
+
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import jakarta.validation.Valid;
+
+public record PasswordRequestDto(
+        ConfirmPasswordDto confirmPasswordDto,
+        @Valid ChangePasswordDto changePasswordDto,
+        @Valid ForgotPasswordDto forgotPasswordDto
+) {
+}
+
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\account\dto\AccountSettingsDto.java ---
 
 package com.finovara.finovarabackend.usersettings.account.dto;
@@ -2584,20 +3004,285 @@ public record AccountSettingsDto(
 ) {
 }
 
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\account\model\AccountSettings.java ---
+
+package com.finovara.finovarabackend.usersettings.account.model;
+
+import com.finovara.finovarabackend.user.model.User;
+import jakarta.persistence.*;
+import lombok.*;
+
+@Entity
+@Table(name = "account_settings")
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
+@Builder
+public class AccountSettings {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private Integer forgotPasswordCode;
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private User userAssigned;
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\account\repository\AccountRepository.java ---
+
+package com.finovara.finovarabackend.usersettings.account.repository;
+
+import com.finovara.finovarabackend.usersettings.account.model.AccountSettings;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+public interface AccountRepository extends JpaRepository<AccountSettings, Long> {
+
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\account\service\passwordpolicy\ChangePasswordService.java ---
+
+package com.finovara.finovarabackend.usersettings.account.service.passwordpolicy;
+
+import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy.PasswordRequestDto;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class ChangePasswordService {
+
+    private final UserManagerService userManagerService;
+    private final PasswordConfirmationService passwordConfirmationService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final PasswordChangeEmailService passwordChangeEmailService;
+
+    public void changePassword(String email, PasswordRequestDto passwordRequestDto) {
+        User user = userManagerService.getUserByEmailOrThrow(email);
+
+        if (!passwordRequestDto.changePasswordDto().newPassword()
+                .equals(passwordRequestDto.changePasswordDto().confirmNewPassword())) {
+            throw new MissingRequirementException("New passwords have to be the same");
+        }
+
+        if (passwordRequestDto.changePasswordDto().newPassword().isEmpty()) {
+            throw new MissingRequirementException("The new password cannot be empty");
+        }
+
+        passwordConfirmationService.confirmPassword(email, passwordRequestDto.confirmPasswordDto());
+
+        user.setPassword(passwordEncoder.encode(passwordRequestDto.changePasswordDto().newPassword()));
+        userRepository.save(user);
+        passwordChangeEmailService.sendEmail(user);
+
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\account\service\passwordpolicy\ForgotPasswordService.java ---
+
+package com.finovara.finovarabackend.usersettings.account.service.passwordpolicy;
+
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy.ForgotPasswordDto;
+import com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy.PasswordRequestDto;
+import com.finovara.finovarabackend.usersettings.account.model.AccountSettings;
+import com.finovara.finovarabackend.usersettings.account.repository.AccountRepository;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import jakarta.mail.internet.MimeMessage;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class ForgotPasswordService {
+
+    @Value("${mail.recipient.address}")
+    String recipientAddress;
+
+    private final UserManagerService userManagerService;
+    private final PasswordEncoder passwordEncoder;
+    private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
+    private final JavaMailSender javaMailSender;
+    private final PasswordChangeEmailService passwordChangeEmailService;
+
+    public void validateEmailExists(String email) {
+        if (!userRepository.existsByEmail(email)) {
+            throw new InvalidInputException("No account found with the given email address");
+        }
+    }
+
+    @Async
+    public void emailSend(String email, ForgotPasswordDto forgotPasswordDto) {
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(forgotPasswordDto.email());
+            helper.setFrom("Finovara <" + recipientAddress + ">");
+            helper.setReplyTo(recipientAddress);
+            helper.setSubject("Przypomnienie Hasła");
+
+            int code = generateSecureCode(email);
+            String html = loadTemplate(String.valueOf(code));
+
+            helper.setText(html, true);
+
+            javaMailSender.send(message);
+
+        } catch (Exception exception) {
+            throw new RuntimeException("Failed to send email", exception);
+        }
+    }
+
+    public void verifyCode(String email, ForgotPasswordDto forgotPasswordDto) {
+        User user = userManagerService.getUserByEmailOrThrow(email);
+        AccountSettings accountSettings = user.getAccountSettings();
+
+        if (!accountSettings.getForgotPasswordCode().equals(forgotPasswordDto.code())) {
+            throw new InvalidInputException("Incorrect code");
+        }
+    }
+
+    @Transactional
+    public void changePasswordWithCode(String email, PasswordRequestDto passwordRequestDto) {
+        User user = userManagerService.getUserByEmailOrThrow(email);
+        AccountSettings accountSettings = user.getAccountSettings();
+
+        verifyCode(email, passwordRequestDto.forgotPasswordDto());
+
+        if (!passwordRequestDto.changePasswordDto().newPassword()
+                .equals(passwordRequestDto.changePasswordDto().confirmNewPassword())) {
+            throw new MissingRequirementException("New passwords have to be the same");
+        }
+
+        if (passwordEncoder.matches(passwordRequestDto.changePasswordDto().newPassword(), user.getPassword())) {
+            throw new MissingRequirementException("This password is already set");
+        }
+
+        if (passwordRequestDto.changePasswordDto().newPassword().isEmpty()) {
+            throw new MissingRequirementException("The new password cannot be empty");
+        }
+
+        user.setPassword(passwordEncoder.encode(passwordRequestDto.changePasswordDto().newPassword()));
+        userRepository.save(user);
+
+        accountSettings.setForgotPasswordCode(null);
+        accountRepository.save(accountSettings);
+
+        passwordChangeEmailService.sendEmail(user);
+    }
+
+    @Transactional
+    private int generateSecureCode(String email) {
+        User user = userManagerService.getUserByEmailOrThrow(email);
+        AccountSettings accountSettings = user.getAccountSettings();
+
+        SecureRandom random = new SecureRandom();
+        int code = random.nextInt(900000) + 100000;
+
+        if (accountSettings == null) {
+            accountSettings = new AccountSettings();
+            accountSettings.setUserAssigned(user);
+            user.setAccountSettings(accountSettings);
+        }
+        accountSettings.setForgotPasswordCode(code);
+        accountRepository.save(accountSettings);
+        return code;
+    }
+
+    private String loadTemplate(String code) {
+        try {
+            ClassPathResource resource = new ClassPathResource("email/reset-password.html");
+
+            try (InputStream inputStream = resource.getInputStream()) {
+                String html = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+                return html.replace("{{CODE}}", code);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load email template", e);
+        }
+    }
+
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\account\service\passwordpolicy\PasswordChangeEmailService.java ---
+
+package com.finovara.finovarabackend.usersettings.account.service.passwordpolicy;
+
+import com.finovara.finovarabackend.user.model.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class PasswordChangeEmailService {
+
+    private final JavaMailSender javaMailSender;
+
+    @Value("${mail.recipient.address}")
+    String recipientAddress;
+
+    @Async
+    public void sendEmail(User user) {
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(user.getEmail());
+        message.setFrom("Finovara <" + recipientAddress + ">");
+        message.setReplyTo(recipientAddress);
+        message.setSubject("Finovara - Zmiana hasła");
+        message.setText("Witaj " + user.getUsername() + ", \n \n twoje hasło do konta Finovara zostało zmienione. \n \n" +
+                " Jeżeli to nie ty, natychmiast skontaktuj się z centrem pomocy pod e-mailem: marcin.parsniak@op.pl \n Pozdrawiamy, \n Finovara");
+
+        javaMailSender.send(message);
+    }
+}
+
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\account\service\AccountService.java ---
 
 package com.finovara.finovarabackend.usersettings.account.service;
 
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
-import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersettings.account.dto.AccountSettingsDto;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Paths;
@@ -2606,13 +3291,12 @@ import java.nio.file.Paths;
 @RequiredArgsConstructor
 public class AccountService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final UserManagerService userManagerService;
+    private final PasswordConfirmationService passwordConfirmationService;
 
     @Transactional
     public AccountSettingsDto updateUsername(AccountSettingsDto accountSettingsDto, Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
-
 
         if (userRepository.existsByUsername(accountSettingsDto.username())) {
             throw new NameAlreadyExistsException("Username is already taken");
@@ -2628,9 +3312,7 @@ public class AccountService {
     public void deleteAccount(ConfirmPasswordDto confirmPasswordDto, Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
-        if (!passwordEncoder.matches(confirmPasswordDto.password(), user.getPassword())) {
-            throw new WrongPasswordException("You cannot delete your account, incorrect password");
-        }
+        passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
 
         userRepository.delete(user);
     }
@@ -2750,6 +3432,54 @@ public class ProfileImageService {
     }
 }
 
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\factory\SettingsFactory.java ---
+
+package com.finovara.finovarabackend.usersettings.factory;
+
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersettings.account.model.AccountSettings;
+import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.model.CountQuantityLimitStrategy;
+import com.finovara.finovarabackend.usersettings.finances.expense.model.ExpenseSettings;
+import com.finovara.finovarabackend.usersettings.piggybank.completion.model.GoalCompletionStrategy;
+import com.finovara.finovarabackend.usersettings.piggybank.model.PiggyBankSettings;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import javax.swing.text.html.Option;
+import java.math.BigDecimal;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class SettingsFactory {
+
+    public ExpenseSettings createDefaultExpenseSettings(User user) {
+        return ExpenseSettings.builder()
+                .userAssigned(user)
+                .expenseAmountThresholdEnabled(false)
+                .blockedAmount(BigDecimal.ZERO)
+                .smartScanEnabled(false)
+                .expenseCountQuantityLimitEnabled(false)
+                .numberOfQuantityLimit(0)
+                .countQuantityLimitStrategy(CountQuantityLimitStrategy.DAILY)
+                .expenseQuantityLimitEmergencyModeEnabled(false)
+                .build();
+
+    }
+
+    public PiggyBankSettings createDefaultPiggyBankSettings(User user) {
+        return PiggyBankSettings.builder()
+                .userAssigned(user)
+                .automationActive(false)
+                .automationPercentage(BigDecimal.ZERO)
+                .roundUpActive(false)
+                .goalCompletionStrategy(GoalCompletionStrategy.NONE)
+                .build();
+
+    }
+
+}
+
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\finances\expense\controlamount\controller\ControlAmountController.java ---
 
 package com.finovara.finovarabackend.usersettings.finances.expense.controlamount.controller;
@@ -2757,6 +3487,7 @@ package com.finovara.finovarabackend.usersettings.finances.expense.controlamount
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.finovarabackend.usersettings.finances.expense.controlamount.service.ControlAmountService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -2769,7 +3500,7 @@ public class ControlAmountController {
     private final ControlAmountService controlAmountService;
 
     @PutMapping
-    public ResponseEntity<Void> saveExpenseAmountControl(@RequestBody ControlAmountDto controlAmountDto) {
+    public ResponseEntity<Void> saveExpenseAmountControl(@RequestBody @Valid ControlAmountDto controlAmountDto) {
         controlAmountService.saveExpenseAmountControl(SecurityUtils.getCurrentUserEmail(), controlAmountDto);
         return ResponseEntity.noContent().build();
     }
@@ -2784,11 +3515,14 @@ public class ControlAmountController {
 
 package com.finovara.finovarabackend.usersettings.finances.expense.controlamount.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+
 import java.math.BigDecimal;
 
 public record ControlAmountDto(
         Boolean expenseAmountThresholdEnabled,
-        BigDecimal blockedAmount
+       @DecimalMin("1") @DecimalMax("1000000") BigDecimal blockedAmount
 ) {
 }
 
@@ -2821,8 +3555,10 @@ public class ControlAmountService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
+        BigDecimal blockedAmount = Optional.ofNullable(expenseSettings.getBlockedAmount()).orElse(BigDecimal.ZERO);
+
         expenseSettings.setExpenseAmountThresholdEnabled(controlAmountDto.expenseAmountThresholdEnabled());
-        expenseSettings.setBlockedAmount(controlAmountDto.blockedAmount());
+        expenseSettings.setBlockedAmount(blockedAmount);
         log.info("Saved ExpenseAmountControl settings. IsEnabled: {}, BlockedAmount: {}", controlAmountDto.expenseAmountThresholdEnabled(), controlAmountDto.blockedAmount());
     }
 
@@ -2846,6 +3582,7 @@ public class ControlAmountService {
 
         if (expenseSettings.isExpenseAmountThresholdEnabled() && newAmount.compareTo(blockedAmount) > 0) {
             throw new InvalidInputException("You have exceeded the amount, your amount: " + newAmount + " , amount blocked: " + blockedAmount);
+
         }
     }
 }
@@ -2856,7 +3593,10 @@ package com.finovara.finovarabackend.usersettings.finances.expense.countlimit.co
 
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.dto.CountQuantityLimitDto;
+import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.dto.CountQuantityLimitEmergencyModeDto;
+import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.service.CountQuantityLimitEmergencyModeService;
 import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.service.CountQuantityLimitService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -2867,10 +3607,17 @@ import org.springframework.web.bind.annotation.*;
 public class CountQuantityLimitController {
 
     private final CountQuantityLimitService countQuantityLimitService;
+    private final CountQuantityLimitEmergencyModeService countQuantityLimitEmergencyModeService;
 
     @PutMapping
-    public ResponseEntity<Void> saveCountQuantityExpenseLimit(@RequestBody CountQuantityLimitDto countQuantityLimitDto) {
+    public ResponseEntity<Void> saveCountQuantityExpenseLimit(@RequestBody @Valid CountQuantityLimitDto countQuantityLimitDto) {
         countQuantityLimitService.saveCountQuantityLimit(SecurityUtils.getCurrentUserEmail(), countQuantityLimitDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/emergency-mode")
+    public ResponseEntity<Void> saveCountQuantityExpenseEmergencyMode(@RequestBody CountQuantityLimitEmergencyModeDto countQuantityLimitEmergencyModeDto) {
+        countQuantityLimitEmergencyModeService.saveEmergencyMode(SecurityUtils.getCurrentUserEmail(), countQuantityLimitEmergencyModeDto);
         return ResponseEntity.noContent().build();
     }
 
@@ -2885,11 +3632,22 @@ public class CountQuantityLimitController {
 package com.finovara.finovarabackend.usersettings.finances.expense.countlimit.dto;
 
 import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.model.CountQuantityLimitStrategy;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 public record CountQuantityLimitDto(
         Boolean expenseCountLimitEnabled,
         CountQuantityLimitStrategy countQuantityLimitStrategy,
-        int numberOfQuantityLimit
+        @Min(1) @Max(100) int numberOfQuantityLimit
+) {
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\finances\expense\countlimit\dto\CountQuantityLimitEmergencyModeDto.java ---
+
+package com.finovara.finovarabackend.usersettings.finances.expense.countlimit.dto;
+
+public record CountQuantityLimitEmergencyModeDto(
+        Boolean expenseQuantityLimitEmergencyModeEnabled
 ) {
 }
 
@@ -2904,16 +3662,46 @@ public enum CountQuantityLimitStrategy {
 
 }
 
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\finances\expense\countlimit\service\CountQuantityLimitEmergencyModeService.java ---
+
+package com.finovara.finovarabackend.usersettings.finances.expense.countlimit.service;
+
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.dto.CountQuantityLimitEmergencyModeDto;
+import com.finovara.finovarabackend.usersettings.finances.expense.model.ExpenseSettings;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@RequiredArgsConstructor
+@Service
+public class CountQuantityLimitEmergencyModeService {
+
+    private final UserManagerService userManagerService;
+
+    @Transactional
+    public void saveEmergencyMode(String email, CountQuantityLimitEmergencyModeDto dto) {
+        User user = userManagerService.getUserByEmailOrThrow(email);
+        ExpenseSettings expenseSettings = user.getExpenseSettings();
+
+        expenseSettings.setExpenseQuantityLimitEmergencyModeEnabled(dto.expenseQuantityLimitEmergencyModeEnabled());
+    }
+}
+
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\finances\expense\countlimit\service\CountQuantityLimitService.java ---
 
 package com.finovara.finovarabackend.usersettings.finances.expense.countlimit.service;
 
+import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.exception.conflict.StateConflictException;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.model.CountQuantityLimitStrategy;
 import com.finovara.finovarabackend.usersettings.finances.expense.model.ExpenseSettings;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
@@ -2932,6 +3720,7 @@ public class CountQuantityLimitService {
     private final SpentInPeriodService spentInPeriodService;
     private final UserManagerService userManagerService;
     private final ExpenseRepository expenseRepository;
+    private final PasswordConfirmationService passwordConfirmationService;
 
     @Transactional
     public void saveCountQuantityLimit(String email, CountQuantityLimitDto dto) {
@@ -2939,7 +3728,10 @@ public class CountQuantityLimitService {
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         expenseSettings.setExpenseCountQuantityLimitEnabled(dto.expenseCountLimitEnabled());
-        if(!dto.expenseCountLimitEnabled()) return;
+        if (!dto.expenseCountLimitEnabled()) {
+            expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(false);
+            return;
+        }
 
         long countedExpenses = countExpensesInPeriod(user, dto.countQuantityLimitStrategy());
         if (dto.numberOfQuantityLimit() < countedExpenses) {
@@ -2947,14 +3739,16 @@ public class CountQuantityLimitService {
                     + countedExpenses + " expenses in that period");
         }
 
+        if(expenseSettings.getCountQuantityLimitStrategy() != dto.countQuantityLimitStrategy()){
+            expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(false);
+        }
+
         expenseSettings.setNumberOfQuantityLimit(dto.numberOfQuantityLimit());
         expenseSettings.setCountQuantityLimitStrategy(dto.countQuantityLimitStrategy());
-        log.info("Saved CountQuantityLimit settings. IsEnabled: {}, Limit: {}, Strategy: {}", expenseSettings.isExpenseCountQuantityLimitEnabled(),
-                expenseSettings.getNumberOfQuantityLimit(), expenseSettings.getCountQuantityLimitStrategy());
     }
 
     @Transactional
-    public void calculateCountQuantityLimit(String email, CountQuantityLimitDto dto, CountQuantityLimitStrategy strategy) {
+    public void calculateCountQuantityLimit(String email, CountQuantityLimitDto dto, CountQuantityLimitStrategy strategy, ConfirmPasswordDto confirmPasswordDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
@@ -2962,8 +3756,25 @@ public class CountQuantityLimitService {
 
         long countedExpenses = countExpensesInPeriod(user, strategy);
         if (countedExpenses + 1 > dto.numberOfQuantityLimit()) {
-            log.info("The user's expense exceeds the limit");
-            throw new StateConflictException("Quantity Limit Exceeded, you have already added " + countedExpenses + " expenses");
+
+            if (expenseSettings.isExpenseQuantityLimitEmergencyModeUsed()) {
+                throw new StateConflictException("Emergency mode already used. You have already added an expense using emergency mode in this period. You cannot add more expenses until the limit is increased or the period resets.");
+            }
+
+            if (!expenseSettings.isExpenseQuantityLimitEmergencyModeEnabled()) {
+                log.info("Quantity limit exceeded. Current count: {}, Limit: {}", countedExpenses, dto.numberOfQuantityLimit());
+                throw new StateConflictException("Quantity Limit Exceeded, you have already added " + countedExpenses + " expenses");
+            }
+
+            log.info("The user's expense exceeds the limit, but emergency mode is enabled");
+            if (confirmPasswordDto == null) {
+                throw new MissingRequirementException("Emergency mode password confirmation required to continue");
+            }
+
+            passwordConfirmationService.confirmPassword(email, confirmPasswordDto);
+            expenseSettings.setExpenseQuantityLimitEmergencyModeEnabled(false);
+            expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(true);
+            log.info("User confirmed password. Expense added");
         }
     }
 
@@ -2986,8 +3797,8 @@ public class CountQuantityLimitService {
 
         return expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(user.getId(), start, today);
     }
-}
 
+}
 
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\finances\expense\model\ExpenseSettings.java ---
 
@@ -2996,10 +3807,7 @@ package com.finovara.finovarabackend.usersettings.finances.expense.model;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.finances.expense.countlimit.model.CountQuantityLimitStrategy;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -3009,6 +3817,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 public class ExpenseSettings {
 
     @Id
@@ -3031,6 +3840,9 @@ public class ExpenseSettings {
 
     @Enumerated(EnumType.STRING)
     private CountQuantityLimitStrategy countQuantityLimitStrategy;
+
+    private boolean expenseQuantityLimitEmergencyModeEnabled;
+    private boolean expenseQuantityLimitEmergencyModeUsed;
 
     @OneToOne
     @JoinColumn(name = "user_id")
@@ -3139,12 +3951,21 @@ public enum SmartScanMode {
     EDIT
 }
 
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\finances\expense\smartscan\exception\conflict\SmartScanConfirmationRequiredException.java ---
+
+package com.finovara.finovarabackend.usersettings.finances.expense.smartscan.exception.conflict;
+
+public class SmartScanConfirmationRequiredException extends RuntimeException {
+    public SmartScanConfirmationRequiredException(String message) {
+        super(message);
+    }
+}
+
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\usersettings\finances\expense\smartscan\service\SmartScanService.java ---
 
 package com.finovara.finovarabackend.usersettings.finances.expense.smartscan.service;
 
 import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
-import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.model.User;
@@ -3152,12 +3973,12 @@ import com.finovara.finovarabackend.usersettings.finances.expense.model.ExpenseS
 import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.dto.SmartScanDto;
 import com.finovara.finovarabackend.usersettings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -3171,7 +3992,7 @@ public class SmartScanService {
 
     private final UserManagerService userManagerService;
     private final ExpenseRepository expenseRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordConfirmationService passwordConfirmationService;
 
     @Transactional
     public void saveSmartScan(String email, SmartScanDto settings) {
@@ -3221,9 +4042,8 @@ public class SmartScanService {
                 throw new SmartScanConfirmationRequiredException("Unusual expense detected. Password confirmation required.");
             }
 
-            if (!passwordEncoder.matches(confirmPasswordDto.password(), user.getPassword())) {
-                throw new WrongPasswordException("You cannot add new expense, incorrect password");
-            }
+            passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
+
             log.info("Expense added successfully. Expense amount: {}", newExpenseAmount);
         }
 
@@ -3237,6 +4057,7 @@ package com.finovara.finovarabackend.usersettings.piggybank.autopayments.control
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.dto.AutoPaymentsDto;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.service.AutoPaymentsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -3249,7 +4070,7 @@ public class AutoPaymentsController {
     private final AutoPaymentsService autoPaymentsService;
 
     @PutMapping
-    public ResponseEntity<Void> createAutomation(@RequestBody AutoPaymentsDto autoPaymentsDto) {
+    public ResponseEntity<Void> createAutomation(@RequestBody @Valid AutoPaymentsDto autoPaymentsDto) {
         autoPaymentsService.createAutomation(SecurityUtils.getCurrentUserEmail(), autoPaymentsDto);
         return ResponseEntity.noContent().build();
     }
@@ -3265,11 +4086,14 @@ public class AutoPaymentsController {
 
 package com.finovara.finovarabackend.usersettings.piggybank.autopayments.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+
 import java.math.BigDecimal;
 
 public record AutoPaymentsDto(
         Boolean isAutomationActive,
-        BigDecimal percentage
+        @DecimalMin("1") @DecimalMax("100") BigDecimal percentage
 ) {
 }
 
@@ -3286,17 +4110,14 @@ public enum AutoPaymentsMode {
 
 package com.finovara.finovarabackend.usersettings.piggybank.autopayments.service;
 
-import com.finovara.finovarabackend.exception.forbidden.NotAuthorizedException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.dto.AutoPaymentsDto;
 import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersettings.piggybank.model.PiggyBankSettings;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
-import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -3459,7 +4280,6 @@ public enum GoalCompletionStrategy {
 package com.finovara.finovarabackend.usersettings.piggybank.completion.service;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.exception.forbidden.NotAuthorizedException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
@@ -3577,10 +4397,7 @@ package com.finovara.finovarabackend.usersettings.piggybank.model;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersettings.piggybank.completion.model.GoalCompletionStrategy;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -3590,6 +4407,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Setter
 @Getter
+@Builder
 public class PiggyBankSettings {
 
     @Id
@@ -3606,6 +4424,7 @@ public class PiggyBankSettings {
     private boolean roundUpActive;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private GoalCompletionStrategy goalCompletionStrategy;
 
     @OneToOne
@@ -3668,8 +4487,6 @@ public enum PiggyBankRoundUpMode {
 package com.finovara.finovarabackend.usersettings.piggybank.roundup.service;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
-import com.finovara.finovarabackend.exception.forbidden.NotAuthorizedException;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
@@ -3681,7 +4498,6 @@ import com.finovara.finovarabackend.usersettings.piggybank.autopayments.model.Au
 import com.finovara.finovarabackend.usersettings.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersettings.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
@@ -3814,6 +4630,162 @@ public record SavePiggyBankSettingsDto(
 ) {
 }
 
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\util\clientdata\browser\UserBrowser.java ---
+
+package com.finovara.finovarabackend.util.clientdata.browser;
+
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.stereotype.Service;
+import ua_parser.Client;
+import ua_parser.Parser;
+
+@Service
+public class UserBrowser {
+
+    public String getBrowser(HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+
+        if (userAgent == null) return "Unknown";
+
+        Parser parser = new Parser();
+        Client client = parser.parse(userAgent);
+
+        return client.userAgent.family;
+    }
+
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\util\clientdata\ip\ClientIp.java ---
+
+package com.finovara.finovarabackend.util.clientdata.ip;
+
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.stereotype.Service;
+
+@Service
+public class ClientIp {
+
+    public String getClientIpAddress(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For"); // proxy
+        if (xfHeader == null) {
+            return request.getRemoteAddr(); // get user ip
+        }
+        return xfHeader.split(",")[0];
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\util\clientdata\location\UserLocation.java ---
+
+package com.finovara.finovarabackend.util.clientdata.location;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Map;
+
+@Service
+public class UserLocation {
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    public String getLocationFromIp(String ip) {
+
+        if (ip.equals("127.0.0.1") || ip.equals("0:0:0:0:0:0:0:1")) {
+            return "Localhost";
+        }
+
+        try {
+            String url = "http://ip-api.com/json/" + ip;
+
+            Map<String, Object> response =
+                    restTemplate.getForObject(url, Map.class);
+
+            String city = (String) response.get("city");
+            String country = (String) response.get("country");
+
+            if (city == null || country == null) {
+                return "Unknown";
+            }
+
+            return city + ", " + country;
+
+        } catch (Exception e) {
+            return "Unknown";
+        }
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\util\clientdata\metadata\ClientData.java ---
+
+package com.finovara.finovarabackend.util.clientdata.metadata;
+
+import com.finovara.finovarabackend.util.clientdata.browser.UserBrowser;
+import com.finovara.finovarabackend.util.clientdata.ip.ClientIp;
+import com.finovara.finovarabackend.util.clientdata.location.UserLocation;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class ClientData {
+
+    private final UserLocation userLocation;
+    private final ClientIp clientIp;
+    private final UserBrowser userBrowser;
+
+    public String getClientIp(HttpServletRequest request) {
+        return clientIp.getClientIpAddress(request);
+    }
+
+    public String getUserLocation(String ip) {
+        return userLocation.getLocationFromIp(ip);
+    }
+
+    public String getUserBrowser(HttpServletRequest request) {
+        return userBrowser.getBrowser(request);
+    }
+
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\util\confirmationpassword\dto\ConfirmPasswordDto.java ---
+
+package com.finovara.finovarabackend.util.confirmationpassword.dto;
+
+public record ConfirmPasswordDto(
+        String password
+) {
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\util\confirmationpassword\service\PasswordConfirmationService.java ---
+
+package com.finovara.finovarabackend.util.confirmationpassword.service;
+
+import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class PasswordConfirmationService {
+
+    private final UserManagerService userManagerService;
+    private final PasswordEncoder passwordEncoder;
+
+    public void confirmPassword(String email, ConfirmPasswordDto confirmPasswordDto) {
+        User user = userManagerService.getUserByEmailOrThrow(email);
+
+        if (!passwordEncoder.matches(confirmPasswordDto.password(), user.getPassword())) {
+            throw new WrongPasswordException("Incorrect password");
+        }
+    }
+
+}
+
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\util\service\expense\ExpenseManagerService.java ---
 
 package com.finovara.finovarabackend.util.service.expense;
@@ -3838,6 +4810,16 @@ public class ExpenseManagerService {
         return expenseRepository.findById(expenseId)
                 .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
 
+    }
+}
+
+--- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\util\service\piggybank\exception\notfound\PiggyBankNotFoundException.java ---
+
+package com.finovara.finovarabackend.util.service.piggybank.exception.notfound;
+
+public class PiggyBankNotFoundException extends RuntimeException {
+    public PiggyBankNotFoundException(String message) {
+        super(message);
     }
 }
 
@@ -3952,15 +4934,6 @@ public class SpentInPeriodService {
         BigDecimal spent = expenseRepository.sumExpensesByUserAndDateRange(userId, from, to);
         return spent != null ? spent : BigDecimal.ZERO;
     }
-}
-
---- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\util\service\user\dto\ConfirmPasswordDto.java ---
-
-package com.finovara.finovarabackend.util.service.user.dto;
-
-public record ConfirmPasswordDto(
-        String password
-) {
 }
 
 --- FILE: A:\(Programming)\JavaCode\Apps\WebFrontBackendApps\finovara\finovara-backend\src\main\java\com\finovara\finovarabackend\util\service\user\service\UserManagerService.java ---
@@ -4181,7 +5154,9 @@ package com.finovara.finovarabackend;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 
+@EnableAsync
 @SpringBootApplication
 public class FinovaraBackendApplication {
 

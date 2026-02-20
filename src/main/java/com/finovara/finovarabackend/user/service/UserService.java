@@ -1,14 +1,18 @@
 package com.finovara.finovarabackend.user.service;
 
-import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.finovarabackend.accountactivity.login.model.UserActivityLoginStatus;
+import com.finovara.finovarabackend.accountactivity.login.service.UserActivityLoginService;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
-import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.security.service.JwtService;
-import com.finovara.finovarabackend.user.dto.UserRegisterLoginDTO;
+import com.finovara.finovarabackend.user.dto.UserLoginDto;
+import com.finovara.finovarabackend.user.dto.UserRegisterDto;
+import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersettings.factory.SettingsFactory;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,23 +36,24 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
 
     private final SettingsFactory settingsFactory;
+    private final UserActivityLoginService userActivityLoginService;
 
-    public UserRegisterLoginDTO registerUser(UserRegisterLoginDTO userRegisterLoginDTO) {
+    public UserRegisterDto registerUser(UserRegisterDto userRegisterDto) {
 
-        if (userRepository.existsByUsername(userRegisterLoginDTO.username())) {
-            log.info("User cannot register. Username is already taken. Username: {}", userRegisterLoginDTO.username());
+        if (userRepository.existsByUsername(userRegisterDto.username())) {
+            log.info("User cannot register. Username is already taken. Username: {}", userRegisterDto.username());
             throw new NameAlreadyExistsException("Username is already taken");
         }
 
-        if (userRepository.existsByEmail(userRegisterLoginDTO.email())) {
-            log.info("User cannot register. Email is already taken.  UserEmail: {}", userRegisterLoginDTO.email());
+        if (userRepository.existsByEmail(userRegisterDto.email())) {
+            log.info("User cannot register. Email is already taken.  UserEmail: {}", userRegisterDto.email());
             throw new EmailAlreadyExistsException("Email is already taken");
         }
 
         User user = User.builder()
-                .username(userRegisterLoginDTO.username())
-                .email(userRegisterLoginDTO.email())
-                .password(passwordEncoder.encode(userRegisterLoginDTO.password()))
+                .username(userRegisterDto.username())
+                .email(userRegisterDto.email())
+                .password(passwordEncoder.encode(userRegisterDto.password()))
                 .createdAt(LocalDateTime.now())
                 .build();
         user.setPiggyBankSettings(settingsFactory.createDefaultPiggyBankSettings(user));
@@ -63,16 +68,17 @@ public class UserService {
                 )
         );
 
-        return new UserRegisterLoginDTO(user.getId(), savedUser.getUsername(), null, savedUser.getEmail(), jwtToken);
+        return new UserRegisterDto(user.getId(), savedUser.getUsername(), null, savedUser.getEmail(), jwtToken);
 
     }
 
-    public UserRegisterLoginDTO loginUser(String email, String rawPassword) {
+    public UserLoginDto loginUser(String email, String rawPassword, HttpServletRequest request) {
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, rawPassword)
-            );
+                    new UsernamePasswordAuthenticationToken(email, rawPassword));
+            userActivityLoginService.createUserActivityLogin(email, UserActivityLoginStatus.successful, request);
         } catch (AuthenticationException e) {
+            userActivityLoginService.createUserActivityLogin(email, UserActivityLoginStatus.unsuccessful, request);
             throw new WrongPasswordException("Incorrect email or password");
         }
 
@@ -85,7 +91,7 @@ public class UserService {
                 List.of()
         );
         String jwtToken = jwtService.generateToken(userDetails);
-        return new UserRegisterLoginDTO(user.getId(), user.getUsername(), null, user.getEmail(), jwtToken);
+        return new UserLoginDto(user.getId(), user.getUsername() ,email, null, jwtToken);
     }
 
 }

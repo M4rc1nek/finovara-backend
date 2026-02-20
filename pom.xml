@@ -108,6 +108,11 @@
             <version>1.18.42</version> <!-- Sprawdź najnowszą wersję -->
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.ua-parser</groupId>
+            <artifactId>uap-java</artifactId>
+            <version>1.5.4</version>
+        </dependency>
     </dependencies>
 
     <build>

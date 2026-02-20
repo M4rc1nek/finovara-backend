@@ -36,3 +36,8 @@ application:
 mail:
   recipient:
     address: finovaracenter@gmail.com
+
+
+user-activity:
+  .login:
+    page-size: 5
