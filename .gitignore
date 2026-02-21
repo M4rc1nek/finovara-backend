@@ -34,3 +34,7 @@ build/
 
 ### ENV ###
 .env
+
+
+### FULL CODE ###
+full_backend_code.txt

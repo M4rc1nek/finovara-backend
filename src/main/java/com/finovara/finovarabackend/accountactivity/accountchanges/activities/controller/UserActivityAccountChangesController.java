@@ -1,7 +1,7 @@
-package com.finovara.finovarabackend.accountactivity.accountchanges.controller;
+package com.finovara.finovarabackend.accountactivity.accountchanges.activities.controller;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.dto.UserActivityAccountChangesDto;
-import com.finovara.finovarabackend.accountactivity.accountchanges.service.UserActivityAccountChangesService;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.dto.UserActivityAccountChangesDto;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.service.UserActivityAccountChangesService;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import lombok.RequiredArgsConstructor;

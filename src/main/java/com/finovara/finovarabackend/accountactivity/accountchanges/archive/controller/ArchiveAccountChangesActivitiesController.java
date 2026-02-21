@@ -1,0 +1,26 @@
+package com.finovara.finovarabackend.accountactivity.accountchanges.archive.controller;
+
+import com.finovara.finovarabackend.accountactivity.accountchanges.archive.dto.ArchiveAccountChangesActivitiesDto;
+import com.finovara.finovarabackend.accountactivity.accountchanges.archive.service.ArchiveAccountChangesActivitiesService;
+import com.finovara.finovarabackend.security.SecurityUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/archive-activities/account-changes-activities")
+@RequiredArgsConstructor
+public class ArchiveAccountChangesActivitiesController {
+
+    private final ArchiveAccountChangesActivitiesService archiveAccountChangesActivitiesService;
+
+    @GetMapping
+    public ResponseEntity<List<ArchiveAccountChangesActivitiesDto>> getArchiveAccountChangesActivities() {
+        return ResponseEntity.ok(archiveAccountChangesActivitiesService.getAccountChangesActivities(SecurityUtils.getCurrentUserEmail()));
+    }
+
+}

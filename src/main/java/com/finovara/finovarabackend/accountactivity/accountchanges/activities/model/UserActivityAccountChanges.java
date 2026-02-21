@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.accountactivity.accountchanges.model;
+package com.finovara.finovarabackend.accountactivity.accountchanges.activities.model;
 
 import com.finovara.finovarabackend.user.model.User;
 import jakarta.persistence.*;

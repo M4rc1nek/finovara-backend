@@ -1,6 +1,6 @@
-package com.finovara.finovarabackend.accountactivity.accountchanges.repository;
+package com.finovara.finovarabackend.accountactivity.accountchanges.activities.repository;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.model.UserActivityAccountChanges;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.UserActivityAccountChanges;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

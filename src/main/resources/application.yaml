@@ -40,12 +40,14 @@ mail:
 
 user-activity:
   login:
-    page-size: 30
+    page-size: 3
   account-changes:
-    page-size: 30
+    page-size: 3
 
 
 scheduler:
   user-activity:
     login:
       archive-cron: "0 0 0 1 1/6 ? "
+    account-changes:
+      archive-cron: "0 0 0 1 1/6 ?"

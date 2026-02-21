@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.accountactivity.accountchanges.model;
+package com.finovara.finovarabackend.accountactivity.accountchanges.activities.model;
 
 public enum UserActivityAccountChangesType {
     PASSWORD_CHANGED,
