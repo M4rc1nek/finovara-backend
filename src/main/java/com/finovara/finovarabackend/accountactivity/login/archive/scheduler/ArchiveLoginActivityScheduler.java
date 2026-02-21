@@ -11,7 +11,7 @@ public class ArchiveLoginActivityScheduler {
 
     private final ArchiveLoginActivityProcessor archiveLoginActivityProcessor;
 
-    @Scheduled(cron = "${scheduler.user-activity.login.archive-cron}")
+    @Scheduled(cron = "${scheduler.user-activity.login.archive-cron}", zone = "Europe/Warsaw")
     public void deleteLoginActivity() {
         archiveLoginActivityProcessor.deleteLoginActivitiesFromArchive();
     }

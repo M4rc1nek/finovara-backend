@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.usersettings.account.service.passwordpolicy;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.model.UserActivityAccountChangesType;
-import com.finovara.finovarabackend.accountactivity.accountchanges.service.UserActivityAccountChangesService;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.UserActivityAccountChangesType;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.service.UserActivityAccountChangesService;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;

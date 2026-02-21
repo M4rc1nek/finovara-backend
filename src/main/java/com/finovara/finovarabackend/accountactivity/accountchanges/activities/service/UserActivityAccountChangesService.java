@@ -1,9 +1,11 @@
-package com.finovara.finovarabackend.accountactivity.accountchanges.service;
+package com.finovara.finovarabackend.accountactivity.accountchanges.activities.service;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.dto.UserActivityAccountChangesDto;
-import com.finovara.finovarabackend.accountactivity.accountchanges.model.UserActivityAccountChanges;
-import com.finovara.finovarabackend.accountactivity.accountchanges.model.UserActivityAccountChangesType;
-import com.finovara.finovarabackend.accountactivity.accountchanges.repository.UserActivityAccountChangesRepository;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.dto.UserActivityAccountChangesDto;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.UserActivityAccountChanges;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.UserActivityAccountChangesType;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.repository.UserActivityAccountChangesRepository;
+import com.finovara.finovarabackend.accountactivity.accountchanges.archive.model.ArchiveAccountChangesActivities;
+import com.finovara.finovarabackend.accountactivity.accountchanges.archive.service.ArchiveAccountChangesActivitiesService;
 import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
@@ -32,6 +34,7 @@ public class UserActivityAccountChangesService {
     private final UserManagerService userManagerService;
     private final UserActivityAccountChangesRepository userActivityAccountChangesRepository;
     private final PasswordConfirmationService passwordConfirmationService;
+    private final ArchiveAccountChangesActivitiesService archiveAccountChangesActivitiesService;
 
     private final TimeConfig timeConfig;
     private final ClientData clientData;
@@ -78,8 +81,12 @@ public class UserActivityAccountChangesService {
         long countedAccountChangesActivities = userActivityAccountChangesRepository.countAccountChangesByUserAssignedId(user.getId());
 
         if (countedAccountChangesActivities > pageSize) {
-            List<UserActivityAccountChanges> activitiesToDelete = userActivityAccountChangesRepository.findFewByUserAssignedId(user.getId(), PageRequest.of(0, pageSize));
-            userActivityAccountChangesRepository.deleteAll(activitiesToDelete);
+            List<UserActivityAccountChanges> activitiesToMove = userActivityAccountChangesRepository.findFewByUserAssignedId(user.getId(), PageRequest.of(0, pageSize));
+            List<ArchiveAccountChangesActivities> activitiesToArchive = activitiesToMove.stream().map(archiveAccountChangesActivitiesService::mapToArchive)
+                    .toList();
+            archiveAccountChangesActivitiesService.archive(activitiesToArchive);
+
+            userActivityAccountChangesRepository.deleteAll(activitiesToMove);
         }
     }
 }

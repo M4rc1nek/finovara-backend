@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.user.model;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.model.UserActivityAccountChanges;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.UserActivityAccountChanges;
+import com.finovara.finovarabackend.accountactivity.accountchanges.archive.model.ArchiveAccountChangesActivities;
 import com.finovara.finovarabackend.accountactivity.login.activities.model.UserActivityLogin;
 import com.finovara.finovarabackend.accountactivity.login.archive.model.ArchiveLoginActivity;
 import com.finovara.finovarabackend.expense.model.Expense;
@@ -56,6 +57,9 @@ public class User {
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private List<UserActivityAccountChanges> userActivityAccountChanges;
+
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    private List<ArchiveAccountChangesActivities> archiveAccountChangesActivities;
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private Wallet wallet;
