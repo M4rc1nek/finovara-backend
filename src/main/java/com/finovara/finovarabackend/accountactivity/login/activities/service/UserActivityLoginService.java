@@ -1,9 +1,11 @@
-package com.finovara.finovarabackend.accountactivity.login.service;
+package com.finovara.finovarabackend.accountactivity.login.activities.service;
 
-import com.finovara.finovarabackend.accountactivity.login.dto.UserActivityLoginDto;
-import com.finovara.finovarabackend.accountactivity.login.model.UserActivityLogin;
-import com.finovara.finovarabackend.accountactivity.login.model.UserActivityLoginStatus;
-import com.finovara.finovarabackend.accountactivity.login.repository.UserActivityLoginRepository;
+import com.finovara.finovarabackend.accountactivity.login.activities.dto.UserActivityLoginDto;
+import com.finovara.finovarabackend.accountactivity.login.activities.model.UserActivityLogin;
+import com.finovara.finovarabackend.accountactivity.login.activities.model.UserActivityLoginStatus;
+import com.finovara.finovarabackend.accountactivity.login.activities.repository.UserActivityLoginRepository;
+import com.finovara.finovarabackend.accountactivity.login.archive.model.ArchiveLoginActivity;
+import com.finovara.finovarabackend.accountactivity.login.archive.service.ArchiveLoginActivityService;
 import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
@@ -30,6 +32,7 @@ public class UserActivityLoginService {
     private final UserManagerService userManagerService;
     private final TimeConfig timeConfig;
     private final UserActivityLoginRepository userActivityLoginRepository;
+    private final ArchiveLoginActivityService archiveLoginActivityService;
 
     private final ClientData clientData;
 
@@ -56,7 +59,7 @@ public class UserActivityLoginService {
 
         userActivityLoginRepository.save(userActivityLogin);
 
-        deleteOldLoginActivities(email);
+        moveToArchiveActivities(email);
     }
 
     public List<UserActivityLoginDto> getUserActivityLogin(String email) {
@@ -80,14 +83,18 @@ public class UserActivityLoginService {
     }
 
     @Transactional
-    private void deleteOldLoginActivities(String email) {
+    private void moveToArchiveActivities(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         long countedActivities = userActivityLoginRepository.countActivityLoginByUserAssignedId(user.getId());
 
         if (countedActivities > pageSize) {
-            List<UserActivityLogin> activitiesToDelete = userActivityLoginRepository.findOldestByUserAssignedId(user.getId(), PageRequest.of(0, pageSize));
-            userActivityLoginRepository.deleteAll(activitiesToDelete);
+            List<UserActivityLogin> activitiesToMove = userActivityLoginRepository.findOldestByUserAssignedId(user.getId(), PageRequest.of(0, pageSize));
+            List<ArchiveLoginActivity> activitiesToArchive = activitiesToMove.stream().map(archiveLoginActivityService::mapToArchive)
+                    .toList();
+            archiveLoginActivityService.archive(activitiesToArchive);
+
+            userActivityLoginRepository.deleteAll(activitiesToMove);
 
         }
 

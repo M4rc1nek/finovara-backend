@@ -1,13 +1,15 @@
-package com.finovara.finovarabackend.accountactivity.login.repository;
+package com.finovara.finovarabackend.accountactivity.login.activities.repository;
 
-import com.finovara.finovarabackend.accountactivity.login.model.UserActivityLogin;
+import com.finovara.finovarabackend.accountactivity.login.activities.model.UserActivityLogin;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface UserActivityLoginRepository extends JpaRepository<UserActivityLogin, Long> {
 
     @Query("SELECT u FROM UserActivityLogin u WHERE u.userAssigned.email = :email ORDER BY u.id DESC")

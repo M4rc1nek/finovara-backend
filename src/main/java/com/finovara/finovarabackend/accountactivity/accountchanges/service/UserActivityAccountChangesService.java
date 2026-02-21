@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -78,13 +77,9 @@ public class UserActivityAccountChangesService {
 
         long countedAccountChangesActivities = userActivityAccountChangesRepository.countAccountChangesByUserAssignedId(user.getId());
 
-        if(countedAccountChangesActivities > pageSize){
+        if (countedAccountChangesActivities > pageSize) {
             List<UserActivityAccountChanges> activitiesToDelete = userActivityAccountChangesRepository.findFewByUserAssignedId(user.getId(), PageRequest.of(0, pageSize));
             userActivityAccountChangesRepository.deleteAll(activitiesToDelete);
-            log.info("Deleted Account Changes Activities. Activities to delete: {}, Counted activities: {}", pageSize, countedAccountChangesActivities);
         }
-
     }
-
-    //show log info for parents xD
 }
