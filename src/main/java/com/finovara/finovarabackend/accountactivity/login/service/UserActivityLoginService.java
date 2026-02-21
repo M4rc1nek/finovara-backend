@@ -83,14 +83,12 @@ public class UserActivityLoginService {
     private void deleteOldLoginActivities(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
-        long countedActivities= userActivityLoginRepository.countActivityLoginByUserAssignedId(user.getId());
+        long countedActivities = userActivityLoginRepository.countActivityLoginByUserAssignedId(user.getId());
 
         if (countedActivities > pageSize) {
-
             List<UserActivityLogin> activitiesToDelete = userActivityLoginRepository.findOldestByUserAssignedId(user.getId(), PageRequest.of(0, pageSize));
-
             userActivityLoginRepository.deleteAll(activitiesToDelete);
-            log.info("Deleted old login activities. Login Activities to delete: {}, Counted Login Activities: {},", pageSize, countedActivities);
+
         }
 
     }

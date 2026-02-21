@@ -40,4 +40,6 @@ mail:
 
 user-activity:
   .login:
-    page-size: 5
+    page-size: 20
+  .account-changes:
+    page-size: 2

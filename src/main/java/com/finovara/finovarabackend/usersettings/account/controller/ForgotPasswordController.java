@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.usersettings.account.controller;
 import com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy.ForgotPasswordDto;
 import com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy.PasswordRequestDto;
 import com.finovara.finovarabackend.usersettings.account.service.passwordpolicy.ForgotPasswordService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,8 +35,8 @@ public class ForgotPasswordController {
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<Void> changePasswordWithCode(@RequestBody @Valid PasswordRequestDto passwordRequestDto) {
-        forgotPasswordService.changePasswordWithCode(passwordRequestDto.forgotPasswordDto().email(), passwordRequestDto);
+    public ResponseEntity<Void> changePasswordWithCode(@RequestBody @Valid PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
+        forgotPasswordService.changePasswordWithCode(passwordRequestDto.forgotPasswordDto().email(), passwordRequestDto, request);
         return ResponseEntity.noContent().build();
     }
 

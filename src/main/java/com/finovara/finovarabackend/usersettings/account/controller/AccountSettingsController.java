@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.usersettings.account.dto.passwordpolicy.Pass
 import com.finovara.finovarabackend.usersettings.account.service.AccountService;
 import com.finovara.finovarabackend.usersettings.account.service.passwordpolicy.ChangePasswordService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,8 @@ public class AccountSettingsController {
     private final ChangePasswordService changePasswordService;
 
     @PutMapping("/{userId}/username")
-    public ResponseEntity<AccountSettingsDto> updateUsername(@RequestBody AccountSettingsDto accountSettingsDto, @PathVariable Long userId) {
-        return ResponseEntity.ok(accountService.updateUsername(accountSettingsDto, userId));
+    public ResponseEntity<AccountSettingsDto> updateUsername(@RequestBody AccountSettingsDto accountSettingsDto, @PathVariable Long userId, HttpServletRequest request) {
+        return ResponseEntity.ok(accountService.updateUsername(accountSettingsDto, userId, request));
     }
 
     @GetMapping
@@ -35,8 +36,8 @@ public class AccountSettingsController {
     }
 
     @PutMapping
-    public ResponseEntity<Void> changeUserPassword(@RequestBody @Valid PasswordRequestDto passwordRequestDto) {
-        changePasswordService.changePassword(SecurityUtils.getCurrentUserEmail(), passwordRequestDto);
+    public ResponseEntity<Void> changeUserPassword(@RequestBody @Valid PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
+        changePasswordService.changePassword(SecurityUtils.getCurrentUserEmail(), passwordRequestDto, request);
         return ResponseEntity.noContent().build();
     }
 

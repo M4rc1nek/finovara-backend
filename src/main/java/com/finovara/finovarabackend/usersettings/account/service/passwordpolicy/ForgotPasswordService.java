@@ -1,5 +1,7 @@
 package com.finovara.finovarabackend.usersettings.account.service.passwordpolicy;
 
+import com.finovara.finovarabackend.accountactivity.accountchanges.model.UserActivityAccountChangesType;
+import com.finovara.finovarabackend.accountactivity.accountchanges.service.UserActivityAccountChangesService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.user.model.User;
@@ -10,6 +12,7 @@ import com.finovara.finovarabackend.usersettings.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersettings.account.repository.AccountRepository;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +42,7 @@ public class ForgotPasswordService {
     private final UserRepository userRepository;
     private final JavaMailSender javaMailSender;
     private final PasswordChangeEmailService passwordChangeEmailService;
+    private final UserActivityAccountChangesService userActivityAccountChangesService;
 
     public void validateEmailExists(String email) {
         if (!userRepository.existsByEmail(email)) {
@@ -79,7 +83,7 @@ public class ForgotPasswordService {
     }
 
     @Transactional
-    public void changePasswordWithCode(String email, PasswordRequestDto passwordRequestDto) {
+    public void changePasswordWithCode(String email, PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         AccountSettings accountSettings = user.getAccountSettings();
 
@@ -100,7 +104,7 @@ public class ForgotPasswordService {
 
         user.setPassword(passwordEncoder.encode(passwordRequestDto.changePasswordDto().newPassword()));
         userRepository.save(user);
-
+        userActivityAccountChangesService.createUserActivityAccountChanges(email, UserActivityAccountChangesType.PASSWORD_CHANGED, request);
         accountSettings.setForgotPasswordCode(null);
         accountRepository.save(accountSettings);
 

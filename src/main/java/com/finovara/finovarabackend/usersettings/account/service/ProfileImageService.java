@@ -1,8 +1,11 @@
 package com.finovara.finovarabackend.usersettings.account.service;
 
+import com.finovara.finovarabackend.accountactivity.accountchanges.model.UserActivityAccountChangesType;
+import com.finovara.finovarabackend.accountactivity.accountchanges.service.UserActivityAccountChangesService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,11 +25,13 @@ public class ProfileImageService {
     private final UserRepository userRepository;
     private final UserManagerService userManagerService;
 
+    private final UserActivityAccountChangesService userActivityAccountChangesService;
+
     @Value("${application.upload.profile-images-directory}")
     private String profileImagesDirectory;
 
     @Transactional
-    public void uploadProfileImage(MultipartFile file, Long userId) {
+    public void uploadProfileImage(MultipartFile file, Long userId, HttpServletRequest request) {
         User user = userManagerService.getUserByIdOrThrow(userId);
         validateFile(file);
 
@@ -46,6 +51,8 @@ public class ProfileImageService {
             // Zaktualizuj użytkownika (tylko raz)
             user.setProfileImagePath(filePath.toString());
             userRepository.save(user);
+            userActivityAccountChangesService.createUserActivityAccountChanges(user.getEmail(), UserActivityAccountChangesType.PROFILE_IMG_CHANGED, request);
+
 
             // Teraz usuń STARY plik (jeśli istniał)
             if (oldFilePath != null) {
