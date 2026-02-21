@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.accountactivity.login.archive.controller;
 
-import com.finovara.finovarabackend.accountactivity.login.archive.dto.ArchiveLoginActivityDto;
-import com.finovara.finovarabackend.accountactivity.login.archive.service.ArchiveLoginActivityService;
+import com.finovara.finovarabackend.accountactivity.login.archive.dto.LoginActivityArchiveDto;
+import com.finovara.finovarabackend.accountactivity.login.archive.service.LoginActivityArchiveService;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,13 +14,13 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/archive-activities/login-activities")
 @RequiredArgsConstructor
-public class ArchiveLoginActivityController {
+public class LoginActivityArchiveController {
 
-    private final ArchiveLoginActivityService archiveLoginActivityService;
+    private final LoginActivityArchiveService archiveLoginActivityService;
 
     @GetMapping
-    public ResponseEntity<List<ArchiveLoginActivityDto>> getArchiveLoginActivity() {
-        return ResponseEntity.ok(archiveLoginActivityService.getArchiveLoginActivity(SecurityUtils.getCurrentUserEmail()));
+    public ResponseEntity<List<LoginActivityArchiveDto>> getLoginActivityArchive() {
+        return ResponseEntity.ok(archiveLoginActivityService.getLoginActivityArchive(SecurityUtils.getCurrentUserEmail()));
     }
 
 }

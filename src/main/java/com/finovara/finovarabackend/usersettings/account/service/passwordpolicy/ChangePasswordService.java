@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.usersettings.account.service.passwordpolicy;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.UserActivityAccountChangesType;
-import com.finovara.finovarabackend.accountactivity.accountchanges.activities.service.UserActivityAccountChangesService;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.AccountChangesActivityType;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
@@ -22,7 +22,7 @@ public class ChangePasswordService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final PasswordChangeEmailService passwordChangeEmailService;
-    private final UserActivityAccountChangesService userActivityAccountChangesService;
+    private final AccountChangesActivityService accountChangesActivityService;
 
     public void changePassword(String email, PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
         User user = userManagerService.getUserByEmailOrThrow(email);
@@ -40,7 +40,7 @@ public class ChangePasswordService {
 
         user.setPassword(passwordEncoder.encode(passwordRequestDto.changePasswordDto().newPassword()));
         userRepository.save(user);
-        userActivityAccountChangesService.createUserActivityAccountChanges(email, UserActivityAccountChangesType.PASSWORD_CHANGED,request);
+        accountChangesActivityService.createAccountChangesActivity(email, AccountChangesActivityType.PASSWORD_CHANGED,request);
         passwordChangeEmailService.sendEmail(user);
 
     }

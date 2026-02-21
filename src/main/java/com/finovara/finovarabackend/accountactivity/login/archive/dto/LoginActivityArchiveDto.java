@@ -1,12 +1,12 @@
 package com.finovara.finovarabackend.accountactivity.login.archive.dto;
 
-import com.finovara.finovarabackend.accountactivity.login.activities.model.UserActivityLoginStatus;
+import com.finovara.finovarabackend.accountactivity.login.activities.model.LoginActivityStatus;
 
 import java.time.LocalDateTime;
 
-public record ArchiveLoginActivityDto(
+public record LoginActivityArchiveDto(
         String type,
-        UserActivityLoginStatus status,
+        LoginActivityStatus status,
         LocalDateTime moveToArchiveDate,
         LocalDateTime activityLoginDate,
         String browser,

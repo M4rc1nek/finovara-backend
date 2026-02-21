@@ -40,9 +40,9 @@ mail:
 
 user-activity:
   login:
-    page-size: 3
+    page-size: 30
   account-changes:
-    page-size: 3
+    page-size: 30
 
 
 scheduler:
@@ -50,4 +50,8 @@ scheduler:
     login:
       archive-cron: "0 0 0 1 1/6 ? "
     account-changes:
-      archive-cron: "0 0 0 1 1/6 ?"
+      archive-cron: "0 0 0 1 1/6 ? "
+
+
+
+

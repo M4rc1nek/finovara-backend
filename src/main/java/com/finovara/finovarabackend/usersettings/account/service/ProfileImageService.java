@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.usersettings.account.service;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.UserActivityAccountChangesType;
-import com.finovara.finovarabackend.accountactivity.accountchanges.activities.service.UserActivityAccountChangesService;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.AccountChangesActivityType;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -25,7 +25,7 @@ public class ProfileImageService {
     private final UserRepository userRepository;
     private final UserManagerService userManagerService;
 
-    private final UserActivityAccountChangesService userActivityAccountChangesService;
+    private final AccountChangesActivityService accountChangesActivityService;
 
     @Value("${application.upload.profile-images-directory}")
     private String profileImagesDirectory;
@@ -51,7 +51,7 @@ public class ProfileImageService {
             // Zaktualizuj użytkownika (tylko raz)
             user.setProfileImagePath(filePath.toString());
             userRepository.save(user);
-            userActivityAccountChangesService.createUserActivityAccountChanges(user.getEmail(), UserActivityAccountChangesType.PROFILE_IMG_CHANGED, request);
+            accountChangesActivityService.createAccountChangesActivity(user.getEmail(), AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
 
 
             // Teraz usuń STARY plik (jeśli istniał)

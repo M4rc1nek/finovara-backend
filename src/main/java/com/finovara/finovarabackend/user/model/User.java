@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.user.model;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.UserActivityAccountChanges;
-import com.finovara.finovarabackend.accountactivity.accountchanges.archive.model.ArchiveAccountChangesActivities;
-import com.finovara.finovarabackend.accountactivity.login.activities.model.UserActivityLogin;
-import com.finovara.finovarabackend.accountactivity.login.archive.model.ArchiveLoginActivity;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.AccountChangesActivity;
+import com.finovara.finovarabackend.accountactivity.accountchanges.archive.model.AccountChangeArchive;
+import com.finovara.finovarabackend.accountactivity.login.activities.model.LoginActivity;
+import com.finovara.finovarabackend.accountactivity.login.archive.model.LoginActivityArchive;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
@@ -50,16 +50,16 @@ public class User {
     private List<Limit> limits;
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
-    private List<UserActivityLogin> userActivityLogins;
+    private List<LoginActivity> loginActivities;
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
-    private List<ArchiveLoginActivity> archiveLoginActivities;
+    private List<LoginActivityArchive> loginActivityArchives;
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
-    private List<UserActivityAccountChanges> userActivityAccountChanges;
+    private List<AccountChangesActivity> accountChangeActivities;
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
-    private List<ArchiveAccountChangesActivities> archiveAccountChangesActivities;
+    private List<AccountChangeArchive> accountChangeArchives;
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private Wallet wallet;

@@ -1,11 +1,11 @@
 package com.finovara.finovarabackend.accountactivity.accountchanges.activities.dto;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.UserActivityAccountChangesType;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.AccountChangesActivityType;
 
 import java.time.LocalDateTime;
 
-public record UserActivityAccountChangesDto(
-        UserActivityAccountChangesType type,
+public record AccountChangesActivityDto(
+        AccountChangesActivityType type,
         LocalDateTime date,
         String browser,
         String ipAddress,

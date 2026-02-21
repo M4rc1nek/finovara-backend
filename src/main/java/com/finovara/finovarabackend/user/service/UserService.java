@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.user.service;
 
-import com.finovara.finovarabackend.accountactivity.login.activities.model.UserActivityLoginStatus;
-import com.finovara.finovarabackend.accountactivity.login.activities.service.UserActivityLoginService;
+import com.finovara.finovarabackend.accountactivity.login.activities.model.LoginActivityStatus;
+import com.finovara.finovarabackend.accountactivity.login.activities.service.LoginActivityService;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.security.service.JwtService;
@@ -36,7 +36,7 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
 
     private final SettingsFactory settingsFactory;
-    private final UserActivityLoginService userActivityLoginService;
+    private final LoginActivityService loginActivityService;
 
     public UserRegisterDto registerUser(UserRegisterDto userRegisterDto) {
 
@@ -76,9 +76,9 @@ public class UserService {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, rawPassword));
-            userActivityLoginService.createUserActivityLogin(email, UserActivityLoginStatus.successful, request);
+            loginActivityService.createLoginActivity(email, LoginActivityStatus.successful, request);
         } catch (AuthenticationException e) {
-            userActivityLoginService.createUserActivityLogin(email, UserActivityLoginStatus.unsuccessful, request);
+            loginActivityService.createLoginActivity(email, LoginActivityStatus.unsuccessful, request);
             throw new WrongPasswordException("Incorrect email or password");
         }
 

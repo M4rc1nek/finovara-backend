@@ -1,33 +1,28 @@
-package com.finovara.finovarabackend.accountactivity.login.archive.model;
+package com.finovara.finovarabackend.accountactivity.accountchanges.activities.model;
 
-import com.finovara.finovarabackend.accountactivity.login.activities.model.UserActivityLoginStatus;
 import com.finovara.finovarabackend.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "account_changes_activity")
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
-@Entity
-@Table(name = "archive_user_login_activity")
 @Builder
-public class ArchiveLoginActivity {
+public class AccountChangesActivity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String type;
-
     @Enumerated(EnumType.STRING)
-    private UserActivityLoginStatus status;
+    private AccountChangesActivityType type;
 
-    private LocalDateTime moveToArchiveDate;
-
-    private LocalDateTime activityLoginDate;
+    private LocalDateTime date;
 
     private String browser;
 
@@ -39,5 +34,3 @@ public class ArchiveLoginActivity {
     @JoinColumn(name = "user_id")
     private User userAssigned;
 }
-
-

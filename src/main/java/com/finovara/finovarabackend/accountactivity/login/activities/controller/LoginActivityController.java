@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.accountactivity.login.activities.controller;
 
-import com.finovara.finovarabackend.accountactivity.login.activities.dto.UserActivityLoginDto;
-import com.finovara.finovarabackend.accountactivity.login.activities.service.UserActivityLoginService;
+import com.finovara.finovarabackend.accountactivity.login.activities.dto.LoginActivityDto;
+import com.finovara.finovarabackend.accountactivity.login.activities.service.LoginActivityService;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import lombok.RequiredArgsConstructor;
@@ -13,17 +13,17 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/account-activity/account-security")
 @RequiredArgsConstructor
-public class UserActivityLoginController {
-    private final UserActivityLoginService userActivityLoginService;
+public class LoginActivityController {
+    private final LoginActivityService loginActivityService;
 
     @GetMapping
-    public ResponseEntity<List<UserActivityLoginDto>> getUserActivityLogin() {
-        return ResponseEntity.ok(userActivityLoginService.getUserActivityLogin(SecurityUtils.getCurrentUserEmail()));
+    public ResponseEntity<List<LoginActivityDto>> getUserLoginActivity() {
+        return ResponseEntity.ok(loginActivityService.getLoginActivity(SecurityUtils.getCurrentUserEmail()));
     }
 
     @PostMapping
     public ResponseEntity<Void> confirmPasswordToUserActivityLogin(@RequestBody ConfirmPasswordDto confirmPasswordDto) {
-        userActivityLoginService.confirmPasswordToUserActivityLogin(SecurityUtils.getCurrentUserEmail(), confirmPasswordDto);
+        loginActivityService.confirmPasswordToLoginActivity(SecurityUtils.getCurrentUserEmail(), confirmPasswordDto);
         return ResponseEntity.noContent().build();
     }
 }

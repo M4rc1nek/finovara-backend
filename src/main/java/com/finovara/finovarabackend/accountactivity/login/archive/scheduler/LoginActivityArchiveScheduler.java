@@ -1,18 +1,18 @@
 package com.finovara.finovarabackend.accountactivity.login.archive.scheduler;
 
-import com.finovara.finovarabackend.accountactivity.login.archive.processor.ArchiveLoginActivityProcessor;
+import com.finovara.finovarabackend.accountactivity.login.archive.processor.LoginActivityArchiveProcessor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ArchiveLoginActivityScheduler {
+public class LoginActivityArchiveScheduler {
 
-    private final ArchiveLoginActivityProcessor archiveLoginActivityProcessor;
+    private final LoginActivityArchiveProcessor loginActivityArchiveProcessor;
 
     @Scheduled(cron = "${scheduler.user-activity.login.archive-cron}", zone = "Europe/Warsaw")
-    public void deleteLoginActivity() {
-        archiveLoginActivityProcessor.deleteLoginActivitiesFromArchive();
+    public void deleteLoginActivityArchive() {
+        loginActivityArchiveProcessor.deleteLoginActivitiesFromArchive();
     }
 }

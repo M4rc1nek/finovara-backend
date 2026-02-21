@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.usersettings.account.service.passwordpolicy;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.UserActivityAccountChangesType;
-import com.finovara.finovarabackend.accountactivity.accountchanges.activities.service.UserActivityAccountChangesService;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.AccountChangesActivityType;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.user.model.User;
@@ -42,7 +42,7 @@ public class ForgotPasswordService {
     private final UserRepository userRepository;
     private final JavaMailSender javaMailSender;
     private final PasswordChangeEmailService passwordChangeEmailService;
-    private final UserActivityAccountChangesService userActivityAccountChangesService;
+    private final AccountChangesActivityService accountChangesActivityService;
 
     public void validateEmailExists(String email) {
         if (!userRepository.existsByEmail(email)) {
@@ -104,7 +104,7 @@ public class ForgotPasswordService {
 
         user.setPassword(passwordEncoder.encode(passwordRequestDto.changePasswordDto().newPassword()));
         userRepository.save(user);
-        userActivityAccountChangesService.createUserActivityAccountChanges(email, UserActivityAccountChangesType.PASSWORD_CHANGED, request);
+        accountChangesActivityService.createAccountChangesActivity(email, AccountChangesActivityType.PASSWORD_CHANGED, request);
         accountSettings.setForgotPasswordCode(null);
         accountRepository.save(accountSettings);
 

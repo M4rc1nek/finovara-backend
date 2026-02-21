@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.accountactivity.accountchanges.activities.model;
+package com.finovara.finovarabackend.accountactivity.login.activities.model;
 
 import com.finovara.finovarabackend.user.model.User;
 import jakarta.persistence.*;
@@ -6,21 +6,23 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "user_activity_account_changes")
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
 @Builder
-public class UserActivityAccountChanges {
+@Entity
+@Table(name = "login_activity")
+public class LoginActivity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String type;
+
     @Enumerated(EnumType.STRING)
-    private UserActivityAccountChangesType type;
+    private LoginActivityStatus status;
 
     private LocalDateTime date;
 
@@ -33,4 +35,5 @@ public class UserActivityAccountChanges {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User userAssigned;
+
 }

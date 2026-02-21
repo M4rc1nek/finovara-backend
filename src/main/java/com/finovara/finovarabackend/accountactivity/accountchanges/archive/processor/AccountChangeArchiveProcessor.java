@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.accountchanges.archive.processor;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.archive.repository.ArchiveAccountChangesActivitiesRepository;
+import com.finovara.finovarabackend.accountactivity.accountchanges.archive.repository.AccountChangeArchiveRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -9,13 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ArchiveAccountChangesActivitiesProcessor {
+public class AccountChangeArchiveProcessor {
 
-    private final ArchiveAccountChangesActivitiesRepository archiveAccountChangesActivitiesRepository;
+    private final AccountChangeArchiveRepository accountChangeArchiveRepository;
 
     @Transactional
-    public void deleteAccountChangesActivities() {
-        archiveAccountChangesActivitiesRepository.deleteAllInBatch();
+    public void deleteAccountChangeActivities() {
+        accountChangeArchiveRepository.deleteAllInBatch();
         log.info("Account change activities were deleted.");
     }
 }

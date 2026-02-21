@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.accountchanges.archive.model;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.UserActivityAccountChangesType;
+import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,16 +12,16 @@ import java.time.LocalDateTime;
 @Setter
 @Getter
 @Entity
-@Table(name = "archive_user_account_changes_activity")
+@Table(name = "account_change_archive")
 @Builder
-public class ArchiveAccountChangesActivities {
+public class AccountChangeArchive {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private UserActivityAccountChangesType type;
+    private AccountChangesActivityType type;
 
     private LocalDateTime moveToArchiveDate;
 
