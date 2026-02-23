@@ -6,7 +6,7 @@ import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersettings.piggybank.completion.service.GoalCompletionService;
+import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;

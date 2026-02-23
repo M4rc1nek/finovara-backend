@@ -1,16 +1,16 @@
 package com.finovara.finovarabackend.user.model;
 
-import com.finovara.finovarabackend.accountactivity.accountchanges.activities.model.AccountChangesActivity;
-import com.finovara.finovarabackend.accountactivity.accountchanges.archive.model.AccountChangeArchive;
+import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivity;
+import com.finovara.finovarabackend.accountactivity.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.finovarabackend.accountactivity.login.activities.model.LoginActivity;
 import com.finovara.finovarabackend.accountactivity.login.archive.model.LoginActivityArchive;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.revenue.model.Revenue;
-import com.finovara.finovarabackend.usersettings.account.model.AccountSettings;
-import com.finovara.finovarabackend.usersettings.finances.expense.model.ExpenseSettings;
-import com.finovara.finovarabackend.usersettings.piggybank.model.PiggyBankSettings;
+import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
+import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
+import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import jakarta.persistence.*;
 import lombok.*;

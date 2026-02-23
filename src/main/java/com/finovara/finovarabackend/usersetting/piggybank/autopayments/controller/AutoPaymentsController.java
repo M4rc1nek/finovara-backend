@@ -1,0 +1,29 @@
+package com.finovara.finovarabackend.usersetting.piggybank.autopayments.controller;
+
+import com.finovara.finovarabackend.security.SecurityUtils;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.dto.AutoPaymentsDto;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/piggybank-settings/auto-payment")
+@RequiredArgsConstructor
+public class AutoPaymentsController {
+
+    private final AutoPaymentsService autoPaymentsService;
+
+    @PutMapping
+    public ResponseEntity<Void> createAutomation(@RequestBody @Valid AutoPaymentsDto autoPaymentsDto) {
+        autoPaymentsService.createAutomation(SecurityUtils.getCurrentUserEmail(), autoPaymentsDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<AutoPaymentsDto> getAutomation() {
+        return ResponseEntity.ok(autoPaymentsService.getAutomation(SecurityUtils.getCurrentUserEmail()));
+    }
+
+}

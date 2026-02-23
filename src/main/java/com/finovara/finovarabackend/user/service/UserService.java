@@ -11,7 +11,7 @@ import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsEx
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
-import com.finovara.finovarabackend.usersettings.factory.SettingsFactory;
+import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
