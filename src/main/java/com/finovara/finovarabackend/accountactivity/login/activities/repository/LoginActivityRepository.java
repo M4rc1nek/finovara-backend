@@ -13,7 +13,7 @@ import java.util.List;
 public interface LoginActivityRepository extends JpaRepository<LoginActivity, Long> {
 
     @Query("SELECT u FROM LoginActivity u WHERE u.userAssigned.email = :email ORDER BY u.id DESC")
-    List<LoginActivity> findByUserAssignedEmailOrderByIdDesc(@Param("email") String email);
+    List<LoginActivity> findByUserAssignedEmailOrderByDesc(@Param("email") String email);
 
     @Query("SELECT u FROM LoginActivity u WHERE u.userAssigned.id = :userId ORDER BY u.id ASC")
     List<LoginActivity> findOldestByUserAssignedId(Long userId, PageRequest of);

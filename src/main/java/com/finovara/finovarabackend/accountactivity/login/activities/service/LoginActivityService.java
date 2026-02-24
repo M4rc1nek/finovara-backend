@@ -64,7 +64,7 @@ public class LoginActivityService {
 
     public List<LoginActivityDto> getLoginActivity(String email) {
         return loginActivityRepository
-                .findByUserAssignedEmailOrderByIdDesc(email)
+                .findByUserAssignedEmailOrderByDesc(email)
                 .stream()
                 .map(activity -> new LoginActivityDto(
                         activity.getType(),

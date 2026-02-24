@@ -1,14 +1,17 @@
 package com.finovara.finovarabackend.expense.service;
 
+import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
+import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
 import com.finovara.finovarabackend.config.TimeConfig;
-import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.limit.exception.unprocessablecontent.LimitExceededException;
 import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
 import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
+import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
 import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
 import com.finovara.finovarabackend.expense.model.Expense;
+import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
+import com.finovara.finovarabackend.limit.exception.unprocessablecontent.LimitExceededException;
 import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.model.User;
@@ -38,6 +41,7 @@ public class ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final LimitRepository limitRepository;
     private final WalletService walletService;
+    private final ExpenseActivityService expenseActivityService;
     private final RoundUpService roundUpService;
     private final CountQuantityLimitService countQuantityLimitService;
     private final ControlAmountService controlAmountService;
@@ -68,7 +72,7 @@ public class ExpenseService {
         if (expenseRequestDto.expenseDTO().amount().compareTo(BigDecimal.ONE) < 0) {
             throw new InvalidInputException("Expense amount must be positive");
         }
-
+        expenseActivityService.createExpenseActivity(email, ExpenseActivityType.ADDED_EXPENSE, expense);
 
         smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDTO().amount(), SmartScanMode.ADD);
 
@@ -97,9 +101,14 @@ public class ExpenseService {
         walletService.removeBalanceFromWallet(email, expenseRequestDto.expenseDTO().amount());
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.ROLLBACK);
 
+        BigDecimal oldAmount = existingExpense.getAmount();
+        ExpenseCategory oldCategory = existingExpense.getCategory();
+
         existingExpense.setAmount(expenseRequestDto.expenseDTO().amount());
         existingExpense.setCategory(expenseRequestDto.expenseDTO().category());
         existingExpense.setDescription(expenseRequestDto.expenseDTO().description());
+
+        expenseActivityService.updateExpenseActivity(email, ExpenseActivityType.EDITED_EXPENSE, existingExpense, oldAmount, oldCategory);
 
         smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDTO().amount(), SmartScanMode.EDIT);
 
@@ -130,6 +139,7 @@ public class ExpenseService {
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.ROLLBACK);
         walletService.addBalanceToWallet(email, expense.getAmount());
         expenseRepository.delete(expense);
+        expenseActivityService.createExpenseActivity(email, ExpenseActivityType.DELETED_EXPENSE, expense);
 
     }
 
