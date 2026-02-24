@@ -1,0 +1,41 @@
+package com.finovara.finovarabackend.accountactivity.revenue.model;
+
+import com.finovara.finovarabackend.expense.model.ExpenseCategory;
+import com.finovara.finovarabackend.revenue.model.RevenueCategory;
+import com.finovara.finovarabackend.user.model.User;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "revenue_activity")
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
+@Builder
+public class RevenueActivity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Enumerated(EnumType.STRING)
+    private RevenueActivityType type;
+    private BigDecimal amount;
+    private BigDecimal previousAmount;
+
+    @Enumerated(EnumType.STRING)
+    private RevenueCategory category;
+    @Enumerated(EnumType.STRING)
+    private RevenueCategory previousCategory;
+
+    private LocalDateTime date;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User userAssigned;
+
+}

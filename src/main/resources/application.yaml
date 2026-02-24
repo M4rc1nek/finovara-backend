@@ -45,6 +45,8 @@ user-activity:
     page-size: 30
   expense:
     page-size: 100
+  revenue:
+    page-size: 100
 
 
 scheduler:
@@ -54,6 +56,8 @@ scheduler:
     account-changes:
       archive-cron: "0 0 0 1 1/6 ? "
     expense:
+      delete-cron: "0 0 0 1 * ?"
+    revenue:
       delete-cron: "0 0 0 1 * ?"
 
 

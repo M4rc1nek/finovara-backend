@@ -138,9 +138,8 @@ public class ExpenseService {
                 .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.ROLLBACK);
         walletService.addBalanceToWallet(email, expense.getAmount());
-        expenseRepository.delete(expense);
         expenseActivityService.createExpenseActivity(email, ExpenseActivityType.DELETED_EXPENSE, expense);
-
+        expenseRepository.delete(expense);
     }
 
     private BigDecimal checkSpentInPeriod(LimitType limitType, Long userId) {

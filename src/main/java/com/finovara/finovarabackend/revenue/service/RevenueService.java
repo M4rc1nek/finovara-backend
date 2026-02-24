@@ -1,10 +1,13 @@
 package com.finovara.finovarabackend.revenue.service;
 
-import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
+import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
+import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
 import com.finovara.finovarabackend.revenue.mapper.RevenueMapper;
 import com.finovara.finovarabackend.revenue.model.Revenue;
+import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
@@ -33,6 +36,7 @@ public class RevenueService {
     private final RevenueManagerService revenueManagerService;
     private final RevenueMapper revenueMapper;
     private final AutoPaymentsService autoPaymentsService;
+    private final RevenueActivityService revenueActivityService;
 
     @Transactional
     public Long addRevenue(RevenueDTO revenueDTO, String email) {
@@ -46,6 +50,8 @@ public class RevenueService {
                 .userAssigned(user)
                 .build();
         walletService.addBalanceToWallet(email, revenue.getAmount());
+        revenueActivityService.createRevenueActivity(email, RevenueActivityType.ADDED_REVENUE, revenue);
+
         //wallet jest zapisywany w repo klasie WalletService
         revenueRepository.save(revenue);
 
@@ -68,6 +74,7 @@ public class RevenueService {
 
         BigDecimal oldAmount = existingRevenue.getAmount();
         BigDecimal newAmount = revenueDTO.amount();
+        RevenueCategory oldCategory = existingRevenue.getCategory();
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(email, oldAmount, AutoPaymentsMode.ROLLBACK);
 
@@ -78,6 +85,7 @@ public class RevenueService {
         existingRevenue.setCategory(revenueDTO.category());
         existingRevenue.setDescription(revenueDTO.description());
 
+        revenueActivityService.updateRevenueActivity(email, RevenueActivityType.EDITED_REVENUE, existingRevenue, oldAmount, oldCategory);
         autoPaymentsService.handleRevenuePiggyBankAutomation(email, newAmount, AutoPaymentsMode.APPLY);
 
         walletRepository.save(wallet);
@@ -102,6 +110,7 @@ public class RevenueService {
                 .orElseThrow(() -> new RevenueNotFoundException("Revenue not found"));
         autoPaymentsService.handleRevenuePiggyBankAutomation(email, revenue.getAmount(), AutoPaymentsMode.ROLLBACK);
         walletService.removeBalanceFromWallet(email, revenue.getAmount());
+        revenueActivityService.createRevenueActivity(email, RevenueActivityType.DELETED_REVENUE, revenue);
         revenueRepository.delete(revenue);
 
     }
