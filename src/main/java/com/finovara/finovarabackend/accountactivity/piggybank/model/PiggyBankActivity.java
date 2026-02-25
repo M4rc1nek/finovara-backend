@@ -1,8 +1,7 @@
-package com.finovara.finovarabackend.accountactivity.expense.model;
+package com.finovara.finovarabackend.accountactivity.piggybank.model;
 
-import com.finovara.finovarabackend.expense.model.ExpenseCategory;
+import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,26 +9,24 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "expense_activity")
+@Table(name = "piggy_bank_activity")
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
 @Builder
-public class ExpenseActivity {
+public class PiggyBankActivity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private ExpenseActivityType type;
-
-    private PiggyBank
-
+    private PiggyBankActivityType activityType;
+    @Enumerated(EnumType.STRING)
+    private PiggyBankGoalType goalType;
 
     private BigDecimal amount;
-
 
     private LocalDateTime date;
 

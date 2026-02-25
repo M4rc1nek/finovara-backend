@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.piggybank.model;
 
-public enum GoalType {
+public enum PiggyBankGoalType {
     VACATION,       // Wakacje
     CAR,            // Samochód
     HOME,           // Dom / mieszkanie

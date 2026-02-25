@@ -60,7 +60,7 @@ public class PiggyBankService {
                 .createdAt(LocalDate.now())
                 .userAssigned(user)
                 .goalAmount(piggyBankDTO.goalAmount())
-                .goalType(piggyBankDTO.goalType())
+                .piggyBankGoalType(piggyBankDTO.piggyBankGoalType())
                 .build();
 
         piggyBankRepository.save(piggyBank);
@@ -87,7 +87,7 @@ public class PiggyBankService {
                 piggyBank.getName(),
                 piggyBank.getAmount(),
                 piggyBank.getCreatedAt(),
-                piggyBank.getGoalType(),
+                piggyBank.getPiggyBankGoalType(),
                 piggyBank.getGoalAmount(),
                 progress,
                 goalCompleted

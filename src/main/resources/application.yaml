@@ -47,6 +47,8 @@ user-activity:
     page-size: 100
   revenue:
     page-size: 100
+  limit:
+    page-size: 100
 
 
 scheduler:
@@ -59,6 +61,9 @@ scheduler:
       delete-cron: "0 0 0 1 * ?"
     revenue:
       delete-cron: "0 0 0 1 * ?"
+    limit:
+      delete-cron: "0 0 0 1 * ?"
+
 
 
 

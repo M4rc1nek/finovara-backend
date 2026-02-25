@@ -25,7 +25,7 @@ public class PiggyBank {
     private LocalDate createdAt;
 
     @Enumerated(EnumType.STRING)
-    private GoalType goalType;
+    private PiggyBankGoalType piggyBankGoalType;
 
     private BigDecimal goalAmount;
 

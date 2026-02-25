@@ -1,9 +1,11 @@
 package com.finovara.finovarabackend.limit.service;
 
-import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
-import com.finovara.finovarabackend.limit.exception.conflict.LimitAlreadyExistsException;
+import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivityType;
+import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityService;
 import com.finovara.finovarabackend.limit.dto.LimitDTO;
 import com.finovara.finovarabackend.limit.dto.LimitStatsDTO;
+import com.finovara.finovarabackend.limit.exception.conflict.LimitAlreadyExistsException;
+import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.model.LimitStatus;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
@@ -13,6 +15,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -22,6 +25,7 @@ public class LimitManagementService {
     private final LimitRepository limitRepository;
     private final UserManagerService userManagerService;
     private final LimitService limitService;
+    private final LimitActivityService limitActivityService;
 
     @Transactional
     public Long createLimit(LimitDTO limitDTO, String email) {
@@ -39,6 +43,7 @@ public class LimitManagementService {
                 .isActive(true)
                 .userAssigned(user)
                 .build();
+        limitActivityService.createLimitActivity(email, LimitActivityType.ADDED_LIMIT, limit);
 
         limitRepository.save(limit);
 
@@ -56,8 +61,12 @@ public class LimitManagementService {
             throw new ActiveLimitNotFoundException("Active Limit not found for this user");
         }
 
+        BigDecimal oldLimitAmount = limit.getAmount();
+
         limit.setLimitType(limitDTO.limitType());
         limit.setAmount(limitDTO.amount());
+
+        limitActivityService.updateLimitActivity(email, LimitActivityType.EDITED_LIMIT, limit, oldLimitAmount);
 
         limitRepository.save(limit);
         return limitId;
@@ -79,7 +88,7 @@ public class LimitManagementService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         Limit limit = limitRepository.findByIdAndUserAssignedId(user.getId(), limitId)
                 .orElseThrow(() -> new ActiveLimitNotFoundException("Active limit not found"));
-
+        limitActivityService.createLimitActivity(email, LimitActivityType.DELETED_LIMIT, limit);
         limitRepository.delete(limit);
     }
 

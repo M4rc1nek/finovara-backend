@@ -3,8 +3,10 @@ package com.finovara.finovarabackend.user.model;
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivity;
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivity;
+import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivity;
 import com.finovara.finovarabackend.accountactivity.login.activities.model.LoginActivity;
 import com.finovara.finovarabackend.accountactivity.login.archive.model.LoginActivityArchive;
+import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivity;
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivity;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.limit.model.Limit;
@@ -68,6 +70,12 @@ public class User {
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private List<RevenueActivity> revenueActivities;
+
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    private List<LimitActivity> limitActivities;
+
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    private List<PiggyBankActivity> piggyBankActivities;
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private Wallet wallet;

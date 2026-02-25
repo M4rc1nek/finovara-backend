@@ -1,35 +1,35 @@
-package com.finovara.finovarabackend.accountactivity.expense.model;
+package com.finovara.finovarabackend.accountactivity.limit.model;
 
-import com.finovara.finovarabackend.expense.model.ExpenseCategory;
+import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "expense_activity")
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
 @Builder
-public class ExpenseActivity {
+@Entity
+@Table(name = "limit_activity")
+public class LimitActivity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private ExpenseActivityType type;
+    private LimitActivityType limitActivityType;
 
-    private PiggyBank
-
+    @Enumerated(EnumType.STRING)
+    @Column(name = "limit_type")
+    private LimitType limitType;
 
     private BigDecimal amount;
-
+    private BigDecimal previousAmount;
 
     private LocalDateTime date;
 

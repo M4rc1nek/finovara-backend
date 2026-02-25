@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.piggybank.dto;
 
-import com.finovara.finovarabackend.piggybank.model.GoalType;
+import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -19,7 +19,7 @@ public record PiggyBankDTO(
         BigDecimal amount,
         LocalDate createdAt,
 
-        GoalType goalType,
+        PiggyBankGoalType piggyBankGoalType,
         BigDecimal goalAmount,
 
         Double progress,
