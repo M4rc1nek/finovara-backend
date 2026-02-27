@@ -21,12 +21,16 @@ public class PiggyBankActivity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String piggyBankName;
+
     @Enumerated(EnumType.STRING)
     private PiggyBankActivityType activityType;
     @Enumerated(EnumType.STRING)
     private PiggyBankGoalType goalType;
 
-    private BigDecimal amount;
+    private BigDecimal goalAmount;
+    private BigDecimal amountPaid;
+    private BigDecimal amountPaidOut;
 
     private LocalDateTime date;
 

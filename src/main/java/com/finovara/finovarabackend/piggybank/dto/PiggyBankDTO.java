@@ -19,7 +19,7 @@ public record PiggyBankDTO(
         BigDecimal amount,
         LocalDate createdAt,
 
-        PiggyBankGoalType piggyBankGoalType,
+        PiggyBankGoalType goalType,
         BigDecimal goalAmount,
 
         Double progress,

@@ -1,5 +1,7 @@
 package com.finovara.finovarabackend.usersetting.piggybank.autopayments.service;
 
+import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
+import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.dto.AutoPaymentsDto;
@@ -23,11 +25,12 @@ public class AutoPaymentsService {
     private final UserManagerService userManagerService;
     private final WalletManagerService walletManagerService;
 
+    private final PiggyBankActivityService piggyBankActivityService;
+
     @Transactional
     public void createAutomation(String email, AutoPaymentsDto autoPaymentsDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
-
 
         piggyBankSettings.setAutomationActive(autoPaymentsDto.isAutomationActive());
 
@@ -45,7 +48,6 @@ public class AutoPaymentsService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
-
         return new AutoPaymentsDto(
                 piggyBankSettings.isAutomationActive(),
                 piggyBankSettings.getAutomationPercentage()
@@ -57,12 +59,11 @@ public class AutoPaymentsService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
-            validatePercentage(settings);
+        validatePercentage(settings);
 
-            piggyBankSettings.setAutomationActive(settings.isAutomationActive());
-            piggyBankSettings.setAutomationPercentage(settings.isAutomationActive() ? settings.percentage() : BigDecimal.ZERO);
-        }
-
+        piggyBankSettings.setAutomationActive(settings.isAutomationActive());
+        piggyBankSettings.setAutomationPercentage(settings.isAutomationActive() ? settings.percentage() : BigDecimal.ZERO);
+    }
 
     public void handleRevenuePiggyBankAutomation(String email, BigDecimal revenueAmount, AutoPaymentsMode mode) {
         User user = userManagerService.getUserByEmailOrThrow(email);
@@ -83,11 +84,13 @@ public class AutoPaymentsService {
                         BigDecimal availableToTransfer = wallet.getBalance().min(automationAmount);
                         piggyBank.setAmount(piggyBank.getAmount().add(availableToTransfer));
                         wallet.setBalance(wallet.getBalance().subtract(availableToTransfer));
+                        piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, automationAmount);
                     }
                     case ROLLBACK -> {
                         BigDecimal amountToRollback = automationAmount.min(piggyBank.getAmount());
                         piggyBank.setAmount(piggyBank.getAmount().subtract(amountToRollback));
                         wallet.setBalance(wallet.getBalance().add(amountToRollback));
+                        piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, automationAmount);
                     }
                 }
             }

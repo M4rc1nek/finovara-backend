@@ -53,7 +53,6 @@ public class GoalCompletionService {
         PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
 
         piggyBankSettings.setGoalCompletionStrategy(settings.strategy());
-        log.info("Saved GoalCompletion settings");
     }
 
     @Transactional

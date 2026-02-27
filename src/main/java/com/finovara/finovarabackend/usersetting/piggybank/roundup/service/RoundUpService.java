@@ -1,5 +1,7 @@
 package com.finovara.finovarabackend.usersetting.piggybank.roundup.service;
 
+import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
+import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;
@@ -32,6 +34,7 @@ public class RoundUpService {
     private final PiggyBankService piggyBankService;
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
+    private final PiggyBankActivityService piggyBankActivityService;
 
     @Transactional
     public RoundUpDto getRoundUp(String email) {
@@ -80,12 +83,14 @@ public class RoundUpService {
                         if (roundUpAmount.compareTo(BigDecimal.ZERO) > 0) {
                             piggyBank.setAmount(piggyBank.getAmount().add(roundUpAmount));
                             wallet.setBalance(wallet.getBalance().subtract(roundUpAmount));
+                            piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, roundUpAmount);
                         }
                     }
                     case ROLLBACK -> {
                         BigDecimal amountToRollBack = roundUpAmount.min(piggyBank.getAmount());
                         piggyBank.setAmount(piggyBank.getAmount().subtract(amountToRollBack));
                         wallet.setBalance(wallet.getBalance().add(amountToRollBack));
+                        piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, roundUpAmount);
                     }
                 }
             }

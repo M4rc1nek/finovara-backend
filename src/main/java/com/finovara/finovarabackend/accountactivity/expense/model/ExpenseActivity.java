@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.accountactivity.expense.model;
 
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,12 +23,13 @@ public class ExpenseActivity {
 
     @Enumerated(EnumType.STRING)
     private ExpenseActivityType type;
-
-    private PiggyBank
-
-
     private BigDecimal amount;
+    private BigDecimal previousAmount;
 
+    @Enumerated(EnumType.STRING)
+    private ExpenseCategory category;
+    @Enumerated(EnumType.STRING)
+    private ExpenseCategory previousCategory;
 
     private LocalDateTime date;
 

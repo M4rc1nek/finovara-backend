@@ -49,6 +49,8 @@ user-activity:
     page-size: 100
   limit:
     page-size: 100
+  piggy-bank:
+    page-size: 100
 
 
 scheduler:
@@ -62,6 +64,8 @@ scheduler:
     revenue:
       delete-cron: "0 0 0 1 * ?"
     limit:
+      delete-cron: "0 0 0 1 * ?"
+    piggy-bank:
       delete-cron: "0 0 0 1 * ?"
 
 
