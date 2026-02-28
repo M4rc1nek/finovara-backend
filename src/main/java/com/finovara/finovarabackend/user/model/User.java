@@ -14,7 +14,6 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
-import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import jakarta.persistence.*;
 import lombok.*;
@@ -47,7 +46,7 @@ public class User {
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private List<Revenue> revenues;
-    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PiggyBank> piggyBanks;
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
@@ -82,9 +81,6 @@ public class User {
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private ExpenseSettings expenseSettings;
-
-    @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
-    private PiggyBankSettings piggyBankSettings;
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private AccountSettings accountSettings;

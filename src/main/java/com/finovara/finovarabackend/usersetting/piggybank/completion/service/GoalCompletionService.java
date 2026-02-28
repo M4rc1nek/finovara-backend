@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.dto.GoalCompletionDto;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
+import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -29,6 +30,7 @@ public class GoalCompletionService {
     private final PiggyBankManagerService piggyBankManagerService;
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
+    private final PiggyBankSettingsRepository piggyBankSettingsRepository;
 
     private final PiggyBankCheckGoalCompletion piggyBankCheckGoalCompletion;
 
@@ -36,7 +38,7 @@ public class GoalCompletionService {
     public void addGoalCompletion(Long piggyBankId, String email, GoalCompletionDto goalCompletionDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, user.getEmail());
-        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
+        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         if (piggyBank.getGoalAmount() == null || piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidInputException("Cannot set goal completion strategy for a piggy bank without a goal.");
@@ -48,18 +50,19 @@ public class GoalCompletionService {
     }
 
     @Transactional
-    public void saveGoalCompletion(String email, GoalCompletionDto settings) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
+    public void saveGoalCompletion(String email, Long piggyBankId, GoalCompletionDto settings) {
+        userManagerService.getUserByEmailOrThrow(email);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         piggyBankSettings.setGoalCompletionStrategy(settings.strategy());
     }
 
     @Transactional
-    public GoalCompletionDto getCompletionDto(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
-
+    public GoalCompletionDto getCompletionDto(String email, Long piggyBankId) {
+        userManagerService.getUserByEmailOrThrow(email);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
         return new GoalCompletionDto(piggyBankSettings.getGoalCompletionStrategy());
     }
 
@@ -68,10 +71,9 @@ public class GoalCompletionService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(user.getEmail());
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(user.getEmail());
-        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
-
 
         for (PiggyBank piggyBank : piggyBanks) {
+            PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
             if (!piggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)) {
                 continue;
             }
@@ -90,7 +92,7 @@ public class GoalCompletionService {
                     if (piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
                         throw new InvalidInputException("Cannot delete piggy bank with balance.");
                     }
-                    piggyBankRepository.delete(piggyBank);
+                    user.getPiggyBanks().remove(piggyBank); // User entity has orphanRemoval = true
                 }
             }
         }

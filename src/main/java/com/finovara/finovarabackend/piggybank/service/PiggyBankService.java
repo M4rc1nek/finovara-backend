@@ -8,7 +8,10 @@ import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
+import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
+import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -35,7 +38,8 @@ public class PiggyBankService {
     private final GoalCompletionService goalCompletionService;
     private final WalletRepository walletRepository;
     private final PiggyBankActivityService piggyBankActivityService;
-
+    private final PiggyBankSettingsRepository piggyBankSettingsRepository;
+    private final SettingsFactory settingsFactory;
     private final PiggyBankCheckGoalCompletion piggyBankCheckGoalCompletion;
 
     @Transactional
@@ -68,6 +72,9 @@ public class PiggyBankService {
 
         piggyBankActivityService.createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.ADDED_PIGGY_BANK);
         piggyBankRepository.save(piggyBank);
+        PiggyBank saved = piggyBankRepository.save(piggyBank);
+        PiggyBankSettings settings = settingsFactory.createDefaultPiggyBankSettings(saved);
+        piggyBankSettingsRepository.save(settings);
 
         return buildDTO(piggyBank, user);
     }

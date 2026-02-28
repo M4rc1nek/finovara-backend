@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.usersetting.factory;
 
+import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.model.CountQuantityLimitStrategy;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
@@ -28,15 +29,13 @@ public class SettingsFactory {
 
     }
 
-    public PiggyBankSettings createDefaultPiggyBankSettings(User user) {
+    public PiggyBankSettings createDefaultPiggyBankSettings(PiggyBank piggyBank) {
         return PiggyBankSettings.builder()
-                .userAssigned(user)
+                .piggyBankAssigned(piggyBank)
                 .automationActive(false)
                 .automationPercentage(BigDecimal.ZERO)
                 .roundUpActive(false)
                 .goalCompletionStrategy(GoalCompletionStrategy.NONE)
                 .build();
-
     }
-
 }

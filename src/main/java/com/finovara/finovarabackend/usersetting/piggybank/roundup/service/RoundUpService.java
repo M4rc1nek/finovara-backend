@@ -10,37 +10,43 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
+import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
+import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoundUpService {
 
     private final UserManagerService userManagerService;
     private final ExpenseManagerService expenseManagerService;
+    private final PiggyBankManagerService piggyBankManagerService;
     private final PiggyBankService piggyBankService;
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
     private final PiggyBankActivityService piggyBankActivityService;
 
     @Transactional
-    public RoundUpDto getRoundUp(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
-
+    public RoundUpDto getRoundUp(String email, Long piggyBankId) {
+        userManagerService.getUserByEmailOrThrow(email);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         return new RoundUpDto(piggyBankSettings.isRoundUpActive());
     }
@@ -52,26 +58,26 @@ public class RoundUpService {
     }
 
     @Transactional
-    public void saveRoundUpPiggyBank(String email, RoundUpDto settings) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
+    public void saveRoundUpPiggyBank(String email, Long piggyBankId, RoundUpDto dto) {
+        userManagerService.getUserByEmailOrThrow(email);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
 
-        piggyBankSettings.setRoundUpActive(settings.roundUpActive());
-        }
+        PiggyBankSettings settings = piggyBank.getSettings();
+        settings.setRoundUpActive(dto.roundUpActive());
+    }
 
     @Transactional
     public void handleExpenseForRoundUp(String email, Long expenseId, AutoPaymentsMode mode) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, user.getId());
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(email);
-        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
         Wallet wallet = walletRepository.findByUserAssignedEmail(email)
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
-
 
         if (piggyBanks == null || piggyBanks.isEmpty()) return;
 
         for (PiggyBank piggyBank : piggyBanks) {
+            PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
             if (piggyBankSettings.isRoundUpActive()) {
                 BigDecimal expenseAmount = expense.getAmount();
                 BigDecimal roundUpAmount = expenseAmount.setScale(0, RoundingMode.CEILING).subtract(expenseAmount);

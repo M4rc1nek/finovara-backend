@@ -6,18 +6,22 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.dto.AutoPaymentsDto;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
+import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AutoPaymentsService {
@@ -26,11 +30,17 @@ public class AutoPaymentsService {
     private final WalletManagerService walletManagerService;
 
     private final PiggyBankActivityService piggyBankActivityService;
+    private final PiggyBankManagerService piggyBankManagerService;
+    private final GoalCompletionService goalCompletionService;
+
 
     @Transactional
-    public void createAutomation(String email, AutoPaymentsDto autoPaymentsDto) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
+    public void createAutomation(String email, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
+        userManagerService.getUserByEmailOrThrow(email);
+
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+
+        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         piggyBankSettings.setAutomationActive(autoPaymentsDto.isAutomationActive());
 
@@ -44,9 +54,11 @@ public class AutoPaymentsService {
     }
 
     @Transactional
-    public AutoPaymentsDto getAutomation(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
+    public AutoPaymentsDto getAutomation(String email, Long piggyBankId) {
+        userManagerService.getUserByEmailOrThrow(email);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+
+        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         return new AutoPaymentsDto(
                 piggyBankSettings.isAutomationActive(),
@@ -55,9 +67,11 @@ public class AutoPaymentsService {
     }
 
     @Transactional
-    public void saveAutoPaymentsPiggyBank(String email, AutoPaymentsDto settings) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
+    public void saveAutoPaymentsPiggyBank(String email, Long piggyBankId, AutoPaymentsDto settings) {
+        userManagerService.getUserByEmailOrThrow(email);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+
+        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         validatePercentage(settings);
 
@@ -65,15 +79,16 @@ public class AutoPaymentsService {
         piggyBankSettings.setAutomationPercentage(settings.isAutomationActive() ? settings.percentage() : BigDecimal.ZERO);
     }
 
+    @Transactional
     public void handleRevenuePiggyBankAutomation(String email, BigDecimal revenueAmount, AutoPaymentsMode mode) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         List<PiggyBank> piggyBanks = user.getPiggyBanks();
-        PiggyBankSettings piggyBankSettings = user.getPiggyBankSettings();
         Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
 
         if (piggyBanks == null || piggyBanks.isEmpty()) return;
 
-        for (PiggyBank piggyBank : piggyBanks) {
+        for (PiggyBank piggyBank : user.getPiggyBanks()) {
+            PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
             if (piggyBankSettings.isAutomationActive()) { // albo zostawić jak jest albo pomyslec o !piggyBank.isAutomationActive()) continue;
                 BigDecimal automationAmount = revenueAmount
                         .multiply(piggyBankSettings.getAutomationPercentage())
@@ -95,17 +110,12 @@ public class AutoPaymentsService {
                 }
             }
         }
+        goalCompletionService.handleGoalCompletion(email);
     }
-
     private void validatePercentage(AutoPaymentsDto autoPaymentsDto) {
         if (autoPaymentsDto.isAutomationActive()) {
             if (autoPaymentsDto.percentage() == null) {
                 throw new IllegalArgumentException("Percentage is required");
-            }
-
-            if (autoPaymentsDto.percentage().compareTo(BigDecimal.ZERO) <= 0 ||
-                    autoPaymentsDto.percentage().compareTo(BigDecimal.valueOf(100)) > 0) {
-                throw new IllegalArgumentException("Percentage must be between 1 and 100");
             }
         }
 

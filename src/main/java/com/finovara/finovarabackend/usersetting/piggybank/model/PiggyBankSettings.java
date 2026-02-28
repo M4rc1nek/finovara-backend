@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.usersetting.piggybank.model;
 
-import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import jakarta.persistence.*;
 import lombok.*;
@@ -34,7 +34,7 @@ public class PiggyBankSettings {
     private GoalCompletionStrategy goalCompletionStrategy;
 
     @OneToOne
-    @JoinColumn(name = "user_id")
-    private User userAssigned;
+    @JoinColumn(name = "piggy_bank_id")
+    private PiggyBank piggyBankAssigned;
 
 }

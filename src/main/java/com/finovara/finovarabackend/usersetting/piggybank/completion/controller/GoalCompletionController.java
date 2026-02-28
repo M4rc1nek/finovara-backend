@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.usersetting.piggybank.completion.controller
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.dto.GoalCompletionDto;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +21,15 @@ public class GoalCompletionController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping
-    public ResponseEntity<GoalCompletionDto> getCompletionDto() {
-        return ResponseEntity.ok(goalCompletionService.getCompletionDto(SecurityUtils.getCurrentUserEmail()));
+    @GetMapping("/{piggyBankId}")
+    public ResponseEntity<GoalCompletionDto> getCompletionDto(@PathVariable Long piggyBankId) {
+        return ResponseEntity.ok(goalCompletionService.getCompletionDto(SecurityUtils.getCurrentUserEmail(), piggyBankId));
+    }
+
+    @PatchMapping("/{piggyBankId}")
+    public ResponseEntity<Void> saveGoalCompletion(@RequestBody @Valid GoalCompletionDto goalCompletionDto, @PathVariable Long piggyBankId) {
+        goalCompletionService.saveGoalCompletion(SecurityUtils.getCurrentUserEmail(), piggyBankId, goalCompletionDto);
+        return ResponseEntity.noContent().build();
     }
 
 }

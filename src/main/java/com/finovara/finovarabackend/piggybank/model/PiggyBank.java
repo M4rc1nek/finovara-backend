@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.piggybank.model;
 
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,5 +34,8 @@ public class PiggyBank {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User userAssigned;
+
+    @OneToOne(mappedBy = "piggyBankAssigned", cascade = CascadeType.ALL)
+    private PiggyBankSettings settings;
 
 }
