@@ -1,12 +1,13 @@
 package com.finovara.finovarabackend.usersetting.piggybank.completion.service;
 
+import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
+import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.dto.GoalCompletionDto;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
-import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -15,7 +16,6 @@ import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -29,7 +29,7 @@ public class GoalCompletionService {
     private final PiggyBankManagerService piggyBankManagerService;
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
-    private final PiggyBankSettingsRepository piggyBankSettingsRepository;
+    private final PiggyBankActivityService piggyBankActivityService;
 
     private final PiggyBankCheckGoalCompletion piggyBankCheckGoalCompletion;
 
@@ -82,11 +82,18 @@ public class GoalCompletionService {
                 }
 
                 case WITHDRAW_AND_KEEP -> {
+                    BigDecimal amountToWithdraw = piggyBank.getAmount();
                     transferFund(piggyBank, wallet);
+                    BigDecimal amountPaid = amountToWithdraw;
+                    piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, amountPaid);
                 }
 
                 case WITHDRAW_AND_DELETE -> {
+                    BigDecimal amountToWithdraw = piggyBank.getAmount();
                     transferFund(piggyBank, wallet);
+                    BigDecimal amountPaid = amountToWithdraw;
+                    piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, amountPaid);
+                    piggyBankActivityService.createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
                     // Safety check: ensure no money is left before deleting.
                     if (piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
                         throw new InvalidInputException("Cannot delete piggy bank with balance.");
