@@ -25,11 +25,10 @@ public class ControlAmountService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
-        BigDecimal blockedAmount = Optional.ofNullable(expenseSettings.getBlockedAmount()).orElse(BigDecimal.ZERO);
+        BigDecimal blockedAmount = Optional.ofNullable(controlAmountDto.blockedAmount()).orElse(BigDecimal.ZERO);
 
         expenseSettings.setExpenseAmountThresholdEnabled(controlAmountDto.expenseAmountThresholdEnabled());
         expenseSettings.setBlockedAmount(blockedAmount);
-        log.info("Saved ExpenseAmountControl settings. IsEnabled: {}, BlockedAmount: {}", controlAmountDto.expenseAmountThresholdEnabled(), controlAmountDto.blockedAmount());
     }
 
     @Transactional

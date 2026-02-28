@@ -15,7 +15,7 @@ public class ControlAmountController {
 
     private final ControlAmountService controlAmountService;
 
-    @PutMapping
+    @PatchMapping
     public ResponseEntity<Void> saveExpenseAmountControl(@RequestBody @Valid ControlAmountDto controlAmountDto) {
         controlAmountService.saveExpenseAmountControl(SecurityUtils.getCurrentUserEmail(), controlAmountDto);
         return ResponseEntity.noContent().build();

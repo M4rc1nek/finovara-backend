@@ -10,10 +10,9 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
-import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
@@ -41,6 +40,7 @@ public class RoundUpService {
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
     private final PiggyBankActivityService piggyBankActivityService;
+    private final GoalCompletionService goalCompletionService;
 
     @Transactional
     public RoundUpDto getRoundUp(String email, Long piggyBankId) {
@@ -101,6 +101,7 @@ public class RoundUpService {
                 }
             }
         }
+        goalCompletionService.handleGoalCompletion(email);
     }
 
 }

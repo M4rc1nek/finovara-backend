@@ -35,7 +35,6 @@ public class SmartScanService {
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         expenseSettings.setSmartScanEnabled(settings.smartScanEnabled());
-        log.info("Saved SmartScan settings. IsEnabled: {}", settings.smartScanEnabled());
     }
 
     @Transactional

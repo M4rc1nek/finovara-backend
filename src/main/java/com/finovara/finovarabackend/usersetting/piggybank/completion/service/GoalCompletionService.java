@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class GoalCompletionService {
     private final UserManagerService userManagerService;

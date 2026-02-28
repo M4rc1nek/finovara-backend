@@ -15,7 +15,7 @@ public class SmartScanController {
 
     private final SmartScanService smartScanService;
 
-    @PutMapping
+    @PatchMapping
     public ResponseEntity<Void> saveSmartScan(@RequestBody SmartScanDto smartScanDto) {
         smartScanService.saveSmartScan(SecurityUtils.getCurrentUserEmail(), smartScanDto);
         return ResponseEntity.noContent().build();
