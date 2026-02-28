@@ -59,7 +59,7 @@ public class UserService {
                 .createdAt(LocalDateTime.now())
                 .build();
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
-
+        user.setRevenueSettings(settingsFactory.createDefaultRevenueSettings(user));
         User savedUser = userRepository.save(user);
 
         String jwtToken = jwtService.generateToken(

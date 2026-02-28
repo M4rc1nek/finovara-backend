@@ -68,6 +68,9 @@ scheduler:
     piggy-bank:
       delete-cron: "0 0 0 1 * ?"
 
+  revenue-settings:
+    recurring-frequency: "0 * * * * *"
+
 
 
 
