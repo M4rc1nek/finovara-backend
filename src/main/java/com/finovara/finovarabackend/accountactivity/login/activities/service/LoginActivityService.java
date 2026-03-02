@@ -63,19 +63,7 @@ public class LoginActivityService {
     }
 
     public List<LoginActivityDto> getLoginActivity(String email) {
-        return loginActivityRepository
-                .findByUserAssignedEmailOrderByDesc(email)
-                .stream()
-                .map(activity -> new LoginActivityDto(
-                        activity.getType(),
-                        activity.getStatus(),
-                        activity.getDate(),
-                        activity.getBrowser(),
-                        activity.getIpAddress(),
-                        activity.getLocation()
-                ))
-                .toList();
-
+        return loginActivityRepository.findByUserAssignedEmailOrderByDesc(email);
     }
 
     public void confirmPasswordToLoginActivity(String email, ConfirmPasswordDto confirmPasswordDto) {

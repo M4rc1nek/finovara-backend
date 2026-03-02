@@ -38,15 +38,6 @@ public class AccountChangeArchiveService {
     }
 
     public List<AccountChangeArchiveDto> getAccountChangeArchive(String email) {
-        return accountChangeArchiveRepository.findAllByUserAssignedEmailOrderByIdDesc(email)
-                .stream().map(archive -> new AccountChangeArchiveDto(
-                        archive.getType(),
-                        archive.getMoveToArchiveDate(),
-                        archive.getActivityAccountChangesDate(),
-                        archive.getBrowser(),
-                        archive.getIpAddress(),
-                        archive.getLocation()
-                ))
-                .toList();
+        return accountChangeArchiveRepository.findAllByUserAssignedEmailOrderByIdDesc(email);
     }
 }

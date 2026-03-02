@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.accountchange.activities.repository;
 
+import com.finovara.finovarabackend.accountactivity.accountchange.activities.dto.AccountChangesActivityDto;
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,8 +13,14 @@ import java.util.List;
 @Repository
 public interface AccountChangesActivityRepository extends JpaRepository<AccountChangesActivity, Long> {
 
-    @Query("SELECT u FROM AccountChangesActivity u WHERE u.userAssigned.email = :email ORDER BY u.id DESC")
-    List<AccountChangesActivity> findByUserAssignedEmailOrderByIdDesc(@Param("email") String email);
+    @Query("""
+            SELECT new com.finovara.finovarabackend.accountactivity.accountchange.activities.dto.AccountChangesActivityDto(
+            a.type, a.date, a.browser, a.ipAddress, a.location) 
+            FROM AccountChangesActivity a 
+            WHERE a.userAssigned.email = :email 
+            ORDER BY a.id DESC
+            """)
+    List<AccountChangesActivityDto> findByUserAssignedEmailOrderByIdDesc(@Param("email") String email);
 
     @Query("SELECT COUNT(u) FROM AccountChangesActivity u WHERE u.userAssigned.id = :userId")
     long countAccountChangesByUserAssignedId(Long userId);

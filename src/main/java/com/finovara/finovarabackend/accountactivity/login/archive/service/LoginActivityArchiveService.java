@@ -39,16 +39,6 @@ public class LoginActivityArchiveService {
     }
 
     public List<LoginActivityArchiveDto> getLoginActivityArchive(String email) {
-        return loginActivityArchiveRepository.findAllByUserAssignedEmailOrderByIdDesc(email)
-                .stream().map(archive -> new LoginActivityArchiveDto(
-                        archive.getType(),
-                        archive.getStatus(),
-                        archive.getMoveToArchiveDate(),
-                        archive.getActivityLoginDate(),
-                        archive.getBrowser(),
-                        archive.getIpAddress(),
-                        archive.getLocation()
-                ))
-                .toList();
+        return loginActivityArchiveRepository.findAllByUserAssignedEmailOrderByIdDesc(email);
     }
 }

@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.login.activities.repository;
 
+import com.finovara.finovarabackend.accountactivity.login.activities.dto.LoginActivityDto;
 import com.finovara.finovarabackend.accountactivity.login.activities.model.LoginActivity;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,8 +13,14 @@ import java.util.List;
 @Repository
 public interface LoginActivityRepository extends JpaRepository<LoginActivity, Long> {
 
-    @Query("SELECT u FROM LoginActivity u WHERE u.userAssigned.email = :email ORDER BY u.id DESC")
-    List<LoginActivity> findByUserAssignedEmailOrderByDesc(@Param("email") String email);
+    @Query("""
+            SELECT new com.finovara.finovarabackend.accountactivity.login.activities.dto.LoginActivityDto(
+            l.type, l.status, l.date, l.browser, l.ipAddress, l.location)
+            FROM LoginActivity l
+            WHERE l.userAssigned.email = :email
+            ORDER BY l.id DESC
+            """)
+    List<LoginActivityDto> findByUserAssignedEmailOrderByDesc(@Param("email") String email);
 
     @Query("SELECT u FROM LoginActivity u WHERE u.userAssigned.id = :userId ORDER BY u.id ASC")
     List<LoginActivity> findOldestByUserAssignedId(Long userId, PageRequest of);

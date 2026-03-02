@@ -59,15 +59,7 @@ public class AccountChangesActivityService {
     }
 
     public List<AccountChangesActivityDto> getAccountChangesActivity(String email) {
-        return accountChangesActivityRepository.findByUserAssignedEmailOrderByIdDesc(email)
-                .stream().map(activity -> new AccountChangesActivityDto(
-                        activity.getType(),
-                        activity.getDate(),
-                        activity.getBrowser(),
-                        activity.getIpAddress(),
-                        activity.getLocation()
-                ))
-                .toList();
+        return accountChangesActivityRepository.findByUserAssignedEmailOrderByIdDesc(email);
     }
 
     public void confirmPasswordToAccountChangesActivity(String email, ConfirmPasswordDto confirmPasswordDto) {

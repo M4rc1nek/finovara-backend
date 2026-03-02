@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.login.archive.repository;
 
+import com.finovara.finovarabackend.accountactivity.login.archive.dto.LoginActivityArchiveDto;
 import com.finovara.finovarabackend.accountactivity.login.archive.model.LoginActivityArchive;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +12,13 @@ import java.util.List;
 @Repository
 public interface LoginActivityArchiveRepository extends JpaRepository<LoginActivityArchive, Long> {
 
-    @Query("SELECT a FROM LoginActivityArchive a WHERE a.userAssigned.email = :email ORDER BY a.id DESC")
-    List<LoginActivityArchive> findAllByUserAssignedEmailOrderByIdDesc(@Param("email") String email);
+    @Query("""
+           SELECT new com.finovara.finovarabackend.accountactivity.login.archive.dto.LoginActivityArchiveDto(
+           l.type, l.status, l.moveToArchiveDate, l.activityLoginDate, l.browser, l.ipAddress, l.location)
+           FROM LoginActivityArchive l
+           WHERE l.userAssigned.email = :email
+           ORDER BY l.id DESC
+            """)
+    List<LoginActivityArchiveDto> findAllByUserAssignedEmailOrderByIdDesc(@Param("email") String email);
 
 }
