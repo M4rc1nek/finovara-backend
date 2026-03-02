@@ -45,6 +45,8 @@ public class SettingsFactory {
                 .recurringStrategy(RecurringStrategy.MONTHLY)
                 .recurringStartDate(null)
                 .nextExecutionDate(null)
+                .scoringEnable(false)
+                .revenuePoints(BigDecimal.ZERO)
                 .createdAt(LocalDate.now(timeConfig.clock()))
                 .build();
     }

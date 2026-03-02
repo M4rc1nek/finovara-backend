@@ -19,6 +19,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.controlamount.s
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
+import com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service.RevenueScoringService;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
@@ -50,6 +51,8 @@ public class ExpenseService {
     private final UserManagerService userManagerService;
     private final ExpenseMapper expenseMapper;
     private final SpentInPeriodService spentInPeriodService;
+    private final RevenueScoringService revenueScoringService;
+
     private final TimeConfig timeConfig;
 
     @Transactional
@@ -78,6 +81,7 @@ public class ExpenseService {
 
         walletService.removeBalanceFromWallet(email, expense.getAmount());
         expenseRepository.save(expense);
+        revenueScoringService.recalculateScore(email);
 
         roundUpService.handleExpenseForRoundUp(email, expense.getId(), AutoPaymentsMode.APPLY);
 
@@ -113,6 +117,7 @@ public class ExpenseService {
         smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDTO().amount(), SmartScanMode.EDIT);
 
         expenseRepository.save(existingExpense);
+        revenueScoringService.recalculateScore(email);
 
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.APPLY);
 
@@ -140,6 +145,8 @@ public class ExpenseService {
         walletService.addBalanceToWallet(email, expense.getAmount());
         expenseActivityService.createExpenseActivity(email, ExpenseActivityType.DELETED_EXPENSE, expense);
         expenseRepository.delete(expense);
+        revenueScoringService.recalculateScore(email);
+
     }
 
     private BigDecimal checkSpentInPeriod(LimitType limitType, Long userId) {
