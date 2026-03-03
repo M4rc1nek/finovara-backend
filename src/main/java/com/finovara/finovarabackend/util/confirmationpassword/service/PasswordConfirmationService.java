@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Random;
+
 @Service
 @RequiredArgsConstructor
 public class PasswordConfirmationService {
@@ -21,6 +23,7 @@ public class PasswordConfirmationService {
         if (!passwordEncoder.matches(confirmPasswordDto.password(), user.getPassword())) {
             throw new WrongPasswordException("Incorrect password");
         }
+
     }
 
 }

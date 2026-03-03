@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.config;
+package com.finovara.finovarabackend.config.security;
 
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.repository.UserRepository;

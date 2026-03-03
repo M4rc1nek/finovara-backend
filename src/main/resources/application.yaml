@@ -56,9 +56,9 @@ user-activity:
 scheduler:
   user-activity:
     login:
-      archive-cron: "0 0 0 1 1/6 ? "
+      archive-cron: "0 0 0 1 1/6 ?"
     account-changes:
-      archive-cron: "0 0 0 1 1/6 ? "
+      archive-cron: "0 0 0 1 1/6 ?"
     expense:
       delete-cron: "0 0 0 1 * ?"
     revenue:
@@ -70,8 +70,3 @@ scheduler:
 
   revenue-settings:
     recurring-frequency: "0 * * * * *"
-
-
-
-
-
