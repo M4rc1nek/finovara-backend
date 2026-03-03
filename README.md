@@ -36,5 +36,6 @@ The platform focuses on:
 - **Spring Security (JWT)**
 - **Spring Data JPA**
 - **Hibernate**
+- **Liquibase**
 - **Maven**
 - **PostgreSQL**
