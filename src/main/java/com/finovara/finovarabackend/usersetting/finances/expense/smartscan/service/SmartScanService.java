@@ -1,5 +1,8 @@
 package com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service;
 
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.model.User;
@@ -28,6 +31,8 @@ public class SmartScanService {
     private final UserManagerService userManagerService;
     private final ExpenseRepository expenseRepository;
     private final PasswordConfirmationService passwordConfirmationService;
+    private final SettingsActivityService settingsActivityService;
+
 
     @Transactional
     public void saveSmartScan(String email, SmartScanDto settings) {
@@ -35,6 +40,11 @@ public class SmartScanService {
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         expenseSettings.setSmartScanEnabled(settings.smartScanEnabled());
+        if(expenseSettings.isSmartScanEnabled()){
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.EXPENSE_SMART_SCAN);
+        }else {
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.EXPENSE_SMART_SCAN);
+        }
     }
 
     @Transactional

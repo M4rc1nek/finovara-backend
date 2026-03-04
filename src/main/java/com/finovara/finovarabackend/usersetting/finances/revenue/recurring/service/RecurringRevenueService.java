@@ -1,5 +1,8 @@
 package com.finovara.finovarabackend.usersetting.finances.revenue.recurring.service;
 
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.dto.RecurringRevenueDto;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class RecurringRevenueService {
 
     private final UserManagerService userManagerService;
+    private final SettingsActivityService settingsActivityService;
 
     @Transactional
     public void saveRecurringRevenue(String email, RecurringRevenueDto dto) {
@@ -25,9 +29,11 @@ public class RecurringRevenueService {
         revenueSettings.setRecurringStrategy(dto.strategy());
 
         if (dto.recurringRevenueEnable()) {
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.REVENUE_RECURRING);
             revenueSettings.setRecurringStartDate(dto.startDate());
             revenueSettings.setNextExecutionDate(dto.startDate());
         } else {
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.REVENUE_RECURRING);
             revenueSettings.setNextExecutionDate(null);
         }
 

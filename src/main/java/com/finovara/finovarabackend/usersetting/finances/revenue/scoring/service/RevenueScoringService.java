@@ -1,5 +1,8 @@
 package com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service;
 
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.revenue.model.Revenue;
@@ -23,6 +26,7 @@ public class RevenueScoringService {
     private final UserManagerService userManagerService;
     private final RevenueRepository revenueRepository;
     private final ExpenseRepository expenseRepository;
+    private final SettingsActivityService settingsActivityService;
 
     private static final BigDecimal POINTS_TO_ADD = BigDecimal.valueOf(1);
     private static final BigDecimal POINTS_TO_REMOVE = BigDecimal.valueOf(1);
@@ -32,6 +36,11 @@ public class RevenueScoringService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         RevenueSettings settings = user.getRevenueSettings();
         settings.setScoringEnable(dto.scoringEnable());
+        if(settings.isScoringEnable()){
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.REVENUE_SCORING);
+        }else{
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.REVENUE_SCORING);
+        }
     }
 
     @Transactional

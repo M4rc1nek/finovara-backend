@@ -1,5 +1,8 @@
 package com.finovara.finovarabackend.usersetting.finances.expense.controlamount.service;
 
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.controlamount.dto.ControlAmountDto;
@@ -19,6 +22,7 @@ import java.util.Optional;
 public class ControlAmountService {
 
     private final UserManagerService userManagerService;
+    private final SettingsActivityService settingsActivityService;
 
     @Transactional
     public void saveExpenseAmountControl(String email, ControlAmountDto controlAmountDto) {
@@ -29,6 +33,11 @@ public class ControlAmountService {
 
         expenseSettings.setExpenseAmountThresholdEnabled(controlAmountDto.expenseAmountThresholdEnabled());
         expenseSettings.setBlockedAmount(blockedAmount);
+        if(expenseSettings.isExpenseAmountThresholdEnabled()){
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.EXPENSE_CONTROL_AMOUNT);
+        }else {
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.EXPENSE_CONTROL_AMOUNT);
+        }
     }
 
     @Transactional

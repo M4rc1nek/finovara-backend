@@ -2,6 +2,9 @@ package com.finovara.finovarabackend.usersetting.piggybank.roundup.service;
 
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;
@@ -21,14 +24,12 @@ import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RoundUpService {
@@ -41,6 +42,7 @@ public class RoundUpService {
     private final WalletRepository walletRepository;
     private final PiggyBankActivityService piggyBankActivityService;
     private final GoalCompletionService goalCompletionService;
+    private final SettingsActivityService settingsActivityService;
 
     @Transactional
     public RoundUpDto getRoundUp(String email, Long piggyBankId) {
@@ -64,6 +66,11 @@ public class RoundUpService {
 
         PiggyBankSettings settings = piggyBank.getSettings();
         settings.setRoundUpActive(dto.roundUpActive());
+        if(settings.isRoundUpActive()){
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.PIGGY_BANK_ROUND_UP);
+        }else {
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.PIGGY_BANK_ROUND_UP);
+        }
     }
 
     @Transactional

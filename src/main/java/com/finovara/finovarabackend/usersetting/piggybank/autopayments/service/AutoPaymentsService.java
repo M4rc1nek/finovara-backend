@@ -2,6 +2,9 @@ package com.finovara.finovarabackend.usersetting.piggybank.autopayments.service;
 
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.dto.AutoPaymentsDto;
@@ -32,6 +35,7 @@ public class AutoPaymentsService {
     private final PiggyBankActivityService piggyBankActivityService;
     private final PiggyBankManagerService piggyBankManagerService;
     private final GoalCompletionService goalCompletionService;
+    private final SettingsActivityService settingsActivityService;
 
 
     @Transactional
@@ -77,6 +81,11 @@ public class AutoPaymentsService {
 
         piggyBankSettings.setAutomationActive(settings.isAutomationActive());
         piggyBankSettings.setAutomationPercentage(settings.isAutomationActive() ? settings.percentage() : BigDecimal.ZERO);
+        if(piggyBankSettings.isAutomationActive()){
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.PIGGY_BANK_AUTO_PAYMENTS);
+        }else{
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.PIGGY_BANK_AUTO_PAYMENTS);
+        }
     }
 
     @Transactional

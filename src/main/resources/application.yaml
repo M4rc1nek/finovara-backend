@@ -54,6 +54,8 @@ user-activity:
     page-size: 100
   piggy-bank:
     page-size: 100
+  settings:
+    page-size: 100
 
 
 scheduler:
@@ -70,6 +72,8 @@ scheduler:
       delete-cron: "0 0 0 1 * ?"
     piggy-bank:
       delete-cron: "0 0 0 1 * ?"
+    settings:
+      delete-cron: "0 0 0 1 * ?"
 
   revenue-settings:
-    recurring-frequency: "0 * * * * *"
+    recurring-frequency: "0 0 0 * * ?"

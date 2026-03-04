@@ -1,5 +1,8 @@
 package com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service;
 
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.exception.conflict.StateConflictException;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
@@ -28,6 +31,7 @@ public class CountQuantityLimitService {
     private final UserManagerService userManagerService;
     private final ExpenseRepository expenseRepository;
     private final PasswordConfirmationService passwordConfirmationService;
+    private final SettingsActivityService settingsActivityService;
 
     @Transactional
     public void saveCountQuantityLimit(String email, CountQuantityLimitDto dto) {
@@ -36,8 +40,11 @@ public class CountQuantityLimitService {
 
         expenseSettings.setExpenseCountQuantityLimitEnabled(dto.expenseCountLimitEnabled());
         if (!dto.expenseCountLimitEnabled()) {
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.EXPENSE_COUNT_LIMIT);
             expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(false);
             return;
+        }else{
+            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.EXPENSE_COUNT_LIMIT);
         }
 
         long countedExpenses = countExpensesInPeriod(user, dto.countQuantityLimitStrategy());
@@ -52,6 +59,7 @@ public class CountQuantityLimitService {
 
         expenseSettings.setNumberOfQuantityLimit(dto.numberOfQuantityLimit());
         expenseSettings.setCountQuantityLimitStrategy(dto.countQuantityLimitStrategy());
+
     }
 
     @Transactional
