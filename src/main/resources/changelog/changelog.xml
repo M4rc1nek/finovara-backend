@@ -6,7 +6,7 @@
         http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
 
-    <changeSet id="1-create-users" author="Marcin Parśniak">
+    <changeSet id="create-users" author="Marcin Parśniak">
         <createTable tableName="users">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -25,7 +25,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="2-create-wallets" author="Marcin Parśniak">
+    <changeSet id="create-wallets" author="Marcin Parśniak">
         <createTable tableName="wallets">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -38,7 +38,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="3-create-limits" author="Marcin Parśniak">
+    <changeSet id="create-limits" author="Marcin Parśniak">
         <createTable tableName="limits">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -61,7 +61,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="4-create-expenses" author="Marcin Parśniak">
+    <changeSet id="create-expenses" author="Marcin Parśniak">
         <createTable tableName="expenses">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -75,7 +75,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet id="5-create-revenues" author="Marcin Parśniak">
+    <changeSet id="create-revenues" author="Marcin Parśniak">
         <createTable tableName="revenues">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -89,7 +89,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet id="6-create-piggy_banks" author="Marcin Parśniak">
+    <changeSet id="create-piggy_banks" author="Marcin Parśniak">
         <createTable tableName="piggy_banks">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -109,7 +109,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="7-create-account-settings" author="Marcin Parśniak">
+    <changeSet id="create-account-settings" author="Marcin Parśniak">
         <createTable tableName="account_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -118,13 +118,28 @@
             <column name="forgot_password_code" type="INT"/>
 
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_account_settings_user"
-                             references="users(id)"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_account_settings_user" references="users(id)"/>
             </column>
         </createTable>
     </changeSet>
 
-    <changeSet id="8-create-expense-settings" author="Marcin Parśniak">
+
+    <changeSet id="create-notification-settings" author="Marcin Parśniak">
+        <createTable tableName="notification_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="notify_on_password_change" type="BOOLEAN"/>
+            <column name="notify_on_username_change" type="BOOLEAN"/>
+            <column name="notify_on_account_deleted" type="BOOLEAN"/>
+
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true" foreignKeyName="fk_notification_settings_user" references="users(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-expense-settings" author="Marcin Parśniak">
         <createTable tableName="expense_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -146,13 +161,12 @@
             <column name="expense_quantity_limit_emergency_mode_enabled" type="BOOLEAN"/>
             <column name="expense_quantity_limit_emergency_mode_used" type="BOOLEAN"/>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_expense_settings_user"
-                             references="users(id)"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_expense_settings_user" references="users(id)"/>
             </column>
         </createTable>
     </changeSet>
 
-    <changeSet id="9-create-revenue-settings" author="Marcin Parśniak">
+    <changeSet id="create-revenue-settings" author="Marcin Parśniak">
         <createTable tableName="revenue_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -172,13 +186,12 @@
             </column>
 
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_revenue_settings_user"
-                             references="users(id)"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_revenue_settings_user" references="users(id)"/>
             </column>
         </createTable>
     </changeSet>
 
-    <changeSet id="10-create-piggy-bank-settings" author="Marcin Parśniak">
+    <changeSet id="create-piggy-bank-settings" author="Marcin Parśniak">
         <createTable tableName="piggy_bank_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -196,13 +209,12 @@
                 <constraints nullable="false"/>
             </column>
             <column name="piggy_bank_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_piggy_bank_settings_pb"
-                             references="piggy_banks(id)"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_piggy_bank_settings_pb" references="piggy_banks(id)"/>
             </column>
         </createTable>
     </changeSet>
 
-    <changeSet id="11-create-expense-activity" author="Marcin Parśniak">
+    <changeSet id="create-expense-activity" author="Marcin Parśniak">
         <createTable tableName="expense_activity">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -218,7 +230,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet id="12-create-revenue-activity" author="Marcin Parśniak">
+    <changeSet id="create-revenue-activity" author="Marcin Parśniak">
         <createTable tableName="revenue_activity">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -235,7 +247,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="13-create-limit-activity" author="Marcin Parśniak">
+    <changeSet id="create-limit-activity" author="Marcin Parśniak">
         <createTable tableName="limit_activity">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -252,7 +264,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="14-create-piggy-bank-activity" author="Marcin Parśniak">
+    <changeSet id="create-piggy-bank-activity" author="Marcin Parśniak">
         <createTable tableName="piggy_bank_activity">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -275,7 +287,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="15-create-login-activity" author="Marcin Parśniak">
+    <changeSet id="create-login-activity" author="Marcin Parśniak">
         <createTable tableName="login_activity">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -292,7 +304,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="16-create-login-activity-archive" author="Marcin Parśniak">
+    <changeSet id="create-login-activity-archive" author="Marcin Parśniak">
         <createTable tableName="login_activity_archive">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -310,7 +322,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="17-create-account-changes-activity" author="Marcin Parśniak">
+    <changeSet id="create-account-changes-activity" author="Marcin Parśniak">
         <createTable tableName="account_changes_activity">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -326,7 +338,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="18-create-account-change-archive" author="Marcin Parśniak">
+    <changeSet id="create-account-change-archive" author="Marcin Parśniak">
         <createTable tableName="account_change_archive">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>

@@ -10,6 +10,8 @@ import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.Forgo
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordRequestDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
+import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
+import com.finovara.finovarabackend.util.service.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,9 +34,10 @@ import java.security.SecureRandom;
 @Service
 @RequiredArgsConstructor
 public class ForgotPasswordService {
+    private static final String TEMPLATE_PATH = "email/reset-password.html";
 
     @Value("${mail.recipient.address}")
-    String recipientAddress;
+    private String recipientAddress;
 
     private final UserManagerService userManagerService;
     private final PasswordEncoder passwordEncoder;
@@ -86,6 +89,7 @@ public class ForgotPasswordService {
     public void changePasswordWithCode(String email, PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         AccountSettings accountSettings = user.getAccountSettings();
+        NotificationSettings notificationSettings = user.getNotificationSettings();
 
         verifyCode(email, passwordRequestDto.forgotPasswordDto());
 
@@ -108,7 +112,9 @@ public class ForgotPasswordService {
         accountSettings.setForgotPasswordCode(null);
         accountRepository.save(accountSettings);
 
-        passwordChangeEmailService.sendEmail(user);
+        if(notificationSettings.isNotifyOnPasswordChange()){
+            passwordChangeEmailService.sendEmail(user);
+        }
     }
 
     @Transactional
@@ -131,7 +137,7 @@ public class ForgotPasswordService {
 
     private String loadTemplate(String code) {
         try {
-            ClassPathResource resource = new ClassPathResource("email/reset-password.html");
+            ClassPathResource resource = new ClassPathResource(TEMPLATE_PATH);
 
             try (InputStream inputStream = resource.getInputStream()) {
                 String html = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);

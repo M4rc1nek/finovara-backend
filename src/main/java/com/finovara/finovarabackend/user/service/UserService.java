@@ -4,7 +4,6 @@ import com.finovara.finovarabackend.accountactivity.login.activities.model.Login
 import com.finovara.finovarabackend.accountactivity.login.activities.service.LoginActivityService;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
-import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.security.service.JwtService;
 import com.finovara.finovarabackend.user.dto.UserLoginDto;
 import com.finovara.finovarabackend.user.dto.UserRegisterDto;
@@ -13,7 +12,6 @@ import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundExceptio
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
-import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +58,7 @@ public class UserService {
                 .build();
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         user.setRevenueSettings(settingsFactory.createDefaultRevenueSettings(user));
+        user.setNotificationSettings(settingsFactory.createDefaultNotificationSettings(user));
         User savedUser = userRepository.save(user);
 
         String jwtToken = jwtService.generateToken(
@@ -93,7 +92,7 @@ public class UserService {
                 List.of()
         );
         String jwtToken = jwtService.generateToken(userDetails);
-        return new UserLoginDto(user.getId(), user.getUsername() ,email, null, jwtToken);
+        return new UserLoginDto(user.getId(), user.getUsername(), email, null, jwtToken);
     }
 
 }

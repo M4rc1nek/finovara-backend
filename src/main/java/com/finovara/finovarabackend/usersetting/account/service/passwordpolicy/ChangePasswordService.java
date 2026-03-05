@@ -6,7 +6,9 @@ import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequir
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordRequestDto;
+import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.service.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class ChangePasswordService {
 
     public void changePassword(String email, PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
         User user = userManagerService.getUserByEmailOrThrow(email);
+        NotificationSettings settings = user.getNotificationSettings();
 
         if (!passwordRequestDto.changePasswordDto().newPassword()
                 .equals(passwordRequestDto.changePasswordDto().confirmNewPassword())) {
@@ -41,7 +44,9 @@ public class ChangePasswordService {
         user.setPassword(passwordEncoder.encode(passwordRequestDto.changePasswordDto().newPassword()));
         userRepository.save(user);
         accountChangesActivityService.createAccountChangesActivity(email, AccountChangesActivityType.PASSWORD_CHANGED,request);
-        passwordChangeEmailService.sendEmail(user);
+        if(settings.isNotifyOnPasswordChange()){
+            passwordChangeEmailService.sendEmail(user);
+        }
 
     }
 }

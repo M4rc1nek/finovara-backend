@@ -6,8 +6,11 @@ import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsExceptio
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.AccountSettingsDto;
+import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.service.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
+import com.finovara.finovarabackend.util.service.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -23,29 +26,37 @@ public class AccountService {
     private final UserManagerService userManagerService;
     private final PasswordConfirmationService passwordConfirmationService;
     private final AccountChangesActivityService accountChangesActivityService;
+    private final UsernameChangeEmailService usernameChangeEmailService;
+    private final AccountDeletedEmailService accountDeletedEmailService;
 
     @Transactional
     public AccountSettingsDto updateUsername(AccountSettingsDto accountSettingsDto, Long userId, HttpServletRequest request) {
         User user = userManagerService.getUserByIdOrThrow(userId);
+        NotificationSettings settings = user.getNotificationSettings();
 
         if (userRepository.existsByUsername(accountSettingsDto.username())) {
             throw new NameAlreadyExistsException("Username is already taken");
         }
 
         user.setUsername(accountSettingsDto.username());
-
         userRepository.save(user);
         accountChangesActivityService.createAccountChangesActivity(user.getEmail(), AccountChangesActivityType.USERNAME_CHANGED, request);
+        if(settings.isNotifyOnUsernameChange()){
+            usernameChangeEmailService.sendEmail(user);
+        }
         return accountSettingsDto;
     }
 
     @Transactional
     public void deleteAccount(ConfirmPasswordDto confirmPasswordDto, Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
+        NotificationSettings settings = user.getNotificationSettings();
 
         passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
-
         userRepository.delete(user);
+        if(settings.isNotifyOnAccountDeleted()){
+            accountDeletedEmailService.sendEmail(user);
+        }
     }
 
     @Transactional
