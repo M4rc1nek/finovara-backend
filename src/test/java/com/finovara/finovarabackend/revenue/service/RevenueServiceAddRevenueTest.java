@@ -52,18 +52,15 @@ class RevenueServiceAddRevenueTest {
 
     @Test
     void shouldAddRevenueSuccessfully() {
-        //given
         RevenueDTO dto = new RevenueDTO(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test income");
         String email = "test@test.com";
         User user = new User();
 
-        //when
         when(timeConfig.clock()).thenReturn(Clock.systemDefaultZone());
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
         revenueService.addRevenue(dto, email);
 
-        //then
         verify(walletService).addBalanceToWallet(email, dto.amount());
         verify(revenueActivityService).createRevenueActivity(eq(email), eq(RevenueActivityType.ADDED_REVENUE), any(Revenue.class));
         verify(revenueRepository).save(any(Revenue.class));

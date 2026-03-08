@@ -9,9 +9,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service.RevenueScoringService;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
-import com.finovara.finovarabackend.util.service.revenue.RevenueManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
-import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,11 +29,7 @@ public class RevenueServiceDeleteRevenueTest {
     @Mock
     private UserManagerService userManagerService;
     @Mock
-    private RevenueManagerService revenueManagerService;
-    @Mock
     private RevenueRepository revenueRepository;
-    @Mock
-    private WalletRepository walletRepository;
     @Mock
     private WalletService walletService;
     @Mock
