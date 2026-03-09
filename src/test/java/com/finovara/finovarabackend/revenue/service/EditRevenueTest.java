@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class RevenueServiceEditRevenueTest {
+public class EditRevenueTest {
 
     @Mock
     private UserManagerService userManagerService;

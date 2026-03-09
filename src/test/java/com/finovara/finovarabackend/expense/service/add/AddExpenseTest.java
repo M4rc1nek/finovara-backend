@@ -6,7 +6,6 @@ import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
 import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
-import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
@@ -24,7 +23,6 @@ import com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
 import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
@@ -44,7 +42,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ExpenseServiceTest {
+class AddExpenseTest {
 
     @InjectMocks
     private ExpenseService expenseService;
@@ -66,11 +64,7 @@ class ExpenseServiceTest {
     @Mock
     private SmartScanService smartScanService;
     @Mock
-    private ExpenseManagerService expenseManagerService;
-    @Mock
     private UserManagerService userManagerService;
-    @Mock
-    private ExpenseMapper expenseMapper;
     @Mock
     private SpentInPeriodService spentInPeriodService;
     @Mock

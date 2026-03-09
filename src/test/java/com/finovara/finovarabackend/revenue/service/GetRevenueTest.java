@@ -1,7 +1,6 @@
 package com.finovara.finovarabackend.revenue.service;
 
 import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
-import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
 import com.finovara.finovarabackend.revenue.mapper.RevenueMapper;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
@@ -24,7 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class RevenueServiceGetRevenueTest {
+public class GetRevenueTest {
 
     @Mock
     private UserManagerService userManagerService;
