@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.revenue.service;
+package com.finovara.finovarabackend.revenue.service.edit;
 
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
 import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
@@ -8,6 +8,7 @@ import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundEx
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
+import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service.RevenueScoringService;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;

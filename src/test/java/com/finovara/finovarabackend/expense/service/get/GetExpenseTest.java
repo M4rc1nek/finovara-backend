@@ -1,10 +1,11 @@
-package com.finovara.finovarabackend.expense.service;
+package com.finovara.finovarabackend.expense.service.get;
 
 import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
 import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
+import com.finovara.finovarabackend.expense.service.ExpenseService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;

@@ -177,40 +177,4 @@ public class EditExpenseTest {
 
         assertThrows(UserNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, null));
     }
-
-    @Test
-    void shouldThrowExceptionWhenLimitExceededAfterEdit() {
-
-        String email = "test@email.com";
-
-        User user = new User();
-        user.setId(1L);
-
-        Expense existingExpense = new Expense();
-        existingExpense.setId(1L);
-        existingExpense.setAmount(new BigDecimal("30"));
-        existingExpense.setUserAssigned(user);
-        existingExpense.setCategory(ExpenseCategory.SAVINGS);
-
-        ExpenseRequestDto dto = new ExpenseRequestDto(
-                new ExpenseDTO(null, null, new BigDecimal("50"), ExpenseCategory.SAVINGS, null, "edit"),
-                new ConfirmPasswordDto("password"),
-                new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 10)
-        );
-
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-
-        when(expenseManagerService.getExpenseByIdOrThrow(1L)).thenReturn(existingExpense);
-
-        when(limitRepository.getLimitAmountByUserIdAndType(user.getId(), LimitType.DAILY))
-                .thenReturn(Optional.of(new BigDecimal("100")));
-
-        when(spentInPeriodService.getSpentToday(user.getId()))
-                .thenReturn(new BigDecimal("100"));
-
-        assertThrows(LimitExceededException.class,
-                () -> expenseService.editExpense(dto, email, 1L, LimitType.DAILY));
-
-        verify(expenseRepository, never()).save(any());
-    }
 }

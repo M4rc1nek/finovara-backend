@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.expense.service;
+package com.finovara.finovarabackend.expense.service.add;
 
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
 import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
@@ -9,6 +9,8 @@ import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
+import com.finovara.finovarabackend.expense.service.ExpenseService;
+import com.finovara.finovarabackend.limit.exception.unprocessablecontent.LimitExceededException;
 import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -89,13 +91,9 @@ class AddExpenseTest {
         );
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-
         when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
-
         when(spentInPeriodService.getSpentToday(anyLong())).thenReturn(BigDecimal.ZERO);
-
         when(timeConfig.clock()).thenReturn(Clock.systemUTC());
-
         when(expenseRepository.save(any())).thenAnswer(invocation -> {
             Expense expense = invocation.getArgument(0);
             expense.setId(1L);
@@ -109,8 +107,7 @@ class AddExpenseTest {
         assertEquals(1L, result);
 
         verify(countQuantityLimitService).calculateCountQuantityLimit(email, dto.countQuantityLimitDto(),
-                dto.countQuantityLimitDto().countQuantityLimitStrategy(), dto.confirmPasswordDto()
-        );
+                dto.countQuantityLimitDto().countQuantityLimitStrategy(), dto.confirmPasswordDto());
 
         verify(expenseActivityService).createExpenseActivity(eq(email), eq(ExpenseActivityType.ADDED_EXPENSE), any());
         verify(smartScanService).handleSmartScan(email, dto.confirmPasswordDto(), amount, SmartScanMode.ADD);
@@ -119,8 +116,7 @@ class AddExpenseTest {
 
         verify(expenseRepository).save(any(Expense.class));
 
-        verify(revenueScoringService)
-                .recalculateScore(email);
+        verify(revenueScoringService).recalculateScore(email);
         verify(roundUpService).handleExpenseForRoundUp(eq(email), anyLong(), eq(AutoPaymentsMode.APPLY));
 
         verify(controlAmountService).handleExpenseAmountControl(email, amount);
@@ -162,5 +158,4 @@ class AddExpenseTest {
 
         assertThrows(UserNotFoundException.class, () -> expenseService.addExpense(dto, email, null));
     }
-
 }

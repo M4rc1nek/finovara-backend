@@ -1,10 +1,11 @@
-package com.finovara.finovarabackend.revenue.service;
+package com.finovara.finovarabackend.revenue.service.get;
 
 import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
 import com.finovara.finovarabackend.revenue.mapper.RevenueMapper;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
+import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
