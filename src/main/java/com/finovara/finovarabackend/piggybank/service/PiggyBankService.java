@@ -71,12 +71,11 @@ public class PiggyBankService {
                 .build();
 
         piggyBankActivityService.createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.ADDED_PIGGY_BANK);
-        piggyBankRepository.save(piggyBank);
         PiggyBank saved = piggyBankRepository.save(piggyBank);
         PiggyBankSettings settings = settingsFactory.createDefaultPiggyBankSettings(saved);
         piggyBankSettingsRepository.save(settings);
 
-        return buildDTO(piggyBank, user);
+        return buildDTO(saved, user); //saved or piggybank
     }
 
     @Transactional
