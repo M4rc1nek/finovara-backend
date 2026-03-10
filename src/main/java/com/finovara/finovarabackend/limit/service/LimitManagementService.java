@@ -24,7 +24,7 @@ import java.util.List;
 public class LimitManagementService {
     private final LimitRepository limitRepository;
     private final UserManagerService userManagerService;
-    private final LimitService limitService;
+    private final LimitCalculateService limitCalculateService;
     private final LimitActivityService limitActivityService;
 
     @Transactional
@@ -79,7 +79,7 @@ public class LimitManagementService {
 
         return limits.stream()
                 .map(limit ->
-                        limitService.calculateLimitStats(user.getId(), limit.getId(), today))
+                        limitCalculateService.calculateLimitStats(user.getId(), limit.getId(), today))
                 .toList();
     }
 

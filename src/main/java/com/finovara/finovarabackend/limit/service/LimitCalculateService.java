@@ -16,7 +16,7 @@ import java.time.LocalDate;
 
 @RequiredArgsConstructor
 @Service
-public class LimitService {
+public class LimitCalculateService {
     private final SpentInPeriodService spentInPeriodService;
     private final LimitRepository limitRepository;
     private final LimitMapper limitMapper;
@@ -41,7 +41,6 @@ public class LimitService {
         LimitStatus status = determineStatus(percentage);
 
         return limitMapper.mapLimitStatsToDTO(limit, spent, remaining, percentage, status, date);
-
     }
 
     private BigDecimal calculatePercentage(BigDecimal spent, BigDecimal limit) {
