@@ -32,6 +32,7 @@ class UpdatePiggyBankBalanceTest {
 
     @InjectMocks
     private PiggyBankService piggyBankService;
+
     @Mock
     private WalletRepository walletRepository;
     @Mock
@@ -50,24 +51,20 @@ class UpdatePiggyBankBalanceTest {
     private WalletManagerService walletManagerService;
 
     @Test
-    void shouldUpdateBalanceFromPiggyBankSuccessfully() {
-
+    void shouldAddBalanceSuccessfully() {
         String email = "test@test.com";
         Long piggyBankId = 1L;
         BigDecimal amount = new BigDecimal("100");
 
         User user = new User();
-
         Wallet wallet = new Wallet();
         wallet.setBalance(new BigDecimal("500"));
-
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("200"));
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(piggyBank);
         when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
-
         when(piggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)).thenReturn(false);
 
         piggyBankService.addBalanceToPiggyBank(email, piggyBankId, amount);
@@ -77,24 +74,19 @@ class UpdatePiggyBankBalanceTest {
 
         verify(walletRepository).save(wallet);
         verify(piggyBankRepository).save(piggyBank);
-
         verify(piggyBankActivityService).createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, amount);
-
         verify(goalCompletionService, never()).handleGoalCompletion(any());
     }
 
     @Test
     void shouldCallGoalCompletionWhenGoalReached() {
-
         String email = "test@test.com";
         Long piggyBankId = 1L;
         BigDecimal amount = new BigDecimal("100");
 
         User user = new User();
-
         Wallet wallet = new Wallet();
         wallet.setBalance(new BigDecimal("500"));
-
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("900"));
         piggyBank.setGoalAmount(new BigDecimal("1000"));
@@ -102,7 +94,6 @@ class UpdatePiggyBankBalanceTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(piggyBank);
         when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
-
         when(piggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)).thenReturn(true);
 
         piggyBankService.addBalanceToPiggyBank(email, piggyBankId, amount);
@@ -111,16 +102,12 @@ class UpdatePiggyBankBalanceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenInsufficientFunds() {
-
+    void shouldThrowWhenInsufficientFunds() {
         String email = "test@test.com";
         Long piggyBankId = 1L;
-
         User user = new User();
-
         Wallet wallet = new Wallet();
         wallet.setBalance(new BigDecimal("50"));
-
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("200"));
 
@@ -132,15 +119,12 @@ class UpdatePiggyBankBalanceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenUserDoesNotExist() {
+    void shouldThrowWhenUserNotFound() {
         String email = "test@mail.com";
-        PiggyBank piggyBank = new PiggyBank();
-        Long piggyBankId = piggyBank.getId();
+        Long piggyBankId = 1L;
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () -> piggyBankService.addBalanceToPiggyBank(email, piggyBankId, new BigDecimal("100")));
-
     }
-
 }

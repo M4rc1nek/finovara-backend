@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.piggybank.service.get;
 
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.mapper.PiggyBankMapper;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
@@ -28,6 +29,8 @@ class GetPiggyBankTest {
     private UserManagerService userManagerService;
     @Mock
     private PiggyBankRepository piggyBankRepository;
+    @Mock
+    private PiggyBankMapper piggyBankMapper;
 
     @Test
     void shouldReturnAllPiggyBanksForUser() {
@@ -46,8 +49,15 @@ class GetPiggyBankTest {
         piggy2.setName("Piggy 2");
         piggy2.setAmount(new BigDecimal("200"));
 
+        PiggyBankDTO dto1 = new PiggyBankDTO(10L, 1L, "Piggy 1", new BigDecimal("100"),
+                null, null, null, 0.1, false);
+        PiggyBankDTO dto2 = new PiggyBankDTO(11L, 1L, "Piggy 2", new BigDecimal("200"),
+                null, null, null, 0.2, false);
+
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(piggyBankRepository.findAllByUserAssignedEmail(email)).thenReturn(List.of(piggy1, piggy2));
+        when(piggyBankRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of(piggy1, piggy2));
+        when(piggyBankMapper.mapToPiggyBankDto(eq(piggy1), eq(user), anyDouble(), anyBoolean())).thenReturn(dto1);
+        when(piggyBankMapper.mapToPiggyBankDto(eq(piggy2), eq(user), anyDouble(), anyBoolean())).thenReturn(dto2);
 
         List<PiggyBankDTO> result = piggyBankService.getAllPiggyBanks(email);
 
@@ -60,7 +70,8 @@ class GetPiggyBankTest {
         assertEquals(1L, result.get(1).userId());
 
         verify(userManagerService).getUserByEmailOrThrow(email);
-        verify(piggyBankRepository).findAllByUserAssignedEmail(email);
+        verify(piggyBankRepository).findAllByUserAssignedId(user.getId());
+        verify(piggyBankMapper, times(2)).mapToPiggyBankDto(any(), eq(user), anyDouble(), anyBoolean());
     }
 
     @Test
@@ -71,14 +82,15 @@ class GetPiggyBankTest {
         user.setId(1L);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(piggyBankRepository.findAllByUserAssignedEmail(email)).thenReturn(List.of());
+        when(piggyBankRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of());
 
         List<PiggyBankDTO> result = piggyBankService.getAllPiggyBanks(email);
 
         assertEquals(0, result.size());
 
         verify(userManagerService).getUserByEmailOrThrow(email);
-        verify(piggyBankRepository).findAllByUserAssignedEmail(email);
+        verify(piggyBankRepository).findAllByUserAssignedId(user.getId());
+        verifyNoInteractions(piggyBankMapper);
     }
 
     @Test
@@ -92,5 +104,6 @@ class GetPiggyBankTest {
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verifyNoInteractions(piggyBankRepository);
+        verifyNoInteractions(piggyBankMapper);
     }
 }
