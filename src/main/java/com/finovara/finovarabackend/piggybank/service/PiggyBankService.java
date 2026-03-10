@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankA
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.mapper.PiggyBankMapper;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
@@ -42,8 +43,10 @@ public class PiggyBankService {
     private final SettingsFactory settingsFactory;
     private final PiggyBankCheckGoalCompletion piggyBankCheckGoalCompletion;
 
+    private final PiggyBankMapper piggyBankMapper;
+
     @Transactional
-    public PiggyBankDTO addPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
+    public Long addPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         long currentPiggyBanks = piggyBankRepository.countPiggyBanksByUserId(user.getId());
@@ -75,11 +78,11 @@ public class PiggyBankService {
         PiggyBankSettings settings = settingsFactory.createDefaultPiggyBankSettings(saved);
         piggyBankSettingsRepository.save(settings);
 
-        return buildDTO(saved, user); //saved or piggybank
+        return saved.getId(); //saved or piggybank
     }
 
     @Transactional
-    public PiggyBankDTO addBalanceToPiggyBank(String email, Long piggyBankId, BigDecimal amount) {
+    public void addBalanceToPiggyBank(String email, Long piggyBankId, BigDecimal amount) {
 
         UserContext userContext = getEntitiesForTransaction(email, piggyBankId);
 
@@ -91,6 +94,8 @@ public class PiggyBankService {
 
         piggyBankActivityService.createPaymentPiggyBankActivity(email, userContext.piggyBank,
                 PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, amount);
+        calculateProgress(userContext.piggyBank);
+        checkGoalCompleted(userContext.piggyBank);
 
         walletRepository.save(userContext.wallet);
         piggyBankRepository.save(userContext.piggyBank);
@@ -98,13 +103,10 @@ public class PiggyBankService {
         if (piggyBankCheckGoalCompletion.isGoalCompleted(userContext.piggyBank)) {
             goalCompletionService.handleGoalCompletion(email);
         }
-
-        return buildDTO(userContext.piggyBank, userContext.user);
-
     }
 
     @Transactional
-    public PiggyBankDTO removeBalanceFromPiggyBank(String email, Long piggyBankId, BigDecimal amount) {
+    public void removeBalanceFromPiggyBank(String email, Long piggyBankId, BigDecimal amount) {
 
         UserContext userContext = getEntitiesForTransaction(email, piggyBankId);
 
@@ -113,22 +115,21 @@ public class PiggyBankService {
 
         userContext.piggyBank.setAmount(userContext.piggyBank.getAmount().subtract(amount));
         userContext.wallet.setBalance(userContext.wallet.getBalance().add(amount));
+        calculateProgress(userContext.piggyBank);
+        checkGoalCompleted(userContext.piggyBank);
 
         piggyBankActivityService.createPaymentPiggyBankActivity(email, userContext.piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, amount);
 
         walletRepository.save(userContext.wallet);
         piggyBankRepository.save(userContext.piggyBank);
-
-        return buildDTO(userContext.piggyBank, userContext.user);
-
     }
 
     public List<PiggyBankDTO> getAllPiggyBanks(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(email);
+        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedId(user.getId());
 
         return piggyBanks.stream()
-                .map(pb -> buildDTO(pb, user))
+                .map(piggyBank -> piggyBankMapper.mapToPiggyBankDto(piggyBank, user, calculateProgress(piggyBank), checkGoalCompleted(piggyBank)))
                 .toList();
     }
 
@@ -143,32 +144,6 @@ public class PiggyBankService {
         piggyBankRepository.delete(piggyBank);
     }
 
-    private PiggyBankDTO buildDTO(PiggyBank piggyBank, User user) {
-        Double progress = null;
-        boolean goalCompleted = false;
-        if (piggyBank.getGoalAmount() != null && piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) > 0) {
-            progress =
-                    piggyBank.getAmount()
-                            .divide(piggyBank.getGoalAmount(), 4, RoundingMode.HALF_UP)
-                            .multiply(BigDecimal.valueOf(100))
-                            .doubleValue();
-            goalCompleted = piggyBank.getAmount()
-                    .compareTo(piggyBank.getGoalAmount()) >= 0;
-        }
-
-        return new PiggyBankDTO(
-                piggyBank.getId(),
-                user.getId(),
-                piggyBank.getName(),
-                piggyBank.getAmount(),
-                piggyBank.getCreatedAt(),
-                piggyBank.getGoalType(),
-                piggyBank.getGoalAmount(),
-                progress,
-                goalCompleted
-        );
-    }
-
     private void validateAmount(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidInputException("Amount must be non negative");
@@ -181,7 +156,8 @@ public class PiggyBankService {
         }
     }
 
-    private record UserContext(Wallet wallet, PiggyBank piggyBank, User user) {}
+    private record UserContext(Wallet wallet, PiggyBank piggyBank, User user) {
+    }
 
     private UserContext getEntitiesForTransaction(String email, Long piggyBankId) {
         User user = userManagerService.getUserByEmailOrThrow(email);
@@ -191,4 +167,26 @@ public class PiggyBankService {
         return new UserContext(wallet, piggyBank, user);
     }
 
+    private Double calculateProgress(PiggyBank piggyBank) {
+        BigDecimal goalAmount = piggyBank.getGoalAmount();
+
+        if(goalAmount == null || piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) <= 0){
+            return 0.0;
+        }
+
+        return piggyBank.getAmount()
+                .divide(piggyBank.getGoalAmount(), 4, RoundingMode.HALF_UP)
+                .doubleValue();
+    }
+
+    private Boolean checkGoalCompleted(PiggyBank piggyBank) {
+        BigDecimal goalAmount = piggyBank.getGoalAmount();
+
+        if (goalAmount == null) {
+            return false;
+        }
+
+        return piggyBank.getAmount()
+                .compareTo(goalAmount) >= 0;
+    }
 }

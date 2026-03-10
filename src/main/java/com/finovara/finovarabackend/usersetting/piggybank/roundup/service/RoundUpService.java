@@ -54,7 +54,7 @@ public class RoundUpService {
     }
 
     @Transactional
-    public PiggyBankDTO addDefaultPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
+    public Long addDefaultPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         return piggyBankService.addPiggyBank(piggyBankDTO, user.getEmail());
     }

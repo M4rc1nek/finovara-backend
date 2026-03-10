@@ -19,18 +19,20 @@ public class PiggyBankController {
     private final PiggyBankService piggyBankService;
     
     @PostMapping
-    public ResponseEntity<PiggyBankDTO> createPiggyBank(@RequestBody @Valid PiggyBankDTO piggyBankDTO) {
+    public ResponseEntity<Long> createPiggyBank(@RequestBody @Valid PiggyBankDTO piggyBankDTO) {
         return ResponseEntity.ok(piggyBankService.addPiggyBank(piggyBankDTO, getCurrentUserEmail()));
     }
 
     @PostMapping("/{piggyBankId}/deposit")
-    public ResponseEntity<PiggyBankDTO> addBalanceToPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
-        return ResponseEntity.ok(piggyBankService.addBalanceToPiggyBank(getCurrentUserEmail(), piggyBankId, amount));
+    public ResponseEntity<Void> addBalanceToPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
+        piggyBankService.addBalanceToPiggyBank(getCurrentUserEmail(), piggyBankId, amount);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{piggyBankId}/withdraw")
     public ResponseEntity<PiggyBankDTO> removeBalanceFromPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
-        return ResponseEntity.ok(piggyBankService.removeBalanceFromPiggyBank(getCurrentUserEmail(), piggyBankId, amount));
+        piggyBankService.removeBalanceFromPiggyBank(getCurrentUserEmail(), piggyBankId, amount);
+        return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{piggyBankId}")

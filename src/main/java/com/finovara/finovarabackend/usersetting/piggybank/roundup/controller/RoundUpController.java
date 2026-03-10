@@ -17,7 +17,7 @@ public class RoundUpController {
     private final RoundUpService roundUpService;
 
     @PostMapping
-    public ResponseEntity<PiggyBankDTO> addDefaultPiggyBank(@RequestBody PiggyBankDTO piggyBankDTO) {
+    public ResponseEntity<Long> addDefaultPiggyBank(@RequestBody PiggyBankDTO piggyBankDTO) {
         return ResponseEntity.ok(roundUpService.addDefaultPiggyBank(piggyBankDTO, SecurityUtils.getCurrentUserEmail()));
     }
 
