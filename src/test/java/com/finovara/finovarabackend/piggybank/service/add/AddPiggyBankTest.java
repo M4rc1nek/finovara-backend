@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.piggybank.add;
+package com.finovara.finovarabackend.piggybank.service.add;
 
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;

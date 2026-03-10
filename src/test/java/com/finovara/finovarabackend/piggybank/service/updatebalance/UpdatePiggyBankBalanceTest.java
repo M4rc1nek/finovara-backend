@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.piggybank.addbalance;
+package com.finovara.finovarabackend.piggybank.service.updatebalance;
 
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AddBalanceToPiggyBankTest {
+class UpdatePiggyBankBalanceTest {
 
     @InjectMocks
     private PiggyBankService piggyBankService;
@@ -50,7 +50,7 @@ class AddBalanceToPiggyBankTest {
     private WalletManagerService walletManagerService;
 
     @Test
-    void shouldAddBalanceToPiggyBankSuccessfully() {
+    void shouldUpdateBalanceFromPiggyBankSuccessfully() {
 
         String email = "test@test.com";
         Long piggyBankId = 1L;

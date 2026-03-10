@@ -181,9 +181,7 @@ public class PiggyBankService {
         }
     }
 
-    private record UserContext(Wallet wallet, PiggyBank piggyBank, User user) {
-
-    }
+    private record UserContext(Wallet wallet, PiggyBank piggyBank, User user) {}
 
     private UserContext getEntitiesForTransaction(String email, Long piggyBankId) {
         User user = userManagerService.getUserByEmailOrThrow(email);
