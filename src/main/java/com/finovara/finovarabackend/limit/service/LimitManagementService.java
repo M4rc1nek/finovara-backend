@@ -45,9 +45,9 @@ public class LimitManagementService {
                 .build();
         limitActivityService.createLimitActivity(email, LimitActivityType.ADDED_LIMIT, limit);
 
-        limitRepository.save(limit);
+      Limit savedLimit =  limitRepository.save(limit);
 
-        return limit.getId();
+        return savedLimit.getId();
 
     }
 

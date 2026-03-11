@@ -5,7 +5,6 @@ import com.finovara.finovarabackend.limit.model.LimitType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.Min;
 
 import java.math.BigDecimal;
 
