@@ -135,8 +135,7 @@ public class EditExpenseTest {
         when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(loggedUser);
 
-        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, LimitType.DAILY)
-        );
+        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, LimitType.DAILY));
 
         verify(expenseRepository, never()).save(any());
 
@@ -157,8 +156,8 @@ public class EditExpenseTest {
         when(expenseManagerService.getExpenseByIdOrThrow(expenseId))
                 .thenThrow(new ExpenseNotFoundException("Expense not found"));
 
-        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, LimitType.DAILY)
-        );
+        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, LimitType.DAILY));
+        verify(expenseRepository, never()).save(any());
     }
 
     @Test
@@ -176,5 +175,7 @@ public class EditExpenseTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, null));
+        verify(expenseRepository, never()).save(any());
+
     }
 }

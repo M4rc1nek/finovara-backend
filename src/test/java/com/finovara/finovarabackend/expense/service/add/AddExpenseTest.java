@@ -138,9 +138,7 @@ class AddExpenseTest {
         when(timeConfig.clock()).thenReturn(Clock.systemUTC());
         when(spentInPeriodService.getSpentToday(anyLong())).thenReturn(BigDecimal.ZERO);
 
-        assertThrows(InvalidInputException.class, () -> expenseService.addExpense(dto, email, LimitType.DAILY)
-        );
-
+        assertThrows(InvalidInputException.class, () -> expenseService.addExpense(dto, email, LimitType.DAILY));
         verify(expenseRepository, never()).save(any());
     }
 
@@ -157,5 +155,6 @@ class AddExpenseTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () -> expenseService.addExpense(dto, email, null));
+        verify(expenseRepository, never()).save(any());
     }
 }

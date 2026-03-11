@@ -22,8 +22,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class DeleteExpenseTest {
@@ -80,6 +79,8 @@ public class DeleteExpenseTest {
         when(expenseRepository.findByIdAndUserAssignedId(expenseId, user.getId())).thenReturn(Optional.empty());
 
         assertThrows(ExpenseNotFoundException.class, () -> expenseService.deleteExpense(expenseId, email));
+        verify(expenseRepository, never()).delete(any());
+
     }
 
 }

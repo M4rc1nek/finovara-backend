@@ -27,8 +27,7 @@ import java.time.Clock;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AddRevenueTest {
@@ -77,6 +76,7 @@ class AddRevenueTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () -> revenueService.addRevenue(dto, email));
-    }
+        verify(revenueRepository, never()).save(any());
 
+    }
 }

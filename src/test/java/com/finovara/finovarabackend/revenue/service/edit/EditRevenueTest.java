@@ -27,9 +27,9 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class EditRevenueTest {
@@ -125,6 +125,8 @@ public class EditRevenueTest {
 
         //then
         assertThrows(RevenueNotFoundException.class, () -> revenueService.editRevenue(dto, revenueId, email));
+        verify(revenueRepository, never()).save(any());
+
     }
 
     @Test
@@ -147,5 +149,7 @@ public class EditRevenueTest {
         when(walletRepository.findByUserAssignedEmail(email)).thenReturn(Optional.empty());
 
         assertThrows(WalletNotFoundException.class, () -> revenueService.editRevenue(dto, revenueId, email));
+        verify(revenueRepository, never()).save(any());
+
     }
 }

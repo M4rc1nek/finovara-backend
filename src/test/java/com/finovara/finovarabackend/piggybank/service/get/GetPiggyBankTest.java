@@ -97,8 +97,7 @@ class GetPiggyBankTest {
     void shouldThrowExceptionWhenUserNotFound() {
         String email = "notfound@email.com";
 
-        when(userManagerService.getUserByEmailOrThrow(email))
-                .thenThrow(new RuntimeException("User not found"));
+        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new RuntimeException("User not found"));
 
         assertThrows(RuntimeException.class, () -> piggyBankService.getAllPiggyBanks(email));
 

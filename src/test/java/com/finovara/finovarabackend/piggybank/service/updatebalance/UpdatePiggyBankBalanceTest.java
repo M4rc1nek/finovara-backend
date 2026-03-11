@@ -116,15 +116,18 @@ class UpdatePiggyBankBalanceTest {
         when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
 
         assertThrows(InvalidInputException.class, () -> piggyBankService.addBalanceToPiggyBank(email, piggyBankId, new BigDecimal("100")));
+        verify(piggyBankRepository, never()).save(any());
     }
 
     @Test
-    void shouldThrowWhenUserNotFound() {
+    void shouldThrowExceptionWhenUserNotFound() {
         String email = "test@mail.com";
         Long piggyBankId = 1L;
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () -> piggyBankService.addBalanceToPiggyBank(email, piggyBankId, new BigDecimal("100")));
+        verify(piggyBankRepository, never()).save(any());
+
     }
 }

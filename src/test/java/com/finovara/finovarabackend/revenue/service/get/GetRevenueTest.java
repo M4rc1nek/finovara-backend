@@ -85,5 +85,7 @@ public class GetRevenueTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () -> revenueService.getRevenue(email));
+        verify(revenueRepository, never()).save(any());
+
     }
 }
