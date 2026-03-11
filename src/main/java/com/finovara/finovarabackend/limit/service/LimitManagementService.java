@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.limit.service;
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivityType;
 import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityService;
 import com.finovara.finovarabackend.limit.dto.LimitDTO;
-import com.finovara.finovarabackend.limit.dto.LimitStatsDTO;
+import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
 import com.finovara.finovarabackend.limit.exception.conflict.LimitAlreadyExistsException;
 import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
 import com.finovara.finovarabackend.limit.model.Limit;
@@ -72,7 +72,7 @@ public class LimitManagementService {
         return limitId;
     }
 
-    public List<LimitStatsDTO> getLimitStats(String email) {
+    public List<LimitStatsDto> getLimitStats(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         List<Limit> limits = limitRepository.findAllByUserAssignedId(user.getId());
         LocalDate today = LocalDate.now();

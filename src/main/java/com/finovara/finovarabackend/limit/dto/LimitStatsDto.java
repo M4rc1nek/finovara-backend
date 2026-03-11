@@ -6,7 +6,7 @@ import com.finovara.finovarabackend.limit.model.LimitType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record LimitStatsDTO(
+public record LimitStatsDto(
         Long limitId,
         LimitType limitType,
         BigDecimal amount,

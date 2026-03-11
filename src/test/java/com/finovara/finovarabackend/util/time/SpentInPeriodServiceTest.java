@@ -26,7 +26,7 @@ class SpentInPeriodServiceTest {
     private TimeConfig timeConfig;
 
     @InjectMocks
-    private SpentInPeriodService service;
+    private SpentInPeriodService spentInPeriodService;
 
     private final Long USER_ID = 1L;
     private final LocalDate FIXED_DATE = LocalDate.of(2025, 3, 5);
@@ -43,7 +43,7 @@ class SpentInPeriodServiceTest {
 
     @Test
     void shouldReturnTodayDate() {
-        LocalDate today = service.today();
+        LocalDate today = spentInPeriodService.today();
 
         assertThat(today).isEqualTo(FIXED_DATE);
     }
@@ -53,7 +53,7 @@ class SpentInPeriodServiceTest {
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, FIXED_DATE, FIXED_DATE))
                 .thenReturn(BigDecimal.valueOf(50));
 
-        BigDecimal result = service.getSpentToday(USER_ID);
+        BigDecimal result = spentInPeriodService.getSpentToday(USER_ID);
 
         assertThat(result).isEqualByComparingTo("50");
     }
@@ -63,7 +63,7 @@ class SpentInPeriodServiceTest {
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, FIXED_DATE, FIXED_DATE))
                 .thenReturn(null);
 
-        BigDecimal result = service.getSpentToday(USER_ID);
+        BigDecimal result = spentInPeriodService.getSpentToday(USER_ID);
 
         assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -75,7 +75,7 @@ class SpentInPeriodServiceTest {
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, monday, FIXED_DATE))
                 .thenReturn(BigDecimal.valueOf(120));
 
-        BigDecimal result = service.getSpentWeekly(USER_ID);
+        BigDecimal result = spentInPeriodService.getSpentWeekly(USER_ID);
 
         assertThat(result).isEqualByComparingTo("120");
     }
@@ -87,14 +87,14 @@ class SpentInPeriodServiceTest {
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, firstDayOfMonth, FIXED_DATE))
                 .thenReturn(BigDecimal.valueOf(300));
 
-        BigDecimal result = service.getSpentMonthly(USER_ID);
+        BigDecimal result = spentInPeriodService.getSpentMonthly(USER_ID);
 
         assertThat(result).isEqualByComparingTo("300");
     }
 
     @Test
     void shouldCallRepositoryWithCorrectDatesForWeekly() {
-        service.getSpentWeekly(USER_ID);
+        spentInPeriodService.getSpentWeekly(USER_ID);
 
         LocalDate monday = FIXED_DATE.with(DayOfWeek.MONDAY);
 

@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.limit.service;
 
 import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
-import com.finovara.finovarabackend.limit.dto.LimitStatsDTO;
+import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
 import com.finovara.finovarabackend.limit.mapper.LimitMapper;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.model.LimitStatus;
@@ -21,7 +21,7 @@ public class LimitCalculateService {
     private final LimitRepository limitRepository;
     private final LimitMapper limitMapper;
 
-    public LimitStatsDTO calculateLimitStats(Long userId, Long limitId, LocalDate date) {
+    public LimitStatsDto calculateLimitStats(Long userId, Long limitId, LocalDate date) {
         Limit limit = limitRepository.findByIdAndUserAssignedId(userId, limitId)
                 .orElseThrow(() -> new ActiveLimitNotFoundException("Active Limit not found"));
 
@@ -40,7 +40,7 @@ public class LimitCalculateService {
         BigDecimal percentage = calculatePercentage(spent, limit.getAmount());
         LimitStatus status = determineStatus(percentage);
 
-        return limitMapper.mapLimitStatsToDTO(limit, spent, remaining, percentage, status, date);
+        return limitMapper.mapLimitStatsToDto(limit, spent, remaining, percentage, status, date);
     }
 
     private BigDecimal calculatePercentage(BigDecimal spent, BigDecimal limit) {

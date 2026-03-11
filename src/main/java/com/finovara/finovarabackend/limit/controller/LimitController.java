@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.limit.controller;
 
 import com.finovara.finovarabackend.limit.dto.LimitDTO;
-import com.finovara.finovarabackend.limit.dto.LimitStatsDTO;
+import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
 import com.finovara.finovarabackend.limit.service.LimitManagementService;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import jakarta.validation.Valid;
@@ -28,7 +28,7 @@ public class LimitController {
     }
 
     @GetMapping
-    public ResponseEntity<List<LimitStatsDTO>> getLimits() {
+    public ResponseEntity<List<LimitStatsDto>> getLimits() {
         return ResponseEntity.ok(limitManagementService.getLimitStats(SecurityUtils.getCurrentUserEmail()));
     }
 
