@@ -65,6 +65,7 @@ public class DeleteLimitTest {
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verifyNoInteractions(limitRepository, limitActivityService);
+        verify(limitRepository, never()).delete(any());
     }
 
     @Test

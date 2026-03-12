@@ -17,7 +17,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.function.BiFunction;
 
 @Service
 @RequiredArgsConstructor
@@ -106,7 +105,6 @@ public class ReportsService {
             // Tworzysz datę dla konkretnego dnia
             LocalDate targetDate = LocalDate.of(now.getYear(), now.getMonthValue(), day);
 
-
             BigDecimal dayIncome = revenueRepository.sumRevenueForDay(userId, targetDate);
             BigDecimal dayExpense = expenseRepository.sumExpenseForDay(userId, targetDate);
 
@@ -114,7 +112,6 @@ public class ReportsService {
         }
         return chartData;
     }
-
 
     private LocalDate getMonthBegin(int year, int month) {
         return LocalDate.of(year, month, 1);

@@ -86,6 +86,7 @@ class EditLimitTest {
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verifyNoInteractions(limitRepository, limitActivityService);
+        verify(limitRepository, never()).save(any());
     }
 
     @Test
@@ -102,5 +103,6 @@ class EditLimitTest {
         verify(userManagerService).getUserByEmailOrThrow(email);
         verify(limitRepository).findByIdAndUserAssignedId(userId, limitId);
         verifyNoInteractions(limitActivityService);
+        verify(limitRepository, never()).save(any());
     }
 }
