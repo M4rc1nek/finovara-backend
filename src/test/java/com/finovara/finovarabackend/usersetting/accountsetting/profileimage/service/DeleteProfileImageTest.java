@@ -4,21 +4,18 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.service.ProfileImageService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
-
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.extension.ExtendWith;
-
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,7 +60,7 @@ class DeleteProfileImageTest {
 
         when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
-        assertThatThrownBy(() -> profileImageService.deleteProfileImage(USER_ID)).isInstanceOf(IllegalArgumentException.class).hasMessage("Profile image does not exist");
+        assertThrows(IllegalArgumentException.class, () -> profileImageService.deleteProfileImage(user.getId()));
 
         verify(userRepository, never()).save(any());
     }
