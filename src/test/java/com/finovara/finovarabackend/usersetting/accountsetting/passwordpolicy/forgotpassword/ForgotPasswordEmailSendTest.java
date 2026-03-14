@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.accountsetting.passwordpolicy;
+package com.finovara.finovarabackend.usersetting.accountsetting.passwordpolicy.forgotpassword;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.user.model.User;
