@@ -42,7 +42,6 @@ class VerifyCodeTest {
         accountSettings.setForgotPasswordCode(123456);
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
-        // Nie powinno rzucić wyjątku
         forgotPasswordService.verifyCode(EMAIL, new ForgotPasswordDto(EMAIL, 123456));
     }
 
@@ -51,7 +50,6 @@ class VerifyCodeTest {
         accountSettings.setForgotPasswordCode(123456);
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
-        assertThrows(InvalidInputException.class,
-                () -> forgotPasswordService.verifyCode(EMAIL, new ForgotPasswordDto(EMAIL, 999999)));
+        assertThrows(InvalidInputException.class, () -> forgotPasswordService.verifyCode(EMAIL, new ForgotPasswordDto(EMAIL, 999999)));
     }
 }
