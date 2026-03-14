@@ -17,8 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,6 +78,6 @@ class GetRecurringRevenueTest {
         assertEquals(RevenueCategory.BONUS, dto.category());
         assertEquals(RecurringStrategy.WEEKLY, dto.strategy());
         assertEquals(startDate, dto.startDate());
-        assertEquals(null, dto.nextExecutionDate());
+        assertNull(dto.nextExecutionDate());
     }
 }
