@@ -35,26 +35,22 @@ public class ProfileImageService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         validateFile(file);
 
-        // Pobierz STARY plik PRZED zmianami (ważne!)
         String oldFilePath = user.getProfileImagePath();
 
         try {
             Path directory = Paths.get(profileImagesDirectory);
             Files.createDirectories(directory);
 
-            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename(); // Losowa nazwa
-            Path filePath = directory.resolve(filename); // Pełna ścieżka
+            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            Path filePath = directory.resolve(filename);
 
-            // Zapisz nowy plik
             Files.write(filePath, file.getBytes());
 
-            // Zaktualizuj użytkownika (tylko raz)
             user.setProfileImagePath(filePath.toString());
             userRepository.save(user);
             accountChangesActivityService.createAccountChangesActivity(user.getEmail(), AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
 
 
-            // Teraz usuń STARY plik (jeśli istniał)
             if (oldFilePath != null) {
                 Files.deleteIfExists(Paths.get(oldFilePath));
             }
@@ -63,9 +59,6 @@ public class ProfileImageService {
             throw new RuntimeException("Cannot save profile image", exception);
         }
     }
-
-    //Dodaj walidacje ze nie moze usunac zdjecia prof jezeli go nie ma
-    // gdy usune profilowe - natychmiastowe usuniecie, gdy dodam profilowe - natychmiastowe dodanie wszedzie.
 
     @Transactional
     public void deleteProfileImage(Long userId) {
