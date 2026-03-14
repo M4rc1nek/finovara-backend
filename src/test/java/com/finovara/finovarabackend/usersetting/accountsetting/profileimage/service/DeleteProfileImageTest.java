@@ -1,0 +1,70 @@
+package com.finovara.finovarabackend.usersetting.accountsetting.profileimage.service;
+
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.usersetting.account.service.ProfileImageService;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class DeleteProfileImageTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private UserManagerService userManagerService;
+
+    @InjectMocks
+    private ProfileImageService profileImageService;
+
+    private final Long USER_ID = 1L;
+
+    @Test
+    void shouldDeleteProfileImage(@TempDir Path tempDir) throws Exception {
+
+        Path file = Files.createTempFile(tempDir, "avatar", ".png");
+
+        User user = new User();
+        user.setId(USER_ID);
+        user.setProfileImagePath(file.toString());
+
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+
+        profileImageService.deleteProfileImage(USER_ID);
+
+        assertThat(user.getProfileImagePath()).isNull();
+        assertThat(Files.exists(file)).isFalse();
+
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenNoProfileImage() {
+
+        User user = new User();
+        user.setId(USER_ID);
+        user.setProfileImagePath(null);
+
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+
+        assertThatThrownBy(() -> profileImageService.deleteProfileImage(USER_ID)).isInstanceOf(IllegalArgumentException.class).hasMessage("Profile image does not exist");
+
+        verify(userRepository, never()).save(any());
+    }
+}
