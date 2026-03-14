@@ -1,0 +1,107 @@
+package com.finovara.finovarabackend.usersetting.accountsetting.service.deleteaccount;
+
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.usersetting.account.service.AccountService;
+import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.service.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class AccountDeleteTest {
+
+    @Mock
+    private UserManagerService userManagerService;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private PasswordConfirmationService passwordConfirmationService;
+
+    @Mock
+    private AccountDeletedEmailService accountDeletedEmailService;
+
+    @InjectMocks
+    private AccountService accountService;
+
+    @Test
+    void shouldDeleteAccountSuccessfully() {
+
+        Long userId = 1L;
+
+        ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("password");
+
+        NotificationSettings notificationSettings = new NotificationSettings();
+        notificationSettings.setNotifyOnAccountDeleted(false);
+
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("test@test.com");
+        user.setNotificationSettings(notificationSettings);
+
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+
+        accountService.deleteAccount(confirmPasswordDto, userId);
+
+        verify(passwordConfirmationService).confirmPassword(user.getEmail(), confirmPasswordDto);
+        verify(userRepository).delete(user);
+        verify(accountDeletedEmailService, never()).sendEmail(user);
+    }
+
+    @Test
+    void shouldSendEmailWhenNotificationEnabled() {
+
+        Long userId = 1L;
+
+        ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("password");
+
+        NotificationSettings notificationSettings = new NotificationSettings();
+        notificationSettings.setNotifyOnAccountDeleted(true);
+
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("test@test.com");
+        user.setNotificationSettings(notificationSettings);
+
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+
+        accountService.deleteAccount(confirmPasswordDto, userId);
+
+        verify(userRepository).delete(user);
+        verify(accountDeletedEmailService).sendEmail(user);
+    }
+
+    @Test
+    void shouldConfirmPasswordBeforeDeletingAccount() {
+
+        Long userId = 1L;
+
+        ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("password");
+
+        NotificationSettings notificationSettings = new NotificationSettings();
+        notificationSettings.setNotifyOnAccountDeleted(false);
+
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("test@test.com");
+        user.setNotificationSettings(notificationSettings);
+
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+
+        accountService.deleteAccount(confirmPasswordDto, userId);
+
+        verify(passwordConfirmationService).confirmPassword(user.getEmail(), confirmPasswordDto);
+    }
+}

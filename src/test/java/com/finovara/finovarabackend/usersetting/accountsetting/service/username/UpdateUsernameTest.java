@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.accountsetting.service;
+package com.finovara.finovarabackend.usersetting.accountsetting.service.username;
 
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AccountSettingsServiceTest {
+class UpdateUsernameTest {
 
     @Mock
     private UserManagerService userManagerService;
