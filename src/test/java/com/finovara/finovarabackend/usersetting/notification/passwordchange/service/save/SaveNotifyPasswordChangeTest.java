@@ -28,9 +28,6 @@ class SaveNotifyPasswordChangeTest {
     private UserManagerService userManagerService;
 
     @Mock
-    private PasswordChangeEmailService passwordChangeEmailService;
-
-    @Mock
     private SettingsActivityService settingsActivityService;
 
     @InjectMocks
