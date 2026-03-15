@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.accountactivity.accountchange.archive.map;
+package com.finovara.finovarabackend.accountactivity.accountchange.archive.service.map;
 
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivity;
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivityType;
@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AccountChangeArchiveServiceTest {
+class MapToArchiveAccountChangesTest {
 
     @Mock
     private TimeConfig timeConfig;
