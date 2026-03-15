@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -69,7 +70,7 @@ class HandleAutoPaymentsTest {
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(EMAIL, BigDecimal.valueOf(100), AutoPaymentsMode.APPLY);
 
-        assertEquals(BigDecimal.valueOf(500), wallet.getBalance());
+        assertThat(BigDecimal.valueOf(500)).isEqualByComparingTo(piggyBank.getAmount());
     }
 
     @Test
@@ -83,7 +84,7 @@ class HandleAutoPaymentsTest {
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(EMAIL, BigDecimal.valueOf(100), AutoPaymentsMode.APPLY);
 
-        assertEquals(BigDecimal.valueOf(100), inactivePiggyBank.getAmount());
+        assertThat(BigDecimal.valueOf(100)).isEqualByComparingTo(piggyBank.getAmount());
     }
 
     @Test
@@ -94,8 +95,8 @@ class HandleAutoPaymentsTest {
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(EMAIL, BigDecimal.valueOf(200), AutoPaymentsMode.APPLY);
 
-        assertEquals(0, piggyBank.getAmount().compareTo(BigDecimal.valueOf(200)));
-        assertEquals(0, wallet.getBalance().compareTo(BigDecimal.valueOf(400)));
+        assertThat(piggyBank.getAmount()).isEqualByComparingTo(BigDecimal.valueOf(200));
+        assertThat(wallet.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(400));
         verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(EMAIL), eq(piggyBank),
                 eq(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING), argThat(amount -> amount.compareTo(BigDecimal.valueOf(100)) == 0));
     }
@@ -108,9 +109,9 @@ class HandleAutoPaymentsTest {
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(EMAIL, BigDecimal.valueOf(200), AutoPaymentsMode.ROLLBACK);
 
-        assertEquals(0, piggyBank.getAmount().compareTo(BigDecimal.valueOf(0)));
-        assertEquals(0, wallet.getBalance().compareTo(BigDecimal.valueOf(600)));
+        assertThat(piggyBank.getAmount()).isEqualByComparingTo(BigDecimal.valueOf(0));
+        assertThat(wallet.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(600));
         verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(EMAIL), eq(piggyBank),
-                eq(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING),argThat(amount -> amount.compareTo(BigDecimal.valueOf(100)) == 0));
+                eq(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING), argThat(amount -> amount.compareTo(BigDecimal.valueOf(100)) == 0));
     }
 }

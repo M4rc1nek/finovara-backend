@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +56,7 @@ class CreateAutomationTest {
         autoPaymentsService.createAutomation(EMAIL, 1L, dto);
 
         assertTrue(piggyBank.getSettings().isAutomationActive());
-        assertEquals(BigDecimal.valueOf(20), piggyBank.getSettings().getAutomationPercentage());
+        assertThat(BigDecimal.valueOf(20)).isEqualByComparingTo(piggyBank.getSettings().getAutomationPercentage());
     }
 
     @Test
@@ -68,3 +69,6 @@ class CreateAutomationTest {
         assertEquals(BigDecimal.ZERO, piggyBank.getSettings().getAutomationPercentage());
     }
 }
+
+
+// teraz napisz reszte piggybank setting
