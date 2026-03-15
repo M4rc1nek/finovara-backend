@@ -69,6 +69,3 @@ class CreateAutomationTest {
         assertEquals(BigDecimal.ZERO, piggyBank.getSettings().getAutomationPercentage());
     }
 }
-
-
-// teraz napisz reszte piggybank setting
