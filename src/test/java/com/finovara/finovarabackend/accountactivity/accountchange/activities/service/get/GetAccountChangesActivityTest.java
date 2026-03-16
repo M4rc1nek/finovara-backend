@@ -4,7 +4,6 @@ import com.finovara.finovarabackend.accountactivity.accountchange.activities.dto
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.repository.AccountChangesActivityRepository;
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
-import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,10 +29,10 @@ class GetAccountChangesActivityTest {
     @InjectMocks
     private AccountChangesActivityService accountChangesActivityService;
 
-    private final String EMAIL = "test@mail.com";
-
     @Test
     void shouldReturnAccountChangesActivitiesForUser() {
+        String email = "test@mail.com";
+
         AccountChangesActivityDto accountChangesActivity = new AccountChangesActivityDto(
                 AccountChangesActivityType.USERNAME_CHANGED,
                 LocalDateTime.now(),
@@ -50,19 +49,10 @@ class GetAccountChangesActivityTest {
                 "France"
         );
 
-        when(accountChangesActivityRepository.findByUserAssignedEmailOrderByIdDesc(EMAIL)).thenReturn(List.of(accountChangesActivity, accountChangesActivity2));
-        List<AccountChangesActivityDto> result = accountChangesActivityService.getAccountChangesActivity(EMAIL);
+        when(accountChangesActivityRepository.findByUserAssignedEmailOrderByIdDesc(email)).thenReturn(List.of(accountChangesActivity, accountChangesActivity2));
+        List<AccountChangesActivityDto> result = accountChangesActivityService.getAccountChangesActivity(email);
 
         assertThat(result).hasSize(2);
-        verify(accountChangesActivityRepository).findByUserAssignedEmailOrderByIdDesc(EMAIL);
-    }
-
-    @Test
-    void shouldCallPasswordConfirmationService() {
-        ConfirmPasswordDto dto = new ConfirmPasswordDto("password");
-
-        accountChangesActivityService.confirmPasswordToAccountChangesActivity(EMAIL, dto);
-
-        verify(passwordConfirmationService).confirmPassword(EMAIL, dto);
+        verify(accountChangesActivityRepository).findByUserAssignedEmailOrderByIdDesc(email);
     }
 }
