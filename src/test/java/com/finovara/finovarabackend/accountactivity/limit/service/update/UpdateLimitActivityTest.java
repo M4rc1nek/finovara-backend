@@ -42,10 +42,11 @@ class UpdateLimitActivityTest {
 
     private final String EMAIL = "test@mail.com";
 
-    Limit limit = new Limit();
+    Limit limit;
 
     @BeforeEach
     void setUp(){
+        limit = new Limit();
         limit.setAmount(new BigDecimal("1000"));
         limit.setLimitType(LimitType.MONTHLY);
     }

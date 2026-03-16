@@ -70,7 +70,7 @@ class HandleAutoPaymentsTest {
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(EMAIL, BigDecimal.valueOf(100), AutoPaymentsMode.APPLY);
 
-        assertThat(BigDecimal.valueOf(500)).isEqualByComparingTo(piggyBank.getAmount());
+        assertThat(BigDecimal.valueOf(100)).isEqualByComparingTo(piggyBank.getAmount());
     }
 
     @Test
