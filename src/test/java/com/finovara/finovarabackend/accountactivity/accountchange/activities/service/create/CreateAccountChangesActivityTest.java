@@ -71,8 +71,7 @@ class CreateAccountChangesActivityTest {
         when(clientData.getUserBrowser(request)).thenReturn("Chrome");
         when(clientData.getUserLocation("127.0.0.1")).thenReturn("TestCity");
 
-        when(accountChangesActivityRepository.countAccountChangesByUserAssignedId(1L))
-                .thenReturn(2L);
+        when(accountChangesActivityRepository.countAccountChangesByUserAssignedId(1L)).thenReturn(2L);
 
         AccountChangesActivity activity = AccountChangesActivity.builder()
                 .userAssigned(user)
