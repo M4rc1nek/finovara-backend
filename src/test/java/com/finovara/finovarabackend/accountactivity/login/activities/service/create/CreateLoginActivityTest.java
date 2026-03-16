@@ -42,7 +42,7 @@ class CreateLoginActivityTest {
     private final String EMAIL = "test@mail.com";
 
     @Test
-    void ShouldCreateLoginActivitySuccessfully() {
+    void shouldCreateLoginActivitySuccessfully() {
         ReflectionTestUtils.setField(loginActivityService, "pageSize", 10);
 
         User user = new User();
@@ -73,7 +73,7 @@ class CreateLoginActivityTest {
     }
 
     @Test
-    void ShouldThrowExceptionWhenUserDoesNotExist() {
+    void shouldThrowExceptionWhenUserDoesNotExist() {
         HttpServletRequest request = mock(HttpServletRequest.class);
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
