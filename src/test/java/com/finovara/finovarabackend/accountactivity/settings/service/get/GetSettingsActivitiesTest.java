@@ -40,7 +40,7 @@ class GetSettingsActivitiesTest {
     }
 
     @Test
-    void ShouldReturnActivitiesSortedByNewest() {
+    void shouldReturnActivitiesSortedByNewest() {
 
         SettingsActivity activity = new SettingsActivity();
         SettingsActivityDto dto = new SettingsActivityDto(
@@ -63,7 +63,7 @@ class GetSettingsActivitiesTest {
     }
 
     @Test
-    void ShouldReturnEmptyListWhenUserHasNoActivities() {
+    void shouldReturnEmptyListWhenUserHasNoActivities() {
 
         when(settingsActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
 

@@ -44,7 +44,7 @@ class GetRevenueActivityTest {
     }
 
     @Test
-    void ShouldReturnActivitiesSortedByNewest() {
+    void shouldReturnActivitiesSortedByNewest() {
 
         RevenueActivity activity = new RevenueActivity();
         RevenueActivityDto dto = new RevenueActivityDto(
@@ -70,7 +70,7 @@ class GetRevenueActivityTest {
     }
 
     @Test
-    void ShouldReturnEmptyListWhenUserHasNoActivities() {
+    void shouldReturnEmptyListWhenUserHasNoActivities() {
 
         when(revenueActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
 

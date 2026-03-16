@@ -3,7 +3,6 @@ package com.finovara.finovarabackend.accountactivity.accountchange.archive.servi
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.repository.AccountChangeArchiveRepository;
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.service.AccountChangeArchiveService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,16 +11,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ArchiveAccountChangesTest {
 
     @Mock
     private AccountChangeArchiveRepository accountChangeArchiveRepository;
-    @Mock
-    private TimeConfig timeConfig;
-
     @InjectMocks
     private AccountChangeArchiveService service;
 

@@ -6,7 +6,6 @@ import com.finovara.finovarabackend.accountactivity.accountchange.activities.rep
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,8 +22,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class GetAccountChangesActivityTest {
 
-    @Mock
-    private UserManagerService userManagerService;
     @Mock
     private AccountChangesActivityRepository accountChangesActivityRepository;
     @Mock

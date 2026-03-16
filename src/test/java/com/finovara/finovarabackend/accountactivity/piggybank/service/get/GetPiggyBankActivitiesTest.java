@@ -44,7 +44,7 @@ class GetPiggyBankActivitiesTest {
     }
 
     @Test
-    void ShouldReturnActivitiesSortedByNewest() {
+    void shouldReturnActivitiesSortedByNewest() {
 
         PiggyBankActivity activity = new PiggyBankActivity();
         PiggyBankActivityDto dto = new PiggyBankActivityDto(
@@ -71,7 +71,7 @@ class GetPiggyBankActivitiesTest {
     }
 
     @Test
-    void ShouldReturnEmptyListWhenUserHasNoActivities() {
+    void shouldReturnEmptyListWhenUserHasNoActivities() {
 
         when(piggyBankActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
 

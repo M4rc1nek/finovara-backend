@@ -9,9 +9,7 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
-import com.finovara.finovarabackend.limit.exception.unprocessablecontent.LimitExceededException;
 import com.finovara.finovarabackend.limit.model.LimitType;
-import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
@@ -24,7 +22,6 @@ import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.Aut
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import org.junit.jupiter.api.Test;
@@ -34,7 +31,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -60,10 +56,6 @@ public class EditExpenseTest {
     private UserManagerService userManagerService;
     @Mock
     private RevenueScoringService revenueScoringService;
-    @Mock
-    private SpentInPeriodService spentInPeriodService;
-    @Mock
-    private LimitRepository limitRepository;
 
     @InjectMocks
     private ExpenseService expenseService;

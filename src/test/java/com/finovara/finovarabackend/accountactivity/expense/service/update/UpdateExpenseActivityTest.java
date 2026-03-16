@@ -40,7 +40,7 @@ class UpdateExpenseActivityTest {
     private final String EMAIL = "test@mail.com";
 
     @Test
-    void ShouldUpdateExpenseActivitySuccessfully() {
+    void shouldUpdateExpenseActivitySuccessfully() {
         User user = new User();
         user.setId(1L);
 
@@ -71,7 +71,7 @@ class UpdateExpenseActivityTest {
     }
 
     @Test
-    void ShouldThrowExceptionWhenUserDoesNotExist() {
+    void shouldThrowExceptionWhenUserDoesNotExist() {
         Expense expense = new Expense();
         expense.setAmount(new BigDecimal("200"));
         expense.setCategory(ExpenseCategory.FOOD);

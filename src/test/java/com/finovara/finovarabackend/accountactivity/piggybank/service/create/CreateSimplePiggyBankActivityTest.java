@@ -42,7 +42,7 @@ class CreateSimplePiggyBankActivityTest {
     private final String EMAIL = "test@mail.com";
 
     @Test
-    void ShouldCreateSimplePiggyBankActivitySuccessfully() {
+    void shouldCreateSimplePiggyBankActivitySuccessfully() {
 
         User user = new User();
         user.setId(1L);
@@ -68,7 +68,7 @@ class CreateSimplePiggyBankActivityTest {
     }
 
     @Test
-    void ShouldThrowExceptionWhenUserDoesNotExist() {
+    void shouldThrowExceptionWhenUserDoesNotExist() {
 
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setName("Vacation Fund");

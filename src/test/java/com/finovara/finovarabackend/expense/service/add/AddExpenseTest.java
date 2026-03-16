@@ -10,7 +10,6 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
-import com.finovara.finovarabackend.limit.exception.unprocessablecontent.LimitExceededException;
 import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;

@@ -51,7 +51,7 @@ class UpdateLimitActivityTest {
     }
 
     @Test
-    void ShouldUpdateLimitActivitySuccessfully() {
+    void shouldUpdateLimitActivitySuccessfully() {
 
         User user = new User();
         user.setId(1L);
@@ -78,7 +78,7 @@ class UpdateLimitActivityTest {
     }
 
     @Test
-    void ShouldThrowExceptionWhenUserDoesNotExist() {
+    void shouldThrowExceptionWhenUserDoesNotExist() {
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
 

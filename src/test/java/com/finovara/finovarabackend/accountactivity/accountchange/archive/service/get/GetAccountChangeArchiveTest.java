@@ -4,7 +4,6 @@ import com.finovara.finovarabackend.accountactivity.accountchange.activities.mod
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.dto.AccountChangeArchiveDto;
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.repository.AccountChangeArchiveRepository;
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.service.AccountChangeArchiveService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,9 +21,6 @@ class GetAccountChangeArchiveTest {
 
     @Mock
     private AccountChangeArchiveRepository accountChangeArchiveRepository;
-
-    @Mock
-    private TimeConfig timeConfig;
 
     @InjectMocks
     private AccountChangeArchiveService service;

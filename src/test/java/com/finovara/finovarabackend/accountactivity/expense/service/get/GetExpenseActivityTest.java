@@ -45,7 +45,7 @@ class GetExpenseActivityTest {
     }
 
     @Test
-    void ShouldReturnActivitiesSortedByNewest() {
+    void shouldReturnActivitiesSortedByNewest() {
 
         ExpenseActivity activity = new ExpenseActivity();
         ExpenseActivityDto dto = new ExpenseActivityDto(
@@ -71,7 +71,7 @@ class GetExpenseActivityTest {
     }
 
     @Test
-    void ShouldReturnEmptyListWhenUserHasNoActivities() {
+    void shouldReturnEmptyListWhenUserHasNoActivities() {
 
         when(expenseActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
 

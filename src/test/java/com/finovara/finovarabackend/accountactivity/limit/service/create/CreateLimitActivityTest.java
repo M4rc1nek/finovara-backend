@@ -42,7 +42,7 @@ class CreateLimitActivityTest {
     private final String EMAIL = "test@mail.com";
 
     @Test
-    void ShouldCreateLimitActivitySuccessfully() {
+    void shouldCreateLimitActivitySuccessfully() {
 
         User user = new User();
         user.setId(1L);
@@ -67,7 +67,7 @@ class CreateLimitActivityTest {
     }
 
     @Test
-    void ShouldThrowExceptionWhenUserDoesNotExist() {
+    void shouldThrowExceptionWhenUserDoesNotExist() {
 
         Limit limit = new Limit();
         limit.setAmount(new BigDecimal("500"));

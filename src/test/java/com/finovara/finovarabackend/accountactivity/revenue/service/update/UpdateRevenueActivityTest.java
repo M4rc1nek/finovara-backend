@@ -1,6 +1,5 @@
 package com.finovara.finovarabackend.accountactivity.revenue.service.update;
 
-import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivity;
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
 import com.finovara.finovarabackend.accountactivity.revenue.repository.RevenueActivityRepository;
 import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
@@ -21,9 +20,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 class UpdateRevenueActivityTest {
@@ -43,7 +42,7 @@ class UpdateRevenueActivityTest {
     private final String EMAIL = "test@mail.com";
 
     @Test
-    void ShouldUpdateRevenueActivitySuccessfully() {
+    void shouldUpdateRevenueActivitySuccessfully() {
 
         User user = new User();
         user.setId(1L);
@@ -73,7 +72,7 @@ class UpdateRevenueActivityTest {
     }
 
     @Test
-    void ShouldThrowExceptionWhenUserDoesNotExist() {
+    void shouldThrowExceptionWhenUserDoesNotExist() {
 
         Revenue revenue = new Revenue();
         revenue.setAmount(new BigDecimal("2000"));

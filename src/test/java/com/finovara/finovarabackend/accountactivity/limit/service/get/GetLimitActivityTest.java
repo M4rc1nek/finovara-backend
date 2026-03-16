@@ -6,16 +6,14 @@ import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivity;
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivitySort;
 import com.finovara.finovarabackend.accountactivity.limit.repository.LimitActivityRepository;
 import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -34,12 +32,6 @@ class GetLimitActivityTest {
     @Mock
     private LimitActivityMapper limitActivityMapper;
 
-    @Mock
-    private UserManagerService userManagerService;
-
-    @Mock
-    private TimeConfig timeConfig;
-
     @InjectMocks
     private LimitActivityService limitActivityService;
 
@@ -47,12 +39,11 @@ class GetLimitActivityTest {
 
     @BeforeEach
     void setUp() {
-        // ustawiamy pageSize przez ReflectionTestUtils
         ReflectionTestUtils.setField(limitActivityService, "pageSize", 10);
     }
 
     @Test
-    void ShouldReturnActivitiesSortedByNewest() {
+    void shouldReturnActivitiesSortedByNewest() {
 
         LimitActivity activity = new LimitActivity();
         LimitActivityDto dto = new LimitActivityDto(
@@ -79,7 +70,7 @@ class GetLimitActivityTest {
     }
 
     @Test
-    void ShouldReturnEmptyListWhenUserHasNoActivities() {
+    void shouldReturnEmptyListWhenUserHasNoActivities() {
 
         when(limitActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class)))
                 .thenReturn(List.of());

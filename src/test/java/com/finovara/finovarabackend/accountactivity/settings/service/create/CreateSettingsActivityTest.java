@@ -38,7 +38,7 @@ class CreateSettingsActivityTest {
     private final String EMAIL = "test@mail.com";
 
     @Test
-    void ShouldCreateSettingsActivitySuccessfully() {
+    void shouldCreateSettingsActivitySuccessfully() {
 
         User user = new User();
         user.setId(1L);
@@ -62,7 +62,7 @@ class CreateSettingsActivityTest {
     }
 
     @Test
-    void ShouldThrowExceptionWhenUserDoesNotExist() {
+    void shouldThrowExceptionWhenUserDoesNotExist() {
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
 

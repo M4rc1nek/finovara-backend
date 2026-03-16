@@ -20,9 +20,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 class CreateRevenueActivityTest {
@@ -42,7 +42,7 @@ class CreateRevenueActivityTest {
     private final String EMAIL = "test@mail.com";
 
     @Test
-    void ShouldCreateRevenueActivitySuccessfully() {
+    void shouldCreateRevenueActivitySuccessfully() {
 
         User user = new User();
         user.setId(1L);
@@ -67,7 +67,7 @@ class CreateRevenueActivityTest {
     }
 
     @Test
-    void ShouldThrowExceptionWhenUserDoesNotExist() {
+    void shouldThrowExceptionWhenUserDoesNotExist() {
 
         Revenue revenue = new Revenue();
         revenue.setAmount(new BigDecimal("1000"));
