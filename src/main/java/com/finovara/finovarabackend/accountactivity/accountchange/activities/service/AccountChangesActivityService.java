@@ -67,7 +67,7 @@ public class AccountChangesActivityService {
     }
 
     @Transactional
-    public void moveToArchive(String email) {
+    private void moveToArchive(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         long countedAccountChangesActivities = accountChangesActivityRepository.countAccountChangesByUserAssignedId(user.getId());

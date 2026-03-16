@@ -9,7 +9,6 @@ import com.finovara.finovarabackend.accountactivity.accountchange.archive.servic
 import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,8 +41,6 @@ class CreateAccountChangesActivityTest {
     private AccountChangeArchiveService accountChangeArchiveService;
     @Mock
     private TimeConfig timeConfig;
-    @Mock
-    private PasswordConfirmationService passwordConfirmationService;
 
     @InjectMocks
     private AccountChangesActivityService accountChangesActivityService;
