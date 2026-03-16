@@ -20,7 +20,7 @@ class ArchiveAccountChangesTest {
     @Mock
     private AccountChangeArchiveRepository accountChangeArchiveRepository;
     @InjectMocks
-    private AccountChangeArchiveService service;
+    private AccountChangeArchiveService accountChangeArchiveService;
 
     @Test
     void shouldArchiveMultipleActivities() {
@@ -29,7 +29,7 @@ class ArchiveAccountChangesTest {
 
         List<AccountChangeArchive> listToArchive = List.of(activity1, activity2);
 
-        service.archive(listToArchive);
+        accountChangeArchiveService.archive(listToArchive);
 
         verify(accountChangeArchiveRepository, times(1)).saveAll(listToArchive);
     }
@@ -38,7 +38,7 @@ class ArchiveAccountChangesTest {
     void shouldHandleEmptyList() {
         List<AccountChangeArchive> emptyList = List.of();
 
-        service.archive(emptyList);
+        accountChangeArchiveService.archive(emptyList);
 
         verify(accountChangeArchiveRepository, times(1)).saveAll(emptyList);
     }
