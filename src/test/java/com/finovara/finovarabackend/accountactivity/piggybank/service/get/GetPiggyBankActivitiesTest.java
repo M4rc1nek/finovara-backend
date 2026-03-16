@@ -1,0 +1,85 @@
+package com.finovara.finovarabackend.accountactivity.piggybank.service.get;
+
+import com.finovara.finovarabackend.accountactivity.piggybank.dto.PiggyBankActivityDto;
+import com.finovara.finovarabackend.accountactivity.piggybank.mapper.PiggyBankActivityMapper;
+import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivity;
+import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivitySort;
+import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
+import com.finovara.finovarabackend.accountactivity.piggybank.repository.PiggyBankActivityRepository;
+import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
+import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class GetPiggyBankActivitiesTest {
+
+    @Mock
+    private PiggyBankActivityRepository piggyBankActivityRepository;
+
+    @Mock
+    private PiggyBankActivityMapper piggyBankActivityMapper;
+
+    @InjectMocks
+    private PiggyBankActivityService piggyBankActivityService;
+
+    private final String EMAIL = "test@mail.com";
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(piggyBankActivityService, "pageSize", 10);
+    }
+
+    @Test
+    void ShouldReturnActivitiesSortedByNewest() {
+
+        PiggyBankActivity activity = new PiggyBankActivity();
+        PiggyBankActivityDto dto = new PiggyBankActivityDto(
+                "My piggybank",
+                PiggyBankActivityType.ADDED_PIGGY_BANK,
+                PiggyBankGoalType.GIFTS,
+                null,
+                null,
+                null,
+                LocalDateTime.now()
+        );
+
+        when(piggyBankActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of(activity));
+
+        when(piggyBankActivityMapper.mapToPiggyBankActivity(activity)).thenReturn(dto);
+
+        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(EMAIL, PiggyBankActivitySort.NEWEST);
+
+        assertEquals(1, result.size());
+        assertEquals(dto, result.getFirst());
+
+        verify(piggyBankActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verify(piggyBankActivityMapper).mapToPiggyBankActivity(activity);
+    }
+
+    @Test
+    void ShouldReturnEmptyListWhenUserHasNoActivities() {
+
+        when(piggyBankActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
+
+        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(EMAIL, PiggyBankActivitySort.OLDEST);
+
+        assertEquals(0, result.size());
+
+        verify(piggyBankActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verifyNoInteractions(piggyBankActivityMapper);
+    }
+}
