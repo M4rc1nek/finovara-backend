@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.wallet.controller;
 
-import com.finovara.finovarabackend.wallet.dto.WalletDTO;
+import com.finovara.finovarabackend.wallet.dto.WalletDto;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ public class WalletController {
     private final WalletService walletService;
 
     @GetMapping("/wallet")
-    public ResponseEntity<WalletDTO> getWallet() {
+    public ResponseEntity<WalletDto> getWallet() {
         return ResponseEntity.ok(walletService.getWalletForUser(getCurrentUserEmail()));
     }
 }

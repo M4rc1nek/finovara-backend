@@ -1,0 +1,61 @@
+package com.finovara.finovarabackend.wallet.service.addbalance;
+
+import com.finovara.finovarabackend.wallet.service.WalletService;
+import com.finovara.finovarabackend.wallet.repository.WalletRepository;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
+import com.finovara.finovarabackend.wallet.model.Wallet;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.wallet.dto.WalletDto;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@ExtendWith(MockitoExtension.class)
+class AddBalanceToWalletTest {
+
+    @Mock
+    private WalletRepository walletRepository;
+    @Mock
+    private UserManagerService userManagerService;
+    @Mock
+    private WalletManagerService walletManagerService;
+
+    @InjectMocks
+    private WalletService walletService;
+
+    private final String EMAIL = "test@mail.com";
+
+    @Test
+    void shouldAddBalanceSuccessfully() {
+        User user = new User();
+        user.setId(1L);
+
+        Wallet wallet = new Wallet();
+        wallet.setBalance(new BigDecimal("100"));
+
+        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(walletManagerService.getWalletByUserEmailOrThrow(EMAIL)).thenReturn(wallet);
+
+        WalletDto result = walletService.addBalanceToWallet(EMAIL, new BigDecimal("50"));
+
+        assertEquals(new BigDecimal("150"), result.balance());
+        verify(walletRepository).save(wallet);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAmountIsNegative() {
+        assertThrows(IllegalArgumentException.class, () -> walletService.addBalanceToWallet(EMAIL, new BigDecimal("-10")));
+
+        verify(walletRepository, never()).save(any());
+    }
+}

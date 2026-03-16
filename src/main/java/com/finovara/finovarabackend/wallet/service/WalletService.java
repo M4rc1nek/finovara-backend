@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
-import com.finovara.finovarabackend.wallet.dto.WalletDTO;
+import com.finovara.finovarabackend.wallet.dto.WalletDto;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +20,11 @@ public class WalletService {
     private final UserManagerService userManagerService;
     private final WalletManagerService walletManagerService;
 
-    public WalletDTO addBalanceToWallet(String email, BigDecimal amount) {
+    public WalletDto addBalanceToWallet(String email, BigDecimal amount) {
         return modifyWalletBalance(email, amount, BigDecimal::add);
     }
 
-    public WalletDTO removeBalanceFromWallet(String email, BigDecimal amount) {
+    public WalletDto removeBalanceFromWallet(String email, BigDecimal amount) {
         Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
         if (wallet == null || wallet.getBalance().compareTo(amount) < 0) {
             throw new InvalidInputException("Insufficient funds");
@@ -32,7 +32,7 @@ public class WalletService {
         return modifyWalletBalance(email, amount, BigDecimal::subtract);
     }
 
-    public WalletDTO getWalletForUser(String email) {
+    public WalletDto getWalletForUser(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         Wallet wallet = walletRepository.findByUserAssignedEmail(email).orElse(null);
@@ -46,7 +46,7 @@ public class WalletService {
         return returnNewWalletDTO(user, wallet);
     }
 
-    private WalletDTO modifyWalletBalance(String email, BigDecimal amount, BiFunction<BigDecimal, BigDecimal, BigDecimal> operation) {
+    private WalletDto modifyWalletBalance(String email, BigDecimal amount, BiFunction<BigDecimal, BigDecimal, BigDecimal> operation) {
         validateAmount(amount);
 
         User user = userManagerService.getUserByEmailOrThrow(email);
@@ -59,8 +59,8 @@ public class WalletService {
         return returnNewWalletDTO(user, wallet);
     }
 
-    private WalletDTO returnNewWalletDTO(User user, Wallet wallet) {
-        return new WalletDTO(
+    private WalletDto returnNewWalletDTO(User user, Wallet wallet) {
+        return new WalletDto(
                 wallet.getId(),
                 user.getId(),
                 wallet.getBalance());
