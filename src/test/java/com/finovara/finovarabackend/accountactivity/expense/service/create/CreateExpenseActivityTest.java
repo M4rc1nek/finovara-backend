@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ExpenseActivityServiceCreateTest {
+class CreateExpenseActivityTest {
 
     @Mock
     private UserManagerService userManagerService;
@@ -44,8 +44,6 @@ class ExpenseActivityServiceCreateTest {
     void setUp() {
         fixedClock = Clock.fixed(Instant.parse("2026-03-15T12:00:00Z"), ZoneId.of("UTC"));
         when(timeConfig.clock()).thenReturn(fixedClock);
-
-        ReflectionTestUtils.setField(expenseActivityService, "pageSize", 1);
     }
 
     @Test

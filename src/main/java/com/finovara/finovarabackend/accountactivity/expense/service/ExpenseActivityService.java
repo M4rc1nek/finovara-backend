@@ -45,8 +45,9 @@ public class ExpenseActivityService {
         ExpenseActivity expenseActivity = buildExpenseActivity(email, expenseActivityType, expense);
         expenseActivity.setPreviousCategory(previousCategory);
         expenseActivity.setPreviousAmount(previousAmount);
-
     }
+
+    // testy dla reszty expense + reszta accountactivity
 
     public List<ExpenseActivityDto> getExpenseActivity(String email, ExpenseActivitySort sort) {
 
