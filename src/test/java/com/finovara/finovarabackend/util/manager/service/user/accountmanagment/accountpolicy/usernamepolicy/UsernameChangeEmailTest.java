@@ -12,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class UsernameChangeEmailServiceTest {
+class UsernameChangeEmailTest {
 
     @Mock
     private EmailTemplateService emailTemplateService;

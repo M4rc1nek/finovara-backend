@@ -15,7 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class EmailTemplateServiceTest {
+class EmailTemplateTest {
 
     @Mock
     private JavaMailSender javaMailSender;
