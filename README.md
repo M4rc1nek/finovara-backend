@@ -39,3 +39,4 @@ The platform focuses on:
 - **Liquibase**
 - **Maven**
 - **PostgreSQL**
+- **Docker**
