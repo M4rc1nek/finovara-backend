@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/finovara_test
+    username: postgres
+    password: postgres
+
+application:
+  security:
+    jwt:
+      secret-key: test
