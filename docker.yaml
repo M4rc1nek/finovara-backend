@@ -1,0 +1,55 @@
+version: '3.9'
+
+services:
+  # Baza produkcyjna
+  finovara-db:
+    image: postgres:15
+    container_name: finovara-db
+    restart: always
+    environment:
+      POSTGRES_DB: finovara
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+
+  # Baza testowa
+  finovara-test:
+    image: postgres:15
+    container_name: finovara-test
+    restart: always
+    environment:
+      POSTGRES_DB: finovara_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_TEST_PASSWORD}
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+
+  # Aplikacja Spring Boot
+  finovara-app:
+    build: .
+    container_name: finovara-app
+    depends_on:
+      finovara-db:
+        condition: service_healthy
+      finovara-test:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      # produkcja
+      DB_PASSWORD: ${DB_PASSWORD}
+      # testy
+      DB_TEST_PASSWORD: ${DB_TEST_PASSWORD}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      SPRING_PROFILES_ACTIVE: default   # zmień na 'test' dla testów
+    restart: always
