@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://finovara_test:5432/finovara_test
+    url: jdbc:postgresql://finovara-test:5432/finovara_test
     username: postgres
     password: ${DB_TEST_PASSWORD}
 
