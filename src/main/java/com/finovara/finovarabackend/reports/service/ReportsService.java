@@ -24,18 +24,6 @@ public class ReportsService {
     private final RevenueRepository revenueRepository;
     private final ExpenseRepository expenseRepository;
 
-    public List<Revenue> findRevenueForMonth(Long userId, int year, int month) {
-        LocalDate from = getMonthBegin(year, month);
-        LocalDate to = getMonthEnd(year, month);
-        return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, to);
-    }
-
-    public List<Expense> findExpenseForMonth(Long userId, int year, int month) {
-        LocalDate from = getMonthBegin(year, month);
-        LocalDate to = getMonthEnd(year, month);
-        return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, to);
-    }
-
     public ReportsSumDTO sumRevenueAndExpense(Long userId, int year, int month) {
         List<Revenue> revenues = findRevenueForMonth(userId, year, month);
         List<Expense> expenses = findExpenseForMonth(userId, year, month);
@@ -50,7 +38,12 @@ public class ReportsService {
         return new ReportsSumDTO(sumRevenue, sumExpense);
     }
 
-    public ReportsAverageDTO averageRevenueAndExpense(Long userId, int year, int month) {
+    public ReportsSumDTO getTotalRevenueAndExpense(Long userId) {
+        LocalDate now = LocalDate.now();
+        return sumRevenueAndExpense(userId, now.getYear(), now.getMonthValue());
+    }
+
+    public ReportsAverageDTO calculateAverageRevenueAndExpense(Long userId, int year, int month) {
         List<Revenue> revenues = findRevenueForMonth(userId, year, month);
         List<Expense> expenses = findExpenseForMonth(userId, year, month);
 
@@ -68,7 +61,12 @@ public class ReportsService {
         return new ReportsAverageDTO(avgRevenue, avgExpense);
     }
 
-    public List<ReportsHighestExpense> highestExpense(Long userId, int year, int month) {
+    public ReportsAverageDTO getAverageRevenueAndExpense(Long userId) {
+        LocalDate now = LocalDate.now();
+        return calculateAverageRevenueAndExpense(userId, now.getYear(), now.getMonthValue());
+    }
+
+    public List<ReportsHighestExpense> getHighestExpense(Long userId, int year, int month) {
         List<Expense> expenses = findExpenseForMonth(userId, year, month);
 
         return expenses.stream()
@@ -81,19 +79,9 @@ public class ReportsService {
                 .toList();
     }
 
-    public ReportsSumDTO sumRevenueAndExpense(Long userId) {
+    public List<ReportsHighestExpense> getHighestExpense(Long userId) {
         LocalDate now = LocalDate.now();
-        return sumRevenueAndExpense(userId, now.getYear(), now.getMonthValue());
-    }
-
-    public ReportsAverageDTO averageRevenueAndExpense(Long userId) {
-        LocalDate now = LocalDate.now();
-        return averageRevenueAndExpense(userId, now.getYear(), now.getMonthValue());
-    }
-
-    public List<ReportsHighestExpense> highestExpense(Long userId) {
-        LocalDate now = LocalDate.now();
-        return highestExpense(userId, now.getYear(), now.getMonthValue());
+        return getHighestExpense(userId, now.getYear(), now.getMonthValue());
     }
 
     public List<ReportMonthlyChartDTO> getMonthlyChart(Long userId) {
@@ -102,7 +90,6 @@ public class ReportsService {
         List<ReportMonthlyChartDTO> chartData = new ArrayList<>();
 
         for (int day = 1; day <= daysInMonth; day++) {
-            // Tworzysz datę dla konkretnego dnia
             LocalDate targetDate = LocalDate.of(now.getYear(), now.getMonthValue(), day);
 
             BigDecimal dayIncome = revenueRepository.sumRevenueForDay(userId, targetDate);
@@ -120,6 +107,18 @@ public class ReportsService {
     private LocalDate getMonthEnd(int year, int month) {
         LocalDate start = getMonthBegin(year, month);
         return start.withDayOfMonth(start.lengthOfMonth());
+    }
+
+    private List<Revenue> findRevenueForMonth(Long userId, int year, int month) {
+        LocalDate from = getMonthBegin(year, month);
+        LocalDate to = getMonthEnd(year, month);
+        return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, to);
+    }
+
+    private List<Expense> findExpenseForMonth(Long userId, int year, int month) {
+        LocalDate from = getMonthBegin(year, month);
+        LocalDate to = getMonthEnd(year, month);
+        return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, to);
     }
 
 }

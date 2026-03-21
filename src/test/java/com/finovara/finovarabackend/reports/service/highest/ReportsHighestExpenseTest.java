@@ -56,7 +56,7 @@ class ReportsHighestExpenseTest {
 
         when(expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, from, to)).thenReturn(List.of(expense1, expense2, expense3, expense4));
 
-        List<ReportsHighestExpense> highestExpenses = reportsService.highestExpense(USER_ID, year, month);
+        List<ReportsHighestExpense> highestExpenses = reportsService.getHighestExpense(USER_ID, year, month);
 
         assertThat(highestExpenses).hasSize(3);
 
@@ -89,7 +89,7 @@ class ReportsHighestExpenseTest {
 
         when(expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, from, to)).thenReturn(List.of(expense1, expense2));
 
-        List<ReportsHighestExpense> highestExpenses = reportsService.highestExpense(USER_ID, year, month);
+        List<ReportsHighestExpense> highestExpenses = reportsService.getHighestExpense(USER_ID, year, month);
 
         assertThat(highestExpenses).hasSize(2);
 
@@ -112,7 +112,7 @@ class ReportsHighestExpenseTest {
         when(expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, from, to))
                 .thenReturn(List.of());
 
-        List<ReportsHighestExpense> highestExpenses = reportsService.highestExpense(USER_ID, year, month);
+        List<ReportsHighestExpense> highestExpenses = reportsService.getHighestExpense(USER_ID, year, month);
 
         assertThat(highestExpenses).isEmpty();
     }

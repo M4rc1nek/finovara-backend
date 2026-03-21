@@ -57,7 +57,7 @@ class ReportsAverageTest {
         when(revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, from, to)).thenReturn(List.of(revenue, revenue2));
         when(expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, from, to)).thenReturn(List.of(expense, expense2));
 
-        ReportsAverageDTO result = reportsService.averageRevenueAndExpense(USER_ID, year, month);
+        ReportsAverageDTO result = reportsService.calculateAverageRevenueAndExpense(USER_ID, year, month);
 
         assertThat(result.averageRevenue()).isEqualByComparingTo("150.00");
         assertThat(result.averageExpense()).isEqualByComparingTo("60.00");
@@ -75,7 +75,7 @@ class ReportsAverageTest {
         when(revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, from, to)).thenReturn(List.of());
         when(expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, from, to)).thenReturn(List.of());
 
-        ReportsAverageDTO result = reportsService.averageRevenueAndExpense(USER_ID, year, month);
+        ReportsAverageDTO result = reportsService.calculateAverageRevenueAndExpense(USER_ID, year, month);
 
         assertThat(result.averageRevenue()).isEqualByComparingTo("0");
         assertThat(result.averageExpense()).isEqualByComparingTo("0");
@@ -99,7 +99,7 @@ class ReportsAverageTest {
         when(revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, from, to)).thenReturn(List.of());
         when(expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, from, to)).thenReturn(List.of(expense, expense2));
 
-        ReportsAverageDTO result = reportsService.averageRevenueAndExpense(USER_ID, year, month);
+        ReportsAverageDTO result = reportsService.calculateAverageRevenueAndExpense(USER_ID, year, month);
 
         assertThat(result.averageRevenue()).isEqualByComparingTo("0");
         assertThat(result.averageExpense()).isEqualByComparingTo("50.00");
@@ -123,7 +123,7 @@ class ReportsAverageTest {
         when(revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, from, to)).thenReturn(List.of(revenue, revenue2));
         when(expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, from, to)).thenReturn(List.of());
 
-        ReportsAverageDTO result = reportsService.averageRevenueAndExpense(USER_ID, year, month);
+        ReportsAverageDTO result = reportsService.calculateAverageRevenueAndExpense(USER_ID, year, month);
 
         assertThat(result.averageRevenue()).isEqualByComparingTo("300.00");
         assertThat(result.averageExpense()).isEqualByComparingTo("0");

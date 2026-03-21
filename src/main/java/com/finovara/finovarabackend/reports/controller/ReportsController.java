@@ -20,26 +20,26 @@ public class ReportsController {
 
     @GetMapping("/sum/{userId}")
     public ResponseEntity<ReportsSumDTO> sumRevenueAndExpense(@PathVariable Long userId) {
-        return ResponseEntity.ok(reportsService.sumRevenueAndExpense(userId));
+        return ResponseEntity.ok(reportsService.getTotalRevenueAndExpense(userId));
     }
 
     @GetMapping("/average/{userId}")
-    public ResponseEntity<ReportsAverageDTO> avgRevenueAndExpense(@PathVariable Long userId) {
-        return ResponseEntity.ok(reportsService.averageRevenueAndExpense(userId));
+    public ResponseEntity<ReportsAverageDTO> averageRevenueAndExpense(@PathVariable Long userId) {
+        return ResponseEntity.ok(reportsService.getAverageRevenueAndExpense(userId));
     }
 
     @GetMapping("/highest/{userId}")
     public ResponseEntity<List<ReportsHighestExpense>> highestExpense(@PathVariable Long userId) {
-        return ResponseEntity.ok(reportsService.highestExpense(userId));
+        return ResponseEntity.ok(reportsService.getHighestExpense(userId));
     }
 
     @GetMapping("/chart/{userId}")
-    public List<ReportMonthlyChartDTO> getChart(@PathVariable Long userId) {
+    public List<ReportMonthlyChartDTO> chart(@PathVariable Long userId) {
         return reportsService.getMonthlyChart(userId);
     }
 
     @GetMapping
-    public ResponseEntity<CategorySpendingDto> getCategorySpending(ExpenseCategory category) {
+    public ResponseEntity<CategorySpendingDto> categorySpending(ExpenseCategory category) {
         return ResponseEntity.ok(reportsCategorySpendingService.getCategorySpendingReport(SecurityUtils.getCurrentUserEmail(), category));
     }
 
