@@ -25,4 +25,8 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     // coalesce zwroci mi przychody lub 0 jest przychody sa null
     @Query("SELECT coalesce(sum(r.amount),0) from Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt = :date")
     BigDecimal sumRevenueForDay(@Param("userId") Long userId, @Param("date") LocalDate date);
+
+    @Query("SELECT coalesce(sum(r.amount),0) FROM Revenue r WHERE r.userAssigned.id = :userId")
+    BigDecimal sumAllRevenuesByUserAssignedId(Long userId);
+
 }

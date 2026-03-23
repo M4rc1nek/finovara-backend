@@ -24,6 +24,7 @@ public class SmartReportTemplateService {
     public void init() {
         loadTemplates(SmartReportType.MONTH_SPENDING, "smartreport/answer/MonthSpending");
         loadTemplates(SmartReportType.AVERAGE_DAY_SPENDING, "smartreport/answer/AverageDaySpending");
+        loadTemplates(SmartReportType.EXPENSE_RATE, "smartreport/answer/ExpenseRate");
     }
 
     public String getRandomResponse(SmartReportType type) {

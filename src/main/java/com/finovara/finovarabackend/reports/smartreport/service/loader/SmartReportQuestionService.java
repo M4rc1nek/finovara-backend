@@ -21,6 +21,7 @@ public class SmartReportQuestionService {
     public void init() {
         loadQuestions("smartreport/question/MonthSpendingQuestion");
         loadQuestions("smartreport/question/AverageDaySpendingQuestion");
+        loadQuestions("smartreport/question/ExpenseRateQuestion");
     }
 
     public SmartReportType getTypeFromQuestion(String userQuestion) {
