@@ -52,4 +52,6 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       SPRING_PROFILES_ACTIVE: default   # zmień na 'test' dla testów
+    volumes:
+      - ./uploads:/app/uploads
     restart: always
