@@ -1,8 +1,8 @@
 package com.finovara.finovarabackend.reports.service.chart;
 
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
-import com.finovara.finovarabackend.reports.dto.ReportMonthlyChartDTO;
-import com.finovara.finovarabackend.reports.service.ReportsService;
+import com.finovara.finovarabackend.reports.finances.dto.ReportMonthlyChartDTO;
+import com.finovara.finovarabackend.reports.finances.service.ReportsService;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;

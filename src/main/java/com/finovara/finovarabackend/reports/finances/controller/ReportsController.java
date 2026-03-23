@@ -1,13 +1,16 @@
-package com.finovara.finovarabackend.reports.controller;
+package com.finovara.finovarabackend.reports.finances.controller;
 
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.reports.dto.*;
-import com.finovara.finovarabackend.reports.service.ReportsCategorySpendingService;
-import com.finovara.finovarabackend.reports.service.ReportsService;
+import com.finovara.finovarabackend.reports.finances.dto.*;
+import com.finovara.finovarabackend.reports.finances.service.ReportsCategorySpendingService;
+import com.finovara.finovarabackend.reports.finances.service.ReportsService;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 

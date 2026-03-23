@@ -1,11 +1,11 @@
-package com.finovara.finovarabackend.reports.service;
+package com.finovara.finovarabackend.reports.finances.service;
 
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
-import com.finovara.finovarabackend.reports.dto.ReportMonthlyChartDTO;
-import com.finovara.finovarabackend.reports.dto.ReportsAverageDTO;
-import com.finovara.finovarabackend.reports.dto.ReportsHighestExpense;
-import com.finovara.finovarabackend.reports.dto.ReportsSumDTO;
+import com.finovara.finovarabackend.reports.finances.dto.ReportMonthlyChartDTO;
+import com.finovara.finovarabackend.reports.finances.dto.ReportsAverageDTO;
+import com.finovara.finovarabackend.reports.finances.dto.ReportsHighestExpense;
+import com.finovara.finovarabackend.reports.finances.dto.ReportsSumDTO;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import lombok.RequiredArgsConstructor;

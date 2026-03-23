@@ -2,8 +2,8 @@ package com.finovara.finovarabackend.reports.service.average;
 
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
-import com.finovara.finovarabackend.reports.dto.ReportsAverageDTO;
-import com.finovara.finovarabackend.reports.service.ReportsService;
+import com.finovara.finovarabackend.reports.finances.dto.ReportsAverageDTO;
+import com.finovara.finovarabackend.reports.finances.service.ReportsService;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import org.junit.jupiter.api.Test;

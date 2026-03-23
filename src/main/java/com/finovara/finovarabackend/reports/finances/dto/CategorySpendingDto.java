@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.reports.dto;
+package com.finovara.finovarabackend.reports.finances.dto;
 
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 
