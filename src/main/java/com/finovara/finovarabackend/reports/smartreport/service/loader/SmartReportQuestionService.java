@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.reports.smartreport.service.loader;
 
+import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.reports.smartreport.model.SmartReportType;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class SmartReportQuestionService {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(path)) {
 
             if (inputStream == null) {
-                throw new RuntimeException("File not found: " + path);
+                throw new IllegalStateException("File not found: " + path);
             }
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -49,8 +50,8 @@ public class SmartReportQuestionService {
                         }
                     });
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (Exception exception) {
+            throw new ServiceUnavailableException("Failed to load Questions",exception);
         }
     }
 

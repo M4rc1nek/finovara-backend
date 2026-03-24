@@ -2,6 +2,7 @@ package com.finovara.finovarabackend.usersetting.account.service;
 
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
+import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -56,7 +57,7 @@ public class ProfileImageService {
             }
 
         } catch (IOException exception) {
-            throw new RuntimeException("Cannot save profile image", exception);
+            throw new ServiceUnavailableException("Cannot save profile image", exception);
         }
     }
 
@@ -74,7 +75,7 @@ public class ProfileImageService {
             userRepository.save(user);
 
         } catch (IOException e) {
-            throw new RuntimeException("Cannot delete profile image", e);
+            throw new ServiceUnavailableException("Cannot delete profile image", e);
         }
     }
 

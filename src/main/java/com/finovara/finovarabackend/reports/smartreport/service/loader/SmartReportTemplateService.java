@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.reports.smartreport.service.loader;
 
+import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.reports.smartreport.model.SmartReportType;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -54,7 +55,7 @@ public class SmartReportTemplateService {
             templates.put(type, lines);
 
         } catch (Exception e) {
-            throw new RuntimeException("Loading error: " + path, e);
+            throw new ServiceUnavailableException("Loading error: " + path, e);
         }
     }
 }

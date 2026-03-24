@@ -7,8 +7,8 @@ import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFound
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.model.LimitStatus;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
-import com.finovara.finovarabackend.limit.service.LimitCalculateService;
 import com.finovara.finovarabackend.limit.service.LimitManagementService;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -80,7 +80,7 @@ class EditLimitTest {
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
         LimitDTO dto = new LimitDTO(userId, null, null, null, new BigDecimal("200"), true);
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new RuntimeException("User not found"));
+        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(RuntimeException.class, () -> limitManagementService.editLimit(dto, limitId, email));
 

@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.util.service.user.accountmanagment.emailtemplate;
 
+import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.user.model.User;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -37,8 +38,8 @@ public class EmailTemplateService {
 
             javaMailSender.send(message);
 
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to send email", e);
+        } catch (Exception exception) {
+            throw new ServiceUnavailableException("Failed to send email", exception);
         }
     }
 
@@ -56,8 +57,8 @@ public class EmailTemplateService {
                 }
                 return html;
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load email template", e);
+        } catch (Exception exception) {
+            throw new ServiceUnavailableException("Failed to load email template", exception);
         }
     }
 }

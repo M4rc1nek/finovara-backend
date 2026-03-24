@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.piggybank.mapper.PiggyBankMapper;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.Test;
@@ -97,7 +98,7 @@ class GetPiggyBankTest {
     void shouldThrowExceptionWhenUserNotFound() {
         String email = "notfound@email.com";
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new RuntimeException("User not found"));
+        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(RuntimeException.class, () -> piggyBankService.getAllPiggyBanks(email));
 

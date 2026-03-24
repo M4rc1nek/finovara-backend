@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsExceptio
 import com.finovara.finovarabackend.exception.conflict.StateConflictException;
 import com.finovara.finovarabackend.exception.forbidden.NotAuthorizedException;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
+import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
@@ -86,6 +87,17 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO body = new ErrorResponseDTO(
                 HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponseDTO> handleServiceUnavailable(ServiceUnavailableException exception, WebRequest webRequest) {
+        ErrorResponseDTO body = new ErrorResponseDTO(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
                 exception.getMessage(),
                 webRequest.getDescription(false).replace("uri=", "")
         );
