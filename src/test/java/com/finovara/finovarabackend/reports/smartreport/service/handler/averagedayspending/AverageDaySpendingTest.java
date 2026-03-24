@@ -5,7 +5,6 @@ import com.finovara.finovarabackend.reports.smartreport.model.SmartReportType;
 import com.finovara.finovarabackend.reports.smartreport.service.handler.AverageDaySpendingHandler;
 import com.finovara.finovarabackend.reports.smartreport.service.loader.SmartReportTemplateService;
 import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,15 +15,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AverageDaySpendingTest {
-
-
-    @Mock
-    private UserManagerService userManagerService;
     @Mock
     private SpentInPeriodService spentInPeriodService;
     @Mock
@@ -36,15 +30,14 @@ public class AverageDaySpendingTest {
     private AverageDaySpendingHandler averageDaySpendingHandler;
 
     @Test
-    void shouldReturnSmartReportType(){
+    void shouldReturnSmartReportType() {
         SmartReportType result = averageDaySpendingHandler.getType();
 
         assertEquals(SmartReportType.AVERAGE_DAY_SPENDING, result);
     }
 
-
     @Test
-   void shouldGenerateSuccessfully(){
+    void shouldGenerateSuccessfully() {
         Long userId = 1L;
 
         LocalDate today = LocalDate.of(2026, 3, 12);
@@ -57,7 +50,7 @@ public class AverageDaySpendingTest {
 
         assertEquals("8", result);
 
-        verify(expenseRepository,times(1)).sumAllExpensesByUserAssignedId(userId);
+        verify(expenseRepository, times(1)).sumAllExpensesByUserAssignedId(userId);
         verify(templateService).getRandomResponse(SmartReportType.AVERAGE_DAY_SPENDING);
     }
 }

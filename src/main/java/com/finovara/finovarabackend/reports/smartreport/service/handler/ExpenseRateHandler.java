@@ -31,11 +31,12 @@ public class ExpenseRateHandler implements SmartReportHandler {
         BigDecimal sumExpenses = Optional.ofNullable(expenseRepository.sumAllExpensesByUserAssignedId(userId)).orElse(BigDecimal.ZERO);
         BigDecimal sumRevenue = Optional.ofNullable(revenueRepository.sumAllRevenuesByUserAssignedId(userId)).orElse(BigDecimal.ZERO);
 
-        BigDecimal total = sumExpenses.divide(sumRevenue, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100));
+        BigDecimal total = sumRevenue.compareTo(BigDecimal.ZERO) == 0
+                ? BigDecimal.ZERO
+                : sumExpenses.multiply(BigDecimal.valueOf(100)).divide(sumRevenue,2,RoundingMode.HALF_UP);
 
         String template = templateService.getRandomResponse(SmartReportType.EXPENSE_RATE);
-        return template.replace("{amount}", total.toString());
+        return template.replace("{amount}", total.setScale(2, RoundingMode.HALF_UP).toString());
 
     }
 
