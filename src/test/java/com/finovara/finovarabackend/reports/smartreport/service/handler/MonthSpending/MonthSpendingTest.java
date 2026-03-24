@@ -47,11 +47,7 @@ class MonthSpendingTest {
 
         when(spentInPeriodService.today()).thenReturn(today);
 
-        when(expenseRepository.sumExpensesByUserAndDateRange(
-                eq(userId),
-                eq(startOfMonth),
-                eq(today)
-        )).thenReturn(BigDecimal.valueOf(250));
+        when(expenseRepository.sumExpensesByUserAndDateRange(eq(userId), eq(startOfMonth), eq(today))).thenReturn(BigDecimal.valueOf(250));
 
         when(templateService.getRandomResponse(SmartReportType.MONTH_SPENDING))
                 .thenReturn("{amount}");

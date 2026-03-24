@@ -8,7 +8,9 @@ import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +30,8 @@ public class MonthSpendingHandler implements SmartReportHandler {
         LocalDate today = spentInPeriodService.today();
         LocalDate startMonth = today.withDayOfMonth(1);
 
-        var sumExpenses = expenseRepository.sumExpensesByUserAndDateRange(userId, startMonth, today);
+        BigDecimal sumExpenses = Optional.ofNullable(expenseRepository.sumExpensesByUserAndDateRange(userId, startMonth, today))
+                .orElse(BigDecimal.ZERO);
 
         String template = templateService.getRandomResponse(SmartReportType.MONTH_SPENDING);
         return template.replace("{amount}", sumExpenses.toString());
