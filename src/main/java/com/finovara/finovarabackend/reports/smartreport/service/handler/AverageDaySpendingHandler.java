@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.reports.smartreport.service.SmartReportHandl
 import com.finovara.finovarabackend.reports.smartreport.service.loader.SmartReportTemplateService;
 import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -30,6 +31,7 @@ public class AverageDaySpendingHandler  implements SmartReportHandler {
     @Override
     public String generate(Long userId) {
         LocalDate today = spentInPeriodService.today();
+
         LocalDate startMonth = today.withDayOfMonth(1);
         long days = ChronoUnit.DAYS.between(startMonth, today) + 1;
 

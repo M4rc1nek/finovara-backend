@@ -54,7 +54,7 @@ public class SmartReportTemplateService {
             templates.put(type, lines);
 
         } catch (Exception e) {
-            throw new RuntimeException("Błąd przy ładowaniu: " + path, e);
+            throw new RuntimeException("Loading error: " + path, e);
         }
     }
 }
