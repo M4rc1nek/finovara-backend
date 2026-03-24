@@ -116,6 +116,7 @@
             </column>
 
             <column name="forgot_password_code" type="INT"/>
+            <column name="forgot_password_code_expiresAt" type="TIMESTAMP"/>
 
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" unique="true" foreignKeyName="fk_account_settings_user" references="users(id)"/>

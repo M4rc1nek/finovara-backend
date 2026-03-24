@@ -4,6 +4,8 @@ import com.finovara.finovarabackend.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "account_settings")
 @AllArgsConstructor
@@ -17,6 +19,7 @@ public class AccountSettings {
     private Long id;
 
     private Integer forgotPasswordCode;
+    private LocalDateTime forgotPasswordCodeExpiresAt;
 
     @OneToOne
     @JoinColumn(name = "user_id")

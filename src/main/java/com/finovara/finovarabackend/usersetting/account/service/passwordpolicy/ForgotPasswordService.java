@@ -2,7 +2,9 @@ package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
 
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
+import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
@@ -29,12 +31,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ForgotPasswordService {
     private static final String TEMPLATE_PATH = "email/reset-password.html";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Value("${mail.recipient.address}")
     private String recipientAddress;
@@ -46,6 +50,8 @@ public class ForgotPasswordService {
     private final JavaMailSender javaMailSender;
     private final PasswordChangeEmailService passwordChangeEmailService;
     private final AccountChangesActivityService accountChangesActivityService;
+
+    private final TimeConfig timeConfig;
 
     public void validateEmailExists(String email) {
         if (!userRepository.existsByEmail(email)) {
@@ -72,13 +78,22 @@ public class ForgotPasswordService {
             javaMailSender.send(message);
 
         } catch (Exception exception) {
-            throw new RuntimeException("Failed to send email", exception);
+            throw new ServiceUnavailableException("Failed to send email", exception);
         }
     }
 
     public void verifyCode(String email, ForgotPasswordDto forgotPasswordDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         AccountSettings accountSettings = user.getAccountSettings();
+
+        if (accountSettings.getForgotPasswordCode() == null) {
+            throw new InvalidInputException("No code generated");
+        }
+
+        if (accountSettings.getForgotPasswordCodeExpiresAt() == null ||
+                accountSettings.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now(timeConfig.clock()))) {
+            throw new InvalidInputException("Code expired");
+        }
 
         if (!accountSettings.getForgotPasswordCode().equals(forgotPasswordDto.code())) {
             throw new InvalidInputException("Incorrect code");
@@ -110,20 +125,21 @@ public class ForgotPasswordService {
         userRepository.save(user);
         accountChangesActivityService.createAccountChangesActivity(email, AccountChangesActivityType.PASSWORD_CHANGED, request);
         accountSettings.setForgotPasswordCode(null);
+        accountSettings.setForgotPasswordCodeExpiresAt(null);
         accountRepository.save(accountSettings);
 
-        if(notificationSettings.isNotifyOnPasswordChange()){
+        if (notificationSettings.isNotifyOnPasswordChange()) {
             passwordChangeEmailService.sendEmail(user);
         }
     }
 
-    @Transactional
     private int generateSecureCode(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         AccountSettings accountSettings = user.getAccountSettings();
 
-        SecureRandom random = new SecureRandom();
-        int code = random.nextInt(900000) + 100000;
+        LocalDateTime startCodeExpiration = LocalDateTime.now(timeConfig.clock());
+
+        int code = SECURE_RANDOM.nextInt(900000) + 100000;
 
         if (accountSettings == null) {
             accountSettings = new AccountSettings();
@@ -131,6 +147,8 @@ public class ForgotPasswordService {
             user.setAccountSettings(accountSettings);
         }
         accountSettings.setForgotPasswordCode(code);
+        accountSettings.setForgotPasswordCodeExpiresAt(startCodeExpiration.plusMinutes(2));
+
         accountRepository.save(accountSettings);
         return code;
     }
@@ -145,7 +163,7 @@ public class ForgotPasswordService {
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load email template", e);
+            throw new ServiceUnavailableException("Failed to load email template", e);
         }
     }
 
