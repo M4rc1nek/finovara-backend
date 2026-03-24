@@ -32,13 +32,15 @@ public class SavingsRateHandler implements SmartReportHandler {
 
         BigDecimal totalExpenses = Optional.ofNullable(expenseRepository.sumAllExpensesByUserAssignedId(userId)).orElse(BigDecimal.ZERO);
 
+        BigDecimal savings;
 
-        BigDecimal savings = totalRevenues.subtract(totalExpenses)
-                .divide(totalRevenues, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
-
-        if (totalRevenues.compareTo(BigDecimal.ZERO) == 0) {
+        if(totalRevenues.compareTo(BigDecimal.ZERO) == 0){
             savings = BigDecimal.ZERO;
+        } else {
+            savings = totalRevenues.subtract(totalExpenses)
+                    .divide(totalRevenues, 2,RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
         }
+
 
         String template = templateService.getRandomResponse(SmartReportType.SAVINGS_RATE);
         return template.replace("{amount}", savings.toString());
