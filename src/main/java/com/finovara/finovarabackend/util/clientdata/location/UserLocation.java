@@ -17,6 +17,7 @@ public class UserLocation {
         if (ip.equals("127.0.0.1") || ip.equals("0:0:0:0:0:0:0:1")) {
             return "Localhost";
         }
+        if(ip.equals("172.18.0.1")) return  "Host dockera (gateway)";
 
         try {
             String url = "http://ip-api.com/json/" + ip;
