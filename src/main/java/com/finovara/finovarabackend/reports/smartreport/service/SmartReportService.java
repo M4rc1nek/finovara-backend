@@ -22,7 +22,7 @@ public class SmartReportService {
         this.userManagerService = userManagerService;
         this.smartReportQuestionService = smartReportQuestionService;
         this.handlers = handlerList.stream().collect(Collectors.toMap(
-                SmartReportHandler::getType, SmartReportHandler -> SmartReportHandler));
+                SmartReportHandler::getType, handler -> handler));
     }
 
     public String generateResponse(String email, String userQuestion) {
