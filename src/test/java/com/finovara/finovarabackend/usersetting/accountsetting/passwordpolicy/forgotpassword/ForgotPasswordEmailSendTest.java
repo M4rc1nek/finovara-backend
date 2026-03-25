@@ -60,6 +60,7 @@ class ForgotPasswordEmailSendTest {
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
 
         User user = new User();
+        user.setUsername("Marcin");
         AccountSettings accountSettings = new AccountSettings();
         user.setAccountSettings(accountSettings);
 

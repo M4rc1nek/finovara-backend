@@ -68,7 +68,7 @@ public class ForgotPasswordService {
             helper.setSubject("Przypomnienie Hasła");
 
             int code = generateSecureCode(email);
-            String html = loadTemplate(String.valueOf(code));
+            String html = loadTemplate(String.valueOf(code), String.valueOf(email));
 
             helper.setText(html, true);
 
@@ -86,9 +86,6 @@ public class ForgotPasswordService {
         if (accountSettings.getForgotPasswordCode() == null) {
             throw new InvalidInputException("No code generated");
         }
-        /*
-        testy wyagnitego kodu + frontend
-         */
 
         if (accountSettings.getForgotPasswordCodeExpiresAt() == null ||
                 accountSettings.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now())) {
@@ -147,19 +144,22 @@ public class ForgotPasswordService {
             user.setAccountSettings(accountSettings);
         }
         accountSettings.setForgotPasswordCode(code);
-        accountSettings.setForgotPasswordCodeExpiresAt(startCodeExpiration.plusMinutes(2));
+        accountSettings.setForgotPasswordCodeExpiresAt(startCodeExpiration.plusMinutes(15));
 
         accountRepository.save(accountSettings);
         return code;
     }
 
-    private String loadTemplate(String code) {
+    private String loadTemplate(String code, String email) {
+        User user = userManagerService.getUserByEmailOrThrow(email);
         try {
             ClassPathResource resource = new ClassPathResource(TEMPLATE_PATH);
 
             try (InputStream inputStream = resource.getInputStream()) {
                 String html = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                return html.replace("{{CODE}}", code);
+                return html
+                        .replace("{{CODE}}", code)
+                        .replace("{{USERNAME}}", user.getUsername());
             }
 
         } catch (Exception e) {
