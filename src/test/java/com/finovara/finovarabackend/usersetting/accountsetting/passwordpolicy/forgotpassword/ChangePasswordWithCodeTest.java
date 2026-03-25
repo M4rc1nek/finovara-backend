@@ -24,6 +24,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -48,7 +50,6 @@ class ChangePasswordWithCodeTest {
 
     private User user;
     private AccountSettings accountSettings;
-    private NotificationSettings notificationSettings;
 
     private final String EMAIL = "test@test.com";
 
@@ -56,7 +57,7 @@ class ChangePasswordWithCodeTest {
     void setup() {
         user = new User();
         accountSettings = new AccountSettings();
-        notificationSettings = new NotificationSettings();
+        NotificationSettings notificationSettings = new NotificationSettings();
         notificationSettings.setNotifyOnPasswordChange(true);
 
         user.setAccountSettings(accountSettings);
@@ -75,6 +76,8 @@ class ChangePasswordWithCodeTest {
 
     @Test
     void shouldChangePasswordSuccessfully() {
+        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
         when(passwordEncoder.matches("newPass", "encodedOldPassword")).thenReturn(false);
         when(passwordEncoder.encode("newPass")).thenReturn("encodedNewPass");
@@ -92,6 +95,8 @@ class ChangePasswordWithCodeTest {
 
     @Test
     void shouldThrowExceptionWhenNewPasswordsDoNotMatch() {
+        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
         PasswordRequestDto dto = buildPasswordRequest("pass1", "pass2", 123456);
@@ -102,8 +107,11 @@ class ChangePasswordWithCodeTest {
 
     @Test
     void shouldThrowExceptionWhenNewPasswordAlreadySet() {
+        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
         when(passwordEncoder.matches("oldPass", "encodedOldPassword")).thenReturn(true);
+
 
         PasswordRequestDto dto = buildPasswordRequest("oldPass", "oldPass", 123456);
 
@@ -112,6 +120,7 @@ class ChangePasswordWithCodeTest {
 
     @Test
     void shouldThrowExceptionWhenNewPasswordIsEmpty() {
+        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
         PasswordRequestDto dto = buildPasswordRequest("", "", 123456);

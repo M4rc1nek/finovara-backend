@@ -42,7 +42,7 @@ class VerifyCodeTest {
     @Test
     void shouldPassWhenCodeMatches() {
         accountSettings.setForgotPasswordCode(123456);
-        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(2));
+        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
 
@@ -52,7 +52,7 @@ class VerifyCodeTest {
     @Test
     void shouldThrowExceptionWhenCodeExpired(){
         accountSettings.setForgotPasswordCode(123456);
-        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
+        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().minusMinutes(2));
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
