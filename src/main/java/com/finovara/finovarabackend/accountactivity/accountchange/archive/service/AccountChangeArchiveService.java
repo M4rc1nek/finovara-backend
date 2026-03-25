@@ -4,7 +4,6 @@ import com.finovara.finovarabackend.accountactivity.accountchange.activities.mod
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.dto.AccountChangeArchiveDto;
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.repository.AccountChangeArchiveRepository;
-import com.finovara.finovarabackend.config.TimeConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +15,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AccountChangeArchiveService {
 
-    private final TimeConfig timeConfig;
     private final AccountChangeArchiveRepository accountChangeArchiveRepository;
 
     public AccountChangeArchive mapToArchive(AccountChangesActivity accountChangesActivity) {
@@ -24,7 +22,7 @@ public class AccountChangeArchiveService {
         return AccountChangeArchive.builder()
                 .userAssigned(accountChangesActivity.getUserAssigned())
                 .type(accountChangesActivity.getType())
-                .moveToArchiveDate(LocalDateTime.now(timeConfig.clock()))
+                .moveToArchiveDate(LocalDateTime.now())
                 .activityAccountChangesDate(accountChangesActivity.getDate())
                 .browser(accountChangesActivity.getBrowser())
                 .ipAddress(accountChangesActivity.getIpAddress())

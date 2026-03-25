@@ -3,7 +3,6 @@ package com.finovara.finovarabackend.accountactivity.login.activities.service.cr
 import com.finovara.finovarabackend.accountactivity.login.activities.model.LoginActivityStatus;
 import com.finovara.finovarabackend.accountactivity.login.activities.repository.LoginActivityRepository;
 import com.finovara.finovarabackend.accountactivity.login.activities.service.LoginActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
@@ -16,9 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -31,8 +28,6 @@ class CreateLoginActivityTest {
     private UserManagerService userManagerService;
     @Mock
     private LoginActivityRepository loginActivityRepository;
-    @Mock
-    private TimeConfig timeConfig;
     @Mock
     private ClientData clientData;
 
@@ -49,11 +44,9 @@ class CreateLoginActivityTest {
         user.setId(1L);
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-
-        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-15T12:00:00Z"), ZoneId.of("UTC"));
+        LocalDateTime now = LocalDateTime.now();
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(timeConfig.clock()).thenReturn(fixedClock);
         when(clientData.getClientIp(request)).thenReturn("127.0.0.1");
         when(clientData.getUserBrowser(request)).thenReturn("Chrome");
         when(clientData.getUserLocation("127.0.0.1")).thenReturn("Poland");
@@ -68,7 +61,8 @@ class CreateLoginActivityTest {
                         activity.getType().equals("Login") &&
                         activity.getIpAddress().equals("127.0.0.1") &&
                         activity.getBrowser().equals("Chrome") &&
-                        activity.getLocation().equals("Poland")
+                        activity.getLocation().equals("Poland") &&
+                        !activity.getDate().isBefore(now)
         ));
     }
 

@@ -6,9 +6,7 @@ import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankAct
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivitySort;
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.repository.PiggyBankActivityRepository;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
-import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +32,6 @@ public class PiggyBankActivityService {
 
     private final UserManagerService userManagerService;
     private final PiggyBankActivityRepository piggyBankActivityRepository;
-    private final TimeConfig timeConfig;
     private final PiggyBankActivityMapper piggyBankActivityMapper;
 
     @Transactional
@@ -70,7 +67,7 @@ public class PiggyBankActivityService {
                 .activityType(activityType)
                 .goalType(piggyBank.getGoalType())
                 .goalAmount(piggyBank.getGoalAmount())
-                .date(LocalDateTime.now(timeConfig.clock()))
+                .date(LocalDateTime.now())
                 .build();
 
         piggyBankActivityRepository.save(piggyBankActivity);

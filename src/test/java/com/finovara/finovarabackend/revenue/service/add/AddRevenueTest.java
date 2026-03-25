@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.revenue.service.add;
 
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
 import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
@@ -22,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Clock;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,9 +42,6 @@ class AddRevenueTest {
     private RevenueActivityService revenueActivityService;
     @Mock
     private RevenueScoringService revenueScoringService;
-    @Mock
-    private TimeConfig timeConfig;
-
     @InjectMocks
     private RevenueService revenueService;
 
@@ -56,7 +51,6 @@ class AddRevenueTest {
         String email = "test@test.com";
         User user = new User();
 
-        when(timeConfig.clock()).thenReturn(Clock.systemDefaultZone());
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
         revenueService.addRevenue(dto, email);

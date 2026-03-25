@@ -3,7 +3,6 @@ package com.finovara.finovarabackend.accountactivity.piggybank.service.create;
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.repository.PiggyBankActivityRepository;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -16,9 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -32,9 +29,6 @@ class CreateSimplePiggyBankActivityTest {
 
     @Mock
     private PiggyBankActivityRepository piggyBankActivityRepository;
-
-    @Mock
-    private TimeConfig timeConfig;
 
     @InjectMocks
     private PiggyBankActivityService piggyBankActivityService;
@@ -51,11 +45,9 @@ class CreateSimplePiggyBankActivityTest {
         piggyBank.setName("Vacation Fund");
         piggyBank.setGoalType(PiggyBankGoalType.ELECTRONICS);
         piggyBank.setGoalAmount(new BigDecimal("2000"));
-
-        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-15T12:00:00Z"), ZoneId.of("UTC"));
+        LocalDateTime now = LocalDateTime.now();
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(timeConfig.clock()).thenReturn(fixedClock);
         piggyBankActivityService.createSimplePiggyBankActivity(EMAIL, piggyBank, PiggyBankActivityType.ADDED_PIGGY_BANK);
 
         verify(piggyBankActivityRepository).save(argThat(activity ->
@@ -63,7 +55,8 @@ class CreateSimplePiggyBankActivityTest {
                         activity.getPiggyBankName().equals("Vacation Fund") &&
                         activity.getActivityType() == PiggyBankActivityType.ADDED_PIGGY_BANK &&
                         activity.getGoalType() == PiggyBankGoalType.ELECTRONICS &&
-                        activity.getGoalAmount().compareTo(new BigDecimal("2000")) == 0
+                        activity.getGoalAmount().compareTo(new BigDecimal("2000")) == 0 &&
+                        !activity.getDate().isBefore(now)
         ));
     }
 

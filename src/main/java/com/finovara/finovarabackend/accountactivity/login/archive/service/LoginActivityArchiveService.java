@@ -4,7 +4,6 @@ import com.finovara.finovarabackend.accountactivity.login.activities.model.Login
 import com.finovara.finovarabackend.accountactivity.login.archive.dto.LoginActivityArchiveDto;
 import com.finovara.finovarabackend.accountactivity.login.archive.model.LoginActivityArchive;
 import com.finovara.finovarabackend.accountactivity.login.archive.repository.LoginActivityArchiveRepository;
-import com.finovara.finovarabackend.config.TimeConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +15,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LoginActivityArchiveService {
 
-    private final TimeConfig timeConfig;
     private final LoginActivityArchiveRepository loginActivityArchiveRepository;
 
     public LoginActivityArchive mapToArchive(LoginActivity loginActivity) {
@@ -25,7 +23,7 @@ public class LoginActivityArchiveService {
                 .userAssigned(loginActivity.getUserAssigned())
                 .type("Login")
                 .status(loginActivity.getStatus())
-                .moveToArchiveDate(LocalDateTime.now(timeConfig.clock()))
+                .moveToArchiveDate(LocalDateTime.now())
                 .activityLoginDate(loginActivity.getDate())
                 .browser(loginActivity.getBrowser())
                 .ipAddress(loginActivity.getIpAddress())

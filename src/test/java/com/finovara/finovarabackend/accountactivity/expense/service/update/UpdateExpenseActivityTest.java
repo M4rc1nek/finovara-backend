@@ -3,7 +3,6 @@ package com.finovara.finovarabackend.accountactivity.expense.service.update;
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
 import com.finovara.finovarabackend.accountactivity.expense.repository.ExpenseActivityRepository;
 import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -16,9 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -29,8 +26,6 @@ class UpdateExpenseActivityTest {
 
     @Mock
     private UserManagerService userManagerService;
-    @Mock
-    private TimeConfig timeConfig;
     @Mock
     private ExpenseActivityRepository expenseActivityRepository;
 
@@ -47,11 +42,9 @@ class UpdateExpenseActivityTest {
         Expense expense = new Expense();
         expense.setAmount(new BigDecimal("200"));
         expense.setCategory(ExpenseCategory.FOOD);
-
-        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-15T12:00:00Z"), ZoneId.of("UTC"));
+        LocalDateTime now = LocalDateTime.now();
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(timeConfig.clock()).thenReturn(fixedClock);
 
         expenseActivityService.updateExpenseActivity(
                 EMAIL,
@@ -66,7 +59,8 @@ class UpdateExpenseActivityTest {
                         activity.getAmount().equals(new BigDecimal("200")) &&
                         activity.getCategory() == ExpenseCategory.FOOD &&
                         activity.getPreviousAmount().equals(new BigDecimal("150")) &&
-                        activity.getPreviousCategory() == ExpenseCategory.TRANSPORT
+                        activity.getPreviousCategory() == ExpenseCategory.TRANSPORT &&
+                        !activity.getDate().isBefore(now)
         ));
     }
 

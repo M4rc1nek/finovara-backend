@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.revenue.service;
 
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
 import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
 import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
@@ -41,8 +40,6 @@ public class RevenueService {
     private final RevenueActivityService revenueActivityService;
     private final RevenueScoringService revenueScoringService;
 
-    private final TimeConfig timeConfig;
-
     @Transactional
     public Long addRevenue(RevenueDTO revenueDTO, String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
@@ -50,7 +47,7 @@ public class RevenueService {
         Revenue revenue = Revenue.builder()
                 .amount(revenueDTO.amount())
                 .category(revenueDTO.category())
-                .createdAt(LocalDate.now(timeConfig.clock()))
+                .createdAt(LocalDate.now())
                 .description(revenueDTO.description())
                 .userAssigned(user)
                 .build();

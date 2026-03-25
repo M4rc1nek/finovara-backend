@@ -6,7 +6,6 @@ import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivit
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivity;
 import com.finovara.finovarabackend.accountactivity.revenue.repository.RevenueActivityRepository;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
@@ -31,7 +30,6 @@ public class RevenueActivityService {
     private int pageSize;
 
     private final UserManagerService userManagerService;
-    private final TimeConfig timeConfig;
     private final RevenueActivityRepository revenueActivityRepository;
     private final RevenueActivityMapper revenueActivityMapper;
 
@@ -70,7 +68,7 @@ public class RevenueActivityService {
                 .type(revenueActivityType)
                 .amount(revenue.getAmount())
                 .category(revenue.getCategory())
-                .date(LocalDateTime.now(timeConfig.clock()))
+                .date(LocalDateTime.now())
                 .build();
         revenueActivityRepository.save(revenueActivity);
         return revenueActivity;

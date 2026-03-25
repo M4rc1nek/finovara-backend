@@ -6,7 +6,6 @@ import com.finovara.finovarabackend.accountactivity.login.activities.model.Login
 import com.finovara.finovarabackend.accountactivity.login.activities.repository.LoginActivityRepository;
 import com.finovara.finovarabackend.accountactivity.login.archive.model.LoginActivityArchive;
 import com.finovara.finovarabackend.accountactivity.login.archive.service.LoginActivityArchiveService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
@@ -30,7 +29,6 @@ import java.util.List;
 public class LoginActivityService {
 
     private final UserManagerService userManagerService;
-    private final TimeConfig timeConfig;
     private final LoginActivityRepository loginActivityRepository;
     private final LoginActivityArchiveService archiveLoginActivityService;
 
@@ -51,7 +49,7 @@ public class LoginActivityService {
                 .userAssigned(user)
                 .type("Login")
                 .status(loginActivityStatus)
-                .date(LocalDateTime.now(timeConfig.clock()))
+                .date(LocalDateTime.now())
                 .browser(clientData.getUserBrowser(request))
                 .ipAddress(ipAddress)
                 .location(clientData.getUserLocation(ipAddress))

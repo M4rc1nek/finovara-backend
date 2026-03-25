@@ -6,7 +6,6 @@ import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivit
 import com.finovara.finovarabackend.accountactivity.expense.mapper.ExpenseActivityMapper;
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivity;
 import com.finovara.finovarabackend.accountactivity.expense.repository.ExpenseActivityRepository;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.user.model.User;
@@ -31,7 +30,6 @@ public class ExpenseActivityService {
     private int pageSize;
 
     private final UserManagerService userManagerService;
-    private final TimeConfig timeConfig;
     private final ExpenseActivityRepository expenseActivityRepository;
     private  final ExpenseActivityMapper expenseActivityMapper;
 
@@ -63,7 +61,7 @@ public class ExpenseActivityService {
                 .toList();
     }
 
-    @Transactional
+
     private ExpenseActivity buildExpenseActivity(String email, ExpenseActivityType expenseActivityType, Expense expense) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
@@ -72,7 +70,7 @@ public class ExpenseActivityService {
                 .type(expenseActivityType)
                 .amount(expense.getAmount())
                 .category(expense.getCategory())
-                .date(LocalDateTime.now(timeConfig.clock()))
+                .date(LocalDateTime.now())
                 .build();
         expenseActivityRepository.save(expenseActivity);
         return expenseActivity;

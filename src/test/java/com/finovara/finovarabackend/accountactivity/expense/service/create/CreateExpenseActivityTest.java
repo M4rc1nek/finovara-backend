@@ -3,12 +3,10 @@ package com.finovara.finovarabackend.accountactivity.expense.service.create;
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
 import com.finovara.finovarabackend.accountactivity.expense.repository.ExpenseActivityRepository;
 import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,10 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
@@ -31,20 +26,10 @@ class CreateExpenseActivityTest {
     @Mock
     private UserManagerService userManagerService;
     @Mock
-    private TimeConfig timeConfig;
-    @Mock
     private ExpenseActivityRepository expenseActivityRepository;
 
     @InjectMocks
     private ExpenseActivityService expenseActivityService;
-
-    private Clock fixedClock;
-
-    @BeforeEach
-    void setUp() {
-        fixedClock = Clock.fixed(Instant.parse("2026-03-15T12:00:00Z"), ZoneId.of("UTC"));
-        when(timeConfig.clock()).thenReturn(fixedClock);
-    }
 
     @Test
     void shouldCreateExpenseActivitySuccessfully() {
@@ -56,6 +41,7 @@ class CreateExpenseActivityTest {
         Expense expense = new Expense();
         expense.setAmount(new BigDecimal("100.50"));
         expense.setCategory(ExpenseCategory.FOOD);
+        LocalDateTime now = LocalDateTime.now();
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
@@ -66,7 +52,8 @@ class CreateExpenseActivityTest {
                         activity.getType() == ExpenseActivityType.EDITED_EXPENSE &&
                         activity.getAmount().equals(new BigDecimal("100.50")) &&
                         activity.getCategory() == ExpenseCategory.FOOD &&
-                        activity.getDate().equals(LocalDateTime.now(fixedClock))
+                        !activity.getDate().isBefore(now)
+
         ));
     }
 }

@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.user.service;
 
 import com.finovara.finovarabackend.accountactivity.login.activities.model.LoginActivityStatus;
 import com.finovara.finovarabackend.accountactivity.login.activities.service.LoginActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.security.service.JwtService;
@@ -39,8 +38,6 @@ public class UserService {
     private final SettingsFactory settingsFactory;
     private final LoginActivityService loginActivityService;
 
-    private final TimeConfig timeConfig;
-
     public UserRegisterDto registerUser(UserRegisterDto userRegisterDto) {
 
         if (userRepository.existsByUsername(userRegisterDto.username())) {
@@ -57,7 +54,7 @@ public class UserService {
                 .username(userRegisterDto.username())
                 .email(userRegisterDto.email())
                 .password(passwordEncoder.encode(userRegisterDto.password()))
-                .createdAt(LocalDateTime.now(timeConfig.clock()))
+                .createdAt(LocalDateTime.now())
                 .build();
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         user.setRevenueSettings(settingsFactory.createDefaultRevenueSettings(user));

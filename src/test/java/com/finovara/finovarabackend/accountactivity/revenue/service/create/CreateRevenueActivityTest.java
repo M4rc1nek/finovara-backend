@@ -3,7 +3,6 @@ package com.finovara.finovarabackend.accountactivity.revenue.service.create;
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
 import com.finovara.finovarabackend.accountactivity.revenue.repository.RevenueActivityRepository;
 import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -16,9 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -32,9 +29,6 @@ class CreateRevenueActivityTest {
 
     @Mock
     private RevenueActivityRepository revenueActivityRepository;
-
-    @Mock
-    private TimeConfig timeConfig;
 
     @InjectMocks
     private RevenueActivityService revenueActivityService;
@@ -50,11 +44,9 @@ class CreateRevenueActivityTest {
         Revenue revenue = new Revenue();
         revenue.setAmount(new BigDecimal("1000"));
         revenue.setCategory(RevenueCategory.SALARY);
-
-        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-15T12:00:00Z"), ZoneId.of("UTC"));
+        LocalDateTime now = LocalDateTime.now();
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(timeConfig.clock()).thenReturn(fixedClock);
 
         revenueActivityService.createRevenueActivity(EMAIL, RevenueActivityType.ADDED_REVENUE, revenue);
 
@@ -62,7 +54,8 @@ class CreateRevenueActivityTest {
                 activity.getUserAssigned().equals(user) &&
                         activity.getType() == RevenueActivityType.ADDED_REVENUE &&
                         activity.getAmount().compareTo(new BigDecimal("1000")) == 0 &&
-                        activity.getCategory() == RevenueCategory.SALARY
+                        activity.getCategory() == RevenueCategory.SALARY &&
+                        !activity.getDate().isBefore(now)
         ));
     }
 

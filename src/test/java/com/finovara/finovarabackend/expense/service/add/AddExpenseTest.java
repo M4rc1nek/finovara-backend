@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.expense.service.add;
 
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
 import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
 import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
@@ -34,7 +33,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Clock;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -70,8 +68,7 @@ class AddExpenseTest {
     private SpentInPeriodService spentInPeriodService;
     @Mock
     private RevenueScoringService revenueScoringService;
-    @Mock
-    private TimeConfig timeConfig;
+
 
     @Test
     void shouldAddExpenseSuccessfully() {
@@ -92,7 +89,6 @@ class AddExpenseTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
         when(spentInPeriodService.getSpentToday(anyLong())).thenReturn(BigDecimal.ZERO);
-        when(timeConfig.clock()).thenReturn(Clock.systemUTC());
         when(expenseRepository.save(any())).thenAnswer(invocation -> {
             Expense expense = invocation.getArgument(0);
             expense.setId(1L);
@@ -134,7 +130,6 @@ class AddExpenseTest {
         );
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(timeConfig.clock()).thenReturn(Clock.systemUTC());
         when(spentInPeriodService.getSpentToday(anyLong())).thenReturn(BigDecimal.ZERO);
 
         assertThrows(InvalidInputException.class, () -> expenseService.addExpense(dto, email, LimitType.DAILY));

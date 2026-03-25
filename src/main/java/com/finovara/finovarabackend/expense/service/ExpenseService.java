@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.expense.service;
 
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
 import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
 import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
@@ -53,8 +52,6 @@ public class ExpenseService {
     private final SpentInPeriodService spentInPeriodService;
     private final RevenueScoringService revenueScoringService;
 
-    private final TimeConfig timeConfig;
-
     @Transactional
     public Long addExpense(ExpenseRequestDto expenseRequestDto, String email, LimitType limitType) {
         User user = userManagerService.getUserByEmailOrThrow(email);
@@ -67,7 +64,7 @@ public class ExpenseService {
         Expense expense = Expense.builder()
                 .amount(expenseRequestDto.expenseDTO().amount())
                 .category(expenseRequestDto.expenseDTO().category())
-                .createdAt(LocalDate.now(timeConfig.clock()))
+                .createdAt(LocalDate.now())
                 .description(expenseRequestDto.expenseDTO().description())
                 .userAssigned(user)
                 .build();

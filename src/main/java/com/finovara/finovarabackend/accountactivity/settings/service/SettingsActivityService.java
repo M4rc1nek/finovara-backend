@@ -7,7 +7,6 @@ import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivi
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingsActivity;
 import com.finovara.finovarabackend.accountactivity.settings.repository.SettingsActivityRepository;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
@@ -31,7 +30,6 @@ public class SettingsActivityService {
     private final UserManagerService userManagerService;
     private final SettingsActivityRepository settingsActivityRepository;
     private final SettingsActivityMapper settingsActivityMapper;
-    private final TimeConfig timeConfig;
 
 
     @Transactional
@@ -42,7 +40,7 @@ public class SettingsActivityService {
                 .userAssigned(user)
                 .status(status)
                 .settingType(type)
-                .date(LocalDateTime.now(timeConfig.clock()))
+                .date(LocalDateTime.now())
                 .build();
 
         settingsActivityRepository.save(settingsActivity);

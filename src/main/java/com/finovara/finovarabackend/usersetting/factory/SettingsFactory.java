@@ -1,8 +1,6 @@
 package com.finovara.finovarabackend.usersetting.factory;
 
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
-import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.model.CountQuantityLimitStrategy;
@@ -21,8 +19,6 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 public class SettingsFactory {
-
-    private final TimeConfig timeConfig;
 
     public ExpenseSettings createDefaultExpenseSettings(User user) {
         return ExpenseSettings.builder()
@@ -48,7 +44,7 @@ public class SettingsFactory {
                 .nextExecutionDate(null)
                 .scoringEnable(false)
                 .revenuePoints(BigDecimal.ZERO)
-                .createdAt(LocalDate.now(timeConfig.clock()))
+                .createdAt(LocalDate.now())
                 .build();
     }
 

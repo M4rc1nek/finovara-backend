@@ -6,7 +6,6 @@ import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivity;
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivitySort;
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivityType;
 import com.finovara.finovarabackend.accountactivity.limit.repository.LimitActivityRepository;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -32,8 +31,6 @@ public class LimitActivityService {
     private final UserManagerService userManagerService;
     private final LimitActivityRepository limitActivityRepository;
     private final LimitActivityMapper limitActivityMapper;
-
-    private final TimeConfig timeConfig;
 
     @Transactional
     public void createLimitActivity(String email, LimitActivityType limitActivityType, Limit limit) {
@@ -66,7 +63,7 @@ public class LimitActivityService {
                 .limitActivityType(limitActivityType)
                 .limitType(limit.getLimitType())
                 .amount(limit.getAmount())
-                .date(LocalDateTime.now(timeConfig.clock()))
+                .date(LocalDateTime.now())
                 .build();
 
         limitActivityRepository.save(limitActivity);

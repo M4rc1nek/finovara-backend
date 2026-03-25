@@ -3,7 +3,6 @@ package com.finovara.finovarabackend.accountactivity.revenue.service.update;
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
 import com.finovara.finovarabackend.accountactivity.revenue.repository.RevenueActivityRepository;
 import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -16,9 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -32,9 +29,6 @@ class UpdateRevenueActivityTest {
 
     @Mock
     private RevenueActivityRepository revenueActivityRepository;
-
-    @Mock
-    private TimeConfig timeConfig;
 
     @InjectMocks
     private RevenueActivityService revenueActivityService;
@@ -53,11 +47,9 @@ class UpdateRevenueActivityTest {
 
         BigDecimal previousAmount = new BigDecimal("1500");
         RevenueCategory previousCategory = RevenueCategory.SALARY;
-
-        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-15T12:00:00Z"), ZoneId.of("UTC"));
+        LocalDateTime now = LocalDateTime.now();
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(timeConfig.clock()).thenReturn(fixedClock);
 
         revenueActivityService.updateRevenueActivity(EMAIL, RevenueActivityType.EDITED_REVENUE, revenue, previousAmount, previousCategory);
 
@@ -67,7 +59,8 @@ class UpdateRevenueActivityTest {
                         activity.getAmount().compareTo(new BigDecimal("2000")) == 0 &&
                         activity.getCategory() == RevenueCategory.BONUS &&
                         activity.getPreviousAmount().compareTo(previousAmount) == 0 &&
-                        activity.getPreviousCategory() == previousCategory
+                        activity.getPreviousCategory() == previousCategory &&
+                        !activity.getDate().isBefore(now)
         ));
     }
 

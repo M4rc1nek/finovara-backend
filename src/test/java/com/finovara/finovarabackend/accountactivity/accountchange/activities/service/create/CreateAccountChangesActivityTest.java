@@ -6,7 +6,6 @@ import com.finovara.finovarabackend.accountactivity.accountchange.activities.rep
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.service.AccountChangeArchiveService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -19,10 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -39,19 +35,12 @@ class CreateAccountChangesActivityTest {
     private ClientData clientData;
     @Mock
     private AccountChangeArchiveService accountChangeArchiveService;
-    @Mock
-    private TimeConfig timeConfig;
 
     @InjectMocks
     private AccountChangesActivityService accountChangesActivityService;
 
-    private Clock fixedClock;
-
     @BeforeEach
     void setUp() {
-        fixedClock = Clock.fixed(Instant.parse("2026-03-15T10:00:00Z"), ZoneId.of("UTC"));
-        when(timeConfig.clock()).thenReturn(fixedClock);
-
         ReflectionTestUtils.setField(accountChangesActivityService, "pageSize", 1);
     }
 
@@ -84,6 +73,8 @@ class CreateAccountChangesActivityTest {
 
         when(accountChangeArchiveService.mapToArchive(any())).thenReturn(archive);
 
+        LocalDateTime now = LocalDateTime.now();
+
         accountChangesActivityService.createAccountChangesActivity(email, AccountChangesActivityType.PASSWORD_CHANGED, request);
 
         verify(accountChangesActivityRepository).save(argThat(saved ->
@@ -92,7 +83,7 @@ class CreateAccountChangesActivityTest {
                         saved.getIpAddress().equals("127.0.0.1") &&
                         saved.getBrowser().equals("Chrome") &&
                         saved.getLocation().equals("TestCity") &&
-                        saved.getDate().equals(LocalDateTime.now(fixedClock))
+                        !saved.getDate().isBefore(now)
         ));
 
         verify(userManagerService, times(2)).getUserByEmailOrThrow(email);

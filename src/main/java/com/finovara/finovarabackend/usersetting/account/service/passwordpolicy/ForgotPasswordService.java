@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
 
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
@@ -51,8 +50,6 @@ public class ForgotPasswordService {
     private final PasswordChangeEmailService passwordChangeEmailService;
     private final AccountChangesActivityService accountChangesActivityService;
 
-    private final TimeConfig timeConfig;
-
     public void validateEmailExists(String email) {
         if (!userRepository.existsByEmail(email)) {
             throw new InvalidInputException("No account found with the given email address");
@@ -89,9 +86,12 @@ public class ForgotPasswordService {
         if (accountSettings.getForgotPasswordCode() == null) {
             throw new InvalidInputException("No code generated");
         }
+        /*
+        testy wyagnitego kodu + frontend
+         */
 
         if (accountSettings.getForgotPasswordCodeExpiresAt() == null ||
-                accountSettings.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now(timeConfig.clock()))) {
+                accountSettings.getForgotPasswordCodeExpiresAt().isBefore(LocalDateTime.now())) {
             throw new InvalidInputException("Code expired");
         }
 
@@ -137,7 +137,7 @@ public class ForgotPasswordService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         AccountSettings accountSettings = user.getAccountSettings();
 
-        LocalDateTime startCodeExpiration = LocalDateTime.now(timeConfig.clock());
+        LocalDateTime startCodeExpiration = LocalDateTime.now();
 
         int code = SECURE_RANDOM.nextInt(900000) + 100000;
 

@@ -6,7 +6,6 @@ import com.finovara.finovarabackend.accountactivity.accountchange.activities.mod
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.repository.AccountChangesActivityRepository;
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.finovarabackend.accountactivity.accountchange.archive.service.AccountChangeArchiveService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
@@ -36,7 +35,6 @@ public class AccountChangesActivityService {
     private final PasswordConfirmationService passwordConfirmationService;
     private final AccountChangeArchiveService accountChangeArchiveService;
 
-    private final TimeConfig timeConfig;
     private final ClientData clientData;
 
     @Transactional
@@ -47,7 +45,7 @@ public class AccountChangesActivityService {
         AccountChangesActivity accountChangesActivity = AccountChangesActivity.builder()
                 .userAssigned(user)
                 .type(type)
-                .date(LocalDateTime.now(timeConfig.clock()))
+                .date(LocalDateTime.now())
                 .browser(clientData.getUserBrowser(request))
                 .ipAddress(ipAddress)
                 .location(clientData.getUserLocation(ipAddress))

@@ -3,7 +3,6 @@ package com.finovara.finovarabackend.accountactivity.limit.service.update;
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivityType;
 import com.finovara.finovarabackend.accountactivity.limit.repository.LimitActivityRepository;
 import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -17,9 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -33,9 +30,6 @@ class UpdateLimitActivityTest {
 
     @Mock
     private LimitActivityRepository limitActivityRepository;
-
-    @Mock
-    private TimeConfig timeConfig;
 
     @InjectMocks
     private LimitActivityService limitActivityService;
@@ -56,11 +50,9 @@ class UpdateLimitActivityTest {
 
         User user = new User();
         user.setId(1L);
-
-        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-15T12:00:00Z"), ZoneId.of("UTC"));
+        LocalDateTime now = LocalDateTime.now();
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(timeConfig.clock()).thenReturn(fixedClock);
 
         limitActivityService.updateLimitActivity(
                 EMAIL,
@@ -74,7 +66,8 @@ class UpdateLimitActivityTest {
                         activity.getLimitActivityType() == LimitActivityType.EDITED_LIMIT &&
                         activity.getLimitType() == LimitType.MONTHLY &&
                         activity.getAmount().compareTo(new BigDecimal("1000")) == 0 &&
-                        activity.getPreviousAmount().compareTo(new BigDecimal("800")) == 0
+                        activity.getPreviousAmount().compareTo(new BigDecimal("800")) == 0 &&
+                        !activity.getDate().isBefore(now)
         ));
     }
 

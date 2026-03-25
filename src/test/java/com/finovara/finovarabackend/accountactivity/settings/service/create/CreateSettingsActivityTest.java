@@ -4,7 +4,6 @@ import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivi
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
 import com.finovara.finovarabackend.accountactivity.settings.repository.SettingsActivityRepository;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
-import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -14,9 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
+import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -29,9 +26,6 @@ class CreateSettingsActivityTest {
     private UserManagerService userManagerService;
     @Mock
     private SettingsActivityRepository settingsActivityRepository;
-    @Mock
-    private TimeConfig timeConfig;
-
     @InjectMocks
     private SettingsActivityService settingsActivityService;
 
@@ -42,11 +36,9 @@ class CreateSettingsActivityTest {
 
         User user = new User();
         user.setId(1L);
-
-        Clock fixedClock = Clock.fixed(Instant.parse("2026-03-15T12:00:00Z"), ZoneId.of("UTC"));
+        LocalDateTime now = LocalDateTime.now();
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(timeConfig.clock()).thenReturn(fixedClock);
 
         settingsActivityService.createSettingActivity(
                 EMAIL,
@@ -57,7 +49,8 @@ class CreateSettingsActivityTest {
         verify(settingsActivityRepository).save(argThat(activity ->
                 activity.getUserAssigned().equals(user) &&
                         activity.getStatus() == SettingActivityStatus.ENABLED &&
-                        activity.getSettingType() == SettingType.NOTIFICATION_PASSWORD_CHANGED
+                        activity.getSettingType() == SettingType.NOTIFICATION_PASSWORD_CHANGED &&
+                        !activity.getDate().isBefore(now)
         ));
     }
 
