@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.usersetting.piggybank.rondup.service.handle
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
@@ -152,5 +153,12 @@ class HandleExpenseForRoundUpTest {
         wallet.setBalance(BigDecimal.valueOf(0.10));
 
         assertThrows(InvalidInputException.class, () -> roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, AutoPaymentsMode.APPLY));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenWalletDoesNotExist() {
+        when(walletRepository.findByUserAssignedEmail(EMAIL)).thenReturn(Optional.empty());
+        assertThrows(WalletNotFoundException.class, () -> roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, AutoPaymentsMode.APPLY));
+
     }
 }
