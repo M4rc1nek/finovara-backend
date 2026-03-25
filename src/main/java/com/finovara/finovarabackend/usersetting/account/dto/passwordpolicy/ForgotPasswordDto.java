@@ -5,6 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 
 public record ForgotPasswordDto(
         @Email @NotBlank String email,
-        int code
+        Integer code
 ) {
 }

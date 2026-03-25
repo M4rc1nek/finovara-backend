@@ -13,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -40,9 +42,22 @@ class VerifyCodeTest {
     @Test
     void shouldPassWhenCodeMatches() {
         accountSettings.setForgotPasswordCode(123456);
+        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(2));
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
+
         forgotPasswordService.verifyCode(EMAIL, new ForgotPasswordDto(EMAIL, 123456));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCodeExpired(){
+        accountSettings.setForgotPasswordCode(123456);
+        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().minusMinutes(1));
+
+        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+
+        assertThrows(InvalidInputException.class, () -> forgotPasswordService.verifyCode(EMAIL, new ForgotPasswordDto(EMAIL, 123456)));
+
     }
 
     @Test
@@ -51,5 +66,14 @@ class VerifyCodeTest {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
         assertThrows(InvalidInputException.class, () -> forgotPasswordService.verifyCode(EMAIL, new ForgotPasswordDto(EMAIL, 999999)));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCodeIsNotGenerated(){
+        accountSettings.setForgotPasswordCode(null);
+        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+
+        assertThrows(InvalidInputException.class, () -> forgotPasswordService.verifyCode(EMAIL, new ForgotPasswordDto(EMAIL, null)));
+
     }
 }
