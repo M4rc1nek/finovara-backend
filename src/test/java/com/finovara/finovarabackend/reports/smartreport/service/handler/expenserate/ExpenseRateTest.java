@@ -19,7 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class ExpenseRateTest {
+class ExpenseRateTest {
 
     @Mock
     private ExpenseRepository expenseRepository;
@@ -56,4 +56,23 @@ public class ExpenseRateTest {
         verify(templateService).getRandomResponse(SmartReportType.EXPENSE_RATE);
     }
 
+    @Test
+    void shouldReturnZeroWhenRevenueIsZero() {
+        Long userId = 1L;
+
+        when(expenseRepository.sumAllExpensesByUserAssignedId(anyLong()))
+                .thenReturn(BigDecimal.valueOf(50));
+
+        when(revenueRepository.sumAllRevenuesByUserAssignedId(anyLong()))
+                .thenReturn(BigDecimal.ZERO);
+
+        when(templateService.getRandomResponse(SmartReportType.EXPENSE_RATE))
+                .thenReturn("{amount}");
+
+        String result = expenseRateHandler.generate(userId);
+
+        assertEquals(new BigDecimal("0.00"), new BigDecimal(result));
+    }
+
 }
+
