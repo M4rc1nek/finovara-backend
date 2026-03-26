@@ -21,12 +21,6 @@ public class ReportsController {
     private final ReportsService reportsService;
     private final ReportsCategorySpendingService reportsCategorySpendingService;
 
-
-    @GetMapping("/highest/{userId}")
-    public ResponseEntity<List<ReportsHighestExpense>> highestExpense(@PathVariable Long userId) {
-        return ResponseEntity.ok(reportsService.getHighestExpense(userId));
-    }
-
     @GetMapping("/chart/{userId}")
     public List<ReportMonthlyChartDTO> chart(@PathVariable Long userId) {
         return reportsService.getMonthlyChart(userId);

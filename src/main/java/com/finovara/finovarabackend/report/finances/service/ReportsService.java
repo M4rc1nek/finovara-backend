@@ -1,10 +1,7 @@
 package com.finovara.finovarabackend.report.finances.service;
 
-import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.dto.ReportMonthlyChartDTO;
-import com.finovara.finovarabackend.report.finances.dto.ReportsHighestExpense;
-import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +9,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -20,25 +16,6 @@ import java.util.List;
 public class ReportsService {
     private final RevenueRepository revenueRepository;
     private final ExpenseRepository expenseRepository;
-
-
-    public List<ReportsHighestExpense> getHighestExpense(Long userId, int year, int month) {
-        List<Expense> expenses = findExpenseForMonth(userId, year, month);
-
-        return expenses.stream()
-                .sorted(Comparator.comparing(Expense::getAmount).reversed())
-                .limit(3)
-                .map(exp -> new ReportsHighestExpense(
-                        exp.getCategory(),
-                        exp.getAmount()
-                ))
-                .toList();
-    }
-
-    public List<ReportsHighestExpense> getHighestExpense(Long userId) {
-        LocalDate now = LocalDate.now();
-        return getHighestExpense(userId, now.getYear(), now.getMonthValue());
-    }
 
     public List<ReportMonthlyChartDTO> getMonthlyChart(Long userId) {
         LocalDate now = LocalDate.now();
@@ -54,27 +31,6 @@ public class ReportsService {
             chartData.add(new ReportMonthlyChartDTO(day, dayIncome, dayExpense));
         }
         return chartData;
-    }
-
-    private LocalDate getMonthBegin(int year, int month) {
-        return LocalDate.of(year, month, 1);
-    }
-
-    private LocalDate getMonthEnd(int year, int month) {
-        LocalDate start = getMonthBegin(year, month);
-        return start.withDayOfMonth(start.lengthOfMonth());
-    }
-
-    private List<Revenue> findRevenueForMonth(Long userId, int year, int month) {
-        LocalDate from = getMonthBegin(year, month);
-        LocalDate to = getMonthEnd(year, month);
-        return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, to);
-    }
-
-    private List<Expense> findExpenseForMonth(Long userId, int year, int month) {
-        LocalDate from = getMonthBegin(year, month);
-        LocalDate to = getMonthEnd(year, month);
-        return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, to);
     }
 
 }
