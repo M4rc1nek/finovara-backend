@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.smartreport.model.SmartReportType;
 import com.finovara.finovarabackend.report.smartreport.service.handler.AverageDaySpendingHandler;
 import com.finovara.finovarabackend.report.smartreport.service.loader.SmartReportTemplateService;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class AverageDaySpendingTest {
     @Mock
-    private SpentInPeriodService spentInPeriodService;
+    private FinancialPeriodService financialPeriodService;
     @Mock
     private SmartReportTemplateService templateService;
     @Mock
@@ -42,7 +42,7 @@ public class AverageDaySpendingTest {
 
         LocalDate today = LocalDate.of(2026, 3, 12);
 
-        when(spentInPeriodService.today()).thenReturn(today);
+        when(financialPeriodService.today()).thenReturn(today);
         when(expenseRepository.sumAllExpensesByUserAssignedId(userId)).thenReturn(BigDecimal.valueOf(100));
         when(templateService.getRandomResponse(SmartReportType.AVERAGE_DAY_SPENDING)).thenReturn("{amount}");
 

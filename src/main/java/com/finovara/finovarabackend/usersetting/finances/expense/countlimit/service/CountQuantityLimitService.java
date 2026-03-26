@@ -12,7 +12,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.mode
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class CountQuantityLimitService {
 
-    private final SpentInPeriodService spentInPeriodService;
+    private final FinancialPeriodService financialPeriodService;
     private final UserManagerService userManagerService;
     private final ExpenseRepository expenseRepository;
     private final PasswordConfirmationService passwordConfirmationService;
@@ -103,7 +103,7 @@ public class CountQuantityLimitService {
     }
 
     private long countExpensesInPeriod(User user, CountQuantityLimitStrategy strategy) {
-        LocalDate today = spentInPeriodService.today();
+        LocalDate today = financialPeriodService.today();
         LocalDate start = switch (strategy) {
             case DAILY -> today;
             case WEEKLY -> today.with(DayOfWeek.MONDAY);

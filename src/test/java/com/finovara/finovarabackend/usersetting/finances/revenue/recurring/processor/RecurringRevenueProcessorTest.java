@@ -7,7 +7,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.model.RecurringStrategy;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,7 +26,7 @@ public class RecurringRevenueProcessorTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private SpentInPeriodService spentInPeriodService;
+    private FinancialPeriodService financialPeriodService;
     @Mock
     private RevenueService revenueService;
     @InjectMocks
@@ -52,7 +52,7 @@ public class RecurringRevenueProcessorTest {
         user.setRevenueSettings(settings);
 
         when(userRepository.findAll()).thenReturn(List.of(user));
-        when(spentInPeriodService.today()).thenReturn(LocalDate.of(2026, 3, 20));
+        when(financialPeriodService.today()).thenReturn(LocalDate.of(2026, 3, 20));
 
         recurringRevenueProcessor.generateRecurringRevenues();
 
@@ -87,7 +87,7 @@ public class RecurringRevenueProcessorTest {
         user.setRevenueSettings(settings);
 
         when(userRepository.findAll()).thenReturn(List.of(user));
-        when(spentInPeriodService.today()).thenReturn(LocalDate.of(2026, 3, 20));
+        when(financialPeriodService.today()).thenReturn(LocalDate.of(2026, 3, 20));
 
         recurringRevenueProcessor.generateRecurringRevenues();
 
@@ -101,7 +101,7 @@ public class RecurringRevenueProcessorTest {
         user.setEmail(EMAIL);
 
         when(userRepository.findAll()).thenReturn(List.of(user));
-        when(spentInPeriodService.today()).thenReturn(LocalDate.now());
+        when(financialPeriodService.today()).thenReturn(LocalDate.now());
 
         recurringRevenueProcessor.generateRecurringRevenues();
 

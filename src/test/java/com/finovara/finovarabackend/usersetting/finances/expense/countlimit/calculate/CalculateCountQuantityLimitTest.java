@@ -10,7 +10,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.serv
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ class CalculateCountQuantityLimitSimpleTest {
     private UserManagerService userManagerService;
 
     @Mock
-    private SpentInPeriodService spentInPeriodService;
+    private FinancialPeriodService financialPeriodService;
 
     @Mock
     private ExpenseRepository expenseRepository;
@@ -55,7 +55,7 @@ class CalculateCountQuantityLimitSimpleTest {
         user.setExpenseSettings(expenseSettings);
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        lenient().when(spentInPeriodService.today()).thenReturn(LocalDate.now());
+        lenient().when(financialPeriodService.today()).thenReturn(LocalDate.now());
     }
 
     @Test

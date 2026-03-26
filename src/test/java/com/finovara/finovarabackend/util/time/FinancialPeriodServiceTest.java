@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.util.time;
 
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,19 +16,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SpentInPeriodServiceTest {
+class FinancialPeriodServiceTest {
 
     @Mock
     private ExpenseRepository expenseRepository;
 
     @InjectMocks
-    private SpentInPeriodService spentInPeriodService;
+    private FinancialPeriodService financialPeriodService;
 
     private final Long USER_ID = 1L;
     @Test
     void shouldReturnTodayDate() {
         LocalDate today = LocalDate.now();
-        LocalDate result = spentInPeriodService.today();
+        LocalDate result = financialPeriodService.today();
 
         assertThat(result).isEqualTo(today);
     }
@@ -40,7 +40,7 @@ class SpentInPeriodServiceTest {
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, today, today))
                 .thenReturn(BigDecimal.valueOf(50));
 
-        BigDecimal result = spentInPeriodService.getSummedSpentToday(USER_ID);
+        BigDecimal result = financialPeriodService.getSummedExpenseToday(USER_ID);
 
         assertThat(result).isEqualByComparingTo("50");
     }
@@ -52,7 +52,7 @@ class SpentInPeriodServiceTest {
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, today, today))
                 .thenReturn(null);
 
-        BigDecimal result = spentInPeriodService.getSummedSpentToday(USER_ID);
+        BigDecimal result = financialPeriodService.getSummedExpenseToday(USER_ID);
 
         assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -65,7 +65,7 @@ class SpentInPeriodServiceTest {
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, monday, today))
                 .thenReturn(BigDecimal.valueOf(120));
 
-        BigDecimal result = spentInPeriodService.getSummedSpentWeekly(USER_ID);
+        BigDecimal result = financialPeriodService.getSummedExpenseWeekly(USER_ID);
 
         assertThat(result).isEqualByComparingTo("120");
     }
@@ -78,14 +78,14 @@ class SpentInPeriodServiceTest {
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, firstDayOfMonth, today))
                 .thenReturn(BigDecimal.valueOf(300));
 
-        BigDecimal result = spentInPeriodService.getSummedSpentMonthly(USER_ID);
+        BigDecimal result = financialPeriodService.getSummedExpenseMonthly(USER_ID);
 
         assertThat(result).isEqualByComparingTo("300");
     }
 
     @Test
     void shouldCallRepositoryWithCorrectDatesForWeekly() {
-        spentInPeriodService.getSummedSpentWeekly(USER_ID);
+        financialPeriodService.getSummedExpenseWeekly(USER_ID);
 
         LocalDate today = LocalDate.now();
         LocalDate monday = today.with(DayOfWeek.MONDAY);

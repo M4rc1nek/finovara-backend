@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.smartreport.model.SmartReportType;
 import com.finovara.finovarabackend.report.smartreport.service.SmartReportHandler;
 import com.finovara.finovarabackend.report.smartreport.service.loader.SmartReportTemplateService;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +20,7 @@ public class AverageDaySpendingHandler  implements SmartReportHandler {
 
     private final ExpenseRepository expenseRepository;
     private final SmartReportTemplateService templateService;
-    private final SpentInPeriodService spentInPeriodService;
+    private final FinancialPeriodService financialPeriodService;
 
     @Override
     public SmartReportType getType() {
@@ -29,7 +29,7 @@ public class AverageDaySpendingHandler  implements SmartReportHandler {
 
     @Override
     public String generate(Long userId) {
-        LocalDate today = spentInPeriodService.today();
+        LocalDate today = financialPeriodService.today();
 
         LocalDate startMonth = today.withDayOfMonth(1);
         long days = ChronoUnit.DAYS.between(startMonth, today) + 1;

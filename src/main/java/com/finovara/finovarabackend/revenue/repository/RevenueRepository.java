@@ -29,4 +29,6 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     @Query("SELECT coalesce(sum(r.amount),0) FROM Revenue r WHERE r.userAssigned.id = :userId")
     BigDecimal sumAllRevenuesByUserAssignedId(Long userId);
 
+    @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt >= :startDate AND r.createdAt <= :endDate")
+    BigDecimal sumRevenuesByUserAndDateRange(Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

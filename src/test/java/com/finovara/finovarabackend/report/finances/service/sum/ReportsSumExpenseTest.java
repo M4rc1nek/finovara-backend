@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.report.finances.service.sum;
 import com.finovara.finovarabackend.report.finances.sum.dto.ReportSumDto;
 import com.finovara.finovarabackend.report.finances.sum.model.ReportSumType;
 import com.finovara.finovarabackend.report.finances.sum.sevice.ReportSumService;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,9 +17,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ReportsSumTest {
+class ReportsSumExpenseTest {
     @Mock
-    private SpentInPeriodService spentInPeriodService;
+    private FinancialPeriodService financialPeriodService;
 
     @InjectMocks
     private ReportSumService reportSumService;
@@ -30,38 +30,38 @@ class ReportsSumTest {
     void shouldReturnDailySum() {
         BigDecimal expected = BigDecimal.valueOf(100);
 
-        when(spentInPeriodService.getSummedSpentToday(USER_ID)).thenReturn(expected);
+        when(financialPeriodService.getSummedExpenseToday(USER_ID)).thenReturn(expected);
 
-        ReportSumDto result = reportSumService.sumRevenueAndExpense(USER_ID, ReportSumType.DAILY);
+        ReportSumDto result = reportSumService.sumExpense(USER_ID, ReportSumType.DAILY);
 
         assertEquals(ReportSumType.DAILY, result.reportSumType());
         assertEquals(expected, result.amount());
-        verify(spentInPeriodService).getSummedSpentToday(USER_ID);
+        verify(financialPeriodService).getSummedExpenseToday(USER_ID);
     }
 
     @Test
     void shouldReturnWeeklySum() {
         BigDecimal expected = BigDecimal.valueOf(200);
 
-        when(spentInPeriodService.getSummedSpentWeekly(USER_ID)).thenReturn(expected);
+        when(financialPeriodService.getSummedExpenseWeekly(USER_ID)).thenReturn(expected);
 
-        ReportSumDto result = reportSumService.sumRevenueAndExpense(USER_ID, ReportSumType.WEEKLY);
+        ReportSumDto result = reportSumService.sumExpense(USER_ID, ReportSumType.WEEKLY);
 
         assertEquals(ReportSumType.WEEKLY, result.reportSumType());
         assertEquals(expected, result.amount());
-        verify(spentInPeriodService).getSummedSpentWeekly(USER_ID);
+        verify(financialPeriodService).getSummedExpenseWeekly(USER_ID);
     }
 
     @Test
     void shouldReturnMonthlySum() {
         BigDecimal expected = BigDecimal.valueOf(300);
 
-        when(spentInPeriodService.getSummedSpentMonthly(USER_ID)).thenReturn(expected);
+        when(financialPeriodService.getSummedExpenseMonthly(USER_ID)).thenReturn(expected);
 
-        ReportSumDto result = reportSumService.sumRevenueAndExpense(USER_ID, ReportSumType.MONTHLY);
+        ReportSumDto result = reportSumService.sumExpense(USER_ID, ReportSumType.MONTHLY);
 
         assertEquals(ReportSumType.MONTHLY, result.reportSumType());
         assertEquals(expected, result.amount());
-        verify(spentInPeriodService).getSummedSpentMonthly(USER_ID);
+        verify(financialPeriodService).getSummedExpenseMonthly(USER_ID);
     }
 }

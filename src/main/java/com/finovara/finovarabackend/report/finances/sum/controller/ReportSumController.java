@@ -14,7 +14,12 @@ public class ReportSumController {
     private final ReportSumService reportSumService;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ReportSumDto> getSummed(@PathVariable Long userId, ReportSumType reportSumType) {
-        return ResponseEntity.ok(reportSumService.sumRevenueAndExpense(userId, reportSumType));
+    public ResponseEntity<ReportSumDto> getSummedExpense(@PathVariable Long userId, @RequestParam ReportSumType reportSumType) {
+        return ResponseEntity.ok(reportSumService.sumExpense(userId, reportSumType));
+    }
+
+    @GetMapping("/{userId}/revenue")
+    public ResponseEntity<ReportSumDto> getSummedRevenue(@PathVariable Long userId, @RequestParam ReportSumType reportSumType) {
+        return ResponseEntity.ok(reportSumService.sumRevenue(userId, reportSumType));
     }
 }

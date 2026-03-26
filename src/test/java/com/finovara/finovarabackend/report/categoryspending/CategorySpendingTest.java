@@ -6,7 +6,7 @@ import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.dto.CategorySpendingDto;
 import com.finovara.finovarabackend.report.finances.service.ReportsCategorySpendingService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,7 @@ class CategorySpendingTest {
     private UserManagerService userManagerService;
 
     @Mock
-    private SpentInPeriodService spentInPeriodService;
+    private FinancialPeriodService financialPeriodService;
 
     @Mock
     private ExpenseRepository expenseRepository;
@@ -63,7 +63,7 @@ class CategorySpendingTest {
         expense2.setAmount(BigDecimal.valueOf(50));
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(spentInPeriodService.today()).thenReturn(today);
+        when(financialPeriodService.today()).thenReturn(today);
 
         when(expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), category, startMonth, today)).thenReturn(List.of(expense1, expense2));
 
@@ -85,7 +85,7 @@ class CategorySpendingTest {
         LocalDate startMonth = today.withDayOfMonth(1);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(spentInPeriodService.today()).thenReturn(today);
+        when(financialPeriodService.today()).thenReturn(today);
 
         when(expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), category, startMonth, today)).thenReturn(List.of());
 
@@ -106,7 +106,7 @@ class CategorySpendingTest {
         LocalDate startMonth = today.withDayOfMonth(1);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(spentInPeriodService.today()).thenReturn(today);
+        when(financialPeriodService.today()).thenReturn(today);
 
         when(expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), category, startMonth, today)).thenReturn(List.of());
         when(expenseRepository.sumExpensesByUserAndDateRange(user.getId(), startMonth, today)).thenReturn(BigDecimal.valueOf(1000));

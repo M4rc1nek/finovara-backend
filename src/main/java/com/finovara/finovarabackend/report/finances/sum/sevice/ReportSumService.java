@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.report.finances.sum.sevice;
 
 import com.finovara.finovarabackend.report.finances.sum.dto.ReportSumDto;
 import com.finovara.finovarabackend.report.finances.sum.model.ReportSumType;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,18 +12,28 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class ReportSumService {
 
-    private final SpentInPeriodService spentInPeriodService;
+    private final FinancialPeriodService financialPeriodService;
 
-    public ReportSumDto sumRevenueAndExpense(Long userId, ReportSumType reportSumType) {
+    public ReportSumDto sumExpense(Long userId, ReportSumType reportSumType) {
 
         BigDecimal amount = switch (reportSumType) {
-            case DAILY -> spentInPeriodService.getSummedSpentToday(userId);
-            case WEEKLY -> spentInPeriodService.getSummedSpentWeekly(userId);
-            case MONTHLY -> spentInPeriodService.getSummedSpentMonthly(userId);
+            case DAILY -> financialPeriodService.getSummedExpenseToday(userId);
+            case WEEKLY -> financialPeriodService.getSummedExpenseWeekly(userId);
+            case MONTHLY -> financialPeriodService.getSummedExpenseMonthly(userId);
 
         };
 
         return new ReportSumDto(reportSumType, amount);
+    }
+
+    public ReportSumDto sumRevenue(Long userId, ReportSumType reportSumType){
+        BigDecimal amount = switch (reportSumType){
+            case DAILY -> financialPeriodService.getSummedRevenuesToday(userId);
+            case WEEKLY -> financialPeriodService.getSummedRevenuesWeekly(userId);
+            case MONTHLY -> financialPeriodService.getSummedRevenuesMonthly(userId);
+        };
+        return new ReportSumDto(reportSumType, amount);
+
     }
 
 }

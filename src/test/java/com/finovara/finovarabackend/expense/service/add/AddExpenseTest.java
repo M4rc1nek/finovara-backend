@@ -23,7 +23,7 @@ import com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import org.junit.jupiter.api.Test;
@@ -65,7 +65,7 @@ class AddExpenseTest {
     @Mock
     private UserManagerService userManagerService;
     @Mock
-    private SpentInPeriodService spentInPeriodService;
+    private FinancialPeriodService financialPeriodService;
     @Mock
     private RevenueScoringService revenueScoringService;
 
@@ -88,7 +88,7 @@ class AddExpenseTest {
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
-        when(spentInPeriodService.getSummedSpentToday(anyLong())).thenReturn(BigDecimal.ZERO);
+        when(financialPeriodService.getSummedExpenseToday(anyLong())).thenReturn(BigDecimal.ZERO);
         when(expenseRepository.save(any())).thenAnswer(invocation -> {
             Expense expense = invocation.getArgument(0);
             expense.setId(1L);
@@ -130,7 +130,7 @@ class AddExpenseTest {
         );
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(spentInPeriodService.getSummedSpentToday(anyLong())).thenReturn(BigDecimal.ZERO);
+        when(financialPeriodService.getSummedExpenseToday(anyLong())).thenReturn(BigDecimal.ZERO);
 
         assertThrows(InvalidInputException.class, () -> expenseService.addExpense(dto, email, LimitType.DAILY));
         verify(expenseRepository, never()).save(any());

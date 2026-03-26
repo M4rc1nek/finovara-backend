@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.smartreport.model.SmartReportType;
 import com.finovara.finovarabackend.report.smartreport.service.handler.MonthSpendingHandler;
 import com.finovara.finovarabackend.report.smartreport.service.loader.SmartReportTemplateService;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,7 +28,7 @@ class MonthSpendingTest {
     private SmartReportTemplateService templateService;
 
     @Mock
-    private SpentInPeriodService spentInPeriodService;
+    private FinancialPeriodService financialPeriodService;
 
     @InjectMocks
     private MonthSpendingHandler monthSpendingHandler;
@@ -45,7 +45,7 @@ class MonthSpendingTest {
         LocalDate today = LocalDate.of(2024, 3, 15);
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
-        when(spentInPeriodService.today()).thenReturn(today);
+        when(financialPeriodService.today()).thenReturn(today);
 
         when(expenseRepository.sumExpensesByUserAndDateRange(eq(userId), eq(startOfMonth), eq(today))).thenReturn(BigDecimal.valueOf(250));
 
@@ -56,7 +56,7 @@ class MonthSpendingTest {
 
         assertEquals("250", result);
 
-        verify(spentInPeriodService).today();
+        verify(financialPeriodService).today();
         verify(expenseRepository).sumExpensesByUserAndDateRange(userId, startOfMonth, today);
         verify(templateService).getRandomResponse(SmartReportType.MONTH_SPENDING);
     }

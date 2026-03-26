@@ -22,7 +22,7 @@ import com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import jakarta.transaction.Transactional;
@@ -49,7 +49,7 @@ public class ExpenseService {
     private final ExpenseManagerService expenseManagerService;
     private final UserManagerService userManagerService;
     private final ExpenseMapper expenseMapper;
-    private final SpentInPeriodService spentInPeriodService;
+    private final FinancialPeriodService financialPeriodService;
     private final RevenueScoringService revenueScoringService;
 
     @Transactional
@@ -149,9 +149,9 @@ public class ExpenseService {
     private BigDecimal checkSpentInPeriod(LimitType limitType, Long userId) {
         if (limitType == null) return BigDecimal.ZERO;
         return switch (limitType) {
-            case DAILY -> spentInPeriodService.getSummedSpentToday(userId);
-            case WEEKLY -> spentInPeriodService.getSummedSpentWeekly(userId);
-            case MONTHLY -> spentInPeriodService.getSummedSpentMonthly(userId);
+            case DAILY -> financialPeriodService.getSummedExpenseToday(userId);
+            case WEEKLY -> financialPeriodService.getSummedExpenseWeekly(userId);
+            case MONTHLY -> financialPeriodService.getSummedExpenseMonthly(userId);
         };
     }
 

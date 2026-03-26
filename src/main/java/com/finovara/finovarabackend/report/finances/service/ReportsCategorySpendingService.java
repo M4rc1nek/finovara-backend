@@ -5,7 +5,7 @@ import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.dto.CategorySpendingDto;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.time.SpentInPeriodService;
+import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,14 +22,14 @@ import java.util.Optional;
 @Slf4j
 public class ReportsCategorySpendingService {
     private final UserManagerService userManagerService;
-    private final SpentInPeriodService spentInPeriodService;
+    private final FinancialPeriodService financialPeriodService;
     private final ExpenseRepository expenseRepository;
 
     public CategorySpendingDto getCategorySpendingReport(String email, ExpenseCategory category) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
-        LocalDate startMonth = spentInPeriodService.today().withDayOfMonth(1);
-        LocalDate today = spentInPeriodService.today();
+        LocalDate startMonth = financialPeriodService.today().withDayOfMonth(1);
+        LocalDate today = financialPeriodService.today();
 
         List<Expense> expenses = expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), category, startMonth, today);
 
