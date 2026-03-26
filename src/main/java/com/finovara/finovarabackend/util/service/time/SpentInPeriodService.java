@@ -17,18 +17,18 @@ public class SpentInPeriodService {
         return LocalDate.now();
     }
 
-    public BigDecimal getSpentToday(Long userId) {
+    public BigDecimal getSummedSpentToday(Long userId) {
         LocalDate today = today();
         return getSpentInPeriod(userId, today, today);
     }
 
-    public BigDecimal getSpentWeekly(Long userId) {
+    public BigDecimal getSummedSpentWeekly(Long userId) {
         LocalDate today = today();
         LocalDate firstDayOfWeek = today.with(DayOfWeek.MONDAY);
         return getSpentInPeriod(userId, firstDayOfWeek, today);
     }
 
-    public BigDecimal getSpentMonthly(Long userId) {
+    public BigDecimal getSummedSpentMonthly(Long userId) {
         LocalDate today = today();
         LocalDate startMonth = today.withDayOfMonth(1);
         return getSpentInPeriod(userId, startMonth, today);

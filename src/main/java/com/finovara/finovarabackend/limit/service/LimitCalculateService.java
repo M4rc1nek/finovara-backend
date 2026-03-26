@@ -26,9 +26,9 @@ public class LimitCalculateService {
                 .orElseThrow(() -> new ActiveLimitNotFoundException("Active Limit not found"));
 
         BigDecimal spent = switch (limit.getLimitType()) {
-            case DAILY -> spentInPeriodService.getSpentToday(userId);
-            case WEEKLY -> spentInPeriodService.getSpentWeekly(userId);
-            case MONTHLY -> spentInPeriodService.getSpentMonthly(userId);
+            case DAILY -> spentInPeriodService.getSummedSpentToday(userId);
+            case WEEKLY -> spentInPeriodService.getSummedSpentWeekly(userId);
+            case MONTHLY -> spentInPeriodService.getSummedSpentMonthly(userId);
         };
 
         BigDecimal remaining = limit.getAmount().subtract(spent);

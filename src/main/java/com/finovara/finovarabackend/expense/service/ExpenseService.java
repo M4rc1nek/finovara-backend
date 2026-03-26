@@ -149,9 +149,9 @@ public class ExpenseService {
     private BigDecimal checkSpentInPeriod(LimitType limitType, Long userId) {
         if (limitType == null) return BigDecimal.ZERO;
         return switch (limitType) {
-            case DAILY -> spentInPeriodService.getSpentToday(userId);
-            case WEEKLY -> spentInPeriodService.getSpentWeekly(userId);
-            case MONTHLY -> spentInPeriodService.getSpentMonthly(userId);
+            case DAILY -> spentInPeriodService.getSummedSpentToday(userId);
+            case WEEKLY -> spentInPeriodService.getSummedSpentWeekly(userId);
+            case MONTHLY -> spentInPeriodService.getSummedSpentMonthly(userId);
         };
     }
 

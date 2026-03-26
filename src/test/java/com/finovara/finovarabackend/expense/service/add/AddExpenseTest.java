@@ -88,7 +88,7 @@ class AddExpenseTest {
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
-        when(spentInPeriodService.getSpentToday(anyLong())).thenReturn(BigDecimal.ZERO);
+        when(spentInPeriodService.getSummedSpentToday(anyLong())).thenReturn(BigDecimal.ZERO);
         when(expenseRepository.save(any())).thenAnswer(invocation -> {
             Expense expense = invocation.getArgument(0);
             expense.setId(1L);
@@ -130,7 +130,7 @@ class AddExpenseTest {
         );
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(spentInPeriodService.getSpentToday(anyLong())).thenReturn(BigDecimal.ZERO);
+        when(spentInPeriodService.getSummedSpentToday(anyLong())).thenReturn(BigDecimal.ZERO);
 
         assertThrows(InvalidInputException.class, () -> expenseService.addExpense(dto, email, LimitType.DAILY));
         verify(expenseRepository, never()).save(any());

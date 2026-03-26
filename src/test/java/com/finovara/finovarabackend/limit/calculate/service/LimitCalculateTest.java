@@ -55,14 +55,14 @@ public class LimitCalculateTest {
         LimitStatsDto expectedDTO = new LimitStatsDto(limitId, limit.getLimitType(), limit.getAmount(), spentToday, remaining, percentage, status, date);
 
         when(limitRepository.findByIdAndUserAssignedId(userId, limitId)).thenReturn(Optional.of(limit));
-        when(spentInPeriodService.getSpentToday(userId)).thenReturn(spentToday);
+        when(spentInPeriodService.getSummedSpentToday(userId)).thenReturn(spentToday);
         when(limitMapper.mapLimitStatsToDto(limit, spentToday, remaining, percentage, status, date)).thenReturn(expectedDTO);
 
         LimitStatsDto result = limitService.calculateLimitStats(userId, limitId, date);
 
         assertEquals(result, expectedDTO);
         verify(limitRepository).findByIdAndUserAssignedId(userId, limitId);
-        verify(spentInPeriodService).getSpentToday(userId);
+        verify(spentInPeriodService).getSummedSpentToday(userId);
         verify(limitMapper).mapLimitStatsToDto(limit, spentToday, remaining, percentage, status, date);
     }
 
