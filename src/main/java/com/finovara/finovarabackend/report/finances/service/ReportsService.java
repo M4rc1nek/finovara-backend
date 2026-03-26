@@ -3,16 +3,13 @@ package com.finovara.finovarabackend.report.finances.service;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.dto.ReportMonthlyChartDTO;
-import com.finovara.finovarabackend.report.finances.dto.ReportsAverageDTO;
 import com.finovara.finovarabackend.report.finances.dto.ReportsHighestExpense;
-import com.finovara.finovarabackend.report.finances.sum.dto.ReportSumDto;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -24,29 +21,6 @@ public class ReportsService {
     private final RevenueRepository revenueRepository;
     private final ExpenseRepository expenseRepository;
 
-
-    public ReportsAverageDTO calculateAverageRevenueAndExpense(Long userId, int year, int month) {
-        List<Revenue> revenues = findRevenueForMonth(userId, year, month);
-        List<Expense> expenses = findExpenseForMonth(userId, year, month);
-
-        BigDecimal sumRevenue = revenues.stream()
-                .map(Revenue::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal sumExpense = expenses.stream()
-                .map(Expense::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        BigDecimal avgRevenue = revenues.isEmpty() ? BigDecimal.ZERO : sumRevenue.divide(BigDecimal.valueOf(revenues.size()), 2, RoundingMode.HALF_UP);
-        BigDecimal avgExpense = expenses.isEmpty() ? BigDecimal.ZERO : sumExpense.divide(BigDecimal.valueOf(expenses.size()), 2, RoundingMode.HALF_UP);
-
-        return new ReportsAverageDTO(avgRevenue, avgExpense);
-    }
-
-    public ReportsAverageDTO getAverageRevenueAndExpense(Long userId) {
-        LocalDate now = LocalDate.now();
-        return calculateAverageRevenueAndExpense(userId, now.getYear(), now.getMonthValue());
-    }
 
     public List<ReportsHighestExpense> getHighestExpense(Long userId, int year, int month) {
         List<Expense> expenses = findExpenseForMonth(userId, year, month);

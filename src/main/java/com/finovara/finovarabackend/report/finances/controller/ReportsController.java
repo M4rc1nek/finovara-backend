@@ -21,10 +21,6 @@ public class ReportsController {
     private final ReportsService reportsService;
     private final ReportsCategorySpendingService reportsCategorySpendingService;
 
-    @GetMapping("/average/{userId}")
-    public ResponseEntity<ReportsAverageDTO> averageRevenueAndExpense(@PathVariable Long userId) {
-        return ResponseEntity.ok(reportsService.getAverageRevenueAndExpense(userId));
-    }
 
     @GetMapping("/highest/{userId}")
     public ResponseEntity<List<ReportsHighestExpense>> highestExpense(@PathVariable Long userId) {

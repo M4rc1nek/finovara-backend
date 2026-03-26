@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.report.finances.service.sum;
 
-import com.finovara.finovarabackend.report.finances.sum.dto.ReportSumDto;
-import com.finovara.finovarabackend.report.finances.sum.model.ReportSumType;
+import com.finovara.finovarabackend.report.dto.ReportDto;
+import com.finovara.finovarabackend.report.model.ReportPeriodType;
 import com.finovara.finovarabackend.report.finances.sum.sevice.ReportSumService;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
@@ -32,9 +32,9 @@ class ReportsSumRevenueTest {
 
         when(financialPeriodService.getSummedRevenuesToday(USER_ID)).thenReturn(expected);
 
-        ReportSumDto result = reportSumService.sumRevenue(USER_ID, ReportSumType.DAILY);
+        ReportDto result = reportSumService.sumRevenue(USER_ID, ReportPeriodType.DAILY);
 
-        assertEquals(ReportSumType.DAILY, result.reportSumType());
+        assertEquals(ReportPeriodType.DAILY, result.reportPeriodType());
         assertEquals(expected, result.amount());
         verify(financialPeriodService).getSummedRevenuesToday(USER_ID);
     }
@@ -45,9 +45,9 @@ class ReportsSumRevenueTest {
 
         when(financialPeriodService.getSummedRevenuesWeekly(USER_ID)).thenReturn(expected);
 
-        ReportSumDto result = reportSumService.sumRevenue(USER_ID, ReportSumType.WEEKLY);
+        ReportDto result = reportSumService.sumRevenue(USER_ID, ReportPeriodType.WEEKLY);
 
-        assertEquals(ReportSumType.WEEKLY, result.reportSumType());
+        assertEquals(ReportPeriodType.WEEKLY, result.reportPeriodType());
         assertEquals(expected, result.amount());
         verify(financialPeriodService).getSummedRevenuesWeekly(USER_ID);
     }
@@ -58,9 +58,9 @@ class ReportsSumRevenueTest {
 
         when(financialPeriodService.getSummedRevenuesMonthly(USER_ID)).thenReturn(expected);
 
-        ReportSumDto result = reportSumService.sumRevenue(USER_ID, ReportSumType.MONTHLY);
+        ReportDto result = reportSumService.sumRevenue(USER_ID, ReportPeriodType.MONTHLY);
 
-        assertEquals(ReportSumType.MONTHLY, result.reportSumType());
+        assertEquals(ReportPeriodType.MONTHLY, result.reportPeriodType());
         assertEquals(expected, result.amount());
         verify(financialPeriodService).getSummedRevenuesMonthly(USER_ID);
     }
