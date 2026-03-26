@@ -30,38 +30,38 @@ class ReportsSumRevenueTest {
     void shouldReturnDailySum() {
         BigDecimal expected = BigDecimal.valueOf(250);
 
-        when(financialPeriodService.getSummedExpenseToday(USER_ID)).thenReturn(expected);
+        when(financialPeriodService.getSummedRevenuesToday(USER_ID)).thenReturn(expected);
 
         ReportSumDto result = reportSumService.sumRevenue(USER_ID, ReportSumType.DAILY);
 
         assertEquals(ReportSumType.DAILY, result.reportSumType());
         assertEquals(expected, result.amount());
-        verify(financialPeriodService).getSummedExpenseToday(USER_ID);
+        verify(financialPeriodService).getSummedRevenuesToday(USER_ID);
     }
 
     @Test
     void shouldReturnWeeklySum() {
         BigDecimal expected = BigDecimal.valueOf(300);
 
-        when(financialPeriodService.getSummedExpenseWeekly(USER_ID)).thenReturn(expected);
+        when(financialPeriodService.getSummedRevenuesWeekly(USER_ID)).thenReturn(expected);
 
         ReportSumDto result = reportSumService.sumRevenue(USER_ID, ReportSumType.WEEKLY);
 
         assertEquals(ReportSumType.WEEKLY, result.reportSumType());
         assertEquals(expected, result.amount());
-        verify(financialPeriodService).getSummedExpenseWeekly(USER_ID);
+        verify(financialPeriodService).getSummedRevenuesWeekly(USER_ID);
     }
 
     @Test
     void shouldReturnMonthlySum() {
         BigDecimal expected = BigDecimal.valueOf(500);
 
-        when(financialPeriodService.getSummedExpenseMonthly(USER_ID)).thenReturn(expected);
+        when(financialPeriodService.getSummedRevenuesMonthly(USER_ID)).thenReturn(expected);
 
         ReportSumDto result = reportSumService.sumRevenue(USER_ID, ReportSumType.MONTHLY);
 
         assertEquals(ReportSumType.MONTHLY, result.reportSumType());
         assertEquals(expected, result.amount());
-        verify(financialPeriodService).getSummedExpenseMonthly(USER_ID);
+        verify(financialPeriodService).getSummedRevenuesMonthly(USER_ID);
     }
 }
