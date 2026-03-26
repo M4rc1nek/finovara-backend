@@ -18,13 +18,16 @@ public class HighestExpenseService {
     private final ExpenseRepository expenseRepository;
 
     public List<ReportsHighestExpense> getHighestExpense(Long userId, ReportPeriodType reportPeriodType) {
+        if (reportPeriodType == null) {
+            throw new InvalidInputException("Unsupported report period type.");
+        }
         LocalDate today = LocalDate.now();
         LocalDate from;
         switch (reportPeriodType) {
             case DAILY -> from = today;
             case WEEKLY -> from = today.with(DayOfWeek.MONDAY);
             case MONTHLY -> from = today.withDayOfMonth(1);
-            default -> throw new InvalidInputException("Unsupported report period type.");
+            default -> throw new IllegalStateException("Unexpected value: " + reportPeriodType);
         }
 
         return expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(userId, from, today, PageRequest.of(0, 5));
