@@ -36,7 +36,7 @@ class ReportsAverageRevenueTest {
         List<Revenue> revenues = List.of(new Revenue(), new Revenue());
 
         when(revenueRepository.findAllByUserAssignedId(userId)).thenReturn(revenues);
-        when(financialPeriodService.getSummedRevenuesToday(userId)).thenReturn(BigDecimal.valueOf(200));
+        when(financialPeriodService.getEarned(userId, PeriodType.DAILY)).thenReturn(BigDecimal.valueOf(200));
 
         ReportDto result = reportAverageService.calculateAverageRevenue(userId, PeriodType.DAILY);
 
@@ -51,7 +51,7 @@ class ReportsAverageRevenueTest {
         List<Revenue> revenues = List.of(new Revenue(), new Revenue(), new Revenue());
 
         when(revenueRepository.findAllByUserAssignedId(userId)).thenReturn(revenues);
-        when(financialPeriodService.getSummedRevenuesWeekly(userId)).thenReturn(BigDecimal.valueOf(300));
+        when(financialPeriodService.getEarned(userId, PeriodType.WEEKLY)).thenReturn(BigDecimal.valueOf(300));
 
         ReportDto result = reportAverageService.calculateAverageRevenue(userId, PeriodType.WEEKLY);
 
@@ -66,7 +66,7 @@ class ReportsAverageRevenueTest {
         List<Revenue> revenues = List.of(new Revenue());
 
         when(revenueRepository.findAllByUserAssignedId(userId)).thenReturn(revenues);
-        when(financialPeriodService.getSummedRevenuesMonthly(userId)).thenReturn(BigDecimal.valueOf(500));
+        when(financialPeriodService.getEarned(userId, PeriodType.MONTHLY)).thenReturn(BigDecimal.valueOf(500));
 
         ReportDto result = reportAverageService.calculateAverageRevenue(userId, PeriodType.MONTHLY);
 

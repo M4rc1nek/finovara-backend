@@ -5,7 +5,6 @@ import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
-import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -18,13 +17,12 @@ import java.util.List;
 public class RecurringRevenueProcessor {
 
     private final UserRepository userRepository;
-    private final FinancialPeriodService financialPeriodService;
     private final RevenueService revenueService;
 
     @Transactional
     public void generateRecurringRevenues() {
         List<User> users = userRepository.findAll();
-        LocalDate today = financialPeriodService.today();
+        LocalDate today = LocalDate.now();
 
         for (User user : users) {
             RevenueSettings settings = user.getRevenueSettings();

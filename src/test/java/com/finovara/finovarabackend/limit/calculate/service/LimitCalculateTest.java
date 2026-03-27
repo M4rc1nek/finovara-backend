@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.limit.mapper.LimitMapper;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.model.LimitStatus;
 import com.finovara.finovarabackend.limit.model.LimitType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.limit.service.LimitCalculateService;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
@@ -55,14 +56,14 @@ public class LimitCalculateTest {
         LimitStatsDto expectedDTO = new LimitStatsDto(limitId, limit.getLimitType(), limit.getAmount(), spentToday, remaining, percentage, status, date);
 
         when(limitRepository.findByIdAndUserAssignedId(userId, limitId)).thenReturn(Optional.of(limit));
-        when(financialPeriodService.getSummedExpenseToday(userId)).thenReturn(spentToday);
+        when(financialPeriodService.getSpent(userId, PeriodType.DAILY)).thenReturn(spentToday);
         when(limitMapper.mapLimitStatsToDto(limit, spentToday, remaining, percentage, status, date)).thenReturn(expectedDTO);
 
         LimitStatsDto result = limitService.calculateLimitStats(userId, limitId, date);
 
         assertEquals(result, expectedDTO);
         verify(limitRepository).findByIdAndUserAssignedId(userId, limitId);
-        verify(financialPeriodService).getSummedExpenseToday(userId);
+        verify(financialPeriodService).getSpent(userId, PeriodType.DAILY);
         verify(limitMapper).mapLimitStatsToDto(limit, spentToday, remaining, percentage, status, date);
     }
 

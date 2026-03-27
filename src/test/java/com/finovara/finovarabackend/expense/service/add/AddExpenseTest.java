@@ -10,6 +10,7 @@ import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
 import com.finovara.finovarabackend.limit.model.LimitType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
@@ -88,7 +89,7 @@ class AddExpenseTest {
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
-        when(financialPeriodService.getSummedExpenseToday(anyLong())).thenReturn(BigDecimal.ZERO);
+        when(financialPeriodService.getSpent(anyLong(), eq(PeriodType.DAILY))).thenReturn(BigDecimal.ZERO);
         when(expenseRepository.save(any())).thenAnswer(invocation -> {
             Expense expense = invocation.getArgument(0);
             expense.setId(1L);
@@ -130,7 +131,7 @@ class AddExpenseTest {
         );
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.getSummedExpenseToday(anyLong())).thenReturn(BigDecimal.ZERO);
+        when(financialPeriodService.getSpent(anyLong(), eq(PeriodType.DAILY))).thenReturn(BigDecimal.ZERO);
 
         assertThrows(InvalidInputException.class, () -> expenseService.addExpense(dto, email, LimitType.DAILY));
         verify(expenseRepository, never()).save(any());

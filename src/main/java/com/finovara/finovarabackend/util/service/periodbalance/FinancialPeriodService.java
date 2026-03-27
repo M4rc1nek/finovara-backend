@@ -2,6 +2,7 @@ package com.finovara.finovarabackend.util.service.periodbalance;
 
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,45 +13,28 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 public class FinancialPeriodService {
+
     private final ExpenseRepository expenseRepository;
     private final RevenueRepository revenueRepository;
 
-    public LocalDate today() {
-        return LocalDate.now();
+    public BigDecimal getSpent(Long userId, PeriodType period) {
+        LocalDate today = LocalDate.now();
+        LocalDate from = getStartDate(today, period);
+        return getExpensesInPeriod(userId, from, today);
     }
 
-    public BigDecimal getSummedExpenseToday(Long userId) {
-        LocalDate today = today();
-        return getExpensesInPeriod(userId, today, today);
+    public BigDecimal getEarned(Long userId, PeriodType period) {
+        LocalDate today = LocalDate.now();
+        LocalDate from = getStartDate(today, period);
+        return getRevenuesInPeriod(userId, from, today);
     }
 
-    public BigDecimal getSummedExpenseWeekly(Long userId) {
-        LocalDate today = today();
-        LocalDate firstDayOfWeek = today.with(DayOfWeek.MONDAY);
-        return getExpensesInPeriod(userId, firstDayOfWeek, today);
-    }
-
-    public BigDecimal getSummedExpenseMonthly(Long userId) {
-        LocalDate today = today();
-        LocalDate startMonth = today.withDayOfMonth(1);
-        return getExpensesInPeriod(userId, startMonth, today);
-    }
-
-    public BigDecimal getSummedRevenuesToday(Long userId){
-        LocalDate today = today();
-        return getRevenuesInPeriod(userId, today, today);
-    }
-
-    public BigDecimal getSummedRevenuesWeekly(Long userId) {
-        LocalDate today = today();
-        LocalDate firstDayOfWeek = today.with(DayOfWeek.MONDAY);
-        return getRevenuesInPeriod(userId, firstDayOfWeek, today);
-    }
-
-    public BigDecimal getSummedRevenuesMonthly(Long userId) {
-        LocalDate today = today();
-        LocalDate startMonth = today.withDayOfMonth(1);
-        return getRevenuesInPeriod(userId, startMonth, today);
+    private LocalDate getStartDate(LocalDate today, PeriodType period) {
+        return switch (period) {
+            case DAILY -> today;
+            case WEEKLY -> today.with(DayOfWeek.MONDAY);
+            case MONTHLY -> today.withDayOfMonth(1);
+        };
     }
 
     private BigDecimal getExpensesInPeriod(Long userId, LocalDate from, LocalDate to) {

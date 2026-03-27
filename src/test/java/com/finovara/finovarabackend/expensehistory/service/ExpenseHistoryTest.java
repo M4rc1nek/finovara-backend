@@ -7,7 +7,6 @@ import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,8 +28,6 @@ public class ExpenseHistoryTest {
     @Mock
     private ExpenseRepository expenseRepository;
     @Mock
-    private FinancialPeriodService financialPeriodService;
-    @Mock
     private UserManagerService userManagerService;
     @Mock
     private ExpenseMapper expenseMapper;
@@ -49,13 +46,12 @@ public class ExpenseHistoryTest {
         Expense expense2 = new Expense();
         expense2.setId(2L);
 
-        LocalDate today = LocalDate.of(2025, 12, 5);
+        LocalDate today = LocalDate.now();
         LocalDate startMonth = today.withDayOfMonth(1);
 
         ExpenseDTO dto = new ExpenseDTO(null, null, new BigDecimal("100"), ExpenseCategory.FOOD, today, "test");
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.today()).thenReturn(today);
         when(expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), ExpenseCategory.FOOD, startMonth, today))
                 .thenReturn(List.of(expense, expense2));
         when(expenseMapper.mapExpenseToDTO(any(Expense.class))).thenReturn(dto);
@@ -71,11 +67,10 @@ public class ExpenseHistoryTest {
         User user = new User();
         user.setId(2L);
 
-        LocalDate today = LocalDate.of(2025, 12, 5);
+        LocalDate today = LocalDate.now();
         LocalDate startMonth = today.withDayOfMonth(1);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.today()).thenReturn(today);
         when(expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), ExpenseCategory.FOOD, startMonth, today)).thenReturn(List.of());
 
         List<ExpenseDTO> result = expenseHistoryService.getExpenseByCategory(email, ExpenseCategory.FOOD);

@@ -35,7 +35,7 @@ class ReportsAverageExpenseTest {
         List<Expense> expenses = List.of(new Expense(), new Expense());
 
         when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(expenses);
-        when(financialPeriodService.getSummedExpenseToday(userId)).thenReturn(BigDecimal.valueOf(200));
+        when(financialPeriodService.getSpent(userId, PeriodType.DAILY)).thenReturn(BigDecimal.valueOf(200));
 
         ReportDto result = reportAverageService.calculateAverageExpense(userId, PeriodType.DAILY);
 
@@ -50,7 +50,7 @@ class ReportsAverageExpenseTest {
         List<Expense> expenses = List.of(new Expense(), new Expense(), new Expense());
 
         when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(expenses);
-        when(financialPeriodService.getSummedExpenseWeekly(userId)).thenReturn(BigDecimal.valueOf(300));
+        when(financialPeriodService.getSpent(userId, PeriodType.WEEKLY)).thenReturn(BigDecimal.valueOf(300));
 
         ReportDto result = reportAverageService.calculateAverageExpense(userId, PeriodType.WEEKLY);
 
@@ -65,7 +65,7 @@ class ReportsAverageExpenseTest {
         List<Expense> expenses = List.of(new Expense());
 
         when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(expenses);
-        when(financialPeriodService.getSummedExpenseMonthly(userId)).thenReturn(BigDecimal.valueOf(500));
+        when(financialPeriodService.getSpent(userId, PeriodType.MONTHLY)).thenReturn(BigDecimal.valueOf(500));
 
         ReportDto result = reportAverageService.calculateAverageExpense(userId, PeriodType.MONTHLY);
 

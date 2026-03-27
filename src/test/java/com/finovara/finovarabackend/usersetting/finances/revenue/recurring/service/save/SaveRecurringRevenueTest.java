@@ -50,7 +50,7 @@ class SaveRecurringRevenueTest {
 
     @Test
     void shouldEnableRecurringRevenue() {
-        LocalDate startDate = LocalDate.now();
+        LocalDate startDate = LocalDate.of(2026, 3, 1);
         RecurringRevenueDto dto = new RecurringRevenueDto(
                 true,
                 BigDecimal.valueOf(500),
@@ -74,7 +74,7 @@ class SaveRecurringRevenueTest {
 
     @Test
     void shouldDisableRecurringRevenue() {
-        LocalDate startDate = LocalDate.now();
+        LocalDate startDate = LocalDate.of(2026, 3, 1);
         RecurringRevenueDto dto = new RecurringRevenueDto(
                 false,
                 BigDecimal.valueOf(500),

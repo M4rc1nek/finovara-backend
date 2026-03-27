@@ -10,7 +10,6 @@ import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.model.CountQuantityLimitStrategy;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
-import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,8 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
@@ -28,9 +25,6 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SaveCountQuantityLimitTest {
-
-    @Mock
-    private FinancialPeriodService financialPeriodService;
 
     @Mock
     private UserManagerService userManagerService;
@@ -60,7 +54,6 @@ class SaveCountQuantityLimitTest {
     @Test
     void shouldEnableCountQuantityLimitWhenLimitIsSufficient() {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(financialPeriodService.today()).thenReturn(LocalDate.now());
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(anyLong(), any(), any()))
                 .thenReturn(3L);
 
@@ -76,7 +69,6 @@ class SaveCountQuantityLimitTest {
     @Test
     void shouldThrowWhenLimitLessThanAlreadyCountedExpenses() {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(financialPeriodService.today()).thenReturn(LocalDate.now());
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(anyLong(), any(), any()))
                 .thenReturn(5L);
 
@@ -107,7 +99,6 @@ class SaveCountQuantityLimitTest {
     @Test
     void shouldResetEmergencyModeWhenStrategyChanges() {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(financialPeriodService.today()).thenReturn(LocalDate.now());
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(anyLong(), any(), any()))
                 .thenReturn(2L);
 

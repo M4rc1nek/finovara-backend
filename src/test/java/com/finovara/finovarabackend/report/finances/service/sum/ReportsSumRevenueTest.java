@@ -1,8 +1,8 @@
 package com.finovara.finovarabackend.report.finances.service.sum;
 
 import com.finovara.finovarabackend.report.dto.ReportDto;
-import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.report.finances.sum.sevice.ReportSumService;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,38 +30,38 @@ class ReportsSumRevenueTest {
     void shouldReturnDailySum() {
         BigDecimal expected = BigDecimal.valueOf(250);
 
-        when(financialPeriodService.getSummedRevenuesToday(USER_ID)).thenReturn(expected);
+        when(financialPeriodService.getEarned(USER_ID, PeriodType.DAILY)).thenReturn(expected);
 
         ReportDto result = reportSumService.sumRevenue(USER_ID, PeriodType.DAILY);
 
         assertEquals(PeriodType.DAILY, result.periodType());
         assertEquals(expected, result.amount());
-        verify(financialPeriodService).getSummedRevenuesToday(USER_ID);
+        verify(financialPeriodService).getEarned(USER_ID, PeriodType.DAILY);
     }
 
     @Test
     void shouldReturnWeeklySum() {
         BigDecimal expected = BigDecimal.valueOf(300);
 
-        when(financialPeriodService.getSummedRevenuesWeekly(USER_ID)).thenReturn(expected);
+        when(financialPeriodService.getEarned(USER_ID, PeriodType.WEEKLY)).thenReturn(expected);
 
         ReportDto result = reportSumService.sumRevenue(USER_ID, PeriodType.WEEKLY);
 
         assertEquals(PeriodType.WEEKLY, result.periodType());
         assertEquals(expected, result.amount());
-        verify(financialPeriodService).getSummedRevenuesWeekly(USER_ID);
+        verify(financialPeriodService).getEarned(USER_ID, PeriodType.WEEKLY);
     }
 
     @Test
     void shouldReturnMonthlySum() {
         BigDecimal expected = BigDecimal.valueOf(500);
 
-        when(financialPeriodService.getSummedRevenuesMonthly(USER_ID)).thenReturn(expected);
+        when(financialPeriodService.getEarned(USER_ID, PeriodType.MONTHLY)).thenReturn(expected);
 
         ReportDto result = reportSumService.sumRevenue(USER_ID, PeriodType.MONTHLY);
 
         assertEquals(PeriodType.MONTHLY, result.periodType());
         assertEquals(expected, result.amount());
-        verify(financialPeriodService).getSummedRevenuesMonthly(USER_ID);
+        verify(financialPeriodService).getEarned(USER_ID, PeriodType.MONTHLY);
     }
 }

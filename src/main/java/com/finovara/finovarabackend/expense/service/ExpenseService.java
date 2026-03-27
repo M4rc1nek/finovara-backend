@@ -21,6 +21,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.servi
 import com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service.RevenueScoringService;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -149,9 +150,9 @@ public class ExpenseService {
     private BigDecimal checkSpentInPeriod(LimitType limitType, Long userId) {
         if (limitType == null) return BigDecimal.ZERO;
         return switch (limitType) {
-            case DAILY -> financialPeriodService.getSummedExpenseToday(userId);
-            case WEEKLY -> financialPeriodService.getSummedExpenseWeekly(userId);
-            case MONTHLY -> financialPeriodService.getSummedExpenseMonthly(userId);
+            case DAILY -> financialPeriodService.getSpent(userId, PeriodType.DAILY);
+            case WEEKLY -> financialPeriodService.getSpent(userId, PeriodType.WEEKLY);
+            case MONTHLY -> financialPeriodService.getSpent(userId, PeriodType.MONTHLY);
         };
     }
 

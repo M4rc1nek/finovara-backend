@@ -43,7 +43,7 @@ class GetRecurringRevenueTest {
 
     @Test
     void shouldReturnRecurringRevenueWhenEnabled() {
-        LocalDate startDate = LocalDate.now();
+        LocalDate startDate = LocalDate.of(2026, 3, 1);
         revenueSettings.setRecurringRevenuesEnable(true);
         revenueSettings.setRecurringAmount(BigDecimal.valueOf(500));
         revenueSettings.setRevenueCategory(RevenueCategory.SALARY);
@@ -63,7 +63,7 @@ class GetRecurringRevenueTest {
 
     @Test
     void shouldReturnRecurringRevenueWhenDisabled() {
-        LocalDate startDate = LocalDate.now();
+        LocalDate startDate = LocalDate.of(2026, 3, 1);
         revenueSettings.setRecurringRevenuesEnable(false);
         revenueSettings.setRecurringAmount(BigDecimal.valueOf(200));
         revenueSettings.setRevenueCategory(RevenueCategory.BONUS);

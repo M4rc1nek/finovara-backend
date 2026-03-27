@@ -6,7 +6,6 @@ import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.dto.CategorySpendingDto;
 import com.finovara.finovarabackend.report.finances.categoryspending.service.ReportsCategorySpendingService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -31,9 +30,6 @@ class CategorySpendingTest {
     private UserManagerService userManagerService;
 
     @Mock
-    private FinancialPeriodService financialPeriodService;
-
-    @Mock
     private ExpenseRepository expenseRepository;
 
     @InjectMocks
@@ -53,7 +49,7 @@ class CategorySpendingTest {
         String email = "test@test.com";
         ExpenseCategory category = ExpenseCategory.FOOD;
 
-        LocalDate today = LocalDate.of(2025, 3, 15);
+        LocalDate today = LocalDate.now();
         LocalDate startMonth = today.withDayOfMonth(1);
 
         Expense expense1 = new Expense();
@@ -63,7 +59,6 @@ class CategorySpendingTest {
         expense2.setAmount(BigDecimal.valueOf(50));
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.today()).thenReturn(today);
 
         when(expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), category, startMonth, today)).thenReturn(List.of(expense1, expense2));
 
@@ -81,11 +76,10 @@ class CategorySpendingTest {
         String email = "test@test.com";
         ExpenseCategory category = ExpenseCategory.FOOD;
 
-        LocalDate today = LocalDate.of(2025, 3, 15);
+        LocalDate today = LocalDate.now();
         LocalDate startMonth = today.withDayOfMonth(1);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.today()).thenReturn(today);
 
         when(expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), category, startMonth, today)).thenReturn(List.of());
 
@@ -102,11 +96,10 @@ class CategorySpendingTest {
         String email = "test@test.com";
         ExpenseCategory category = ExpenseCategory.FOOD;
 
-        LocalDate today = LocalDate.of(2025, 3, 15);
+        LocalDate today = LocalDate.now();
         LocalDate startMonth = today.withDayOfMonth(1);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.today()).thenReturn(today);
 
         when(expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), category, startMonth, today)).thenReturn(List.of());
         when(expenseRepository.sumExpensesByUserAndDateRange(user.getId(), startMonth, today)).thenReturn(BigDecimal.valueOf(1000));

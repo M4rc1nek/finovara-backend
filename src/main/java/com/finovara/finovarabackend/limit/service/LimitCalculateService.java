@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.limit.mapper.LimitMapper;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.model.LimitStatus;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,9 @@ public class LimitCalculateService {
                 .orElseThrow(() -> new ActiveLimitNotFoundException("Active Limit not found"));
 
         BigDecimal spent = switch (limit.getLimitType()) {
-            case DAILY -> financialPeriodService.getSummedExpenseToday(userId);
-            case WEEKLY -> financialPeriodService.getSummedExpenseWeekly(userId);
-            case MONTHLY -> financialPeriodService.getSummedExpenseMonthly(userId);
+            case DAILY -> financialPeriodService.getSpent(userId, PeriodType.DAILY);
+            case WEEKLY -> financialPeriodService.getSpent(userId, PeriodType.WEEKLY);
+            case MONTHLY -> financialPeriodService.getSpent(userId, PeriodType.MONTHLY);
         };
 
         BigDecimal remaining = limit.getAmount().subtract(spent);

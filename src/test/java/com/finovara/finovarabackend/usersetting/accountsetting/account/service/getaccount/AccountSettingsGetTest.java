@@ -52,7 +52,7 @@ class AccountSettingsGetTest {
         User user = new User();
         user.setUsername("john123");
         user.setEmail(email);
-        user.setCreatedAt(LocalDateTime.now());
+        user.setCreatedAt(LocalDateTime.of(2026, 3, 1, 12, 0));
         user.setProfileImagePath(null);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);

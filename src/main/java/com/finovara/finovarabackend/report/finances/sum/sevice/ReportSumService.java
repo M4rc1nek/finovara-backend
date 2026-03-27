@@ -17,9 +17,9 @@ public class ReportSumService {
     public ReportDto sumExpense(Long userId, PeriodType periodType) {
 
         BigDecimal amount = switch (periodType) {
-            case DAILY -> financialPeriodService.getSummedExpenseToday(userId);
-            case WEEKLY -> financialPeriodService.getSummedExpenseWeekly(userId);
-            case MONTHLY -> financialPeriodService.getSummedExpenseMonthly(userId);
+            case DAILY -> financialPeriodService.getSpent(userId, PeriodType.DAILY);
+            case WEEKLY -> financialPeriodService.getSpent(userId, PeriodType.WEEKLY);
+            case MONTHLY -> financialPeriodService.getSpent(userId, PeriodType.MONTHLY);
 
         };
 
@@ -28,9 +28,9 @@ public class ReportSumService {
 
     public ReportDto sumRevenue(Long userId, PeriodType periodType){
         BigDecimal amount = switch (periodType){
-            case DAILY -> financialPeriodService.getSummedRevenuesToday(userId);
-            case WEEKLY -> financialPeriodService.getSummedRevenuesWeekly(userId);
-            case MONTHLY -> financialPeriodService.getSummedRevenuesMonthly(userId);
+            case DAILY -> financialPeriodService.getEarned(userId, PeriodType.DAILY);
+            case WEEKLY -> financialPeriodService.getEarned(userId, PeriodType.WEEKLY);
+            case MONTHLY -> financialPeriodService.getEarned(userId, PeriodType.MONTHLY);
         };
         return new ReportDto(periodType, amount);
 

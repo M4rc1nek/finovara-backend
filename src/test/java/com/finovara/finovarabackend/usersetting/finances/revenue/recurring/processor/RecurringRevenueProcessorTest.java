@@ -7,7 +7,6 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.model.RecurringStrategy;
-import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,8 +25,6 @@ public class RecurringRevenueProcessorTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private FinancialPeriodService financialPeriodService;
-    @Mock
     private RevenueService revenueService;
     @InjectMocks
     private RecurringRevenueProcessor recurringRevenueProcessor;
@@ -36,13 +33,14 @@ public class RecurringRevenueProcessorTest {
 
     @Test
     void shouldGenerateRecurringRevenuesSuccessfully() {
+        LocalDate today = LocalDate.now();
         User user = new User();
         user.setId(1L);
         user.setEmail(EMAIL);
 
         RevenueSettings settings = RevenueSettings.builder()
                 .recurringRevenuesEnable(true)
-                .nextExecutionDate(LocalDate.of(2026, 3, 20))
+                .nextExecutionDate(today)
                 .recurringAmount(new BigDecimal(100))
                 .revenueCategory(RevenueCategory.SALARY)
                 .recurringStrategy(RecurringStrategy.DAILY)
@@ -52,7 +50,6 @@ public class RecurringRevenueProcessorTest {
         user.setRevenueSettings(settings);
 
         when(userRepository.findAll()).thenReturn(List.of(user));
-        when(financialPeriodService.today()).thenReturn(LocalDate.of(2026, 3, 20));
 
         recurringRevenueProcessor.generateRecurringRevenues();
 
@@ -62,7 +59,7 @@ public class RecurringRevenueProcessorTest {
                         user.getId(),
                         new BigDecimal(100),
                         RevenueCategory.SALARY,
-                        LocalDate.of(2026, 3, 20),
+                        today,
                         "Cykliczny przychód"
                 ),
                 user.getEmail()
@@ -71,13 +68,14 @@ public class RecurringRevenueProcessorTest {
 
     @Test
     void shouldGenerateMultipleRevenuesUntilToday() {
+        LocalDate today = LocalDate.now();
         User user = new User();
         user.setId(1L);
         user.setEmail(EMAIL);
 
         RevenueSettings settings = RevenueSettings.builder()
                 .recurringRevenuesEnable(true)
-                .nextExecutionDate(LocalDate.of(2026, 3, 17))
+                .nextExecutionDate(today.minusDays(3))
                 .recurringAmount(new BigDecimal(100))
                 .revenueCategory(RevenueCategory.SALARY)
                 .recurringStrategy(RecurringStrategy.DAILY)
@@ -87,11 +85,10 @@ public class RecurringRevenueProcessorTest {
         user.setRevenueSettings(settings);
 
         when(userRepository.findAll()).thenReturn(List.of(user));
-        when(financialPeriodService.today()).thenReturn(LocalDate.of(2026, 3, 20));
 
         recurringRevenueProcessor.generateRecurringRevenues();
 
-        verify(revenueService, times(4)) // 17,18,19,20
+        verify(revenueService, times(4)) // today-3, today-2, today-1, today
                 .addRevenue(any(RevenueDTO.class), eq(user.getEmail()));
     }
 
@@ -101,7 +98,6 @@ public class RecurringRevenueProcessorTest {
         user.setEmail(EMAIL);
 
         when(userRepository.findAll()).thenReturn(List.of(user));
-        when(financialPeriodService.today()).thenReturn(LocalDate.now());
 
         recurringRevenueProcessor.generateRecurringRevenues();
 

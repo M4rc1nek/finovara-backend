@@ -26,9 +26,9 @@ public class ReportAverageService {
         List<Expense> expenses = expenseRepository.findAllByUserAssignedId(userId);
 
         BigDecimal amount = switch (periodType) {
-            case DAILY -> calculateAverage(financialPeriodService.getSummedExpenseToday(userId), expenses);
-            case WEEKLY -> calculateAverage(financialPeriodService.getSummedExpenseWeekly(userId), expenses);
-            case MONTHLY -> calculateAverage(financialPeriodService.getSummedExpenseMonthly(userId), expenses);
+            case DAILY -> calculateAverage(financialPeriodService.getSpent(userId, PeriodType.DAILY), expenses);
+            case WEEKLY -> calculateAverage(financialPeriodService.getSpent(userId, PeriodType.WEEKLY), expenses);
+            case MONTHLY -> calculateAverage(financialPeriodService.getSpent(userId, PeriodType.MONTHLY), expenses);
         };
 
         return new ReportDto(periodType, amount);
@@ -37,9 +37,9 @@ public class ReportAverageService {
     public ReportDto calculateAverageRevenue(Long userId, PeriodType periodType) {
         List<Revenue> revenues = revenueRepository.findAllByUserAssignedId(userId);
         BigDecimal amount = switch (periodType) {
-            case DAILY -> calculateAverage(financialPeriodService.getSummedRevenuesToday(userId), revenues);
-            case WEEKLY -> calculateAverage(financialPeriodService.getSummedRevenuesWeekly(userId), revenues);
-            case MONTHLY -> calculateAverage(financialPeriodService.getSummedRevenuesMonthly(userId), revenues);
+            case DAILY -> calculateAverage(financialPeriodService.getEarned(userId, PeriodType.DAILY), revenues);
+            case WEEKLY -> calculateAverage(financialPeriodService.getEarned(userId, PeriodType.WEEKLY), revenues);
+            case MONTHLY -> calculateAverage(financialPeriodService.getEarned(userId, PeriodType.MONTHLY), revenues);
         };
         return new ReportDto(periodType, amount);
     }
