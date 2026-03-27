@@ -1,30 +1,20 @@
 package com.finovara.finovarabackend.report.finances.controller;
 
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.report.finances.dto.*;
+import com.finovara.finovarabackend.report.finances.dto.CategorySpendingDto;
 import com.finovara.finovarabackend.report.finances.service.ReportsCategorySpendingService;
-import com.finovara.finovarabackend.report.finances.service.ReportsService;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
 public class ReportsController {
-    private final ReportsService reportsService;
     private final ReportsCategorySpendingService reportsCategorySpendingService;
-
-    @GetMapping("/chart/{userId}")
-    public List<ReportMonthlyChartDTO> chart(@PathVariable Long userId) {
-        return reportsService.getMonthlyChart(userId);
-    }
 
     @GetMapping
     public ResponseEntity<CategorySpendingDto> categorySpending(ExpenseCategory category) {
