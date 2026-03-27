@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.highestexpense.dto.ReportsHighestExpense;
 import com.finovara.finovarabackend.report.model.ReportPeriodType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HighestExpenseService {
     private final ExpenseRepository expenseRepository;
+
+    @Value("${expenses.highest.page-size}")
+    private int pageSize;
+
 
     public List<ReportsHighestExpense> getHighestExpense(Long userId, ReportPeriodType reportPeriodType) {
         if (reportPeriodType == null) {
@@ -30,7 +35,7 @@ public class HighestExpenseService {
             default -> throw new IllegalStateException("Unexpected value: " + reportPeriodType);
         }
 
-        return expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(userId, from, today, PageRequest.of(0, 5));
+        return expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(userId, from, today, PageRequest.of(0, pageSize));
 
     }
 

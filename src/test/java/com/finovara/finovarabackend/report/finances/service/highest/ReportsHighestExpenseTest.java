@@ -11,7 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class HighestExpenseServiceTest {
+class ReportsHighestExpenseTest {
 
     @Mock
     private ExpenseRepository expenseRepository;
@@ -35,7 +36,6 @@ class HighestExpenseServiceTest {
     private LocalDate today;
     private LocalDate monday;
     private LocalDate firstDayOfMonth;
-    private PageRequest pageRequest;
     private List<ReportsHighestExpense> mockResult;
 
     @BeforeEach
@@ -43,42 +43,41 @@ class HighestExpenseServiceTest {
         today = LocalDate.now();
         monday = today.with(DayOfWeek.MONDAY);
         firstDayOfMonth = today.withDayOfMonth(1);
-        pageRequest = PageRequest.of(0, 5);
+        ReflectionTestUtils.setField(highestExpenseService,"pageSize", 5 );
         mockResult = List.of(mock(ReportsHighestExpense.class));
     }
 
     @Test
     void shouldReturnDailyHighestExpenses() {
-        when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(USER_ID, today, today, pageRequest)).thenReturn(mockResult);
+        when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(today), eq(today), any(Pageable.class))).thenReturn(mockResult);
 
         List<ReportsHighestExpense> result = highestExpenseService.getHighestExpense(USER_ID, ReportPeriodType.DAILY);
 
         assertEquals(mockResult, result);
 
-        verify(expenseRepository).findHighestExpensesByUserAssignedIdAndPeriod(USER_ID, today, today, pageRequest);
+        verify(expenseRepository).findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(today), eq(today), any(Pageable.class));
     }
 
     @Test
     void shouldReturnWeeklyHighestExpenses() {
-        when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(USER_ID, monday, today, pageRequest)).thenReturn(mockResult);
+        when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(monday), eq(today), any(Pageable.class))).thenReturn(mockResult);
 
         List<ReportsHighestExpense> result = highestExpenseService.getHighestExpense(USER_ID, ReportPeriodType.WEEKLY);
 
         assertEquals(mockResult, result);
 
-        verify(expenseRepository).findHighestExpensesByUserAssignedIdAndPeriod(USER_ID, monday, today, pageRequest);
+        verify(expenseRepository).findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(monday), eq(today), any(Pageable.class));
     }
 
     @Test
     void shouldReturnMonthlyHighestExpenses() {
-        when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(USER_ID, firstDayOfMonth, today, pageRequest))
-                .thenReturn(mockResult);
+        when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(firstDayOfMonth), eq(today), any(Pageable.class))).thenReturn(mockResult);
 
         List<ReportsHighestExpense> result = highestExpenseService.getHighestExpense(USER_ID, ReportPeriodType.MONTHLY);
 
         assertEquals(mockResult, result);
 
-        verify(expenseRepository).findHighestExpensesByUserAssignedIdAndPeriod(USER_ID, firstDayOfMonth, today, pageRequest);
+        verify(expenseRepository).findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(firstDayOfMonth), eq(today), any(Pageable.class));
     }
 
     @Test

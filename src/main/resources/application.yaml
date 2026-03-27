@@ -77,3 +77,8 @@ scheduler:
 
   revenue-settings:
     recurring-frequency: "0 0 0 * * ?"
+
+expenses:
+  highest:
+    page-size: 5
+
