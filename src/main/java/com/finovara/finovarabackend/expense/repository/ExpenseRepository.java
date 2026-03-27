@@ -46,6 +46,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Expense> findAllByUserAndCategoryAndDateRange(@Param("userId") Long userId, @Param("category") ExpenseCategory category,
                                                        @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
+    @Query("SELECT e FROM Expense e WHERE e.userAssigned.id = :userId AND e.category = :category")
+    List<Expense> findAllByUserAssignedIdAndCategory(@Param("userId") Long userId, @Param("category") ExpenseCategory category);
+
     @Query("""
              SELECT NEW com.finovara.finovarabackend.report.finances.highestexpense.dto.ReportsHighestExpense(
              e.category,

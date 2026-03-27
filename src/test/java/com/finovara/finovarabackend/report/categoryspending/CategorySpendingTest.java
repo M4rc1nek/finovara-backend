@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.dto.CategorySpendingDto;
-import com.finovara.finovarabackend.report.finances.service.ReportsCategorySpendingService;
+import com.finovara.finovarabackend.report.finances.categoryspending.service.ReportsCategorySpendingService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;

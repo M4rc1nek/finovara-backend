@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.highestexpense.dto.ReportsHighestExpense;
 import com.finovara.finovarabackend.report.finances.highestexpense.service.HighestExpenseService;
-import com.finovara.finovarabackend.report.model.ReportPeriodType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,7 +51,7 @@ class ReportsHighestExpenseTest {
     void shouldReturnDailyHighestExpenses() {
         when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(today), eq(today), any(Pageable.class))).thenReturn(mockResult);
 
-        List<ReportsHighestExpense> result = highestExpenseService.getHighestExpense(USER_ID, ReportPeriodType.DAILY);
+        List<ReportsHighestExpense> result = highestExpenseService.getHighestExpense(USER_ID, PeriodType.DAILY);
 
         assertEquals(mockResult, result);
 
@@ -62,7 +62,7 @@ class ReportsHighestExpenseTest {
     void shouldReturnWeeklyHighestExpenses() {
         when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(monday), eq(today), any(Pageable.class))).thenReturn(mockResult);
 
-        List<ReportsHighestExpense> result = highestExpenseService.getHighestExpense(USER_ID, ReportPeriodType.WEEKLY);
+        List<ReportsHighestExpense> result = highestExpenseService.getHighestExpense(USER_ID, PeriodType.WEEKLY);
 
         assertEquals(mockResult, result);
 
@@ -73,7 +73,7 @@ class ReportsHighestExpenseTest {
     void shouldReturnMonthlyHighestExpenses() {
         when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(firstDayOfMonth), eq(today), any(Pageable.class))).thenReturn(mockResult);
 
-        List<ReportsHighestExpense> result = highestExpenseService.getHighestExpense(USER_ID, ReportPeriodType.MONTHLY);
+        List<ReportsHighestExpense> result = highestExpenseService.getHighestExpense(USER_ID, PeriodType.MONTHLY);
 
         assertEquals(mockResult, result);
 

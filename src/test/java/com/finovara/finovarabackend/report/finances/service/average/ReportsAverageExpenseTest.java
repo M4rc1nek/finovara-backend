@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.dto.ReportDto;
 import com.finovara.finovarabackend.report.finances.average.service.ReportAverageService;
-import com.finovara.finovarabackend.report.model.ReportPeriodType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,11 +37,11 @@ class ReportsAverageExpenseTest {
         when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(expenses);
         when(financialPeriodService.getSummedExpenseToday(userId)).thenReturn(BigDecimal.valueOf(200));
 
-        ReportDto result = reportAverageService.calculateAverageExpense(userId, ReportPeriodType.DAILY);
+        ReportDto result = reportAverageService.calculateAverageExpense(userId, PeriodType.DAILY);
 
         assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
 
-        assertThat(result.reportPeriodType()).isEqualTo(ReportPeriodType.DAILY);
+        assertThat(result.periodType()).isEqualTo(PeriodType.DAILY);
     }
 
     @Test
@@ -52,11 +52,11 @@ class ReportsAverageExpenseTest {
         when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(expenses);
         when(financialPeriodService.getSummedExpenseWeekly(userId)).thenReturn(BigDecimal.valueOf(300));
 
-        ReportDto result = reportAverageService.calculateAverageExpense(userId, ReportPeriodType.WEEKLY);
+        ReportDto result = reportAverageService.calculateAverageExpense(userId, PeriodType.WEEKLY);
 
         assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
 
-        assertThat(result.reportPeriodType()).isEqualTo(ReportPeriodType.WEEKLY);
+        assertThat(result.periodType()).isEqualTo(PeriodType.WEEKLY);
     }
 
     @Test
@@ -67,10 +67,10 @@ class ReportsAverageExpenseTest {
         when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(expenses);
         when(financialPeriodService.getSummedExpenseMonthly(userId)).thenReturn(BigDecimal.valueOf(500));
 
-        ReportDto result = reportAverageService.calculateAverageExpense(userId, ReportPeriodType.MONTHLY);
+        ReportDto result = reportAverageService.calculateAverageExpense(userId, PeriodType.MONTHLY);
 
         assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(500));
 
-        assertThat(result.reportPeriodType()).isEqualTo(ReportPeriodType.MONTHLY);
+        assertThat(result.periodType()).isEqualTo(PeriodType.MONTHLY);
     }
 }

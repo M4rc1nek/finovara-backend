@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.report.finances.average.service;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.dto.ReportDto;
-import com.finovara.finovarabackend.report.model.ReportPeriodType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
@@ -22,26 +22,26 @@ public class ReportAverageService {
     private final ExpenseRepository expenseRepository;
     private final RevenueRepository revenueRepository;
 
-    public ReportDto calculateAverageExpense(Long userId, ReportPeriodType reportPeriodType) {
+    public ReportDto calculateAverageExpense(Long userId, PeriodType periodType) {
         List<Expense> expenses = expenseRepository.findAllByUserAssignedId(userId);
 
-        BigDecimal amount = switch (reportPeriodType) {
+        BigDecimal amount = switch (periodType) {
             case DAILY -> calculateAverage(financialPeriodService.getSummedExpenseToday(userId), expenses);
             case WEEKLY -> calculateAverage(financialPeriodService.getSummedExpenseWeekly(userId), expenses);
             case MONTHLY -> calculateAverage(financialPeriodService.getSummedExpenseMonthly(userId), expenses);
         };
 
-        return new ReportDto(reportPeriodType, amount);
+        return new ReportDto(periodType, amount);
     }
 
-    public ReportDto calculateAverageRevenue(Long userId, ReportPeriodType reportPeriodType) {
+    public ReportDto calculateAverageRevenue(Long userId, PeriodType periodType) {
         List<Revenue> revenues = revenueRepository.findAllByUserAssignedId(userId);
-        BigDecimal amount = switch (reportPeriodType) {
+        BigDecimal amount = switch (periodType) {
             case DAILY -> calculateAverage(financialPeriodService.getSummedRevenuesToday(userId), revenues);
             case WEEKLY -> calculateAverage(financialPeriodService.getSummedRevenuesWeekly(userId), revenues);
             case MONTHLY -> calculateAverage(financialPeriodService.getSummedRevenuesMonthly(userId), revenues);
         };
-        return new ReportDto(reportPeriodType, amount);
+        return new ReportDto(periodType, amount);
     }
 
     private BigDecimal calculateAverage(BigDecimal sum, List<?> list) {

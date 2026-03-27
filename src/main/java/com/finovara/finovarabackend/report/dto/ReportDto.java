@@ -1,11 +1,11 @@
 package com.finovara.finovarabackend.report.dto;
 
-import com.finovara.finovarabackend.report.model.ReportPeriodType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 
 import java.math.BigDecimal;
 
 public record ReportDto(
-        ReportPeriodType reportPeriodType,
+        PeriodType periodType,
         BigDecimal amount
 ) {
 }

@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.report.dto.ReportDto;
 import com.finovara.finovarabackend.report.finances.average.service.ReportAverageService;
-import com.finovara.finovarabackend.report.model.ReportPeriodType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,11 +38,11 @@ class ReportsAverageRevenueTest {
         when(revenueRepository.findAllByUserAssignedId(userId)).thenReturn(revenues);
         when(financialPeriodService.getSummedRevenuesToday(userId)).thenReturn(BigDecimal.valueOf(200));
 
-        ReportDto result = reportAverageService.calculateAverageRevenue(userId, ReportPeriodType.DAILY);
+        ReportDto result = reportAverageService.calculateAverageRevenue(userId, PeriodType.DAILY);
 
         assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
 
-        assertThat(result.reportPeriodType()).isEqualTo(ReportPeriodType.DAILY);
+        assertThat(result.periodType()).isEqualTo(PeriodType.DAILY);
     }
 
     @Test
@@ -53,11 +53,11 @@ class ReportsAverageRevenueTest {
         when(revenueRepository.findAllByUserAssignedId(userId)).thenReturn(revenues);
         when(financialPeriodService.getSummedRevenuesWeekly(userId)).thenReturn(BigDecimal.valueOf(300));
 
-        ReportDto result = reportAverageService.calculateAverageRevenue(userId, ReportPeriodType.WEEKLY);
+        ReportDto result = reportAverageService.calculateAverageRevenue(userId, PeriodType.WEEKLY);
 
         assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
 
-        assertThat(result.reportPeriodType()).isEqualTo(ReportPeriodType.WEEKLY);
+        assertThat(result.periodType()).isEqualTo(PeriodType.WEEKLY);
     }
 
     @Test
@@ -68,10 +68,10 @@ class ReportsAverageRevenueTest {
         when(revenueRepository.findAllByUserAssignedId(userId)).thenReturn(revenues);
         when(financialPeriodService.getSummedRevenuesMonthly(userId)).thenReturn(BigDecimal.valueOf(500));
 
-        ReportDto result = reportAverageService.calculateAverageRevenue(userId, ReportPeriodType.MONTHLY);
+        ReportDto result = reportAverageService.calculateAverageRevenue(userId, PeriodType.MONTHLY);
 
         assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(500));
 
-        assertThat(result.reportPeriodType()).isEqualTo(ReportPeriodType.MONTHLY);
+        assertThat(result.periodType()).isEqualTo(PeriodType.MONTHLY);
     }
 }
