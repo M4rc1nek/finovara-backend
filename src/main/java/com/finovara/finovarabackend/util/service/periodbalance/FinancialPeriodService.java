@@ -1,14 +1,18 @@
 package com.finovara.finovarabackend.util.service.periodbalance;
 
+import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
+import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,18 @@ public class FinancialPeriodService {
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
         return getRevenuesInPeriod(userId, from, today);
+    }
+
+    public List<Revenue> findRevenuesInPeriod(Long userId, PeriodType period){
+        LocalDate today = LocalDate.now();
+        LocalDate from = getStartDate(today, period);
+        return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, today);
+    }
+
+    public List<Expense> findExpensesInPeriod(Long userId, PeriodType period){
+        LocalDate today = LocalDate.now();
+        LocalDate from = getStartDate(today, period);
+        return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, today);
     }
 
     private LocalDate getStartDate(LocalDate today, PeriodType period) {

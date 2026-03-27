@@ -18,7 +18,8 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
 
     List<Revenue> findAllByUserAssignedId(Long userId);
 
-    List<Revenue> findAllByUserAssignedIdAndCreatedAtBetween(Long userId, LocalDate from, LocalDate to);
+    @Query("SELECT r From Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt BETWEEN :startDate AND :endDate")
+    List<Revenue> findAllByUserAssignedIdAndCreatedAtBetween(@Param("userId") Long userId, @Param("startDate")LocalDate from, @Param("endDate") LocalDate to);
 
     // coalesce zwroci mi przychody lub 0 jest przychody sa null
     @Query("SELECT coalesce(sum(r.amount),0) from Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt = :date")

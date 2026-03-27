@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.expense.repository;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.report.finances.highestexpense.dto.ReportsHighestExpense;
+import com.finovara.finovarabackend.revenue.model.Revenue;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,7 +22,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     List<Expense> findAllByUserAssignedId(Long userId);
 
-    List<Expense> findAllByUserAssignedIdAndCreatedAtBetween(Long userId, LocalDate from, LocalDate to);
+    @Query("SELECT e From Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
+    List<Expense> findAllByUserAssignedIdAndCreatedAtBetween(@Param("userId") Long userId, @Param("startDate")LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("SELECT e FROM Expense e WHERE e.userAssigned.id = :userId ORDER BY e.id DESC")
     List<Expense> findFiveLastByUserAssignedId(@Param("userId") Long userId, Pageable pageable);
@@ -56,7 +58,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             )
             FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :from AND :to ORDER BY e.amount DESC
             """)
-    List<ReportsHighestExpense> findHighestExpensesByUserAssignedIdAndPeriod(@Param("userId") Long userId, LocalDate from, LocalDate to,Pageable pageable);
+    List<ReportsHighestExpense> findHighestExpensesByUserAssignedIdAndPeriod(@Param("userId") Long userId, LocalDate from, LocalDate to, Pageable pageable);
 }
 
 
