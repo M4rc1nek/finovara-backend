@@ -1,9 +1,10 @@
-package com.finovara.finovarabackend.util.periodbalance;
+package com.finovara.finovarabackend.util.periodbalance.revenue;
 
-import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
+import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,11 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class FinancialPeriodServiceTest {
-
-    @Mock
-    private ExpenseRepository expenseRepository;
-
+class FinancialPeriodRevenueTest {
     @Mock
     private RevenueRepository revenueRepository;
 
@@ -33,10 +30,24 @@ class FinancialPeriodServiceTest {
 
     private final Long USER_ID = 1L;
 
+    LocalDate today;
+
+    @BeforeEach
+    void setUp() {
+        today = LocalDate.now();
+    }
+
+    @Test
+    void shouldReturnEarnedToday() {
+        when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, today, today)).thenReturn(BigDecimal.valueOf(50));
+
+        BigDecimal result = financialPeriodService.getEarned(USER_ID, PeriodType.DAILY);
+
+        assertThat(result).isEqualByComparingTo("50");
+    }
 
     @Test
     void shouldReturnEarnedWeekly() {
-        LocalDate today = LocalDate.now();
         LocalDate monday = today.with(DayOfWeek.MONDAY);
 
         when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, monday, today)).thenReturn(BigDecimal.valueOf(75));
@@ -44,11 +55,23 @@ class FinancialPeriodServiceTest {
         BigDecimal result = financialPeriodService.getEarned(USER_ID, PeriodType.WEEKLY);
 
         assertThat(result).isEqualByComparingTo("75");
+        verify(revenueRepository).sumRevenuesByUserAndDateRange(USER_ID, monday, today);
+    }
+
+    @Test
+    void shouldReturnEarnedMonthly() {
+        LocalDate startOfMonth = today.withDayOfMonth(1);
+
+        when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, startOfMonth, today)).thenReturn(BigDecimal.valueOf(120));
+
+        BigDecimal result = financialPeriodService.getEarned(USER_ID, PeriodType.MONTHLY);
+
+        assertThat(result).isEqualByComparingTo("120");
+        verify(revenueRepository).sumRevenuesByUserAndDateRange(USER_ID, startOfMonth, today);
     }
 
     @Test
     void shouldReturnAllRevenuesInPeriod() {
-        LocalDate today = LocalDate.now();
         LocalDate monday = today.with(DayOfWeek.MONDAY);
 
         when(revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, monday, today)).thenReturn(List.of());
@@ -57,13 +80,20 @@ class FinancialPeriodServiceTest {
     }
 
     @Test
-    void shouldReturnAllExpensesInPeriod() {
-        LocalDate today = LocalDate.now();
-        LocalDate startOfMonth = today.withDayOfMonth(1);
+    void shouldFindRevenuesByCategory() {
+        LocalDate firstDayOfMonth = today.withDayOfMonth(1);
 
-        when(expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, startOfMonth, today)).thenReturn(List.of());
-        financialPeriodService.findExpensesInPeriod(USER_ID, PeriodType.MONTHLY);
-        verify(expenseRepository).findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, startOfMonth, today);
+        financialPeriodService.findRevenuesInPeriodByCategory(USER_ID, PeriodType.MONTHLY, RevenueCategory.SALARY);
 
+        verify(revenueRepository).findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(USER_ID, firstDayOfMonth, today, RevenueCategory.SALARY);
+    }
+
+    @Test
+    void shouldReturnZeroWhenNoRevenue() {
+        when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, today, today)).thenReturn(null);
+
+        BigDecimal result = financialPeriodService.getEarned(USER_ID, PeriodType.DAILY);
+
+        assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
     }
 }

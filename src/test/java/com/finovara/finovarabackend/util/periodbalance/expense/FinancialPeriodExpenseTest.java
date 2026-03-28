@@ -100,7 +100,6 @@ public class FinancialPeriodExpenseTest {
         assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
-
     @Test
     void shouldFindExpensesInPeriod() {
         LocalDate monday = today.with(DayOfWeek.MONDAY);
@@ -114,11 +113,9 @@ public class FinancialPeriodExpenseTest {
     void shouldFindExpensesInPeriodByCategory() {
         LocalDate firstDayOfMonth = today.withDayOfMonth(1);
 
-        ExpenseCategory category = ExpenseCategory.FOOD;
+        financialPeriodService.findExpensesInPeriodByCategory(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD);
 
-        financialPeriodService.findExpensesInPeriodByCategory(USER_ID, PeriodType.MONTHLY, category);
-
-        verify(expenseRepository).findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(USER_ID, firstDayOfMonth, today, category);
+        verify(expenseRepository).findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(USER_ID, firstDayOfMonth, today, ExpenseCategory.FOOD);
     }
 
 }
