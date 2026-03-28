@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.util.time;
+package com.finovara.finovarabackend.util.periodbalance;
 
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
@@ -33,61 +33,6 @@ class FinancialPeriodServiceTest {
 
     private final Long USER_ID = 1L;
 
-    @Test
-    void shouldReturnSpentToday() {
-        LocalDate today = LocalDate.now();
-
-        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, today, today)).thenReturn(BigDecimal.valueOf(50));
-
-        BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.DAILY);
-
-        assertThat(result).isEqualByComparingTo("50");
-    }
-
-    @Test
-    void shouldReturnZeroWhenNoExpensesToday() {
-        LocalDate today = LocalDate.now();
-
-        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, today, today)).thenReturn(null);
-
-        BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.DAILY);
-
-        assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
-    }
-
-    @Test
-    void shouldCalculateWeeklySpent() {
-        LocalDate today = LocalDate.now();
-        LocalDate monday = today.with(DayOfWeek.MONDAY);
-
-        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, monday, today)).thenReturn(BigDecimal.valueOf(120));
-
-        BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.WEEKLY);
-
-        assertThat(result).isEqualByComparingTo("120");
-    }
-
-    @Test
-    void shouldCalculateMonthlySpent() {
-        LocalDate today = LocalDate.now();
-        LocalDate firstDayOfMonth = today.withDayOfMonth(1);
-
-        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, firstDayOfMonth, today)).thenReturn(BigDecimal.valueOf(300));
-
-        BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.MONTHLY);
-
-        assertThat(result).isEqualByComparingTo("300");
-    }
-
-    @Test
-    void shouldCallRepositoryWithCorrectDatesForWeekly() {
-        financialPeriodService.getSpent(USER_ID, PeriodType.WEEKLY);
-
-        LocalDate today = LocalDate.now();
-        LocalDate monday = today.with(DayOfWeek.MONDAY);
-
-        verify(expenseRepository).sumExpensesByUserAndDateRange(USER_ID, monday, today);
-    }
 
     @Test
     void shouldReturnEarnedWeekly() {

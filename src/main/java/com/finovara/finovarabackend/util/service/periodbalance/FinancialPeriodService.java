@@ -1,8 +1,10 @@
 package com.finovara.finovarabackend.util.service.periodbalance;
 
 import com.finovara.finovarabackend.expense.model.Expense;
+import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.revenue.model.Revenue;
+import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,20 @@ public class FinancialPeriodService {
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
         return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, today);
+    }
+
+
+    public List<Revenue> findRevenuesInPeriodByCategory(Long userId, PeriodType period, RevenueCategory category){
+        LocalDate today = LocalDate.now();
+        LocalDate from = getStartDate(today, period);
+        return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
+    }
+
+
+    public List<Expense> findExpensesInPeriodByCategory(Long userId, PeriodType period, ExpenseCategory category){
+        LocalDate today = LocalDate.now();
+        LocalDate from = getStartDate(today, period);
+        return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today,category);
     }
 
     private LocalDate getStartDate(LocalDate today, PeriodType period) {
