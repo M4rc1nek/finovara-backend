@@ -6,15 +6,16 @@ import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReportsSumRevenueTest {
@@ -24,44 +25,34 @@ class ReportsSumRevenueTest {
     @InjectMocks
     private ReportSumService reportSumService;
 
-    private final Long USER_ID  = 1L;
 
-    @Test
-    void shouldReturnDailySum() {
-        BigDecimal expected = BigDecimal.valueOf(250);
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldSumRevenueInPeriod(PeriodType periodType) {
+        Long userId = 1L;
+        BigDecimal amount = BigDecimal.valueOf(100);
 
-        when(financialPeriodService.getEarned(USER_ID, PeriodType.DAILY)).thenReturn(expected);
+        when(financialPeriodService.getEarned(userId, periodType)).thenReturn(amount);
 
-        ReportDto result = reportSumService.sumRevenue(USER_ID, PeriodType.DAILY);
+        ReportDto result = reportSumService.sumRevenue(userId, periodType);
 
-        assertEquals(PeriodType.DAILY, result.periodType());
-        assertEquals(expected, result.amount());
-        verify(financialPeriodService).getEarned(USER_ID, PeriodType.DAILY);
+        assertThat(result.amount()).isEqualByComparingTo("100");
+        assertThat(result.periodType()).isEqualTo(periodType);
+        verify(financialPeriodService).getEarned(userId, periodType);
+        verifyNoMoreInteractions(financialPeriodService);
     }
 
-    @Test
-    void shouldReturnWeeklySum() {
-        BigDecimal expected = BigDecimal.valueOf(300);
-
-        when(financialPeriodService.getEarned(USER_ID, PeriodType.WEEKLY)).thenReturn(expected);
-
-        ReportDto result = reportSumService.sumRevenue(USER_ID, PeriodType.WEEKLY);
-
-        assertEquals(PeriodType.WEEKLY, result.periodType());
-        assertEquals(expected, result.amount());
-        verify(financialPeriodService).getEarned(USER_ID, PeriodType.WEEKLY);
-    }
 
     @Test
-    void shouldReturnMonthlySum() {
-        BigDecimal expected = BigDecimal.valueOf(500);
+    void shouldReturnZeroWhenNoData() {
+        Long userId = 1L;
 
-        when(financialPeriodService.getEarned(USER_ID, PeriodType.MONTHLY)).thenReturn(expected);
+        when(financialPeriodService.getEarned(userId, PeriodType.DAILY)).thenReturn(BigDecimal.ZERO);
 
-        ReportDto result = reportSumService.sumRevenue(USER_ID, PeriodType.MONTHLY);
+        ReportDto result = reportSumService.sumRevenue(userId, PeriodType.DAILY);
 
-        assertEquals(PeriodType.MONTHLY, result.periodType());
-        assertEquals(expected, result.amount());
-        verify(financialPeriodService).getEarned(USER_ID, PeriodType.MONTHLY);
+        assertThat(result.amount()).isEqualByComparingTo("0");
+        verifyNoMoreInteractions(financialPeriodService);
     }
+
 }
