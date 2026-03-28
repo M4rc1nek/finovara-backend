@@ -13,9 +13,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class FinancialPeriodServiceTest {
@@ -35,8 +37,7 @@ class FinancialPeriodServiceTest {
     void shouldReturnSpentToday() {
         LocalDate today = LocalDate.now();
 
-        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, today, today))
-                .thenReturn(BigDecimal.valueOf(50));
+        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, today, today)).thenReturn(BigDecimal.valueOf(50));
 
         BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.DAILY);
 
@@ -47,8 +48,7 @@ class FinancialPeriodServiceTest {
     void shouldReturnZeroWhenNoExpensesToday() {
         LocalDate today = LocalDate.now();
 
-        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, today, today))
-                .thenReturn(null);
+        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, today, today)).thenReturn(null);
 
         BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.DAILY);
 
@@ -60,8 +60,7 @@ class FinancialPeriodServiceTest {
         LocalDate today = LocalDate.now();
         LocalDate monday = today.with(DayOfWeek.MONDAY);
 
-        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, monday, today))
-                .thenReturn(BigDecimal.valueOf(120));
+        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, monday, today)).thenReturn(BigDecimal.valueOf(120));
 
         BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.WEEKLY);
 
@@ -73,8 +72,7 @@ class FinancialPeriodServiceTest {
         LocalDate today = LocalDate.now();
         LocalDate firstDayOfMonth = today.withDayOfMonth(1);
 
-        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, firstDayOfMonth, today))
-                .thenReturn(BigDecimal.valueOf(300));
+        when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, firstDayOfMonth, today)).thenReturn(BigDecimal.valueOf(300));
 
         BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.MONTHLY);
 
@@ -88,8 +86,7 @@ class FinancialPeriodServiceTest {
         LocalDate today = LocalDate.now();
         LocalDate monday = today.with(DayOfWeek.MONDAY);
 
-        verify(expenseRepository)
-                .sumExpensesByUserAndDateRange(USER_ID, monday, today);
+        verify(expenseRepository).sumExpensesByUserAndDateRange(USER_ID, monday, today);
     }
 
     @Test
@@ -97,11 +94,31 @@ class FinancialPeriodServiceTest {
         LocalDate today = LocalDate.now();
         LocalDate monday = today.with(DayOfWeek.MONDAY);
 
-        when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, monday, today))
-                .thenReturn(BigDecimal.valueOf(75));
+        when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, monday, today)).thenReturn(BigDecimal.valueOf(75));
 
         BigDecimal result = financialPeriodService.getEarned(USER_ID, PeriodType.WEEKLY);
 
         assertThat(result).isEqualByComparingTo("75");
+    }
+
+    @Test
+    void shouldReturnAllRevenuesInPeriod() {
+        LocalDate today = LocalDate.now();
+        LocalDate monday = today.with(DayOfWeek.MONDAY);
+
+        when(revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, monday, today)).thenReturn(List.of());
+        financialPeriodService.findRevenuesInPeriod(USER_ID, PeriodType.WEEKLY);
+        verify(revenueRepository).findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, monday, today);
+    }
+
+    @Test
+    void shouldReturnAllExpensesInPeriod() {
+        LocalDate today = LocalDate.now();
+        LocalDate startOfMonth = today.withDayOfMonth(1);
+
+        when(expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, startOfMonth, today)).thenReturn(List.of());
+        financialPeriodService.findExpensesInPeriod(USER_ID, PeriodType.MONTHLY);
+        verify(expenseRepository).findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, startOfMonth, today);
+
     }
 }
