@@ -1,7 +1,10 @@
 package com.finovara.finovarabackend.revenue.repository;
 
+import com.finovara.finovarabackend.report.finances.highestrevenue.dto.HighestRevenueDto;
+import com.finovara.finovarabackend.report.finances.highestrevenue.service.HighestRevenueService;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,4 +38,14 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
 
     @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt >= :startDate AND r.createdAt <= :endDate")
     BigDecimal sumRevenuesByUserAndDateRange(Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+
+    @Query("""
+             SELECT NEW com.finovara.finovarabackend.report.finances.highestrevenue.dto.HighestRevenueDto(
+             r.category,
+             r.amount
+            )
+            FROM Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt BETWEEN :from AND :to ORDER BY r.amount DESC
+            """)
+    List<HighestRevenueDto> findHighestRevenuesByUserAssignedIdAndPeriod(@Param("userId") Long userId, LocalDate from, LocalDate to, Pageable pageable);
 }

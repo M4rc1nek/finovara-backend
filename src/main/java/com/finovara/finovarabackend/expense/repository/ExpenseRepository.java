@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.expense.repository;
 
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.report.finances.highestexpense.dto.ReportsHighestExpense;
+import com.finovara.finovarabackend.report.finances.highestexpense.dto.HighestExpenseDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -52,13 +52,13 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
                                                        @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     @Query("""
-             SELECT NEW com.finovara.finovarabackend.report.finances.highestexpense.dto.ReportsHighestExpense(
+             SELECT NEW com.finovara.finovarabackend.report.finances.highestexpense.dto.HighestExpenseDto(
              e.category,
              e.amount
             )
             FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :from AND :to ORDER BY e.amount DESC
             """)
-    List<ReportsHighestExpense> findHighestExpensesByUserAssignedIdAndPeriod(@Param("userId") Long userId, LocalDate from, LocalDate to, Pageable pageable);
+    List<HighestExpenseDto> findHighestExpensesByUserAssignedIdAndPeriod(@Param("userId") Long userId, LocalDate from, LocalDate to, Pageable pageable);
 }
 
 

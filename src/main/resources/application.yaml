@@ -82,3 +82,8 @@ expenses:
   highest:
     page-size: 5
 
+
+revenues:
+  highest:
+    page-size: 5
+

@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 
 import java.math.BigDecimal;
 
-public record ReportsHighestExpense(
+public record HighestExpenseDto(
         ExpenseCategory expenseCategory,
         BigDecimal amount
 ) {

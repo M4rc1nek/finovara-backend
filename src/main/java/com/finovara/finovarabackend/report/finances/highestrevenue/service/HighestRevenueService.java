@@ -1,8 +1,8 @@
-package com.finovara.finovarabackend.report.finances.highestexpense.service;
+package com.finovara.finovarabackend.report.finances.highestrevenue.service;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
-import com.finovara.finovarabackend.report.finances.highestexpense.dto.HighestExpenseDto;
+import com.finovara.finovarabackend.report.finances.highestrevenue.dto.HighestRevenueDto;
+import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,14 +15,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class HighestExpenseService {
-    private final ExpenseRepository expenseRepository;
+public class HighestRevenueService {
 
-    @Value("${expenses.highest.page-size}")
+    private final RevenueRepository revenueRepository;
+
+    @Value("${revenues.highest.page-size}")
     private int pageSize;
 
-
-    public List<HighestExpenseDto> getHighestExpense(Long userId, PeriodType periodType) {
+    public List<HighestRevenueDto> getHighestRevenue(Long userId, PeriodType periodType) {
         if (periodType == null) {
             throw new InvalidInputException("Unsupported report period type.");
         }
@@ -35,8 +35,7 @@ public class HighestExpenseService {
             default -> throw new IllegalStateException("Unexpected value: " + periodType);
         }
 
-        return expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(userId, from, today, PageRequest.of(0, pageSize));
+        return revenueRepository.findHighestRevenuesByUserAssignedIdAndPeriod(userId, from, today, PageRequest.of(0, pageSize));
 
     }
-
 }
