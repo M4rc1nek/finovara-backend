@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.revenue.repository;
 
 import com.finovara.finovarabackend.revenue.model.Revenue;
+import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,7 +20,11 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<Revenue> findAllByUserAssignedId(Long userId);
 
     @Query("SELECT r From Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt BETWEEN :startDate AND :endDate")
-    List<Revenue> findAllByUserAssignedIdAndCreatedAtBetween(@Param("userId") Long userId, @Param("startDate")LocalDate from, @Param("endDate") LocalDate to);
+    List<Revenue> findAllByUserAssignedIdAndCreatedAtBetween(@Param("userId") Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
+
+    @Query("SELECT r From Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt BETWEEN :startDate AND :endDate AND r.category = :category")
+    List<Revenue> findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(@Param("userId") Long userId, @Param("startDate") LocalDate from,
+                                                                        @Param("endDate") LocalDate to, @Param("category") RevenueCategory category);
 
     // coalesce zwroci mi przychody lub 0 jest przychody sa null
     @Query("SELECT coalesce(sum(r.amount),0) from Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt = :date")

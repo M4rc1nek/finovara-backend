@@ -94,26 +94,25 @@ public class FinancialPeriodExpenseTest {
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, startOfMonth, today)).thenReturn(null);
-
         BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.MONTHLY);
 
         assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
     @Test
-    void shouldFindExpensesInPeriod() {
+    void shouldReturnExpensesInPeriod() {
         LocalDate monday = today.with(DayOfWeek.MONDAY);
 
-        financialPeriodService.findExpensesInPeriod(USER_ID, PeriodType.WEEKLY);
+        financialPeriodService.getExpensesInPeriod(USER_ID, PeriodType.WEEKLY);
 
         verify(expenseRepository).findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, monday, today);
     }
 
     @Test
-    void shouldFindExpensesInPeriodByCategory() {
+    void shouldReturnExpensesInPeriodByCategory() {
         LocalDate firstDayOfMonth = today.withDayOfMonth(1);
 
-        financialPeriodService.findExpensesInPeriodByCategory(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD);
+        financialPeriodService.getExpensesInPeriodByCategory(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD);
 
         verify(expenseRepository).findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(USER_ID, firstDayOfMonth, today, ExpenseCategory.FOOD);
     }

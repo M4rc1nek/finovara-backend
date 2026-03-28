@@ -3,7 +3,6 @@ package com.finovara.finovarabackend.expense.repository;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.report.finances.highestexpense.dto.ReportsHighestExpense;
-import com.finovara.finovarabackend.revenue.model.Revenue;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -24,6 +23,10 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     @Query("SELECT e From Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
     List<Expense> findAllByUserAssignedIdAndCreatedAtBetween(@Param("userId") Long userId, @Param("startDate")LocalDate from, @Param("endDate") LocalDate to);
+
+    @Query("SELECT e From Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :startDate AND :endDate AND e.category = :category")
+    List<Expense> findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(@Param("userId") Long userId, @Param("startDate")LocalDate from,
+                                                                        @Param("endDate") LocalDate to, @Param("category") ExpenseCategory category);
 
     @Query("SELECT e FROM Expense e WHERE e.userAssigned.id = :userId ORDER BY e.id DESC")
     List<Expense> findFiveLastByUserAssignedId(@Param("userId") Long userId, Pageable pageable);
@@ -47,9 +50,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT e FROM Expense e WHERE e.userAssigned.id = :userId AND e.category = :category AND e.createdAt >= :startDate AND e.createdAt <= :endDate")
     List<Expense> findAllByUserAndCategoryAndDateRange(@Param("userId") Long userId, @Param("category") ExpenseCategory category,
                                                        @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
-
-    @Query("SELECT e FROM Expense e WHERE e.userAssigned.id = :userId AND e.category = :category")
-    List<Expense> findAllByUserAssignedIdAndCategory(@Param("userId") Long userId, @Param("category") ExpenseCategory category);
 
     @Query("""
              SELECT NEW com.finovara.finovarabackend.report.finances.highestexpense.dto.ReportsHighestExpense(

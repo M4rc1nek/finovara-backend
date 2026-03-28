@@ -8,7 +8,6 @@ import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -35,27 +34,27 @@ public class FinancialPeriodService {
         return getRevenuesInPeriod(userId, from, today);
     }
 
-    public List<Revenue> findRevenuesInPeriod(Long userId, PeriodType period){
+    public List<Revenue> getRevenuesInPeriod(Long userId, PeriodType period){
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
         return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, today);
     }
 
-    public List<Expense> findExpensesInPeriod(Long userId, PeriodType period){
+    public List<Expense> getExpensesInPeriod(Long userId, PeriodType period){
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
         return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, today);
     }
 
 
-    public List<Revenue> findRevenuesInPeriodByCategory(Long userId, PeriodType period, RevenueCategory category){
+    public List<Revenue> getRevenuesInPeriodByCategory(Long userId, PeriodType period, RevenueCategory category){
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
         return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
     }
 
 
-    public List<Expense> findExpensesInPeriodByCategory(Long userId, PeriodType period, ExpenseCategory category){
+    public List<Expense> getExpensesInPeriodByCategory(Long userId, PeriodType period, ExpenseCategory category){
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
         return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today,category);

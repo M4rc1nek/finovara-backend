@@ -75,15 +75,15 @@ class FinancialPeriodRevenueTest {
         LocalDate monday = today.with(DayOfWeek.MONDAY);
 
         when(revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, monday, today)).thenReturn(List.of());
-        financialPeriodService.findRevenuesInPeriod(USER_ID, PeriodType.WEEKLY);
+        financialPeriodService.getRevenuesInPeriod(USER_ID, PeriodType.WEEKLY);
         verify(revenueRepository).findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, monday, today);
     }
 
     @Test
-    void shouldFindRevenuesByCategory() {
+    void shouldReturnRevenuesByCategory() {
         LocalDate firstDayOfMonth = today.withDayOfMonth(1);
 
-        financialPeriodService.findRevenuesInPeriodByCategory(USER_ID, PeriodType.MONTHLY, RevenueCategory.SALARY);
+        financialPeriodService.getRevenuesInPeriodByCategory(USER_ID, PeriodType.MONTHLY, RevenueCategory.SALARY);
 
         verify(revenueRepository).findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(USER_ID, firstDayOfMonth, today, RevenueCategory.SALARY);
     }
