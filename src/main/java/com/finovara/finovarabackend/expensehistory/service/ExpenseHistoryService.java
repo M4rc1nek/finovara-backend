@@ -23,11 +23,7 @@ public class ExpenseHistoryService {
     public List<ExpenseDTO> getExpenseByCategory(String email, PeriodType periodType, ExpenseCategory category) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
-        List<Expense> expenses = switch (periodType) {
-            case DAILY -> financialPeriodService.getExpensesInPeriodByCategory(user.getId(), PeriodType.DAILY, category);
-            case WEEKLY -> financialPeriodService.getExpensesInPeriodByCategory(user.getId(), PeriodType.WEEKLY, category);
-            case MONTHLY -> financialPeriodService.getExpensesInPeriodByCategory(user.getId(), PeriodType.MONTHLY, category);
-        };
+        List<Expense> expenses = financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, category);
 
         return expenses.stream()
                 .map(expenseMapper::mapExpenseToDTO)
