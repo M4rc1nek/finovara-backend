@@ -8,6 +8,8 @@ import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,48 +32,36 @@ class ReportsAverageRevenueTest {
     @InjectMocks
     private ReportAverageService reportAverageService;
 
-    @Test
-    void shouldReturnCorrectDailyAverageRevenue() {
+
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldCalculateAverageRevenue(PeriodType periodType){
         Long userId = 1L;
         List<Revenue> revenues = List.of(new Revenue(), new Revenue());
 
         when(revenueRepository.findAllByUserAssignedId(userId)).thenReturn(revenues);
-        when(financialPeriodService.getEarned(userId, PeriodType.DAILY)).thenReturn(BigDecimal.valueOf(200));
+        when(financialPeriodService.getEarned(userId, periodType)).thenReturn(BigDecimal.valueOf(200));
+
+        ReportDto result = reportAverageService.calculateAverageRevenue(userId, periodType);
+
+        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
+
+        assertThat(result.periodType()).isEqualTo(periodType);
+    }
+
+    @Test
+    void shouldReturnZeroWhenNoRevenues() {
+        Long userId = 1L;
+
+        when(revenueRepository.findAllByUserAssignedId(userId)).thenReturn(List.of());
+
+        when(financialPeriodService.getEarned(userId, PeriodType.DAILY)).thenReturn(BigDecimal.ZERO);
 
         ReportDto result = reportAverageService.calculateAverageRevenue(userId, PeriodType.DAILY);
 
-        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
+        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.ZERO);
 
         assertThat(result.periodType()).isEqualTo(PeriodType.DAILY);
     }
 
-    @Test
-    void shouldReturnCorrectWeeklyAverageRevenue() {
-        Long userId = 1L;
-        List<Revenue> revenues = List.of(new Revenue(), new Revenue(), new Revenue());
-
-        when(revenueRepository.findAllByUserAssignedId(userId)).thenReturn(revenues);
-        when(financialPeriodService.getEarned(userId, PeriodType.WEEKLY)).thenReturn(BigDecimal.valueOf(300));
-
-        ReportDto result = reportAverageService.calculateAverageRevenue(userId, PeriodType.WEEKLY);
-
-        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
-
-        assertThat(result.periodType()).isEqualTo(PeriodType.WEEKLY);
-    }
-
-    @Test
-    void shouldReturnCorrectMonthlyAverageRevenue() {
-        Long userId = 1L;
-        List<Revenue> revenues = List.of(new Revenue());
-
-        when(revenueRepository.findAllByUserAssignedId(userId)).thenReturn(revenues);
-        when(financialPeriodService.getEarned(userId, PeriodType.MONTHLY)).thenReturn(BigDecimal.valueOf(500));
-
-        ReportDto result = reportAverageService.calculateAverageRevenue(userId, PeriodType.MONTHLY);
-
-        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(500));
-
-        assertThat(result.periodType()).isEqualTo(PeriodType.MONTHLY);
-    }
 }

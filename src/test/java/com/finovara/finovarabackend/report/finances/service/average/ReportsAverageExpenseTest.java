@@ -8,6 +8,8 @@ import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -29,48 +31,31 @@ class ReportsAverageExpenseTest {
     @InjectMocks
     private ReportAverageService reportAverageService;
 
-    @Test
-    void shouldReturnCorrectDailyAverage() {
+
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldCalculateAverageExpense(PeriodType periodType){
         Long userId = 1L;
         List<Expense> expenses = List.of(new Expense(), new Expense());
 
         when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(expenses);
-        when(financialPeriodService.getSpent(userId, PeriodType.DAILY)).thenReturn(BigDecimal.valueOf(200));
+        when(financialPeriodService.getSpent(userId, periodType)).thenReturn(BigDecimal.valueOf(200));
+
+        ReportDto result = reportAverageService.calculateAverageExpense(userId, periodType);
+
+        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
+        assertThat(result.periodType()).isEqualTo(periodType);
+    }
+
+    @Test
+    void shouldReturnZeroWhenNoExpenses() {
+        Long userId = 1L;
+
+        when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(List.of());
+        when(financialPeriodService.getSpent(userId, PeriodType.DAILY)).thenReturn(BigDecimal.ZERO);
 
         ReportDto result = reportAverageService.calculateAverageExpense(userId, PeriodType.DAILY);
 
-        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
-
-        assertThat(result.periodType()).isEqualTo(PeriodType.DAILY);
-    }
-
-    @Test
-    void shouldReturnCorrectWeeklyAverage() {
-        Long userId = 1L;
-        List<Expense> expenses = List.of(new Expense(), new Expense(), new Expense());
-
-        when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(expenses);
-        when(financialPeriodService.getSpent(userId, PeriodType.WEEKLY)).thenReturn(BigDecimal.valueOf(300));
-
-        ReportDto result = reportAverageService.calculateAverageExpense(userId, PeriodType.WEEKLY);
-
-        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
-
-        assertThat(result.periodType()).isEqualTo(PeriodType.WEEKLY);
-    }
-
-    @Test
-    void shouldReturnCorrectMonthlyAverage() {
-        Long userId = 1L;
-        List<Expense> expenses = List.of(new Expense());
-
-        when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(expenses);
-        when(financialPeriodService.getSpent(userId, PeriodType.MONTHLY)).thenReturn(BigDecimal.valueOf(500));
-
-        ReportDto result = reportAverageService.calculateAverageExpense(userId, PeriodType.MONTHLY);
-
-        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.valueOf(500));
-
-        assertThat(result.periodType()).isEqualTo(PeriodType.MONTHLY);
+        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 }
