@@ -15,25 +15,12 @@ public class ReportSumService {
     private final FinancialPeriodService financialPeriodService;
 
     public ReportDto sumExpense(Long userId, PeriodType periodType) {
-
-        BigDecimal amount = switch (periodType) {
-            case DAILY -> financialPeriodService.getSpent(userId, PeriodType.DAILY);
-            case WEEKLY -> financialPeriodService.getSpent(userId, PeriodType.WEEKLY);
-            case MONTHLY -> financialPeriodService.getSpent(userId, PeriodType.MONTHLY);
-
-        };
-
+        BigDecimal amount = financialPeriodService.getSpent(userId, periodType);
         return new ReportDto(periodType, amount);
     }
 
-    public ReportDto sumRevenue(Long userId, PeriodType periodType){
-        BigDecimal amount = switch (periodType){
-            case DAILY -> financialPeriodService.getEarned(userId, PeriodType.DAILY);
-            case WEEKLY -> financialPeriodService.getEarned(userId, PeriodType.WEEKLY);
-            case MONTHLY -> financialPeriodService.getEarned(userId, PeriodType.MONTHLY);
-        };
+    public ReportDto sumRevenue(Long userId, PeriodType periodType) {
+        BigDecimal amount = financialPeriodService.getEarned(userId, periodType);
         return new ReportDto(periodType, amount);
-
     }
-
 }
