@@ -41,6 +41,7 @@ public class ExpenseHistoryTest {
     private ExpenseHistoryService expenseHistoryService;
 
     private User user;
+    private String email;
     private Expense expense;
     private ExpenseDTO expenseDTO;
 
@@ -48,6 +49,7 @@ public class ExpenseHistoryTest {
     void setUp() {
         user = new User();
         user.setId(1L);
+        email = "test@email.com";
 
         expense = new Expense();
         expenseDTO = new ExpenseDTO(null, null, new BigDecimal(100),
@@ -57,32 +59,26 @@ public class ExpenseHistoryTest {
     @ParameterizedTest
     @EnumSource(PeriodType.class)
     void shouldReturnMappedExpensesForEachPeriod(PeriodType periodType) {
-        String email = "test@test.com";
-        ExpenseCategory category = ExpenseCategory.FOOD;
-
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.getExpensesInPeriodByCategory(1L, periodType, category)).thenReturn(List.of(expense));
+        when(financialPeriodService.getExpensesInPeriodByCategory(1L, periodType, ExpenseCategory.FOOD)).thenReturn(List.of(expense));
         when(expenseMapper.mapExpenseToDTO(expense)).thenReturn(expenseDTO);
 
-        List<ExpenseDTO> result = expenseHistoryService.getExpenseByCategory(email, periodType, category);
+        List<ExpenseDTO> result = expenseHistoryService.getExpenseByCategory(email, periodType, ExpenseCategory.FOOD);
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0)).isEqualTo(expenseDTO);
+        assertThat(result.getFirst()).isEqualTo(expenseDTO);
 
         verify(userManagerService).getUserByEmailOrThrow(email);
-        verify(financialPeriodService).getExpensesInPeriodByCategory(1L, periodType, category);
+        verify(financialPeriodService).getExpensesInPeriodByCategory(1L, periodType, ExpenseCategory.FOOD);
         verify(expenseMapper).mapExpenseToDTO(expense);
     }
 
     @Test
     void shouldReturnEmptyListWhenNoExpenses() {
-        String email = "test@test.com";
-        ExpenseCategory category = ExpenseCategory.FOOD;
-
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.getExpensesInPeriodByCategory(1L, PeriodType.DAILY, category)).thenReturn(List.of());
+        when(financialPeriodService.getExpensesInPeriodByCategory(1L, PeriodType.DAILY, ExpenseCategory.FOOD)).thenReturn(List.of());
 
-        List<ExpenseDTO> result = expenseHistoryService.getExpenseByCategory(email, PeriodType.DAILY, category);
+        List<ExpenseDTO> result = expenseHistoryService.getExpenseByCategory(email, PeriodType.DAILY, ExpenseCategory.FOOD);
 
         assertThat(result).isEmpty();
 
