@@ -8,6 +8,8 @@ import com.finovara.finovarabackend.util.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,61 +33,39 @@ class HighestRevenueTest {
     @InjectMocks
     private HighestRevenueService highestRevenueService;
 
-    private final Long USER_ID = 1L;
-
-    private LocalDate today;
-    private LocalDate monday;
-    private LocalDate firstDayOfMonth;
     private List<HighestRevenueDto> mockResult;
+
+    private final LocalDate baseDate = LocalDate.of(2026, 3, 29);
+    private final Long USER_ID = 1L;
 
     @BeforeEach
     void setUp() {
-        today = LocalDate.now();
-        monday = today.with(DayOfWeek.MONDAY);
-        firstDayOfMonth = today.withDayOfMonth(1);
-
         ReflectionTestUtils.setField(highestRevenueService, "pageSize", 5);
 
         mockResult = List.of(mock(HighestRevenueDto.class));
     }
 
-    @Test
-    void shouldReturnDailyHighestRevenues() {
-        when(revenueRepository.findHighestRevenuesByUserAssignedIdAndPeriod(eq(USER_ID), eq(today), eq(today),
-                any(Pageable.class))).thenReturn(mockResult);
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldReturnHighestRevenueInPeriod(PeriodType periodType) {
+        LocalDate from;
+        LocalDate to = baseDate;
 
-        List<HighestRevenueDto> result = highestRevenueService.getHighestRevenue(USER_ID, PeriodType.DAILY);
+        switch (periodType) {
+            case DAILY -> from = baseDate;
+            case WEEKLY -> from = baseDate.with(DayOfWeek.MONDAY);
+            case MONTHLY -> from = baseDate.withDayOfMonth(1);
+            default -> throw new IllegalArgumentException("Unsupported period");
+        }
 
-        assertEquals(mockResult, result);
+        when(revenueRepository.findHighestRevenuesByUserAssignedIdAndPeriod(eq(USER_ID), eq(from), eq(to), any(Pageable.class)))
+                .thenReturn(mockResult);
 
-        verify(revenueRepository).findHighestRevenuesByUserAssignedIdAndPeriod(eq(USER_ID), eq(today), eq(today), any(Pageable.class)
-        );
-    }
-
-    @Test
-    void shouldReturnWeeklyHighestRevenues() {
-        when(revenueRepository.findHighestRevenuesByUserAssignedIdAndPeriod(eq(USER_ID), eq(monday), eq(today),
-                any(Pageable.class))).thenReturn(mockResult);
-
-        List<HighestRevenueDto> result = highestRevenueService.getHighestRevenue(USER_ID, PeriodType.WEEKLY);
+        List<HighestRevenueDto> result = highestRevenueService.getHighestRevenue(USER_ID, periodType);
 
         assertEquals(mockResult, result);
 
-        verify(revenueRepository).findHighestRevenuesByUserAssignedIdAndPeriod(eq(USER_ID), eq(monday), eq(today),
-                any(Pageable.class));
-    }
-
-    @Test
-    void shouldReturnMonthlyHighestRevenues() {
-        when(revenueRepository.findHighestRevenuesByUserAssignedIdAndPeriod(eq(USER_ID), eq(firstDayOfMonth), eq(today),
-                any(Pageable.class))).thenReturn(mockResult);
-
-        List<HighestRevenueDto> result = highestRevenueService.getHighestRevenue(USER_ID, PeriodType.MONTHLY);
-
-        assertEquals(mockResult, result);
-
-        verify(revenueRepository).findHighestRevenuesByUserAssignedIdAndPeriod(eq(USER_ID), eq(firstDayOfMonth), eq(today),
-                any(Pageable.class));
+        verify(revenueRepository).findHighestRevenuesByUserAssignedIdAndPeriod(eq(USER_ID), eq(from), eq(to), any(Pageable.class));
     }
 
     @Test
