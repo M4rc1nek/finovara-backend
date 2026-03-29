@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.categoryearned;
+package com.finovara.finovarabackend.report.finances.service.categoryearned;
 
 import com.finovara.finovarabackend.report.finances.categoryearned.dto.CategoryEarnedDto;
 import com.finovara.finovarabackend.report.finances.categoryearned.service.CategoryEarnedService;

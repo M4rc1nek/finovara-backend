@@ -8,6 +8,8 @@ import com.finovara.finovarabackend.util.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,64 +27,51 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class HighestExpenseTest {
 
+    private static final Long USER_ID = 1L;
+
     @Mock
     private ExpenseRepository expenseRepository;
 
     @InjectMocks
     private HighestExpenseService highestExpenseService;
 
-    private final Long USER_ID = 1L;
-
-    private LocalDate today;
-    private LocalDate monday;
-    private LocalDate firstDayOfMonth;
     private List<HighestExpenseDto> mockResult;
+
+    private final LocalDate baseDate = LocalDate.of(2026, 3, 29);
 
     @BeforeEach
     void setUp() {
-        today = LocalDate.now();
-        monday = today.with(DayOfWeek.MONDAY);
-        firstDayOfMonth = today.withDayOfMonth(1);
-        ReflectionTestUtils.setField(highestExpenseService,"pageSize", 5 );
+        ReflectionTestUtils.setField(highestExpenseService, "pageSize", 5);
+
         mockResult = List.of(mock(HighestExpenseDto.class));
     }
 
-    @Test
-    void shouldReturnDailyHighestExpenses() {
-        when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(today), eq(today), any(Pageable.class))).thenReturn(mockResult);
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldReturnHighestExpensesInPeriod(PeriodType periodType) {
+        LocalDate from;
+        LocalDate to = baseDate;
 
-        List<HighestExpenseDto> result = highestExpenseService.getHighestExpense(USER_ID, PeriodType.DAILY);
+        switch (periodType) {
+            case DAILY -> from = baseDate;
+            case WEEKLY -> from = baseDate.with(DayOfWeek.MONDAY);
+            case MONTHLY -> from = baseDate.withDayOfMonth(1);
+            default -> throw new IllegalArgumentException("Unsupported period");
+        }
 
-        assertEquals(mockResult, result);
+        when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(from), eq(to), any(Pageable.class)))
+                .thenReturn(mockResult);
 
-        verify(expenseRepository).findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(today), eq(today), any(Pageable.class));
-    }
-
-    @Test
-    void shouldReturnWeeklyHighestExpenses() {
-        when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(monday), eq(today), any(Pageable.class))).thenReturn(mockResult);
-
-        List<HighestExpenseDto> result = highestExpenseService.getHighestExpense(USER_ID, PeriodType.WEEKLY);
-
-        assertEquals(mockResult, result);
-
-        verify(expenseRepository).findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(monday), eq(today), any(Pageable.class));
-    }
-
-    @Test
-    void shouldReturnMonthlyHighestExpenses() {
-        when(expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(firstDayOfMonth), eq(today), any(Pageable.class))).thenReturn(mockResult);
-
-        List<HighestExpenseDto> result = highestExpenseService.getHighestExpense(USER_ID, PeriodType.MONTHLY);
+        List<HighestExpenseDto> result = highestExpenseService.getHighestExpense(USER_ID, periodType);
 
         assertEquals(mockResult, result);
 
-        verify(expenseRepository).findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(firstDayOfMonth), eq(today), any(Pageable.class));
+        verify(expenseRepository).findHighestExpensesByUserAssignedIdAndPeriod(eq(USER_ID), eq(from), eq(to), any(Pageable.class));
     }
 
     @Test
-    void shouldThrowExceptionForUnsupportedReportType() {
+    void shouldThrowExceptionWhenUnsupportedPeriod (){
         assertThrows(InvalidInputException.class, () -> highestExpenseService.getHighestExpense(USER_ID, null));
-
     }
+
 }
