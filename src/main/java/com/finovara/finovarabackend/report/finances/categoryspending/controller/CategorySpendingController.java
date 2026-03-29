@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/reports/category-spending")
 @RequiredArgsConstructor
-public class ReportsCategorySpendingController {
+public class CategorySpendingController {
     private final CategorySpendingService categorySpendingService;
 
     @GetMapping
