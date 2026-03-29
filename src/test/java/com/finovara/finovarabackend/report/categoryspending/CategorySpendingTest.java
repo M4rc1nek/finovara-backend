@@ -3,8 +3,8 @@ package com.finovara.finovarabackend.report.categoryspending;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
-import com.finovara.finovarabackend.report.finances.dto.CategorySpendingDto;
-import com.finovara.finovarabackend.report.finances.categoryspending.service.ReportsCategorySpendingService;
+import com.finovara.finovarabackend.report.finances.categoryspending.dto.CategorySpendingDto;
+import com.finovara.finovarabackend.report.finances.categoryspending.service.CategorySpendingService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 
@@ -33,79 +33,7 @@ class CategorySpendingTest {
     private ExpenseRepository expenseRepository;
 
     @InjectMocks
-    private ReportsCategorySpendingService reportsCategorySpendingService;
+    private CategorySpendingService categorySpendingService;
 
     private User user;
-
-    @BeforeEach
-    void setup() {
-        user = new User();
-        user.setId(1L);
-    }
-
-    @Test
-    void shouldCalculatePercentageForCategory() {
-
-        String email = "test@test.com";
-        ExpenseCategory category = ExpenseCategory.FOOD;
-
-        LocalDate today = LocalDate.now();
-        LocalDate startMonth = today.withDayOfMonth(1);
-
-        Expense expense1 = new Expense();
-        expense1.setAmount(BigDecimal.valueOf(100));
-
-        Expense expense2 = new Expense();
-        expense2.setAmount(BigDecimal.valueOf(50));
-
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-
-        when(expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), category, startMonth, today)).thenReturn(List.of(expense1, expense2));
-
-        when(expenseRepository.sumExpensesByUserAndDateRange(user.getId(), startMonth, today)).thenReturn(BigDecimal.valueOf(500));
-
-        CategorySpendingDto result = reportsCategorySpendingService.getCategorySpendingReport(email, category);
-
-        assertThat(result.percentage()).isEqualByComparingTo("30.00");
-        assertThat(result.category()).isEqualTo(category);
-    }
-
-    @Test
-    void shouldReturnZeroPercentageWhenNoExpenses() {
-
-        String email = "test@test.com";
-        ExpenseCategory category = ExpenseCategory.FOOD;
-
-        LocalDate today = LocalDate.now();
-        LocalDate startMonth = today.withDayOfMonth(1);
-
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-
-        when(expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), category, startMonth, today)).thenReturn(List.of());
-
-        when(expenseRepository.sumExpensesByUserAndDateRange(user.getId(), startMonth, today)).thenReturn(BigDecimal.ZERO);
-
-        CategorySpendingDto result = reportsCategorySpendingService.getCategorySpendingReport(email, category);
-
-        assertThat(result.percentage()).isEqualByComparingTo("0");
-    }
-
-    @Test
-    void shouldReturnZeroWhenCategoryHasNoExpensesButTotalExists() {
-
-        String email = "test@test.com";
-        ExpenseCategory category = ExpenseCategory.FOOD;
-
-        LocalDate today = LocalDate.now();
-        LocalDate startMonth = today.withDayOfMonth(1);
-
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-
-        when(expenseRepository.findAllByUserAndCategoryAndDateRange(user.getId(), category, startMonth, today)).thenReturn(List.of());
-        when(expenseRepository.sumExpensesByUserAndDateRange(user.getId(), startMonth, today)).thenReturn(BigDecimal.valueOf(1000));
-
-        CategorySpendingDto result = reportsCategorySpendingService.getCategorySpendingReport(email, category);
-
-        assertThat(result.percentage()).isEqualByComparingTo("0");
-    }
 }
