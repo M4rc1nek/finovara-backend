@@ -37,7 +37,7 @@ class HighestExpenseTest {
 
     private List<HighestExpenseDto> mockResult;
 
-    private final LocalDate baseDate = LocalDate.of(2026, 3, 29);
+    private final LocalDate baseDate = LocalDate.now();
 
     @BeforeEach
     void setUp() {
