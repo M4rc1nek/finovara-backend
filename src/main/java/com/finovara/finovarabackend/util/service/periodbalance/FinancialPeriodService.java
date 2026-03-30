@@ -58,21 +58,21 @@ public class FinancialPeriodService {
         return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
     }
 
-    public BigDecimal calculateExpenseInPeriod(Long userId, LocalDate from, LocalDate to) {
-        BigDecimal spent = expenseRepository.sumExpensesByUserAndDateRange(userId, from, to);
-        return spent != null ? spent : BigDecimal.ZERO;
-    }
-
-    public BigDecimal calculateRevenueInPeriod(Long userId, LocalDate from, LocalDate to) {
-        BigDecimal revenue = revenueRepository.sumRevenuesByUserAndDateRange(userId, from, to);
-        return revenue != null ? revenue : BigDecimal.ZERO;
-    }
-
     public LocalDate getStartDate(LocalDate today, PeriodType period) {
         return switch (period) {
             case DAILY -> today;
             case WEEKLY -> today.with(DayOfWeek.MONDAY);
             case MONTHLY -> today.withDayOfMonth(1);
         };
+    }
+
+    private BigDecimal calculateExpenseInPeriod(Long userId, LocalDate from, LocalDate to) {
+        BigDecimal spent = expenseRepository.sumExpensesByUserAndDateRange(userId, from, to);
+        return spent != null ? spent : BigDecimal.ZERO;
+    }
+
+    private BigDecimal calculateRevenueInPeriod(Long userId, LocalDate from, LocalDate to) {
+        BigDecimal revenue = revenueRepository.sumRevenuesByUserAndDateRange(userId, from, to);
+        return revenue != null ? revenue : BigDecimal.ZERO;
     }
 }

@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.revenue.repository;
 
+import com.finovara.finovarabackend.report.finances.chart.cashflow.dto.DailyAmountDto;
 import com.finovara.finovarabackend.report.finances.highestrevenue.dto.HighestRevenueDto;
-import com.finovara.finovarabackend.report.finances.highestrevenue.service.HighestRevenueService;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import org.springframework.data.domain.Pageable;
@@ -39,7 +39,6 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt >= :startDate AND r.createdAt <= :endDate")
     BigDecimal sumRevenuesByUserAndDateRange(Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
-
     @Query("""
              SELECT NEW com.finovara.finovarabackend.report.finances.highestrevenue.dto.HighestRevenueDto(
              r.category,
@@ -48,4 +47,17 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
             FROM Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt BETWEEN :from AND :to ORDER BY r.amount DESC
             """)
     List<HighestRevenueDto> findHighestRevenuesByUserAssignedIdAndPeriod(@Param("userId") Long userId, LocalDate from, LocalDate to, Pageable pageable);
+
+    @Query("""
+                SELECT new com.finovara.finovarabackend.report.finances.chart.cashflow.dto.DailyAmountDto(
+                    r.createdAt,
+                    SUM(r.amount)
+                )
+                FROM Revenue r
+                WHERE r.userAssigned.id = :userId
+                  AND r.createdAt BETWEEN :start AND :end
+                GROUP BY r.createdAt
+            """)
+    List<DailyAmountDto> sumRevenuesGroupedByDate(Long userId, LocalDate start, LocalDate end);
+
 }

@@ -2,6 +2,7 @@ package com.finovara.finovarabackend.expense.repository;
 
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
+import com.finovara.finovarabackend.report.finances.chart.cashflow.dto.DailyAmountDto;
 import com.finovara.finovarabackend.report.finances.highestexpense.dto.HighestExpenseDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,10 +23,10 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Expense> findAllByUserAssignedId(Long userId);
 
     @Query("SELECT e From Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
-    List<Expense> findAllByUserAssignedIdAndCreatedAtBetween(@Param("userId") Long userId, @Param("startDate")LocalDate from, @Param("endDate") LocalDate to);
+    List<Expense> findAllByUserAssignedIdAndCreatedAtBetween(@Param("userId") Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("SELECT e From Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :startDate AND :endDate AND e.category = :category")
-    List<Expense> findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(@Param("userId") Long userId, @Param("startDate")LocalDate from,
+    List<Expense> findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(@Param("userId") Long userId, @Param("startDate") LocalDate from,
                                                                         @Param("endDate") LocalDate to, @Param("category") ExpenseCategory category);
 
     @Query("SELECT e FROM Expense e WHERE e.userAssigned.id = :userId ORDER BY e.id DESC")
@@ -59,6 +60,19 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :from AND :to ORDER BY e.amount DESC
             """)
     List<HighestExpenseDto> findHighestExpensesByUserAssignedIdAndPeriod(@Param("userId") Long userId, LocalDate from, LocalDate to, Pageable pageable);
+
+    @Query("""
+                SELECT new com.finovara.finovarabackend.report.finances.chart.cashflow.dto.DailyAmountDto(
+                    e.createdAt,
+                    SUM(e.amount)
+                )
+                FROM Expense e
+                WHERE e.userAssigned.id = :userId
+                  AND e.createdAt BETWEEN :start AND :end
+                GROUP BY e.createdAt
+            """)
+    List<DailyAmountDto> sumExpensesGroupedByDate(Long userId, LocalDate start, LocalDate end);
+
 }
 
 
