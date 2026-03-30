@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 public record CashFlowDto(
         LocalDate date,
-        BigDecimal income,
+        BigDecimal revenue,
         BigDecimal expense
 ) {
 }

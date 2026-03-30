@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.finances.chart.cashflow.service;
+package com.finovara.finovarabackend.report.finances.chart.averagecashflow.service;
 
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.chart.dto.CashFlowDto;
@@ -10,27 +10,28 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class TotalCashFlowChartService {
+public class AverageCashFlowService {
     private final RevenueRepository revenueRepository;
     private final ExpenseRepository expenseRepository;
 
-    public List<CashFlowDto> getCashFlowChart(Long userId) {
+    public List<CashFlowDto> getAverageCashFlowChart(Long userId) {
         LocalDate today = LocalDate.now();
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
-        List<DateAmountDto> summedExpenses = expenseRepository.sumExpensesGroupedByDate(userId);
-        List<DateAmountDto> summedRevenues = revenueRepository.sumRevenuesGroupedByDate(userId);
+        List<DateAmountDto> averageExpenses = expenseRepository.avgExpensesGroupedByDate(userId);
+        List<DateAmountDto> averageRevenues = revenueRepository.avgRevenuesGroupedByDate(userId);
 
-        Map<LocalDate, BigDecimal> expenseMap = summedExpenses.stream()
+        Map<LocalDate, BigDecimal> expenseMap = averageExpenses.stream()
                 .collect(Collectors.toMap(DateAmountDto::date, DateAmountDto::amount));
 
-        Map<LocalDate, BigDecimal> revenueMap = summedRevenues.stream()
+        Map<LocalDate, BigDecimal> revenueMap = averageRevenues.stream()
                 .collect(Collectors.toMap(DateAmountDto::date, DateAmountDto::amount));
 
         List<CashFlowDto> result = new ArrayList<>();
@@ -39,6 +40,9 @@ public class TotalCashFlowChartService {
             result.add(new CashFlowDto(date, revenueMap.getOrDefault(date, BigDecimal.ZERO),
                     expenseMap.getOrDefault(date, BigDecimal.ZERO)));
         }
+
         return result;
     }
+
+
 }

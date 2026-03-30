@@ -47,7 +47,7 @@ class AddRevenueTest {
 
     @Test
     void shouldAddRevenueSuccessfully() {
-        RevenueDTO dto = new RevenueDTO(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test income");
+        RevenueDTO dto = new RevenueDTO(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test revenue");
         String email = "test@test.com";
         User user = new User();
 
@@ -64,7 +64,7 @@ class AddRevenueTest {
 
     @Test
     void shouldThrowExceptionWhenUserNotFound() {
-        RevenueDTO dto = new RevenueDTO(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test income");
+        RevenueDTO dto = new RevenueDTO(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test revenue");
         String email = "test@test.com";
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
