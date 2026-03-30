@@ -68,10 +68,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
                 )
                 FROM Expense e
                 WHERE e.userAssigned.id = :userId
-                  AND e.createdAt BETWEEN :start AND :end
                 GROUP BY e.createdAt
             """)
-    List<DailyAmountDto> sumExpensesGroupedByDate(Long userId, LocalDate start, LocalDate end);
+    List<DailyAmountDto> sumExpensesGroupedByDate(Long userId);
 
 }
 

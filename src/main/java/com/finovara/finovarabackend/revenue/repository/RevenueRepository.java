@@ -55,9 +55,8 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
                 )
                 FROM Revenue r
                 WHERE r.userAssigned.id = :userId
-                  AND r.createdAt BETWEEN :start AND :end
                 GROUP BY r.createdAt
             """)
-    List<DailyAmountDto> sumRevenuesGroupedByDate(Long userId, LocalDate start, LocalDate end);
+    List<DailyAmountDto> sumRevenuesGroupedByDate(Long userId);
 
 }

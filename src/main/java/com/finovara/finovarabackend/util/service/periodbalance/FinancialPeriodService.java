@@ -58,7 +58,7 @@ public class FinancialPeriodService {
         return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
     }
 
-    public LocalDate getStartDate(LocalDate today, PeriodType period) {
+    private LocalDate getStartDate(LocalDate today, PeriodType period) {
         return switch (period) {
             case DAILY -> today;
             case WEEKLY -> today.with(DayOfWeek.MONDAY);
