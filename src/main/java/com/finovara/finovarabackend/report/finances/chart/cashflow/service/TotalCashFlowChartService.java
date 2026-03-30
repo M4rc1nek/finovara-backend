@@ -20,6 +20,7 @@ public class TotalCashFlowChartService {
     private final RevenueRepository revenueRepository;
     private final ExpenseRepository expenseRepository;
 
+
     public List<CashFlowDto> getCashFlowChart(Long userId) {
         LocalDate today = LocalDate.now();
         LocalDate startOfMonth = today.withDayOfMonth(1);

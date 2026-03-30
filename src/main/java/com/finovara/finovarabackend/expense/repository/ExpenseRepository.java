@@ -76,7 +76,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("""
                 SELECT new com.finovara.finovarabackend.report.finances.chart.dto.DateAmountDto(
                     e.createdAt,
-                    SUM(e.amount) / COUNT(e)
+                    CAST(AVG(e.amount) AS big_decimal)
                 )
                 FROM Expense e
                 WHERE e.userAssigned.id = :userId

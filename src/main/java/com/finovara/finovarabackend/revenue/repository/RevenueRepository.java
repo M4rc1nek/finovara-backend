@@ -62,7 +62,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     @Query("""
                 SELECT new com.finovara.finovarabackend.report.finances.chart.dto.DateAmountDto(
                     r.createdAt,
-                    SUM(r.amount) / COUNT(r)
+                    CAST(AVG(r.amount) AS big_decimal)
                 )
                 FROM Revenue r
                 WHERE r.userAssigned.id = :userId
