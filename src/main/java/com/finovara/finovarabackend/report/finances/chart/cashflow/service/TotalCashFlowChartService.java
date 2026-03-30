@@ -1,10 +1,9 @@
 package com.finovara.finovarabackend.report.finances.chart.cashflow.service;
 
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
-import com.finovara.finovarabackend.report.finances.chart.cashflow.dto.DailyAmountDto;
-import com.finovara.finovarabackend.report.finances.chart.cashflow.dto.TotalCashFlowDto;
+import com.finovara.finovarabackend.report.finances.chart.dto.CashFlowDto;
+import com.finovara.finovarabackend.report.finances.chart.dto.DateAmountDto;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
-import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,27 +17,26 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TotalCashFlowChartService {
-    private final FinancialPeriodService financialPeriodService;
     private final RevenueRepository revenueRepository;
     private final ExpenseRepository expenseRepository;
 
-    public List<TotalCashFlowDto> getCashFlowChart(Long userId) {
+    public List<CashFlowDto> getCashFlowChart(Long userId) {
         LocalDate today = LocalDate.now();
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
-        List<DailyAmountDto> expenses = expenseRepository.sumExpensesGroupedByDate(userId);
-        List<DailyAmountDto> revenues = revenueRepository.sumRevenuesGroupedByDate(userId);
+        List<DateAmountDto> expenses = expenseRepository.sumExpensesGroupedByDate(userId);
+        List<DateAmountDto> revenues = revenueRepository.sumRevenuesGroupedByDate(userId);
 
         Map<LocalDate, BigDecimal> expenseMap = expenses.stream()
-                .collect(Collectors.toMap(DailyAmountDto::date, DailyAmountDto::amount));
+                .collect(Collectors.toMap(DateAmountDto::date, DateAmountDto::amount));
 
         Map<LocalDate, BigDecimal> revenueMap = revenues.stream()
-                .collect(Collectors.toMap(DailyAmountDto::date, DailyAmountDto::amount));
+                .collect(Collectors.toMap(DateAmountDto::date, DateAmountDto::amount));
 
-        List<TotalCashFlowDto> result = new ArrayList<>();
+        List<CashFlowDto> result = new ArrayList<>();
 
         for (LocalDate date = startOfMonth; !date.isAfter(today); date = date.plusDays(1)) {
-            result.add(new TotalCashFlowDto(date, revenueMap.getOrDefault(date, BigDecimal.ZERO),
+            result.add(new CashFlowDto(date, revenueMap.getOrDefault(date, BigDecimal.ZERO),
                     expenseMap.getOrDefault(date, BigDecimal.ZERO)));
         }
 

@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.report.finances.chart.cashflow.controller;
 
-import com.finovara.finovarabackend.report.finances.chart.cashflow.dto.TotalCashFlowDto;
 import com.finovara.finovarabackend.report.finances.chart.cashflow.service.TotalCashFlowChartService;
+import com.finovara.finovarabackend.report.finances.chart.dto.CashFlowDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +18,7 @@ public class TotalCashFlowChartController {
     private final TotalCashFlowChartService totalCashFlowChartService;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<TotalCashFlowDto>> getCashFlowChart(@PathVariable Long userId) {
+    public ResponseEntity<List<CashFlowDto>> getCashFlowChart(@PathVariable Long userId) {
         return ResponseEntity.ok(totalCashFlowChartService.getCashFlowChart(userId));
     }
 }

@@ -1,9 +1,9 @@
-package com.finovara.finovarabackend.report.finances.chart.cashflow.dto;
+package com.finovara.finovarabackend.report.finances.chart.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record DailyAmountDto(
+public record DateAmountDto(
         LocalDate date,
         BigDecimal amount
 ) {

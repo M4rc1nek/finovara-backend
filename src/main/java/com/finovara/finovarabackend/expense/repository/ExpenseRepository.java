@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.expense.repository;
 
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.report.finances.chart.cashflow.dto.DailyAmountDto;
+import com.finovara.finovarabackend.report.finances.chart.dto.DateAmountDto;
 import com.finovara.finovarabackend.report.finances.highestexpense.dto.HighestExpenseDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -70,7 +70,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
                 WHERE e.userAssigned.id = :userId
                 GROUP BY e.createdAt
             """)
-    List<DailyAmountDto> sumExpensesGroupedByDate(Long userId);
+    List<DateAmountDto> sumExpensesGroupedByDate(Long userId);
 
 }
 
