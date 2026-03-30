@@ -35,7 +35,7 @@ class HighestRevenueTest {
 
     private List<HighestRevenueDto> mockResult;
 
-    private final LocalDate baseDate = LocalDate.of(2026, 3, 29);
+    private final LocalDate baseDate = LocalDate.now();
     private final Long USER_ID = 1L;
 
     @BeforeEach
