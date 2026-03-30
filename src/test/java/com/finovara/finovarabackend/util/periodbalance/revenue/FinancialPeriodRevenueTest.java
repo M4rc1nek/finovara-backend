@@ -41,7 +41,7 @@ class FinancialPeriodRevenueTest {
     void shouldReturnEarnedToday() {
         when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, today, today)).thenReturn(BigDecimal.valueOf(50));
 
-        BigDecimal result = financialPeriodService.getEarned(USER_ID, PeriodType.DAILY);
+        BigDecimal result = financialPeriodService.getRevenueSum(USER_ID, PeriodType.DAILY);
 
         assertThat(result).isEqualByComparingTo("50");
     }
@@ -52,7 +52,7 @@ class FinancialPeriodRevenueTest {
 
         when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, monday, today)).thenReturn(BigDecimal.valueOf(75));
 
-        BigDecimal result = financialPeriodService.getEarned(USER_ID, PeriodType.WEEKLY);
+        BigDecimal result = financialPeriodService.getRevenueSum(USER_ID, PeriodType.WEEKLY);
 
         assertThat(result).isEqualByComparingTo("75");
         verify(revenueRepository).sumRevenuesByUserAndDateRange(USER_ID, monday, today);
@@ -64,7 +64,7 @@ class FinancialPeriodRevenueTest {
 
         when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, startOfMonth, today)).thenReturn(BigDecimal.valueOf(120));
 
-        BigDecimal result = financialPeriodService.getEarned(USER_ID, PeriodType.MONTHLY);
+        BigDecimal result = financialPeriodService.getRevenueSum(USER_ID, PeriodType.MONTHLY);
 
         assertThat(result).isEqualByComparingTo("120");
         verify(revenueRepository).sumRevenuesByUserAndDateRange(USER_ID, startOfMonth, today);
@@ -92,7 +92,7 @@ class FinancialPeriodRevenueTest {
     void shouldReturnZeroWhenNoRevenue() {
         when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, today, today)).thenReturn(null);
 
-        BigDecimal result = financialPeriodService.getEarned(USER_ID, PeriodType.DAILY);
+        BigDecimal result = financialPeriodService.getRevenueSum(USER_ID, PeriodType.DAILY);
 
         assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
     }

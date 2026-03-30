@@ -22,59 +22,57 @@ public class FinancialPeriodService {
     private final ExpenseRepository expenseRepository;
     private final RevenueRepository revenueRepository;
 
-    public BigDecimal getSpent(Long userId, PeriodType period) {
+    public BigDecimal getExpensesSum(Long userId, PeriodType period) {
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
-        return getExpensesInPeriod(userId, from, today);
+        return calculateExpenseInPeriod(userId, from, today);
     }
 
-    public BigDecimal getEarned(Long userId, PeriodType period) {
+    public BigDecimal getRevenueSum(Long userId, PeriodType period) {
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
-        return getRevenuesInPeriod(userId, from, today);
+        return calculateRevenueInPeriod(userId, from, today);
     }
 
-    public List<Revenue> getRevenuesInPeriod(Long userId, PeriodType period){
+    public List<Revenue> getRevenuesInPeriod(Long userId, PeriodType period) {
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
         return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, today);
     }
 
-    public List<Expense> getExpensesInPeriod(Long userId, PeriodType period){
+    public List<Expense> getExpensesInPeriod(Long userId, PeriodType period) {
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
         return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, today);
     }
 
-
-    public List<Revenue> getRevenuesInPeriodByCategory(Long userId, PeriodType period, RevenueCategory category){
+    public List<Revenue> getRevenuesInPeriodByCategory(Long userId, PeriodType period, RevenueCategory category) {
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
         return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
     }
 
-
-    public List<Expense> getExpensesInPeriodByCategory(Long userId, PeriodType period, ExpenseCategory category){
+    public List<Expense> getExpensesInPeriodByCategory(Long userId, PeriodType period, ExpenseCategory category) {
         LocalDate today = LocalDate.now();
         LocalDate from = getStartDate(today, period);
-        return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today,category);
+        return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
     }
 
-    private LocalDate getStartDate(LocalDate today, PeriodType period) {
+    public BigDecimal calculateExpenseInPeriod(Long userId, LocalDate from, LocalDate to) {
+        BigDecimal spent = expenseRepository.sumExpensesByUserAndDateRange(userId, from, to);
+        return spent != null ? spent : BigDecimal.ZERO;
+    }
+
+    public BigDecimal calculateRevenueInPeriod(Long userId, LocalDate from, LocalDate to) {
+        BigDecimal revenue = revenueRepository.sumRevenuesByUserAndDateRange(userId, from, to);
+        return revenue != null ? revenue : BigDecimal.ZERO;
+    }
+
+    public LocalDate getStartDate(LocalDate today, PeriodType period) {
         return switch (period) {
             case DAILY -> today;
             case WEEKLY -> today.with(DayOfWeek.MONDAY);
             case MONTHLY -> today.withDayOfMonth(1);
         };
-    }
-
-    private BigDecimal getExpensesInPeriod(Long userId, LocalDate from, LocalDate to) {
-        BigDecimal spent = expenseRepository.sumExpensesByUserAndDateRange(userId, from, to);
-        return spent != null ? spent : BigDecimal.ZERO;
-    }
-
-    private BigDecimal getRevenuesInPeriod(Long userId, LocalDate from, LocalDate to) {
-        BigDecimal revenue = revenueRepository.sumRevenuesByUserAndDateRange(userId, from, to);
-        return revenue != null ? revenue : BigDecimal.ZERO;
     }
 }

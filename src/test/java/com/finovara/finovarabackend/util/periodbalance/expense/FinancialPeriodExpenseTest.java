@@ -40,7 +40,7 @@ public class FinancialPeriodExpenseTest {
     void shouldReturnSpentToday() {
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, today, today)).thenReturn(BigDecimal.valueOf(50));
 
-        BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.DAILY);
+        BigDecimal result = financialPeriodService.getExpensesSum(USER_ID, PeriodType.DAILY);
 
         assertThat(result).isEqualByComparingTo("50");
         verify(expenseRepository).sumExpensesByUserAndDateRange(USER_ID, today, today);
@@ -52,7 +52,7 @@ public class FinancialPeriodExpenseTest {
 
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, monday, today)).thenReturn(BigDecimal.valueOf(120));
 
-        BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.WEEKLY);
+        BigDecimal result = financialPeriodService.getExpensesSum(USER_ID, PeriodType.WEEKLY);
 
         assertThat(result).isEqualByComparingTo("120");
     }
@@ -63,7 +63,7 @@ public class FinancialPeriodExpenseTest {
 
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, firstDayOfMonth, today)).thenReturn(BigDecimal.valueOf(300));
 
-        BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.MONTHLY);
+        BigDecimal result = financialPeriodService.getExpensesSum(USER_ID, PeriodType.MONTHLY);
 
         assertThat(result).isEqualByComparingTo("300");
         verify(expenseRepository).sumExpensesByUserAndDateRange(USER_ID, firstDayOfMonth, today);
@@ -73,7 +73,7 @@ public class FinancialPeriodExpenseTest {
     void shouldReturnZeroWhenNoExpensesToday() {
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, today, today)).thenReturn(null);
 
-        BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.DAILY);
+        BigDecimal result = financialPeriodService.getExpensesSum(USER_ID, PeriodType.DAILY);
 
         assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -84,7 +84,7 @@ public class FinancialPeriodExpenseTest {
 
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, monday, today)).thenReturn(null);
 
-        BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.WEEKLY);
+        BigDecimal result = financialPeriodService.getExpensesSum(USER_ID, PeriodType.WEEKLY);
 
         assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -94,7 +94,7 @@ public class FinancialPeriodExpenseTest {
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
         when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, startOfMonth, today)).thenReturn(null);
-        BigDecimal result = financialPeriodService.getSpent(USER_ID, PeriodType.MONTHLY);
+        BigDecimal result = financialPeriodService.getExpensesSum(USER_ID, PeriodType.MONTHLY);
 
         assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
     }
