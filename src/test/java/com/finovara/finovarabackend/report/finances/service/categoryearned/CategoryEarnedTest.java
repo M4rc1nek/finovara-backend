@@ -61,7 +61,7 @@ class CategoryEarnedTest {
         List<Revenue> revenueCategory = List.of(revenue1, revenue2);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.getEarned(user.getId(), periodType)).thenReturn(summedRevenue);
+        when(financialPeriodService.getRevenueSum(user.getId(), periodType)).thenReturn(summedRevenue);
         when(financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, RevenueCategory.SALARY))
                 .thenReturn(revenueCategory);
 
@@ -78,7 +78,7 @@ class CategoryEarnedTest {
         user.setId(1L);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.getEarned(user.getId(), periodType)).thenReturn(BigDecimal.ZERO);
+        when(financialPeriodService.getRevenueSum(user.getId(), periodType)).thenReturn(BigDecimal.ZERO);
 
         when(financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, RevenueCategory.SALARY))
                 .thenReturn(List.of());

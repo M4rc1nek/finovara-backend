@@ -10,17 +10,17 @@ import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
-public class ReportSumService {
+public class ReportSummaryService {
 
     private final FinancialPeriodService financialPeriodService;
 
     public ReportDto sumExpense(Long userId, PeriodType periodType) {
-        BigDecimal amount = financialPeriodService.getSpent(userId, periodType);
+        BigDecimal amount = financialPeriodService.getExpensesSum(userId, periodType);
         return new ReportDto(periodType, amount);
     }
 
     public ReportDto sumRevenue(Long userId, PeriodType periodType) {
-        BigDecimal amount = financialPeriodService.getEarned(userId, periodType);
+        BigDecimal amount = financialPeriodService.getRevenueSum(userId, periodType);
         return new ReportDto(periodType, amount);
     }
 }

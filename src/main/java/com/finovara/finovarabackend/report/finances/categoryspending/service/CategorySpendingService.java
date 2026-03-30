@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.report.finances.categoryspending.service;
 
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.categoryspending.dto.CategorySpendingDto;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.model.PeriodType;
@@ -27,7 +26,7 @@ public class CategorySpendingService {
 
         User user = userManagerService.getUserByEmailOrThrow(email);
 
-        BigDecimal summedExpenses = financialPeriodService.getSpent(user.getId(), periodType);
+        BigDecimal summedExpenses = financialPeriodService.getExpensesSum(user.getId(), periodType);
         List<Expense> expenseCategory = financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, category);
 
         BigDecimal summedExpenseCategory = expenseCategory.stream()

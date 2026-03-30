@@ -24,14 +24,14 @@ public class ReportAverageService {
 
     public ReportDto calculateAverageExpense(Long userId, PeriodType periodType) {
         List<Expense> expenses = expenseRepository.findAllByUserAssignedId(userId);
-        BigDecimal amount = calculateAverage(financialPeriodService.getSpent(userId, periodType), expenses);
+        BigDecimal amount = calculateAverage(financialPeriodService.getExpensesSum(userId, periodType), expenses);
 
         return new ReportDto(periodType, amount);
     }
 
     public ReportDto calculateAverageRevenue(Long userId, PeriodType periodType) {
         List<Revenue> revenues = revenueRepository.findAllByUserAssignedId(userId);
-        BigDecimal amount = calculateAverage(financialPeriodService.getEarned(userId, periodType), revenues);
+        BigDecimal amount = calculateAverage(financialPeriodService.getRevenueSum(userId, periodType), revenues);
         return new ReportDto(periodType, amount);
     }
 

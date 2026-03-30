@@ -39,7 +39,7 @@ class ReportsAverageExpenseTest {
         List<Expense> expenses = List.of(new Expense(), new Expense());
 
         when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(expenses);
-        when(financialPeriodService.getSpent(userId, periodType)).thenReturn(BigDecimal.valueOf(200));
+        when(financialPeriodService.getExpensesSum(userId, periodType)).thenReturn(BigDecimal.valueOf(200));
 
         ReportDto result = reportAverageService.calculateAverageExpense(userId, periodType);
 
@@ -52,7 +52,7 @@ class ReportsAverageExpenseTest {
         Long userId = 1L;
 
         when(expenseRepository.findAllByUserAssignedId(userId)).thenReturn(List.of());
-        when(financialPeriodService.getSpent(userId, PeriodType.DAILY)).thenReturn(BigDecimal.ZERO);
+        when(financialPeriodService.getExpensesSum(userId, PeriodType.DAILY)).thenReturn(BigDecimal.ZERO);
 
         ReportDto result = reportAverageService.calculateAverageExpense(userId, PeriodType.DAILY);
 

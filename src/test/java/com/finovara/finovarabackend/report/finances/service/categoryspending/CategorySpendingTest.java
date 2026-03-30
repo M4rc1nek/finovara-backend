@@ -61,7 +61,7 @@ class CategorySpendingTest {
         List<Expense> expenseCategory = List.of(expense, expense2);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.getSpent(user.getId(), periodType)).thenReturn(summedExpenses);
+        when(financialPeriodService.getExpensesSum(user.getId(), periodType)).thenReturn(summedExpenses);
         when(financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, ExpenseCategory.CLOTHING))
                 .thenReturn(expenseCategory);
 
@@ -78,7 +78,7 @@ class CategorySpendingTest {
         user.setId(1L);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(financialPeriodService.getSpent(user.getId(), periodType)).thenReturn(BigDecimal.ZERO);
+        when(financialPeriodService.getExpensesSum(user.getId(), periodType)).thenReturn(BigDecimal.ZERO);
 
         when(financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, ExpenseCategory.CLOTHING))
                 .thenReturn(List.of());

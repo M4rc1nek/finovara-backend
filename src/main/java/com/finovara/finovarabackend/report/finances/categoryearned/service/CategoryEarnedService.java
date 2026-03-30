@@ -25,7 +25,7 @@ public class CategoryEarnedService {
     public CategoryEarnedDto getCategoryEarnedReport(String email, RevenueCategory category, PeriodType periodType) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
-        BigDecimal summedRevenue = financialPeriodService.getEarned(user.getId(), periodType);
+        BigDecimal summedRevenue = financialPeriodService.getRevenueSum(user.getId(), periodType);
         List<Revenue> revenueCategory = financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, category);
 
         BigDecimal summedRevenueCategory = revenueCategory.stream()

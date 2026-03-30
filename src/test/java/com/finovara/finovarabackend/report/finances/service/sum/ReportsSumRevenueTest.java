@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.report.finances.service.sum;
 
 import com.finovara.finovarabackend.report.dto.ReportDto;
-import com.finovara.finovarabackend.report.finances.sum.sevice.ReportSumService;
+import com.finovara.finovarabackend.report.finances.sum.sevice.ReportSummaryService;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ class ReportsSumRevenueTest {
     private FinancialPeriodService financialPeriodService;
 
     @InjectMocks
-    private ReportSumService reportSumService;
+    private ReportSummaryService reportSummaryService;
 
 
     @ParameterizedTest
@@ -32,13 +32,13 @@ class ReportsSumRevenueTest {
         Long userId = 1L;
         BigDecimal amount = BigDecimal.valueOf(100);
 
-        when(financialPeriodService.getEarned(userId, periodType)).thenReturn(amount);
+        when(financialPeriodService.getRevenueSum(userId, periodType)).thenReturn(amount);
 
-        ReportDto result = reportSumService.sumRevenue(userId, periodType);
+        ReportDto result = reportSummaryService.sumRevenue(userId, periodType);
 
         assertThat(result.amount()).isEqualByComparingTo("100");
         assertThat(result.periodType()).isEqualTo(periodType);
-        verify(financialPeriodService).getEarned(userId, periodType);
+        verify(financialPeriodService).getRevenueSum(userId, periodType);
         verifyNoMoreInteractions(financialPeriodService);
     }
 
@@ -47,9 +47,9 @@ class ReportsSumRevenueTest {
     void shouldReturnZeroWhenNoData() {
         Long userId = 1L;
 
-        when(financialPeriodService.getEarned(userId, PeriodType.DAILY)).thenReturn(BigDecimal.ZERO);
+        when(financialPeriodService.getRevenueSum(userId, PeriodType.DAILY)).thenReturn(BigDecimal.ZERO);
 
-        ReportDto result = reportSumService.sumRevenue(userId, PeriodType.DAILY);
+        ReportDto result = reportSummaryService.sumRevenue(userId, PeriodType.DAILY);
 
         assertThat(result.amount()).isEqualByComparingTo("0");
         verifyNoMoreInteractions(financialPeriodService);
