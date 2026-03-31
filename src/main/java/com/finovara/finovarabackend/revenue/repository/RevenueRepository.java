@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.revenue.repository;
 
-import com.finovara.finovarabackend.report.finances.chart.dto.DateAmountDto;
+import com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto;
 import com.finovara.finovarabackend.report.finances.highestrevenue.dto.HighestRevenueDto;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
@@ -57,7 +57,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
                 WHERE r.userAssigned.id = :userId
                 GROUP BY r.createdAt
             """)
-    List<DateAmountDto> sumRevenuesGroupedByDate(Long userId);
+    List<DailyCashDto> sumRevenuesGroupedByDate(Long userId);
 
     @Query("""
                 SELECT new com.finovara.finovarabackend.report.finances.chart.dto.DateAmountDto(
@@ -68,6 +68,6 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
                 WHERE r.userAssigned.id = :userId
                 GROUP BY r.createdAt
             """)
-    List<DateAmountDto> avgRevenuesGroupedByDate(Long userId);
+    List<DailyCashDto> avgRevenuesGroupedByDate(Long userId);
 
 }
