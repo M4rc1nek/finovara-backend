@@ -49,7 +49,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<HighestRevenueDto> findHighestRevenuesByUserAssignedIdAndPeriod(@Param("userId") Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
-                SELECT new com.finovara.finovarabackend.report.finances.chart.dto.DateAmountDto(
+                SELECT new com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto(
                     r.createdAt,
                     SUM(r.amount)
                 )
@@ -60,7 +60,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<DailyCashDto> sumRevenuesGroupedByDate(Long userId);
 
     @Query("""
-                SELECT new com.finovara.finovarabackend.report.finances.chart.dto.DateAmountDto(
+                SELECT new com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto(
                     r.createdAt,
                     CAST(AVG(r.amount) AS big_decimal)
                 )

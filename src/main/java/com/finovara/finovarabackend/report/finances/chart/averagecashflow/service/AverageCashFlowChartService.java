@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.report.finances.chart.averagecashflow.servi
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.chart.dto.CashFlowDto;
 import com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto;
-import com.finovara.finovarabackend.report.finances.chart.service.CashFlowChartBuilder;
+import com.finovara.finovarabackend.report.finances.chart.builder.CashFlowChartBuilder;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class AverageCashFlowChartService {
     public List<CashFlowDto> getAverageCashFlowChart(Long userId) {
         List<DailyCashDto> averageExpenses = expenseRepository.avgExpensesGroupedByDate(userId);
         List<DailyCashDto> averageRevenues = revenueRepository.avgRevenuesGroupedByDate(userId);
-        return  cashFlowChartBuilder.getCashFlowTemplateChart(averageExpenses, averageRevenues);
+        return  cashFlowChartBuilder.getCashFlowChartBuilder(averageExpenses, averageRevenues);
     }
 
 }

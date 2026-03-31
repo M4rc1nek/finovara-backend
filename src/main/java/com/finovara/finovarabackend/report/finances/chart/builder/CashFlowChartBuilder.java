@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.finances.chart.service;
+package com.finovara.finovarabackend.report.finances.chart.builder;
 
 import com.finovara.finovarabackend.report.finances.chart.dto.CashFlowDto;
 import com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CashFlowChartBuilder {
-    public List<CashFlowDto> getCashFlowTemplateChart(List<DailyCashDto> expenses, List<DailyCashDto> revenues) {
+    public List<CashFlowDto> getCashFlowChartBuilder(List<DailyCashDto> expenses, List<DailyCashDto> revenues) {
         LocalDate today = LocalDate.now();
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
