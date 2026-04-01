@@ -10,7 +10,6 @@ import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service.RevenueScoringService;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.finovarabackend.util.service.revenue.RevenueManagerService;
@@ -46,8 +45,6 @@ public class EditRevenueTest {
     private AutoPaymentsService autoPaymentsService;
     @Mock
     private RevenueActivityService revenueActivityService;
-    @Mock
-    private RevenueScoringService revenueScoringService;
 
     @InjectMocks
     private RevenueService revenueService;
@@ -90,7 +87,6 @@ public class EditRevenueTest {
 
         verify(walletRepository).save(wallet);
         verify(revenueRepository).save(existingRevenue);
-        verify(revenueScoringService).recalculateScore(email);
 
     }
 

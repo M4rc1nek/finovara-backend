@@ -180,8 +180,6 @@
             <column name="recurring_strategy" type="VARCHAR(255)"/>
             <column name="recurring_start_date" type="DATE"/>
             <column name="next_execution_date" type="DATE"/>
-            <column name="scoring_enable" type="BOOLEAN"/>
-            <column name="revenue_points" type="DECIMAL(19,2)"/>
             <column name="created_at" type="DATE">
                 <constraints nullable="false"/>
             </column>

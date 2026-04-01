@@ -7,7 +7,6 @@ import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service.RevenueScoringService;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -37,8 +36,6 @@ public class DeleteRevenueTest {
     private AutoPaymentsService autoPaymentsService;
     @Mock
     private RevenueActivityService revenueActivityService;
-    @Mock
-    private RevenueScoringService revenueScoringService;
 
     @InjectMocks
     private RevenueService revenueService;
@@ -64,7 +61,6 @@ public class DeleteRevenueTest {
         verify(walletService).removeBalanceFromWallet(email, new BigDecimal("100"));
         verify(revenueActivityService).createRevenueActivity(email, RevenueActivityType.DELETED_REVENUE, revenue);
         revenueRepository.delete(revenue);
-        verify(revenueScoringService).recalculateScore(email);
     }
 
     @Test

@@ -35,9 +35,6 @@ public class RevenueSettings {
     private LocalDate recurringStartDate;
     private LocalDate nextExecutionDate;
 
-    private boolean scoringEnable;
-    private BigDecimal revenuePoints;
-
     @Column(nullable = false)
     private LocalDate createdAt;
 

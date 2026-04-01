@@ -7,7 +7,6 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service.RevenueScoringService;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -32,8 +31,6 @@ public class DeleteExpenseTest {
     private ExpenseRepository expenseRepository;
     @Mock
     private WalletService walletService;
-    @Mock
-    private RevenueScoringService revenueScoringService;
     @Mock
     private ExpenseActivityService expenseActivityService;
     @Mock
@@ -63,7 +60,6 @@ public class DeleteExpenseTest {
         verify(walletService).addBalanceToWallet(email, new BigDecimal("100"));
         verify(expenseActivityService).createExpenseActivity(email, ExpenseActivityType.DELETED_EXPENSE, expense);
         expenseRepository.delete(expense);
-        verify(revenueScoringService).recalculateScore(email);
     }
 
     @Test

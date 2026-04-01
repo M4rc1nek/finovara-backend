@@ -29,15 +29,14 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<Revenue> findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(@Param("userId") Long userId, @Param("startDate") LocalDate from,
                                                                         @Param("endDate") LocalDate to, @Param("category") RevenueCategory category);
 
-    // coalesce zwroci mi przychody lub 0 jest przychody sa null
-    @Query("SELECT coalesce(sum(r.amount),0) from Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt = :date")
-    BigDecimal sumRevenueForDay(@Param("userId") Long userId, @Param("date") LocalDate date);
-
     @Query("SELECT coalesce(sum(r.amount),0) FROM Revenue r WHERE r.userAssigned.id = :userId")
     BigDecimal sumAllRevenuesByUserAssignedId(Long userId);
 
     @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt >= :startDate AND r.createdAt <= :endDate")
     BigDecimal sumRevenuesByUserAndDateRange(Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT CAST(AVG(r.amount) AS big_decimal) FROM Revenue r WHERE r.userAssigned.id = :userId")
+    Optional<BigDecimal> avgRevenuesByUserAssignedId(Long userId);
 
     @Query("""
              SELECT NEW com.finovara.finovarabackend.report.finances.highestrevenue.dto.HighestRevenueDto(

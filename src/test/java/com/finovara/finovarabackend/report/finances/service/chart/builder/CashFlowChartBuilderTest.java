@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.report.finances.service.chart.builder;
 
+import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.report.finances.chart.builder.CashFlowChartBuilder;
 import com.finovara.finovarabackend.report.finances.chart.dto.CashFlowDto;
 import com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto;
@@ -17,15 +18,18 @@ import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CashFlowChartBuilderTest {
 
     @Mock
-    private Clock clock;
+    private TimeConfig timeConfig;
+
     @InjectMocks
     private CashFlowChartBuilder builder;
 
+    private Clock clock;
 
     @BeforeEach
     void setUp() {
@@ -35,7 +39,8 @@ class CashFlowChartBuilderTest {
                         .toInstant(),
                 ZoneOffset.UTC
         );
-        builder = new CashFlowChartBuilder(clock);
+
+        when(timeConfig.clock()).thenReturn(clock);
     }
 
     @Test
@@ -43,9 +48,13 @@ class CashFlowChartBuilderTest {
         LocalDate today = LocalDate.now(clock);
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
-        List<DailyCashDto> expenses = List.of(new DailyCashDto(startOfMonth, BigDecimal.valueOf(100)));
+        List<DailyCashDto> expenses = List.of(
+                new DailyCashDto(startOfMonth, BigDecimal.valueOf(100))
+        );
 
-        List<DailyCashDto> revenues = List.of(new DailyCashDto(startOfMonth, BigDecimal.valueOf(200)));
+        List<DailyCashDto> revenues = List.of(
+                new DailyCashDto(startOfMonth, BigDecimal.valueOf(200))
+        );
 
         List<CashFlowDto> result = builder.getCashFlowChartBuilder(expenses, revenues);
 
@@ -61,7 +70,8 @@ class CashFlowChartBuilderTest {
 
         List<CashFlowDto> result = builder.getCashFlowChartBuilder(expenses, revenues);
 
-        result.forEach(day -> {assertEquals(BigDecimal.ZERO, day.expense());
+        result.forEach(day -> {
+            assertEquals(BigDecimal.ZERO, day.expense());
             assertEquals(BigDecimal.ZERO, day.revenue());
         });
     }
@@ -70,11 +80,15 @@ class CashFlowChartBuilderTest {
     void shouldSumValuesForSameDay() {
         LocalDate today = LocalDate.now(clock);
 
-        List<DailyCashDto> expenses = List.of(new DailyCashDto(today, BigDecimal.valueOf(100)),
-                new DailyCashDto(today, BigDecimal.valueOf(50)));
+        List<DailyCashDto> expenses = List.of(
+                new DailyCashDto(today, BigDecimal.valueOf(100)),
+                new DailyCashDto(today, BigDecimal.valueOf(50))
+        );
 
-        List<DailyCashDto> revenues = List.of(new DailyCashDto(today, BigDecimal.valueOf(200)),
-                new DailyCashDto(today, BigDecimal.valueOf(300)));
+        List<DailyCashDto> revenues = List.of(
+                new DailyCashDto(today, BigDecimal.valueOf(200)),
+                new DailyCashDto(today, BigDecimal.valueOf(300))
+        );
 
         List<CashFlowDto> result = builder.getCashFlowChartBuilder(expenses, revenues);
 
@@ -91,9 +105,13 @@ class CashFlowChartBuilderTest {
     void shouldMatchCorrectDates() {
         LocalDate today = LocalDate.now(clock);
 
-        List<DailyCashDto> expenses = List.of(new DailyCashDto(today.minusDays(1), BigDecimal.valueOf(100)));
+        List<DailyCashDto> expenses = List.of(
+                new DailyCashDto(today.minusDays(1), BigDecimal.valueOf(100))
+        );
 
-        List<DailyCashDto> revenues = List.of(new DailyCashDto(today, BigDecimal.valueOf(200)));
+        List<DailyCashDto> revenues = List.of(
+                new DailyCashDto(today, BigDecimal.valueOf(200))
+        );
 
         List<CashFlowDto> result = builder.getCashFlowChartBuilder(expenses, revenues);
 
@@ -114,4 +132,3 @@ class CashFlowChartBuilderTest {
         assertEquals(BigDecimal.valueOf(200), todayData.revenue());
     }
 }
-

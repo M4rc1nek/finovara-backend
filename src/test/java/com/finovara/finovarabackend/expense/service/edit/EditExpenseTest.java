@@ -17,7 +17,6 @@ import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.model.CountQuantityLimitStrategy;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
-import com.finovara.finovarabackend.usersetting.finances.revenue.scoring.service.RevenueScoringService;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
@@ -54,8 +53,6 @@ public class EditExpenseTest {
     private SmartScanService smartScanService;
     @Mock
     private UserManagerService userManagerService;
-    @Mock
-    private RevenueScoringService revenueScoringService;
 
     @InjectMocks
     private ExpenseService expenseService;
@@ -98,7 +95,6 @@ public class EditExpenseTest {
         verify(expenseActivityService).updateExpenseActivity(email, ExpenseActivityType.EDITED_EXPENSE, existingExpense, oldAmount, oldCategory);
         verify(smartScanService).handleSmartScan(email, dto.confirmPasswordDto(), dto.expenseDTO().amount(), SmartScanMode.EDIT);
         verify(expenseRepository).save(existingExpense);
-        verify(revenueScoringService).recalculateScore(email);
         verify(roundUpService).handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.APPLY);
         verify(controlAmountService).handleExpenseAmountControl(email, dto.expenseDTO().amount());
     }

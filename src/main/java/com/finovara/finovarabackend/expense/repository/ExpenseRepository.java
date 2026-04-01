@@ -38,19 +38,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT COUNT(e) FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
     long countExpensesByUserAssignedIdAndCreatedAtBetween(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
-    // coalesce zwroci mi wydatki lub 0 jest wydatki sa null
-    @Query("SELECT coalesce(sum(e.amount),0) from Expense e WHERE e.userAssigned.id = :userId AND e.createdAt = :date")
-    BigDecimal sumExpenseForDay(@Param("userId") Long userId, @Param("date") LocalDate date);
-
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt >= :startDate AND e.createdAt <= :endDate")
     BigDecimal sumExpensesByUserAndDateRange(@Param("userId") Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     @Query("SELECT coalesce(sum(e.amount),0) FROM Expense e WHERE e.userAssigned.id = :userId")
     BigDecimal sumAllExpensesByUserAssignedId(Long userId);
 
-    @Query("SELECT e FROM Expense e WHERE e.userAssigned.id = :userId AND e.category = :category AND e.createdAt >= :startDate AND e.createdAt <= :endDate")
-    List<Expense> findAllByUserAndCategoryAndDateRange(@Param("userId") Long userId, @Param("category") ExpenseCategory category,
-                                                       @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    @Query("SELECT CAST(AVG(e.amount) AS big_decimal) FROM Expense e WHERE e.userAssigned.id = :userId")
+    Optional<BigDecimal> avgExpensesByUserAssignedId(Long userId);
 
     @Query("""
              SELECT NEW com.finovara.finovarabackend.report.finances.highestexpense.dto.HighestExpenseDto(
@@ -72,7 +67,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             """)
     List<DailyCashDto> sumExpensesGroupedByDate(Long userId);
 
-
     @Query("""
                 SELECT new com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto(
                     e.createdAt,
@@ -83,7 +77,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
                 GROUP BY e.createdAt
             """)
     List<DailyCashDto> avgExpensesGroupedByDate(Long userId);
-
 
 }
 
