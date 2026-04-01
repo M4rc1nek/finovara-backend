@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.report.finances.chart.builder;
 
+import com.finovara.finovarabackend.config.TimeConfig;
 import com.finovara.finovarabackend.report.finances.chart.dto.CashFlowDto;
 import com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto;
 import lombok.RequiredArgsConstructor;
@@ -16,10 +17,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CashFlowChartBuilder {
-    private final Clock clock;
+    private final TimeConfig timeConfig;
 
     public List<CashFlowDto> getCashFlowChartBuilder(List<DailyCashDto> expenses, List<DailyCashDto> revenues) {
-        LocalDate today = LocalDate.now(clock);
+        LocalDate today = LocalDate.now(timeConfig.clock());
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
         Map<LocalDate, BigDecimal> expenseMap = expenses.stream()
