@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +16,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CashFlowChartBuilder {
+    private final Clock clock;
+
     public List<CashFlowDto> getCashFlowChartBuilder(List<DailyCashDto> expenses, List<DailyCashDto> revenues) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
         Map<LocalDate, BigDecimal> expenseMap = expenses.stream()

@@ -5,25 +5,42 @@ import com.finovara.finovarabackend.report.finances.chart.dto.CashFlowDto;
 import com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@ExtendWith(MockitoExtension.class)
 class CashFlowChartBuilderTest {
 
+    @Mock
+    private Clock clock;
+    @InjectMocks
     private CashFlowChartBuilder builder;
+
 
     @BeforeEach
     void setUp() {
-        builder = new CashFlowChartBuilder();
+        clock = Clock.fixed(
+                LocalDate.of(2024, 1, 10)
+                        .atStartOfDay(ZoneOffset.UTC)
+                        .toInstant(),
+                ZoneOffset.UTC
+        );
+        builder = new CashFlowChartBuilder(clock);
     }
 
     @Test
     void shouldBuildCashFlowForEachDayOfMonth() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
         List<DailyCashDto> expenses = List.of(new DailyCashDto(startOfMonth, BigDecimal.valueOf(100)));
@@ -51,7 +68,7 @@ class CashFlowChartBuilderTest {
 
     @Test
     void shouldSumValuesForSameDay() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
 
         List<DailyCashDto> expenses = List.of(new DailyCashDto(today, BigDecimal.valueOf(100)),
                 new DailyCashDto(today, BigDecimal.valueOf(50)));
@@ -72,7 +89,7 @@ class CashFlowChartBuilderTest {
 
     @Test
     void shouldMatchCorrectDates() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
 
         List<DailyCashDto> expenses = List.of(new DailyCashDto(today.minusDays(1), BigDecimal.valueOf(100)));
 
