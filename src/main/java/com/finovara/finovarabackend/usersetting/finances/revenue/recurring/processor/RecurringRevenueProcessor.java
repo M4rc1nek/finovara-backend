@@ -26,8 +26,8 @@ public class RecurringRevenueProcessor {
 
         for (User user : users) {
             RevenueSettings settings = user.getRevenueSettings();
-            if(settings == null) continue;
-            while(settings.isRecurringRevenuesEnable() && settings.getNextExecutionDate() != null && !settings.getNextExecutionDate().isAfter(today)){
+            if (settings == null) continue;
+            while (settings.isRecurringRevenuesEnable() && settings.getNextExecutionDate() != null && !settings.getNextExecutionDate().isAfter(today)) {
                 createRecurringRevenue(user, settings);
                 switch (settings.getPeriodType()) {
                     case DAILY -> settings.setNextExecutionDate(settings.getNextExecutionDate().plusDays(1));

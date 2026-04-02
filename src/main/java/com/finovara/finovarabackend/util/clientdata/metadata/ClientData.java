@@ -12,11 +12,9 @@ import org.springframework.stereotype.Service;
 public class ClientData {
 
     private final UserLocation userLocation;
-    private final ClientIp clientIp;
-    private final UserBrowser userBrowser;
 
     public String getClientIp(HttpServletRequest request) {
-        return clientIp.getClientIpAddress(request);
+        return ClientIp.getClientIpAddress(request);
     }
 
     public String getUserLocation(String ip) {
@@ -24,7 +22,6 @@ public class ClientData {
     }
 
     public String getUserBrowser(HttpServletRequest request) {
-        return userBrowser.getBrowser(request);
+        return UserBrowser.getBrowser(request);
     }
-
 }

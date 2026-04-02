@@ -11,10 +11,9 @@ import org.springframework.stereotype.Component;
 public class RecurringRevenueScheduler {
     private final RecurringRevenueProcessor recurringRevenueProcessor;
 
-
     @Scheduled(cron = "${scheduler.revenue-settings.recurring-frequency}", zone = "Europe/Warsaw")
     @SchedulerLock(name = "getRecurringRevenue", lockAtMostFor = "10m", lockAtLeastFor = "30s")
-    public void getRecurringRevenue(){
+    public void getRecurringRevenue() {
         recurringRevenueProcessor.generateRecurringRevenues();
     }
 }

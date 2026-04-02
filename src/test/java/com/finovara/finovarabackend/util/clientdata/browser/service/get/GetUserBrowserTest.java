@@ -4,7 +4,6 @@ import com.finovara.finovarabackend.util.clientdata.browser.UserBrowser;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -17,14 +16,11 @@ class GetUserBrowserTest {
     @Mock
     private HttpServletRequest request;
 
-    @InjectMocks
-    private UserBrowser userBrowser;
-
     @Test
     void shouldReturnUnknownWhenUserAgentIsNull() {
         when(request.getHeader("User-Agent")).thenReturn(null);
 
-        String result = userBrowser.getBrowser(request);
+        String result = UserBrowser.getBrowser(request);
 
         assertEquals("Unknown", result);
     }
@@ -36,7 +32,7 @@ class GetUserBrowserTest {
                 + "Chrome/111.0.0.0 Safari/537.36";
         when(request.getHeader("User-Agent")).thenReturn(userAgent);
 
-        String result = userBrowser.getBrowser(request);
+        String result = UserBrowser.getBrowser(request);
 
         assertEquals("Chrome", result);
     }
