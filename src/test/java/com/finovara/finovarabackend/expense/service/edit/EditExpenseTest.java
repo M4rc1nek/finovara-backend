@@ -9,7 +9,7 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
-import com.finovara.finovarabackend.limit.model.LimitType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
@@ -123,7 +123,7 @@ public class EditExpenseTest {
         when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(loggedUser);
 
-        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, LimitType.DAILY));
+        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, PeriodType.DAILY));
 
         verify(expenseRepository, never()).save(any());
 
@@ -144,7 +144,7 @@ public class EditExpenseTest {
         when(expenseManagerService.getExpenseByIdOrThrow(expenseId))
                 .thenThrow(new ExpenseNotFoundException("Expense not found"));
 
-        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, LimitType.DAILY));
+        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, PeriodType.DAILY));
         verify(expenseRepository, never()).save(any());
     }
 

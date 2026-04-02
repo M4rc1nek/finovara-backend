@@ -61,7 +61,7 @@ public class LimitActivityService {
         LimitActivity limitActivity = LimitActivity.builder()
                 .userAssigned(user)
                 .limitActivityType(limitActivityType)
-                .limitType(limit.getLimitType())
+                .periodType(limit.getPeriodType())
                 .amount(limit.getAmount())
                 .date(LocalDateTime.now())
                 .build();

@@ -5,7 +5,7 @@ import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityS
 import com.finovara.finovarabackend.limit.dto.LimitDTO;
 import com.finovara.finovarabackend.limit.exception.conflict.LimitAlreadyExistsException;
 import com.finovara.finovarabackend.limit.model.Limit;
-import com.finovara.finovarabackend.limit.model.LimitType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.limit.service.LimitManagementService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -46,13 +46,13 @@ class AddLimitTest {
         String email = "test@test.com";
         Long userId = 1L;
 
-        LimitDTO dto = new LimitDTO(userId, null, LimitType.DAILY, null, new BigDecimal("100"), true);
+        LimitDTO dto = new LimitDTO(userId, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
 
         User user = new User();
         user.setId(userId);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(limitRepository.findByUserAssignedIdAndType(userId, dto.limitType()))
+        when(limitRepository.findByUserAssignedIdAndType(userId, dto.periodType()))
                 .thenReturn(Collections.emptyList());
 
         Limit savedLimit = new Limit();
@@ -65,7 +65,7 @@ class AddLimitTest {
         assertEquals(10L, result);
 
         verify(userManagerService).getUserByEmailOrThrow(email);
-        verify(limitRepository).findByUserAssignedIdAndType(userId, dto.limitType());
+        verify(limitRepository).findByUserAssignedIdAndType(userId, dto.periodType());
         verify(limitActivityService).createLimitActivity(eq(email), eq(LimitActivityType.ADDED_LIMIT), any(Limit.class));
         verify(limitRepository).save(any(Limit.class));
     }
@@ -76,7 +76,7 @@ class AddLimitTest {
         String email = "test@test.com";
         Long userId = 1L;
 
-        LimitDTO dto = new LimitDTO(userId, null, LimitType.DAILY, null, new BigDecimal("100"), true);
+        LimitDTO dto = new LimitDTO(userId, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
 
         User user = new User();
         user.setId(userId);
@@ -84,13 +84,13 @@ class AddLimitTest {
         Limit existingLimit = new Limit();
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(limitRepository.findByUserAssignedIdAndType(userId, dto.limitType()))
+        when(limitRepository.findByUserAssignedIdAndType(userId, dto.periodType()))
                 .thenReturn(List.of(existingLimit));
 
         assertThrows(LimitAlreadyExistsException.class, () -> limitManagementService.createLimit(dto, email)
         );
 
-        verify(limitRepository).findByUserAssignedIdAndType(userId, dto.limitType());
+        verify(limitRepository).findByUserAssignedIdAndType(userId, dto.periodType());
         verify(limitRepository, never()).save(any());
         verifyNoInteractions(limitActivityService);
     }
@@ -98,7 +98,7 @@ class AddLimitTest {
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
         String email = "test@email.com";
-        LimitDTO dto = new LimitDTO(null, null, LimitType.DAILY, null, new BigDecimal("100"), true);
+        LimitDTO dto = new LimitDTO(null, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 

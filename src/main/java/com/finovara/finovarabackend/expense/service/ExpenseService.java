@@ -11,7 +11,7 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.limit.exception.unprocessablecontent.LimitExceededException;
-import com.finovara.finovarabackend.limit.model.LimitType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
@@ -20,7 +20,6 @@ import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.S
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
-import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -52,10 +51,10 @@ public class ExpenseService {
     private final FinancialPeriodService financialPeriodService;
 
     @Transactional
-    public Long addExpense(ExpenseRequestDto expenseRequestDto, String email, LimitType limitType) {
+    public Long addExpense(ExpenseRequestDto expenseRequestDto, String email, PeriodType periodType) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
-        validateLimitOrThrow(user.getId(), limitType, BigDecimal.ZERO, expenseRequestDto.expenseDTO().amount());
+        validateLimitOrThrow(user.getId(), periodType, BigDecimal.ZERO, expenseRequestDto.expenseDTO().amount());
 
         countQuantityLimitService.calculateCountQuantityLimit(email, expenseRequestDto.countQuantityLimitDto(),
                 expenseRequestDto.countQuantityLimitDto().countQuantityLimitStrategy(), expenseRequestDto.confirmPasswordDto());
@@ -86,7 +85,7 @@ public class ExpenseService {
     }
 
     @Transactional
-    public Long editExpense(ExpenseRequestDto expenseRequestDto, String email, Long expenseId, LimitType limitType) {
+    public Long editExpense(ExpenseRequestDto expenseRequestDto, String email, Long expenseId, PeriodType periodType) {
         Expense existingExpense = expenseManagerService.getExpenseByIdOrThrow(expenseId);
         User user = userManagerService.getUserByEmailOrThrow(email);
 
@@ -94,7 +93,7 @@ public class ExpenseService {
             throw new ExpenseNotFoundException("Expense not found for this user");
         }
 
-        validateLimitOrThrow(user.getId(), limitType, existingExpense.getAmount(), expenseRequestDto.expenseDTO().amount());
+        validateLimitOrThrow(user.getId(), periodType, existingExpense.getAmount(), expenseRequestDto.expenseDTO().amount());
 
         walletService.addBalanceToWallet(email, existingExpense.getAmount());
         walletService.removeBalanceFromWallet(email, expenseRequestDto.expenseDTO().amount());
@@ -142,19 +141,19 @@ public class ExpenseService {
 
     }
 
-    private BigDecimal checkSpentInPeriod(LimitType limitType, Long userId) {
-        if (limitType == null) return BigDecimal.ZERO;
-        return switch (limitType) {
+    private BigDecimal checkSpentInPeriod(PeriodType periodType, Long userId) {
+        if (periodType == null) return BigDecimal.ZERO;
+        return switch (periodType) {
             case DAILY -> financialPeriodService.getExpensesSum(userId, PeriodType.DAILY);
             case WEEKLY -> financialPeriodService.getExpensesSum(userId, PeriodType.WEEKLY);
             case MONTHLY -> financialPeriodService.getExpensesSum(userId, PeriodType.MONTHLY);
         };
     }
 
-    private void validateLimitOrThrow(Long userId, LimitType limitType, BigDecimal existingAmount, BigDecimal newAmount) {
-        Optional<BigDecimal> limitAmount = (limitType == null) ? Optional.empty() : limitRepository.getLimitAmountByUserIdAndType(userId, limitType);
+    private void validateLimitOrThrow(Long userId, PeriodType periodType, BigDecimal existingAmount, BigDecimal newAmount) {
+        Optional<BigDecimal> limitAmount = (periodType == null) ? Optional.empty() : limitRepository.getLimitAmountByUserIdAndType(userId, periodType);
 
-        BigDecimal spent = checkSpentInPeriod(limitType, userId);
+        BigDecimal spent = checkSpentInPeriod(periodType, userId);
         BigDecimal totalAmount = spent.subtract(existingAmount).add(newAmount);
 
         if (limitAmount.isPresent() && totalAmount.compareTo(limitAmount.get()) > 0) {

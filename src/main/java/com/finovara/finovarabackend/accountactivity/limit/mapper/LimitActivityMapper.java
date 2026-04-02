@@ -10,7 +10,7 @@ public class LimitActivityMapper {
     public LimitActivityDto mapToLimitActivity(LimitActivity activity) {
         return new LimitActivityDto(
                 activity.getLimitActivityType(),
-                activity.getLimitType(),
+                activity.getPeriodType(),
                 activity.getAmount(),
                 activity.getPreviousAmount(),
                 activity.getDate()

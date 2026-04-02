@@ -9,7 +9,6 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
-import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -94,7 +93,7 @@ class AddExpenseTest {
         });
 
         // when
-        Long result = expenseService.addExpense(dto, email, LimitType.DAILY);
+        Long result = expenseService.addExpense(dto, email, PeriodType.DAILY);
 
         // then
         assertEquals(1L, result);
@@ -129,7 +128,7 @@ class AddExpenseTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(financialPeriodService.getExpensesSum(anyLong(), eq(PeriodType.DAILY))).thenReturn(BigDecimal.ZERO);
 
-        assertThrows(InvalidInputException.class, () -> expenseService.addExpense(dto, email, LimitType.DAILY));
+        assertThrows(InvalidInputException.class, () -> expenseService.addExpense(dto, email, PeriodType.DAILY));
         verify(expenseRepository, never()).save(any());
     }
 

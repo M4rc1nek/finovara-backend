@@ -43,7 +43,7 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="limit_type" type="VARCHAR(255)">
+            <column name="period_type" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="limit_status" type="VARCHAR(255)">
@@ -252,7 +252,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="limit_activity_type" type="VARCHAR(255)"/>
-            <column name="limit_type" type="VARCHAR(255)"/>
+            <column name="period_type" type="VARCHAR(255)"/>
             <column name="amount" type="DECIMAL(19,2)"/>
             <column name="previous_amount" type="DECIMAL(19,2)"/>
             <column name="date" type="TIMESTAMP"/>

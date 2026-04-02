@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivityTyp
 import com.finovara.finovarabackend.accountactivity.limit.repository.LimitActivityRepository;
 import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityService;
 import com.finovara.finovarabackend.limit.model.Limit;
-import com.finovara.finovarabackend.limit.model.LimitType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -43,7 +43,7 @@ class CreateLimitActivityTest {
 
         Limit limit = new Limit();
         limit.setAmount(new BigDecimal("500"));
-        limit.setLimitType(LimitType.MONTHLY);
+        limit.setPeriodType(PeriodType.MONTHLY);
         LocalDateTime now = LocalDateTime.now();
 
 
@@ -55,7 +55,7 @@ class CreateLimitActivityTest {
         verify(limitActivityRepository).save(argThat(activity ->
                 activity.getUserAssigned().equals(user) &&
                         activity.getLimitActivityType() == LimitActivityType.ADDED_LIMIT &&
-                        activity.getLimitType() == LimitType.MONTHLY &&
+                        activity.getPeriodType() == PeriodType.MONTHLY &&
                         activity.getAmount().compareTo(new BigDecimal("500")) == 0 &&
                         !activity.getDate().isBefore(now)
         ));
@@ -66,7 +66,7 @@ class CreateLimitActivityTest {
 
         Limit limit = new Limit();
         limit.setAmount(new BigDecimal("500"));
-        limit.setLimitType(LimitType.MONTHLY);
+        limit.setPeriodType(PeriodType.MONTHLY);
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
 

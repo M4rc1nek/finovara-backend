@@ -5,7 +5,6 @@ import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFound
 import com.finovara.finovarabackend.limit.mapper.LimitMapper;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.model.LimitStatus;
-import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.limit.service.LimitCalculateService;
@@ -45,7 +44,7 @@ public class LimitCalculateTest {
         LocalDate date = LocalDate.now();
 
         Limit limit = new Limit();
-        limit.setLimitType(LimitType.DAILY);
+        limit.setPeriodType(PeriodType.DAILY);
         limit.setAmount(new BigDecimal("100"));
 
         BigDecimal spentToday = new BigDecimal("30");
@@ -53,7 +52,7 @@ public class LimitCalculateTest {
         BigDecimal percentage = new BigDecimal("30.00");
         LimitStatus status = LimitStatus.LOW;
 
-        LimitStatsDto expectedDTO = new LimitStatsDto(limitId, limit.getLimitType(), limit.getAmount(), spentToday, remaining, percentage, status, date);
+        LimitStatsDto expectedDTO = new LimitStatsDto(limitId, limit.getPeriodType(), limit.getAmount(), spentToday, remaining, percentage, status, date);
 
         when(limitRepository.findByIdAndUserAssignedId(userId, limitId)).thenReturn(Optional.of(limit));
         when(financialPeriodService.getExpensesSum(userId, PeriodType.DAILY)).thenReturn(spentToday);

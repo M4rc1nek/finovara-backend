@@ -30,14 +30,14 @@ public class LimitManagementService {
     @Transactional
     public Long createLimit(LimitDTO limitDTO, String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        List<Limit> existingLimit = limitRepository.findByUserAssignedIdAndType(user.getId(), limitDTO.limitType());
+        List<Limit> existingLimit = limitRepository.findByUserAssignedIdAndType(user.getId(), limitDTO.periodType());
 
         if (!existingLimit.isEmpty()) {
             throw new LimitAlreadyExistsException("Limit already existing");
         }
 
         Limit limit = Limit.builder()
-                .limitType(limitDTO.limitType())
+                .periodType(limitDTO.periodType())
                 .limitStatus(LimitStatus.NONE)
                 .amount(limitDTO.amount())
                 .isActive(true)
@@ -63,7 +63,7 @@ public class LimitManagementService {
 
         BigDecimal oldLimitAmount = limit.getAmount();
 
-        limit.setLimitType(limitDTO.limitType());
+        limit.setPeriodType(limitDTO.periodType());
         limit.setAmount(limitDTO.amount());
 
         limitActivityService.updateLimitActivity(email, LimitActivityType.EDITED_LIMIT, limit, oldLimitAmount);

@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.limit.model;
 
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,8 +21,8 @@ public class Limit {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private LimitType limitType;
+    @Column(name = "period_type", nullable = false)
+    private PeriodType periodType;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.accountactivity.limit.model;
 
-import com.finovara.finovarabackend.limit.model.LimitType;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,8 +25,8 @@ public class LimitActivity {
     private LimitActivityType limitActivityType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "limit_type")
-    private LimitType limitType;
+    @Column(name = "period_type")
+    private PeriodType periodType;
 
     private BigDecimal amount;
     private BigDecimal previousAmount;

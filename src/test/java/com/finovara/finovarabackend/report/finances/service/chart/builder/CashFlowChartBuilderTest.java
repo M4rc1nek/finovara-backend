@@ -110,8 +110,7 @@ class CashFlowChartBuilderTest {
         );
 
         List<DailyCashDto> revenues = List.of(
-                new DailyCashDto(today, BigDecimal.valueOf(200))
-        );
+                new DailyCashDto(today, BigDecimal.valueOf(200)));
 
         List<CashFlowDto> result = builder.getCashFlowChartBuilder(expenses, revenues);
 

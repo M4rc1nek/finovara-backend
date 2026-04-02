@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.limit.dto;
 
 import com.finovara.finovarabackend.limit.model.LimitStatus;
-import com.finovara.finovarabackend.limit.model.LimitType;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
@@ -12,7 +12,7 @@ public record LimitDTO(
         Long userId,
         Long id,
 
-        LimitType limitType,
+        PeriodType periodType,
         LimitStatus limitStatus,
         @DecimalMin(value = "1.0", message = "Amount must be at least 1")
         @DecimalMax(value = "1000000.00", message = "Amount must not exceed 1 000 000")

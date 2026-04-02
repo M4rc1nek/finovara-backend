@@ -13,7 +13,7 @@ public class LimitMapper {
     public LimitStatsDto mapLimitStatsToDto(Limit limit, BigDecimal spent, BigDecimal remaining, BigDecimal percentage, LimitStatus status, LocalDate date) {
         return new LimitStatsDto(
                 limit.getId(),
-                limit.getLimitType(),
+                limit.getPeriodType(),
                 limit.getAmount(),
                 spent,
                 remaining,
@@ -24,4 +24,3 @@ public class LimitMapper {
         );
     }
 }
-
