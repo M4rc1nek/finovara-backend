@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class CashFlowChartBuilder {
+public class CashFlowChartService {
 
-    public List<CashFlowDto> getCashFlowChartService(List<DailyCashDto> expenses, List<DailyCashDto> revenues) {
+    public List<CashFlowDto> getCashFlowChart(List<DailyCashDto> expenses, List<DailyCashDto> revenues) {
         LocalDate today = LocalDate.now();
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
