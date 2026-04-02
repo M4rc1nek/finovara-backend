@@ -26,7 +26,7 @@ public class RecurringRevenueService {
         revenueSettings.setRecurringRevenuesEnable(dto.recurringRevenueEnable());
         revenueSettings.setRecurringAmount(dto.amount());
         revenueSettings.setRevenueCategory(dto.category());
-        revenueSettings.setRecurringStrategy(dto.strategy());
+        revenueSettings.setPeriodType(dto.periodType());
 
         if (dto.recurringRevenueEnable()) {
             settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.REVENUE_RECURRING);
@@ -47,7 +47,7 @@ public class RecurringRevenueService {
                 settings.isRecurringRevenuesEnable(),
                 settings.getRecurringAmount(),
                 settings.getRevenueCategory(),
-                settings.getRecurringStrategy(),
+                settings.getPeriodType(),
                 settings.getRecurringStartDate(),
                 settings.getNextExecutionDate()
         );

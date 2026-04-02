@@ -6,7 +6,7 @@ import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
-import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.model.RecurringStrategy;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -43,7 +43,7 @@ public class RecurringRevenueProcessorTest {
                 .nextExecutionDate(today)
                 .recurringAmount(new BigDecimal(100))
                 .revenueCategory(RevenueCategory.SALARY)
-                .recurringStrategy(RecurringStrategy.DAILY)
+                .periodType(PeriodType.DAILY)
                 .userAssigned(user)
                 .build();
 
@@ -78,7 +78,7 @@ public class RecurringRevenueProcessorTest {
                 .nextExecutionDate(today.minusDays(3))
                 .recurringAmount(new BigDecimal(100))
                 .revenueCategory(RevenueCategory.SALARY)
-                .recurringStrategy(RecurringStrategy.DAILY)
+                .periodType(PeriodType.DAILY)
                 .userAssigned(user)
                 .build();
 

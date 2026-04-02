@@ -145,7 +145,7 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="expense_amount_threshold_enabled" type="BOOLEAN">
+            <column name="amount_threshold_enabled" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
             <column name="blocked_amount" type="DECIMAL(19,2)">
@@ -154,13 +154,13 @@
             <column name="smart_scan_enabled" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
-            <column name="expense_count_quantity_limit_enabled" type="BOOLEAN">
+            <column name="count_quantity_limit_enabled" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
             <column name="number_of_quantity_limit" type="INT"/>
-            <column name="period_type" type="VARCHAR(255)"/>
-            <column name="expense_quantity_limit_emergency_mode_enabled" type="BOOLEAN"/>
-            <column name="expense_quantity_limit_emergency_mode_used" type="BOOLEAN"/>
+            <column name="count_quantity_limit_period" type="VARCHAR(255)"/>
+            <column name="quantity_limit_emergency_mode_enabled" type="BOOLEAN"/>
+            <column name="quantity_limit_emergency_mode_used" type="BOOLEAN"/>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" unique="true" foreignKeyName="fk_expense_settings_user" references="users(id)"/>
             </column>
@@ -177,7 +177,7 @@
             </column>
             <column name="recurring_amount" type="DECIMAL(19,2)"/>
             <column name="revenue_category" type="VARCHAR(255)"/>
-            <column name="recurring_strategy" type="VARCHAR(255)"/>
+            <column name="recurring_revenue_period" type="VARCHAR(255)"/>
             <column name="recurring_start_date" type="DATE"/>
             <column name="next_execution_date" type="DATE"/>
             <column name="created_at" type="DATE">

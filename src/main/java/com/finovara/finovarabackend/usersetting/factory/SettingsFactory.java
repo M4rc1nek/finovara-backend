@@ -6,7 +6,6 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
-import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.model.RecurringStrategy;
 import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
@@ -39,7 +38,7 @@ public class SettingsFactory {
                 .recurringRevenuesEnable(false)
                 .recurringAmount(BigDecimal.ZERO)
                 .revenueCategory(RevenueCategory.OTHER)
-                .recurringStrategy(RecurringStrategy.MONTHLY)
+                .periodType(PeriodType.MONTHLY)
                 .recurringStartDate(null)
                 .nextExecutionDate(null)
                 .createdAt(LocalDate.now())

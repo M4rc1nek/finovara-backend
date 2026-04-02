@@ -4,8 +4,8 @@ import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.dto.RecurringRevenueDto;
-import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.model.RecurringStrategy;
 import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.service.RecurringRevenueService;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ class GetRecurringRevenueTest {
         revenueSettings.setRecurringRevenuesEnable(true);
         revenueSettings.setRecurringAmount(BigDecimal.valueOf(500));
         revenueSettings.setRevenueCategory(RevenueCategory.SALARY);
-        revenueSettings.setRecurringStrategy(RecurringStrategy.MONTHLY);
+        revenueSettings.setPeriodType(PeriodType.MONTHLY);
         revenueSettings.setRecurringStartDate(startDate);
         revenueSettings.setNextExecutionDate(startDate.plusDays(1));
 
@@ -56,7 +56,7 @@ class GetRecurringRevenueTest {
         assertTrue(dto.recurringRevenueEnable());
         assertEquals(BigDecimal.valueOf(500), dto.amount());
         assertEquals(RevenueCategory.SALARY, dto.category());
-        assertEquals(RecurringStrategy.MONTHLY, dto.strategy());
+        assertEquals(PeriodType.MONTHLY, dto.periodType());
         assertEquals(startDate, dto.startDate());
         assertEquals(startDate.plusDays(1), dto.nextExecutionDate());
     }
@@ -67,7 +67,7 @@ class GetRecurringRevenueTest {
         revenueSettings.setRecurringRevenuesEnable(false);
         revenueSettings.setRecurringAmount(BigDecimal.valueOf(200));
         revenueSettings.setRevenueCategory(RevenueCategory.BONUS);
-        revenueSettings.setRecurringStrategy(RecurringStrategy.WEEKLY);
+        revenueSettings.setPeriodType(PeriodType.WEEKLY);
         revenueSettings.setRecurringStartDate(startDate);
         revenueSettings.setNextExecutionDate(null);
 
@@ -76,7 +76,7 @@ class GetRecurringRevenueTest {
         assertEquals(false, dto.recurringRevenueEnable());
         assertEquals(BigDecimal.valueOf(200), dto.amount());
         assertEquals(RevenueCategory.BONUS, dto.category());
-        assertEquals(RecurringStrategy.WEEKLY, dto.strategy());
+        assertEquals(PeriodType.WEEKLY, dto.periodType());
         assertEquals(startDate, dto.startDate());
         assertNull(dto.nextExecutionDate());
     }

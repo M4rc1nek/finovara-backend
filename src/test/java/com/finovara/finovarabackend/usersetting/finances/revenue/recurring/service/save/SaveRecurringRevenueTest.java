@@ -7,8 +7,8 @@ import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.dto.RecurringRevenueDto;
-import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.model.RecurringStrategy;
 import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.service.RecurringRevenueService;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ class SaveRecurringRevenueTest {
                 true,
                 BigDecimal.valueOf(500),
                 RevenueCategory.SALARY,
-                RecurringStrategy.MONTHLY,
+                PeriodType.MONTHLY,
                 startDate,
                 null
         );
@@ -65,7 +65,7 @@ class SaveRecurringRevenueTest {
         assertTrue(revenueSettings.isRecurringRevenuesEnable());
         assertEquals(BigDecimal.valueOf(500), revenueSettings.getRecurringAmount());
         assertEquals(RevenueCategory.SALARY, revenueSettings.getRevenueCategory());
-        assertEquals(RecurringStrategy.MONTHLY, revenueSettings.getRecurringStrategy());
+        assertEquals(PeriodType.MONTHLY, revenueSettings.getPeriodType());
         assertEquals(startDate, revenueSettings.getRecurringStartDate());
         assertEquals(startDate, revenueSettings.getNextExecutionDate());
 
@@ -79,7 +79,7 @@ class SaveRecurringRevenueTest {
                 false,
                 BigDecimal.valueOf(500),
                 RevenueCategory.SALARY,
-                RecurringStrategy.MONTHLY,
+                PeriodType.MONTHLY,
                 startDate,
                 null
         );
@@ -89,7 +89,7 @@ class SaveRecurringRevenueTest {
         assertFalse(revenueSettings.isRecurringRevenuesEnable());
         assertEquals(BigDecimal.valueOf(500), revenueSettings.getRecurringAmount());
         assertEquals(RevenueCategory.SALARY, revenueSettings.getRevenueCategory());
-        assertEquals(RecurringStrategy.MONTHLY, revenueSettings.getRecurringStrategy());
+        assertEquals(PeriodType.MONTHLY, revenueSettings.getPeriodType());
         assertNull(revenueSettings.getNextExecutionDate());
 
         verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.DISABLED, SettingType.REVENUE_RECURRING);
