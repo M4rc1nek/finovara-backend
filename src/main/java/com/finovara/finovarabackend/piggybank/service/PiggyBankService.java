@@ -41,8 +41,6 @@ public class PiggyBankService {
     private final PiggyBankActivityService piggyBankActivityService;
     private final PiggyBankSettingsRepository piggyBankSettingsRepository;
     private final SettingsFactory settingsFactory;
-    private final PiggyBankCheckGoalCompletion piggyBankCheckGoalCompletion;
-
     private final PiggyBankMapper piggyBankMapper;
 
     @Transactional
@@ -100,7 +98,7 @@ public class PiggyBankService {
         walletRepository.save(userContext.wallet);
         piggyBankRepository.save(userContext.piggyBank);
 
-        if (piggyBankCheckGoalCompletion.isGoalCompleted(userContext.piggyBank)) {
+        if (PiggyBankCheckGoalCompletion.isGoalCompleted(userContext.piggyBank)) {
             goalCompletionService.handleGoalCompletion(email);
         }
     }

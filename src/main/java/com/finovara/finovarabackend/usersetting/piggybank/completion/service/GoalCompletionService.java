@@ -31,8 +31,6 @@ public class GoalCompletionService {
     private final WalletRepository walletRepository;
     private final PiggyBankActivityService piggyBankActivityService;
 
-    private final PiggyBankCheckGoalCompletion piggyBankCheckGoalCompletion;
-
     @Transactional
     public void addGoalCompletion(Long piggyBankId, String email, GoalCompletionDto goalCompletionDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
@@ -73,7 +71,7 @@ public class GoalCompletionService {
 
         for (PiggyBank piggyBank : piggyBanks) {
             PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
-            if (!piggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)) {
+            if (!PiggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)) {
                 continue;
             }
 

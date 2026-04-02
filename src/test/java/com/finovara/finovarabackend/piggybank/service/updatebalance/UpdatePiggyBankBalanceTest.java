@@ -9,7 +9,6 @@ import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
@@ -40,8 +39,6 @@ class UpdatePiggyBankBalanceTest {
     @Mock
     private PiggyBankActivityService piggyBankActivityService;
     @Mock
-    private PiggyBankCheckGoalCompletion piggyBankCheckGoalCompletion;
-    @Mock
     private GoalCompletionService goalCompletionService;
     @Mock
     private UserManagerService userManagerService;
@@ -65,7 +62,6 @@ class UpdatePiggyBankBalanceTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(piggyBank);
         when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
-        when(piggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)).thenReturn(false);
 
         piggyBankService.addBalanceToPiggyBank(email, piggyBankId, amount);
 
@@ -74,7 +70,8 @@ class UpdatePiggyBankBalanceTest {
 
         verify(walletRepository).save(wallet);
         verify(piggyBankRepository).save(piggyBank);
-        verify(piggyBankActivityService).createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, amount);
+        verify(piggyBankActivityService).createPaymentPiggyBankActivity(email, piggyBank,
+                PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, amount);
         verify(goalCompletionService, never()).handleGoalCompletion(any());
     }
 
@@ -94,10 +91,11 @@ class UpdatePiggyBankBalanceTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(piggyBank);
         when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
-        when(piggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)).thenReturn(true);
 
         piggyBankService.addBalanceToPiggyBank(email, piggyBankId, amount);
 
+        // Goal should now be reached
+        assertEquals(new BigDecimal("1000"), piggyBank.getAmount());
         verify(goalCompletionService).handleGoalCompletion(email);
     }
 
@@ -116,6 +114,7 @@ class UpdatePiggyBankBalanceTest {
         when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
 
         assertThrows(InvalidInputException.class, () -> piggyBankService.addBalanceToPiggyBank(email, piggyBankId, new BigDecimal("100")));
+
         verify(piggyBankRepository, never()).save(any());
     }
 
@@ -127,7 +126,7 @@ class UpdatePiggyBankBalanceTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () -> piggyBankService.addBalanceToPiggyBank(email, piggyBankId, new BigDecimal("100")));
-        verify(piggyBankRepository, never()).save(any());
 
+        verify(piggyBankRepository, never()).save(any());
     }
 }
