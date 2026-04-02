@@ -20,7 +20,7 @@ public class AverageCashFlowChartService {
     public List<CashFlowDto> getAverageCashFlowChart(Long userId) {
         List<DailyCashDto> averageExpenses = expenseRepository.avgExpensesGroupedByDate(userId);
         List<DailyCashDto> averageRevenues = revenueRepository.avgRevenuesGroupedByDate(userId);
-        return  cashFlowChartBuilder.getCashFlowChartBuilder(averageExpenses, averageRevenues);
+        return  cashFlowChartBuilder.getCashFlowChartService(averageExpenses, averageRevenues);
     }
 
 }

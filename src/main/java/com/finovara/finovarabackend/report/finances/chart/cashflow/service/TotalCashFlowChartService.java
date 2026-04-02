@@ -20,6 +20,6 @@ public class TotalCashFlowChartService {
     public List<CashFlowDto> getCashFlowChart(Long userId) {
         List<DailyCashDto> summedExpenses = expenseRepository.sumExpensesGroupedByDate(userId);
         List<DailyCashDto> summedRevenues = revenueRepository.sumRevenuesGroupedByDate(userId);
-        return cashFlowChartBuilder.getCashFlowChartBuilder(summedExpenses, summedRevenues);
+        return cashFlowChartBuilder.getCashFlowChartService(summedExpenses, summedRevenues);
     }
 }
