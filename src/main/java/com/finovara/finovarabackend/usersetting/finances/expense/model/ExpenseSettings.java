@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.usersetting.finances.expense.model;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.model.CountQuantityLimitStrategy;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,7 +35,8 @@ public class ExpenseSettings {
     private int numberOfQuantityLimit;
 
     @Enumerated(EnumType.STRING)
-    private CountQuantityLimitStrategy countQuantityLimitStrategy;
+    @Column(name = "period_type")
+    private PeriodType periodType;
 
     private boolean expenseQuantityLimitEmergencyModeEnabled;
     private boolean expenseQuantityLimitEmergencyModeUsed;

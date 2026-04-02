@@ -14,7 +14,6 @@ import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundExceptio
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
-import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.model.CountQuantityLimitStrategy;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
@@ -81,7 +80,7 @@ public class EditExpenseTest {
         ExpenseRequestDto dto = new ExpenseRequestDto(
                 new ExpenseDTO(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "new description"),
                 new ConfirmPasswordDto("pass"),
-                new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 10)
+                new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
@@ -117,7 +116,7 @@ public class EditExpenseTest {
         ExpenseRequestDto dto = new ExpenseRequestDto(
                 new ExpenseDTO(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "test"),
                 new ConfirmPasswordDto("pass"),
-                new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 10)
+                new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
 
         when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
@@ -138,7 +137,7 @@ public class EditExpenseTest {
         ExpenseRequestDto dto = new ExpenseRequestDto(
                 new ExpenseDTO(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "test"),
                 new ConfirmPasswordDto("pass"),
-                new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 10)
+                new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
 
         when(expenseManagerService.getExpenseByIdOrThrow(expenseId))
@@ -157,7 +156,7 @@ public class EditExpenseTest {
         ExpenseRequestDto dto = new ExpenseRequestDto(
                 new ExpenseDTO(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "test"),
                 new ConfirmPasswordDto("pass"),
-                new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 10)
+                new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));

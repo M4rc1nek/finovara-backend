@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.usersetting.finances.expense.countlimit.get
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
-import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.model.CountQuantityLimitStrategy;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -41,7 +41,7 @@ class GetCountQuantityLimitTest {
     @Test
     void shouldReturnEnabledLimit() {
         expenseSettings.setExpenseCountQuantityLimitEnabled(true);
-        expenseSettings.setCountQuantityLimitStrategy(CountQuantityLimitStrategy.DAILY);
+        expenseSettings.setPeriodType(PeriodType.DAILY);
         expenseSettings.setNumberOfQuantityLimit(5);
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
@@ -49,14 +49,14 @@ class GetCountQuantityLimitTest {
         CountQuantityLimitDto dto = countQuantityLimitService.getCountQuantityLimit(EMAIL);
 
         assertEquals(true, dto.expenseCountLimitEnabled());
-        assertEquals(CountQuantityLimitStrategy.DAILY, dto.countQuantityLimitStrategy());
+        assertEquals(PeriodType.DAILY, dto.periodType());
         assertEquals(5, dto.numberOfQuantityLimit());
     }
 
     @Test
     void shouldReturnDisabledLimit() {
         expenseSettings.setExpenseCountQuantityLimitEnabled(false);
-        expenseSettings.setCountQuantityLimitStrategy(CountQuantityLimitStrategy.WEEKLY);
+        expenseSettings.setPeriodType(PeriodType.WEEKLY);
         expenseSettings.setNumberOfQuantityLimit(10);
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
@@ -64,7 +64,7 @@ class GetCountQuantityLimitTest {
         CountQuantityLimitDto dto = countQuantityLimitService.getCountQuantityLimit(EMAIL);
 
         assertEquals(false, dto.expenseCountLimitEnabled());
-        assertEquals(CountQuantityLimitStrategy.WEEKLY, dto.countQuantityLimitStrategy());
+        assertEquals(PeriodType.WEEKLY, dto.periodType());
         assertEquals(10, dto.numberOfQuantityLimit());
     }
 }

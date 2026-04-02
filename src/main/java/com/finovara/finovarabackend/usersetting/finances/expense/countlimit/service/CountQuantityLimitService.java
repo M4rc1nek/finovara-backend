@@ -8,8 +8,8 @@ import com.finovara.finovarabackend.exception.conflict.StateConflictException;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
-import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.model.CountQuantityLimitStrategy;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -45,29 +45,29 @@ public class CountQuantityLimitService {
             settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.EXPENSE_COUNT_LIMIT);
         }
 
-        long countedExpenses = countExpensesInPeriod(user, dto.countQuantityLimitStrategy());
+        long countedExpenses = countExpensesInPeriod(user, dto.periodType());
         if (dto.numberOfQuantityLimit() < countedExpenses) {
             throw new StateConflictException("You cannot add a limit " + dto.numberOfQuantityLimit() + ", because you have already "
                     + countedExpenses + " expenses in that period");
         }
 
-        if(expenseSettings.getCountQuantityLimitStrategy() != dto.countQuantityLimitStrategy()){
+        if(expenseSettings.getPeriodType() != dto.periodType()){
             expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(false);
         }
 
         expenseSettings.setNumberOfQuantityLimit(dto.numberOfQuantityLimit());
-        expenseSettings.setCountQuantityLimitStrategy(dto.countQuantityLimitStrategy());
+        expenseSettings.setPeriodType(dto.periodType());
 
     }
 
     @Transactional
-    public void calculateCountQuantityLimit(String email, CountQuantityLimitDto dto, CountQuantityLimitStrategy strategy, ConfirmPasswordDto confirmPasswordDto) {
+    public void calculateCountQuantityLimit(String email, CountQuantityLimitDto dto, PeriodType periodType, ConfirmPasswordDto confirmPasswordDto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         if (!expenseSettings.isExpenseCountQuantityLimitEnabled()) return;
 
-        long countedExpenses = countExpensesInPeriod(user, strategy);
+        long countedExpenses = countExpensesInPeriod(user, periodType);
         if (countedExpenses + 1 > dto.numberOfQuantityLimit()) {
 
             if (expenseSettings.isExpenseQuantityLimitEmergencyModeUsed()) {
@@ -97,12 +97,12 @@ public class CountQuantityLimitService {
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         return new CountQuantityLimitDto(expenseSettings.isExpenseCountQuantityLimitEnabled(),
-                expenseSettings.getCountQuantityLimitStrategy(), expenseSettings.getNumberOfQuantityLimit());
+                expenseSettings.getPeriodType(), expenseSettings.getNumberOfQuantityLimit());
     }
 
-    private long countExpensesInPeriod(User user, CountQuantityLimitStrategy strategy) {
+    private long countExpensesInPeriod(User user, PeriodType periodType) {
         LocalDate today = LocalDate.now();
-        LocalDate start = switch (strategy) {
+        LocalDate start = switch (periodType) {
             case DAILY -> today;
             case WEEKLY -> today.with(DayOfWeek.MONDAY);
             case MONTHLY -> today.withDayOfMonth(1);

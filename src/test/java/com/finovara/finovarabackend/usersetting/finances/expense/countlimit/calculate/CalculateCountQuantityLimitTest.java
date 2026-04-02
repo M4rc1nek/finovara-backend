@@ -5,7 +5,7 @@ import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequir
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
-import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.model.CountQuantityLimitStrategy;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -57,8 +57,8 @@ class CalculateCountQuantityLimitSimpleTest {
     void shouldDoNothingWhenLimitDisabled() {
         expenseSettings.setExpenseCountQuantityLimitEnabled(false);
         countQuantityLimitService.calculateCountQuantityLimit(EMAIL,
-                new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 5),
-                CountQuantityLimitStrategy.DAILY,
+                new CountQuantityLimitDto(true, PeriodType.DAILY, 5),
+                PeriodType.DAILY,
                 null);
 
         verifyNoInteractions(passwordConfirmationService);
@@ -71,9 +71,9 @@ class CalculateCountQuantityLimitSimpleTest {
 
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
 
-        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 5);
+        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
-        assertThrows(StateConflictException.class, () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, CountQuantityLimitStrategy.DAILY, null));
+        assertThrows(StateConflictException.class, () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
     }
 
     @Test
@@ -83,9 +83,9 @@ class CalculateCountQuantityLimitSimpleTest {
 
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
 
-        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 5);
+        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
-        assertThrows(StateConflictException.class, () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, CountQuantityLimitStrategy.DAILY, null));
+        assertThrows(StateConflictException.class, () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
     }
 
     @Test
@@ -95,9 +95,9 @@ class CalculateCountQuantityLimitSimpleTest {
 
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
 
-        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 5);
+        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
-        assertThrows(MissingRequirementException.class, () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, CountQuantityLimitStrategy.DAILY, null));
+        assertThrows(MissingRequirementException.class, () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
     }
 
     @Test
@@ -107,10 +107,10 @@ class CalculateCountQuantityLimitSimpleTest {
 
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
 
-        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 5);
+        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
         ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("password");
 
-        countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, CountQuantityLimitStrategy.DAILY, confirmPasswordDto);
+        countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, confirmPasswordDto);
 
         verify(passwordConfirmationService).confirmPassword(EMAIL, confirmPasswordDto);
         assert !expenseSettings.isExpenseQuantityLimitEmergencyModeEnabled();

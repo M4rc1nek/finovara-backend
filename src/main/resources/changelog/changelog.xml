@@ -158,7 +158,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="number_of_quantity_limit" type="INT"/>
-            <column name="count_quantity_limit_strategy" type="VARCHAR(255)"/>
+            <column name="period_type" type="VARCHAR(255)"/>
             <column name="expense_quantity_limit_emergency_mode_enabled" type="BOOLEAN"/>
             <column name="expense_quantity_limit_emergency_mode_used" type="BOOLEAN"/>
             <column name="user_id" type="BIGINT">

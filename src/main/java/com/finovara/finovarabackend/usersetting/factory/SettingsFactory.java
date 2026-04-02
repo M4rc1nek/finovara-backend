@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.usersetting.factory;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.model.CountQuantityLimitStrategy;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.model.RecurringStrategy;
@@ -28,7 +28,7 @@ public class SettingsFactory {
                 .smartScanEnabled(false)
                 .expenseCountQuantityLimitEnabled(false)
                 .numberOfQuantityLimit(0)
-                .countQuantityLimitStrategy(CountQuantityLimitStrategy.DAILY)
+                .periodType(PeriodType.DAILY)
                 .expenseQuantityLimitEmergencyModeEnabled(false)
                 .build();
     }

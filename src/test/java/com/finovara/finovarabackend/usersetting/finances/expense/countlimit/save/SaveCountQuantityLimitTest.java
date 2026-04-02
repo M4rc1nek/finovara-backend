@@ -7,7 +7,7 @@ import com.finovara.finovarabackend.exception.conflict.StateConflictException;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
-import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.model.CountQuantityLimitStrategy;
+import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -57,7 +57,7 @@ class SaveCountQuantityLimitTest {
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(anyLong(), any(), any()))
                 .thenReturn(3L);
 
-        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 5);
+        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
         countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
 
@@ -72,7 +72,7 @@ class SaveCountQuantityLimitTest {
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(anyLong(), any(), any()))
                 .thenReturn(5L);
 
-        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 3);
+        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 3);
 
         try {
             countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
@@ -86,7 +86,7 @@ class SaveCountQuantityLimitTest {
     void shouldDisableCountQuantityLimit() {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
-        CountQuantityLimitDto dto = new CountQuantityLimitDto(false, CountQuantityLimitStrategy.DAILY, 5);
+        CountQuantityLimitDto dto = new CountQuantityLimitDto(false, PeriodType.DAILY, 5);
         expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(true);
 
         countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
@@ -102,15 +102,15 @@ class SaveCountQuantityLimitTest {
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(anyLong(), any(), any()))
                 .thenReturn(2L);
 
-        expenseSettings.setCountQuantityLimitStrategy(CountQuantityLimitStrategy.WEEKLY);
+        expenseSettings.setPeriodType(PeriodType.WEEKLY);
         expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(true);
 
-        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, CountQuantityLimitStrategy.DAILY, 5);
+        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
         countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
 
         assert !expenseSettings.isExpenseQuantityLimitEmergencyModeUsed();
-        assert expenseSettings.getCountQuantityLimitStrategy() == CountQuantityLimitStrategy.DAILY;
+        assert expenseSettings.getPeriodType() == PeriodType.DAILY;
         assert expenseSettings.getNumberOfQuantityLimit() == 5;
     }
 }
