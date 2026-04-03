@@ -16,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -48,15 +47,8 @@ class HighestRevenueTest {
     @ParameterizedTest
     @EnumSource(PeriodType.class)
     void shouldReturnHighestRevenueInPeriod(PeriodType periodType) {
-        LocalDate from;
         LocalDate to = baseDate;
-
-        switch (periodType) {
-            case DAILY -> from = baseDate;
-            case WEEKLY -> from = baseDate.with(DayOfWeek.MONDAY);
-            case MONTHLY -> from = baseDate.withDayOfMonth(1);
-            default -> throw new IllegalArgumentException("Unsupported period");
-        }
+        LocalDate from = periodType.getStartDate(baseDate);
 
         when(revenueRepository.findHighestRevenuesByUserAssignedIdAndPeriod(eq(USER_ID), eq(from), eq(to), any(Pageable.class)))
                 .thenReturn(mockResult);

@@ -143,11 +143,7 @@ public class ExpenseService {
 
     private BigDecimal checkSpentInPeriod(PeriodType periodType, Long userId) {
         if (periodType == null) return BigDecimal.ZERO;
-        return switch (periodType) {
-            case DAILY -> financialPeriodService.getExpensesSum(userId, PeriodType.DAILY);
-            case WEEKLY -> financialPeriodService.getExpensesSum(userId, PeriodType.WEEKLY);
-            case MONTHLY -> financialPeriodService.getExpensesSum(userId, PeriodType.MONTHLY);
-        };
+        return financialPeriodService.getExpensesSum(userId, periodType);
     }
 
     private void validateLimitOrThrow(Long userId, PeriodType periodType, BigDecimal existingAmount, BigDecimal newAmount) {

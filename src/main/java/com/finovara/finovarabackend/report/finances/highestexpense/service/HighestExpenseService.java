@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -27,13 +26,7 @@ public class HighestExpenseService {
             throw new InvalidInputException("Unsupported report period type.");
         }
         LocalDate today = LocalDate.now();
-        LocalDate from;
-        switch (periodType) {
-            case DAILY -> from = today;
-            case WEEKLY -> from = today.with(DayOfWeek.MONDAY);
-            case MONTHLY -> from = today.withDayOfMonth(1);
-            default -> throw new IllegalStateException("Unexpected value: " + periodType);
-        }
+        LocalDate from = periodType.getStartDate(today);
 
         return expenseRepository.findHighestExpensesByUserAssignedIdAndPeriod(userId, from, today, PageRequest.of(0, pageSize));
 

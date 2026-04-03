@@ -26,11 +26,7 @@ public class LimitCalculateService {
         Limit limit = limitRepository.findByIdAndUserAssignedId(userId, limitId)
                 .orElseThrow(() -> new ActiveLimitNotFoundException("Active Limit not found"));
 
-        BigDecimal spent = switch (limit.getPeriodType()) {
-            case DAILY -> financialPeriodService.getExpensesSum(userId, PeriodType.DAILY);
-            case WEEKLY -> financialPeriodService.getExpensesSum(userId, PeriodType.WEEKLY);
-            case MONTHLY -> financialPeriodService.getExpensesSum(userId, PeriodType.MONTHLY);
-        };
+        BigDecimal spent = financialPeriodService.getExpensesSum(userId, limit.getPeriodType());
 
         BigDecimal remaining = limit.getAmount().subtract(spent);
 

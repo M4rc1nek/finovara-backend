@@ -29,11 +29,7 @@ public class RecurringRevenueProcessor {
             if (settings == null) continue;
             while (settings.isRecurringRevenuesEnable() && settings.getNextExecutionDate() != null && !settings.getNextExecutionDate().isAfter(today)) {
                 createRecurringRevenue(user, settings);
-                switch (settings.getPeriodType()) {
-                    case DAILY -> settings.setNextExecutionDate(settings.getNextExecutionDate().plusDays(1));
-                    case WEEKLY -> settings.setNextExecutionDate(settings.getNextExecutionDate().plusWeeks(1));
-                    case MONTHLY -> settings.setNextExecutionDate(settings.getNextExecutionDate().plusMonths(1));
-                }
+                settings.setNextExecutionDate(settings.getPeriodType().addPeriod(settings.getNextExecutionDate()));
             }
         }
     }
