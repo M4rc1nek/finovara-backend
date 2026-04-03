@@ -22,9 +22,6 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
 
     List<Revenue> findAllByUserAssignedId(Long userId);
 
-    @Query("SELECT r From Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt BETWEEN :startDate AND :endDate")
-    List<Revenue> findAllByUserAssignedIdAndCreatedAtBetween(@Param("userId") Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
-
     @Query("SELECT r From Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt BETWEEN :startDate AND :endDate AND r.category = :category")
     List<Revenue> findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(@Param("userId") Long userId, @Param("startDate") LocalDate from,
                                                                         @Param("endDate") LocalDate to, @Param("category") RevenueCategory category);
