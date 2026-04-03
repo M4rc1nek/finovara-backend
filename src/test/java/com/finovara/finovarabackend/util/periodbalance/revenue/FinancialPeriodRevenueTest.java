@@ -5,23 +5,24 @@ import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class FinancialPeriodRevenueTest {
+public class FinancialPeriodRevenueTest {
+
     @Mock
     private RevenueRepository revenueRepository;
 
@@ -29,71 +30,72 @@ class FinancialPeriodRevenueTest {
     private FinancialPeriodService financialPeriodService;
 
     private final Long USER_ID = 1L;
-
-    LocalDate today;
+    private LocalDate today;
 
     @BeforeEach
     void setUp() {
         today = LocalDate.now();
     }
-/*
-    @Test
-    void shouldReturnEarnedToday() {
-        when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, today, today)).thenReturn(BigDecimal.valueOf(50));
 
-        BigDecimal result = financialPeriodService.getRevenueSum(USER_ID, PeriodType.DAILY);
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldReturnRevenueInPeriod(PeriodType periodType) {
+        LocalDate from = periodType.getStartDate(today);
 
-        assertThat(result).isEqualByComparingTo("50");
+        when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, from, today))
+                .thenReturn(Optional.of(BigDecimal.valueOf(100)));
+
+        BigDecimal result = financialPeriodService.getRevenueSum(USER_ID, periodType);
+
+        assertThat(result).isEqualByComparingTo("100");
+        verify(revenueRepository).sumRevenuesByUserAndDateRange(USER_ID, from, today);
     }
 
-    @Test
-    void shouldReturnEarnedWeekly() {
-        LocalDate monday = today.with(DayOfWeek.MONDAY);
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldReturnZeroWhenNoRevenue(PeriodType periodType) {
+        LocalDate from = periodType.getStartDate(today);
 
-        when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, monday, today)).thenReturn(BigDecimal.valueOf(75));
+        when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, from, today)).thenReturn(Optional.empty());
 
-        BigDecimal result = financialPeriodService.getRevenueSum(USER_ID, PeriodType.WEEKLY);
-
-        assertThat(result).isEqualByComparingTo("75");
-        verify(revenueRepository).sumRevenuesByUserAndDateRange(USER_ID, monday, today);
-    }
-
-    @Test
-    void shouldReturnEarnedMonthly() {
-        LocalDate startOfMonth = today.withDayOfMonth(1);
-
-        when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, startOfMonth, today)).thenReturn(BigDecimal.valueOf(120));
-
-        BigDecimal result = financialPeriodService.getRevenueSum(USER_ID, PeriodType.MONTHLY);
-
-        assertThat(result).isEqualByComparingTo("120");
-        verify(revenueRepository).sumRevenuesByUserAndDateRange(USER_ID, startOfMonth, today);
-    }
-
-    @Test
-    void shouldReturnAllRevenuesInPeriod() {
-        LocalDate monday = today.with(DayOfWeek.MONDAY);
-
-        when(revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, monday, today)).thenReturn(List.of());
-        financialPeriodService.getRevenuesInPeriod(USER_ID, PeriodType.WEEKLY);
-        verify(revenueRepository).findAllByUserAssignedIdAndCreatedAtBetween(USER_ID, monday, today);
-    }
-
-    @Test
-    void shouldReturnRevenuesByCategory() {
-        LocalDate firstDayOfMonth = today.withDayOfMonth(1);
-
-        financialPeriodService.getRevenuesInPeriodByCategory(USER_ID, PeriodType.MONTHLY, RevenueCategory.SALARY);
-
-        verify(revenueRepository).findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(USER_ID, firstDayOfMonth, today, RevenueCategory.SALARY);
-    }
-
-    @Test
-    void shouldReturnZeroWhenNoRevenue() {
-        when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, today, today)).thenReturn(null);
-
-        BigDecimal result = financialPeriodService.getRevenueSum(USER_ID, PeriodType.DAILY);
+        BigDecimal result = financialPeriodService.getRevenueSum(USER_ID, periodType);
 
         assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
-    }*/
+    }
+
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldReturnRevenueInPeriodByCategory(PeriodType periodType) {
+        LocalDate from = periodType.getStartDate(today);
+
+        financialPeriodService.getRevenuesInPeriodByCategory(USER_ID, periodType, RevenueCategory.SALARY);
+
+        verify(revenueRepository).findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(USER_ID, from, today, RevenueCategory.SALARY);
+    }
+
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldReturnAverageRevenueInPeriod(PeriodType periodType) {
+        LocalDate from = periodType.getStartDate(today);
+
+        when(revenueRepository.avgRevenuesByUserAssignedIdAndPeriod(USER_ID, from, today))
+                .thenReturn(Optional.of(BigDecimal.valueOf(200)));
+
+        BigDecimal result = financialPeriodService.getAverageRevenue(USER_ID, periodType);
+
+        assertThat(result).isEqualByComparingTo("200");
+        verify(revenueRepository).avgRevenuesByUserAssignedIdAndPeriod(USER_ID, from, today);
+    }
+
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldReturnZeroAverageRevenueWhenNoData(PeriodType periodType) {
+        LocalDate from = periodType.getStartDate(today);
+
+        when(revenueRepository.avgRevenuesByUserAssignedIdAndPeriod(USER_ID, from, today)).thenReturn(Optional.empty());
+
+        BigDecimal result = financialPeriodService.getAverageRevenue(USER_ID, periodType);
+
+        assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
+    }
 }
