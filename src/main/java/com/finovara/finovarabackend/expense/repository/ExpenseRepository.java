@@ -44,8 +44,8 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT coalesce(sum(e.amount),0) FROM Expense e WHERE e.userAssigned.id = :userId")
     BigDecimal sumAllExpensesByUserAssignedId(Long userId);
 
-    @Query("SELECT CAST(AVG(e.amount) AS big_decimal) FROM Expense e WHERE e.userAssigned.id = :userId")
-    Optional<BigDecimal> avgExpensesByUserAssignedId(Long userId);
+    @Query("SELECT CAST(AVG(e.amount) AS big_decimal) FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
+    Optional<BigDecimal> avgExpensesByUserAssignedIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("""
              SELECT NEW com.finovara.finovarabackend.report.finances.highestexpense.dto.HighestExpenseDto(

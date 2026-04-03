@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -46,6 +45,14 @@ public class FinancialPeriodService {
         return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
     }
 
+    public BigDecimal getAverageRevenue(Long userId, PeriodType periodType){
+        return calculateAverageRevenueInPeriod(userId, periodType);
+    }
+
+    public BigDecimal getAverageExpense(Long userId, PeriodType periodType){
+        return calculateAverageExpenseInPeriod(userId, periodType);
+    }
+
     private BigDecimal calculateExpenseInPeriod(Long userId, LocalDate from, LocalDate to) {
         BigDecimal spent = expenseRepository.sumExpensesByUserAndDateRange(userId, from, to);
         return spent != null ? spent : BigDecimal.ZERO;
@@ -54,5 +61,17 @@ public class FinancialPeriodService {
     private BigDecimal calculateRevenueInPeriod(Long userId, LocalDate from, LocalDate to) {
         BigDecimal revenue = revenueRepository.sumRevenuesByUserAndDateRange(userId, from, to);
         return revenue != null ? revenue : BigDecimal.ZERO;
+    }
+
+    private BigDecimal calculateAverageRevenueInPeriod(Long userId, PeriodType periodType) {
+        LocalDate to = LocalDate.now();
+        LocalDate from = periodType.getStartDate(to);
+        return revenueRepository.avgRevenuesByUserAssignedIdAndPeriod(userId, from, to).orElse(BigDecimal.ZERO);
+    }
+
+    private BigDecimal calculateAverageExpenseInPeriod(Long userId, PeriodType periodType) {
+        LocalDate to = LocalDate.now();
+        LocalDate from = periodType.getStartDate(to);
+       return  expenseRepository.avgExpensesByUserAssignedIdAndPeriod(userId, from, to).orElse(BigDecimal.ZERO);
     }
 }
