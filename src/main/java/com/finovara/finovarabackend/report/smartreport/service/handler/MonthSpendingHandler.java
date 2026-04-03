@@ -27,8 +27,7 @@ public class MonthSpendingHandler implements SmartReportHandler {
         LocalDate today = LocalDate.now();
         LocalDate startMonth = today.withDayOfMonth(1);
 
-        BigDecimal sumExpenses = Optional.ofNullable(expenseRepository.sumExpensesByUserAndDateRange(userId, startMonth, today))
-                .orElse(BigDecimal.ZERO);
+        BigDecimal sumExpenses = expenseRepository.sumExpensesByUserAndDateRange(userId, startMonth, today).orElse(BigDecimal.ZERO);
 
         String template = templateService.getRandomResponse(SmartReportType.MONTH_SPENDING);
         return template.replace("{amount}", sumExpenses.toString());
