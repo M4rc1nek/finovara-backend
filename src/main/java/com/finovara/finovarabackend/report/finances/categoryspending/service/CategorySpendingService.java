@@ -8,7 +8,6 @@ import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,7 +16,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CategorySpendingService {
     private final UserManagerService userManagerService;
     private final FinancialPeriodService financialPeriodService;
@@ -33,13 +31,9 @@ public class CategorySpendingService {
                 .map(Expense::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal percentage = BigDecimal.ZERO;
+        BigDecimal percentage = summedExpenses.compareTo(BigDecimal.ZERO) > 0 ? summedExpenseCategory
+                .multiply(BigDecimal.valueOf(100)).divide(summedExpenses,2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
 
-        if (summedExpenses.compareTo(BigDecimal.ZERO) > 0) {
-            percentage = summedExpenseCategory
-                    .multiply(BigDecimal.valueOf(100))
-                    .divide(summedExpenses, 2, RoundingMode.HALF_UP);
-        }
         return new CategorySpendingDto(percentage, category);
     }
 }

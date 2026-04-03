@@ -20,7 +20,6 @@ public class HighestExpenseService {
     @Value("${expenses.highest.page-size}")
     private int pageSize;
 
-
     public List<HighestExpenseDto> getHighestExpense(Long userId, PeriodType periodType) {
         if (periodType == null) {
             throw new InvalidInputException("Unsupported report period type.");
