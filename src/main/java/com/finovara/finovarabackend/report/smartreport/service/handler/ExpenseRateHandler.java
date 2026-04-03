@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.report.smartreport.model.SmartReportType;
 import com.finovara.finovarabackend.report.smartreport.service.SmartReportHandler;
 import com.finovara.finovarabackend.report.smartreport.service.loader.SmartReportTemplateService;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
+import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +32,7 @@ public class ExpenseRateHandler implements SmartReportHandler {
         BigDecimal sumExpenses = Optional.ofNullable(expenseRepository.sumAllExpensesByUserAssignedId(userId)).orElse(BigDecimal.ZERO);
         BigDecimal sumRevenue = Optional.ofNullable(revenueRepository.sumAllRevenuesByUserAssignedId(userId)).orElse(BigDecimal.ZERO);
 
-        BigDecimal total = sumRevenue.compareTo(BigDecimal.ZERO) == 0
-                ? BigDecimal.ZERO
-                : sumExpenses.multiply(BigDecimal.valueOf(100)).divide(sumRevenue,2,RoundingMode.HALF_UP);
+        BigDecimal total = CalculatePercentage.calculatePercentage(sumExpenses, sumRevenue);
 
         String template = templateService.getRandomResponse(SmartReportType.EXPENSE_RATE);
         return template.replace("{amount}", total.setScale(2, RoundingMode.HALF_UP).toString());

@@ -5,11 +5,11 @@ import com.finovara.finovarabackend.report.smartreport.model.SmartReportType;
 import com.finovara.finovarabackend.report.smartreport.service.SmartReportHandler;
 import com.finovara.finovarabackend.report.smartreport.service.loader.SmartReportTemplateService;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
+import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Optional;
 
 @Service
@@ -34,11 +34,10 @@ public class SavingsRateHandler implements SmartReportHandler {
 
         BigDecimal savings;
 
-        if(totalRevenues.compareTo(BigDecimal.ZERO) == 0){
+        if (totalRevenues.compareTo(BigDecimal.ZERO) == 0) {
             savings = BigDecimal.ZERO;
         } else {
-            savings = totalRevenues.subtract(totalExpenses)
-                    .divide(totalRevenues, 2,RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+            savings = CalculatePercentage.calculatePercentage(totalRevenues.subtract(totalExpenses), totalRevenues);
         }
 
 

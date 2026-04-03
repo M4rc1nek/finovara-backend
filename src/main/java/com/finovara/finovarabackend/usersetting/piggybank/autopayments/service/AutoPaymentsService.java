@@ -11,6 +11,7 @@ import com.finovara.finovarabackend.usersetting.piggybank.autopayments.dto.AutoP
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
+import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
@@ -21,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 @Slf4j
@@ -99,9 +99,10 @@ public class AutoPaymentsService {
         for (PiggyBank piggyBank : user.getPiggyBanks()) {
             PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
             if (piggyBankSettings.isAutomationActive()) { // albo zostawić jak jest albo pomyslec o !piggyBank.isAutomationActive()) continue;
-                BigDecimal automationAmount = revenueAmount
-                        .multiply(piggyBankSettings.getAutomationPercentage())
-                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+                BigDecimal automationAmount = CalculatePercentage.calculateValueFromPercentage(
+                        revenueAmount,
+                        piggyBankSettings.getAutomationPercentage()
+                );
 
                 switch (mode) {
                     case APPLY -> {

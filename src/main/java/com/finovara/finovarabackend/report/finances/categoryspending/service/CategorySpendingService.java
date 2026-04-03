@@ -5,13 +5,13 @@ import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.report.finances.categoryspending.dto.CategorySpendingDto;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -31,8 +31,7 @@ public class CategorySpendingService {
                 .map(Expense::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal percentage = summedExpenses.compareTo(BigDecimal.ZERO) > 0 ? summedExpenseCategory
-                .multiply(BigDecimal.valueOf(100)).divide(summedExpenses,2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        BigDecimal percentage = CalculatePercentage.calculatePercentage(summedExpenseCategory, summedExpenses);
 
         return new CategorySpendingDto(percentage, category);
     }

@@ -5,13 +5,13 @@ import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -30,8 +30,7 @@ public class CategoryEarnedService {
                 .map(Revenue::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal percentage = summedRevenue.compareTo(BigDecimal.ZERO) > 0 ? summedRevenueCategory
-                .multiply(BigDecimal.valueOf(100)).divide(summedRevenue,2, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        BigDecimal percentage = CalculatePercentage.calculatePercentage(summedRevenueCategory, summedRevenue);
 
         return new CategoryEarnedDto(percentage, category);
     }

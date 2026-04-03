@@ -1,18 +1,17 @@
 package com.finovara.finovarabackend.limit.service;
 
-import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
 import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
+import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
 import com.finovara.finovarabackend.limit.mapper.LimitMapper;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.model.LimitStatus;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
-import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
 import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 
 @RequiredArgsConstructor
@@ -34,23 +33,10 @@ public class LimitCalculateService {
             remaining = BigDecimal.ZERO;
         }
 
-        BigDecimal percentage = calculatePercentage(spent, limit.getAmount());
+        BigDecimal percentage = CalculatePercentage.calculatePercentage(spent, limit.getAmount());
         LimitStatus status = determineStatus(percentage);
 
         return limitMapper.mapLimitStatsToDto(limit, spent, remaining, percentage, status, date);
-    }
-
-    private BigDecimal calculatePercentage(BigDecimal spent, BigDecimal limit) {
-        if (limit.compareTo(BigDecimal.ZERO) <= 0) {
-            return BigDecimal.ZERO;
-        }
-
-        BigDecimal currentSpent = (spent != null) ? spent : BigDecimal.ZERO;
-
-        return currentSpent
-                .multiply(BigDecimal.valueOf(100))
-                .divide(limit, 2, RoundingMode.HALF_UP);
-
     }
 
     private LimitStatus determineStatus(BigDecimal percentage) {
