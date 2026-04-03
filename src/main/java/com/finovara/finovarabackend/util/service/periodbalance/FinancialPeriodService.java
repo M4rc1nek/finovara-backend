@@ -34,18 +34,6 @@ public class FinancialPeriodService {
         return calculateRevenueInPeriod(userId, from, today);
     }
 
-    public List<Revenue> getRevenuesInPeriod(Long userId, PeriodType period) {
-        LocalDate today = LocalDate.now();
-        LocalDate from = period.getStartDate(today);
-        return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, today);
-    }
-
-    public List<Expense> getExpensesInPeriod(Long userId, PeriodType period) {
-        LocalDate today = LocalDate.now();
-        LocalDate from = period.getStartDate(today);
-        return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, today);
-    }
-
     public List<Revenue> getRevenuesInPeriodByCategory(Long userId, PeriodType period, RevenueCategory category) {
         LocalDate today = LocalDate.now();
         LocalDate from = period.getStartDate(today);
