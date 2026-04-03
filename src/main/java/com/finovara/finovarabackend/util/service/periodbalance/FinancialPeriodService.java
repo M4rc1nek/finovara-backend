@@ -24,46 +24,38 @@ public class FinancialPeriodService {
 
     public BigDecimal getExpensesSum(Long userId, PeriodType period) {
         LocalDate today = LocalDate.now();
-        LocalDate from = getStartDate(today, period);
+        LocalDate from = period.getStartDate(today);
         return calculateExpenseInPeriod(userId, from, today);
     }
 
     public BigDecimal getRevenueSum(Long userId, PeriodType period) {
         LocalDate today = LocalDate.now();
-        LocalDate from = getStartDate(today, period);
+        LocalDate from = period.getStartDate(today);
         return calculateRevenueInPeriod(userId, from, today);
     }
 
     public List<Revenue> getRevenuesInPeriod(Long userId, PeriodType period) {
         LocalDate today = LocalDate.now();
-        LocalDate from = getStartDate(today, period);
+        LocalDate from = period.getStartDate(today);
         return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, today);
     }
 
     public List<Expense> getExpensesInPeriod(Long userId, PeriodType period) {
         LocalDate today = LocalDate.now();
-        LocalDate from = getStartDate(today, period);
+        LocalDate from = period.getStartDate(today);
         return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetween(userId, from, today);
     }
 
     public List<Revenue> getRevenuesInPeriodByCategory(Long userId, PeriodType period, RevenueCategory category) {
         LocalDate today = LocalDate.now();
-        LocalDate from = getStartDate(today, period);
+        LocalDate from = period.getStartDate(today);
         return revenueRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
     }
 
     public List<Expense> getExpensesInPeriodByCategory(Long userId, PeriodType period, ExpenseCategory category) {
         LocalDate today = LocalDate.now();
-        LocalDate from = getStartDate(today, period);
+        LocalDate from = period.getStartDate(today);
         return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
-    }
-
-    private LocalDate getStartDate(LocalDate today, PeriodType period) {
-        return switch (period) {
-            case DAILY -> today;
-            case WEEKLY -> today.with(DayOfWeek.MONDAY);
-            case MONTHLY -> today.withDayOfMonth(1);
-        };
     }
 
     private BigDecimal calculateExpenseInPeriod(Long userId, LocalDate from, LocalDate to) {
