@@ -21,18 +21,6 @@ public class FinancialPeriodService {
     private final ExpenseRepository expenseRepository;
     private final RevenueRepository revenueRepository;
 
-    public BigDecimal getExpensesSum(Long userId, PeriodType period) {
-        LocalDate today = LocalDate.now();
-        LocalDate from = period.getStartDate(today);
-        return calculateExpenseInPeriod(userId, from, today);
-    }
-
-    public BigDecimal getRevenueSum(Long userId, PeriodType period) {
-        LocalDate today = LocalDate.now();
-        LocalDate from = period.getStartDate(today);
-        return calculateRevenueInPeriod(userId, from, today);
-    }
-
     public List<Revenue> getRevenuesInPeriodByCategory(Long userId, PeriodType period, RevenueCategory category) {
         LocalDate today = LocalDate.now();
         LocalDate from = period.getStartDate(today);
@@ -45,22 +33,32 @@ public class FinancialPeriodService {
         return expenseRepository.findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
     }
 
-    public BigDecimal getAverageRevenue(Long userId, PeriodType periodType){
+    public BigDecimal getExpensesSum(Long userId, PeriodType period) {
+        return calculateSumExpenseInPeriod(userId, period);
+    }
+
+    public BigDecimal getRevenueSum(Long userId, PeriodType period) {
+        return calculateSumRevenueInPeriod(userId, period);
+    }
+
+    public BigDecimal getAverageRevenue(Long userId, PeriodType periodType) {
         return calculateAverageRevenueInPeriod(userId, periodType);
     }
 
-    public BigDecimal getAverageExpense(Long userId, PeriodType periodType){
+    public BigDecimal getAverageExpense(Long userId, PeriodType periodType) {
         return calculateAverageExpenseInPeriod(userId, periodType);
     }
 
-    private BigDecimal calculateExpenseInPeriod(Long userId, LocalDate from, LocalDate to) {
-        BigDecimal spent = expenseRepository.sumExpensesByUserAndDateRange(userId, from, to);
-        return spent != null ? spent : BigDecimal.ZERO;
+    private BigDecimal calculateSumRevenueInPeriod(Long userId, PeriodType periodType) {
+        LocalDate to = LocalDate.now();
+        LocalDate from = periodType.getStartDate(to);
+        return revenueRepository.sumRevenuesByUserAndDateRange(userId, from, to).orElse(BigDecimal.ZERO);
     }
 
-    private BigDecimal calculateRevenueInPeriod(Long userId, LocalDate from, LocalDate to) {
-        BigDecimal revenue = revenueRepository.sumRevenuesByUserAndDateRange(userId, from, to);
-        return revenue != null ? revenue : BigDecimal.ZERO;
+    private BigDecimal calculateSumExpenseInPeriod(Long userId, PeriodType periodType) {
+        LocalDate to = LocalDate.now();
+        LocalDate from = periodType.getStartDate(to);
+        return expenseRepository.sumExpensesByUserAndDateRange(userId, from, to).orElse(BigDecimal.ZERO);
     }
 
     private BigDecimal calculateAverageRevenueInPeriod(Long userId, PeriodType periodType) {
@@ -72,6 +70,6 @@ public class FinancialPeriodService {
     private BigDecimal calculateAverageExpenseInPeriod(Long userId, PeriodType periodType) {
         LocalDate to = LocalDate.now();
         LocalDate from = periodType.getStartDate(to);
-       return  expenseRepository.avgExpensesByUserAssignedIdAndPeriod(userId, from, to).orElse(BigDecimal.ZERO);
+        return expenseRepository.avgExpensesByUserAssignedIdAndPeriod(userId, from, to).orElse(BigDecimal.ZERO);
     }
 }

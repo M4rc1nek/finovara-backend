@@ -33,7 +33,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     BigDecimal sumAllRevenuesByUserAssignedId(Long userId);
 
     @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt >= :startDate AND r.createdAt <= :endDate")
-    BigDecimal sumRevenuesByUserAndDateRange(Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    Optional<BigDecimal> sumRevenuesByUserAndDateRange(Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     @Query("SELECT CAST(AVG(r.amount) AS big_decimal) FROM Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt BETWEEN :startDate AND :endDate")
     Optional<BigDecimal> avgRevenuesByUserAssignedIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);

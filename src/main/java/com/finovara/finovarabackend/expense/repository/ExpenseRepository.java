@@ -38,11 +38,11 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT COUNT(e) FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
     long countExpensesByUserAssignedIdAndCreatedAtBetween(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
-    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt >= :startDate AND e.createdAt <= :endDate")
-    BigDecimal sumExpensesByUserAndDateRange(@Param("userId") Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
-
     @Query("SELECT coalesce(sum(e.amount),0) FROM Expense e WHERE e.userAssigned.id = :userId")
     BigDecimal sumAllExpensesByUserAssignedId(Long userId);
+
+    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt >= :startDate AND e.createdAt <= :endDate")
+    Optional<BigDecimal> sumExpensesByUserAndDateRange(@Param("userId") Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     @Query("SELECT CAST(AVG(e.amount) AS big_decimal) FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
     Optional<BigDecimal> avgExpensesByUserAssignedIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
