@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.report.finances.service.categoryspending;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.report.finances.categoryspending.dto.CategorySpendingDto;
-import com.finovara.finovarabackend.report.finances.categoryspending.service.CategorySpendingService;
+import com.finovara.finovarabackend.report.finances.categoryspending.service.ExpensePercentageByCategory;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.model.PeriodType;
@@ -35,7 +35,7 @@ class CategorySpendingTest {
     private FinancialPeriodService financialPeriodService;
 
     @InjectMocks
-    private CategorySpendingService categorySpendingService;
+    private ExpensePercentageByCategory expensePercentageByCategory;
 
     private String email;
 
@@ -65,7 +65,7 @@ class CategorySpendingTest {
         when(financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, ExpenseCategory.CLOTHING))
                 .thenReturn(expenseCategory);
 
-        CategorySpendingDto result = categorySpendingService.getCategorySpendingReport(email, ExpenseCategory.CLOTHING, periodType);
+        CategorySpendingDto result = expensePercentageByCategory.getExpensePercentageByCategoryReport(email, ExpenseCategory.CLOTHING, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.valueOf(50));
         assertThat(result.category()).isEqualTo(ExpenseCategory.CLOTHING);
@@ -83,7 +83,7 @@ class CategorySpendingTest {
         when(financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, ExpenseCategory.CLOTHING))
                 .thenReturn(List.of());
 
-        CategorySpendingDto result = categorySpendingService.getCategorySpendingReport(email, ExpenseCategory.CLOTHING, periodType);
+        CategorySpendingDto result = expensePercentageByCategory.getExpensePercentageByCategoryReport(email, ExpenseCategory.CLOTHING, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -94,7 +94,7 @@ class CategorySpendingTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
-                categorySpendingService.getCategorySpendingReport(email, ExpenseCategory.FOOD, PeriodType.MONTHLY));
+                expensePercentageByCategory.getExpensePercentageByCategoryReport(email, ExpenseCategory.FOOD, PeriodType.MONTHLY));
     }
 
 }

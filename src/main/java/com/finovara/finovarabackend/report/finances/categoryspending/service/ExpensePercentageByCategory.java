@@ -16,11 +16,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CategorySpendingService {
+public class ExpensePercentageByCategory {
     private final UserManagerService userManagerService;
     private final FinancialPeriodService financialPeriodService;
 
-    public CategorySpendingDto getCategorySpendingReport(String email, ExpenseCategory category, PeriodType periodType) {
+    public CategorySpendingDto getExpensePercentageByCategoryReport(String email, ExpenseCategory category, PeriodType periodType) {
 
         User user = userManagerService.getUserByEmailOrThrow(email);
 

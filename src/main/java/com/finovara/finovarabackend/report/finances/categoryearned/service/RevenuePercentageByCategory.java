@@ -16,11 +16,11 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CategoryEarnedService {
+public class RevenuePercentageByCategory {
     private final UserManagerService userManagerService;
     private final FinancialPeriodService financialPeriodService;
 
-    public CategoryEarnedDto getCategoryEarnedReport(String email, RevenueCategory category, PeriodType periodType) {
+    public CategoryEarnedDto getRevenuePercentageByCategoryReport(String email, RevenueCategory category, PeriodType periodType) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         BigDecimal summedRevenue = financialPeriodService.getRevenueSum(user.getId(), periodType);
