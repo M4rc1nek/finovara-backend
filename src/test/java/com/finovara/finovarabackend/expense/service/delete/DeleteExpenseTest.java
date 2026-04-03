@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class DeleteExpenseTest {
+class DeleteExpenseTest {
     @Mock
     private UserManagerService userManagerService;
     @Mock

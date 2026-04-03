@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CalculateValueFromPercentageTest {
+class CalculateValueFromPercentageTest {
 
     @Test
     void shouldReturnCorrectValueFromPercentage() {

@@ -29,7 +29,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AddPiggyBankTest {
+class AddPiggyBankTest {
 
     @Mock
     private UserManagerService userManagerService;

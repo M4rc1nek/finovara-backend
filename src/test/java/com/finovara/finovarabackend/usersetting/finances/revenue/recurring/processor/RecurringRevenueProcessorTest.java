@@ -20,7 +20,7 @@ import java.util.List;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class RecurringRevenueProcessorTest {
+class RecurringRevenueProcessorTest {
 
     @Mock
     private UserRepository userRepository;
