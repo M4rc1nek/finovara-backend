@@ -6,6 +6,8 @@ import com.finovara.finovarabackend.report.smartreport.service.handler.MonthSpen
 import com.finovara.finovarabackend.report.smartreport.service.loader.SmartReportTemplateService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,7 +42,7 @@ class MonthSpendingTest {
         LocalDate today = LocalDate.now();
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
-        when(expenseRepository.sumExpensesByUserAndDateRange(eq(userId), eq(startOfMonth), eq(today))).thenReturn(BigDecimal.valueOf(250));
+        when(expenseRepository.sumExpensesByUserAndDateRange(eq(userId), eq(startOfMonth), eq(today))).thenReturn(Optional.of(BigDecimal.valueOf(250)));
 
         when(templateService.getRandomResponse(SmartReportType.MONTH_SPENDING))
                 .thenReturn("{amount}");
