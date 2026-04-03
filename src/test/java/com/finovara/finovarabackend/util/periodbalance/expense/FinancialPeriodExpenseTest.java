@@ -73,4 +73,31 @@ public class FinancialPeriodExpenseTest {
         verify(expenseRepository).findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(USER_ID, from, today, ExpenseCategory.FOOD);
     }
 
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldReturnAverageExpenseInPeriod(PeriodType periodType) {
+        LocalDate from = periodType.getStartDate(today);
+
+        when(expenseRepository.avgExpensesByUserAssignedIdAndPeriod(USER_ID, from, today))
+                .thenReturn(Optional.of(BigDecimal.valueOf(75)));
+
+        BigDecimal result = financialPeriodService.getAverageExpense(USER_ID, periodType);
+
+        assertThat(result).isEqualByComparingTo("75");
+        verify(expenseRepository).avgExpensesByUserAssignedIdAndPeriod(USER_ID, from, today);
+    }
+
+    @ParameterizedTest
+    @EnumSource(PeriodType.class)
+    void shouldReturnZeroAverageExpenseWhenNoData(PeriodType periodType) {
+        LocalDate from = periodType.getStartDate(today);
+
+        when(expenseRepository.avgExpensesByUserAssignedIdAndPeriod(USER_ID, from, today))
+                .thenReturn(Optional.empty());
+
+        BigDecimal result = financialPeriodService.getAverageExpense(USER_ID, periodType);
+
+        assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
 }
