@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
@@ -62,8 +63,8 @@ class SaveCountQuantityLimitTest {
         countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
 
         verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.ENABLED, SettingType.EXPENSE_COUNT_LIMIT);
-        assert expenseSettings.isExpenseCountQuantityLimitEnabled();
-        assert expenseSettings.getNumberOfQuantityLimit() == 5;
+        assertTrue(expenseSettings.isCountQuantityLimitEnabled());
+        assertEquals(5, expenseSettings.getNumberOfQuantityLimit());
     }
 
     @Test
@@ -74,12 +75,9 @@ class SaveCountQuantityLimitTest {
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 3);
 
-        try {
+        assertThrows(StateConflictException.class, () -> {
             countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
-            assert false; // fail jeśli wyjątek nie został rzucony
-        } catch (StateConflictException e) {
-            // test przechodzi
-        }
+        });
     }
 
     @Test
@@ -87,13 +85,13 @@ class SaveCountQuantityLimitTest {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(false, PeriodType.DAILY, 5);
-        expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(true);
+        expenseSettings.setQuantityLimitEmergencyModeUsed(true);
 
         countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
 
         verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.DISABLED, SettingType.EXPENSE_COUNT_LIMIT);
-        assert !expenseSettings.isExpenseCountQuantityLimitEnabled();
-        assert !expenseSettings.isExpenseQuantityLimitEmergencyModeUsed();
+        assertFalse(expenseSettings.isCountQuantityLimitEnabled());
+        assertFalse(expenseSettings.isQuantityLimitEmergencyModeUsed());
     }
 
     @Test
@@ -103,14 +101,14 @@ class SaveCountQuantityLimitTest {
                 .thenReturn(2L);
 
         expenseSettings.setPeriodType(PeriodType.WEEKLY);
-        expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(true);
+        expenseSettings.setQuantityLimitEmergencyModeUsed(true);
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
         countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
 
-        assert !expenseSettings.isExpenseQuantityLimitEmergencyModeUsed();
-        assert expenseSettings.getPeriodType() == PeriodType.DAILY;
-        assert expenseSettings.getNumberOfQuantityLimit() == 5;
+        assertFalse(expenseSettings.isQuantityLimitEmergencyModeUsed());
+        assertEquals(PeriodType.DAILY, expenseSettings.getPeriodType());
+        assertEquals(5, expenseSettings.getNumberOfQuantityLimit());
     }
 }
