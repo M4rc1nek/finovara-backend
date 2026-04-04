@@ -5,20 +5,18 @@ import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequir
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
-import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,7 +39,7 @@ class CalculateCountQuantityLimitSimpleTest {
     private CountQuantityLimitService countQuantityLimitService;
 
     private ExpenseSettings expenseSettings;
-    private final String EMAIL = "test@test.com";
+    private final  String EMAIL = "test@test.com";
 
     @BeforeEach
     void setup() {
