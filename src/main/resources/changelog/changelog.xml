@@ -46,9 +46,6 @@
             <column name="period_type" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="limit_status" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
             <column name="amount" type="DECIMAL(10,2)">
                 <constraints nullable="false"/>
             </column>

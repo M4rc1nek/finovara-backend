@@ -7,7 +7,6 @@ import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
 import com.finovara.finovarabackend.limit.exception.conflict.LimitAlreadyExistsException;
 import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
 import com.finovara.finovarabackend.limit.model.Limit;
-import com.finovara.finovarabackend.limit.model.LimitStatus;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -38,7 +37,6 @@ public class LimitManagementService {
 
         Limit limit = Limit.builder()
                 .periodType(limitDTO.periodType())
-                .limitStatus(LimitStatus.NONE)
                 .amount(limitDTO.amount())
                 .isActive(true)
                 .userAssigned(user)

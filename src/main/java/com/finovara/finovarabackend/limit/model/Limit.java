@@ -24,10 +24,6 @@ public class Limit {
     @Column(nullable = false)
     private PeriodType periodType;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private LimitStatus limitStatus;
-
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
 
