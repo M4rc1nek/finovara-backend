@@ -1,5 +1,6 @@
-package com.finovara.finovarabackend.report.finances.chart.cashflow.controller;
+package com.finovara.finovarabackend.report.finances.chart.controller;
 
+import com.finovara.finovarabackend.report.finances.chart.averagecashflow.service.AverageCashFlowChartService;
 import com.finovara.finovarabackend.report.finances.chart.cashflow.service.TotalCashFlowChartService;
 import com.finovara.finovarabackend.report.finances.chart.dto.CashFlowDto;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +15,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/reports/cash-flow-chart")
 @RequiredArgsConstructor
-public class TotalCashFlowChartController {
+public class CashFlowController {
     private final TotalCashFlowChartService totalCashFlowChartService;
+    private final AverageCashFlowChartService averageCashFlowChartService;
 
-    @GetMapping("/{userId}")
+    @GetMapping("/sum/{userId}")
     public ResponseEntity<List<CashFlowDto>> getCashFlowChart(@PathVariable Long userId) {
         return ResponseEntity.ok(totalCashFlowChartService.getCashFlowChart(userId));
     }
+
+    @GetMapping("/average/{userId}")
+    public ResponseEntity<List<CashFlowDto>> getAverageCashFlowChart(@PathVariable Long userId) {
+        return ResponseEntity.ok(averageCashFlowChartService.getAverageCashFlowChart(userId));
+    }
+
 }

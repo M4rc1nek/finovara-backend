@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.finances.highesttransactions;
+package com.finovara.finovarabackend.report.finances.highesttransactions.controller;
 
 import com.finovara.finovarabackend.report.finances.highesttransactions.highestexpense.dto.HighestExpenseDto;
 import com.finovara.finovarabackend.report.finances.highesttransactions.highestexpense.service.HighestExpenseService;
