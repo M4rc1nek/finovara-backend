@@ -5,7 +5,6 @@ import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityS
 import com.finovara.finovarabackend.limit.dto.LimitDTO;
 import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
 import com.finovara.finovarabackend.limit.model.Limit;
-import com.finovara.finovarabackend.limit.model.LimitStatus;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.limit.service.LimitManagementService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -60,7 +59,6 @@ class EditLimitTest {
         limit.setId(limitId);
         limit.setUserAssigned(user);
         limit.setAmount(new BigDecimal("100"));
-        limit.setLimitStatus(LimitStatus.NONE);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(limitRepository.findByIdAndUserAssignedId(userId, limitId)).thenReturn(Optional.of(limit));
@@ -70,6 +68,7 @@ class EditLimitTest {
 
         assertEquals(limitId, result);
         assertEquals(dto.amount(), limit.getAmount());
+        assertEquals(dto.periodType(), limit.getPeriodType());
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verify(limitRepository).findByIdAndUserAssignedId(userId, limitId);
@@ -82,7 +81,7 @@ class EditLimitTest {
         LimitDTO dto = new LimitDTO(userId, null, null, null, new BigDecimal("200"), true);
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(RuntimeException.class, () -> limitManagementService.editLimit(dto, limitId, email));
+        assertThrows(UserNotFoundException.class, () -> limitManagementService.editLimit(dto, limitId, email));
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verifyNoInteractions(limitRepository, limitActivityService);

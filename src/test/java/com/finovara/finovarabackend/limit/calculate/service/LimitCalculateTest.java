@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFound
 import com.finovara.finovarabackend.limit.mapper.LimitMapper;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.model.LimitStatus;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.limit.service.LimitCalculateService;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.security.autoconfigure.SecurityProperties;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -69,20 +71,6 @@ class LimitCalculateTest {
     @Test
     void shouldThrowExceptionWhenLimitDoesNotExist() {
         Long userId = 1L;
-        Long limitId = 10L;
-        LocalDate date = LocalDate.now();
-
-        when(limitRepository.findByIdAndUserAssignedId(userId, limitId)).thenReturn(Optional.empty());
-
-        assertThrows(ActiveLimitNotFoundException.class, () -> limitService.calculateLimitStats(userId, limitId, date));
-
-        verify(limitRepository).findByIdAndUserAssignedId(userId, limitId);
-        verifyNoInteractions(financialPeriodService, limitMapper);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenUserDoesNotExist() {
-        Long userId = 999L;
         Long limitId = 10L;
         LocalDate date = LocalDate.now();
 

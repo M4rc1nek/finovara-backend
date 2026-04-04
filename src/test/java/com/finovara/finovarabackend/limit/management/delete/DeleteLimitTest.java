@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFound
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.limit.service.LimitManagementService;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.Test;
@@ -59,9 +60,9 @@ class DeleteLimitTest {
         String email = "missing@example.com";
         Long limitId = 10L;
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new ActiveLimitNotFoundException("User not found"));
+        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(ActiveLimitNotFoundException.class, () -> limitManagementService.deleteLimit(email, limitId));
+        assertThrows(UserNotFoundException.class, () -> limitManagementService.deleteLimit(email, limitId));
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verifyNoInteractions(limitRepository, limitActivityService);
@@ -83,7 +84,6 @@ class DeleteLimitTest {
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verify(limitRepository).findByIdAndUserAssignedId(user.getId(), limitId);
-        verifyNoInteractions(limitActivityService);
         verifyNoInteractions(limitActivityService);
         verify(limitRepository, never()).delete(any());
     }

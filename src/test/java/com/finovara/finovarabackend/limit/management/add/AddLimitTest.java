@@ -84,12 +84,8 @@ class AddLimitTest {
         Limit existingLimit = new Limit();
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(limitRepository.findByUserAssignedIdAndType(userId, dto.periodType()))
-                .thenReturn(List.of(existingLimit));
-
-        assertThrows(LimitAlreadyExistsException.class, () -> limitManagementService.createLimit(dto, email)
-        );
-
+        when(limitRepository.findByUserAssignedIdAndType(userId, dto.periodType())).thenReturn(List.of(existingLimit));
+        assertThrows(LimitAlreadyExistsException.class, () -> limitManagementService.createLimit(dto, email));
         verify(limitRepository).findByUserAssignedIdAndType(userId, dto.periodType());
         verify(limitRepository, never()).save(any());
         verifyNoInteractions(limitActivityService);
@@ -103,6 +99,7 @@ class AddLimitTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () -> limitManagementService.createLimit(dto, email));
+        verify(userManagerService).getUserByEmailOrThrow(email);
         verify(limitRepository, never()).save(any());
     }
 }

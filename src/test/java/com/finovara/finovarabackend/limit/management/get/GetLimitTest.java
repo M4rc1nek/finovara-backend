@@ -1,10 +1,10 @@
 package com.finovara.finovarabackend.limit.management.get;
 
 import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
-import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.service.LimitCalculateService;
 import com.finovara.finovarabackend.limit.service.LimitManagementService;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.Test;
@@ -72,9 +72,9 @@ class GetLimitTest {
     void shouldThrowExceptionWhenUserNotFound() {
         String email = "test@example.com";
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new ActiveLimitNotFoundException("User not found"));
+        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(ActiveLimitNotFoundException.class, () -> limitService.getLimitStats(email));
+        assertThrows(UserNotFoundException.class, () -> limitService.getLimitStats(email));
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verifyNoInteractions(limitRepository, limitCalculateService);
