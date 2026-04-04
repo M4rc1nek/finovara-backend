@@ -1,8 +1,8 @@
 package com.finovara.finovarabackend.report.finances.service.highest;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.report.finances.highestrevenue.dto.HighestRevenueDto;
-import com.finovara.finovarabackend.report.finances.highestrevenue.service.HighestRevenueService;
+import com.finovara.finovarabackend.report.finances.highesttransactions.highestrevenue.dto.HighestRevenueDto;
+import com.finovara.finovarabackend.report.finances.highesttransactions.highestrevenue.service.HighestRevenueService;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;

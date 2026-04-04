@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.finances.highestrevenue.dto;
+package com.finovara.finovarabackend.report.finances.highesttransactions.highestrevenue.dto;
 
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 

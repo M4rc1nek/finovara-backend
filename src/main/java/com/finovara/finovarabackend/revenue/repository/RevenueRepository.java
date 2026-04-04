@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.revenue.repository;
 
 import com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto;
-import com.finovara.finovarabackend.report.finances.highestrevenue.dto.HighestRevenueDto;
+import com.finovara.finovarabackend.report.finances.highesttransactions.highestrevenue.dto.HighestRevenueDto;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +36,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     Optional<BigDecimal> avgRevenuesByUserAssignedIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("""
-             SELECT NEW com.finovara.finovarabackend.report.finances.highestrevenue.dto.HighestRevenueDto(
+             SELECT NEW com.finovara.finovarabackend.report.finances.highesttransactions.highestrevenue.dto.HighestRevenueDto(
              r.category,
              r.amount
             )

@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.expense.repository;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto;
-import com.finovara.finovarabackend.report.finances.highestexpense.dto.HighestExpenseDto;
+import com.finovara.finovarabackend.report.finances.highesttransactions.highestexpense.dto.HighestExpenseDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -45,7 +45,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     Optional<BigDecimal> avgExpensesByUserAssignedIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("""
-             SELECT NEW com.finovara.finovarabackend.report.finances.highestexpense.dto.HighestExpenseDto(
+             SELECT NEW com.finovara.finovarabackend.report.finances.highesttransactions.highestexpense.dto.HighestExpenseDto(
              e.category,
              e.amount
             )
