@@ -53,7 +53,7 @@ class CalculateCountQuantityLimitSimpleTest {
 
     @Test
     void shouldDoNothingWhenLimitDisabled() {
-        expenseSettings.setExpenseCountQuantityLimitEnabled(false);
+        expenseSettings.setCountQuantityLimitEnabled(false);
         countQuantityLimitService.calculateCountQuantityLimit(EMAIL,
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 5),
                 PeriodType.DAILY,
@@ -64,8 +64,8 @@ class CalculateCountQuantityLimitSimpleTest {
 
     @Test
     void shouldThrowWhenLimitExceededAndEmergencyModeUsed() {
-        expenseSettings.setExpenseCountQuantityLimitEnabled(true);
-        expenseSettings.setExpenseQuantityLimitEmergencyModeUsed(true);
+        expenseSettings.setCountQuantityLimitEnabled(true);
+        expenseSettings.setQuantityLimitEmergencyModeUsed(true);
 
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
 
@@ -76,8 +76,8 @@ class CalculateCountQuantityLimitSimpleTest {
 
     @Test
     void shouldThrowWhenLimitExceededAndEmergencyModeDisabled() {
-        expenseSettings.setExpenseCountQuantityLimitEnabled(true);
-        expenseSettings.setExpenseQuantityLimitEmergencyModeEnabled(false);
+        expenseSettings.setCountQuantityLimitEnabled(true);
+        expenseSettings.setQuantityLimitEmergencyModeEnabled(false);
 
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
 
@@ -88,8 +88,8 @@ class CalculateCountQuantityLimitSimpleTest {
 
     @Test
     void shouldThrowMissingRequirementIfEmergencyModeEnabledButNoPassword() {
-        expenseSettings.setExpenseCountQuantityLimitEnabled(true);
-        expenseSettings.setExpenseQuantityLimitEmergencyModeEnabled(true);
+        expenseSettings.setCountQuantityLimitEnabled(true);
+        expenseSettings.setQuantityLimitEmergencyModeEnabled(true);
 
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
 
@@ -100,8 +100,8 @@ class CalculateCountQuantityLimitSimpleTest {
 
     @Test
     void shouldUseEmergencyModeWhenPasswordProvided() {
-        expenseSettings.setExpenseCountQuantityLimitEnabled(true);
-        expenseSettings.setExpenseQuantityLimitEmergencyModeEnabled(true);
+        expenseSettings.setCountQuantityLimitEnabled(true);
+        expenseSettings.setQuantityLimitEmergencyModeEnabled(true);
 
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
 
@@ -111,7 +111,7 @@ class CalculateCountQuantityLimitSimpleTest {
         countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, confirmPasswordDto);
 
         verify(passwordConfirmationService).confirmPassword(EMAIL, confirmPasswordDto);
-        assert !expenseSettings.isExpenseQuantityLimitEmergencyModeEnabled();
-        assert expenseSettings.isExpenseQuantityLimitEmergencyModeUsed();
+        assert !expenseSettings.isQuantityLimitEmergencyModeEnabled();
+        assert expenseSettings.isQuantityLimitEmergencyModeUsed();
     }
 }

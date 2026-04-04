@@ -43,7 +43,7 @@ class ControlAmountServiceGetTest {
     void shouldReturnCorrectControlAmountDtoWhenEnabled() {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
-        expenseSettings.setExpenseAmountThresholdEnabled(true);
+        expenseSettings.setAmountThresholdEnabled(true);
         expenseSettings.setBlockedAmount(BigDecimal.valueOf(200));
 
         ControlAmountDto result = controlAmountService.getExpenseAmountControl(EMAIL);
@@ -56,7 +56,7 @@ class ControlAmountServiceGetTest {
     void shouldReturnCorrectControlAmountDtoWhenDisabled() {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
-        expenseSettings.setExpenseAmountThresholdEnabled(false);
+        expenseSettings.setAmountThresholdEnabled(false);
         expenseSettings.setBlockedAmount(BigDecimal.valueOf(50));
 
         ControlAmountDto result = controlAmountService.getExpenseAmountControl(EMAIL);

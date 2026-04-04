@@ -31,9 +31,9 @@ public class ControlAmountService {
 
         BigDecimal blockedAmount = Optional.ofNullable(controlAmountDto.blockedAmount()).orElse(BigDecimal.ZERO);
 
-        expenseSettings.setExpenseAmountThresholdEnabled(controlAmountDto.expenseAmountThresholdEnabled());
+        expenseSettings.setAmountThresholdEnabled(controlAmountDto.expenseAmountThresholdEnabled());
         expenseSettings.setBlockedAmount(blockedAmount);
-        if(expenseSettings.isExpenseAmountThresholdEnabled()){
+        if(expenseSettings.isAmountThresholdEnabled()){
             settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.EXPENSE_CONTROL_AMOUNT);
         }else {
             settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.EXPENSE_CONTROL_AMOUNT);
@@ -45,7 +45,7 @@ public class ControlAmountService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
-        return new ControlAmountDto(expenseSettings.isExpenseAmountThresholdEnabled(), expenseSettings.getBlockedAmount());
+        return new ControlAmountDto(expenseSettings.isAmountThresholdEnabled(), expenseSettings.getBlockedAmount());
     }
 
     public void handleExpenseAmountControl(String email, BigDecimal newAmount) {
@@ -58,7 +58,7 @@ public class ControlAmountService {
 
         BigDecimal blockedAmount = Optional.ofNullable(expenseSettings.getBlockedAmount()).orElse(BigDecimal.ZERO);
 
-        if (expenseSettings.isExpenseAmountThresholdEnabled() && newAmount.compareTo(blockedAmount) > 0) {
+        if (expenseSettings.isAmountThresholdEnabled() && newAmount.compareTo(blockedAmount) > 0) {
             throw new InvalidInputException("You have exceeded the amount, your amount: " + newAmount + " , amount blocked: " + blockedAmount);
 
         }

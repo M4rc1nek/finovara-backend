@@ -24,6 +24,7 @@ public class RevenueSettings {
 
     @Column(nullable = false)
     private boolean recurringRevenuesEnable;
+
     private BigDecimal recurringAmount;
 
     @Enumerated(EnumType.STRING)

@@ -21,7 +21,7 @@ public class Limit {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "period_type", nullable = false)
+    @Column(nullable = false)
     private PeriodType periodType;
 
     @Enumerated(EnumType.STRING)
@@ -32,7 +32,7 @@ public class Limit {
     private BigDecimal amount;
 
     @Column(nullable = false)
-    private Boolean isActive = true;
+    private Boolean isActive;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

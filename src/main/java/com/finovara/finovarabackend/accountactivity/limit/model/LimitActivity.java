@@ -25,7 +25,6 @@ public class LimitActivity {
     private LimitActivityType limitActivityType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "period_type")
     private PeriodType periodType;
 
     private BigDecimal amount;

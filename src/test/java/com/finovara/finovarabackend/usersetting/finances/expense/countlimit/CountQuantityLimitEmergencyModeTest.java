@@ -45,7 +45,7 @@ class CountQuantityLimitEmergencyModeTest {
 
         emergencyModeService.saveEmergencyMode(EMAIL, dto);
 
-        assertTrue(expenseSettings.isExpenseQuantityLimitEmergencyModeEnabled());
+        assertTrue(expenseSettings.isQuantityLimitEmergencyModeEnabled());
     }
 
     @Test
@@ -56,6 +56,6 @@ class CountQuantityLimitEmergencyModeTest {
 
         emergencyModeService.saveEmergencyMode(EMAIL, dto);
 
-        assertFalse(expenseSettings.isExpenseQuantityLimitEmergencyModeEnabled());
+        assertFalse(expenseSettings.isQuantityLimitEmergencyModeEnabled());
     }
 }

@@ -20,8 +20,8 @@ public class ExpenseSettings {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "amount_threshold_enabled",nullable = false)
-    private boolean expenseAmountThresholdEnabled;
+    @Column(nullable = false)
+    private boolean amountThresholdEnabled;
 
     @Column(nullable = false)
     private BigDecimal blockedAmount;
@@ -29,8 +29,8 @@ public class ExpenseSettings {
     @Column(nullable = false)
     private boolean smartScanEnabled;
 
-    @Column(name = "count_quantity_limit_enabled",nullable = false)
-    private boolean expenseCountQuantityLimitEnabled;
+    @Column(nullable = false)
+    private boolean countQuantityLimitEnabled;
 
     private int numberOfQuantityLimit;
 
@@ -38,11 +38,9 @@ public class ExpenseSettings {
     @Column(name = "count_quantity_limit_period")
     private PeriodType periodType;
 
-    @Column(name = "quantity_limit_emergency_mode_enabled")
-    private boolean expenseQuantityLimitEmergencyModeEnabled;
+    private boolean quantityLimitEmergencyModeEnabled;
 
-    @Column(name = "quantity_limit_emergency_mode_used")
-    private boolean expenseQuantityLimitEmergencyModeUsed;
+    private boolean quantityLimitEmergencyModeUsed;
 
     @OneToOne
     @JoinColumn(name = "user_id")

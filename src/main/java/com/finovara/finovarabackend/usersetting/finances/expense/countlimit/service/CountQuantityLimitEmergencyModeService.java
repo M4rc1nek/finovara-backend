@@ -19,6 +19,6 @@ public class CountQuantityLimitEmergencyModeService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
-        expenseSettings.setExpenseQuantityLimitEmergencyModeEnabled(dto.expenseQuantityLimitEmergencyModeEnabled());
+        expenseSettings.setQuantityLimitEmergencyModeEnabled(dto.expenseQuantityLimitEmergencyModeEnabled());
     }
 }

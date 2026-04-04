@@ -23,6 +23,7 @@ public class PiggyBank {
     private String name;
     @Column(nullable = false)
     private BigDecimal amount;
+
     private LocalDate createdAt;
 
     @Enumerated(EnumType.STRING)

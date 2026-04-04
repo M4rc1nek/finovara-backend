@@ -22,13 +22,13 @@ public class SettingsFactory {
     public ExpenseSettings createDefaultExpenseSettings(User user) {
         return ExpenseSettings.builder()
                 .userAssigned(user)
-                .expenseAmountThresholdEnabled(false)
+                .amountThresholdEnabled(false)
                 .blockedAmount(BigDecimal.ZERO)
                 .smartScanEnabled(false)
-                .expenseCountQuantityLimitEnabled(false)
+                .countQuantityLimitEnabled(false)
                 .numberOfQuantityLimit(0)
                 .periodType(PeriodType.DAILY)
-                .expenseQuantityLimitEmergencyModeEnabled(false)
+                .quantityLimitEmergencyModeEnabled(false)
                 .build();
     }
 

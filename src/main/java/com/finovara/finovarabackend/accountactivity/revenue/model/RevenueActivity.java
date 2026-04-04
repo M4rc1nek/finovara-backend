@@ -24,6 +24,7 @@ public class RevenueActivity {
 
     @Enumerated(EnumType.STRING)
     private RevenueActivityType type;
+
     private BigDecimal amount;
     private BigDecimal previousAmount;
 

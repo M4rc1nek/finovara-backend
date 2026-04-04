@@ -40,7 +40,7 @@ class GetCountQuantityLimitTest {
 
     @Test
     void shouldReturnEnabledLimit() {
-        expenseSettings.setExpenseCountQuantityLimitEnabled(true);
+        expenseSettings.setCountQuantityLimitEnabled(true);
         expenseSettings.setPeriodType(PeriodType.DAILY);
         expenseSettings.setNumberOfQuantityLimit(5);
 
@@ -55,7 +55,7 @@ class GetCountQuantityLimitTest {
 
     @Test
     void shouldReturnDisabledLimit() {
-        expenseSettings.setExpenseCountQuantityLimitEnabled(false);
+        expenseSettings.setCountQuantityLimitEnabled(false);
         expenseSettings.setPeriodType(PeriodType.WEEKLY);
         expenseSettings.setNumberOfQuantityLimit(10);
 

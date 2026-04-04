@@ -42,7 +42,7 @@ class HandleExpenseAmountControlTest {
     void shouldThrowExceptionWhenAmountExceedsBlockedAmount() {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
-        expenseSettings.setExpenseAmountThresholdEnabled(true);
+        expenseSettings.setAmountThresholdEnabled(true);
         expenseSettings.setBlockedAmount(BigDecimal.valueOf(100));
 
         BigDecimal newAmount = BigDecimal.valueOf(150);
@@ -54,7 +54,7 @@ class HandleExpenseAmountControlTest {
     void shouldAllowAmountEqualOrLessThanBlockedAmount() {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
-        expenseSettings.setExpenseAmountThresholdEnabled(true);
+        expenseSettings.setAmountThresholdEnabled(true);
         expenseSettings.setBlockedAmount(BigDecimal.valueOf(100));
 
         BigDecimal newAmount = BigDecimal.valueOf(100);
@@ -66,7 +66,7 @@ class HandleExpenseAmountControlTest {
     void shouldAllowAnyAmountWhenControlIsDisabled() {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
-        expenseSettings.setExpenseAmountThresholdEnabled(false);
+        expenseSettings.setAmountThresholdEnabled(false);
         expenseSettings.setBlockedAmount(BigDecimal.valueOf(50));
 
         BigDecimal newAmount = BigDecimal.valueOf(1000);
@@ -78,7 +78,7 @@ class HandleExpenseAmountControlTest {
     void shouldTreatNullBlockedAmountAsZero() {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
-        expenseSettings.setExpenseAmountThresholdEnabled(true);
+        expenseSettings.setAmountThresholdEnabled(true);
         expenseSettings.setBlockedAmount(null);
 
         BigDecimal newAmount = BigDecimal.valueOf(10);

@@ -54,7 +54,7 @@ class SaveExpenseAmountControlTest {
 
         controlAmountService.saveExpenseAmountControl(EMAIL, dto);
 
-        assertTrue(expenseSettings.isExpenseAmountThresholdEnabled());
+        assertTrue(expenseSettings.isAmountThresholdEnabled());
         assertEquals(BigDecimal.valueOf(100), expenseSettings.getBlockedAmount());
 
         verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.ENABLED, SettingType.EXPENSE_CONTROL_AMOUNT);
@@ -68,7 +68,7 @@ class SaveExpenseAmountControlTest {
 
         controlAmountService.saveExpenseAmountControl(EMAIL, dto);
 
-        assertFalse(expenseSettings.isExpenseAmountThresholdEnabled());
+        assertFalse(expenseSettings.isAmountThresholdEnabled());
         assertEquals(BigDecimal.valueOf(50), expenseSettings.getBlockedAmount());
 
         verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.DISABLED, SettingType.EXPENSE_CONTROL_AMOUNT);
