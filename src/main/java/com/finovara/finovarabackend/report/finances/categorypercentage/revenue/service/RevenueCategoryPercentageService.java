@@ -1,6 +1,6 @@
-package com.finovara.finovarabackend.report.finances.categorypercentage.categoryearned.service;
+package com.finovara.finovarabackend.report.finances.categorypercentage.revenue.service;
 
-import com.finovara.finovarabackend.report.finances.categorypercentage.categoryearned.dto.CategoryEarnedDto;
+import com.finovara.finovarabackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
@@ -16,22 +16,21 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class RevenueCategoryService {
+public class RevenueCategoryPercentageService {
     private final UserManagerService userManagerService;
     private final FinancialPeriodService financialPeriodService;
 
-    public CategoryEarnedDto getRevenuePercentageByCategoryReport(String email, RevenueCategory category, PeriodType periodType) {
+    public RevenueCategoryPercentageDto getRevenuePercentageByCategoryReport(String email, RevenueCategory category, PeriodType periodType) {
         User user = userManagerService.getUserByEmailOrThrow(email);
+        BigDecimal totalRevenue = financialPeriodService.getRevenueSum(user.getId(), periodType);
+        List<Revenue> revenuesInCategory = financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, category);
 
-        BigDecimal summedRevenue = financialPeriodService.getRevenueSum(user.getId(), periodType);
-        List<Revenue> revenueCategory = financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, category);
-
-        BigDecimal summedRevenueCategory = revenueCategory.stream()
+        BigDecimal totalRevenueInCategory = revenuesInCategory.stream()
                 .map(Revenue::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal percentage = CalculatePercentage.calculatePercentage(summedRevenueCategory, summedRevenue);
+        BigDecimal percentage = CalculatePercentage.calculatePercentage(totalRevenueInCategory, totalRevenue);
 
-        return new CategoryEarnedDto(percentage, category);
+        return new RevenueCategoryPercentageDto(percentage, category);
     }
 }

@@ -1,8 +1,8 @@
-package com.finovara.finovarabackend.report.finances.categorypercentage.categoryspending.service;
+package com.finovara.finovarabackend.report.finances.categorypercentage.expense.service;
 
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.report.finances.categorypercentage.categoryspending.dto.CategorySpendingDto;
+import com.finovara.finovarabackend.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
@@ -16,23 +16,23 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ExpenseCategoryService {
+public class ExpenseCategoryPercentageService {
     private final UserManagerService userManagerService;
     private final FinancialPeriodService financialPeriodService;
 
-    public CategorySpendingDto getExpensePercentageByCategoryReport(String email, ExpenseCategory category, PeriodType periodType) {
+    public ExpenseCategoryPercentageDto getExpensePercentageByCategoryReport(String email, ExpenseCategory category, PeriodType periodType) {
 
         User user = userManagerService.getUserByEmailOrThrow(email);
 
-        BigDecimal summedExpenses = financialPeriodService.getExpensesSum(user.getId(), periodType);
-        List<Expense> expenseCategory = financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, category);
+        BigDecimal totalExpenses = financialPeriodService.getExpensesSum(user.getId(), periodType);
+        List<Expense> expensesInCategory = financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, category);
 
-        BigDecimal summedExpenseCategory = expenseCategory.stream()
+        BigDecimal totalExpensesInCategory = expensesInCategory.stream()
                 .map(Expense::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal percentage = CalculatePercentage.calculatePercentage(summedExpenseCategory, summedExpenses);
+        BigDecimal percentage = CalculatePercentage.calculatePercentage(totalExpensesInCategory, totalExpenses);
 
-        return new CategorySpendingDto(percentage, category);
+        return new ExpenseCategoryPercentageDto(percentage, category);
     }
 }

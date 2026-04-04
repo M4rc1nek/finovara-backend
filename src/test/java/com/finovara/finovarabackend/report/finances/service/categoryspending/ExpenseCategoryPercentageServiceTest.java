@@ -2,8 +2,8 @@ package com.finovara.finovarabackend.report.finances.service.categoryspending;
 
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.report.finances.categorypercentage.categoryspending.dto.CategorySpendingDto;
-import com.finovara.finovarabackend.report.finances.categorypercentage.categoryspending.service.ExpenseCategoryService;
+import com.finovara.finovarabackend.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
+import com.finovara.finovarabackend.report.finances.categorypercentage.expense.service.ExpenseCategoryPercentageService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.model.PeriodType;
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CategorySpendingTest {
+class ExpenseCategoryPercentageServiceTest {
 
     @Mock
     private UserManagerService userManagerService;
@@ -35,7 +35,7 @@ class CategorySpendingTest {
     private FinancialPeriodService financialPeriodService;
 
     @InjectMocks
-    private ExpenseCategoryService expenseCategoryService;
+    private ExpenseCategoryPercentageService expenseCategoryPercentageService;
 
     private String email;
 
@@ -65,7 +65,7 @@ class CategorySpendingTest {
         when(financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, ExpenseCategory.CLOTHING))
                 .thenReturn(expenseCategory);
 
-        CategorySpendingDto result = expenseCategoryService.getExpensePercentageByCategoryReport(email, ExpenseCategory.CLOTHING, periodType);
+        ExpenseCategoryPercentageDto result = expenseCategoryPercentageService.getExpensePercentageByCategoryReport(email, ExpenseCategory.CLOTHING, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.valueOf(50));
         assertThat(result.category()).isEqualTo(ExpenseCategory.CLOTHING);
@@ -83,7 +83,7 @@ class CategorySpendingTest {
         when(financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, ExpenseCategory.CLOTHING))
                 .thenReturn(List.of());
 
-        CategorySpendingDto result = expenseCategoryService.getExpensePercentageByCategoryReport(email, ExpenseCategory.CLOTHING, periodType);
+        ExpenseCategoryPercentageDto result = expenseCategoryPercentageService.getExpensePercentageByCategoryReport(email, ExpenseCategory.CLOTHING, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -94,7 +94,7 @@ class CategorySpendingTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
-                expenseCategoryService.getExpensePercentageByCategoryReport(email, ExpenseCategory.FOOD, PeriodType.MONTHLY));
+                expenseCategoryPercentageService.getExpensePercentageByCategoryReport(email, ExpenseCategory.FOOD, PeriodType.MONTHLY));
     }
 
 }

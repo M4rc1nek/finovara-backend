@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.report.finances.service.categoryearned;
 
-import com.finovara.finovarabackend.report.finances.categorypercentage.categoryearned.service.RevenueCategoryService;
-import com.finovara.finovarabackend.report.finances.categorypercentage.categoryearned.dto.CategoryEarnedDto;
+import com.finovara.finovarabackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
+import com.finovara.finovarabackend.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CategoryEarnedTest {
+class RevenueCategoryPercentageServiceTest {
 
     @Mock
     private UserManagerService userManagerService;
@@ -35,7 +35,7 @@ class CategoryEarnedTest {
     private FinancialPeriodService financialPeriodService;
 
     @InjectMocks
-    private RevenueCategoryService revenueCategoryService;
+    private RevenueCategoryPercentageService revenueCategoryPercentageService;
 
     private String email;
 
@@ -65,7 +65,7 @@ class CategoryEarnedTest {
         when(financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, RevenueCategory.SALARY))
                 .thenReturn(revenueCategory);
 
-        CategoryEarnedDto result = revenueCategoryService.getRevenuePercentageByCategoryReport(email, RevenueCategory.SALARY, periodType);
+        RevenueCategoryPercentageDto result = revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(email, RevenueCategory.SALARY, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.valueOf(50));
         assertThat(result.category()).isEqualTo(RevenueCategory.SALARY);
@@ -83,7 +83,7 @@ class CategoryEarnedTest {
         when(financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, RevenueCategory.SALARY))
                 .thenReturn(List.of());
 
-        CategoryEarnedDto result = revenueCategoryService.getRevenuePercentageByCategoryReport(email, RevenueCategory.SALARY, periodType);
+        RevenueCategoryPercentageDto result = revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(email, RevenueCategory.SALARY, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -91,10 +91,9 @@ class CategoryEarnedTest {
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
 
-        when(userManagerService.getUserByEmailOrThrow(email))
-                .thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
-                revenueCategoryService.getRevenuePercentageByCategoryReport(email, RevenueCategory.BONUS, PeriodType.WEEKLY));
+                revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(email, RevenueCategory.BONUS, PeriodType.WEEKLY));
     }
 }

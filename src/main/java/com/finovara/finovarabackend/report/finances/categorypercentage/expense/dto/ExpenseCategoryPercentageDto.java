@@ -1,11 +1,12 @@
-package com.finovara.finovarabackend.report.finances.categorypercentage.categoryspending.dto;
+package com.finovara.finovarabackend.report.finances.categorypercentage.expense.dto;
 
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 
 import java.math.BigDecimal;
 
-public record CategorySpendingDto(
+public record ExpenseCategoryPercentageDto(
         BigDecimal percentage,
         ExpenseCategory category
 ) {
 }
+
