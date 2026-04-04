@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.finances.categoryspending.dto;
+package com.finovara.finovarabackend.report.finances.categorypercentage.categoryspending.dto;
 
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 

@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.report.finances.service.categoryearned;
 
-import com.finovara.finovarabackend.report.finances.categoryearned.dto.CategoryEarnedDto;
-import com.finovara.finovarabackend.report.finances.categoryearned.service.RevenuePercentageByCategory;
+import com.finovara.finovarabackend.report.finances.categorypercentage.categoryearned.service.RevenueCategoryService;
+import com.finovara.finovarabackend.report.finances.categorypercentage.categoryearned.dto.CategoryEarnedDto;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -35,7 +35,7 @@ class CategoryEarnedTest {
     private FinancialPeriodService financialPeriodService;
 
     @InjectMocks
-    private RevenuePercentageByCategory revenuePercentageByCategory;
+    private RevenueCategoryService revenueCategoryService;
 
     private String email;
 
@@ -65,7 +65,7 @@ class CategoryEarnedTest {
         when(financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, RevenueCategory.SALARY))
                 .thenReturn(revenueCategory);
 
-        CategoryEarnedDto result = revenuePercentageByCategory.getRevenuePercentageByCategoryReport(email, RevenueCategory.SALARY, periodType);
+        CategoryEarnedDto result = revenueCategoryService.getRevenuePercentageByCategoryReport(email, RevenueCategory.SALARY, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.valueOf(50));
         assertThat(result.category()).isEqualTo(RevenueCategory.SALARY);
@@ -83,7 +83,7 @@ class CategoryEarnedTest {
         when(financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, RevenueCategory.SALARY))
                 .thenReturn(List.of());
 
-        CategoryEarnedDto result = revenuePercentageByCategory.getRevenuePercentageByCategoryReport(email, RevenueCategory.SALARY, periodType);
+        CategoryEarnedDto result = revenueCategoryService.getRevenuePercentageByCategoryReport(email, RevenueCategory.SALARY, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -95,6 +95,6 @@ class CategoryEarnedTest {
                 .thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
-                revenuePercentageByCategory.getRevenuePercentageByCategoryReport(email, RevenueCategory.BONUS, PeriodType.WEEKLY));
+                revenueCategoryService.getRevenuePercentageByCategoryReport(email, RevenueCategory.BONUS, PeriodType.WEEKLY));
     }
 }

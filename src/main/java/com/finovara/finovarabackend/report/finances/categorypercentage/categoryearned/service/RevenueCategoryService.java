@@ -1,6 +1,6 @@
-package com.finovara.finovarabackend.report.finances.categoryearned.service;
+package com.finovara.finovarabackend.report.finances.categorypercentage.categoryearned.service;
 
-import com.finovara.finovarabackend.report.finances.categoryearned.dto.CategoryEarnedDto;
+import com.finovara.finovarabackend.report.finances.categorypercentage.categoryearned.dto.CategoryEarnedDto;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class RevenuePercentageByCategory {
+public class RevenueCategoryService {
     private final UserManagerService userManagerService;
     private final FinancialPeriodService financialPeriodService;
 

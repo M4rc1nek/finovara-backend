@@ -1,8 +1,8 @@
-package com.finovara.finovarabackend.report.finances.categoryspending.service;
+package com.finovara.finovarabackend.report.finances.categorypercentage.categoryspending.service;
 
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.report.finances.categoryspending.dto.CategorySpendingDto;
+import com.finovara.finovarabackend.report.finances.categorypercentage.categoryspending.dto.CategorySpendingDto;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ExpensePercentageByCategory {
+public class ExpenseCategoryService {
     private final UserManagerService userManagerService;
     private final FinancialPeriodService financialPeriodService;
 
