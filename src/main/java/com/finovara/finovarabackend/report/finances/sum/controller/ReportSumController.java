@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class ReportSumController {
     private final ReportSummaryService reportSummaryService;
 
-    @GetMapping("/expense/{userId")
+    @GetMapping("/expense/{userId}")
     public ResponseEntity<ReportDto> getSummedExpense(@PathVariable Long userId, @RequestParam PeriodType periodType) {
         return ResponseEntity.ok(reportSummaryService.sumExpense(userId, periodType));
     }
