@@ -18,7 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -39,7 +39,7 @@ class CalculateCountQuantityLimitSimpleTest {
     private CountQuantityLimitService countQuantityLimitService;
 
     private ExpenseSettings expenseSettings;
-    private final  String EMAIL = "test@test.com";
+    private final String EMAIL = "test@test.com";
 
     @BeforeEach
     void setup() {
@@ -54,10 +54,13 @@ class CalculateCountQuantityLimitSimpleTest {
     @Test
     void shouldDoNothingWhenLimitDisabled() {
         expenseSettings.setCountQuantityLimitEnabled(false);
-        countQuantityLimitService.calculateCountQuantityLimit(EMAIL,
+
+        countQuantityLimitService.calculateCountQuantityLimit(
+                EMAIL,
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 5),
                 PeriodType.DAILY,
-                null);
+                null
+        );
 
         verifyNoInteractions(passwordConfirmationService);
     }
@@ -67,11 +70,13 @@ class CalculateCountQuantityLimitSimpleTest {
         expenseSettings.setCountQuantityLimitEnabled(true);
         expenseSettings.setQuantityLimitEmergencyModeUsed(true);
 
-        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
+        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any()))
+                .thenReturn(5L);
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
-        assertThrows(StateConflictException.class, () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
+        assertThrows(StateConflictException.class,
+                () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
     }
 
     @Test
@@ -79,11 +84,13 @@ class CalculateCountQuantityLimitSimpleTest {
         expenseSettings.setCountQuantityLimitEnabled(true);
         expenseSettings.setQuantityLimitEmergencyModeEnabled(false);
 
-        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
+        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any()))
+                .thenReturn(5L);
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
-        assertThrows(StateConflictException.class, () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
+        assertThrows(StateConflictException.class,
+                () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
     }
 
     @Test
@@ -91,11 +98,13 @@ class CalculateCountQuantityLimitSimpleTest {
         expenseSettings.setCountQuantityLimitEnabled(true);
         expenseSettings.setQuantityLimitEmergencyModeEnabled(true);
 
-        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
+        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any()))
+                .thenReturn(5L);
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
-        assertThrows(MissingRequirementException.class, () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
+        assertThrows(MissingRequirementException.class,
+                () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
     }
 
     @Test
@@ -103,15 +112,21 @@ class CalculateCountQuantityLimitSimpleTest {
         expenseSettings.setCountQuantityLimitEnabled(true);
         expenseSettings.setQuantityLimitEmergencyModeEnabled(true);
 
-        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any())).thenReturn(5L);
+        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any()))
+                .thenReturn(5L);
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
         ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("password");
 
-        countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, confirmPasswordDto);
+        countQuantityLimitService.calculateCountQuantityLimit(
+                EMAIL,
+                dto,
+                PeriodType.DAILY,
+                confirmPasswordDto
+        );
 
         verify(passwordConfirmationService).confirmPassword(EMAIL, confirmPasswordDto);
-        assert !expenseSettings.isQuantityLimitEmergencyModeEnabled();
-        assert expenseSettings.isQuantityLimitEmergencyModeUsed();
+        assertFalse(expenseSettings.isQuantityLimitEmergencyModeEnabled());
+        assertTrue(expenseSettings.isQuantityLimitEmergencyModeUsed());
     }
 }
