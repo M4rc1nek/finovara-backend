@@ -74,8 +74,8 @@ public class PiggyBankService {
                 .goalType(piggyBankDTO.goalType())
                 .build();
 
-        piggyBankActivityService.createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.ADDED_PIGGY_BANK);
         PiggyBank saved = piggyBankRepository.save(piggyBank);
+        piggyBankActivityService.createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.ADDED_PIGGY_BANK);
         PiggyBankSettings settings = settingsFactory.createDefaultPiggyBankSettings(saved);
         piggyBankSettingsRepository.save(settings);
 
@@ -87,6 +87,7 @@ public class PiggyBankService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
 
+        //safety check
         if (piggyBank.getUserAssigned() == null || !piggyBank.getUserAssigned().getId().equals(user.getId())) {
             throw new PiggyBankNotFoundException("Piggy bank not found for this user");
         }
@@ -119,12 +120,13 @@ public class PiggyBankService {
         piggyBankActivityService.createPaymentPiggyBankActivity(email, userContext.piggyBank,
                 PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, amount);
         calculateProgress(userContext.piggyBank);
-        PiggyBankCheckGoalCompletion.isGoalCompleted(userContext.piggyBank);
+        boolean completed =  PiggyBankCheckGoalCompletion.isGoalCompleted((userContext.piggyBank));
+
 
         walletRepository.save(userContext.wallet);
         piggyBankRepository.save(userContext.piggyBank);
 
-        if (PiggyBankCheckGoalCompletion.isGoalCompleted(userContext.piggyBank)) {
+        if (completed) {
             goalCompletionService.handleGoalCompletion(email);
         }
     }
