@@ -82,6 +82,7 @@ public class PiggyBankService {
         return saved.getId(); //saved or piggybank
     }
 
+    @Transactional
     public Long editPiggyBank(String email, PiggyBankDTO piggyBankDTO, Long piggyBankId) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
