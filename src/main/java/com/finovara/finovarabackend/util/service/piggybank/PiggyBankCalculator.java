@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.util.service.piggybank.manager;
+package com.finovara.finovarabackend.util.service.piggybank;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
