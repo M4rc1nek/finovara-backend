@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.wallet.service.get;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.dto.WalletDto;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;

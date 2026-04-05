@@ -16,7 +16,7 @@ import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundEx
 import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
-import com.finovara.finovarabackend.util.service.piggybank.exception.notfound.PiggyBankNotFoundException;
+import com.finovara.finovarabackend.util.piggybank.exception.notfound.PiggyBankNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

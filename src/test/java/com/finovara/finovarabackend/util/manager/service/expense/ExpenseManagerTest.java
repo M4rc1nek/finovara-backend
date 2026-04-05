@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.util.manager.service.expense;
 import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
-import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
+import com.finovara.finovarabackend.util.expense.ExpenseManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

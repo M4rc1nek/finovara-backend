@@ -9,7 +9,7 @@ import com.finovara.finovarabackend.accountactivity.revenue.repository.RevenueAc
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;

@@ -6,8 +6,7 @@ import com.finovara.finovarabackend.usersetting.notification.model.NotificationS
 import com.finovara.finovarabackend.usersetting.notification.passwordchange.dto.NotifyPasswordChangeDto;
 import com.finovara.finovarabackend.usersetting.notification.passwordchange.service.NotifyPasswordChangeService;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
-import com.finovara.finovarabackend.util.service.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -5,7 +5,7 @@ import com.finovara.finovarabackend.report.smartreport.model.SmartReportType;
 import com.finovara.finovarabackend.report.smartreport.service.SmartReportHandler;
 import com.finovara.finovarabackend.report.smartreport.service.loader.SmartReportTemplateService;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
-import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
+import com.finovara.finovarabackend.util.percentage.CalculatePercentage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,0 @@
-package com.finovara.finovarabackend.util.service.piggybank.exception.notfound;
-
-public class PiggyBankNotFoundException extends RuntimeException {
-    public PiggyBankNotFoundException(String message) {
-        super(message);
-    }
-}

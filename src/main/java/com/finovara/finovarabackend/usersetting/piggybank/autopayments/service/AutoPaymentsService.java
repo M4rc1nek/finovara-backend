@@ -11,10 +11,10 @@ import com.finovara.finovarabackend.usersetting.piggybank.autopayments.dto.AutoP
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
-import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
-import com.finovara.finovarabackend.util.service.piggybank.manager.PiggyBankManagerService;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
-import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
+import com.finovara.finovarabackend.util.percentage.CalculatePercentage;
+import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

@@ -9,7 +9,7 @@ import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFound
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

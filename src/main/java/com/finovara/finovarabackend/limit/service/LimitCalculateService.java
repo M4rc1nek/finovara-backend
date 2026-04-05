@@ -6,8 +6,8 @@ import com.finovara.finovarabackend.limit.mapper.LimitMapper;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.model.LimitStatus;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
-import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
-import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
+import com.finovara.finovarabackend.util.percentage.CalculatePercentage;
+import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

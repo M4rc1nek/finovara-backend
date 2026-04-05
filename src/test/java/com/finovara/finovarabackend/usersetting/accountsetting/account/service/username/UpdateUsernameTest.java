@@ -8,8 +8,8 @@ import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.AccountSettingsDto;
 import com.finovara.finovarabackend.usersetting.account.service.AccountService;
 import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
-import com.finovara.finovarabackend.util.service.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;

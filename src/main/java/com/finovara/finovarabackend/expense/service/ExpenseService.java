@@ -20,9 +20,9 @@ import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.S
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
-import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
-import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.expense.ExpenseManagerService;
+import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

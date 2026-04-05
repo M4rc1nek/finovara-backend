@@ -5,8 +5,8 @@ import com.finovara.finovarabackend.usersetting.piggybank.autopayments.dto.AutoP
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.piggybank.manager.PiggyBankManagerService;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

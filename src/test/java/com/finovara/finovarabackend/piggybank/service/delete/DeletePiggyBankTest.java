@@ -6,7 +6,7 @@ import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
-import com.finovara.finovarabackend.util.service.piggybank.manager.PiggyBankManagerService;
+import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.util.manager.service.revenue;
 import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
-import com.finovara.finovarabackend.util.service.revenue.RevenueManagerService;
+import com.finovara.finovarabackend.util.revenue.RevenueManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -5,9 +5,9 @@ import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.model.PeriodType;
-import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
-import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.percentage.CalculatePercentage;
+import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

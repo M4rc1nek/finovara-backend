@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.report.finances.service.sum;
 import com.finovara.finovarabackend.report.dto.ReportDto;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.report.finances.sum.sevice.ReportSummaryService;
-import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
+import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;

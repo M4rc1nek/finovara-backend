@@ -3,8 +3,8 @@ package com.finovara.finovarabackend.usersetting.notification.accountdeleted.ser
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.notification.accountdeleted.dto.NotifyOnAccountDeletedDto;
 import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
-import com.finovara.finovarabackend.util.service.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

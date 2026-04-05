@@ -8,7 +8,7 @@ import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivityTyp
 import com.finovara.finovarabackend.accountactivity.limit.repository.LimitActivityRepository;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;

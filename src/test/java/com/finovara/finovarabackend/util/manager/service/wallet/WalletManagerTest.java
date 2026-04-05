@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.util.manager.service.wallet;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
-import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
+import com.finovara.finovarabackend.util.wallet.WalletManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

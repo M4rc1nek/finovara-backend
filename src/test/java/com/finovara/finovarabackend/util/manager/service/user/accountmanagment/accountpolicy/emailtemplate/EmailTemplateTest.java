@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.util.manager.service.user.accountmanagment.accountpolicy.emailtemplate;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.user.accountmanagment.emailtemplate.EmailTemplateService;
+import com.finovara.finovarabackend.util.user.accountmanagment.emailtemplate.EmailTemplateService;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

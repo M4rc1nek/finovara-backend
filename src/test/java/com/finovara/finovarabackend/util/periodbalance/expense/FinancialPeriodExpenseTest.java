@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.util.periodbalance.expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.util.model.PeriodType;
-import com.finovara.finovarabackend.util.service.periodbalance.FinancialPeriodService;
+import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;

@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.report.smartreport.service;
 import com.finovara.finovarabackend.report.smartreport.model.SmartReportType;
 import com.finovara.finovarabackend.report.smartreport.service.loader.SmartReportQuestionService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

@@ -9,9 +9,9 @@ import com.finovara.finovarabackend.piggybank.service.PiggyBankTransactionServic
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
-import com.finovara.finovarabackend.util.service.piggybank.manager.PiggyBankManagerService;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
-import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
+import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import org.junit.jupiter.api.BeforeEach;

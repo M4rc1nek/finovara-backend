@@ -1,8 +1,8 @@
 package com.finovara.finovarabackend.util.manager.service.user.accountmanagment.accountpolicy.passwordpolicy;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.service.user.accountmanagment.emailtemplate.EmailTemplateService;
-import com.finovara.finovarabackend.util.service.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
+import com.finovara.finovarabackend.util.user.accountmanagment.emailtemplate.EmailTemplateService;
+import com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

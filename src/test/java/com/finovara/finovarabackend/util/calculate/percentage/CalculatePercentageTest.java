@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.util.calculate.percentage;
 
-import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
+import com.finovara.finovarabackend.util.percentage.CalculatePercentage;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

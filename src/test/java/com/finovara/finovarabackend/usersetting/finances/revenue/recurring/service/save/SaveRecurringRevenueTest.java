@@ -9,7 +9,7 @@ import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSe
 import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.dto.RecurringRevenueDto;
 import com.finovara.finovarabackend.usersetting.finances.revenue.recurring.service.RecurringRevenueService;
 import com.finovara.finovarabackend.util.model.PeriodType;
-import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
