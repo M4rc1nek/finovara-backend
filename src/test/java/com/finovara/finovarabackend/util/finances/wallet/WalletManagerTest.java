@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.util.manager.service.wallet;
+package com.finovara.finovarabackend.util.finances.wallet;
 
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.wallet.model.Wallet;

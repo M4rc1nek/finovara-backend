@@ -1,8 +1,8 @@
-package com.finovara.finovarabackend.util.manager.service.user.accountmanagment.accountpolicy.accountdeleted;
+package com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.usernamepolicy;
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.user.accountmanagment.emailtemplate.EmailTemplateService;
-import com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
+import com.finovara.finovarabackend.util.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,13 +12,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class AccountDeletedEmailTest {
+class UsernameChangeEmailTest {
 
     @Mock
     private EmailTemplateService emailTemplateService;
 
     @InjectMocks
-    private AccountDeletedEmailService accountDeletedEmailService;
+    private UsernameChangeEmailService usernameChangeEmailService;
 
     @Test
     void shouldCallSendEmailWithCorrectParameters() {
@@ -26,12 +26,12 @@ class AccountDeletedEmailTest {
         user.setUsername("john_doe");
         user.setEmail("john@example.com");
 
-        accountDeletedEmailService.sendEmail(user);
+        usernameChangeEmailService.sendEmail(user);
 
         verify(emailTemplateService).sendEmail(
                 user,
-                "Finovara - Usunięcie konta",
-                "email/account-deleted.html",
+                "Finovara - Zmiana nazwy użytkownika",
+                "email/username-changed.html",
                 "john_doe",
                 "john@example.com"
         );

@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.util.manager.service.expense;
+package com.finovara.finovarabackend.util.finances.expense;
 
 import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;

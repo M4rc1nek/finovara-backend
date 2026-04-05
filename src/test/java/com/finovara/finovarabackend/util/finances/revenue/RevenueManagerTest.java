@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.util.manager.service.revenue;
+package com.finovara.finovarabackend.util.finances.revenue;
 
 import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
 import com.finovara.finovarabackend.revenue.model.Revenue;

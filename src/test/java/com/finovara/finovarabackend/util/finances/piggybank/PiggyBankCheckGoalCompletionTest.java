@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.util.manager.service.piggybank;
+package com.finovara.finovarabackend.util.finances.piggybank;
 
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.util.piggybank.PiggyBankCheckGoalCompletion;
