@@ -13,6 +13,7 @@ import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
+import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -93,7 +94,7 @@ public class PiggyBankService {
         piggyBankActivityService.createPaymentPiggyBankActivity(email, userContext.piggyBank,
                 PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, amount);
         calculateProgress(userContext.piggyBank);
-        checkGoalCompleted(userContext.piggyBank);
+        PiggyBankCheckGoalCompletion.isGoalCompleted(userContext.piggyBank);
 
         walletRepository.save(userContext.wallet);
         piggyBankRepository.save(userContext.piggyBank);
@@ -114,7 +115,7 @@ public class PiggyBankService {
         userContext.piggyBank.setAmount(userContext.piggyBank.getAmount().subtract(amount));
         userContext.wallet.setBalance(userContext.wallet.getBalance().add(amount));
         calculateProgress(userContext.piggyBank);
-        checkGoalCompleted(userContext.piggyBank);
+        PiggyBankCheckGoalCompletion.isGoalCompleted((userContext.piggyBank));
 
         piggyBankActivityService.createPaymentPiggyBankActivity(email, userContext.piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, amount);
 
@@ -127,7 +128,7 @@ public class PiggyBankService {
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedId(user.getId());
 
         return piggyBanks.stream()
-                .map(piggyBank -> piggyBankMapper.mapToPiggyBankDto(piggyBank, user, calculateProgress(piggyBank), checkGoalCompleted(piggyBank)))
+                .map(piggyBank -> piggyBankMapper.mapToPiggyBankDto(piggyBank, user, calculateProgress(piggyBank), PiggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)))
                 .toList();
     }
 
@@ -142,21 +143,9 @@ public class PiggyBankService {
         piggyBankRepository.delete(piggyBank);
     }
 
-    private void validateAmount(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidInputException("Amount must be non negative");
-        }
-    }
-
-    private void validateSufficientFunds(BigDecimal sourceAmount, BigDecimal amount) {
-        if (sourceAmount == null || sourceAmount.compareTo(amount) < 0) {
-            throw new InvalidInputException("Insufficient funds");
-        }
-    }
-
     private record UserContext(Wallet wallet, PiggyBank piggyBank, User user) {
-    }
 
+    }
     private UserContext getEntitiesForTransaction(String email, Long piggyBankId) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
@@ -168,7 +157,7 @@ public class PiggyBankService {
     private Double calculateProgress(PiggyBank piggyBank) {
         BigDecimal goalAmount = piggyBank.getGoalAmount();
 
-        if(goalAmount == null || piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) <= 0){
+        if (goalAmount == null || piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) <= 0) {
             return 0.0;
         }
 
@@ -177,14 +166,15 @@ public class PiggyBankService {
                 .doubleValue();
     }
 
-    private Boolean checkGoalCompleted(PiggyBank piggyBank) {
-        BigDecimal goalAmount = piggyBank.getGoalAmount();
-
-        if (goalAmount == null) {
-            return false;
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidInputException("Amount must be non negative");
         }
+    }
 
-        return piggyBank.getAmount()
-                .compareTo(goalAmount) >= 0;
+    private void validateSufficientFunds(BigDecimal sourceAmount, BigDecimal amount) {
+        if (sourceAmount == null || sourceAmount.compareTo(amount) < 0) {
+            throw new InvalidInputException("Insufficient funds");
+        }
     }
 }

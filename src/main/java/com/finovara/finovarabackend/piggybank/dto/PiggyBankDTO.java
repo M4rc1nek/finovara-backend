@@ -23,7 +23,7 @@ public record PiggyBankDTO(
         BigDecimal goalAmount,
 
         Double progress,
-        Boolean goalCompleted
+        boolean goalCompleted
 
 
 ) {
