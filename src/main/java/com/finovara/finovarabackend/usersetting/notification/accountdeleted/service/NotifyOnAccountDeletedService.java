@@ -33,8 +33,7 @@ public class NotifyOnAccountDeletedService {
         );
     }
 
-    private void sendEmailOnAccountDeleted(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void sendEmailOnAccountDeleted(User user) {
         NotificationSettings settings = user.getNotificationSettings();
 
         if (!settings.isNotifyOnAccountDeleted()) return;

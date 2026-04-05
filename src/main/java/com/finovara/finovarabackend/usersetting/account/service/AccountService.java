@@ -6,12 +6,10 @@ import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsExceptio
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.AccountSettingsDto;
-import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notification.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.finovarabackend.usersetting.notification.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
-import com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
-import com.finovara.finovarabackend.util.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -28,7 +26,7 @@ public class AccountService {
     private final PasswordConfirmationService passwordConfirmationService;
     private final AccountChangesActivityService accountChangesActivityService;
     private final NotifyUsernameChangeService notifyUsernameChangeService;
-    private final AccountDeletedEmailService accountDeletedEmailService;
+    private final NotifyOnAccountDeletedService notifyOnAccountDeletedService;
 
     @Transactional
     public AccountSettingsDto updateUsername(AccountSettingsDto accountSettingsDto, Long userId, HttpServletRequest request) {
@@ -48,13 +46,10 @@ public class AccountService {
     @Transactional
     public void deleteAccount(ConfirmPasswordDto confirmPasswordDto, Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
-        NotificationSettings settings = user.getNotificationSettings();
 
         passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
         userRepository.delete(user);
-        if(settings.isNotifyOnAccountDeleted()){
-            accountDeletedEmailService.sendEmail(user);
-        }
+        notifyOnAccountDeletedService.sendEmailOnAccountDeleted(user);
     }
 
     @Transactional
