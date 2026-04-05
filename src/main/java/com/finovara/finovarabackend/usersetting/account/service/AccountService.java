@@ -7,6 +7,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.AccountSettingsDto;
 import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notification.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
@@ -26,13 +27,12 @@ public class AccountService {
     private final UserManagerService userManagerService;
     private final PasswordConfirmationService passwordConfirmationService;
     private final AccountChangesActivityService accountChangesActivityService;
-    private final UsernameChangeEmailService usernameChangeEmailService;
+    private final NotifyUsernameChangeService notifyUsernameChangeService;
     private final AccountDeletedEmailService accountDeletedEmailService;
 
     @Transactional
     public AccountSettingsDto updateUsername(AccountSettingsDto accountSettingsDto, Long userId, HttpServletRequest request) {
         User user = userManagerService.getUserByIdOrThrow(userId);
-        NotificationSettings settings = user.getNotificationSettings();
 
         if (userRepository.existsByUsername(accountSettingsDto.username())) {
             throw new NameAlreadyExistsException("Username is already taken");
@@ -41,9 +41,7 @@ public class AccountService {
         user.setUsername(accountSettingsDto.username());
         userRepository.save(user);
         accountChangesActivityService.createAccountChangesActivity(user.getEmail(), AccountChangesActivityType.USERNAME_CHANGED, request);
-        if(settings.isNotifyOnUsernameChange()){
-            usernameChangeEmailService.sendEmail(user);
-        }
+        notifyUsernameChangeService.sendEmailOnUsernameChange(user);
         return accountSettingsDto;
     }
 

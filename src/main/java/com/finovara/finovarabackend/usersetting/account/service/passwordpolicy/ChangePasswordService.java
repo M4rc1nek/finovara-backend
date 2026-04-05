@@ -7,6 +7,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordRequestDto;
 import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notification.passwordchange.service.NotifyPasswordChangeService;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
@@ -23,12 +24,11 @@ public class ChangePasswordService {
     private final PasswordConfirmationService passwordConfirmationService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final PasswordChangeEmailService passwordChangeEmailService;
     private final AccountChangesActivityService accountChangesActivityService;
+    private final NotifyPasswordChangeService notifyPasswordChangeService;
 
     public void changePassword(String email, PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        NotificationSettings settings = user.getNotificationSettings();
 
         if (!passwordRequestDto.changePasswordDto().newPassword()
                 .equals(passwordRequestDto.changePasswordDto().confirmNewPassword())) {
@@ -43,10 +43,8 @@ public class ChangePasswordService {
 
         user.setPassword(passwordEncoder.encode(passwordRequestDto.changePasswordDto().newPassword()));
         userRepository.save(user);
-        accountChangesActivityService.createAccountChangesActivity(email, AccountChangesActivityType.PASSWORD_CHANGED,request);
-        if(settings.isNotifyOnPasswordChange()){
-            passwordChangeEmailService.sendEmail(user);
-        }
+        accountChangesActivityService.createAccountChangesActivity(email, AccountChangesActivityType.PASSWORD_CHANGED, request);
+        notifyPasswordChangeService.sendEmailOnPasswordChange(user);
 
     }
 }

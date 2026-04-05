@@ -43,8 +43,7 @@ public class NotifyUsernameChangeService {
         );
     }
 
-    private void sendEmailOnUsernameChange(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void sendEmailOnUsernameChange(User user) {
         NotificationSettings settings = user.getNotificationSettings();
 
         if (!settings.isNotifyOnUsernameChange()) return;

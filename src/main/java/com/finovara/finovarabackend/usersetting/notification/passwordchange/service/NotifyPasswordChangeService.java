@@ -42,8 +42,7 @@ public class NotifyPasswordChangeService {
         );
     }
 
-    private void sendEmailOnPasswordChange(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void sendEmailOnPasswordChange(User user) {
         NotificationSettings settings = user.getNotificationSettings();
 
         if (!settings.isNotifyOnPasswordChange()) return;
