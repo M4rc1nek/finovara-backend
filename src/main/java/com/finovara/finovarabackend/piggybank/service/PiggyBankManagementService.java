@@ -194,7 +194,7 @@ public class PiggyBankService {
                 .doubleValue();
     }
 
-    private void validateAmount(BigDecimal amount) {
+    private void validateAmount(BigDecimal amount) { //usun
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidInputException("Amount must be non negative");
         }
@@ -206,7 +206,7 @@ public class PiggyBankService {
         }
     }
 
-    private void validateGoalAmount(PiggyBankDTO dto) {
+    private void validateGoalAmount(PiggyBankDTO dto) { //usun
         if (dto.goalAmount() != null && dto.goalAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidInputException("Amount have to be positive");
         }
