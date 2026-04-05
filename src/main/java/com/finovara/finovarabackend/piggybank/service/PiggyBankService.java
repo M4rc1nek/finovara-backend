@@ -13,7 +13,6 @@ import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
-import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
