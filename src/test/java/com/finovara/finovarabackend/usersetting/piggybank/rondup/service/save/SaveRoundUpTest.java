@@ -7,7 +7,7 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
+import com.finovara.finovarabackend.util.service.piggybank.manager.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

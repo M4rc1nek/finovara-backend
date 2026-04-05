@@ -12,7 +12,7 @@ import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.Aut
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.util.service.calculate.percentage.CalculatePercentage;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
+import com.finovara.finovarabackend.util.service.piggybank.manager.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;

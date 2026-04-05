@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.util.manager.service.piggybank;
 
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
+import com.finovara.finovarabackend.util.service.piggybank.manager.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.piggybank.exception.notfound.PiggyBankNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

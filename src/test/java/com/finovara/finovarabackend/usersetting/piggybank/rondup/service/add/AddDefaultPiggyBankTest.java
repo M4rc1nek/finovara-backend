@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.usersetting.piggybank.rondup.service.add;
 
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
-import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
+import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
@@ -27,7 +27,7 @@ class AddDefaultPiggyBankTest {
     private UserManagerService userManagerService;
 
     @Mock
-    private PiggyBankService piggyBankService;
+    private PiggyBankManagementService piggyBankManagementService;
 
     @InjectMocks
     private RoundUpService roundUpService;
@@ -44,13 +44,13 @@ class AddDefaultPiggyBankTest {
 
         Long expectedId = 123L;
 
-        when(piggyBankService.addPiggyBank(dto, EMAIL)).thenReturn(expectedId);
+        when(piggyBankManagementService.addPiggyBank(dto, EMAIL)).thenReturn(expectedId);
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
         Long result = roundUpService.addDefaultPiggyBank(dto, EMAIL);
 
         assertEquals(expectedId, result);
-        verify(piggyBankService).addPiggyBank(dto, EMAIL);
+        verify(piggyBankManagementService).addPiggyBank(dto, EMAIL);
     }
 
     @Test

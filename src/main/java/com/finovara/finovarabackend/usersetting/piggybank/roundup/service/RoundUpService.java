@@ -11,14 +11,14 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
+import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.finovarabackend.util.service.expense.ExpenseManagerService;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
+import com.finovara.finovarabackend.util.service.piggybank.manager.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
@@ -37,7 +37,7 @@ public class RoundUpService {
     private final UserManagerService userManagerService;
     private final ExpenseManagerService expenseManagerService;
     private final PiggyBankManagerService piggyBankManagerService;
-    private final PiggyBankService piggyBankService;
+    private final PiggyBankManagementService piggyBankManagementService;
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
     private final PiggyBankActivityService piggyBankActivityService;
@@ -56,7 +56,7 @@ public class RoundUpService {
     @Transactional
     public Long addDefaultPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        return piggyBankService.addPiggyBank(piggyBankDTO, user.getEmail());
+        return piggyBankManagementService.addPiggyBank(piggyBankDTO, user.getEmail());
     }
 
     @Transactional

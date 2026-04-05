@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.mapper.PiggyBankMapper;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
+import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 class GetPiggyBankTest {
 
     @InjectMocks
-    private PiggyBankService piggyBankService;
+    private PiggyBankManagementService piggyBankManagementService;
     @Mock
     private UserManagerService userManagerService;
     @Mock
@@ -60,7 +60,7 @@ class GetPiggyBankTest {
         when(piggyBankMapper.mapToPiggyBankDto(eq(piggy1), eq(user), anyDouble(), anyBoolean())).thenReturn(dto1);
         when(piggyBankMapper.mapToPiggyBankDto(eq(piggy2), eq(user), anyDouble(), anyBoolean())).thenReturn(dto2);
 
-        List<PiggyBankDTO> result = piggyBankService.getAllPiggyBanks(email);
+        List<PiggyBankDTO> result = piggyBankManagementService.getAllPiggyBanks(email);
 
         assertEquals(2, result.size());
         assertEquals("Piggy 1", result.get(0).name());
@@ -85,7 +85,7 @@ class GetPiggyBankTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(piggyBankRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of());
 
-        List<PiggyBankDTO> result = piggyBankService.getAllPiggyBanks(email);
+        List<PiggyBankDTO> result = piggyBankManagementService.getAllPiggyBanks(email);
 
         assertEquals(0, result.size());
 
@@ -100,7 +100,7 @@ class GetPiggyBankTest {
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(RuntimeException.class, () -> piggyBankService.getAllPiggyBanks(email));
+        assertThrows(RuntimeException.class, () -> piggyBankManagementService.getAllPiggyBanks(email));
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verifyNoInteractions(piggyBankRepository);

@@ -8,7 +8,7 @@ import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
+import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
@@ -43,7 +43,7 @@ class AddPiggyBankTest {
     private SettingsFactory settingsFactory;
 
     @InjectMocks
-    private PiggyBankService piggyBankService;
+    private PiggyBankManagementService piggyBankManagementService;
 
     @Test
     void shouldAddPiggyBankSuccessfully() {
@@ -66,7 +66,7 @@ class AddPiggyBankTest {
         when(piggyBankRepository.save(any(PiggyBank.class))).thenReturn(piggyBank);
         when(settingsFactory.createDefaultPiggyBankSettings(any())).thenReturn(settings);
 
-        piggyBankService.addPiggyBank(dto, email);
+        piggyBankManagementService.addPiggyBank(dto, email);
 
         verify(piggyBankRepository).save(any(PiggyBank.class));
         verify(piggyBankActivityService).createSimplePiggyBankActivity(eq(email), any(PiggyBank.class), eq(PiggyBankActivityType.ADDED_PIGGY_BANK));
@@ -83,7 +83,7 @@ class AddPiggyBankTest {
         when(userManagerService.getUserByEmailOrThrow(email))
                 .thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> piggyBankService.addPiggyBank(dto, email));
+        assertThrows(UserNotFoundException.class, () -> piggyBankManagementService.addPiggyBank(dto, email));
 
         verify(piggyBankRepository, never()).save(any());
     }
@@ -100,7 +100,7 @@ class AddPiggyBankTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(piggyBankRepository.countPiggyBanksByUserId(user.getId())).thenReturn(5L);
 
-        assertThrows(InvalidInputException.class, () -> piggyBankService.addPiggyBank(dto, email));
+        assertThrows(InvalidInputException.class, () -> piggyBankManagementService.addPiggyBank(dto, email));
         verify(piggyBankRepository, never()).save(any());
     }
 
@@ -117,7 +117,7 @@ class AddPiggyBankTest {
         when(piggyBankRepository.countPiggyBanksByUserId(user.getId())).thenReturn(0L);
         when(piggyBankRepository.existsByNameAndUserAssignedId(dto.name(), user.getId())).thenReturn(true);
 
-        assertThrows(NameAlreadyExistsException.class, () -> piggyBankService.addPiggyBank(dto, email));
+        assertThrows(NameAlreadyExistsException.class, () -> piggyBankManagementService.addPiggyBank(dto, email));
         verify(piggyBankRepository, never()).save(any());
     }
 }

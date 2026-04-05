@@ -5,8 +5,8 @@ import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankA
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.finovarabackend.piggybank.service.PiggyBankService;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
+import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
+import com.finovara.finovarabackend.util.service.piggybank.manager.PiggyBankManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 class DeletePiggyBankTest {
 
     @InjectMocks
-    private PiggyBankService piggyBankService;
+    private PiggyBankManagementService piggyBankManagementService;
 
     @Mock
     private PiggyBankManagerService piggyBankManagerService;
@@ -41,7 +41,7 @@ class DeletePiggyBankTest {
 
         when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(piggyBank);
 
-        piggyBankService.deletePiggyBank(email, piggyBankId);
+        piggyBankManagementService.deletePiggyBank(email, piggyBankId);
 
         verify(piggyBankActivityService).createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
         verify(piggyBankRepository).delete(piggyBank);
@@ -54,7 +54,7 @@ class DeletePiggyBankTest {
 
         when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(null);
 
-        assertThrows(InvalidInputException.class, () -> piggyBankService.deletePiggyBank(email, piggyBankId));
+        assertThrows(InvalidInputException.class, () -> piggyBankManagementService.deletePiggyBank(email, piggyBankId));
 
         verify(piggyBankActivityService, never()).createSimplePiggyBankActivity(anyString(), any(), any());
         verify(piggyBankRepository, never()).delete(any());
@@ -70,7 +70,7 @@ class DeletePiggyBankTest {
 
         when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(piggyBank);
 
-        assertThrows(InvalidInputException.class, () -> piggyBankService.deletePiggyBank(email, piggyBankId));
+        assertThrows(InvalidInputException.class, () -> piggyBankManagementService.deletePiggyBank(email, piggyBankId));
 
         verify(piggyBankActivityService, never()).createSimplePiggyBankActivity(anyString(), any(), any());
         verify(piggyBankRepository, never()).delete(any());

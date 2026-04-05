@@ -2,6 +2,7 @@ package com.finovara.finovarabackend.piggybank.controller;
 
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
+import com.finovara.finovarabackend.piggybank.service.PiggyBankTransactionService;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +17,9 @@ import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUser
 @RestController
 @RequestMapping("/api/piggy-banks")
 @RequiredArgsConstructor
-public class PiggyBankController {
+public class PiggyBankManagementController {
     private final PiggyBankManagementService piggyBankManagementService;
+    private final PiggyBankTransactionService piggyBankTransactionService;
 
     @PostMapping
     public ResponseEntity<Long> createPiggyBank(@RequestBody @Valid PiggyBankDTO piggyBankDTO) {
@@ -42,13 +44,13 @@ public class PiggyBankController {
 
     @PostMapping("/{piggyBankId}/deposit")
     public ResponseEntity<Void> addBalanceToPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
-        piggyBankManagementService.addBalanceToPiggyBank(getCurrentUserEmail(), piggyBankId, amount);
+        piggyBankTransactionService.addBalanceToPiggyBank(getCurrentUserEmail(), piggyBankId, amount);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{piggyBankId}/withdraw")
     public ResponseEntity<PiggyBankDTO> removeBalanceFromPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
-        piggyBankManagementService.removeBalanceFromPiggyBank(getCurrentUserEmail(), piggyBankId, amount);
+        piggyBankTransactionService.removeBalanceFromPiggyBank(getCurrentUserEmail(), piggyBankId, amount);
         return ResponseEntity.noContent().build();
     }
 
