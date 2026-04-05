@@ -1,6 +1,5 @@
 package com.finovara.finovarabackend.util.piggybank;
 
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import lombok.experimental.UtilityClass;
 
