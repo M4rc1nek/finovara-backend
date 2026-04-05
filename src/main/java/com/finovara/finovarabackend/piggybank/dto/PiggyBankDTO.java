@@ -15,7 +15,6 @@ public record PiggyBankDTO(
         @NotBlank
         String name,
 
-
         BigDecimal amount,
         LocalDate createdAt,
 
@@ -23,8 +22,7 @@ public record PiggyBankDTO(
         BigDecimal goalAmount,
 
         Double progress,
-        boolean goalCompleted
-
+        Boolean goalCompleted
 
 ) {
 }

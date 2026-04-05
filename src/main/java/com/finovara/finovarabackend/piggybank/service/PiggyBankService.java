@@ -15,12 +15,14 @@ import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSetting
 import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
+import com.finovara.finovarabackend.util.service.piggybank.exception.notfound.PiggyBankNotFoundException;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,6 +30,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PiggyBankService {
@@ -77,6 +80,28 @@ public class PiggyBankService {
         piggyBankSettingsRepository.save(settings);
 
         return saved.getId(); //saved or piggybank
+    }
+
+    public Long editPiggyBank(String email, PiggyBankDTO piggyBankDTO, Long piggyBankId) {
+        User user = userManagerService.getUserByEmailOrThrow(email);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+
+        if (piggyBank.getUserAssigned() == null || !piggyBank.getUserAssigned().getId().equals(user.getId())) {
+            throw new PiggyBankNotFoundException("Piggy bank not found for this user");
+        }
+
+        if (piggyBankRepository.existsByNameAndUserAssignedId(piggyBankDTO.name(), user.getId())
+                && !piggyBank.getName().equals(piggyBankDTO.name())) {
+            throw new NameAlreadyExistsException("This piggy bank name already exists");
+        }
+
+        piggyBank.setName(piggyBankDTO.name());
+        piggyBank.setGoalAmount(piggyBankDTO.goalAmount());
+        piggyBank.setGoalType(piggyBankDTO.goalType());
+
+        PiggyBank saved = piggyBankRepository.save(piggyBank);
+
+        return saved.getId();
     }
 
     @Transactional
@@ -145,6 +170,7 @@ public class PiggyBankService {
     private record UserContext(Wallet wallet, PiggyBank piggyBank, User user) {
 
     }
+
     private UserContext getEntitiesForTransaction(String email, Long piggyBankId) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
@@ -156,7 +182,7 @@ public class PiggyBankService {
     private Double calculateProgress(PiggyBank piggyBank) {
         BigDecimal goalAmount = piggyBank.getGoalAmount();
 
-        if (goalAmount == null || piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (goalAmount == null || goalAmount.compareTo(BigDecimal.ZERO) <= 0) {
             return 0.0;
         }
 
