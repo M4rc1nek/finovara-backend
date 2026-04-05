@@ -61,9 +61,7 @@ public class PiggyBankService {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
 
-        if (piggyBankDTO.goalAmount() != null && piggyBankDTO.goalAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidInputException("Amount have to be positive");
-        }
+        validateGoalAmount(piggyBankDTO);
 
         PiggyBank piggyBank = PiggyBank.builder()
                 .name(piggyBankDTO.name())
@@ -96,6 +94,8 @@ public class PiggyBankService {
                 && !piggyBank.getName().equals(piggyBankDTO.name())) {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
+
+        validateGoalAmount(piggyBankDTO);
 
         piggyBank.setName(piggyBankDTO.name());
         piggyBank.setGoalAmount(piggyBankDTO.goalAmount());
@@ -203,6 +203,12 @@ public class PiggyBankService {
     private void validateSufficientFunds(BigDecimal sourceAmount, BigDecimal amount) {
         if (sourceAmount == null || sourceAmount.compareTo(amount) < 0) {
             throw new InvalidInputException("Insufficient funds");
+        }
+    }
+
+    private void validateGoalAmount(PiggyBankDTO dto) {
+        if (dto.goalAmount() != null && dto.goalAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidInputException("Amount have to be positive");
         }
     }
 }
