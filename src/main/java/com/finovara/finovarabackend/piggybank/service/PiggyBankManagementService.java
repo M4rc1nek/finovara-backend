@@ -10,37 +10,31 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
-import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCheckGoalCompletion;
-import com.finovara.finovarabackend.util.service.piggybank.PiggyBankManagerService;
+import com.finovara.finovarabackend.util.service.piggybank.PiggyBankValidator;
 import com.finovara.finovarabackend.util.service.piggybank.exception.notfound.PiggyBankNotFoundException;
+import com.finovara.finovarabackend.util.service.piggybank.PiggyBankCalculator;
+import com.finovara.finovarabackend.util.service.piggybank.manager.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.service.user.service.UserManagerService;
-import com.finovara.finovarabackend.util.service.wallet.WalletManagerService;
-import com.finovara.finovarabackend.wallet.model.Wallet;
-import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PiggyBankService {
+public class PiggyBankManagementService {
 
     private final UserManagerService userManagerService;
     private final PiggyBankRepository piggyBankRepository;
     private final PiggyBankManagerService piggyBankManagerService;
-    private final WalletManagerService walletManagerService;
-    private final GoalCompletionService goalCompletionService;
-    private final WalletRepository walletRepository;
     private final PiggyBankActivityService piggyBankActivityService;
     private final PiggyBankSettingsRepository piggyBankSettingsRepository;
     private final SettingsFactory settingsFactory;
@@ -61,7 +55,7 @@ public class PiggyBankService {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
 
-        validateGoalAmount(piggyBankDTO);
+        PiggyBankValidator.validateGoalAmount(piggyBankDTO);
 
         PiggyBank piggyBank = PiggyBank.builder()
                 .name(piggyBankDTO.name())
@@ -77,7 +71,7 @@ public class PiggyBankService {
         PiggyBankSettings settings = settingsFactory.createDefaultPiggyBankSettings(saved);
         piggyBankSettingsRepository.save(settings);
 
-        return saved.getId(); //saved or piggybank
+        return saved.getId();
     }
 
     @Transactional
@@ -95,7 +89,7 @@ public class PiggyBankService {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
 
-        validateGoalAmount(piggyBankDTO);
+        PiggyBankValidator.validateGoalAmount(piggyBankDTO);
 
         piggyBank.setName(piggyBankDTO.name());
         piggyBank.setGoalAmount(piggyBankDTO.goalAmount());
@@ -106,56 +100,13 @@ public class PiggyBankService {
         return saved.getId();
     }
 
-    @Transactional
-    public void addBalanceToPiggyBank(String email, Long piggyBankId, BigDecimal amount) {
-
-        UserContext userContext = getEntitiesForTransaction(email, piggyBankId);
-
-        validateAmount(amount);
-        validateSufficientFunds(userContext.wallet.getBalance(), amount);
-
-        userContext.wallet.setBalance(userContext.wallet.getBalance().subtract(amount));
-        userContext.piggyBank.setAmount(userContext.piggyBank.getAmount().add(amount));
-
-        piggyBankActivityService.createPaymentPiggyBankActivity(email, userContext.piggyBank,
-                PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, amount);
-        calculateProgress(userContext.piggyBank);
-        boolean completed =  PiggyBankCheckGoalCompletion.isGoalCompleted((userContext.piggyBank));
-
-
-        walletRepository.save(userContext.wallet);
-        piggyBankRepository.save(userContext.piggyBank);
-
-        if (completed) {
-            goalCompletionService.handleGoalCompletion(email);
-        }
-    }
-
-    @Transactional
-    public void removeBalanceFromPiggyBank(String email, Long piggyBankId, BigDecimal amount) {
-
-        UserContext userContext = getEntitiesForTransaction(email, piggyBankId);
-
-        validateAmount(amount);
-        validateSufficientFunds(userContext.piggyBank.getAmount(), amount);
-
-        userContext.piggyBank.setAmount(userContext.piggyBank.getAmount().subtract(amount));
-        userContext.wallet.setBalance(userContext.wallet.getBalance().add(amount));
-        calculateProgress(userContext.piggyBank);
-        PiggyBankCheckGoalCompletion.isGoalCompleted((userContext.piggyBank));
-
-        piggyBankActivityService.createPaymentPiggyBankActivity(email, userContext.piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, amount);
-
-        walletRepository.save(userContext.wallet);
-        piggyBankRepository.save(userContext.piggyBank);
-    }
-
     public List<PiggyBankDTO> getAllPiggyBanks(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedId(user.getId());
 
         return piggyBanks.stream()
-                .map(piggyBank -> piggyBankMapper.mapToPiggyBankDto(piggyBank, user, calculateProgress(piggyBank), PiggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)))
+                .map(piggyBank -> piggyBankMapper.mapToPiggyBankDto(piggyBank, user, PiggyBankCalculator.calculateProgress(piggyBank),
+                        PiggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)))
                 .toList();
     }
 
@@ -168,47 +119,5 @@ public class PiggyBankService {
         }
         piggyBankActivityService.createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
         piggyBankRepository.delete(piggyBank);
-    }
-
-    private record UserContext(Wallet wallet, PiggyBank piggyBank, User user) {
-
-    }
-
-    private UserContext getEntitiesForTransaction(String email, Long piggyBankId) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
-        Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
-
-        return new UserContext(wallet, piggyBank, user);
-    }
-
-    private Double calculateProgress(PiggyBank piggyBank) {
-        BigDecimal goalAmount = piggyBank.getGoalAmount();
-
-        if (goalAmount == null || goalAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            return 0.0;
-        }
-
-        return piggyBank.getAmount()
-                .divide(piggyBank.getGoalAmount(), 4, RoundingMode.HALF_UP)
-                .doubleValue();
-    }
-
-    private void validateAmount(BigDecimal amount) { //usun
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidInputException("Amount must be non negative");
-        }
-    }
-
-    private void validateSufficientFunds(BigDecimal sourceAmount, BigDecimal amount) {
-        if (sourceAmount == null || sourceAmount.compareTo(amount) < 0) {
-            throw new InvalidInputException("Insufficient funds");
-        }
-    }
-
-    private void validateGoalAmount(PiggyBankDTO dto) { //usun
-        if (dto.goalAmount() != null && dto.goalAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidInputException("Amount have to be positive");
-        }
     }
 }
