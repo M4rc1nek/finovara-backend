@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UpdatePiggyBankBalanceTest {
+class AddBalanceToPiggyBankTest {
 
     @InjectMocks
     private PiggyBankService piggyBankService;
