@@ -20,4 +20,10 @@ public class PiggyBankValidator {
             throw new InvalidInputException("Amount have to be positive");
         }
     }
+
+    public static void validateSufficientFunds(BigDecimal sourceAmount, BigDecimal amount) {
+        if (sourceAmount == null || sourceAmount.compareTo(amount) < 0) {
+            throw new InvalidInputException("Insufficient funds");
+        }
+    }
 }

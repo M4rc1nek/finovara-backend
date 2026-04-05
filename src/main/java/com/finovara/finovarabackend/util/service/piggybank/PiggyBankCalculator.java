@@ -20,10 +20,4 @@ public class PiggyBankCalculator {
                 .divide(piggyBank.getGoalAmount(), 4, RoundingMode.HALF_UP)
                 .doubleValue();
     }
-
-    public static void validateSufficientFunds(BigDecimal sourceAmount, BigDecimal amount) {
-        if (sourceAmount == null || sourceAmount.compareTo(amount) < 0) {
-            throw new InvalidInputException("Insufficient funds");
-        }
-    }
 }
