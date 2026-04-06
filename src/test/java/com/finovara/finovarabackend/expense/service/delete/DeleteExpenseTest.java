@@ -13,6 +13,7 @@ import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -56,10 +58,15 @@ class DeleteExpenseTest {
 
         expenseService.deleteExpense(expense.getId(), email);
 
-        verify(roundUpService).handleExpenseForRoundUp(email, expense.getId(), AutoPaymentsMode.ROLLBACK);
-        verify(walletService).addBalanceToWallet(email, new BigDecimal("100"));
-        verify(expenseActivityService).createExpenseActivity(email, ExpenseActivityType.DELETED_EXPENSE, expense);
-        expenseRepository.delete(expense);
+        InOrder inOrder = inOrder(roundUpService, walletService, expenseActivityService, expenseRepository);
+        inOrder.verify(roundUpService).handleExpenseForRoundUp(email, expense.getId(), AutoPaymentsMode.ROLLBACK);
+        inOrder.verify(walletService).addBalanceToWallet(email, new BigDecimal("100"));
+        inOrder.verify(expenseActivityService).createExpenseActivity(email, ExpenseActivityType.DELETED_EXPENSE, expense);
+        inOrder.verify(expenseRepository).delete(expense);
+
+        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(expenseRepository).findByIdAndUserAssignedId(expense.getId(), user.getId());
+        verifyNoMoreInteractions(roundUpService, walletService, expenseActivityService, expenseRepository);
     }
 
     @Test
@@ -75,7 +82,11 @@ class DeleteExpenseTest {
         when(expenseRepository.findByIdAndUserAssignedId(expenseId, user.getId())).thenReturn(Optional.empty());
 
         assertThrows(ExpenseNotFoundException.class, () -> expenseService.deleteExpense(expenseId, email));
+
+        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(expenseRepository).findByIdAndUserAssignedId(expenseId, user.getId());
         verify(expenseRepository, never()).delete(any());
+        verifyNoInteractions(roundUpService, walletService, expenseActivityService);
 
     }
 
