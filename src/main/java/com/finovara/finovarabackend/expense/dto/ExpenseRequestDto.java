@@ -2,10 +2,11 @@ package com.finovara.finovarabackend.expense.dto;
 
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import jakarta.validation.Valid;
 
 public record ExpenseRequestDto(
-        ExpenseDTO expenseDTO,
+        @Valid ExpenseDTO expenseDTO,
         ConfirmPasswordDto confirmPasswordDto,
-        CountQuantityLimitDto countQuantityLimitDto
-){
+        @Valid CountQuantityLimitDto countQuantityLimitDto
+) {
 }

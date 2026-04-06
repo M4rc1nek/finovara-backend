@@ -20,12 +20,12 @@ public class ExpenseController {
     private final ExpenseService expenseService;
 
     @PostMapping("/addExpense")
-    public ResponseEntity<Long> addExpense(@RequestBody ExpenseRequestDto expenseRequestDto, @RequestParam(required = false) PeriodType periodType) {
+    public ResponseEntity<Long> addExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto, @RequestParam(required = false) PeriodType periodType) {
         return ResponseEntity.ok(expenseService.addExpense(expenseRequestDto, getCurrentUserEmail(), periodType));
     }
 
     @PutMapping("/editExpense/{expenseId}")
-    public ResponseEntity<Long> editExpense(@RequestBody ExpenseRequestDto expenseRequestDto, @PathVariable Long expenseId, @RequestParam(required = false) PeriodType periodType) {
+    public ResponseEntity<Long> editExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto, @PathVariable Long expenseId, @RequestParam(required = false) PeriodType periodType) {
         return ResponseEntity.ok(expenseService.editExpense(expenseRequestDto, getCurrentUserEmail(), expenseId, periodType));
     }
 
