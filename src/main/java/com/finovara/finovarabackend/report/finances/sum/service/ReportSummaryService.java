@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.finances.sum.sevice;
+package com.finovara.finovarabackend.report.finances.sum.service;
 
 import com.finovara.finovarabackend.report.dto.ReportDto;
 import com.finovara.finovarabackend.util.model.PeriodType;

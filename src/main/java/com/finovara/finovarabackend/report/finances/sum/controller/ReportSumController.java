@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.report.finances.sum.controller;
 
 import com.finovara.finovarabackend.report.dto.ReportDto;
 import com.finovara.finovarabackend.util.model.PeriodType;
-import com.finovara.finovarabackend.report.finances.sum.sevice.ReportSummaryService;
+import com.finovara.finovarabackend.report.finances.sum.service.ReportSummaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
