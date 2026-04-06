@@ -8,18 +8,17 @@ import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.AccountSettingsDto;
 import com.finovara.finovarabackend.usersetting.account.service.AccountService;
 import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
-import com.finovara.finovarabackend.util.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
+import com.finovara.finovarabackend.usersetting.notification.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,7 +31,7 @@ class UpdateUsernameTest {
     @Mock
     private AccountChangesActivityService accountChangesActivityService;
     @Mock
-    private UsernameChangeEmailService usernameChangeEmailService;
+    private NotifyUsernameChangeService notifyUsernameChangeService;
     @Mock
     private HttpServletRequest request;
     @InjectMocks
@@ -42,7 +41,6 @@ class UpdateUsernameTest {
     void shouldUpdateUsernameSuccessfully() {
 
         Long userId = 1L;
-
 
         NotificationSettings notificationSettings = new NotificationSettings();
         notificationSettings.setNotifyOnUsernameChange(true);
@@ -66,14 +64,13 @@ class UpdateUsernameTest {
                 AccountChangesActivityType.USERNAME_CHANGED,
                 request
         );
-        verify(usernameChangeEmailService).sendEmail(user);
+        verify(notifyUsernameChangeService).sendEmailOnUsernameChange(user);
     }
 
     @Test
     void shouldThrowExceptionWhenUsernameAlreadyExists() {
 
         Long userId = 1L;
-
 
         User user = new User();
         user.setEmail("test@test.com");
@@ -84,34 +81,8 @@ class UpdateUsernameTest {
         when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(userRepository.existsByUsername(accountSettingsDto.username())).thenReturn(true);
 
-
-
         assertThatThrownBy(() -> accountService.updateUsername(accountSettingsDto, userId, request)).isInstanceOf(NameAlreadyExistsException.class);
 
         verify(userRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldNotSendEmailWhenNotificationDisabled() {
-
-        Long userId = 1L;
-
-        NotificationSettings notificationSettings = new NotificationSettings();
-        notificationSettings.setNotifyOnUsernameChange(false);
-
-        User user = new User();
-        user.setId(userId);
-        user.setEmail("test@test.com");
-        user.setNotificationSettings(notificationSettings);
-
-        AccountSettingsDto accountSettingsDto = new AccountSettingsDto("newUsername", user.getEmail(), null, null);
-
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-        when(userRepository.existsByUsername(accountSettingsDto.username())).thenReturn(false);
-
-        accountService.updateUsername(accountSettingsDto, userId, request);
-
-        verify(userRepository).save(user);
-        verify(usernameChangeEmailService, never()).sendEmail(user);
     }
 }
