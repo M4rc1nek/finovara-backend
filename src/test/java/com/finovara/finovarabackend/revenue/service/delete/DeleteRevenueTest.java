@@ -13,6 +13,7 @@ import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -22,6 +23,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,10 +59,15 @@ class DeleteRevenueTest {
 
         revenueService.deleteRevenue(revenue.getId(), email);
 
-        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, new BigDecimal("100"), AutoPaymentsMode.ROLLBACK);
-        verify(walletService).removeBalanceFromWallet(email, new BigDecimal("100"));
-        verify(revenueActivityService).createRevenueActivity(email, RevenueActivityType.DELETED_REVENUE, revenue);
-        revenueRepository.delete(revenue);
+        InOrder inOrder = inOrder(autoPaymentsService, walletService, revenueActivityService, revenueRepository);
+        inOrder.verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, new BigDecimal("100"), AutoPaymentsMode.ROLLBACK);
+        inOrder.verify(walletService).removeBalanceFromWallet(email, new BigDecimal("100"));
+        inOrder.verify(revenueActivityService).createRevenueActivity(email, RevenueActivityType.DELETED_REVENUE, revenue);
+        inOrder.verify(revenueRepository).delete(revenue);
+
+        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(revenueRepository).findByIdAndUserAssignedId(revenue.getId(), user.getId());
+        verifyNoMoreInteractions(autoPaymentsService, walletService, revenueActivityService, revenueRepository);
     }
 
     @Test
@@ -76,7 +83,11 @@ class DeleteRevenueTest {
         when(revenueRepository.findByIdAndUserAssignedId(revenueId, user.getId())).thenReturn(Optional.empty());
 
         assertThrows(RevenueNotFoundException.class, () -> revenueService.deleteRevenue(revenueId, email));
+
+        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(revenueRepository).findByIdAndUserAssignedId(revenueId, user.getId());
         verify(revenueRepository, never()).delete(any());
+        verifyNoInteractions(autoPaymentsService, walletService, revenueActivityService);
 
     }
 
