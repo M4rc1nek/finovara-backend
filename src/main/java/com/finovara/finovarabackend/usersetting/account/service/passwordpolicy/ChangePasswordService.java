@@ -45,6 +45,5 @@ public class ChangePasswordService {
         userRepository.save(user);
         accountChangesActivityService.createAccountChangesActivity(email, AccountChangesActivityType.PASSWORD_CHANGED, request);
         notifyPasswordChangeService.sendEmailOnPasswordChange(user);
-
     }
 }

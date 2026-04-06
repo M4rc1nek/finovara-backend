@@ -9,9 +9,9 @@ import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.Chang
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordRequestDto;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.ChangePasswordService;
 import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notification.passwordchange.service.NotifyPasswordChangeService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
-import com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ class ChangePasswordTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
-    private PasswordChangeEmailService passwordChangeEmailService;
+    private NotifyPasswordChangeService notifyPasswordChangeService;
     @Mock
     private AccountChangesActivityService accountChangesActivityService;
     @Mock
@@ -68,11 +68,11 @@ class ChangePasswordTest {
         verify(passwordConfirmationService).confirmPassword(USER_EMAIL, confirmPasswordDto);
         verify(userRepository).save(user);
         verify(accountChangesActivityService).createAccountChangesActivity(USER_EMAIL, AccountChangesActivityType.PASSWORD_CHANGED, request);
-        verify(passwordChangeEmailService).sendEmail(user);
+        verify(notifyPasswordChangeService).sendEmailOnPasswordChange(user);
     }
 
     @Test
-    void shouldChangePasswordWithoutNotification() {
+    void shouldCallNotifyServiceEvenWhenNotificationDisabled() {
 
         ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("oldPass");
         ChangePasswordDto changePasswordDto = new ChangePasswordDto("newPass", "newPass");
@@ -90,7 +90,8 @@ class ChangePasswordTest {
 
         changePasswordService.changePassword(USER_EMAIL, passwordRequestDto, request);
 
-        verify(passwordChangeEmailService, never()).sendEmail(user);
+        verify(notifyPasswordChangeService).sendEmailOnPasswordChange(user);
+        ;
         verify(userRepository).save(user);
         verify(accountChangesActivityService).createAccountChangesActivity(USER_EMAIL, AccountChangesActivityType.PASSWORD_CHANGED, request);
     }
