@@ -3,35 +3,31 @@ package com.finovara.finovarabackend.usersetting.accountsetting.account.service.
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.service.AccountService;
+import com.finovara.finovarabackend.usersetting.notification.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
-import com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AccountDeleteTest {
 
     @Mock
     private UserManagerService userManagerService;
-
     @Mock
     private UserRepository userRepository;
-
     @Mock
     private PasswordConfirmationService passwordConfirmationService;
-
     @Mock
-    private AccountDeletedEmailService accountDeletedEmailService;
+    private NotifyOnAccountDeletedService notifyOnAccountDeletedService;
 
     @InjectMocks
     private AccountService accountService;
@@ -57,7 +53,7 @@ class AccountDeleteTest {
 
         verify(passwordConfirmationService).confirmPassword(user.getEmail(), confirmPasswordDto);
         verify(userRepository).delete(user);
-        verify(accountDeletedEmailService, never()).sendEmail(user);
+        verify(notifyOnAccountDeletedService).sendEmailOnAccountDeleted(user);
     }
 
     @Test
@@ -80,7 +76,7 @@ class AccountDeleteTest {
         accountService.deleteAccount(confirmPasswordDto, userId);
 
         verify(userRepository).delete(user);
-        verify(accountDeletedEmailService).sendEmail(user);
+        verify(notifyOnAccountDeletedService).sendEmailOnAccountDeleted(user);
     }
 
     @Test

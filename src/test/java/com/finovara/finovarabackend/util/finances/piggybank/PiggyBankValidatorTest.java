@@ -1,11 +1,13 @@
 package com.finovara.finovarabackend.util.finances.piggybank;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.util.piggybank.PiggyBankValidator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -13,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class PiggyBankValidatorTest {
 
     @Nested
-    class ValidateAmount{
+    class ValidateAmount {
         @Test
         void shouldNotThrowExceptionWhenAmountIsPositive() {
             assertDoesNotThrow(() -> PiggyBankValidator.validateAmount(BigDecimal.valueOf(100)));
