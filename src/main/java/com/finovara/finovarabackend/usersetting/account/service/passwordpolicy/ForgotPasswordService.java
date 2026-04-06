@@ -1,6 +1,5 @@
 package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
 
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
@@ -11,7 +10,6 @@ import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.Forgo
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordRequestDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
-import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
 import com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.mail.internet.MimeMessage;
@@ -49,6 +47,7 @@ public class ForgotPasswordService {
     private final JavaMailSender javaMailSender;
     private final PasswordChangeEmailService passwordChangeEmailService;
     private final AccountChangesActivityService accountChangesActivityService;
+    private final PasswordManagementService passwordManagementService;
 
     public void validateEmailExists(String email) {
         if (!userRepository.existsByEmail(email)) {
@@ -101,33 +100,28 @@ public class ForgotPasswordService {
     public void changePasswordWithCode(String email, PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         AccountSettings accountSettings = user.getAccountSettings();
-        NotificationSettings notificationSettings = user.getNotificationSettings();
 
         verifyCode(email, passwordRequestDto.forgotPasswordDto());
 
-        if (!passwordRequestDto.changePasswordDto().newPassword()
-                .equals(passwordRequestDto.changePasswordDto().confirmNewPassword())) {
+        String newPassword = passwordRequestDto.changePasswordDto().newPassword();
+
+        if (!newPassword.equals(passwordRequestDto.changePasswordDto().confirmNewPassword())) {
             throw new MissingRequirementException("New passwords have to be the same");
         }
 
-        if (passwordEncoder.matches(passwordRequestDto.changePasswordDto().newPassword(), user.getPassword())) {
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
             throw new MissingRequirementException("This password is already set");
         }
 
-        if (passwordRequestDto.changePasswordDto().newPassword().isEmpty()) {
+        if (newPassword.isEmpty()) {
             throw new MissingRequirementException("The new password cannot be empty");
         }
 
-        user.setPassword(passwordEncoder.encode(passwordRequestDto.changePasswordDto().newPassword()));
-        userRepository.save(user);
-        accountChangesActivityService.createAccountChangesActivity(email, AccountChangesActivityType.PASSWORD_CHANGED, request);
+        passwordManagementService.updatePassword(user, newPassword, request);
+
         accountSettings.setForgotPasswordCode(null);
         accountSettings.setForgotPasswordCodeExpiresAt(null);
         accountRepository.save(accountSettings);
-
-        if (notificationSettings.isNotifyOnPasswordChange()) {
-            passwordChangeEmailService.sendEmail(user);
-        }
     }
 
     private int generateSecureCode(String email) {
