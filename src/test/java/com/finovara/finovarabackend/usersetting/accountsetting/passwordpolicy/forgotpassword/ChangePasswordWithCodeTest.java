@@ -1,19 +1,16 @@
 package com.finovara.finovarabackend.usersetting.accountsetting.passwordpolicy.forgotpassword;
 
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivityType;
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.ChangePasswordDto;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.ForgotPasswordDto;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordRequestDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.ForgotPasswordService;
+import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordManagementService;
 import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,13 +34,9 @@ class ChangePasswordWithCodeTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
-    private UserRepository userRepository;
-    @Mock
     private AccountRepository accountRepository;
     @Mock
-    private AccountChangesActivityService accountChangesActivityService;
-    @Mock
-    private PasswordChangeEmailService passwordChangeEmailService;
+    private PasswordManagementService passwordManagementService;
 
     @InjectMocks
     private ForgotPasswordService forgotPasswordService;
@@ -76,55 +69,57 @@ class ChangePasswordWithCodeTest {
 
     @Test
     void shouldChangePasswordSuccessfully() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+
         accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
         when(passwordEncoder.matches("newPass", "encodedOldPassword")).thenReturn(false);
-        when(passwordEncoder.encode("newPass")).thenReturn("encodedNewPass");
 
         PasswordRequestDto dto = buildPasswordRequest("newPass", "newPass", 123456);
 
-        forgotPasswordService.changePasswordWithCode(EMAIL, dto, mock(HttpServletRequest.class));
+        forgotPasswordService.changePasswordWithCode(EMAIL, dto, request);
 
-        verify(userRepository).save(user);
         verify(accountRepository).save(accountSettings);
-        verify(accountChangesActivityService).createAccountChangesActivity(eq(EMAIL),
-                eq(AccountChangesActivityType.PASSWORD_CHANGED), any());
-        verify(passwordChangeEmailService).sendEmail(user);
+        verify(passwordManagementService).updatePassword(user, "newPass", request);
     }
 
     @Test
     void shouldThrowExceptionWhenNewPasswordsDoNotMatch() {
-        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+        HttpServletRequest request = mock(HttpServletRequest.class);
 
+        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
         PasswordRequestDto dto = buildPasswordRequest("pass1", "pass2", 123456);
 
-        assertThrows(MissingRequirementException.class,
-                () -> forgotPasswordService.changePasswordWithCode(EMAIL, dto, mock(HttpServletRequest.class)));
+        assertThrows(MissingRequirementException.class, () -> forgotPasswordService.changePasswordWithCode(EMAIL, dto, request));
     }
 
     @Test
     void shouldThrowExceptionWhenNewPasswordAlreadySet() {
-        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
+        HttpServletRequest request = mock(HttpServletRequest.class);
 
+        accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
         when(passwordEncoder.matches("oldPass", "encodedOldPassword")).thenReturn(true);
 
-
         PasswordRequestDto dto = buildPasswordRequest("oldPass", "oldPass", 123456);
 
-        assertThrows(MissingRequirementException.class, () -> forgotPasswordService.changePasswordWithCode(EMAIL, dto, mock(HttpServletRequest.class)));
+        assertThrows(MissingRequirementException.class,
+                () -> forgotPasswordService.changePasswordWithCode(EMAIL, dto, request));
     }
 
     @Test
     void shouldThrowExceptionWhenNewPasswordIsEmpty() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+
         accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
 
         PasswordRequestDto dto = buildPasswordRequest("", "", 123456);
 
-        assertThrows(MissingRequirementException.class, () -> forgotPasswordService.changePasswordWithCode(EMAIL, dto, mock(HttpServletRequest.class)));
+        assertThrows(MissingRequirementException.class,
+                () -> forgotPasswordService.changePasswordWithCode(EMAIL, dto, request));
     }
 }

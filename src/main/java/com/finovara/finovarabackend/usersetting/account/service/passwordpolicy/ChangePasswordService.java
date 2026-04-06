@@ -3,7 +3,6 @@ package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordRequestDto;
-import com.finovara.finovarabackend.usersetting.notification.passwordchange.service.NotifyPasswordChangeService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 public class ChangePasswordService {
 
     private final UserManagerService userManagerService;
-    private final NotifyPasswordChangeService notifyPasswordChangeService;
     private final PasswordManagementService passwordManagementService;
 
     public void changePassword(String email, PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
