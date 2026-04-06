@@ -7,6 +7,7 @@ import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankAct
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.repository.PiggyBankActivityRepository;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
+import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,15 @@ public class PiggyBankActivityService {
         piggyBankActivity.setAmountPaid(paidAmount);
     }
 
+    @Transactional
+    public void createEditPiggyBankActivity(String email, PiggyBank piggyBank, PiggyBankActivityType activityType,
+                                            BigDecimal previousGoalAmount, PiggyBankGoalType previousGoalType, String previousPiggyBankName) {
+        PiggyBankActivity piggyBankActivity = buildPiggyBankActivity(email, piggyBank, activityType);
+        piggyBankActivity.setPreviousPiggyBankName(previousPiggyBankName);
+        piggyBankActivity.setPreviousGoalType(previousGoalType);
+        piggyBankActivity.setPreviousGoalAmount(previousGoalAmount);
+    }
+
     public List<PiggyBankActivityDto> getPiggyBankActivities(String email, PiggyBankActivitySort sort) {
 
         Pageable pageable = switch (sort) {
@@ -57,7 +67,6 @@ public class PiggyBankActivityService {
                 .toList();
     }
 
-    @Transactional
     private PiggyBankActivity buildPiggyBankActivity(String email, PiggyBank piggyBank, PiggyBankActivityType activityType) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 

@@ -45,8 +45,6 @@ public class ExpenseActivityService {
         expenseActivity.setPreviousAmount(previousAmount);
     }
 
-    // testy dla reszty expense + reszta accountactivity
-
     public List<ExpenseActivityDto> getExpenseActivity(String email, ExpenseActivitySort sort) {
 
         Pageable pageable = switch (sort) {

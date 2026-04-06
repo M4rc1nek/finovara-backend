@@ -7,15 +7,16 @@ import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsExceptio
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
 import com.finovara.finovarabackend.piggybank.mapper.PiggyBankMapper;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
+import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
+import com.finovara.finovarabackend.util.piggybank.PiggyBankCalculator;
 import com.finovara.finovarabackend.util.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.piggybank.PiggyBankValidator;
 import com.finovara.finovarabackend.util.piggybank.exception.notfound.PiggyBankNotFoundException;
-import com.finovara.finovarabackend.util.piggybank.PiggyBankCalculator;
 import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
@@ -91,11 +92,16 @@ public class PiggyBankManagementService {
 
         PiggyBankValidator.validateGoalAmount(piggyBankDTO);
 
+        String previousName = piggyBank.getName();
+        BigDecimal previousGoalAmount = piggyBank.getGoalAmount();
+        PiggyBankGoalType previousGoalType = piggyBank.getGoalType();
+
         piggyBank.setName(piggyBankDTO.name());
         piggyBank.setGoalAmount(piggyBankDTO.goalAmount());
         piggyBank.setGoalType(piggyBankDTO.goalType());
 
         PiggyBank saved = piggyBankRepository.save(piggyBank);
+        piggyBankActivityService.createEditPiggyBankActivity(email, piggyBank, PiggyBankActivityType.EDITED_PIGGY_BANK, previousGoalAmount, previousGoalType, previousName);
 
         return saved.getId();
     }

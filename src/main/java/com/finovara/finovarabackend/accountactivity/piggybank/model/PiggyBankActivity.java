@@ -27,10 +27,16 @@ public class PiggyBankActivity {
     private PiggyBankActivityType activityType;
     @Enumerated(EnumType.STRING)
     private PiggyBankGoalType goalType;
+    @Enumerated(EnumType.STRING)
+    private PiggyBankGoalType previousGoalType;
 
     private BigDecimal goalAmount;
     private BigDecimal amountPaid;
     private BigDecimal amountPaidOut;
+
+    private BigDecimal previousGoalAmount;
+    private String previousPiggyBankName;
+
 
     private LocalDateTime date;
 

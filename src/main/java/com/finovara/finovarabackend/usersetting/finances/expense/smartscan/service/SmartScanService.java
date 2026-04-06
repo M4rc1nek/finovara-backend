@@ -87,8 +87,6 @@ public class SmartScanService {
             }
 
             passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
-
-            log.info("Expense added successfully. Expense amount: {}", newExpenseAmount);
         }
 
     }

@@ -267,11 +267,14 @@
             </column>
 
             <column name="piggy_bank_name" type="VARCHAR(255)"/>
+            <column name="previous_piggy_bank_name" type="VARCHAR(255)"/>
 
             <column name="activity_type" type="VARCHAR(255)"/>
             <column name="goal_type" type="VARCHAR(255)"/>
+            <column name="previous_goal_type" type="VARCHAR(255)"/>
 
             <column name="goal_amount" type="DECIMAL(19,2)"/>
+            <column name="previous_goal_amount" type="DECIMAL(19,2)"/>
             <column name="amount_paid" type="DECIMAL(19,2)"/>
             <column name="amount_paid_out" type="DECIMAL(19,2)"/>
 
