@@ -61,12 +61,19 @@ class RemoveBalanceFromWalletTest {
         assertThrows(InvalidInputException.class, () -> walletService.removeBalanceFromWallet(EMAIL, new BigDecimal("50")));
 
         verify(walletRepository, never()).save(any());
+        verifyNoInteractions(userManagerService);
     }
 
     @Test
     void shouldThrowExceptionWhenAmountIsNegative() {
-        assertThrows(InvalidInputException.class, () -> walletService.removeBalanceFromWallet(EMAIL, new BigDecimal("-10")));
+        Wallet wallet = new Wallet();
+        wallet.setBalance(new BigDecimal("100"));
+
+        when(walletManagerService.getWalletByUserEmailOrThrow(EMAIL)).thenReturn(wallet);
+
+        assertThrows(IllegalArgumentException.class, () -> walletService.removeBalanceFromWallet(EMAIL, new BigDecimal("-10")));
 
         verify(walletRepository, never()).save(any());
+        verifyNoInteractions(userManagerService);
     }
 }
