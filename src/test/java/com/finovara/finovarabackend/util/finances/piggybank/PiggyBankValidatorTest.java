@@ -77,4 +77,25 @@ class PiggyBankValidatorTest {
     @Nested
     class ValidateSufficientFunds {
 
+        @Test
+        void shouldNotThrowExceptionWhenSourceAmountIsGreaterThanAmount() {
+            assertDoesNotThrow(() -> PiggyBankValidator.validateSufficientFunds(BigDecimal.valueOf(200), BigDecimal.valueOf(100)));
+        }
+
+        @Test
+        void shouldNotThrowExceptionWhenSourceAmountEqualsAmount() {
+            assertDoesNotThrow(() -> PiggyBankValidator.validateSufficientFunds(BigDecimal.valueOf(100), BigDecimal.valueOf(100)));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenSourceAmountIsLessThanAmount() {
+            assertThrows(InvalidInputException.class, () -> PiggyBankValidator.validateSufficientFunds(BigDecimal.valueOf(50), BigDecimal.valueOf(100)));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenSourceAmountIsNull() {
+            assertThrows(InvalidInputException.class, () -> PiggyBankValidator.validateSufficientFunds(null, BigDecimal.valueOf(100)));
+        }
+    }
 }
+
