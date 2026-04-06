@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -49,8 +50,11 @@ class GetPiggyBankActivitiesTest {
         PiggyBankActivity activity = new PiggyBankActivity();
         PiggyBankActivityDto dto = new PiggyBankActivityDto(
                 "My piggybank",
+                null,
                 PiggyBankActivityType.ADDED_PIGGY_BANK,
                 PiggyBankGoalType.GIFTS,
+                null,
+                new BigDecimal("100"),
                 null,
                 null,
                 null,

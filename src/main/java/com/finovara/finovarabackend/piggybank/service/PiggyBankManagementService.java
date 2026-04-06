@@ -100,8 +100,8 @@ public class PiggyBankManagementService {
         piggyBank.setGoalAmount(piggyBankDTO.goalAmount());
         piggyBank.setGoalType(piggyBankDTO.goalType());
 
-        PiggyBank saved = piggyBankRepository.save(piggyBank);
         piggyBankActivityService.createEditPiggyBankActivity(email, piggyBank, PiggyBankActivityType.EDITED_PIGGY_BANK, previousGoalAmount, previousGoalType, previousName);
+        PiggyBank saved = piggyBankRepository.save(piggyBank);
 
         return saved.getId();
     }

@@ -8,9 +8,12 @@ import java.time.LocalDateTime;
 
 public record PiggyBankActivityDto(
         String piggyBankName,
+        String previousPiggyBankName,
         PiggyBankActivityType activityType,
         PiggyBankGoalType goalType,
+        PiggyBankGoalType previousGoalType,
         BigDecimal goalAmount,
+        BigDecimal previousGoalAmount,
         BigDecimal amountPaid,
         BigDecimal amountPaidOut,
         LocalDateTime date

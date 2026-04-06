@@ -9,9 +9,12 @@ public class PiggyBankActivityMapper {
     public PiggyBankActivityDto mapToPiggyBankActivity(PiggyBankActivity activity) {
         return new PiggyBankActivityDto(
                 activity.getPiggyBankName(),
+                activity.getPreviousPiggyBankName(),
                 activity.getActivityType(),
                 activity.getGoalType(),
+                activity.getPreviousGoalType(),
                 activity.getGoalAmount(),
+                activity.getPreviousGoalAmount(),
                 activity.getAmountPaid(),
                 activity.getAmountPaidOut(),
                 activity.getDate()
