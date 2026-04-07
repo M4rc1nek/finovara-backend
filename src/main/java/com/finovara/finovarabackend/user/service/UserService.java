@@ -58,7 +58,7 @@ public class UserService {
                 .build();
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         user.setRevenueSettings(settingsFactory.createDefaultRevenueSettings(user));
-        user.setNotificationSettings(settingsFactory.createDefaultNotificationSettings(user));
+        user.setNotificationEmailSettings(settingsFactory.createDefaultNotificationSettings(user));
         User savedUser = userRepository.save(user);
 
         String jwtToken = jwtService.generateToken(

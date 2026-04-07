@@ -5,7 +5,7 @@ import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
-import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.util.model.PeriodType;
@@ -55,8 +55,8 @@ public class SettingsFactory {
                 .build();
     }
 
-    public NotificationSettings createDefaultNotificationSettings(User user) {
-        return NotificationSettings.builder()
+    public NotificationEmailSettings createDefaultNotificationSettings(User user) {
+        return NotificationEmailSettings.builder()
                 .userAssigned(user)
                 .notifyOnPasswordChange(false)
                 .notifyOnUsernameChange(false)

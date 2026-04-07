@@ -11,7 +11,7 @@ import lombok.*;
 @Setter
 @Getter
 @Builder
-public class NotificationSettings {
+public class NotificationEmailSettings {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

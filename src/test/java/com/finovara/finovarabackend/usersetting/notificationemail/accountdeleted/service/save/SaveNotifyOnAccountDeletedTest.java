@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.usersetting.notificationemail.accountdelete
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.dto.NotifyOnAccountDeletedDto;
-import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,14 +25,14 @@ class SaveNotifyOnAccountDeletedTest {
     @InjectMocks
     private NotifyOnAccountDeletedService notifyOnAccountDeletedService;
 
-    private NotificationSettings notificationSettings;
+    private NotificationEmailSettings notificationEmailSettings;
     private final String EMAIL = "test@test.com";
 
     @BeforeEach
     void setup() {
         User user = new User();
-        notificationSettings = new NotificationSettings();
-        user.setNotificationSettings(notificationSettings);
+        notificationEmailSettings = new NotificationEmailSettings();
+        user.setNotificationEmailSettings(notificationEmailSettings);
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
     }
@@ -43,17 +43,17 @@ class SaveNotifyOnAccountDeletedTest {
 
         notifyOnAccountDeletedService.saveNotifyOnAccountDeleted(EMAIL, dto);
 
-        assertTrue(notificationSettings.isNotifyOnAccountDeleted());
+        assertTrue(notificationEmailSettings.isNotifyOnAccountDeleted());
     }
 
     @Test
     void shouldDisableNotifyOnAccountDeleted() {
-        notificationSettings.setNotifyOnAccountDeleted(true);
+        notificationEmailSettings.setNotifyOnAccountDeleted(true);
 
         NotifyOnAccountDeletedDto dto = new NotifyOnAccountDeletedDto(false);
 
         notifyOnAccountDeletedService.saveNotifyOnAccountDeleted(EMAIL, dto);
 
-        assertFalse(notificationSettings.isNotifyOnAccountDeleted());
+        assertFalse(notificationEmailSettings.isNotifyOnAccountDeleted());
     }
 }

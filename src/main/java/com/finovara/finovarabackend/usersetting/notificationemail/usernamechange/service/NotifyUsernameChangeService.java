@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivi
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.dto.NotifyUsernameChangeDto;
 import com.finovara.finovarabackend.util.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
@@ -23,7 +23,7 @@ public class NotifyUsernameChangeService {
     @Transactional
     public void saveNotifyUsernameChange(String email, NotifyUsernameChangeDto dto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        NotificationSettings settings = user.getNotificationSettings();
+        NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
         settings.setNotifyOnUsernameChange(dto.notifyOnUsernameChange());
         if (settings.isNotifyOnUsernameChange()) {
@@ -36,7 +36,7 @@ public class NotifyUsernameChangeService {
 
     public NotifyUsernameChangeDto getEmailOnUsernameChange(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        NotificationSettings settings = user.getNotificationSettings();
+        NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
         return new NotifyUsernameChangeDto(
                 settings.isNotifyOnUsernameChange()
@@ -44,7 +44,7 @@ public class NotifyUsernameChangeService {
     }
 
     public void sendEmailOnUsernameChange(User user) {
-        NotificationSettings settings = user.getNotificationSettings();
+        NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
         if (!settings.isNotifyOnUsernameChange()) return;
 

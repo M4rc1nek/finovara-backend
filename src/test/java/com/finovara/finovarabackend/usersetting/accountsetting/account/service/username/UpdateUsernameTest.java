@@ -7,7 +7,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.AccountSettingsDto;
 import com.finovara.finovarabackend.usersetting.account.service.AccountService;
-import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,13 +42,13 @@ class UpdateUsernameTest {
 
         Long userId = 1L;
 
-        NotificationSettings notificationSettings = new NotificationSettings();
-        notificationSettings.setNotifyOnUsernameChange(true);
+        NotificationEmailSettings notificationEmailSettings = new NotificationEmailSettings();
+        notificationEmailSettings.setNotifyOnUsernameChange(true);
 
         User user = new User();
         user.setId(userId);
         user.setEmail("test@test.com");
-        user.setNotificationSettings(notificationSettings);
+        user.setNotificationEmailSettings(notificationEmailSettings);
         AccountSettingsDto accountSettingsDto = new AccountSettingsDto("newUsername", user.getEmail(), null, null);
 
         when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);

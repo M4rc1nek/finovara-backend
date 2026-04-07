@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.service.AccountService;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.NotifyOnAccountDeletedService;
-import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
@@ -39,13 +39,13 @@ class AccountDeleteTest {
 
         ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("password");
 
-        NotificationSettings notificationSettings = new NotificationSettings();
-        notificationSettings.setNotifyOnAccountDeleted(false);
+        NotificationEmailSettings notificationEmailSettings = new NotificationEmailSettings();
+        notificationEmailSettings.setNotifyOnAccountDeleted(false);
 
         User user = new User();
         user.setId(userId);
         user.setEmail("test@test.com");
-        user.setNotificationSettings(notificationSettings);
+        user.setNotificationEmailSettings(notificationEmailSettings);
 
         when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
@@ -63,13 +63,13 @@ class AccountDeleteTest {
 
         ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("password");
 
-        NotificationSettings notificationSettings = new NotificationSettings();
-        notificationSettings.setNotifyOnAccountDeleted(true);
+        NotificationEmailSettings notificationEmailSettings = new NotificationEmailSettings();
+        notificationEmailSettings.setNotifyOnAccountDeleted(true);
 
         User user = new User();
         user.setId(userId);
         user.setEmail("test@test.com");
-        user.setNotificationSettings(notificationSettings);
+        user.setNotificationEmailSettings(notificationEmailSettings);
 
         when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
@@ -86,13 +86,13 @@ class AccountDeleteTest {
 
         ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("password");
 
-        NotificationSettings notificationSettings = new NotificationSettings();
-        notificationSettings.setNotifyOnAccountDeleted(false);
+        NotificationEmailSettings notificationEmailSettings = new NotificationEmailSettings();
+        notificationEmailSettings.setNotifyOnAccountDeleted(false);
 
         User user = new User();
         user.setId(userId);
         user.setEmail("test@test.com");
-        user.setNotificationSettings(notificationSettings);
+        user.setNotificationEmailSettings(notificationEmailSettings);
 
         when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 

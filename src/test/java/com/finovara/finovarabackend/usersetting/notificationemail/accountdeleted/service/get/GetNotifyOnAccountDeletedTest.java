@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.usersetting.notificationemail.accountdelete
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.dto.NotifyOnAccountDeletedDto;
-import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,21 +25,21 @@ class GetNotifyOnAccountDeletedTest {
     @InjectMocks
     private NotifyOnAccountDeletedService notifyOnAccountDeletedService;
 
-    private NotificationSettings notificationSettings;
+    private NotificationEmailSettings notificationEmailSettings;
     private final String EMAIL = "test@test.com";
 
     @BeforeEach
     void setup() {
         User user = new User();
-        notificationSettings = new NotificationSettings();
-        user.setNotificationSettings(notificationSettings);
+        notificationEmailSettings = new NotificationEmailSettings();
+        user.setNotificationEmailSettings(notificationEmailSettings);
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
     }
 
     @Test
     void shouldReturnEnabledFlag() {
-        notificationSettings.setNotifyOnAccountDeleted(true);
+        notificationEmailSettings.setNotifyOnAccountDeleted(true);
 
         NotifyOnAccountDeletedDto dto = notifyOnAccountDeletedService.getEmailOnAccountDeleted(EMAIL);
 
@@ -48,7 +48,7 @@ class GetNotifyOnAccountDeletedTest {
 
     @Test
     void shouldReturnDisabledFlag() {
-        notificationSettings.setNotifyOnAccountDeleted(false);
+        notificationEmailSettings.setNotifyOnAccountDeleted(false);
 
         NotifyOnAccountDeletedDto dto = notifyOnAccountDeletedService.getEmailOnAccountDeleted(EMAIL);
 

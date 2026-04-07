@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.usersetting.notificationemail.passwordchang
 
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.dto.NotifyPasswordChangeDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.service.NotifyPasswordChangeService;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
@@ -32,14 +32,14 @@ class SaveNotifyPasswordChangeTest {
     @InjectMocks
     private NotifyPasswordChangeService notifyPasswordChangeService;
 
-    private NotificationSettings notificationSettings;
+    private NotificationEmailSettings notificationEmailSettings;
     private final String EMAIL = "test@test.com";
 
     @BeforeEach
     void setup() {
         User user = new User();
-        notificationSettings = new NotificationSettings();
-        user.setNotificationSettings(notificationSettings);
+        notificationEmailSettings = new NotificationEmailSettings();
+        user.setNotificationEmailSettings(notificationEmailSettings);
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
     }
@@ -50,19 +50,19 @@ class SaveNotifyPasswordChangeTest {
 
         notifyPasswordChangeService.saveNotifyOnPasswordChange(EMAIL, dto);
 
-        assertTrue(notificationSettings.isNotifyOnPasswordChange());
+        assertTrue(notificationEmailSettings.isNotifyOnPasswordChange());
         verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.ENABLED, NOTIFICATION_PASSWORD_CHANGED);
     }
 
     @Test
     void shouldDisableNotifyOnPasswordChange() {
-        notificationSettings.setNotifyOnPasswordChange(true);
+        notificationEmailSettings.setNotifyOnPasswordChange(true);
 
         NotifyPasswordChangeDto dto = new NotifyPasswordChangeDto(false);
 
         notifyPasswordChangeService.saveNotifyOnPasswordChange(EMAIL, dto);
 
-        assertFalse(notificationSettings.isNotifyOnPasswordChange());
+        assertFalse(notificationEmailSettings.isNotifyOnPasswordChange());
         verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.DISABLED, NOTIFICATION_PASSWORD_CHANGED);
     }
 }

@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivi
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.dto.NotifyPasswordChangeDto;
 import com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
@@ -23,7 +23,7 @@ public class NotifyPasswordChangeService {
     @Transactional
     public void saveNotifyOnPasswordChange(String email, NotifyPasswordChangeDto dto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        NotificationSettings settings = user.getNotificationSettings();
+        NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
         settings.setNotifyOnPasswordChange(dto.notifyOnPasswordChange());
         if (settings.isNotifyOnPasswordChange()) {
@@ -35,7 +35,7 @@ public class NotifyPasswordChangeService {
 
     public NotifyPasswordChangeDto getEmailOnPasswordChange(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        NotificationSettings settings = user.getNotificationSettings();
+        NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
         return new NotifyPasswordChangeDto(
                 settings.isNotifyOnPasswordChange()
@@ -43,7 +43,7 @@ public class NotifyPasswordChangeService {
     }
 
     public void sendEmailOnPasswordChange(User user) {
-        NotificationSettings settings = user.getNotificationSettings();
+        NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
         if (!settings.isNotifyOnPasswordChange()) return;
 

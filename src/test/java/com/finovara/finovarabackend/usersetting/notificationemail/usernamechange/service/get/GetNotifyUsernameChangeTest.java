@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.service.get;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.dto.NotifyUsernameChangeDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
@@ -25,21 +25,21 @@ class GetNotifyUsernameChangeTest {
     @InjectMocks
     private NotifyUsernameChangeService notifyUsernameChangeService;
 
-    private NotificationSettings notificationSettings;
+    private NotificationEmailSettings notificationEmailSettings;
     private final String EMAIL = "test@test.com";
 
     @BeforeEach
     void setup() {
         User user = new User();
-        notificationSettings = new NotificationSettings();
-        user.setNotificationSettings(notificationSettings);
+        notificationEmailSettings = new NotificationEmailSettings();
+        user.setNotificationEmailSettings(notificationEmailSettings);
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
     }
 
     @Test
     void shouldReturnEnabledFlag() {
-        notificationSettings.setNotifyOnUsernameChange(true);
+        notificationEmailSettings.setNotifyOnUsernameChange(true);
 
         NotifyUsernameChangeDto dto = notifyUsernameChangeService.getEmailOnUsernameChange(EMAIL);
 
@@ -48,7 +48,7 @@ class GetNotifyUsernameChangeTest {
 
     @Test
     void shouldReturnDisabledFlag() {
-        notificationSettings.setNotifyOnUsernameChange(false);
+        notificationEmailSettings.setNotifyOnUsernameChange(false);
 
         NotifyUsernameChangeDto dto = notifyUsernameChangeService.getEmailOnUsernameChange(EMAIL);
 
