@@ -9,7 +9,7 @@ import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.ForgotPasswordService;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordManagementService;
-import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;

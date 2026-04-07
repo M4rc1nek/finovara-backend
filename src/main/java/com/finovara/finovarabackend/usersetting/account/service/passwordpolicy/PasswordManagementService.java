@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.accountactivity.accountchange.activities.mod
 import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
-import com.finovara.finovarabackend.usersetting.notification.passwordchange.service.NotifyPasswordChangeService;
+import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.service.NotifyPasswordChangeService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

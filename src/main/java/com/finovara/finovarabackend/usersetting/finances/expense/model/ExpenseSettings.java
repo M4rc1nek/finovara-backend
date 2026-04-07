@@ -32,6 +32,7 @@ public class ExpenseSettings {
     @Column(nullable = false)
     private boolean countQuantityLimitEnabled;
 
+    @Column(nullable = false)
     private int numberOfQuantityLimit;
 
     @Enumerated(EnumType.STRING)

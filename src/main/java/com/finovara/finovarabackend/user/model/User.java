@@ -16,7 +16,7 @@ import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
-import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import jakarta.persistence.*;
 import lombok.*;

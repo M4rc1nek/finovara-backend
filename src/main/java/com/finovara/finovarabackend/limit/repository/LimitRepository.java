@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface LimitRepository extends JpaRepository<Limit, Long> {
 
     @Query("SELECT l FROM Limit l WHERE l.userAssigned.id = :userId AND l.id = :limitId AND l.isActive = true")
-    Optional<Limit> findByIdAndUserAssignedId(@Param("userId") Long userId, @Param("limitId") Long limitId);
+    Optional<Limit>  findByIdAndUserAssignedId(@Param("userId") Long userId, @Param("limitId") Long limitId);
 
     @Query("SELECT l FROM Limit l WHERE l.userAssigned.id = :userId AND l.periodType = :periodType AND l.isActive = true")
     List<Limit> findByUserAssignedIdAndType(@Param("userId") Long userId, @Param("periodType") PeriodType periodType);

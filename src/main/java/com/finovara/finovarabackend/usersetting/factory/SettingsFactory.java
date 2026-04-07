@@ -5,7 +5,7 @@ import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
-import com.finovara.finovarabackend.usersetting.notification.model.NotificationSettings;
+import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.util.model.PeriodType;
@@ -26,7 +26,7 @@ public class SettingsFactory {
                 .blockedAmount(BigDecimal.ZERO)
                 .smartScanEnabled(false)
                 .countQuantityLimitEnabled(false)
-                .numberOfQuantityLimit(0)
+                .numberOfQuantityLimit(1)
                 .periodType(PeriodType.DAILY)
                 .quantityLimitEmergencyModeEnabled(false)
                 .build();
