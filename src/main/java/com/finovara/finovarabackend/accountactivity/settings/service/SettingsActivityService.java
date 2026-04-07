@@ -48,8 +48,8 @@ public class SettingsActivityService {
 
     public List<SettingsActivityDto> getSettingsActivities(String email, SettingActivitySort sort) {
         Pageable pageable = switch (sort) {
-            case NEWEST -> PageRequest.of(0, pageSize, Sort.by("date").descending());
-            case OLDEST -> PageRequest.of(0, pageSize, Sort.by("date").ascending());
+            case NEWEST -> PageRequest.of(0, pageSize, Sort.by("createdAt").descending());
+            case OLDEST -> PageRequest.of(0, pageSize, Sort.by("createdAt").ascending());
         };
 
         return settingsActivityRepository.findByUserAssignedEmail(email, pageable)

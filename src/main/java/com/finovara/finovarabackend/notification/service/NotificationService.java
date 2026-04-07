@@ -14,6 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationService {
     private final List<NotificationSource> sources;
+    private final NotificationPersistenceService notificationPersistenceService;
 
     public List<NotificationDto> fetchAllNotifications(Long userId) {
         List<NotificationDto> result = new ArrayList<>();
@@ -25,6 +26,8 @@ public class NotificationService {
                 log.error("Notification source failed: {}", source.getClass().getSimpleName(), e);
             }
         }
+
+        notificationPersistenceService.saveAll(userId, result);
 
         return result;
     }

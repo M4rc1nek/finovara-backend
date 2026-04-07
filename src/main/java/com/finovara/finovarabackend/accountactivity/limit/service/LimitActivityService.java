@@ -45,8 +45,8 @@ public class LimitActivityService {
     public List<LimitActivityDto> getLimitActivity(String email, LimitActivitySort sort) {
 
         Pageable pageable = switch (sort) {
-            case NEWEST -> PageRequest.of(0, pageSize, Sort.by("date").descending());
-            case OLDEST -> PageRequest.of(0, pageSize, Sort.by("date").ascending());
+            case NEWEST -> PageRequest.of(0, pageSize, Sort.by("createdAt").descending());
+            case OLDEST -> PageRequest.of(0, pageSize, Sort.by("createdAt").ascending());
         };
 
         return limitActivityRepository.findByUserAssignedEmail(email, pageable)

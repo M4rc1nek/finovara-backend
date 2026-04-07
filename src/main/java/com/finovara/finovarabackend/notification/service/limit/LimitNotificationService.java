@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.limit.service.LimitCalculateService;
 import com.finovara.finovarabackend.notification.dto.NotificationDto;
 import com.finovara.finovarabackend.notification.model.NotificationType;
+import com.finovara.finovarabackend.notification.repository.NotificationRepository;
 import com.finovara.finovarabackend.notification.source.NotificationSource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,9 +33,9 @@ public class LimitNotificationService implements NotificationSource {
             if (stats.percentage().compareTo(WARNING_THRESHOLD) >= 0) {
                 result.add(new NotificationDto(
                         NotificationType.LIMIT_EXCEEDED_WARNING,
+                        stats.date(),
                         stats.percentage(),
-                        stats.periodType(),
-                        stats.date()
+                        stats.periodType()
                 ));
             }
         }

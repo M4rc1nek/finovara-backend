@@ -48,8 +48,8 @@ public class ExpenseActivityService {
     public List<ExpenseActivityDto> getExpenseActivity(String email, ExpenseActivitySort sort) {
 
         Pageable pageable = switch (sort) {
-            case NEWEST -> PageRequest.of(0, pageSize, Sort.by("date").descending());
-            case OLDEST -> PageRequest.of(0, pageSize, Sort.by("date").ascending());
+            case NEWEST -> PageRequest.of(0, pageSize, Sort.by("createdAt").descending());
+            case OLDEST -> PageRequest.of(0, pageSize, Sort.by("createdAt").ascending());
             case AMOUNT_DESC -> PageRequest.of(0, pageSize, Sort.by("amount").descending());
             case AMOUNT_ASC -> PageRequest.of(0, pageSize, Sort.by("amount").ascending());
         };

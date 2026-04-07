@@ -58,8 +58,8 @@ public class PiggyBankActivityService {
     public List<PiggyBankActivityDto> getPiggyBankActivities(String email, PiggyBankActivitySort sort) {
 
         Pageable pageable = switch (sort) {
-            case NEWEST -> PageRequest.of(0, pageSize, Sort.by("date").descending());
-            case OLDEST -> PageRequest.of(0, pageSize, Sort.by("date").ascending());
+            case NEWEST -> PageRequest.of(0, pageSize, Sort.by("createdAt").descending());
+            case OLDEST -> PageRequest.of(0, pageSize, Sort.by("createdAt").ascending());
         };
 
         return piggyBankActivityRepository.findByUserAssignedEmail(email, pageable)

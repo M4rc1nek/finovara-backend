@@ -8,9 +8,9 @@ import java.time.LocalDate;
 
 public record NotificationDto(
         NotificationType type,
+        LocalDate createdAt,
         BigDecimal limitPercentage,
-        PeriodType limitPeriodType,
+        PeriodType limitPeriodType
 
-        LocalDate date
 ) {
 }
