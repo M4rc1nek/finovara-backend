@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.usersetting.piggybank.roundup.controller;
 
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
@@ -17,8 +17,8 @@ public class RoundUpController {
     private final RoundUpService roundUpService;
 
     @PostMapping
-    public ResponseEntity<Long> addDefaultPiggyBank(@RequestBody @Valid PiggyBankDTO piggyBankDTO) {
-        return ResponseEntity.ok(roundUpService.addDefaultPiggyBank(piggyBankDTO, SecurityUtils.getCurrentUserEmail()));
+    public ResponseEntity<Long> addDefaultPiggyBank(@RequestBody @Valid PiggyBankDto piggyBankDto) {
+        return ResponseEntity.ok(roundUpService.addDefaultPiggyBank(piggyBankDto, SecurityUtils.getCurrentUserEmail()));
     }
 
     @GetMapping("/{piggyBankId}")

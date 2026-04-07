@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.revenue.service.edit;
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
 import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
-import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.dto.RevenueDto;
 import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
@@ -63,7 +63,7 @@ class EditRevenueTest {
 
         Wallet wallet = new Wallet();
         wallet.setBalance(new BigDecimal(1000));
-        RevenueDTO dto = new RevenueDTO(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edited revenue test");
+        RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edited revenue test");
 
         existingRevenue.setAmount(new BigDecimal("50"));
         existingRevenue.setCategory(RevenueCategory.SALARY);
@@ -109,7 +109,7 @@ class EditRevenueTest {
 
         Wallet wallet = new Wallet();
         wallet.setBalance(new BigDecimal(1000));
-        RevenueDTO dto = new RevenueDTO(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edited revenue test");
+        RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edited revenue test");
 
         existingRevenue.setAmount(new BigDecimal("50"));
         existingRevenue.setCategory(RevenueCategory.SALARY);
@@ -138,7 +138,7 @@ class EditRevenueTest {
 
         Long revenueId = revenue.getId();
 
-        RevenueDTO dto = new RevenueDTO(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edited revenue test");
+        RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edited revenue test");
 
         when(revenueManagerService.getRevenueOrThrow(revenueId)).thenReturn(revenue);
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);

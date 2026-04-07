@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Digits;
 
 import java.math.BigDecimal;
 
-public record LimitDTO(
+public record LimitDto(
         Long userId,
         Long id,
 

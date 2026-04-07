@@ -43,7 +43,7 @@ public class WalletService {
             walletRepository.save(wallet);
         }
 
-        return returnNewWalletDTO(user, wallet);
+        return returnNewWalletDto(user, wallet);
     }
 
     private WalletDto modifyWalletBalance(String email, BigDecimal amount, BiFunction<BigDecimal, BigDecimal, BigDecimal> operation) {
@@ -56,10 +56,10 @@ public class WalletService {
         wallet.setBalance(newBalance);
 
         walletRepository.save(wallet);
-        return returnNewWalletDTO(user, wallet);
+        return returnNewWalletDto(user, wallet);
     }
 
-    private WalletDto returnNewWalletDTO(User user, Wallet wallet) {
+    private WalletDto returnNewWalletDto(User user, Wallet wallet) {
         return new WalletDto(
                 wallet.getId(),
                 user.getId(),

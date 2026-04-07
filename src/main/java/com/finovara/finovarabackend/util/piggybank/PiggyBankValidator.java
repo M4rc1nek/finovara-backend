@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.util.piggybank;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
 import lombok.experimental.UtilityClass;
 
 import java.math.BigDecimal;
@@ -15,7 +15,7 @@ public class PiggyBankValidator {
         }
     }
 
-    public static void validateGoalAmount(PiggyBankDTO dto) {
+    public static void validateGoalAmount(PiggyBankDto dto) {
         if (dto.goalAmount() != null && dto.goalAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidInputException("Amount have to be positive");
         }

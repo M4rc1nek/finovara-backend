@@ -7,7 +7,7 @@ import jakarta.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record ExpenseDTO(
+public record ExpenseDto(
 
         Long id,
         Long userId,

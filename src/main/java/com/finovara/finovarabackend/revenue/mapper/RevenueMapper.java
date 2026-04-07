@@ -1,13 +1,13 @@
 package com.finovara.finovarabackend.revenue.mapper;
 
-import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.dto.RevenueDto;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RevenueMapper {
-    public RevenueDTO mapRevenueToDTO(Revenue revenue) {
-        return new RevenueDTO(
+    public RevenueDto mapRevenueToDto(Revenue revenue) {
+        return new RevenueDto(
                 revenue.getId(),
                 revenue.getUserAssigned().getId(),
                 revenue.getAmount(),

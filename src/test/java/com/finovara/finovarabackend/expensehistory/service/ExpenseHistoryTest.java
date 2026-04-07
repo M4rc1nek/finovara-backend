@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.expensehistory.service;
 
-import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.dto.ExpenseDto;
 import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
@@ -43,7 +43,7 @@ class ExpenseHistoryTest {
     private User user;
     private String email;
     private Expense expense;
-    private ExpenseDTO expenseDTO;
+    private ExpenseDto expenseDto;
 
     @BeforeEach
     void setUp() {
@@ -52,7 +52,7 @@ class ExpenseHistoryTest {
         email = "test@email.com";
 
         expense = new Expense();
-        expenseDTO = new ExpenseDTO(null, null, new BigDecimal(100),
+        expenseDto = new ExpenseDto(null, null, new BigDecimal(100),
                 ExpenseCategory.FOOD, LocalDate.of(2026, 3, 12), "test");
     }
 
@@ -61,16 +61,16 @@ class ExpenseHistoryTest {
     void shouldReturnMappedExpensesForEachPeriod(PeriodType periodType) {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(financialPeriodService.getExpensesInPeriodByCategory(1L, periodType, ExpenseCategory.FOOD)).thenReturn(List.of(expense));
-        when(expenseMapper.mapExpenseToDTO(expense)).thenReturn(expenseDTO);
+        when(expenseMapper.mapExpenseToDto(expense)).thenReturn(expenseDto);
 
-        List<ExpenseDTO> result = expenseHistoryService.getExpenseByCategory(email, periodType, ExpenseCategory.FOOD);
+        List<ExpenseDto> result = expenseHistoryService.getExpenseByCategory(email, periodType, ExpenseCategory.FOOD);
 
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst()).isEqualTo(expenseDTO);
+        assertThat(result.getFirst()).isEqualTo(expenseDto);
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verify(financialPeriodService).getExpensesInPeriodByCategory(1L, periodType, ExpenseCategory.FOOD);
-        verify(expenseMapper).mapExpenseToDTO(expense);
+        verify(expenseMapper).mapExpenseToDto(expense);
     }
 
     @Test
@@ -78,11 +78,11 @@ class ExpenseHistoryTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(financialPeriodService.getExpensesInPeriodByCategory(1L, PeriodType.DAILY, ExpenseCategory.FOOD)).thenReturn(List.of());
 
-        List<ExpenseDTO> result = expenseHistoryService.getExpenseByCategory(email, PeriodType.DAILY, ExpenseCategory.FOOD);
+        List<ExpenseDto> result = expenseHistoryService.getExpenseByCategory(email, PeriodType.DAILY, ExpenseCategory.FOOD);
 
         assertThat(result).isEmpty();
 
-        verify(expenseMapper, never()).mapExpenseToDTO(any());
+        verify(expenseMapper, never()).mapExpenseToDto(any());
     }
 
 }

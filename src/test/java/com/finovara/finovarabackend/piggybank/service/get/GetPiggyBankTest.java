@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.piggybank.service.get;
 
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
 import com.finovara.finovarabackend.piggybank.mapper.PiggyBankMapper;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
@@ -50,9 +50,9 @@ class GetPiggyBankTest {
         piggy2.setName("Piggy 2");
         piggy2.setAmount(new BigDecimal("200"));
 
-        PiggyBankDTO dto1 = new PiggyBankDTO(10L, 1L, "Piggy 1", new BigDecimal("100"),
+        PiggyBankDto dto1 = new PiggyBankDto(10L, 1L, "Piggy 1", new BigDecimal("100"),
                 null, null, null, 0.1, false);
-        PiggyBankDTO dto2 = new PiggyBankDTO(11L, 1L, "Piggy 2", new BigDecimal("200"),
+        PiggyBankDto dto2 = new PiggyBankDto(11L, 1L, "Piggy 2", new BigDecimal("200"),
                 null, null, null, 0.2, false);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
@@ -60,7 +60,7 @@ class GetPiggyBankTest {
         when(piggyBankMapper.mapToPiggyBankDto(eq(piggy1), eq(user), anyDouble(), anyBoolean())).thenReturn(dto1);
         when(piggyBankMapper.mapToPiggyBankDto(eq(piggy2), eq(user), anyDouble(), anyBoolean())).thenReturn(dto2);
 
-        List<PiggyBankDTO> result = piggyBankManagementService.getAllPiggyBanks(email);
+        List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(email);
 
         assertEquals(2, result.size());
         assertEquals("Piggy 1", result.get(0).name());
@@ -85,7 +85,7 @@ class GetPiggyBankTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(piggyBankRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of());
 
-        List<PiggyBankDTO> result = piggyBankManagementService.getAllPiggyBanks(email);
+        List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(email);
 
         assertEquals(0, result.size());
 

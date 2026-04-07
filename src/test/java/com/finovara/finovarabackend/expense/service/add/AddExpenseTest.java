@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.expense.service.add;
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
 import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.dto.ExpenseDto;
 import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
@@ -77,7 +77,7 @@ class AddExpenseTest {
         user.setId(1L);
 
         ExpenseRequestDto dto = new ExpenseRequestDto(
-                new ExpenseDTO(null, null, amount, ExpenseCategory.SAVINGS, null, "test"),
+                new ExpenseDto(null, null, amount, ExpenseCategory.SAVINGS, null, "test"),
                 new ConfirmPasswordDto("password"),
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
@@ -119,7 +119,7 @@ class AddExpenseTest {
         user.setId(1L);
 
         ExpenseRequestDto dto = new ExpenseRequestDto(
-                new ExpenseDTO(null, null, new BigDecimal("0.50"), ExpenseCategory.SAVINGS, null, "test"),
+                new ExpenseDto(null, null, new BigDecimal("0.50"), ExpenseCategory.SAVINGS, null, "test"),
                 new ConfirmPasswordDto("pass"),
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
@@ -136,7 +136,7 @@ class AddExpenseTest {
         String email = "sas@op.pl";
 
         ExpenseRequestDto dto = new ExpenseRequestDto(
-                new ExpenseDTO(null, null, new BigDecimal("0.50"), ExpenseCategory.SAVINGS, null, "test"),
+                new ExpenseDto(null, null, new BigDecimal("0.50"), ExpenseCategory.SAVINGS, null, "test"),
                 new ConfirmPasswordDto("pass"),
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );

@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.usersetting.finances.revenue.recurring.processor;
 
-import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.dto.RevenueDto;
 import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
@@ -35,7 +35,7 @@ public class RecurringRevenueProcessor {
     }
 
     private void createRecurringRevenue(User user, RevenueSettings settings) {
-        RevenueDTO dto = new RevenueDTO(
+        RevenueDto dto = new RevenueDto(
                 null,
                 settings.getUserAssigned().getId(),
                 settings.getRecurringAmount(),

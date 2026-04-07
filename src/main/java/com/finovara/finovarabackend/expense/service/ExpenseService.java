@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.expense.service;
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
 import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.dto.ExpenseDto;
 import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
 import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
 import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
@@ -54,25 +54,25 @@ public class ExpenseService {
     public Long addExpense(ExpenseRequestDto expenseRequestDto, String email, PeriodType periodType) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
-        validateLimitOrThrow(user.getId(), periodType, BigDecimal.ZERO, expenseRequestDto.expenseDTO().amount());
+        validateLimitOrThrow(user.getId(), periodType, BigDecimal.ZERO, expenseRequestDto.expenseDto().amount());
 
         countQuantityLimitService.calculateCountQuantityLimit(email, expenseRequestDto.countQuantityLimitDto(),
                 expenseRequestDto.countQuantityLimitDto().periodType(), expenseRequestDto.confirmPasswordDto());
 
         Expense expense = Expense.builder()
-                .amount(expenseRequestDto.expenseDTO().amount())
-                .category(expenseRequestDto.expenseDTO().category())
+                .amount(expenseRequestDto.expenseDto().amount())
+                .category(expenseRequestDto.expenseDto().category())
                 .createdAt(LocalDate.now())
-                .description(expenseRequestDto.expenseDTO().description())
+                .description(expenseRequestDto.expenseDto().description())
                 .userAssigned(user)
                 .build();
 
-        if (expenseRequestDto.expenseDTO().amount().compareTo(BigDecimal.ONE) < 0) {
+        if (expenseRequestDto.expenseDto().amount().compareTo(BigDecimal.ONE) < 0) {
             throw new InvalidInputException("Expense amount must be positive");
         }
         expenseActivityService.createExpenseActivity(email, ExpenseActivityType.ADDED_EXPENSE, expense);
 
-        smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDTO().amount(), SmartScanMode.ADD);
+        smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.ADD);
 
         walletService.removeBalanceFromWallet(email, expense.getAmount());
         expenseRepository.save(expense);
@@ -93,39 +93,39 @@ public class ExpenseService {
             throw new ExpenseNotFoundException("Expense not found for this user");
         }
 
-        validateLimitOrThrow(user.getId(), periodType, existingExpense.getAmount(), expenseRequestDto.expenseDTO().amount());
+        validateLimitOrThrow(user.getId(), periodType, existingExpense.getAmount(), expenseRequestDto.expenseDto().amount());
 
         walletService.addBalanceToWallet(email, existingExpense.getAmount());
-        walletService.removeBalanceFromWallet(email, expenseRequestDto.expenseDTO().amount());
+        walletService.removeBalanceFromWallet(email, expenseRequestDto.expenseDto().amount());
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.ROLLBACK);
 
         BigDecimal oldAmount = existingExpense.getAmount();
         ExpenseCategory oldCategory = existingExpense.getCategory();
 
-        existingExpense.setAmount(expenseRequestDto.expenseDTO().amount());
-        existingExpense.setCategory(expenseRequestDto.expenseDTO().category());
-        existingExpense.setDescription(expenseRequestDto.expenseDTO().description());
+        existingExpense.setAmount(expenseRequestDto.expenseDto().amount());
+        existingExpense.setCategory(expenseRequestDto.expenseDto().category());
+        existingExpense.setDescription(expenseRequestDto.expenseDto().description());
 
         expenseActivityService.updateExpenseActivity(email, ExpenseActivityType.EDITED_EXPENSE, existingExpense, oldAmount, oldCategory);
 
-        smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDTO().amount(), SmartScanMode.EDIT);
+        smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.EDIT);
 
         expenseRepository.save(existingExpense);
 
         roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.APPLY);
 
-        controlAmountService.handleExpenseAmountControl(email, expenseRequestDto.expenseDTO().amount());
+        controlAmountService.handleExpenseAmountControl(email, expenseRequestDto.expenseDto().amount());
 
         return expenseId;
 
     }
 
-    public List<ExpenseDTO> getExpense(String email) {
+    public List<ExpenseDto> getExpense(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         List<Expense> expenses = expenseRepository.findAllByUserAssignedId(user.getId());
 
         return expenses.stream()
-                .map(expenseMapper::mapExpenseToDTO)
+                .map(expenseMapper::mapExpenseToDto)
                 .toList();
     }
 

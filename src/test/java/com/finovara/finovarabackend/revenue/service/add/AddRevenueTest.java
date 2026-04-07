@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.revenue.service.add;
 
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
 import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
-import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.dto.RevenueDto;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
@@ -44,7 +44,7 @@ class AddRevenueTest {
 
     @Test
     void shouldAddRevenueSuccessfully() {
-        RevenueDTO dto = new RevenueDTO(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test revenue");
+        RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test revenue");
         String email = "test@test.com";
         User user = new User();
 
@@ -60,7 +60,7 @@ class AddRevenueTest {
 
     @Test
     void shouldThrowExceptionWhenUserNotFound() {
-        RevenueDTO dto = new RevenueDTO(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test revenue");
+        RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test revenue");
         String email = "test@test.com";
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));

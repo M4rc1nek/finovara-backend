@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.expensehistory.controller;
 
-import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.dto.ExpenseDto;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expensehistory.service.ExpenseHistoryService;
 import com.finovara.finovarabackend.security.SecurityUtils;
@@ -22,7 +22,7 @@ public class ExpenseHistoryController {
     private final ExpenseHistoryService expenseHistoryService;
 
     @GetMapping
-    public ResponseEntity<List<ExpenseDTO>> getExpenseHistory(@RequestParam PeriodType periodType, @RequestParam ExpenseCategory category) {
+    public ResponseEntity<List<ExpenseDto>> getExpenseHistory(@RequestParam PeriodType periodType, @RequestParam ExpenseCategory category) {
         return ResponseEntity.ok(expenseHistoryService.getExpenseByCategory(SecurityUtils.getCurrentUserEmail(), periodType, category));
     }
 

@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.limit.management.add;
 
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivityType;
 import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityService;
-import com.finovara.finovarabackend.limit.dto.LimitDTO;
+import com.finovara.finovarabackend.limit.dto.LimitDto;
 import com.finovara.finovarabackend.limit.exception.conflict.LimitAlreadyExistsException;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.util.model.PeriodType;
@@ -46,7 +46,7 @@ class AddLimitTest {
         String email = "test@test.com";
         Long userId = 1L;
 
-        LimitDTO dto = new LimitDTO(userId, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
+        LimitDto dto = new LimitDto(userId, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
 
         User user = new User();
         user.setId(userId);
@@ -76,7 +76,7 @@ class AddLimitTest {
         String email = "test@test.com";
         Long userId = 1L;
 
-        LimitDTO dto = new LimitDTO(userId, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
+        LimitDto dto = new LimitDto(userId, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
 
         User user = new User();
         user.setId(userId);
@@ -94,7 +94,7 @@ class AddLimitTest {
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
         String email = "test@email.com";
-        LimitDTO dto = new LimitDTO(null, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
+        LimitDto dto = new LimitDto(null, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 

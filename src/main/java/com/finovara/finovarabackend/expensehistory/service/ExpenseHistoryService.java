@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.expensehistory.service;
 
-import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.dto.ExpenseDto;
 import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
@@ -20,13 +20,13 @@ public class ExpenseHistoryService {
     private final FinancialPeriodService financialPeriodService;
     private final ExpenseMapper expenseMapper;
 
-    public List<ExpenseDTO> getExpenseByCategory(String email, PeriodType periodType, ExpenseCategory category) {
+    public List<ExpenseDto> getExpenseByCategory(String email, PeriodType periodType, ExpenseCategory category) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         List<Expense> expenses = financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, category);
 
         return expenses.stream()
-                .map(expenseMapper::mapExpenseToDTO)
+                .map(expenseMapper::mapExpenseToDto)
                 .toList();
     }
 }

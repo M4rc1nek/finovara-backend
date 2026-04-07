@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.revenue.service;
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
 import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
-import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.dto.RevenueDto;
 import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
 import com.finovara.finovarabackend.revenue.mapper.RevenueMapper;
 import com.finovara.finovarabackend.revenue.model.Revenue;
@@ -39,14 +39,14 @@ public class RevenueService {
     private final RevenueActivityService revenueActivityService;
 
     @Transactional
-    public Long addRevenue(RevenueDTO revenueDTO, String email) {
+    public Long addRevenue(RevenueDto revenueDto, String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         Revenue revenue = Revenue.builder()
-                .amount(revenueDTO.amount())
-                .category(revenueDTO.category())
+                .amount(revenueDto.amount())
+                .category(revenueDto.category())
                 .createdAt(LocalDate.now())
-                .description(revenueDTO.description())
+                .description(revenueDto.description())
                 .userAssigned(user)
                 .build();
         walletService.addBalanceToWallet(email, revenue.getAmount());
@@ -59,7 +59,7 @@ public class RevenueService {
     }
 
     @Transactional
-    public Long editRevenue(RevenueDTO revenueDTO, Long revenueId, String email) {
+    public Long editRevenue(RevenueDto revenueDto, Long revenueId, String email) {
         Revenue existingRevenue = revenueManagerService.getRevenueOrThrow(revenueId);
         User user = userManagerService.getUserByEmailOrThrow(email);
 
@@ -71,7 +71,7 @@ public class RevenueService {
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
 
         BigDecimal oldAmount = existingRevenue.getAmount();
-        BigDecimal newAmount = revenueDTO.amount();
+        BigDecimal newAmount = revenueDto.amount();
         RevenueCategory oldCategory = existingRevenue.getCategory();
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(email, oldAmount, AutoPaymentsMode.ROLLBACK);
@@ -79,9 +79,9 @@ public class RevenueService {
         wallet.setBalance(wallet.getBalance().subtract(oldAmount));
         wallet.setBalance(wallet.getBalance().add(newAmount));
 
-        existingRevenue.setAmount(revenueDTO.amount());
-        existingRevenue.setCategory(revenueDTO.category());
-        existingRevenue.setDescription(revenueDTO.description());
+        existingRevenue.setAmount(revenueDto.amount());
+        existingRevenue.setCategory(revenueDto.category());
+        existingRevenue.setDescription(revenueDto.description());
 
         revenueActivityService.updateRevenueActivity(email, RevenueActivityType.EDITED_REVENUE, existingRevenue, oldAmount, oldCategory);
         autoPaymentsService.handleRevenuePiggyBankAutomation(email, newAmount, AutoPaymentsMode.APPLY);
@@ -92,12 +92,12 @@ public class RevenueService {
         return revenueId;
     }
 
-    public List<RevenueDTO> getRevenue(String email) {
+    public List<RevenueDto> getRevenue(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         List<Revenue> revenue = revenueRepository.findAllByUserAssignedId(user.getId());
 
         return revenue.stream()
-                .map(revenueMapper::mapRevenueToDTO)
+                .map(revenueMapper::mapRevenueToDto)
                 .toList();
     }
 

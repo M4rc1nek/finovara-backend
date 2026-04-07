@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.revenuehistory.service;
 
-import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.dto.RevenueDto;
 import com.finovara.finovarabackend.revenue.mapper.RevenueMapper;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
@@ -20,13 +20,13 @@ public class RevenueHistoryService {
     private final FinancialPeriodService financialPeriodService;
     private final RevenueMapper revenueMapper;
 
-    public List<RevenueDTO> getRevenueByCategory(String email, PeriodType periodType, RevenueCategory category) {
+    public List<RevenueDto> getRevenueByCategory(String email, PeriodType periodType, RevenueCategory category) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         List<Revenue> revenues = financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, category);
 
         return revenues.stream()
-                .map(revenueMapper::mapRevenueToDTO)
+                .map(revenueMapper::mapRevenueToDto)
                 .toList();
     }
 }

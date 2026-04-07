@@ -5,7 +5,7 @@ import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswor
 import jakarta.validation.Valid;
 
 public record ExpenseRequestDto(
-        @Valid ExpenseDTO expenseDTO,
+        @Valid ExpenseDto expenseDto,
         ConfirmPasswordDto confirmPasswordDto,
         @Valid CountQuantityLimitDto countQuantityLimitDto
 ) {

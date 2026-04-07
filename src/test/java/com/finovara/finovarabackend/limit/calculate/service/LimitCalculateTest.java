@@ -52,15 +52,15 @@ class LimitCalculateTest {
         BigDecimal percentage = new BigDecimal("30.00");
         LimitStatus status = LimitStatus.LOW;
 
-        LimitStatsDto expectedDTO = new LimitStatsDto(limitId, limit.getPeriodType(), limit.getAmount(), spentToday, remaining, percentage, status, date);
+        LimitStatsDto expectedDto = new LimitStatsDto(limitId, limit.getPeriodType(), limit.getAmount(), spentToday, remaining, percentage, status, date);
 
         when(limitRepository.findByIdAndUserAssignedId(userId, limitId)).thenReturn(Optional.of(limit));
         when(financialPeriodService.getExpensesSum(userId, PeriodType.DAILY)).thenReturn(spentToday);
-        when(limitMapper.mapLimitStatsToDto(limit, spentToday, remaining, percentage, status, date)).thenReturn(expectedDTO);
+        when(limitMapper.mapLimitStatsToDto(limit, spentToday, remaining, percentage, status, date)).thenReturn(expectedDto);
 
         LimitStatsDto result = limitService.calculateLimitStats(userId, limitId, date);
 
-        assertEquals(result, expectedDTO);
+        assertEquals(result, expectedDto);
         verify(limitRepository).findByIdAndUserAssignedId(userId, limitId);
         verify(financialPeriodService).getExpensesSum(userId, PeriodType.DAILY);
         verify(limitMapper).mapLimitStatsToDto(limit, spentToday, remaining, percentage, status, date);

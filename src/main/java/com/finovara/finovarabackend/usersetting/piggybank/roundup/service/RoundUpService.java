@@ -8,7 +8,7 @@ import com.finovara.finovarabackend.accountactivity.settings.service.SettingsAct
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
@@ -54,9 +54,9 @@ public class RoundUpService {
     }
 
     @Transactional
-    public Long addDefaultPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
+    public Long addDefaultPiggyBank(PiggyBankDto piggyBankDto, String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        return piggyBankManagementService.addPiggyBank(piggyBankDTO, user.getEmail());
+        return piggyBankManagementService.addPiggyBank(piggyBankDto, user.getEmail());
     }
 
     @Transactional

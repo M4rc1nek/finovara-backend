@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.limit.management.edit;
 
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivityType;
 import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityService;
-import com.finovara.finovarabackend.limit.dto.LimitDTO;
+import com.finovara.finovarabackend.limit.dto.LimitDto;
 import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
@@ -50,7 +50,7 @@ class EditLimitTest {
 
     @Test
     void shouldEditLimitSuccessfully() {
-        LimitDTO dto = new LimitDTO(userId, null, null, null, new BigDecimal("200"), true);
+        LimitDto dto = new LimitDto(userId, null, null, null, new BigDecimal("200"), true);
 
         User user = new User();
         user.setId(userId);
@@ -78,7 +78,7 @@ class EditLimitTest {
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
-        LimitDTO dto = new LimitDTO(userId, null, null, null, new BigDecimal("200"), true);
+        LimitDto dto = new LimitDto(userId, null, null, null, new BigDecimal("200"), true);
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () -> limitManagementService.editLimit(dto, limitId, email));
@@ -90,7 +90,7 @@ class EditLimitTest {
 
     @Test
     void shouldThrowExceptionWhenLimitDoesNotExist() {
-        LimitDTO dto = new LimitDTO(userId, null, null, null, new BigDecimal("200"), true);
+        LimitDto dto = new LimitDto(userId, null, null, null, new BigDecimal("200"), true);
         User user = new User();
         user.setId(userId);
 

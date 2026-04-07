@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.piggybank.controller;
 
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankTransactionService;
 import com.finovara.finovarabackend.security.SecurityUtils;
@@ -22,17 +22,17 @@ public class PiggyBankManagementController {
     private final PiggyBankTransactionService piggyBankTransactionService;
 
     @PostMapping
-    public ResponseEntity<Long> createPiggyBank(@RequestBody @Valid PiggyBankDTO piggyBankDTO) {
-        return ResponseEntity.ok(piggyBankManagementService.addPiggyBank(piggyBankDTO, getCurrentUserEmail()));
+    public ResponseEntity<Long> createPiggyBank(@RequestBody @Valid PiggyBankDto piggyBankDto) {
+        return ResponseEntity.ok(piggyBankManagementService.addPiggyBank(piggyBankDto, getCurrentUserEmail()));
     }
 
     @PatchMapping("/{piggyBankId}")
-    public ResponseEntity<Long> editPiggyBank(@RequestBody @Valid PiggyBankDTO piggyBankDTO, @PathVariable Long piggyBankId) {
-        return ResponseEntity.ok(piggyBankManagementService.editPiggyBank(SecurityUtils.getCurrentUserEmail(), piggyBankDTO, piggyBankId));
+    public ResponseEntity<Long> editPiggyBank(@RequestBody @Valid PiggyBankDto piggyBankDto, @PathVariable Long piggyBankId) {
+        return ResponseEntity.ok(piggyBankManagementService.editPiggyBank(SecurityUtils.getCurrentUserEmail(), piggyBankDto, piggyBankId));
     }
 
     @GetMapping
-    public ResponseEntity<List<PiggyBankDTO>> getAllPiggyBanks() {
+    public ResponseEntity<List<PiggyBankDto>> getAllPiggyBanks() {
         return ResponseEntity.ok(piggyBankManagementService.getAllPiggyBanks(getCurrentUserEmail()));
     }
 
@@ -49,7 +49,7 @@ public class PiggyBankManagementController {
     }
 
     @PostMapping("/{piggyBankId}/withdraw")
-    public ResponseEntity<PiggyBankDTO> removeBalanceFromPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
+    public ResponseEntity<PiggyBankDto> removeBalanceFromPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
         piggyBankTransactionService.removeBalanceFromPiggyBank(getCurrentUserEmail(), piggyBankId, amount);
         return ResponseEntity.noContent().build();
     }

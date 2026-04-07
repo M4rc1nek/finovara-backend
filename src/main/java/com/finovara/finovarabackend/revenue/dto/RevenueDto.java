@@ -7,7 +7,7 @@ import jakarta.validation.constraints.DecimalMin;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record RevenueDTO(
+public record RevenueDto(
         Long id,
         Long userId,
 

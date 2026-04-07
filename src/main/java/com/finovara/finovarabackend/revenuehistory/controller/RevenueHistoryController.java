@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.revenuehistory.controller;
 
-import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.dto.RevenueDto;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenuehistory.service.RevenueHistoryService;
 import com.finovara.finovarabackend.security.SecurityUtils;
@@ -22,7 +22,7 @@ public class RevenueHistoryController {
     private final RevenueHistoryService revenueHistoryService;
 
     @GetMapping
-    public ResponseEntity<List<RevenueDTO>> getRevenueHistory(@RequestParam PeriodType periodType, @RequestParam RevenueCategory category) {
+    public ResponseEntity<List<RevenueDto>> getRevenueHistory(@RequestParam PeriodType periodType, @RequestParam RevenueCategory category) {
         return ResponseEntity.ok(revenueHistoryService.getRevenueByCategory(SecurityUtils.getCurrentUserEmail(), periodType, category));
     }
 }

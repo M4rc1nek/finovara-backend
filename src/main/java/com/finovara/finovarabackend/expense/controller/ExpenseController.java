@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.expense.controller;
 
-import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.dto.ExpenseDto;
 import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
 import com.finovara.finovarabackend.util.model.PeriodType;
@@ -36,7 +36,7 @@ public class ExpenseController {
     }
 
     @GetMapping("/getExpense")
-    public ResponseEntity<List<ExpenseDTO>> getExpense() {
+    public ResponseEntity<List<ExpenseDto>> getExpense() {
         return ResponseEntity.ok(expenseService.getExpense(getCurrentUserEmail()));
     }
 

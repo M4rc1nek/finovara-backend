@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.expense.service.edit;
 
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
 import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
-import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.dto.ExpenseDto;
 import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
 import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;
@@ -78,7 +78,7 @@ class EditExpenseTest {
         existingExpense.setUserAssigned(expenseUser);
 
         ExpenseRequestDto dto = new ExpenseRequestDto(
-                new ExpenseDTO(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "new description"),
+                new ExpenseDto(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "new description"),
                 new ConfirmPasswordDto("pass"),
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
@@ -92,10 +92,10 @@ class EditExpenseTest {
         verify(walletService).removeBalanceFromWallet(email, new BigDecimal("200"));
         verify(roundUpService).handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.ROLLBACK);
         verify(expenseActivityService).updateExpenseActivity(email, ExpenseActivityType.EDITED_EXPENSE, existingExpense, oldAmount, oldCategory);
-        verify(smartScanService).handleSmartScan(email, dto.confirmPasswordDto(), dto.expenseDTO().amount(), SmartScanMode.EDIT);
+        verify(smartScanService).handleSmartScan(email, dto.confirmPasswordDto(), dto.expenseDto().amount(), SmartScanMode.EDIT);
         verify(expenseRepository).save(existingExpense);
         verify(roundUpService).handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.APPLY);
-        verify(controlAmountService).handleExpenseAmountControl(email, dto.expenseDTO().amount());
+        verify(controlAmountService).handleExpenseAmountControl(email, dto.expenseDto().amount());
     }
 
     @Test
@@ -114,7 +114,7 @@ class EditExpenseTest {
         existingExpense.setUserAssigned(owner);
 
         ExpenseRequestDto dto = new ExpenseRequestDto(
-                new ExpenseDTO(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "test"),
+                new ExpenseDto(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "test"),
                 new ConfirmPasswordDto("pass"),
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
@@ -135,7 +135,7 @@ class EditExpenseTest {
         Long expenseId = 1L;
 
         ExpenseRequestDto dto = new ExpenseRequestDto(
-                new ExpenseDTO(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "test"),
+                new ExpenseDto(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "test"),
                 new ConfirmPasswordDto("pass"),
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
@@ -154,7 +154,7 @@ class EditExpenseTest {
         Long expenseId = 1L;
 
         ExpenseRequestDto dto = new ExpenseRequestDto(
-                new ExpenseDTO(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "test"),
+                new ExpenseDto(null, null, new BigDecimal("200"), ExpenseCategory.FOOD, null, "test"),
                 new ConfirmPasswordDto("pass"),
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );

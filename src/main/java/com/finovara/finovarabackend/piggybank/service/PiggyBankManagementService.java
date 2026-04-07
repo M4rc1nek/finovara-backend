@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankAct
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
 import com.finovara.finovarabackend.piggybank.mapper.PiggyBankMapper;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
@@ -42,7 +42,7 @@ public class PiggyBankManagementService {
     private final PiggyBankMapper piggyBankMapper;
 
     @Transactional
-    public Long addPiggyBank(PiggyBankDTO piggyBankDTO, String email) {
+    public Long addPiggyBank(PiggyBankDto piggyBankDto, String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
 
         long currentPiggyBanks = piggyBankRepository.countPiggyBanksByUserId(user.getId());
@@ -52,19 +52,19 @@ public class PiggyBankManagementService {
             throw new InvalidInputException("you have reached the maximum number of piggy banks: " + maxPiggyBanks);
         }
 
-        if (piggyBankRepository.existsByNameAndUserAssignedId(piggyBankDTO.name(), user.getId())) {
+        if (piggyBankRepository.existsByNameAndUserAssignedId(piggyBankDto.name(), user.getId())) {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
 
-        PiggyBankValidator.validateGoalAmount(piggyBankDTO);
+        PiggyBankValidator.validateGoalAmount(piggyBankDto);
 
         PiggyBank piggyBank = PiggyBank.builder()
-                .name(piggyBankDTO.name())
+                .name(piggyBankDto.name())
                 .amount(BigDecimal.ZERO)
                 .createdAt(LocalDate.now())
                 .userAssigned(user)
-                .goalAmount(piggyBankDTO.goalAmount())
-                .goalType(piggyBankDTO.goalType())
+                .goalAmount(piggyBankDto.goalAmount())
+                .goalType(piggyBankDto.goalType())
                 .build();
 
         PiggyBank saved = piggyBankRepository.save(piggyBank);
@@ -76,7 +76,7 @@ public class PiggyBankManagementService {
     }
 
     @Transactional
-    public Long editPiggyBank(String email, PiggyBankDTO piggyBankDTO, Long piggyBankId) {
+    public Long editPiggyBank(String email, PiggyBankDto piggyBankDto, Long piggyBankId) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
 
@@ -85,20 +85,20 @@ public class PiggyBankManagementService {
             throw new PiggyBankNotFoundException("Piggy bank not found for this user");
         }
 
-        if (piggyBankRepository.existsByNameAndUserAssignedId(piggyBankDTO.name(), user.getId())
-                && !piggyBank.getName().equals(piggyBankDTO.name())) {
+        if (piggyBankRepository.existsByNameAndUserAssignedId(piggyBankDto.name(), user.getId())
+                && !piggyBank.getName().equals(piggyBankDto.name())) {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
 
-        PiggyBankValidator.validateGoalAmount(piggyBankDTO);
+        PiggyBankValidator.validateGoalAmount(piggyBankDto);
 
         String previousName = piggyBank.getName();
         BigDecimal previousGoalAmount = piggyBank.getGoalAmount();
         PiggyBankGoalType previousGoalType = piggyBank.getGoalType();
 
-        piggyBank.setName(piggyBankDTO.name());
-        piggyBank.setGoalAmount(piggyBankDTO.goalAmount());
-        piggyBank.setGoalType(piggyBankDTO.goalType());
+        piggyBank.setName(piggyBankDto.name());
+        piggyBank.setGoalAmount(piggyBankDto.goalAmount());
+        piggyBank.setGoalType(piggyBankDto.goalType());
 
         piggyBankActivityService.createEditPiggyBankActivity(email, piggyBank, PiggyBankActivityType.EDITED_PIGGY_BANK, previousGoalAmount, previousGoalType, previousName);
         PiggyBank saved = piggyBankRepository.save(piggyBank);
@@ -106,7 +106,7 @@ public class PiggyBankManagementService {
         return saved.getId();
     }
 
-    public List<PiggyBankDTO> getAllPiggyBanks(String email) {
+    public List<PiggyBankDto> getAllPiggyBanks(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedId(user.getId());
 

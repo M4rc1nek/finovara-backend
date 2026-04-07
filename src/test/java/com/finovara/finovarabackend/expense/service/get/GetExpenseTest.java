@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.expense.service.get;
 
-import com.finovara.finovarabackend.expense.dto.ExpenseDTO;
+import com.finovara.finovarabackend.expense.dto.ExpenseDto;
 import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
@@ -45,20 +45,20 @@ class GetExpenseTest {
         Expense expense1 = new Expense();
         Expense expense2 = new Expense();
 
-        ExpenseDTO dto = new ExpenseDTO(null, null, new BigDecimal("100"), ExpenseCategory.FOOD, null, "food");
+        ExpenseDto dto = new ExpenseDto(null, null, new BigDecimal("100"), ExpenseCategory.FOOD, null, "food");
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(expenseRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of(expense1, expense2));
 
-        when(expenseMapper.mapExpenseToDTO(any(Expense.class))).thenReturn(dto);
+        when(expenseMapper.mapExpenseToDto(any(Expense.class))).thenReturn(dto);
 
-        List<ExpenseDTO> result = expenseService.getExpense(email);
+        List<ExpenseDto> result = expenseService.getExpense(email);
 
         assertEquals(2, result.size());
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verify(expenseRepository).findAllByUserAssignedId(user.getId());
-        verify(expenseMapper, times(2)).mapExpenseToDTO(any(Expense.class));
+        verify(expenseMapper, times(2)).mapExpenseToDto(any(Expense.class));
     }
 
     @Test
@@ -72,12 +72,12 @@ class GetExpenseTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(expenseRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of());
 
-        List<ExpenseDTO> result = expenseService.getExpense(email);
+        List<ExpenseDto> result = expenseService.getExpense(email);
 
         assertTrue(result.isEmpty());
 
         verify(expenseRepository).findAllByUserAssignedId(user.getId());
-        verify(expenseMapper, never()).mapExpenseToDTO(any());
+        verify(expenseMapper, never()).mapExpenseToDto(any());
     }
 
     @Test

@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.revenue.controller;
 
-import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.dto.RevenueDto;
 import com.finovara.finovarabackend.revenue.service.RevenueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,13 +17,13 @@ public class RevenueController {
     private final RevenueService revenueService;
 
     @PostMapping("/addRevenue")
-    public ResponseEntity<Long> addRevenue(@RequestBody @Valid RevenueDTO revenueDTO) {
-        return ResponseEntity.ok(revenueService.addRevenue(revenueDTO, getCurrentUserEmail()));
+    public ResponseEntity<Long> addRevenue(@RequestBody @Valid RevenueDto revenueDto) {
+        return ResponseEntity.ok(revenueService.addRevenue(revenueDto, getCurrentUserEmail()));
     }
 
     @PutMapping("/editRevenue/{revenueId}")
-    public ResponseEntity<Long> editRevenue(@RequestBody @Valid RevenueDTO revenueDTO, @PathVariable Long revenueId) {
-        return ResponseEntity.ok(revenueService.editRevenue(revenueDTO, revenueId, getCurrentUserEmail()));
+    public ResponseEntity<Long> editRevenue(@RequestBody @Valid RevenueDto revenueDto, @PathVariable Long revenueId) {
+        return ResponseEntity.ok(revenueService.editRevenue(revenueDto, revenueId, getCurrentUserEmail()));
     }
 
     @DeleteMapping("/deleteRevenue/{revenueId}")
@@ -33,7 +33,7 @@ public class RevenueController {
     }
 
     @GetMapping("/getRevenue")
-    public ResponseEntity<List<RevenueDTO>> getRevenue() {
+    public ResponseEntity<List<RevenueDto>> getRevenue() {
         return ResponseEntity.ok(revenueService.getRevenue(getCurrentUserEmail()));
     }
 }

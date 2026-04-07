@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.usersetting.finances.revenue.recurring.processor;
 
-import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.dto.RevenueDto;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.model.User;
@@ -54,7 +54,7 @@ class RecurringRevenueProcessorTest {
         recurringRevenueProcessor.generateRecurringRevenues();
 
         verify(revenueService).addRevenue(
-                new RevenueDTO(
+                new RevenueDto(
                         null,
                         user.getId(),
                         new BigDecimal(100),
@@ -89,7 +89,7 @@ class RecurringRevenueProcessorTest {
         recurringRevenueProcessor.generateRecurringRevenues();
 
         verify(revenueService, times(4)) // today-3, today-2, today-1, today
-                .addRevenue(any(RevenueDTO.class), eq(user.getEmail()));
+                .addRevenue(any(RevenueDto.class), eq(user.getEmail()));
     }
 
     @Test

@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.limit.controller;
 
-import com.finovara.finovarabackend.limit.dto.LimitDTO;
+import com.finovara.finovarabackend.limit.dto.LimitDto;
 import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
 import com.finovara.finovarabackend.limit.service.LimitManagementService;
 import com.finovara.finovarabackend.security.SecurityUtils;
@@ -18,13 +18,13 @@ public class LimitController {
     private final LimitManagementService limitManagementService;
 
     @PostMapping
-    public ResponseEntity<Long> addLimit(@Valid @RequestBody LimitDTO limitDTO) {
-        return ResponseEntity.ok(limitManagementService.createLimit(limitDTO, SecurityUtils.getCurrentUserEmail()));
+    public ResponseEntity<Long> addLimit(@Valid @RequestBody LimitDto limitDto) {
+        return ResponseEntity.ok(limitManagementService.createLimit(limitDto, SecurityUtils.getCurrentUserEmail()));
     }
 
     @PutMapping("/{limitId}/edit")
-    public ResponseEntity<Long> editLimit(@Valid @RequestBody LimitDTO limitDTO, @PathVariable Long limitId) {
-        return ResponseEntity.ok(limitManagementService.editLimit(limitDTO, limitId, SecurityUtils.getCurrentUserEmail()));
+    public ResponseEntity<Long> editLimit(@Valid @RequestBody LimitDto limitDto, @PathVariable Long limitId) {
+        return ResponseEntity.ok(limitManagementService.editLimit(limitDto, limitId, SecurityUtils.getCurrentUserEmail()));
     }
 
     @GetMapping

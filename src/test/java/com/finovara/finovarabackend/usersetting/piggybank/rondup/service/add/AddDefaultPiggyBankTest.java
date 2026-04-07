@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.usersetting.piggybank.rondup.service.add;
 
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
 import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
@@ -39,7 +39,7 @@ class AddDefaultPiggyBankTest {
         User user = new User();
         user.setEmail(EMAIL);
 
-        PiggyBankDTO dto = new PiggyBankDTO(123L, 1L, "My piggy bank", new BigDecimal("100"),
+        PiggyBankDto dto = new PiggyBankDto(123L, 1L, "My piggy bank", new BigDecimal("100"),
                 null, PiggyBankGoalType.GIFTS, new BigDecimal("250"), null, false);
 
         Long expectedId = 123L;
@@ -55,7 +55,7 @@ class AddDefaultPiggyBankTest {
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
-        PiggyBankDTO dto = new PiggyBankDTO(12L, null, "My piggy bank", new BigDecimal("50"),
+        PiggyBankDto dto = new PiggyBankDto(12L, null, "My piggy bank", new BigDecimal("50"),
                 null, PiggyBankGoalType.GIFTS, new BigDecimal("100"), null, false);
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));

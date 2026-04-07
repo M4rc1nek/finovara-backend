@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.revenue.service.get;
 
-import com.finovara.finovarabackend.revenue.dto.RevenueDTO;
+import com.finovara.finovarabackend.revenue.dto.RevenueDto;
 import com.finovara.finovarabackend.revenue.mapper.RevenueMapper;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
@@ -36,7 +36,7 @@ class GetRevenueTest {
     private RevenueService revenueService;
 
     @Test
-    void shouldReturnListOfRevenueDTO() {
+    void shouldReturnListOfRevenueDto() {
         String email = "test@test.com";
 
         User user = new User();
@@ -45,21 +45,21 @@ class GetRevenueTest {
         Revenue revenue1 = new Revenue();
         Revenue revenue2 = new Revenue();
 
-        RevenueDTO dto = new RevenueDTO(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edited revenue test");
+        RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edited revenue test");
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(revenueRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of(revenue1, revenue2));
 
-        when(revenueMapper.mapRevenueToDTO(any(Revenue.class))).thenReturn(dto);
+        when(revenueMapper.mapRevenueToDto(any(Revenue.class))).thenReturn(dto);
 
-        List<RevenueDTO> result = revenueService.getRevenue(email);
+        List<RevenueDto> result = revenueService.getRevenue(email);
 
         // then
         assertEquals(2, result.size());
 
         verify(userManagerService).getUserByEmailOrThrow(email);
         verify(revenueRepository).findAllByUserAssignedId(user.getId());
-        verify(revenueMapper, times(2)).mapRevenueToDTO(any(Revenue.class));
+        verify(revenueMapper, times(2)).mapRevenueToDto(any(Revenue.class));
     }
 
     @Test
@@ -72,7 +72,7 @@ class GetRevenueTest {
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
         when(revenueRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of());
 
-        List<RevenueDTO> result = revenueService.getRevenue(email);
+        List<RevenueDto> result = revenueService.getRevenue(email);
 
         assertEquals(0, result.size());
         verify(userManagerService).getUserByEmailOrThrow(email);

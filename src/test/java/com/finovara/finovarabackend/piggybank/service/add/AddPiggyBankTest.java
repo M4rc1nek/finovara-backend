@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankAct
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
@@ -57,7 +57,7 @@ class AddPiggyBankTest {
 
         PiggyBankSettings settings = new PiggyBankSettings();
 
-        PiggyBankDTO dto = new PiggyBankDTO(null, null, "PiggyBank", BigDecimal.valueOf(100),
+        PiggyBankDto dto = new PiggyBankDto(null, null, "PiggyBank", BigDecimal.valueOf(100),
                 null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
@@ -77,7 +77,7 @@ class AddPiggyBankTest {
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
         String email = "test@email.com";
-        PiggyBankDTO dto = new PiggyBankDTO(null, null, "PiggyBank", BigDecimal.valueOf(100),
+        PiggyBankDto dto = new PiggyBankDto(null, null, "PiggyBank", BigDecimal.valueOf(100),
                 null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
         when(userManagerService.getUserByEmailOrThrow(email))
@@ -94,7 +94,7 @@ class AddPiggyBankTest {
         User user = new User();
         user.setId(1L);
 
-        PiggyBankDTO dto = new PiggyBankDTO(null, null, "PiggyBank", BigDecimal.valueOf(100),
+        PiggyBankDto dto = new PiggyBankDto(null, null, "PiggyBank", BigDecimal.valueOf(100),
                 null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
@@ -110,7 +110,7 @@ class AddPiggyBankTest {
         User user = new User();
         user.setId(1L);
 
-        PiggyBankDTO dto = new PiggyBankDTO(null, null, "PiggyBank", BigDecimal.valueOf(100),
+        PiggyBankDto dto = new PiggyBankDto(null, null, "PiggyBank", BigDecimal.valueOf(100),
                 null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);

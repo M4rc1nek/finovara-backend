@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.util.finances.piggybank;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDTO;
+import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
 import com.finovara.finovarabackend.util.piggybank.PiggyBankValidator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -41,36 +41,36 @@ class PiggyBankValidatorTest {
     @Nested
     class ValidateGoalAmount {
 
-        private PiggyBankDTO createDto(BigDecimal goalAmount) {
-            return new PiggyBankDTO(1L, 1L, "Savings", BigDecimal.valueOf(100), LocalDate.now(),
+        private PiggyBankDto createDto(BigDecimal goalAmount) {
+            return new PiggyBankDto(1L, 1L, "Savings", BigDecimal.valueOf(100), LocalDate.now(),
                     null, goalAmount, 0.0, false
             );
         }
 
         @Test
         void shouldNotThrowExceptionWhenGoalAmountIsNull() {
-            PiggyBankDTO dto = createDto(null);
+            PiggyBankDto dto = createDto(null);
 
             assertDoesNotThrow(() -> PiggyBankValidator.validateGoalAmount(dto));
         }
 
         @Test
         void shouldNotThrowExceptionWhenGoalAmountIsPositive() {
-            PiggyBankDTO dto = createDto(BigDecimal.valueOf(100));
+            PiggyBankDto dto = createDto(BigDecimal.valueOf(100));
 
             assertDoesNotThrow(() -> PiggyBankValidator.validateGoalAmount(dto));
         }
 
         @Test
         void shouldThrowExceptionWhenGoalAmountIsZero() {
-            PiggyBankDTO dto = createDto(BigDecimal.ZERO);
+            PiggyBankDto dto = createDto(BigDecimal.ZERO);
 
             assertThrows(InvalidInputException.class, () -> PiggyBankValidator.validateGoalAmount(dto));
         }
 
         @Test
         void shouldThrowExceptionWhenGoalAmountIsNegative() {
-            PiggyBankDTO dto = createDto(BigDecimal.valueOf(-100));
+            PiggyBankDto dto = createDto(BigDecimal.valueOf(-100));
 
             assertThrows(InvalidInputException.class, () -> PiggyBankValidator.validateGoalAmount(dto));
         }
