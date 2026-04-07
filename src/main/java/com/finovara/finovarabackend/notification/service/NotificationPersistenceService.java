@@ -21,13 +21,22 @@ public class NotificationPersistenceService {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         List<Notification> entities = dtoList.stream()
-                .map(dto -> Notification.builder()
-                        .type(dto.type())
-                        .createdAt(LocalDateTime.now())
-                        .userAssigned(user)
-                        .build())
+                .map(dto -> {
+                    String businessKey = dto.type() + ":" + userId;
+
+                    return Notification.builder()
+                            .type(dto.type())
+                            .createdAt(LocalDateTime.now())
+                            .userAssigned(user)
+                            .businessKey(businessKey)
+                            .build();
+                })
                 .toList();
 
-        notificationRepository.saveAll(entities);
+        for (Notification notification : entities) {
+            if (!notificationRepository.existsByBusinessKey(notification.getBusinessKey())) {
+                notificationRepository.save(notification);
+            }
+        }
     }
 }
