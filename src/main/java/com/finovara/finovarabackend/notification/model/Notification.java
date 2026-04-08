@@ -1,5 +1,4 @@
 package com.finovara.finovarabackend.notification.model;
-
 import com.finovara.finovarabackend.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;

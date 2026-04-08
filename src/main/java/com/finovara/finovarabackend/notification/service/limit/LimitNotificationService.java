@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.limit.service.LimitCalculateService;
 import com.finovara.finovarabackend.notification.dto.NotificationDto;
+import com.finovara.finovarabackend.notification.dto.limit.LimitNotificationDto;
 import com.finovara.finovarabackend.notification.model.NotificationType;
 import com.finovara.finovarabackend.notification.source.NotificationCreator;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class LimitNotificationService implements NotificationCreator {
         for (Limit limit : limits) {
             LimitStatsDto stats = limitCalculateService.calculateLimitStats(userId, limit.getId(), LocalDate.now());
             if (stats.percentage().compareTo(WARNING_THRESHOLD) >= 0) {
-                result.add(new NotificationDto(
+                result.add(new LimitNotificationDto(
                         NotificationType.LIMIT_EXCEEDED_WARNING,
                         stats.date(),
                         stats.percentage(),
