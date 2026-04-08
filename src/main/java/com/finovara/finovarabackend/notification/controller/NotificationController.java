@@ -1,13 +1,11 @@
 package com.finovara.finovarabackend.notification.controller;
 
 import com.finovara.finovarabackend.notification.dto.NotificationDto;
+import com.finovara.finovarabackend.notification.service.NotificationPersistenceService;
 import com.finovara.finovarabackend.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -16,10 +14,17 @@ import java.util.List;
 @RequestMapping("/api/notifications")
 public class NotificationController {
     private final NotificationService notificationService;
+    private final NotificationPersistenceService notificationPersistenceService;
+
+    @PostMapping("/{userId}")
+    public ResponseEntity<Void> createNotification(@PathVariable Long userId) {
+        notificationService.createNotifications(userId);
+        return ResponseEntity.noContent().build();
+    }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<NotificationDto>> getNotifications(@PathVariable Long userId) {
-        return ResponseEntity.ok(notificationService.fetchAllNotifications(userId));
+    public ResponseEntity<List<NotificationDto>> getAllNotifications(@PathVariable Long userId) {
+        return ResponseEntity.ok(notificationPersistenceService.getAll(userId));
     }
 
 }

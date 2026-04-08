@@ -24,9 +24,6 @@ public class Notification {
 
     private LocalDateTime createdAt;
 
-    @Column(name = "business_key", nullable = false, unique = true)
-    private String businessKey;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User userAssigned;

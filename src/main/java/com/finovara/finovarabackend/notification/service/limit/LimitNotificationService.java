@@ -6,8 +6,7 @@ import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.limit.service.LimitCalculateService;
 import com.finovara.finovarabackend.notification.dto.NotificationDto;
 import com.finovara.finovarabackend.notification.model.NotificationType;
-import com.finovara.finovarabackend.notification.repository.NotificationRepository;
-import com.finovara.finovarabackend.notification.source.NotificationSource;
+import com.finovara.finovarabackend.notification.source.NotificationCreator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class LimitNotificationService implements NotificationSource {
+public class LimitNotificationService implements NotificationCreator {
     private static final BigDecimal WARNING_THRESHOLD = BigDecimal.valueOf(75);
 
     private final LimitCalculateService limitCalculateService;

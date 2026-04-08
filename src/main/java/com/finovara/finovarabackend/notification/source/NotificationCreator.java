@@ -4,6 +4,6 @@ import com.finovara.finovarabackend.notification.dto.NotificationDto;
 
 import java.util.List;
 
-public interface NotificationSource {
+public interface NotificationCreator {
     List<NotificationDto> getNotifications(Long userId);
 }
