@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.sendemail;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.util.NotificationEmailSender;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
 import org.junit.jupiter.api.Test;

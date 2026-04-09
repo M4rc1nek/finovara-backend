@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.service.sendemail;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.util.NotificationEmailSender;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
 import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.service.NotifyPasswordChangeService;
 import com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.util;
+package com.finovara.finovarabackend.usersetting.notificationemail.util;
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
