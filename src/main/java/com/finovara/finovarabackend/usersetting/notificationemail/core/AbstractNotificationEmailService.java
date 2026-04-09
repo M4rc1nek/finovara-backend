@@ -17,7 +17,7 @@ public abstract class AbstractNotificationEmailService<DTO> {
         User user = userManagerService.getUserByEmailOrThrow(email);
         NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
-        boolean enabled = extractValue(dto);
+        boolean enabled = isEnabled(dto);
         applySetting(settings, enabled);
 
         handleActivity(email, enabled);
@@ -33,16 +33,16 @@ public abstract class AbstractNotificationEmailService<DTO> {
     public void sendEmail(User user) {
         notificationEmailSender.sendIfEnabled(
                 user,
-                this::isEnabled,
+                this::isNotificationEmailSettingsEnabled,
                 this::sendEmailToUser
         );
     }
 
-    protected abstract boolean extractValue(DTO dto);
+    protected abstract boolean isEnabled(DTO dto);
 
     protected abstract void applySetting(NotificationEmailSettings settings, boolean value);
 
-    protected abstract boolean isEnabled(NotificationEmailSettings settings);
+    protected abstract boolean isNotificationEmailSettingsEnabled(NotificationEmailSettings settings);
 
     protected abstract DTO mapToDto(NotificationEmailSettings settings);
 

@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.usersetting.notificationemail.usernamechang
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
-import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.dto.NotifyUsernameChangeDto;
+import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.dto.NotificationEmailDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +44,7 @@ class GetNotifyUsernameChangeTest {
     void shouldReturnNotificationFlagBasedOnSettings(boolean enabled) {
         notificationEmailSettings.setNotifyOnUsernameChange(enabled);
 
-        NotifyUsernameChangeDto dto = notifyUsernameChangeService.getEmailNotification(EMAIL);
+        NotificationEmailDto dto = notifyUsernameChangeService.getEmailNotification(EMAIL);
 
         assertEquals(dto.enabled(), enabled);
     }

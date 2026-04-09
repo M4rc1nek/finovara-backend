@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivi
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
-import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.dto.NotifyUsernameChangeDto;
+import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.dto.NotificationEmailDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +50,7 @@ class SaveNotifyUsernameChangeTest {
     })
     void shouldSaveUsernameChangeNotificationAndCreateActivity(boolean enabled, SettingActivityStatus expectedStatus) {
         notificationEmailSettings.setNotifyOnUsernameChange(enabled);
-        NotifyUsernameChangeDto dto = new NotifyUsernameChangeDto(enabled);
+        NotificationEmailDto dto = new NotificationEmailDto(enabled);
 
         notifyUsernameChangeService.saveEmailNotification(EMAIL, dto);
         assertEquals(enabled, notificationEmailSettings.isNotifyOnUsernameChange());

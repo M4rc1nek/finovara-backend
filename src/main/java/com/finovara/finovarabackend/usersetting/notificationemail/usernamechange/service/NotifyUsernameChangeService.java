@@ -6,14 +6,14 @@ import com.finovara.finovarabackend.accountactivity.settings.service.SettingsAct
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.notificationemail.core.AbstractNotificationEmailService;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
-import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.dto.NotifyUsernameChangeDto;
+import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.dto.NotificationEmailDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
 import com.finovara.finovarabackend.util.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NotifyUsernameChangeService extends AbstractNotificationEmailService<NotifyUsernameChangeDto> {
+public class NotifyUsernameChangeService extends AbstractNotificationEmailService<NotificationEmailDto> {
 
     private final UsernameChangeEmailService usernameChangeEmailService;
     private final SettingsActivityService settingsActivityService;
@@ -27,7 +27,7 @@ public class NotifyUsernameChangeService extends AbstractNotificationEmailServic
     }
 
     @Override
-    protected boolean extractValue(NotifyUsernameChangeDto dto) {
+    protected boolean isEnabled(NotificationEmailDto dto) {
         return dto.enabled();
     }
 
@@ -37,13 +37,13 @@ public class NotifyUsernameChangeService extends AbstractNotificationEmailServic
     }
 
     @Override
-    protected boolean isEnabled(NotificationEmailSettings settings) {
+    protected boolean  isNotificationEmailSettingsEnabled(NotificationEmailSettings settings) {
         return settings.isNotifyOnUsernameChange();
     }
 
     @Override
-    protected NotifyUsernameChangeDto mapToDto(NotificationEmailSettings settings) {
-        return new NotifyUsernameChangeDto(settings.isNotifyOnUsernameChange());
+    protected NotificationEmailDto mapToDto(NotificationEmailSettings settings) {
+        return new NotificationEmailDto(settings.isNotifyOnUsernameChange());
     }
 
     @Override
