@@ -53,7 +53,7 @@ class AccountDeleteTest {
 
         verify(passwordConfirmationService).confirmPassword(user.getEmail(), confirmPasswordDto);
         verify(userRepository).delete(user);
-        verify(notifyOnAccountDeletedService).sendEmailOnAccountDeleted(user);
+        verify(notifyOnAccountDeletedService).sendEmail(user);
     }
 
     @Test
@@ -76,7 +76,7 @@ class AccountDeleteTest {
         accountService.deleteAccount(confirmPasswordDto, userId);
 
         verify(userRepository).delete(user);
-        verify(notifyOnAccountDeletedService).sendEmailOnAccountDeleted(user);
+        verify(notifyOnAccountDeletedService).sendEmail(user);
     }
 
     @Test

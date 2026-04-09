@@ -56,7 +56,7 @@ class PasswordManagementTest {
 
         verify(accountChangesActivityService).createAccountChangesActivity("activity@test.com", AccountChangesActivityType.PASSWORD_CHANGED, request);
 
-        verify(notifyPasswordChangeService).sendEmailOnPasswordChange(user);
+        verify(notifyPasswordChangeService).sendEmail(user);
     }
 
     @Test
@@ -93,6 +93,6 @@ class PasswordManagementTest {
 
         passwordManagementService.updatePassword(user, "newPass", request);
 
-        verify(notifyPasswordChangeService).sendEmailOnPasswordChange(user);
+        verify(notifyPasswordChangeService).sendEmail(user);
     }
 }
