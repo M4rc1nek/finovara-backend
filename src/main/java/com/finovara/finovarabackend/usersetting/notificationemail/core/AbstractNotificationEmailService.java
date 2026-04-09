@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.usersetting.notificationemail.core;
 
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.notificationemail.dto.NotificationEmailDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
@@ -8,12 +9,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public abstract class AbstractNotificationEmailService<DTO> {
+public abstract class AbstractNotificationEmailService {
     protected final UserManagerService userManagerService;
     protected final NotificationEmailSender notificationEmailSender;
 
     @Transactional
-    public void saveEmailNotification(String email, DTO dto) {
+    public void saveEmailNotification(String email, NotificationEmailDto dto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
@@ -23,7 +24,7 @@ public abstract class AbstractNotificationEmailService<DTO> {
         handleActivity(email, enabled);
     }
 
-    public DTO getEmailNotification(String email) {
+    public NotificationEmailDto getEmailNotification(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
@@ -38,13 +39,13 @@ public abstract class AbstractNotificationEmailService<DTO> {
         );
     }
 
-    protected abstract boolean isEnabled(DTO dto);
+    protected abstract boolean isEnabled(NotificationEmailDto dto);
 
     protected abstract void applySetting(NotificationEmailSettings settings, boolean value);
 
     protected abstract boolean isNotificationEmailSettingsEnabled(NotificationEmailSettings settings);
 
-    protected abstract DTO mapToDto(NotificationEmailSettings settings);
+    protected abstract NotificationEmailDto mapToDto(NotificationEmailSettings settings);
 
     protected abstract void sendEmailToUser(User user);
 

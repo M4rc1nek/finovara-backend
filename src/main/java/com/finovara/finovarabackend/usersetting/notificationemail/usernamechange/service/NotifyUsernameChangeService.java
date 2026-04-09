@@ -13,7 +13,7 @@ import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NotifyUsernameChangeService extends AbstractNotificationEmailService<NotificationEmailDto> {
+public class NotifyUsernameChangeService extends AbstractNotificationEmailService {
 
     private final UsernameChangeEmailService usernameChangeEmailService;
     private final SettingsActivityService settingsActivityService;
