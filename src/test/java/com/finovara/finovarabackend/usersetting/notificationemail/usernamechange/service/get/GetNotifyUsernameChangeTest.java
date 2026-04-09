@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.usersetting.notificationemail.usernamechang
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
-import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.dto.NotificationEmailDto;
+import com.finovara.finovarabackend.usersetting.notificationemail.dto.NotificationEmailDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;

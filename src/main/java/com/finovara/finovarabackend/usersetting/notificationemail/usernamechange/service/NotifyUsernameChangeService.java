@@ -6,7 +6,7 @@ import com.finovara.finovarabackend.accountactivity.settings.service.SettingsAct
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.notificationemail.core.AbstractNotificationEmailService;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
-import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.dto.NotificationEmailDto;
+import com.finovara.finovarabackend.usersetting.notificationemail.dto.NotificationEmailDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
 import com.finovara.finovarabackend.util.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
