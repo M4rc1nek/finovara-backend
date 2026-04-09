@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service;
 
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.util.NotificationEmailSender;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.dto.NotifyOnAccountDeletedDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class NotifyOnAccountDeletedService {
     private final UserManagerService userManagerService;
     private final AccountDeletedEmailService accountDeletedEmailService;
+    private final NotificationEmailSender notificationEmailSender;
 
     @Transactional
     public void saveNotifyOnAccountDeleted(String email, NotifyOnAccountDeletedDto dto) {
@@ -34,10 +36,7 @@ public class NotifyOnAccountDeletedService {
     }
 
     public void sendEmailOnAccountDeleted(User user) {
-        NotificationEmailSettings settings = user.getNotificationEmailSettings();
-
-        if (!settings.isNotifyOnAccountDeleted()) return;
-
-        accountDeletedEmailService.sendEmail(user);
+       notificationEmailSender.sendIfEnabled(user, NotificationEmailSettings::isNotifyOnAccountDeleted, accountDeletedEmailService::sendEmail);
     }
+
 }
