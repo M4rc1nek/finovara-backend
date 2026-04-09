@@ -28,7 +28,7 @@ class NotifyUsernameChangeServiceTest {
     @Test
     void shouldCallSenderToSendEmail() {
         User user = new User();
-        notifyUsernameChangeService.sendEmailOnUsernameChange(user);
+        notifyUsernameChangeService.sendEmail(user);
         verify(notificationEmailSender).sendIfEnabled(eq(user), any(), any());
     }
 

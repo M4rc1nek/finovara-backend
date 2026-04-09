@@ -39,7 +39,7 @@ public class AccountService {
         user.setUsername(accountSettingsDto.username());
         userRepository.save(user);
         accountChangesActivityService.createAccountChangesActivity(user.getEmail(), AccountChangesActivityType.USERNAME_CHANGED, request);
-        notifyUsernameChangeService.sendEmailOnUsernameChange(user);
+        notifyUsernameChangeService.sendEmail(user);
         return accountSettingsDto;
     }
 

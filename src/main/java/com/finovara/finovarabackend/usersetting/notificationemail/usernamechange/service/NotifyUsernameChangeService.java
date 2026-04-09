@@ -4,49 +4,59 @@ import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivi
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
+import com.finovara.finovarabackend.usersetting.notificationemail.core.AbstractNotificationEmailService;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.dto.NotifyUsernameChangeDto;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
 import com.finovara.finovarabackend.util.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
-public class NotifyUsernameChangeService {
+public class NotifyUsernameChangeService extends AbstractNotificationEmailService<NotifyUsernameChangeDto> {
 
-    private final UserManagerService userManagerService;
     private final UsernameChangeEmailService usernameChangeEmailService;
     private final SettingsActivityService settingsActivityService;
-    private final NotificationEmailSender notificationEmailSender;
 
-
-    @Transactional
-    public void saveNotifyUsernameChange(String email, NotifyUsernameChangeDto dto) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        NotificationEmailSettings settings = user.getNotificationEmailSettings();
-
-        settings.setNotifyOnUsernameChange(dto.notifyOnUsernameChange());
-        if (settings.isNotifyOnUsernameChange()) {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.NOTIFICATION_USERNAME_CHANGED);
-        } else {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.NOTIFICATION_USERNAME_CHANGED);
-        }
-
+    public NotifyUsernameChangeService(UserManagerService userManagerService, NotificationEmailSender notificationEmailSender,
+                                       UsernameChangeEmailService usernameChangeEmailService,
+                                       SettingsActivityService settingsActivityService) {
+        super(userManagerService, notificationEmailSender);
+        this.usernameChangeEmailService = usernameChangeEmailService;
+        this.settingsActivityService = settingsActivityService;
     }
 
-    public NotifyUsernameChangeDto getEmailOnUsernameChange(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        NotificationEmailSettings settings = user.getNotificationEmailSettings();
+    @Override
+    protected boolean extractValue(NotifyUsernameChangeDto dto) {
+        return dto.notifyOnUsernameChange();
+    }
 
-        return new NotifyUsernameChangeDto(
-                settings.isNotifyOnUsernameChange()
+    @Override
+    protected void applySetting(NotificationEmailSettings settings, boolean value) {
+        settings.setNotifyOnUsernameChange(value);
+    }
+
+    @Override
+    protected boolean isEnabled(NotificationEmailSettings settings) {
+        return settings.isNotifyOnUsernameChange();
+    }
+
+    @Override
+    protected NotifyUsernameChangeDto mapToDto(NotificationEmailSettings settings) {
+        return new NotifyUsernameChangeDto(settings.isNotifyOnUsernameChange());
+    }
+
+    @Override
+    protected void sendEmailToUser(User user){
+        usernameChangeEmailService.sendEmail(user);
+    }
+
+    @Override
+    protected void handleActivity(String email, boolean enabled) {
+        settingsActivityService.createSettingActivity(
+                email,
+                enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED,
+                SettingType.NOTIFICATION_USERNAME_CHANGED
         );
-    }
-
-    public void sendEmailOnUsernameChange(User user) {
-        notificationEmailSender.sendIfEnabled(user, NotificationEmailSettings::isNotifyOnUsernameChange, usernameChangeEmailService::sendEmail);
     }
 }

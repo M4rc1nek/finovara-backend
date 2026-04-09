@@ -8,21 +8,20 @@ import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange
 import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static com.finovara.finovarabackend.accountactivity.settings.model.SettingType.NOTIFICATION_USERNAME_CHANGED;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SaveNotifyUsernameChangeTest {
-
     @Mock
     private UserManagerService userManagerService;
 
@@ -44,25 +43,22 @@ class SaveNotifyUsernameChangeTest {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
     }
 
-    @Test
-    void shouldEnableNotifyOnUsernameChange() {
-        NotifyUsernameChangeDto dto = new NotifyUsernameChangeDto(true);
+    @ParameterizedTest
+    @CsvSource({
+            "true, ENABLED",
+            "false, DISABLED"
+    })
+    void shouldUpdateUsernameChangeNotification(boolean enabled, SettingActivityStatus expectedStatus) {
+        notificationEmailSettings.setNotifyOnUsernameChange(enabled);
+        NotifyUsernameChangeDto dto = new NotifyUsernameChangeDto(enabled);
 
-        notifyUsernameChangeService.saveNotifyUsernameChange(EMAIL, dto);
+        notifyUsernameChangeService.saveEmailNotification(EMAIL, dto);
+        assertEquals(enabled, notificationEmailSettings.isNotifyOnUsernameChange());
 
-        assertTrue(notificationEmailSettings.isNotifyOnUsernameChange());
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.ENABLED, NOTIFICATION_USERNAME_CHANGED);
-    }
-
-    @Test
-    void shouldDisableNotifyOnUsernameChange() {
-        notificationEmailSettings.setNotifyOnUsernameChange(true);
-
-        NotifyUsernameChangeDto dto = new NotifyUsernameChangeDto(false);
-
-        notifyUsernameChangeService.saveNotifyUsernameChange(EMAIL, dto);
-
-        assertFalse(notificationEmailSettings.isNotifyOnUsernameChange());
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.DISABLED, NOTIFICATION_USERNAME_CHANGED);
+        verify(settingsActivityService).createSettingActivity(
+                EMAIL,
+                expectedStatus,
+                NOTIFICATION_USERNAME_CHANGED
+        );
     }
 }

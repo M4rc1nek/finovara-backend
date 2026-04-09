@@ -64,7 +64,7 @@ class UpdateUsernameTest {
                 AccountChangesActivityType.USERNAME_CHANGED,
                 request
         );
-        verify(notifyUsernameChangeService).sendEmailOnUsernameChange(user);
+        verify(notifyUsernameChangeService).sendEmail(user);
     }
 
     @Test
