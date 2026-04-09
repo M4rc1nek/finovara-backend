@@ -24,7 +24,7 @@ public class PasswordManagementService {
 
         createActivity(user, request);
 
-        notifyPasswordChangeService.sendEmailOnPasswordChange(user);
+        notifyPasswordChangeService.sendEmail(user);
     }
 
     private void createActivity(User user, HttpServletRequest request) {
