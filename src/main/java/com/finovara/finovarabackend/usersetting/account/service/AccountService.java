@@ -14,10 +14,12 @@ import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Paths;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountService {
@@ -49,7 +51,7 @@ public class AccountService {
 
         passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
         userRepository.delete(user);
-
+        log.info("User account has been deleted. User email: {}", user.getEmail());
         notifyOnAccountDeletedService.sendEmail(user);
     }
 
