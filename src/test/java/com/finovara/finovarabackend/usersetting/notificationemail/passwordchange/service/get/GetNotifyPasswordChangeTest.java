@@ -6,14 +6,14 @@ import com.finovara.finovarabackend.usersetting.notificationemail.model.Notifica
 import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.service.NotifyPasswordChangeService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,21 +37,15 @@ class GetNotifyPasswordChangeTest {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
     }
 
-    @Test
-    void shouldReturnEnabledFlag() {
-        notificationEmailSettings.setNotifyOnPasswordChange(true);
+    @ParameterizedTest
+    @CsvSource({"true, ENABLED",
+            "false, DISABLED"
+    })
+    void shouldReturnNotificationFlagBasedOnSettings(boolean enabled) {
+        notificationEmailSettings.setNotifyOnPasswordChange(enabled);
 
         NotificationEmailDto dto = notifyPasswordChangeService.getEmailNotification(EMAIL);
 
-        assertTrue(dto.enabled());
-    }
-
-    @Test
-    void shouldReturnDisabledFlag() {
-        notificationEmailSettings.setNotifyOnPasswordChange(false);
-
-        NotificationEmailDto dto = notifyPasswordChangeService.getEmailNotification(EMAIL);
-
-        assertFalse(dto.enabled());
+        assertEquals(dto.enabled(), enabled);
     }
 }
