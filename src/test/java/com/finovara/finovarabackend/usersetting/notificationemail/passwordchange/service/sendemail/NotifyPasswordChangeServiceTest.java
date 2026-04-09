@@ -19,16 +19,13 @@ class NotifyPasswordChangeServiceTest {
     @Mock
     private NotificationEmailSender notificationEmailSender;
 
-    @Mock
-    private PasswordChangeEmailService passwordChangeEmailService;
-
     @InjectMocks
     private NotifyPasswordChangeService notifyPasswordChangeService;
 
     @Test
     void shouldCallSenderToSendEmail() {
         User user = new User();
-        notifyPasswordChangeService.sendEmailOnPasswordChange(user);
+        notifyPasswordChangeService.sendEmail(user);
         verify(notificationEmailSender).sendIfEnabled(eq(user), any(), any());
     }
 

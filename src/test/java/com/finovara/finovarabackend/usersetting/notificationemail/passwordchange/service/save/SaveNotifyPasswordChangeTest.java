@@ -2,6 +2,7 @@ package com.finovara.finovarabackend.usersetting.notificationemail.passwordchang
 
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.notificationemail.dto.NotificationEmailDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.dto.NotifyPasswordChangeDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.service.NotifyPasswordChangeService;
@@ -46,9 +47,9 @@ class SaveNotifyPasswordChangeTest {
 
     @Test
     void shouldEnableNotifyOnPasswordChange() {
-        NotifyPasswordChangeDto dto = new NotifyPasswordChangeDto(true);
+        NotificationEmailDto dto = new NotificationEmailDto(true);
 
-        notifyPasswordChangeService.saveNotifyOnPasswordChange(EMAIL, dto);
+        notifyPasswordChangeService.saveEmailNotification(EMAIL, dto);
 
         assertTrue(notificationEmailSettings.isNotifyOnPasswordChange());
         verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.ENABLED, NOTIFICATION_PASSWORD_CHANGED);
@@ -58,9 +59,9 @@ class SaveNotifyPasswordChangeTest {
     void shouldDisableNotifyOnPasswordChange() {
         notificationEmailSettings.setNotifyOnPasswordChange(true);
 
-        NotifyPasswordChangeDto dto = new NotifyPasswordChangeDto(false);
+        NotificationEmailDto dto = new NotificationEmailDto(false);
 
-        notifyPasswordChangeService.saveNotifyOnPasswordChange(EMAIL, dto);
+        notifyPasswordChangeService.saveEmailNotification(EMAIL, dto);
 
         assertFalse(notificationEmailSettings.isNotifyOnPasswordChange());
         verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.DISABLED, NOTIFICATION_PASSWORD_CHANGED);

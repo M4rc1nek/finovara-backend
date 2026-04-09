@@ -1,8 +1,8 @@
 package com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service;
 
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.notificationemail.dto.NotificationEmailDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
-import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.dto.NotifyOnAccountDeletedDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
@@ -18,19 +18,19 @@ public class NotifyOnAccountDeletedService {
     private final NotificationEmailSender notificationEmailSender;
 
     @Transactional
-    public void saveNotifyOnAccountDeleted(String email, NotifyOnAccountDeletedDto dto) {
+    public void saveNotifyOnAccountDeleted(String email, NotificationEmailDto dto) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
-        settings.setNotifyOnAccountDeleted(dto.notifyOnAccountDeleted());
+        settings.setNotifyOnAccountDeleted(dto.enabled());
 
     }
 
-    public NotifyOnAccountDeletedDto getEmailOnAccountDeleted(String email) {
+    public NotificationEmailDto getEmailOnAccountDeleted(String email) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
-        return new NotifyOnAccountDeletedDto(
+        return new NotificationEmailDto(
                 settings.isNotifyOnAccountDeleted()
         );
     }

@@ -4,47 +4,60 @@ import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivi
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
+import com.finovara.finovarabackend.usersetting.notificationemail.core.AbstractNotificationEmailService;
+import com.finovara.finovarabackend.usersetting.notificationemail.dto.NotificationEmailDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
-import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.dto.NotifyPasswordChangeDto;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
 import com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
-public class NotifyPasswordChangeService {
+public class NotifyPasswordChangeService extends AbstractNotificationEmailService {
 
-    private final UserManagerService userManagerService;
-    private final NotificationEmailSender notificationEmailSender;
-    private final SettingsActivityService settingsActivityService;
     private final PasswordChangeEmailService passwordChangeEmailService;
+    private final SettingsActivityService settingsActivityService;
 
-    @Transactional
-    public void saveNotifyOnPasswordChange(String email, NotifyPasswordChangeDto dto) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        NotificationEmailSettings settings = user.getNotificationEmailSettings();
-
-        settings.setNotifyOnPasswordChange(dto.notifyOnPasswordChange());
-        if (settings.isNotifyOnPasswordChange()) {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.NOTIFICATION_PASSWORD_CHANGED);
-        } else {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.NOTIFICATION_PASSWORD_CHANGED);
-        }
+    public NotifyPasswordChangeService(UserManagerService userManagerService, NotificationEmailSender notificationEmailSender,
+                                       PasswordChangeEmailService passwordChangeEmailService,
+                                       SettingsActivityService settingsActivityService) {
+        super(userManagerService, notificationEmailSender);
+        this.passwordChangeEmailService = passwordChangeEmailService;
+        this.settingsActivityService = settingsActivityService;
     }
 
-    public NotifyPasswordChangeDto getEmailOnPasswordChange(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        NotificationEmailSettings settings = user.getNotificationEmailSettings();
+    @Override
+    protected boolean isEnabled(NotificationEmailDto dto) {
+        return dto.enabled();
+    }
 
-        return new NotifyPasswordChangeDto(
-                settings.isNotifyOnPasswordChange()
+    @Override
+    protected void applySetting(NotificationEmailSettings settings, boolean value) {
+        settings.setNotifyOnPasswordChange(value);
+    }
+
+    @Override
+    protected boolean isNotificationEmailSettingsEnabled(NotificationEmailSettings settings) {
+        return settings.isNotifyOnPasswordChange();
+    }
+
+    @Override
+    protected NotificationEmailDto mapToDto(NotificationEmailSettings settings) {
+        return new NotificationEmailDto(settings.isNotifyOnPasswordChange());
+
+    }
+
+    @Override
+    protected void sendEmailToUser(User user) {
+        passwordChangeEmailService.sendEmail(user);
+    }
+
+    @Override
+    protected void handleActivity(String email, boolean enabled) {
+        settingsActivityService.createSettingActivity(
+                email,
+                enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED,
+                SettingType.NOTIFICATION_PASSWORD_CHANGED
         );
-    }
-
-    public void sendEmailOnPasswordChange(User user) {
-        notificationEmailSender.sendIfEnabled(user, NotificationEmailSettings::isNotifyOnPasswordChange, passwordChangeEmailService::sendEmail);
     }
 }
