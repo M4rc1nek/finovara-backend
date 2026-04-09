@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.usersetting.notificationemail.accountdelete
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.util.NotificationEmailSender;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.NotifyOnAccountDeletedService;
+import com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,6 +19,9 @@ class NotifyOnAccountDeletedServiceTest {
 
     @Mock
     private NotificationEmailSender notificationEmailSender;
+
+    @Mock
+    private AccountDeletedEmailService accountDeletedEmailService;
 
     @InjectMocks
     private NotifyOnAccountDeletedService notifyOnAccountDeletedService;
