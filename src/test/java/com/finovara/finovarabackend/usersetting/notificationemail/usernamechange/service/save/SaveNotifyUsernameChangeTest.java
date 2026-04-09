@@ -48,7 +48,7 @@ class SaveNotifyUsernameChangeTest {
             "true, ENABLED",
             "false, DISABLED"
     })
-    void shouldUpdateUsernameChangeNotification(boolean enabled, SettingActivityStatus expectedStatus) {
+    void shouldSaveUsernameChangeNotificationAndCreateActivity(boolean enabled, SettingActivityStatus expectedStatus) {
         notificationEmailSettings.setNotifyOnUsernameChange(enabled);
         NotifyUsernameChangeDto dto = new NotifyUsernameChangeDto(enabled);
 

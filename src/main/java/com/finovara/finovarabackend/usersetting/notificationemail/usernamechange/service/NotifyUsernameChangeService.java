@@ -28,7 +28,7 @@ public class NotifyUsernameChangeService extends AbstractNotificationEmailServic
 
     @Override
     protected boolean extractValue(NotifyUsernameChangeDto dto) {
-        return dto.notifyOnUsernameChange();
+        return dto.enabled();
     }
 
     @Override

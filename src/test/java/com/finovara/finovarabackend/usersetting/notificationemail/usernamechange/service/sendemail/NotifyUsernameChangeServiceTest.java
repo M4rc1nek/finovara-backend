@@ -1,9 +1,8 @@
 package com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.service.sendemail;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
 import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.service.NotifyUsernameChangeService;
-import com.finovara.finovarabackend.util.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.NotificationEmailSender;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,9 +17,6 @@ import static org.mockito.Mockito.verify;
 class NotifyUsernameChangeServiceTest {
     @Mock
     private NotificationEmailSender notificationEmailSender;
-
-    @Mock
-    private UsernameChangeEmailService usernameChangeEmailService;
 
     @InjectMocks
     private NotifyUsernameChangeService notifyUsernameChangeService;
