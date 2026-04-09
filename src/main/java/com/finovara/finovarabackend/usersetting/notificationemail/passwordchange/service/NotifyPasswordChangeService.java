@@ -4,6 +4,7 @@ import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivi
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.util.NotificationEmailSender;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.dto.NotifyPasswordChangeDto;
 import com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
@@ -17,8 +18,9 @@ import org.springframework.stereotype.Service;
 public class NotifyPasswordChangeService {
 
     private final UserManagerService userManagerService;
-    private final PasswordChangeEmailService passwordChangeEmailService;
+    private final NotificationEmailSender notificationEmailSender;
     private final SettingsActivityService settingsActivityService;
+    private final PasswordChangeEmailService passwordChangeEmailService;
 
     @Transactional
     public void saveNotifyOnPasswordChange(String email, NotifyPasswordChangeDto dto) {
@@ -43,10 +45,6 @@ public class NotifyPasswordChangeService {
     }
 
     public void sendEmailOnPasswordChange(User user) {
-        NotificationEmailSettings settings = user.getNotificationEmailSettings();
-
-        if (!settings.isNotifyOnPasswordChange()) return;
-
-        passwordChangeEmailService.sendEmail(user);
+        notificationEmailSender.sendIfEnabled(user, NotificationEmailSettings::isNotifyOnPasswordChange, passwordChangeEmailService::sendEmail);
     }
 }
