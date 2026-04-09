@@ -1,7 +1,6 @@
 package com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.get;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.dto.NotifyOnAccountDeletedDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;

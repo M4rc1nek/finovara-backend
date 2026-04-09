@@ -49,7 +49,7 @@ public class AccountService {
 
         passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
         userRepository.delete(user);
-        notifyOnAccountDeletedService.sendEmailOnAccountDeleted(user);
+        notifyOnAccountDeletedService.sendEmail(user);
     }
 
     @Transactional
