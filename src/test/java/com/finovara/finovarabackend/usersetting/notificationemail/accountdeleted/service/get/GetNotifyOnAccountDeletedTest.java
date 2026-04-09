@@ -1,18 +1,20 @@
 package com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.get;
 
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.notificationemail.dto.NotificationEmailDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,21 +38,15 @@ class GetNotifyOnAccountDeletedTest {
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
     }
 
-    @Test
-    void shouldReturnEnabledFlag() {
-        notificationEmailSettings.setNotifyOnAccountDeleted(true);
+    @ParameterizedTest
+    @CsvSource({"true, ENABLED",
+            "false, DISABLED"
+    })
+    void shouldReturnNotificationFlagBasedOnSettings(boolean enabled) {
+        notificationEmailSettings.setNotifyOnAccountDeleted(enabled);
 
-        NotifyOnAccountDeletedDto dto = notifyOnAccountDeletedService.getEmailOnAccountDeleted(EMAIL);
+        NotificationEmailDto dto = notifyOnAccountDeletedService.getEmailNotification(EMAIL);
 
-        assertTrue(dto.notifyOnAccountDeleted());
-    }
-
-    @Test
-    void shouldReturnDisabledFlag() {
-        notificationEmailSettings.setNotifyOnAccountDeleted(false);
-
-        NotifyOnAccountDeletedDto dto = notifyOnAccountDeletedService.getEmailOnAccountDeleted(EMAIL);
-
-        assertFalse(dto.notifyOnAccountDeleted());
+        assertEquals(dto.enabled(), enabled);
     }
 }
