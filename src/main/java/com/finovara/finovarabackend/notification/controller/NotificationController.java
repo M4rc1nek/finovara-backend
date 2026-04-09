@@ -21,10 +21,10 @@ public class NotificationController {
         notificationService.createNotifications(userId);
         return ResponseEntity.noContent().build();
     }
-
+/*
     @GetMapping("/{userId}")
     public ResponseEntity<List<NotificationResponse>> getAllNotifications(@PathVariable Long userId) {
         return ResponseEntity.ok(notificationPersistenceService.getUserNotifications(userId));
-    }
+    }*/
 
 }
