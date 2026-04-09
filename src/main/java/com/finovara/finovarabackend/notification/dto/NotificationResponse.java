@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.notification.model.NotificationType;
 
 import java.time.LocalDate;
 
-public interface NotificationDto {
+public interface NotificationResponse {
     NotificationType type();
 
     LocalDate createdAt();

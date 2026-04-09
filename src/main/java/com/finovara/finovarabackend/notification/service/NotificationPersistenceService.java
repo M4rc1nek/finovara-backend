@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.notification.service;
 
-import com.finovara.finovarabackend.notification.dto.NotificationDto;
+import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.model.Notification;
 import com.finovara.finovarabackend.notification.repository.NotificationRepository;
 import com.finovara.finovarabackend.user.model.User;
@@ -19,7 +19,7 @@ public class NotificationPersistenceService {
     private final UserManagerService userManagerService;
 
     @Transactional
-    public void saveAll(Long userId, List<NotificationDto> dtoList) {
+    public void saveAll(Long userId, List<NotificationResponse> dtoList) {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         List<Notification> entitiesToSave = dtoList.stream()

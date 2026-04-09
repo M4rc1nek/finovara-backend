@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.notification.controller;
 
-import com.finovara.finovarabackend.notification.dto.NotificationDto;
+import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.service.NotificationPersistenceService;
 import com.finovara.finovarabackend.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class NotificationController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<NotificationDto>> getAllNotifications(@PathVariable Long userId) {
+    public ResponseEntity<List<NotificationResponse>> getAllNotifications(@PathVariable Long userId) {
         return ResponseEntity.ok(notificationPersistenceService.getUserNotifications(userId));
     }
 

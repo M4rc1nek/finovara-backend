@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.notification.service;
 
-import com.finovara.finovarabackend.notification.dto.NotificationDto;
+import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.source.NotificationCreator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ public class NotificationService {
 
     @Transactional
     public void createNotifications(Long userId) {
-        List<NotificationDto> result = new ArrayList<>();
+        List<NotificationResponse> result = new ArrayList<>();
 
         for (NotificationCreator source : sources) {
             try {

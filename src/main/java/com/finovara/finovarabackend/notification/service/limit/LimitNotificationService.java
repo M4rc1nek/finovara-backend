@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.limit.service.LimitCalculateService;
-import com.finovara.finovarabackend.notification.dto.NotificationDto;
+import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.dto.limit.LimitNotificationDto;
 import com.finovara.finovarabackend.notification.model.NotificationType;
 import com.finovara.finovarabackend.notification.source.NotificationCreator;
@@ -25,8 +25,8 @@ public class LimitNotificationService implements NotificationCreator {
     private final LimitRepository limitRepository;
 
     @Override
-    public List<NotificationDto> getNotifications(Long userId) {
-        List<NotificationDto> result = new ArrayList<>();
+    public List<NotificationResponse> getNotifications(Long userId) {
+        List<NotificationResponse> result = new ArrayList<>();
         List<Limit> limits = limitRepository.findAllByUserAssignedId(userId);
         for (Limit limit : limits) {
             LimitStatsDto stats = limitCalculateService.calculateLimitStats(userId, limit.getId(), LocalDate.now());
