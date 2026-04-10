@@ -35,14 +35,13 @@ public class CountQuantityLimitService {
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         expenseSettings.setCountQuantityLimitEnabled(dto.expenseCountLimitEnabled());
-        if (!dto.expenseCountLimitEnabled()) {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.EXPENSE_COUNT_LIMIT);
-            expenseSettings.setQuantityLimitEmergencyModeUsed(false);
-            return;
-        } else {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.EXPENSE_COUNT_LIMIT);
-        }
 
+        createActivity(email, dto.expenseCountLimitEnabled());
+
+        if (!dto.expenseCountLimitEnabled()) {
+            handleDisable(expenseSettings);
+            return;
+        }
         long countedExpenses = countExpensesInPeriod(user, dto.periodType());
         if (dto.numberOfQuantityLimit() < countedExpenses) {
             throw new StateConflictException("You cannot add a limit " + dto.numberOfQuantityLimit() + ", because you have already "
@@ -90,6 +89,18 @@ public class CountQuantityLimitService {
         LocalDate start = periodType.getStartDate(today);
 
         return expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(user.getId(), start, today);
+    }
+
+    private void createActivity(String email, boolean enabled) {
+        settingsActivityService.createSettingActivity(
+                email,
+                enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED,
+                SettingType.EXPENSE_COUNT_LIMIT
+        );
+    }
+
+    private void handleDisable(ExpenseSettings settings) {
+        settings.setQuantityLimitEmergencyModeUsed(false);
     }
 
 }
