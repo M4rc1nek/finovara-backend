@@ -45,8 +45,6 @@ public class ForgotPasswordService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final JavaMailSender javaMailSender;
-    private final PasswordChangeEmailService passwordChangeEmailService;
-    private final AccountChangesActivityService accountChangesActivityService;
     private final PasswordManagementService passwordManagementService;
 
     public void validateEmailExists(String email) {

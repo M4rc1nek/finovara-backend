@@ -28,11 +28,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SmartScanService {
 
+    private static final int SCAN_INTERVAL = 5;
+    private static final BigDecimal ANOMALY_MULTIPLIER = BigDecimal.valueOf(3);
+
     private final UserManagerService userManagerService;
     private final ExpenseRepository expenseRepository;
     private final PasswordConfirmationService passwordConfirmationService;
     private final SettingsActivityService settingsActivityService;
-
 
     @Transactional
     public void saveSmartScan(String email, SmartScanDto settings) {
@@ -40,9 +42,9 @@ public class SmartScanService {
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         expenseSettings.setSmartScanEnabled(settings.smartScanEnabled());
-        if(expenseSettings.isSmartScanEnabled()){
+        if (expenseSettings.isSmartScanEnabled()) {
             settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.EXPENSE_SMART_SCAN);
-        }else {
+        } else {
             settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.EXPENSE_SMART_SCAN);
         }
     }
@@ -62,15 +64,27 @@ public class SmartScanService {
 
         if (!expenseSettings.isSmartScanEnabled()) return;
 
-        long expenseCount = expenseRepository.countExpensesByUserAssignedId(user.getId());
-
-        boolean shouldScan = switch (mode) {
-            case ADD -> (expenseCount + 1) % 5 == 0;
-            case EDIT -> expenseCount % 5 == 0;
-        };
+        boolean shouldScan = calculateQuantityExpense(user, mode);
 
         if (!shouldScan) return;
 
+        BigDecimal expenseAnomalyThreshold = calculateAnomalyThreshold(user);
+
+        if (newExpenseAmount.compareTo(expenseAnomalyThreshold) > 0) {
+            requirePasswordConfirmation(user, confirmPasswordDto);
+        }
+    }
+
+    private boolean calculateQuantityExpense(User user, SmartScanMode mode) {
+        long expenseCount = expenseRepository.countExpensesByUserAssignedId(user.getId());
+
+        return switch (mode) {
+            case ADD -> (expenseCount + 1) % SCAN_INTERVAL == 0;
+            case EDIT -> expenseCount % 5 == 0;
+        };
+    }
+
+    private BigDecimal calculateAnomalyThreshold(User user) {
         List<Expense> expenses = expenseRepository.findFiveLastByUserAssignedId(user.getId(), PageRequest.of(0, 4));
 
         BigDecimal averageAmountExpense = expenses.stream()
@@ -78,16 +92,15 @@ public class SmartScanService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .divide(BigDecimal.valueOf(expenses.size()), 2, RoundingMode.HALF_UP);
 
-        BigDecimal expenseAnomalyThreshold = averageAmountExpense.multiply(BigDecimal.valueOf(3));
+        return averageAmountExpense.multiply(ANOMALY_MULTIPLIER);
+    }
 
-        if (newExpenseAmount.compareTo(expenseAnomalyThreshold) > 0) {
-
-            if (confirmPasswordDto == null || confirmPasswordDto.password() == null) {
-                throw new SmartScanConfirmationRequiredException("Unusual expense detected. Password confirmation required.");
-            }
-
-            passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
+    private void requirePasswordConfirmation(User user, ConfirmPasswordDto confirmPasswordDto) {
+        if (confirmPasswordDto == null || confirmPasswordDto.password() == null) {
+            throw new SmartScanConfirmationRequiredException("Unusual expense detected. Password confirmation required.");
         }
 
+        passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
     }
+
 }
