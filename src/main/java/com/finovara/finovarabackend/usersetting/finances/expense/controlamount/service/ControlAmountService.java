@@ -52,10 +52,6 @@ public class ControlAmountService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
-        if (expenseSettings.getBlockedAmount() == null) {
-            expenseSettings.setBlockedAmount(BigDecimal.ZERO);
-        }
-
         BigDecimal blockedAmount = Optional.ofNullable(expenseSettings.getBlockedAmount()).orElse(BigDecimal.ZERO);
 
         if (expenseSettings.isAmountThresholdEnabled() && newAmount.compareTo(blockedAmount) > 0) {
