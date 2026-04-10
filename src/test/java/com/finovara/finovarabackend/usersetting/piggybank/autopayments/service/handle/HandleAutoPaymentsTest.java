@@ -1,10 +1,9 @@
 package com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.handle;
 
-import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
-import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsCore;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
@@ -21,96 +20,146 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class HandleAutoPaymentsTest {
-
     @Mock
     private UserManagerService userManagerService;
-
     @Mock
     private WalletManagerService walletManagerService;
-
-    @Mock
-    private PiggyBankActivityService piggyBankActivityService;
     @Mock
     private GoalCompletionService goalCompletionService;
+    @Mock
+    private AutoPaymentsCore autoPaymentsCore;
 
     @InjectMocks
     private AutoPaymentsService autoPaymentsService;
 
-    private User user;
+    private String email;
     private Wallet wallet;
-    private PiggyBank piggyBank;
-
-    private final String EMAIL = "test@test.com";
 
     @BeforeEach
-    void setup() {
-        user = new User();
+    void setUp() {
+        email = "test@mail.com";
         wallet = new Wallet();
-        wallet.setBalance(BigDecimal.valueOf(500));
-        user.setPiggyBanks(List.of());
 
-        piggyBank = new PiggyBank();
-        PiggyBankSettings settings = new PiggyBankSettings();
-        piggyBank.setSettings(settings);
-        piggyBank.setAmount(BigDecimal.valueOf(100));
-
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(walletManagerService.getWalletByUserEmailOrThrow(EMAIL)).thenReturn(wallet);
+        when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
     }
 
     @Test
-    void shouldDoNothingWhenNoPiggyBanks() {
+    void shouldDoNothingWhenUserHasNoPiggyBanks() {
+        User user = new User();
         user.setPiggyBanks(List.of());
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(EMAIL, BigDecimal.valueOf(100), AutoPaymentsMode.APPLY);
+        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
-        assertThat(BigDecimal.valueOf(100)).isEqualByComparingTo(piggyBank.getAmount());
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.APPLY);
+
+        verifyNoInteractions(autoPaymentsCore);
+        verifyNoInteractions(goalCompletionService);
     }
 
     @Test
-    void shouldDoNothingWhenAutomationInactive() {
-        PiggyBank inactivePiggyBank = new PiggyBank();
+    void shouldSkipInactivePiggyBanks() {
         PiggyBankSettings settings = new PiggyBankSettings();
         settings.setAutomationActive(false);
-        inactivePiggyBank.setSettings(settings);
-        inactivePiggyBank.setAmount(BigDecimal.valueOf(100));
-        user.setPiggyBanks(List.of(inactivePiggyBank));
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(EMAIL, BigDecimal.valueOf(100), AutoPaymentsMode.APPLY);
+        PiggyBank piggyBank = new PiggyBank();
+        piggyBank.setSettings(settings);
 
-        assertThat(BigDecimal.valueOf(100)).isEqualByComparingTo(piggyBank.getAmount());
+        User user = new User();
+        user.setPiggyBanks(List.of(piggyBank));
+
+        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.APPLY);
+
+        verifyNoInteractions(autoPaymentsCore);
+        verify(goalCompletionService).handleGoalCompletion(email);
     }
 
     @Test
-    void shouldApplyAutomationPayment() {
-        piggyBank.getSettings().setAutomationActive(true);
-        piggyBank.getSettings().setAutomationPercentage(BigDecimal.valueOf(50));
+    void shouldApplyAutomationForActivePiggyBank() {
+        PiggyBankSettings settings = new PiggyBankSettings();
+        settings.setAutomationActive(true);
+        settings.setAutomationPercentage(BigDecimal.TEN);
+
+        PiggyBank piggyBank = new PiggyBank();
+        piggyBank.setSettings(settings);
+
+        User user = new User();
         user.setPiggyBanks(List.of(piggyBank));
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(EMAIL, BigDecimal.valueOf(200), AutoPaymentsMode.APPLY);
+        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
-        assertThat(piggyBank.getAmount()).isEqualByComparingTo(BigDecimal.valueOf(200));
-        assertThat(wallet.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(400));
-        verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(EMAIL), eq(piggyBank),
-                eq(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING), argThat(amount -> amount.compareTo(BigDecimal.valueOf(100)) == 0));
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.APPLY);
+
+        verify(autoPaymentsCore).apply(eq(email), eq(piggyBank), eq(wallet), argThat(a -> a.compareTo(new BigDecimal("1.00")) == 0));
+
+        verify(goalCompletionService).handleGoalCompletion(email);
     }
 
     @Test
-    void shouldRollbackAutomationPayment() {
-        piggyBank.getSettings().setAutomationActive(true);
-        piggyBank.getSettings().setAutomationPercentage(BigDecimal.valueOf(50));
+    void shouldRollbackAutomationForActivePiggyBank() {
+        PiggyBankSettings settings = new PiggyBankSettings();
+        settings.setAutomationActive(true);
+        settings.setAutomationPercentage(BigDecimal.TEN);
+
+        PiggyBank piggyBank = new PiggyBank();
+        piggyBank.setSettings(settings);
+
+        User user = new User();
         user.setPiggyBanks(List.of(piggyBank));
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(EMAIL, BigDecimal.valueOf(200), AutoPaymentsMode.ROLLBACK);
+        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
-        assertThat(piggyBank.getAmount()).isEqualByComparingTo(BigDecimal.valueOf(0));
-        assertThat(wallet.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(600));
-        verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(EMAIL), eq(piggyBank),
-                eq(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING), argThat(amount -> amount.compareTo(BigDecimal.valueOf(100)) == 0));
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.ROLLBACK);
+
+        verify(autoPaymentsCore).rollback(eq(email), eq(piggyBank), eq(wallet), argThat(a -> a.compareTo(new BigDecimal("1.00")) == 0));
+
+        verify(goalCompletionService).handleGoalCompletion(email);
+    }
+
+    @Test
+    void shouldHandleMultiplePiggyBanks() {
+        PiggyBankSettings activeSettings = new PiggyBankSettings();
+        activeSettings.setAutomationActive(true);
+        activeSettings.setAutomationPercentage(BigDecimal.TEN);
+
+        PiggyBankSettings inactiveSettings = new PiggyBankSettings();
+        inactiveSettings.setAutomationActive(false);
+
+        PiggyBank activePiggyBank = new PiggyBank();
+        activePiggyBank.setSettings(activeSettings);
+
+        PiggyBank inactivePiggyBank = new PiggyBank();
+        inactivePiggyBank.setSettings(inactiveSettings);
+
+        User user = new User();
+        user.setPiggyBanks(List.of(activePiggyBank, inactivePiggyBank));
+
+        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.APPLY);
+
+        verify(autoPaymentsCore).apply(eq(email), eq(activePiggyBank), eq(wallet), argThat(a -> a.compareTo(new BigDecimal("1.00")) == 0));
+
+        verify(autoPaymentsCore, never()).apply(eq(email), eq(inactivePiggyBank), any(), any());
+
+        verify(goalCompletionService).handleGoalCompletion(email);
+    }
+
+    @Test
+    void shouldHandleNullPiggyBanks() {
+        User user = new User();
+        user.setPiggyBanks(null);
+
+        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.APPLY);
+
+        verifyNoInteractions(autoPaymentsCore);
+        verify(goalCompletionService, never()).handleGoalCompletion(email);
     }
 }

@@ -1,6 +1,5 @@
 package com.finovara.finovarabackend.usersetting.piggybank.autopayments.service;
 
-import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
@@ -10,6 +9,7 @@ import com.finovara.finovarabackend.usersetting.piggybank.autopayments.dto.AutoP
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
+import com.finovara.finovarabackend.util.percentage.CalculatePercentage;
 import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.wallet.WalletManagerService;
@@ -34,7 +34,6 @@ public class AutoPaymentsService {
     private final SettingsActivityService settingsActivityService;
 
     private final AutoPaymentsCore autoPaymentsCore;
-    private final AutoPaymentsCalculator autoPaymentsCalculator;
 
     @Transactional
     public void createAutomation(String email, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
@@ -98,7 +97,7 @@ public class AutoPaymentsService {
 
             if (!settings.isAutomationActive()) continue;
 
-            BigDecimal automationAmount = autoPaymentsCalculator.calculate(revenueAmount, settings.getAutomationPercentage());
+            BigDecimal automationAmount = CalculatePercentage.calculateValueFromPercentage(revenueAmount, settings.getAutomationPercentage());
 
             switch (mode) {
                 case APPLY -> autoPaymentsCore.apply(email, piggyBank, wallet, automationAmount);
@@ -110,11 +109,10 @@ public class AutoPaymentsService {
     }
 
     private void validatePercentage(AutoPaymentsDto autoPaymentsDto) {
-        if (autoPaymentsDto.isAutomationActive()) {
-            if (autoPaymentsDto.percentage() == null) {
-                throw new IllegalArgumentException("Percentage is required");
-            }
+        if (autoPaymentsDto.isAutomationActive() && autoPaymentsDto.percentage() == null) {
+            throw new IllegalArgumentException("Percentage is required");
         }
-
     }
+
 }
+
