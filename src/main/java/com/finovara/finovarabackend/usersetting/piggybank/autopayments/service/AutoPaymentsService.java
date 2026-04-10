@@ -98,7 +98,7 @@ public class AutoPaymentsService {
 
         for (PiggyBank piggyBank : user.getPiggyBanks()) {
             PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
-            if (piggyBankSettings.isAutomationActive()) { // albo zostawić jak jest albo pomyslec o !piggyBank.isAutomationActive()) continue;
+            if (piggyBankSettings.isAutomationActive()) {
                 BigDecimal automationAmount = CalculatePercentage.calculateValueFromPercentage(
                         revenueAmount,
                         piggyBankSettings.getAutomationPercentage()
