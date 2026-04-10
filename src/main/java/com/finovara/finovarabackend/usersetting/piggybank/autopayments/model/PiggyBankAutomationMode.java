@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.usersetting.piggybank.autopayments.model;
 
-public enum AutoPaymentsMode {
+public enum PiggyBankAutomationMode {
     APPLY,
     ROLLBACK
 }

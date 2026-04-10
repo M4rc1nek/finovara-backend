@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.
 
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsCore;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
@@ -54,7 +54,7 @@ class HandleAutoPaymentsTest {
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.APPLY);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
 
         verifyNoInteractions(autoPaymentsCore);
         verifyNoInteractions(goalCompletionService);
@@ -73,7 +73,7 @@ class HandleAutoPaymentsTest {
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.APPLY);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
 
         verifyNoInteractions(autoPaymentsCore);
         verify(goalCompletionService).handleGoalCompletion(email);
@@ -93,7 +93,7 @@ class HandleAutoPaymentsTest {
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.APPLY);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
 
         verify(autoPaymentsCore).apply(eq(email), eq(piggyBank), eq(wallet), argThat(a -> a.compareTo(new BigDecimal("1.00")) == 0));
 
@@ -114,7 +114,7 @@ class HandleAutoPaymentsTest {
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.ROLLBACK);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, PiggyBankAutomationMode.ROLLBACK);
 
         verify(autoPaymentsCore).rollback(eq(email), eq(piggyBank), eq(wallet), argThat(a -> a.compareTo(new BigDecimal("1.00")) == 0));
 
@@ -141,7 +141,7 @@ class HandleAutoPaymentsTest {
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.APPLY);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
 
         verify(autoPaymentsCore).apply(eq(email), eq(activePiggyBank), eq(wallet), argThat(a -> a.compareTo(new BigDecimal("1.00")) == 0));
 
@@ -157,7 +157,7 @@ class HandleAutoPaymentsTest {
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, AutoPaymentsMode.APPLY);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
 
         verifyNoInteractions(autoPaymentsCore);
         verify(goalCompletionService, never()).handleGoalCompletion(email);

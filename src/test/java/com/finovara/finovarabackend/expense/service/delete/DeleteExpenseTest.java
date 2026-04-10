@@ -7,7 +7,7 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
@@ -59,7 +59,7 @@ class DeleteExpenseTest {
         expenseService.deleteExpense(expense.getId(), email);
 
         InOrder inOrder = inOrder(roundUpService, walletService, expenseActivityService, expenseRepository);
-        inOrder.verify(roundUpService).handleExpenseForRoundUp(email, expense.getId(), AutoPaymentsMode.ROLLBACK);
+        inOrder.verify(roundUpService).handleExpenseForRoundUp(email, expense.getId(), PiggyBankAutomationMode.ROLLBACK);
         inOrder.verify(walletService).addBalanceToWallet(email, new BigDecimal("100"));
         inOrder.verify(expenseActivityService).createExpenseActivity(email, ExpenseActivityType.DELETED_EXPENSE, expense);
         inOrder.verify(expenseRepository).delete(expense);

@@ -11,6 +11,7 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.limit.exception.unprocessablecontent.LimitExceededException;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
 import com.finovara.finovarabackend.user.model.User;
@@ -18,7 +19,6 @@ import com.finovara.finovarabackend.usersetting.finances.expense.controlamount.s
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.expense.ExpenseManagerService;
 import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
@@ -77,7 +77,7 @@ public class ExpenseService {
         walletService.removeBalanceFromWallet(email, expense.getAmount());
         expenseRepository.save(expense);
 
-        roundUpService.handleExpenseForRoundUp(email, expense.getId(), AutoPaymentsMode.APPLY);
+        roundUpService.handleExpenseForRoundUp(email, expense.getId(), PiggyBankAutomationMode.APPLY);
 
         controlAmountService.handleExpenseAmountControl(email, expense.getAmount());
 
@@ -97,7 +97,7 @@ public class ExpenseService {
 
         walletService.addBalanceToWallet(email, existingExpense.getAmount());
         walletService.removeBalanceFromWallet(email, expenseRequestDto.expenseDto().amount());
-        roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.ROLLBACK);
+        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.ROLLBACK);
 
         BigDecimal oldAmount = existingExpense.getAmount();
         ExpenseCategory oldCategory = existingExpense.getCategory();
@@ -112,7 +112,7 @@ public class ExpenseService {
 
         expenseRepository.save(existingExpense);
 
-        roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.APPLY);
+        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.APPLY);
 
         controlAmountService.handleExpenseAmountControl(email, expenseRequestDto.expenseDto().amount());
 
@@ -134,7 +134,7 @@ public class ExpenseService {
         User user = userManagerService.getUserByEmailOrThrow(email);
         Expense expense = expenseRepository.findByIdAndUserAssignedId(expenseId, user.getId())
                 .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
-        roundUpService.handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.ROLLBACK);
+        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.ROLLBACK);
         walletService.addBalanceToWallet(email, expense.getAmount());
         expenseActivityService.createExpenseActivity(email, ExpenseActivityType.DELETED_EXPENSE, expense);
         expenseRepository.delete(expense);

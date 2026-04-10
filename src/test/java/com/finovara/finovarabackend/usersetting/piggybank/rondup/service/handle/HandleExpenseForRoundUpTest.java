@@ -8,7 +8,7 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
@@ -91,7 +91,7 @@ class HandleExpenseForRoundUpTest {
 
         piggyBank.getSettings().setRoundUpActive(false);
 
-        roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, AutoPaymentsMode.APPLY);
+        roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, PiggyBankAutomationMode.APPLY);
 
         assertEquals(BigDecimal.valueOf(200), piggyBank.getAmount());
         assertEquals(BigDecimal.valueOf(500), wallet.getBalance());
@@ -104,7 +104,7 @@ class HandleExpenseForRoundUpTest {
 
         piggyBank.getSettings().setRoundUpActive(true);
 
-        roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, AutoPaymentsMode.APPLY);
+        roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, PiggyBankAutomationMode.APPLY);
 
         BigDecimal expectedRoundUp = BigDecimal.valueOf(0.55);
 
@@ -129,7 +129,7 @@ class HandleExpenseForRoundUpTest {
         piggyBank.setAmount(BigDecimal.valueOf(5));
         wallet.setBalance(BigDecimal.valueOf(10));
 
-        roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, AutoPaymentsMode.ROLLBACK);
+        roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, PiggyBankAutomationMode.ROLLBACK);
 
         BigDecimal expectedRoundUp = BigDecimal.valueOf(0.55);
 
@@ -152,13 +152,13 @@ class HandleExpenseForRoundUpTest {
         expense.setAmount(BigDecimal.valueOf(9.80));
         wallet.setBalance(BigDecimal.valueOf(0.10));
 
-        assertThrows(InvalidInputException.class, () -> roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, AutoPaymentsMode.APPLY));
+        assertThrows(InvalidInputException.class, () -> roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, PiggyBankAutomationMode.APPLY));
     }
 
     @Test
     void shouldThrowExceptionWhenWalletDoesNotExist() {
         when(walletRepository.findByUserAssignedEmail(EMAIL)).thenReturn(Optional.empty());
-        assertThrows(WalletNotFoundException.class, () -> roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, AutoPaymentsMode.APPLY));
+        assertThrows(WalletNotFoundException.class, () -> roundUpService.handleExpenseForRoundUp(EMAIL, EXPENSE_ID, PiggyBankAutomationMode.APPLY));
 
     }
 }

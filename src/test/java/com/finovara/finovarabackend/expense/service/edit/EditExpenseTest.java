@@ -9,6 +9,7 @@ import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
@@ -16,7 +17,6 @@ import com.finovara.finovarabackend.usersetting.finances.expense.controlamount.s
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.expense.ExpenseManagerService;
@@ -90,11 +90,11 @@ class EditExpenseTest {
 
         verify(walletService).addBalanceToWallet(email, new BigDecimal("100"));
         verify(walletService).removeBalanceFromWallet(email, new BigDecimal("200"));
-        verify(roundUpService).handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.ROLLBACK);
+        verify(roundUpService).handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.ROLLBACK);
         verify(expenseActivityService).updateExpenseActivity(email, ExpenseActivityType.EDITED_EXPENSE, existingExpense, oldAmount, oldCategory);
         verify(smartScanService).handleSmartScan(email, dto.confirmPasswordDto(), dto.expenseDto().amount(), SmartScanMode.EDIT);
         verify(expenseRepository).save(existingExpense);
-        verify(roundUpService).handleExpenseForRoundUp(email, expenseId, AutoPaymentsMode.APPLY);
+        verify(roundUpService).handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.APPLY);
         verify(controlAmountService).handleExpenseAmountControl(email, dto.expenseDto().amount());
     }
 

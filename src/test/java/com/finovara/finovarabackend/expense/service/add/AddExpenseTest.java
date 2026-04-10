@@ -18,7 +18,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
@@ -107,7 +107,7 @@ class AddExpenseTest {
 
         verify(expenseRepository).save(any(Expense.class));
 
-        verify(roundUpService).handleExpenseForRoundUp(eq(email), anyLong(), eq(AutoPaymentsMode.APPLY));
+        verify(roundUpService).handleExpenseForRoundUp(eq(email), anyLong(), eq(PiggyBankAutomationMode.APPLY));
 
         verify(controlAmountService).handleExpenseAmountControl(email, amount);
     }

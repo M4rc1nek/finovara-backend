@@ -6,7 +6,7 @@ import com.finovara.finovarabackend.accountactivity.settings.service.SettingsAct
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.dto.AutoPaymentsDto;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.util.percentage.CalculatePercentage;
@@ -85,7 +85,7 @@ public class AutoPaymentsService {
     }
 
     @Transactional
-    public void handleRevenuePiggyBankAutomation(String email, BigDecimal revenueAmount, AutoPaymentsMode mode) {
+    public void handleRevenuePiggyBankAutomation(String email, BigDecimal revenueAmount, PiggyBankAutomationMode mode) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
 

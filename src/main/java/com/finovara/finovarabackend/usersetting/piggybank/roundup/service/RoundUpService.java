@@ -13,7 +13,7 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.dto.RoundUpDto;
@@ -74,7 +74,7 @@ public class RoundUpService {
     }
 
     @Transactional
-    public void handleExpenseForRoundUp(String email, Long expenseId, AutoPaymentsMode mode) {
+    public void handleExpenseForRoundUp(String email, Long expenseId, PiggyBankAutomationMode mode) {
         User user = userManagerService.getUserByEmailOrThrow(email);
         Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, user.getId());
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(email);

@@ -7,7 +7,7 @@ import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
@@ -60,7 +60,7 @@ class DeleteRevenueTest {
         revenueService.deleteRevenue(revenue.getId(), email);
 
         InOrder inOrder = inOrder(autoPaymentsService, walletService, revenueActivityService, revenueRepository);
-        inOrder.verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, new BigDecimal("100"), AutoPaymentsMode.ROLLBACK);
+        inOrder.verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, new BigDecimal("100"), PiggyBankAutomationMode.ROLLBACK);
         inOrder.verify(walletService).removeBalanceFromWallet(email, new BigDecimal("100"));
         inOrder.verify(revenueActivityService).createRevenueActivity(email, RevenueActivityType.DELETED_REVENUE, revenue);
         inOrder.verify(revenueRepository).delete(revenue);

@@ -10,7 +10,7 @@ import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.finovarabackend.util.revenue.RevenueManagerService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
@@ -79,8 +79,8 @@ class EditRevenueTest {
 
         revenueService.editRevenue(dto, revenueId, email);
 
-        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, new BigDecimal("50"), AutoPaymentsMode.ROLLBACK);
-        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, new BigDecimal("100"), AutoPaymentsMode.APPLY);
+        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, new BigDecimal("50"), PiggyBankAutomationMode.ROLLBACK);
+        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, new BigDecimal("100"), PiggyBankAutomationMode.APPLY);
 
         verify(revenueActivityService).updateRevenueActivity(eq(email), eq(RevenueActivityType.EDITED_REVENUE),
                 eq(existingRevenue), eq(new BigDecimal("50")), eq(RevenueCategory.SALARY));

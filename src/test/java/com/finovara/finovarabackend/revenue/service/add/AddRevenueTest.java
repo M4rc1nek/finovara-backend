@@ -9,7 +9,7 @@ import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.AutoPaymentsMode;
+import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import com.finovara.finovarabackend.wallet.service.WalletService;
@@ -55,7 +55,7 @@ class AddRevenueTest {
         verify(walletService).addBalanceToWallet(email, dto.amount());
         verify(revenueActivityService).createRevenueActivity(eq(email), eq(RevenueActivityType.ADDED_REVENUE), any(Revenue.class));
         verify(revenueRepository).save(any(Revenue.class));
-        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, dto.amount(), AutoPaymentsMode.APPLY);
+        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, dto.amount(), PiggyBankAutomationMode.APPLY);
     }
 
     @Test
