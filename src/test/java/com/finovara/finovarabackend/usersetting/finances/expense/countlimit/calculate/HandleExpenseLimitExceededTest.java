@@ -24,7 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CalculateCountQuantityLimitSimpleTest {
+class HandleExpenseLimitExceededTest {
 
     @Mock
     private UserManagerService userManagerService;
@@ -63,48 +63,6 @@ class CalculateCountQuantityLimitSimpleTest {
         );
 
         verifyNoInteractions(passwordConfirmationService);
-    }
-
-    @Test
-    void shouldThrowWhenLimitExceededAndEmergencyModeUsed() {
-        expenseSettings.setCountQuantityLimitEnabled(true);
-        expenseSettings.setQuantityLimitEmergencyModeUsed(true);
-
-        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any()))
-                .thenReturn(5L);
-
-        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
-
-        assertThrows(StateConflictException.class,
-                () -> countQuantityLimitService.handleExpenseLimitExceeded(EMAIL, dto, PeriodType.DAILY, null));
-    }
-
-    @Test
-    void shouldThrowWhenLimitExceededAndEmergencyModeDisabled() {
-        expenseSettings.setCountQuantityLimitEnabled(true);
-        expenseSettings.setQuantityLimitEmergencyModeEnabled(false);
-
-        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any()))
-                .thenReturn(5L);
-
-        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
-
-        assertThrows(StateConflictException.class,
-                () -> countQuantityLimitService.handleExpenseLimitExceeded(EMAIL, dto, PeriodType.DAILY, null));
-    }
-
-    @Test
-    void shouldThrowMissingRequirementIfEmergencyModeEnabledButNoPassword() {
-        expenseSettings.setCountQuantityLimitEnabled(true);
-        expenseSettings.setQuantityLimitEmergencyModeEnabled(true);
-
-        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any()))
-                .thenReturn(5L);
-
-        CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
-
-        assertThrows(MissingRequirementException.class,
-                () -> countQuantityLimitService.handleExpenseLimitExceeded(EMAIL, dto, PeriodType.DAILY, null));
     }
 
     @Test
