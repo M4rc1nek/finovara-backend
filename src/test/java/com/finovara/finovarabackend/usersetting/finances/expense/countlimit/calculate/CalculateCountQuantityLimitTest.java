@@ -55,7 +55,7 @@ class CalculateCountQuantityLimitSimpleTest {
     void shouldDoNothingWhenLimitDisabled() {
         expenseSettings.setCountQuantityLimitEnabled(false);
 
-        countQuantityLimitService.calculateCountQuantityLimit(
+        countQuantityLimitService.handleExpenseLimitExceeded(
                 EMAIL,
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 5),
                 PeriodType.DAILY,
@@ -76,7 +76,7 @@ class CalculateCountQuantityLimitSimpleTest {
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
         assertThrows(StateConflictException.class,
-                () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
+                () -> countQuantityLimitService.handleExpenseLimitExceeded(EMAIL, dto, PeriodType.DAILY, null));
     }
 
     @Test
@@ -90,7 +90,7 @@ class CalculateCountQuantityLimitSimpleTest {
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
         assertThrows(StateConflictException.class,
-                () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
+                () -> countQuantityLimitService.handleExpenseLimitExceeded(EMAIL, dto, PeriodType.DAILY, null));
     }
 
     @Test
@@ -104,7 +104,7 @@ class CalculateCountQuantityLimitSimpleTest {
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
         assertThrows(MissingRequirementException.class,
-                () -> countQuantityLimitService.calculateCountQuantityLimit(EMAIL, dto, PeriodType.DAILY, null));
+                () -> countQuantityLimitService.handleExpenseLimitExceeded(EMAIL, dto, PeriodType.DAILY, null));
     }
 
     @Test
@@ -118,7 +118,7 @@ class CalculateCountQuantityLimitSimpleTest {
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
         ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("password");
 
-        countQuantityLimitService.calculateCountQuantityLimit(
+        countQuantityLimitService.handleExpenseLimitExceeded(
                 EMAIL,
                 dto,
                 PeriodType.DAILY,

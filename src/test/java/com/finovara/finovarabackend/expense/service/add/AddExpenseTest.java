@@ -97,7 +97,7 @@ class AddExpenseTest {
         // then
         assertEquals(1L, result);
 
-        verify(countQuantityLimitService).calculateCountQuantityLimit(email, dto.countQuantityLimitDto(),
+        verify(countQuantityLimitService).handleExpenseLimitExceeded(email, dto.countQuantityLimitDto(),
                 dto.countQuantityLimitDto().periodType(), dto.confirmPasswordDto());
 
         verify(expenseActivityService).createExpenseActivity(eq(email), eq(ExpenseActivityType.ADDED_EXPENSE), any());

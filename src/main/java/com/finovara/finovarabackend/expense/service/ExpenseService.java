@@ -56,7 +56,7 @@ public class ExpenseService {
 
         validateLimitOrThrow(user.getId(), periodType, BigDecimal.ZERO, expenseRequestDto.expenseDto().amount());
 
-        countQuantityLimitService.calculateCountQuantityLimit(email, expenseRequestDto.countQuantityLimitDto(),
+        countQuantityLimitService.handleExpenseLimitExceeded(email, expenseRequestDto.countQuantityLimitDto(),
                 expenseRequestDto.countQuantityLimitDto().periodType(), expenseRequestDto.confirmPasswordDto());
 
         Expense expense = Expense.builder()
