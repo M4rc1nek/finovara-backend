@@ -4,6 +4,7 @@ import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
+import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.validator.CountQuantityLimitValidator;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
@@ -32,6 +33,9 @@ class HandleExpenseLimitExceededTest {
 
     @Mock
     private PasswordConfirmationService passwordConfirmationService;
+
+    @Mock
+    private CountQuantityLimitValidator countQuantityLimitValidator;
 
     @InjectMocks
     private CountQuantityLimitService countQuantityLimitService;
