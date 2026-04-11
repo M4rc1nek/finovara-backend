@@ -1,5 +1,7 @@
 package com.finovara.finovarabackend.config.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +50,7 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public RestTemplate restTemplate(){
+    public RestTemplate restTemplate() {
         return new RestTemplate();
     }
 
