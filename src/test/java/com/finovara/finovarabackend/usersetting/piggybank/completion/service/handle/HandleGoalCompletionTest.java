@@ -7,7 +7,6 @@ import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalC
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionCore;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
-import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
@@ -29,21 +28,23 @@ class HandleGoalCompletionTest {
 
     @Mock
     private UserManagerService userManagerService;
+
     @Mock
     private WalletManagerService walletManagerService;
+
     @Mock
     private PiggyBankRepository piggyBankRepository;
+
     @Mock
     private GoalCompletionCore goalCompletionCore;
+
     @Mock
     private WalletRepository walletRepository;
-    @Mock
-    private PiggyBankSettingsRepository piggyBankSettingsRepository;
 
     @InjectMocks
     private GoalCompletionService goalCompletionService;
 
-    private final String EMAIL = "test@test.com";
+    private static final String EMAIL = "test@test.com";
 
     private User user;
     private Wallet wallet;
@@ -64,7 +65,6 @@ class HandleGoalCompletionTest {
 
         settings = new PiggyBankSettings();
         settings.setGoalCompletionStrategy(GoalCompletionStrategy.WITHDRAW_AND_KEEP);
-        settings.setGoalCompletedHandled(false);
 
         piggyBank.setSettings(settings);
 
@@ -74,41 +74,29 @@ class HandleGoalCompletionTest {
     }
 
     @Test
-    void shouldNotCallCoreWhenGoalNotCompleted() {
+    void shouldNotCallCoreWhenGoalNotReached() {
         piggyBank.setAmount(BigDecimal.valueOf(100));
 
         goalCompletionService.handleGoalCompletion(EMAIL);
 
         verify(goalCompletionCore, never()).apply(any(), any(), any(), any(), any());
-        verify(piggyBankSettingsRepository, never()).save(any());
+
         verify(walletRepository).save(wallet);
     }
 
     @Test
-    void shouldNotCallCoreWhenAlreadyHandled() {
-        settings.setGoalCompletedHandled(true);
-
-        goalCompletionService.handleGoalCompletion(EMAIL);
-
-        verify(goalCompletionCore, never()).apply(any(), any(), any(), any(), any());
-        verify(piggyBankSettingsRepository, never()).save(any());
-        verify(walletRepository).save(wallet);
-    }
-
-    @Test
-    void shouldCallCoreAndMarkHandledWhenGoalCompleted() {
+    void shouldCallCoreWhenGoalReached() {
         piggyBank.setAmount(BigDecimal.valueOf(200));
 
         goalCompletionService.handleGoalCompletion(EMAIL);
 
         verify(goalCompletionCore).apply(eq(EMAIL), eq(piggyBank), eq(wallet), eq(user), eq(GoalCompletionStrategy.WITHDRAW_AND_KEEP));
 
-        verify(piggyBankSettingsRepository).save(settings);
         verify(walletRepository).save(wallet);
     }
 
     @Test
-    void shouldUseNoneStrategyWhenNull() {
+    void shouldUseNoneWhenStrategyIsNull() {
         settings.setGoalCompletionStrategy(null);
         piggyBank.setAmount(BigDecimal.valueOf(200));
 
@@ -125,8 +113,6 @@ class HandleGoalCompletionTest {
 
         PiggyBankSettings secondSettings = new PiggyBankSettings();
         secondSettings.setGoalCompletionStrategy(GoalCompletionStrategy.NONE);
-        secondSettings.setGoalCompletedHandled(false);
-
         second.setSettings(secondSettings);
 
         when(piggyBankRepository.findAllByUserAssignedEmail(EMAIL)).thenReturn(List.of(piggyBank, second));
@@ -134,6 +120,7 @@ class HandleGoalCompletionTest {
         goalCompletionService.handleGoalCompletion(EMAIL);
 
         verify(goalCompletionCore, times(2)).apply(any(), any(), any(), any(), any());
-        verify(piggyBankSettingsRepository, times(2)).save(any());
+
+        verify(walletRepository).save(wallet);
     }
 }

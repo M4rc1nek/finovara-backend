@@ -208,9 +208,6 @@
             <column name="goal_completion_strategy" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="goal_completed_handled" type="BOOLEAN">
-                <constraints nullable="false"/>
-            </column>
             <column name="piggy_bank_id" type="BIGINT">
                 <constraints nullable="false" unique="true" foreignKeyName="fk_piggy_bank_settings_pb"
                              references="piggy_banks(id)"/>
