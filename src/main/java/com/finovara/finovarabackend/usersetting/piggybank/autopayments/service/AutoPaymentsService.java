@@ -98,11 +98,8 @@ public class AutoPaymentsService {
             if (!settings.isAutomationActive()) continue;
 
             BigDecimal automationAmount = CalculatePercentage.calculateValueFromPercentage(revenueAmount, settings.getAutomationPercentage());
+            autoPaymentsCore.getCalculationCore(email, piggyBank, wallet, automationAmount, mode);
 
-            switch (mode) {
-                case APPLY -> autoPaymentsCore.apply(email, piggyBank, wallet, automationAmount);
-                case ROLLBACK -> autoPaymentsCore.rollback(email, piggyBank, wallet, automationAmount);
-            }
         }
 
         goalCompletionService.handleGoalCompletion(email);
