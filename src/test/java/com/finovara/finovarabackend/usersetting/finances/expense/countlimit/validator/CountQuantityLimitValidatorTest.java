@@ -12,13 +12,13 @@ import org.junit.jupiter.params.provider.CsvSource;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CountQuantityLimitValidatorTest {
-    private ExpenseSettings expenseSettings;
     private CountQuantityLimitValidator countQuantityLimitValidator;
+    private ExpenseSettings expenseSettings;
 
     @BeforeEach
     void setup() {
         expenseSettings = new ExpenseSettings();
-        countQuantityLimitValidator = new CountQuantityLimitValidator(expenseSettings);
+        countQuantityLimitValidator = new CountQuantityLimitValidator();
     }
 
     @ParameterizedTest
@@ -31,7 +31,7 @@ class CountQuantityLimitValidatorTest {
         expenseSettings.setQuantityLimitEmergencyModeEnabled(emergencyModeEnabled);
 
         assertThrows(StateConflictException.class,
-                () -> countQuantityLimitValidator.validateEmergencyMode(5L, new ConfirmPasswordDto("password")));
+                () -> countQuantityLimitValidator.validateEmergencyMode(5L, new ConfirmPasswordDto("password"), expenseSettings));
     }
 
     @Test
@@ -40,6 +40,6 @@ class CountQuantityLimitValidatorTest {
         expenseSettings.setQuantityLimitEmergencyModeEnabled(true);
 
         assertThrows(MissingRequirementException.class,
-                () -> countQuantityLimitValidator.validateEmergencyMode(5L, null));
+                () -> countQuantityLimitValidator.validateEmergencyMode(5L, null, expenseSettings));
     }
 }

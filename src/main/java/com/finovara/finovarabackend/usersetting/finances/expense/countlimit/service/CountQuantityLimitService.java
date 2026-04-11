@@ -67,7 +67,7 @@ public class CountQuantityLimitService {
         long countedExpenses = countExpensesInPeriod(user, periodType);
         if (countedExpenses + 1 > dto.numberOfQuantityLimit()) {
 
-            countQuantityLimitValidator.validateEmergencyMode(countedExpenses, confirmPasswordDto);
+            countQuantityLimitValidator.validateEmergencyMode(countedExpenses, confirmPasswordDto,expenseSettings);
 
             passwordConfirmationService.confirmPassword(email, confirmPasswordDto);
             expenseSettings.setQuantityLimitEmergencyModeEnabled(false);
