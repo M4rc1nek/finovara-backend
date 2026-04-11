@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -78,8 +79,8 @@ class RoundUpCoreTest {
 
         roundUpCore.process(EMAIL, piggyBank, wallet, roundUp, PiggyBankAutomationMode.ROLLBACK);
 
-        assertEquals(BigDecimal.ZERO, piggyBank.getAmount());
-        assertEquals(new BigDecimal("13.00"), wallet.getBalance());
+        assertThat(piggyBank.getAmount()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(wallet.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(13));
 
         verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(EMAIL), eq(piggyBank), eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING), eq(new BigDecimal("3.00")));
     }
