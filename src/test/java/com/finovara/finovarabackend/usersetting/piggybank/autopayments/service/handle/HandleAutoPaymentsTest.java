@@ -117,9 +117,9 @@ class HandleAutoPaymentsTest {
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
 
-        verify(autoPaymentsCore).getCalculationCore(eq(email), eq(activePiggyBank), eq(wallet), any(), eq(PiggyBankAutomationMode.APPLY));
+        verify(autoPaymentsCore).process(eq(email), eq(activePiggyBank), eq(wallet), any(), eq(PiggyBankAutomationMode.APPLY));
 
-        verify(autoPaymentsCore, never()).getCalculationCore(eq(email), eq(inactivePiggyBank), any(), any(), any());
+        verify(autoPaymentsCore, never()).process(eq(email), eq(inactivePiggyBank), any(), any(), any());
 
         verify(goalCompletionService).handleGoalCompletion(email);
     }
@@ -141,7 +141,7 @@ class HandleAutoPaymentsTest {
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, mode);
 
-        verify(autoPaymentsCore).getCalculationCore(eq(email), eq(piggyBank), eq(wallet), argThat(amount -> amount.compareTo(new BigDecimal("1.00")) == 0), eq(mode));
+        verify(autoPaymentsCore).process(eq(email), eq(piggyBank), eq(wallet), argThat(amount -> amount.compareTo(new BigDecimal("1.00")) == 0), eq(mode));
 
         verify(goalCompletionService).handleGoalCompletion(email);
     }

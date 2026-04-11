@@ -1,11 +1,9 @@
 package com.finovara.finovarabackend.usersetting.piggybank.roundup.service;
 
-import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
@@ -43,6 +41,7 @@ public class RoundUpService {
     private final PiggyBankActivityService piggyBankActivityService;
     private final GoalCompletionService goalCompletionService;
     private final SettingsActivityService settingsActivityService;
+    private final RoundUpCore roundUpCore;
 
     @Transactional
     public RoundUpDto getRoundUp(String email, Long piggyBankId) {
@@ -66,49 +65,43 @@ public class RoundUpService {
 
         PiggyBankSettings settings = piggyBank.getSettings();
         settings.setRoundUpActive(dto.roundUpActive());
-        if(settings.isRoundUpActive()){
+        if (settings.isRoundUpActive()) {
             settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.PIGGY_BANK_ROUND_UP);
-        }else {
+        } else {
             settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.PIGGY_BANK_ROUND_UP);
         }
     }
 
     @Transactional
     public void handleExpenseForRoundUp(String email, Long expenseId, PiggyBankAutomationMode mode) {
+
         User user = userManagerService.getUserByEmailOrThrow(email);
         Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, user.getId());
+
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(email);
+
         Wallet wallet = walletRepository.findByUserAssignedEmail(email)
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
 
         if (piggyBanks == null || piggyBanks.isEmpty()) return;
 
+        BigDecimal expenseAmount = expense.getAmount();
+        BigDecimal roundUpAmount = calculateRoundUp(expenseAmount);
+
         for (PiggyBank piggyBank : piggyBanks) {
-            PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
-            if (piggyBankSettings.isRoundUpActive()) {
-                BigDecimal expenseAmount = expense.getAmount();
-                BigDecimal roundUpAmount = expenseAmount.setScale(0, RoundingMode.CEILING).subtract(expenseAmount);
-                if (wallet.getBalance().compareTo(roundUpAmount) < 0) {
-                    throw new InvalidInputException("Insufficient funds for round-up");
-                }
-                switch (mode) {
-                    case APPLY -> {
-                        if (roundUpAmount.compareTo(BigDecimal.ZERO) > 0) {
-                            piggyBank.setAmount(piggyBank.getAmount().add(roundUpAmount));
-                            wallet.setBalance(wallet.getBalance().subtract(roundUpAmount));
-                            piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, roundUpAmount);
-                        }
-                    }
-                    case ROLLBACK -> {
-                        BigDecimal amountToRollBack = roundUpAmount.min(piggyBank.getAmount());
-                        piggyBank.setAmount(piggyBank.getAmount().subtract(amountToRollBack));
-                        wallet.setBalance(wallet.getBalance().add(amountToRollBack));
-                        piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, roundUpAmount);
-                    }
-                }
-            }
+
+            PiggyBankSettings settings = piggyBank.getSettings();
+
+            if (!settings.isRoundUpActive()) continue;
+
+            roundUpCore.process(email, piggyBank, wallet, roundUpAmount, mode);
         }
+
         goalCompletionService.handleGoalCompletion(email);
+    }
+
+    private BigDecimal calculateRoundUp(BigDecimal amount) {
+        return amount.setScale(0, RoundingMode.CEILING).subtract(amount);
     }
 
 }

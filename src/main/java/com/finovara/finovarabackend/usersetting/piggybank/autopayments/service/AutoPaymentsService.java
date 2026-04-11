@@ -98,7 +98,7 @@ public class AutoPaymentsService {
             if (!settings.isAutomationActive()) continue;
 
             BigDecimal automationAmount = CalculatePercentage.calculateValueFromPercentage(revenueAmount, settings.getAutomationPercentage());
-            autoPaymentsCore.getCalculationCore(email, piggyBank, wallet, automationAmount, mode);
+            autoPaymentsCore.process(email, piggyBank, wallet, automationAmount, mode);
 
         }
 

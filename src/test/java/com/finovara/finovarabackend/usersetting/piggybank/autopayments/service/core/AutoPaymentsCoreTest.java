@@ -44,7 +44,7 @@ class AutoPaymentsCoreTest {
 
     @Test
     void shouldApplyFullAmount() {
-        autoPaymentsCore.getCalculationCore(EMAIL, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.APPLY);
+        autoPaymentsCore.process(EMAIL, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.APPLY);
 
         assertThat(piggyBank.getAmount()).isEqualByComparingTo("300");
         assertThat(wallet.getBalance()).isEqualByComparingTo("300");
@@ -56,7 +56,7 @@ class AutoPaymentsCoreTest {
     void shouldApplyOnlyAvailableBalance() {
         wallet.setBalance(BigDecimal.valueOf(50));
 
-        autoPaymentsCore.getCalculationCore(EMAIL, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.APPLY);
+        autoPaymentsCore.process(EMAIL, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.APPLY);
 
         assertThat(piggyBank.getAmount()).isEqualByComparingTo("150");
         assertThat(wallet.getBalance()).isEqualByComparingTo("0");
@@ -68,7 +68,7 @@ class AutoPaymentsCoreTest {
     void shouldApplyZeroWhenWalletEmpty() {
         wallet.setBalance(BigDecimal.ZERO);
 
-        autoPaymentsCore.getCalculationCore(EMAIL, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.APPLY);
+        autoPaymentsCore.process(EMAIL, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.APPLY);
 
         assertThat(piggyBank.getAmount()).isEqualByComparingTo("100");
         assertThat(wallet.getBalance()).isEqualByComparingTo("0");
@@ -79,7 +79,7 @@ class AutoPaymentsCoreTest {
 
     @Test
     void shouldRollbackFullAmount() {
-        autoPaymentsCore.getCalculationCore(EMAIL, piggyBank, wallet, BigDecimal.valueOf(50), PiggyBankAutomationMode.ROLLBACK);
+        autoPaymentsCore.process(EMAIL, piggyBank, wallet, BigDecimal.valueOf(50), PiggyBankAutomationMode.ROLLBACK);
 
         assertThat(piggyBank.getAmount()).isEqualByComparingTo("50");
         assertThat(wallet.getBalance()).isEqualByComparingTo("550");
@@ -89,7 +89,7 @@ class AutoPaymentsCoreTest {
 
     @Test
     void shouldRollbackOnlyAvailableInPiggyBank() {
-        autoPaymentsCore.getCalculationCore(EMAIL, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.ROLLBACK);
+        autoPaymentsCore.process(EMAIL, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.ROLLBACK);
 
         assertThat(piggyBank.getAmount()).isEqualByComparingTo("0");
         assertThat(wallet.getBalance()).isEqualByComparingTo("600");
@@ -101,7 +101,7 @@ class AutoPaymentsCoreTest {
     void shouldRollbackZeroWhenPiggyBankEmpty() {
         piggyBank.setAmount(BigDecimal.ZERO);
 
-        autoPaymentsCore.getCalculationCore(EMAIL, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.ROLLBACK);
+        autoPaymentsCore.process(EMAIL, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.ROLLBACK);
 
         assertThat(piggyBank.getAmount()).isEqualByComparingTo("0");
         assertThat(wallet.getBalance()).isEqualByComparingTo("500");
