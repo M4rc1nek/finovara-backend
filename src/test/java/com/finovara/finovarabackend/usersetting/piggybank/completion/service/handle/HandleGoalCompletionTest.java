@@ -7,6 +7,7 @@ import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalC
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionCore;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
+import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.model.Wallet;
@@ -36,6 +37,8 @@ class HandleGoalCompletionTest {
     private GoalCompletionCore goalCompletionCore;
     @Mock
     private WalletRepository walletRepository;
+    @Mock
+    private PiggyBankSettingsRepository piggyBankSettingsRepository;
 
     @InjectMocks
     private GoalCompletionService goalCompletionService;
@@ -45,6 +48,7 @@ class HandleGoalCompletionTest {
     private User user;
     private Wallet wallet;
     private PiggyBank piggyBank;
+    private PiggyBankSettings settings;
 
     @BeforeEach
     void setup() {
@@ -58,8 +62,10 @@ class HandleGoalCompletionTest {
         piggyBank.setAmount(BigDecimal.valueOf(200));
         piggyBank.setGoalAmount(BigDecimal.valueOf(200));
 
-        PiggyBankSettings settings = new PiggyBankSettings();
+        settings = new PiggyBankSettings();
         settings.setGoalCompletionStrategy(GoalCompletionStrategy.WITHDRAW_AND_KEEP);
+        settings.setGoalCompletedHandled(false);
+
         piggyBank.setSettings(settings);
 
         when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
@@ -74,23 +80,36 @@ class HandleGoalCompletionTest {
         goalCompletionService.handleGoalCompletion(EMAIL);
 
         verify(goalCompletionCore, never()).apply(any(), any(), any(), any(), any());
+        verify(piggyBankSettingsRepository, never()).save(any());
         verify(walletRepository).save(wallet);
     }
 
     @Test
-    void shouldCallCoreWhenGoalCompleted() {
+    void shouldNotCallCoreWhenAlreadyHandled() {
+        settings.setGoalCompletedHandled(true);
+
+        goalCompletionService.handleGoalCompletion(EMAIL);
+
+        verify(goalCompletionCore, never()).apply(any(), any(), any(), any(), any());
+        verify(piggyBankSettingsRepository, never()).save(any());
+        verify(walletRepository).save(wallet);
+    }
+
+    @Test
+    void shouldCallCoreAndMarkHandledWhenGoalCompleted() {
         piggyBank.setAmount(BigDecimal.valueOf(200));
 
         goalCompletionService.handleGoalCompletion(EMAIL);
 
         verify(goalCompletionCore).apply(eq(EMAIL), eq(piggyBank), eq(wallet), eq(user), eq(GoalCompletionStrategy.WITHDRAW_AND_KEEP));
 
+        verify(piggyBankSettingsRepository).save(settings);
         verify(walletRepository).save(wallet);
     }
 
     @Test
     void shouldUseNoneStrategyWhenNull() {
-        piggyBank.getSettings().setGoalCompletionStrategy(null);
+        settings.setGoalCompletionStrategy(null);
         piggyBank.setAmount(BigDecimal.valueOf(200));
 
         goalCompletionService.handleGoalCompletion(EMAIL);
@@ -104,14 +123,17 @@ class HandleGoalCompletionTest {
         second.setAmount(BigDecimal.valueOf(200));
         second.setGoalAmount(BigDecimal.valueOf(200));
 
-        PiggyBankSettings settings = new PiggyBankSettings();
-        settings.setGoalCompletionStrategy(GoalCompletionStrategy.NONE);
-        second.setSettings(settings);
+        PiggyBankSettings secondSettings = new PiggyBankSettings();
+        secondSettings.setGoalCompletionStrategy(GoalCompletionStrategy.NONE);
+        secondSettings.setGoalCompletedHandled(false);
+
+        second.setSettings(secondSettings);
 
         when(piggyBankRepository.findAllByUserAssignedEmail(EMAIL)).thenReturn(List.of(piggyBank, second));
 
         goalCompletionService.handleGoalCompletion(EMAIL);
 
         verify(goalCompletionCore, times(2)).apply(any(), any(), any(), any(), any());
+        verify(piggyBankSettingsRepository, times(2)).save(any());
     }
 }

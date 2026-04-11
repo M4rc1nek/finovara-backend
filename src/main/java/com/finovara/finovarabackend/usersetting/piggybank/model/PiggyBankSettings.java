@@ -33,6 +33,9 @@ public class PiggyBankSettings {
     @Enumerated(EnumType.STRING)
     private GoalCompletionStrategy goalCompletionStrategy;
 
+    @Column(nullable = false)
+    private boolean goalCompletedHandled;
+
     @OneToOne
     @JoinColumn(name = "piggy_bank_id")
     private PiggyBank piggyBankAssigned;

@@ -116,7 +116,8 @@
             <column name="forgot_password_code_expires_at" type="TIMESTAMP"/>
 
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_account_settings_user" references="users(id)"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_account_settings_user"
+                             references="users(id)"/>
             </column>
         </createTable>
     </changeSet>
@@ -132,7 +133,8 @@
             <column name="notify_on_account_deleted" type="BOOLEAN"/>
 
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_notification_settings_user" references="users(id)"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_notification_settings_user"
+                             references="users(id)"/>
             </column>
         </createTable>
     </changeSet>
@@ -159,7 +161,8 @@
             <column name="quantity_limit_emergency_mode_enabled" type="BOOLEAN"/>
             <column name="quantity_limit_emergency_mode_used" type="BOOLEAN"/>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_expense_settings_user" references="users(id)"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_expense_settings_user"
+                             references="users(id)"/>
             </column>
         </createTable>
     </changeSet>
@@ -182,7 +185,8 @@
             </column>
 
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_revenue_settings_user" references="users(id)"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_revenue_settings_user"
+                             references="users(id)"/>
             </column>
         </createTable>
     </changeSet>
@@ -204,8 +208,12 @@
             <column name="goal_completion_strategy" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="goal_completed_handled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
             <column name="piggy_bank_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_piggy_bank_settings_pb" references="piggy_banks(id)"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_piggy_bank_settings_pb"
+                             references="piggy_banks(id)"/>
             </column>
         </createTable>
     </changeSet>

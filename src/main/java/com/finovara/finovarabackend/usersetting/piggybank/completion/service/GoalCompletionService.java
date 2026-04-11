@@ -7,6 +7,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.dto.GoalCompletionDto;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
+import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.finovarabackend.util.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ public class GoalCompletionService {
     private final WalletManagerService walletManagerService;
     private final PiggyBankManagerService piggyBankManagerService;
     private final PiggyBankRepository piggyBankRepository;
+    private final PiggyBankSettingsRepository piggyBankSettingsRepository;
     private final GoalCompletionCore goalCompletionCore;
     private final WalletRepository walletRepository;
 
@@ -69,16 +72,15 @@ public class GoalCompletionService {
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(user.getEmail());
 
         for (PiggyBank piggyBank : piggyBanks) {
-            if (!PiggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)) {
+            PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
+            if (!PiggyBankCheckGoalCompletion.isGoalCompleted(piggyBank) || piggyBankSettings.isGoalCompletedHandled()) {
                 continue;
             }
-
-            GoalCompletionStrategy strategy = piggyBank.getSettings().getGoalCompletionStrategy();
-            if (strategy == null) {
-                strategy = GoalCompletionStrategy.NONE;
-            }
-
+            GoalCompletionStrategy strategy = Optional.ofNullable(piggyBankSettings.getGoalCompletionStrategy())
+                    .orElse(GoalCompletionStrategy.NONE);
             goalCompletionCore.apply(email, piggyBank, wallet, user, strategy);
+            piggyBankSettings.setGoalCompletedHandled(true);
+            piggyBankSettingsRepository.save(piggyBankSettings);
         }
         walletRepository.save(wallet);
     }
