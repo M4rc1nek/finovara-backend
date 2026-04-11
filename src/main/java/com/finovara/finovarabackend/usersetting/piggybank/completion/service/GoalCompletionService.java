@@ -1,12 +1,11 @@
 package com.finovara.finovarabackend.usersetting.piggybank.completion.service;
 
-import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
-import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.dto.GoalCompletionDto;
+import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.util.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
@@ -28,8 +27,8 @@ public class GoalCompletionService {
     private final WalletManagerService walletManagerService;
     private final PiggyBankManagerService piggyBankManagerService;
     private final PiggyBankRepository piggyBankRepository;
+    private final GoalCompletionCore goalCompletionCore;
     private final WalletRepository walletRepository;
-    private final PiggyBankActivityService piggyBankActivityService;
 
     @Transactional
     public void addGoalCompletion(Long piggyBankId, String email, GoalCompletionDto goalCompletionDto) {
@@ -70,48 +69,17 @@ public class GoalCompletionService {
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(user.getEmail());
 
         for (PiggyBank piggyBank : piggyBanks) {
-            PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
             if (!PiggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)) {
                 continue;
             }
 
-            switch (piggyBankSettings.getGoalCompletionStrategy()) {
-                case NONE -> {
-                }
-
-                case WITHDRAW_AND_KEEP -> {
-                    BigDecimal amountToWithdraw = piggyBank.getAmount();
-                    transferFund(piggyBank, wallet);
-                    BigDecimal amountPaid = amountToWithdraw;
-                    piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, amountPaid);
-                }
-
-                case WITHDRAW_AND_DELETE -> {
-                    BigDecimal amountToWithdraw = piggyBank.getAmount();
-                    transferFund(piggyBank, wallet);
-                    BigDecimal amountPaid = amountToWithdraw;
-                    piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, amountPaid);
-                    piggyBankActivityService.createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
-                    // Safety check: ensure no money is left before deleting.
-                    if (piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
-                        throw new InvalidInputException("Cannot delete piggy bank with balance.");
-                    }
-                    user.getPiggyBanks().remove(piggyBank); // User entity has orphanRemoval = true
-                }
+            GoalCompletionStrategy strategy = piggyBank.getSettings().getGoalCompletionStrategy();
+            if (strategy == null) {
+                strategy = GoalCompletionStrategy.NONE;
             }
+
+            goalCompletionCore.apply(email, piggyBank, wallet, user, strategy);
         }
         walletRepository.save(wallet);
     }
-
-    private void transferFund(PiggyBank piggyBank, Wallet wallet) {
-        BigDecimal amountToTransfer = piggyBank.getAmount();
-
-        if (amountToTransfer == null || amountToTransfer.compareTo(BigDecimal.ZERO) <= 0) {
-            return;
-        }
-
-        wallet.setBalance(wallet.getBalance().add(amountToTransfer));
-        piggyBank.setAmount(BigDecimal.ZERO);
-    }
-
 }
