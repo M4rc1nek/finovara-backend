@@ -1,9 +1,10 @@
 package com.finovara.finovarabackend.notification.model;
+
 import com.finovara.finovarabackend.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "notifications")
@@ -21,7 +22,11 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     private NotificationType type;
 
-    private LocalDateTime createdAt;
+    private LocalDate createdAt;
+
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    private String payload;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
