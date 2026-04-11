@@ -14,7 +14,7 @@ public record LimitStatsDto(
         BigDecimal remaining,
         BigDecimal percentage,
         LimitStatus status,
-        LocalDate date
+        LocalDate createdAt
 
 ) {
 }

@@ -33,7 +33,7 @@ public class LimitNotificationService implements NotificationCreator {
             if (stats.percentage().compareTo(WARNING_THRESHOLD) >= 0) {
                 result.add(new LimitNotificationDto(
                         NotificationType.LIMIT_EXCEEDED_WARNING,
-                        stats.date(),
+                        stats.createdAt(),
                         stats.percentage(),
                         stats.periodType()
                 ));
