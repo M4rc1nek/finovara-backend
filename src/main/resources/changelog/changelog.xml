@@ -383,6 +383,7 @@
             <column name="created_at" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="payload" type="TEXT"/>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" foreignKeyName="fk_notifications_user" references="users(id)"/>
             </column>
