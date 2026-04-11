@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 public class AutoPaymentsCore {
     private final PiggyBankActivityService piggyBankActivityService;
 
-    public void getCalculationCore(String email, PiggyBank piggyBank, Wallet wallet, BigDecimal automationAmount, PiggyBankAutomationMode mode) {
+    public void process(String email, PiggyBank piggyBank, Wallet wallet, BigDecimal automationAmount, PiggyBankAutomationMode mode) {
         switch (mode) {
             case APPLY -> apply(email, piggyBank, wallet, automationAmount);
             case ROLLBACK -> rollback(email, piggyBank, wallet, automationAmount);
