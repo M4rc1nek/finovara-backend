@@ -52,4 +52,10 @@ public class ApplicationConfig {
         return new RestTemplate();
     }
 
+    @Bean
+    public ObjectMapper objectMapper() {
+        return JsonMapper.builder()
+                .findAndAddModules()
+                .build();
+    }
 }
