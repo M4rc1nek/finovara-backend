@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.model.Notification;
+import com.finovara.finovarabackend.notification.model.NotificationType;
 import com.finovara.finovarabackend.notification.repository.NotificationRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
@@ -13,7 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -26,8 +29,10 @@ public class NotificationPersistenceService {
     @Transactional
     public void saveAll(Long userId, List<NotificationResponse> dtoList) {
         User user = userManagerService.getUserByIdOrThrow(userId);
+        Set<NotificationType> existingTypes = new HashSet<>(notificationRepository.findAllTypesByUserAssignedId(userId));
 
         List<Notification> entitiesToSave = dtoList.stream()
+                .filter(dto -> !existingTypes.contains(dto.type()))
                 .map(dto -> Notification.builder()
                         .type(dto.type())
                         .createdAt(dto.createdAt())

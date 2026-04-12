@@ -13,6 +13,6 @@ public record LimitNotificationDto(
         NotificationType type,
         LocalDate createdAt,
         BigDecimal limitPercentage,
-        PeriodType limitPeriodType
+        PeriodType period
 ) implements NotificationResponse {
 }

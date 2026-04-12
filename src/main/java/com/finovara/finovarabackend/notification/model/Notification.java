@@ -7,7 +7,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "notifications", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "type"}))
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -20,8 +20,10 @@ public class Notification {
     private Long id;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private NotificationType type;
 
+    @Column(nullable = false)
     private LocalDate createdAt;
 
     @Lob
@@ -29,7 +31,7 @@ public class Notification {
     private String payload;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User userAssigned;
 
 }
