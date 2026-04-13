@@ -32,8 +32,8 @@ public class NotificationPersistenceService {
         Set<String> batchKeys = new HashSet<>();
 
         List<Notification> entitiesToSave = dtoList.stream()
-                .filter(dto -> batchKeys.add(dto.deduplicationKey()))
                 .filter(dto -> !existingKeys.contains(dto.deduplicationKey()))
+                .filter(dto -> batchKeys.add(dto.deduplicationKey()))
                 .map(dto -> Notification.builder()
                         .type(dto.type())
                         .createdAt(dto.createdAt())
