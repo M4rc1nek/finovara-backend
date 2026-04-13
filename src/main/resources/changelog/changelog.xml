@@ -377,10 +377,13 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="type" type="VARCHAR(255)">
+            <column name="type" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
-            <column name="created_at" type="TIMESTAMP">
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deduplication_key" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
             <column name="payload" type="TEXT"/>
@@ -388,7 +391,7 @@
                 <constraints nullable="false" foreignKeyName="fk_notifications_user" references="users(id)"/>
             </column>
         </createTable>
-        <addUniqueConstraint tableName="notifications" columnNames="user_id, type"/>
+        <addUniqueConstraint tableName="notifications" columnNames="user_id, deduplication_key" constraintName="uk_notifications_user_dedup"/>
     </changeSet>
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">

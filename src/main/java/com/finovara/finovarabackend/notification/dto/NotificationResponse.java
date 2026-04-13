@@ -15,4 +15,6 @@ public interface NotificationResponse {
     NotificationType type();
 
     LocalDate createdAt();
+
+    String deduplicationKey();
 }

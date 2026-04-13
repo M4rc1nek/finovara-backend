@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.model.Notification;
-import com.finovara.finovarabackend.notification.model.NotificationType;
 import com.finovara.finovarabackend.notification.repository.NotificationRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
@@ -29,17 +28,21 @@ public class NotificationPersistenceService {
     @Transactional
     public void saveAll(Long userId, List<NotificationResponse> dtoList) {
         User user = userManagerService.getUserByIdOrThrow(userId);
-        Set<NotificationType> existingTypes = new HashSet<>(notificationRepository.findAllTypesByUserAssignedId(userId));
+        Set<String> existingKeys = new HashSet<>(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId));
+        Set<String> batchKeys = new HashSet<>();
 
         List<Notification> entitiesToSave = dtoList.stream()
-                .filter(dto -> !existingTypes.contains(dto.type()))
+                .filter(dto -> batchKeys.add(dto.deduplicationKey()))
+                .filter(dto -> !existingKeys.contains(dto.deduplicationKey()))
                 .map(dto -> Notification.builder()
                         .type(dto.type())
                         .createdAt(dto.createdAt())
+                        .deduplicationKey(dto.deduplicationKey())
                         .payload(toJson(dto))
                         .userAssigned(user)
                         .build())
                 .toList();
+
         notificationRepository.saveAll(entitiesToSave);
     }
 

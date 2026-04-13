@@ -13,6 +13,13 @@ public record LimitNotificationDto(
         NotificationType type,
         LocalDate createdAt,
         BigDecimal limitPercentage,
-        PeriodType period
+        PeriodType period,
+        Long limitId,
+        BigDecimal threshold
 ) implements NotificationResponse {
+
+    @Override
+    public String deduplicationKey() {
+        return "%s:%d:%s:%s".formatted(type, limitId, period, threshold);
+    }
 }

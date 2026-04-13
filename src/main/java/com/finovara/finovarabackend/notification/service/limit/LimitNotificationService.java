@@ -35,7 +35,9 @@ public class LimitNotificationService implements NotificationCreator {
                         NotificationType.LIMIT_EXCEEDED_WARNING,
                         stats.createdAt(),
                         stats.percentage(),
-                        stats.periodType()
+                        stats.periodType(),
+                        stats.limitId(),
+                        WARNING_THRESHOLD
                 ));
             }
         }

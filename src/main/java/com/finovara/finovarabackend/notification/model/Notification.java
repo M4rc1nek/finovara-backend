@@ -7,7 +7,7 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "notifications", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "type"}))
+@Table(name = "notifications", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "deduplication_key"}))
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -25,6 +25,9 @@ public class Notification {
 
     @Column(nullable = false)
     private LocalDate createdAt;
+
+    @Column(name = "deduplication_key", nullable = false, length = 255)
+    private String deduplicationKey;
 
     @Lob
     @Column(columnDefinition = "TEXT")
