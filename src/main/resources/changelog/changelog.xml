@@ -388,7 +388,7 @@
                 <constraints nullable="false" foreignKeyName="fk_notifications_user" references="users(id)"/>
             </column>
         </createTable>
-        <addUniqueConstraint tableName="notifications" columnNames="user_id, type" constraintName="unique_user_type"/>
+        <addUniqueConstraint tableName="notifications" columnNames="user_id, type"/>
     </changeSet>
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">
