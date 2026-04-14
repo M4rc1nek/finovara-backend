@@ -7,45 +7,49 @@ import com.finovara.finovarabackend.limit.service.LimitCalculateService;
 import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.dto.limit.LimitWarningDto;
 import com.finovara.finovarabackend.notification.model.NotificationType;
-import com.finovara.finovarabackend.notification.source.NotificationCreator;
+import com.finovara.finovarabackend.notification.service.AbstractWarningService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class LimitWarningService implements NotificationCreator {
-    private static final BigDecimal WARNING_THRESHOLD = BigDecimal.valueOf(75);
-    private static final BigDecimal BLOCK_THRESHOLD = BigDecimal.valueOf(100);
+public class LimitWarningService extends AbstractWarningService<Limit, LimitStatsDto> {
 
-    private final LimitCalculateService limitCalculateService;
     private final LimitRepository limitRepository;
+    private final LimitCalculateService limitCalculateService;
 
     @Override
-    public List<NotificationResponse> getNotifications(Long userId) {
-        List<NotificationResponse> result = new ArrayList<>();
-        List<Limit> limits = limitRepository.findAllByUserAssignedId(userId);
-        for (Limit limit : limits) {
-            LimitStatsDto stats = limitCalculateService.calculateLimitStats(userId, limit.getId(), LocalDate.now());
-            BigDecimal percentage = stats.percentage();
-            boolean isWarning = percentage.compareTo(WARNING_THRESHOLD) >= 0;
-            boolean isBelowLimit = percentage.compareTo(BLOCK_THRESHOLD) < 0;
-            if (isWarning && isBelowLimit) {
-                result.add(new LimitWarningDto(
-                        NotificationType.LIMIT_EXCEEDED_WARNING,
-                        stats.createdAt(),
-                        stats.percentage(),
-                        stats.periodType(),
-                        stats.limitId(),
-                        WARNING_THRESHOLD
-                ));
-            }
-        }
-        return result;
+    protected List<Limit> fetchEntities(Long userId) {
+        return limitRepository.findAllByUserAssignedId(userId);
+    }
 
+    @Override
+    protected LimitStatsDto calculate(Limit limit, Long userId) {
+        return limitCalculateService.calculateLimitStats(
+                userId,
+                limit.getId(),
+                LocalDate.now()
+        );
+    }
+
+    @Override
+    protected BigDecimal getPercentage(LimitStatsDto stats) {
+        return stats.percentage();
+    }
+
+    @Override
+    protected NotificationResponse buildNotification(Limit limit, LimitStatsDto stats, Long userId) {
+        return new LimitWarningDto(
+                NotificationType.LIMIT_EXCEEDED_WARNING,
+                stats.createdAt(),
+                stats.percentage(),
+                stats.periodType(),
+                stats.limitId(),
+                WARNING_THRESHOLD
+        );
     }
 }
