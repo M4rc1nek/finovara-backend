@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @JsonTypeName("LIMIT_EXCEEDED_WARNING")
-public record LimitNotificationDto(
+public record LimitWarningDto(
         NotificationType type,
         LocalDate createdAt,
         BigDecimal limitPercentage,
