@@ -7,7 +7,7 @@ import com.finovara.finovarabackend.limit.service.LimitCalculateService;
 import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.dto.limit.LimitWarningDto;
 import com.finovara.finovarabackend.notification.model.NotificationType;
-import com.finovara.finovarabackend.notification.service.AbstractWarningService;
+import com.finovara.finovarabackend.notification.service.core.AbstractWarningService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

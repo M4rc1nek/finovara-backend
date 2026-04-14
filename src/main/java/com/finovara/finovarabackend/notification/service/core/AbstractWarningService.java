@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.notification.service;
+package com.finovara.finovarabackend.notification.service.core;
 
 import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.source.NotificationCreator;

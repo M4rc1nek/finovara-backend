@@ -3,7 +3,7 @@ package com.finovara.finovarabackend.notification.service.piggybank;
 import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.dto.piggybank.PiggyBankWarningDto;
 import com.finovara.finovarabackend.notification.model.NotificationType;
-import com.finovara.finovarabackend.notification.service.AbstractWarningService;
+import com.finovara.finovarabackend.notification.service.core.AbstractWarningService;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.util.piggybank.PiggyBankCalculator;
