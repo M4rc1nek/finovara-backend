@@ -13,7 +13,8 @@ import java.time.LocalDate;
 @JsonSubTypes({
         @JsonSubTypes.Type(value = LimitWarningDto.class, name = "LIMIT_EXCEEDED_WARNING"),
         @JsonSubTypes.Type(value = LimitExceededDto.class, name = "LIMIT_EXCEEDED"),
-        @JsonSubTypes.Type(value = PiggyBankWarningDto.class, name = "PIGGY_BANK_GOAL_APPROACHING")
+        @JsonSubTypes.Type(value = PiggyBankWarningDto.class, name = "PIGGY_BANK_GOAL_APPROACHING"),
+        @JsonSubTypes.Type(value = PiggyBankWarningDto.class, name = "PIGGY_BANK_GOAL_REACHED")
 })
 public interface NotificationResponse {
     NotificationType type();
