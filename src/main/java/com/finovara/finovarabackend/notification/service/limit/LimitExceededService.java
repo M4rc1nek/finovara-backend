@@ -18,7 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class LimitExceededNotificationService implements NotificationCreator {
+public class LimitExceededService implements NotificationCreator {
     private static final BigDecimal EXCEEDED_THRESHOLD = BigDecimal.valueOf(100);
 
     private final LimitCalculateService limitCalculateService;

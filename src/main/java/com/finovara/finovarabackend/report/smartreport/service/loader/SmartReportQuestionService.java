@@ -50,9 +50,8 @@ public class SmartReportQuestionService {
                             questionMap.put(question, SmartReportType.valueOf(enumName));
                         }
                     });
-
         } catch (Exception exception) {
-            throw new ServiceUnavailableException("Failed to load Questions",exception);
+            throw new ServiceUnavailableException("Failed to load Questions", exception);
         }
     }
 
