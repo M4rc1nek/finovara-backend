@@ -47,6 +47,17 @@ mail:
     address: finovaracenter@gmail.com
 
 
+expenses:
+  highest:
+    page-size: 5
+
+
+revenues:
+  highest:
+    page-size: 5
+
+
+
 user-activity:
   login:
     page-size: 30
@@ -80,16 +91,8 @@ scheduler:
       delete-cron: "0 0 0 1 * ?"
     settings:
       delete-cron: "0 0 0 1 * ?"
-
   revenue-settings:
     recurring-frequency: "0 0 0 * * ?"
-
-expenses:
-  highest:
-    page-size: 5
-
-
-revenues:
-  highest:
-    page-size: 5
+  notification:
+    delete-cron: "0 0 0 ? * 1"
 
