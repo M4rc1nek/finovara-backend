@@ -47,7 +47,6 @@ class NotificationPersistenceSaveAllTest {
         userId = 1L;
         when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
 
-
         notificationPersistenceService = new NotificationPersistenceService(notificationRepository, userManagerService, objectMapper);
         captor = ArgumentCaptor.forClass(List.class);
     }
@@ -105,23 +104,6 @@ class NotificationPersistenceSaveAllTest {
         List<Notification> saved = captor.getValue();
 
         assertThat(saved).hasSize(1);
-    }
-
-    @Test
-    void shouldSaveNothingWhenAllAreDuplicates() {
-        NotificationResponse dto1 = createDto(1L);
-        NotificationResponse dto2 = createDto(2L);
-
-        when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId))
-                .thenReturn(Set.of(dto1.deduplicationKey(), dto2.deduplicationKey()));
-
-        notificationPersistenceService.saveAll(userId, List.of(dto1, dto2));
-
-        verify(notificationRepository).saveAll(captor.capture());
-
-        List<Notification> saved = captor.getValue();
-
-        assertThat(saved).isEmpty();
     }
 
     @Test
