@@ -37,13 +37,12 @@ class NotificationPersistenceSaveAllTest {
 
     private NotificationPersistenceService notificationPersistenceService;
 
-    private ObjectMapper objectMapper;
     private ArgumentCaptor<List<Notification>> captor;
     private Long userId;
 
     @BeforeEach
     void SetUp() {
-        objectMapper = new ObjectMapper().findAndRegisterModules();
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         userId = 1L;
         when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
 
