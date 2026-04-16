@@ -29,11 +29,7 @@ public class LimitWarningService extends ThresholdWarningService<Limit, LimitSta
 
     @Override
     protected LimitStatsDto calculate(Limit limit, Long userId) {
-        return limitCalculateService.calculateLimitStats(
-                userId,
-                limit.getId(),
-                LocalDate.now()
-        );
+        return limitCalculateService.calculateLimitStats(userId, limit.getId(), LocalDate.now());
     }
 
     @Override
