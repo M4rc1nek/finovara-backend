@@ -7,7 +7,7 @@ import com.finovara.finovarabackend.limit.service.LimitCalculateService;
 import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.dto.limit.LimitWarningDto;
 import com.finovara.finovarabackend.notification.model.NotificationType;
-import com.finovara.finovarabackend.notification.service.core.AbstractWarningService;
+import com.finovara.finovarabackend.notification.service.core.ThresholdWarningService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class LimitWarningService extends AbstractWarningService<Limit, LimitStatsDto> {
+public class LimitWarningService extends ThresholdWarningService<Limit, LimitStatsDto> {
 
     private final LimitRepository limitRepository;
     private final LimitCalculateService limitCalculateService;

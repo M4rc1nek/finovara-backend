@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractWarningService<E, C> implements NotificationCreator {
+public abstract class ThresholdWarningService<E, C> implements NotificationCreator {
 
     protected static final BigDecimal WARNING_THRESHOLD = BigDecimal.valueOf(75);
     protected static final BigDecimal BLOCK_THRESHOLD = BigDecimal.valueOf(100);

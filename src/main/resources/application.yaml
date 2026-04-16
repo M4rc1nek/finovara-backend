@@ -95,4 +95,3 @@ scheduler:
     recurring-frequency: "0 0 0 * * ?"
   notification:
     delete-cron: "0 0 0 ? * 1"
-
