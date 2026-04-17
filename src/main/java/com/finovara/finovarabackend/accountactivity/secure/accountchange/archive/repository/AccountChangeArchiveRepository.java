@@ -13,7 +13,7 @@ import java.util.List;
 public interface AccountChangeArchiveRepository extends JpaRepository<AccountChangeArchive, Long> {
 
     @Query("""
-            SELECT new com.finovara.finovarabackend.accountactivity.accountchange.archive.dto.AccountChangeArchiveDto(
+            SELECT new com.finovara.finovarabackend.accountactivity.secure.accountchange.archive.dto.AccountChangeArchiveDto(
             a.type, a.moveToArchiveDate, a.activityAccountChangesDate, a.browser, a.ipAddress, a.location)
             FROM AccountChangeArchive a
             WHERE a.userAssigned.email = :email

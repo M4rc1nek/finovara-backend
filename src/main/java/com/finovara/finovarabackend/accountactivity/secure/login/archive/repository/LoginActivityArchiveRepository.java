@@ -13,7 +13,7 @@ import java.util.List;
 public interface LoginActivityArchiveRepository extends JpaRepository<LoginActivityArchive, Long> {
 
     @Query("""
-           SELECT new com.finovara.finovarabackend.accountactivity.login.archive.dto.LoginActivityArchiveDto(
+           SELECT new com.finovara.finovarabackend.accountactivity.secure.login.archive.dto.LoginActivityArchiveDto(
            l.type, l.status, l.moveToArchiveDate, l.activityLoginDate, l.browser, l.ipAddress, l.location)
            FROM LoginActivityArchive l
            WHERE l.userAssigned.email = :email
