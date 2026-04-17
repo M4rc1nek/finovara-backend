@@ -31,7 +31,7 @@ class MapToArchiveLoginActivityTest {
 
         LoginActivity loginActivity = LoginActivity.builder()
                 .userAssigned(user)
-                .status(LoginActivityStatus.successful)
+                .status(LoginActivityStatus.SUCCESSFUL)
                 .date(LocalDateTime.of(2026, 3, 10, 9, 30))
                 .browser("Firefox")
                 .ipAddress("192.168.1.100")
@@ -44,7 +44,7 @@ class MapToArchiveLoginActivityTest {
 
         assertThat(archive.getUserAssigned()).isEqualTo(user);
         assertThat(archive.getType()).isEqualTo("Login");
-        assertThat(archive.getStatus()).isEqualTo(LoginActivityStatus.successful);
+        assertThat(archive.getStatus()).isEqualTo(LoginActivityStatus.SUCCESSFUL);
         assertThat(archive.getActivityLoginDate()).isEqualTo(LocalDateTime.of(2026, 3, 10, 9, 30));
         assertThat(archive.getBrowser()).isEqualTo("Firefox");
         assertThat(archive.getIpAddress()).isEqualTo("192.168.1.100");

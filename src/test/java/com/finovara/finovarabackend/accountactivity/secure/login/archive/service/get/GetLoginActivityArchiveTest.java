@@ -31,7 +31,7 @@ class GetLoginActivityArchiveTest {
 
         LoginActivityArchiveDto dto1 = new LoginActivityArchiveDto(
                 "LOGIN",
-                LoginActivityStatus.successful,
+                LoginActivityStatus.SUCCESSFUL,
                 LocalDateTime.now(),
                 LocalDateTime.of(2026, 3, 10, 14, 30),
                 "Chrome",
@@ -41,7 +41,7 @@ class GetLoginActivityArchiveTest {
 
         LoginActivityArchiveDto dto2 = new LoginActivityArchiveDto(
                 "LOGIN",
-                LoginActivityStatus.unsuccessful,
+                LoginActivityStatus.UNSUCCESSFUL,
                 LocalDateTime.now(),
                 LocalDateTime.of(2026, 2, 16, 7, 21),
                 "Firefox",

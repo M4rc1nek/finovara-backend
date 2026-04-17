@@ -73,7 +73,7 @@ class LoginActivityServiceTest {
 
         when(loginActivityRepository.countActivityLoginByUserAssignedId(1L)).thenReturn((long) (pageSize - 1));
 
-        loginActivityService.createLoginActivity("user@test.com", LoginActivityStatus.successful, request);
+        loginActivityService.createLoginActivity("user@test.com", LoginActivityStatus.SUCCESSFUL, request);
 
         verify(loginActivityRepository, times(1)).save(any(LoginActivity.class));
         verify(archiveService, never()).archive(any());
@@ -92,7 +92,7 @@ class LoginActivityServiceTest {
         when(loginActivityRepository.findOldestByUserAssignedId(eq(1L), any(PageRequest.class))).thenReturn(List.of(activity));
         when(archiveService.mapToArchive(activity)).thenReturn(mock(LoginActivityArchive.class));
 
-        loginActivityService.createLoginActivity("user@test.com", LoginActivityStatus.successful, request);
+        loginActivityService.createLoginActivity("user@test.com", LoginActivityStatus.SUCCESSFUL, request);
 
         verify(loginActivityRepository, times(1)).save(any(LoginActivity.class));
         verify(archiveService, times(1)).archive(anyList());

@@ -77,9 +77,9 @@ public class UserService {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, rawPassword));
-            loginActivityService.createLoginActivity(email, LoginActivityStatus.successful, request);
+            loginActivityService.createLoginActivity(email, LoginActivityStatus.SUCCESSFUL, request);
         } catch (AuthenticationException e) {
-            loginActivityService.createLoginActivity(email, LoginActivityStatus.unsuccessful, request);
+            loginActivityService.createLoginActivity(email, LoginActivityStatus.UNSUCCESSFUL, request);
             throw new WrongPasswordException("Incorrect email or password");
         }
 
