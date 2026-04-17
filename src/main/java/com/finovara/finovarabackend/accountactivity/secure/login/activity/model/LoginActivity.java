@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.accountactivity.secure.login.activities.model;
+package com.finovara.finovarabackend.accountactivity.secure.login.activity.model;
 
 import com.finovara.finovarabackend.user.model.User;
 import jakarta.persistence.*;

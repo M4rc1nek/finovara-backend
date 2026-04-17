@@ -1,10 +1,10 @@
 package com.finovara.finovarabackend.user.model;
 
-import com.finovara.finovarabackend.accountactivity.secure.accountchange.activities.model.AccountChangesActivity;
+import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivity;
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivity;
-import com.finovara.finovarabackend.accountactivity.secure.login.activities.model.LoginActivity;
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.model.LoginActivity;
 import com.finovara.finovarabackend.accountactivity.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivity;
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivity;

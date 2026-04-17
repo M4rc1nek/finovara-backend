@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.secure.login.archive.service;
 
-import com.finovara.finovarabackend.accountactivity.secure.login.activities.model.LoginActivity;
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.model.LoginActivity;
 import com.finovara.finovarabackend.accountactivity.secure.login.archive.dto.LoginActivityArchiveDto;
 import com.finovara.finovarabackend.accountactivity.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.finovarabackend.accountactivity.secure.login.archive.repository.LoginActivityArchiveRepository;

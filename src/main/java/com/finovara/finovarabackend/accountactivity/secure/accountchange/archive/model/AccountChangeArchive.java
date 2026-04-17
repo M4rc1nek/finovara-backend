@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.secure.accountchange.archive.model;
 
-import com.finovara.finovarabackend.accountactivity.secure.accountchange.activities.model.AccountChangesActivityType;
+import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;

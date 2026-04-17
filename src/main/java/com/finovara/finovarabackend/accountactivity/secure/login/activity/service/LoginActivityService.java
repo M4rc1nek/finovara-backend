@@ -1,10 +1,10 @@
-package com.finovara.finovarabackend.accountactivity.secure.login.activities.service;
+package com.finovara.finovarabackend.accountactivity.secure.login.activity.service;
 
 import com.finovara.finovarabackend.accountactivity.secure.core.SecurityActivityCore;
-import com.finovara.finovarabackend.accountactivity.secure.login.activities.dto.LoginActivityDto;
-import com.finovara.finovarabackend.accountactivity.secure.login.activities.model.LoginActivity;
-import com.finovara.finovarabackend.accountactivity.secure.login.activities.model.LoginActivityStatus;
-import com.finovara.finovarabackend.accountactivity.secure.login.activities.repository.LoginActivityRepository;
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.model.LoginActivity;
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.model.LoginActivityStatus;
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.repository.LoginActivityRepository;
 import com.finovara.finovarabackend.accountactivity.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.finovarabackend.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
 import com.finovara.finovarabackend.user.model.User;

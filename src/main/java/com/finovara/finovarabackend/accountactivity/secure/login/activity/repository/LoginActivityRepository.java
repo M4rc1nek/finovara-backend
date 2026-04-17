@@ -1,7 +1,7 @@
-package com.finovara.finovarabackend.accountactivity.secure.login.activities.repository;
+package com.finovara.finovarabackend.accountactivity.secure.login.activity.repository;
 
-import com.finovara.finovarabackend.accountactivity.secure.login.activities.dto.LoginActivityDto;
-import com.finovara.finovarabackend.accountactivity.secure.login.activities.model.LoginActivity;
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.model.LoginActivity;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

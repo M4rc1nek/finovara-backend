@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.secure.login.archive.model;
 
-import com.finovara.finovarabackend.accountactivity.secure.login.activities.model.LoginActivityStatus;
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.model.LoginActivityStatus;
 import com.finovara.finovarabackend.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;

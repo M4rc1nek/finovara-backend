@@ -1,6 +1,6 @@
-package com.finovara.finovarabackend.accountactivity.secure.login.activities.dto;
+package com.finovara.finovarabackend.accountactivity.secure.login.activity.dto;
 
-import com.finovara.finovarabackend.accountactivity.secure.login.activities.model.LoginActivityStatus;
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.model.LoginActivityStatus;
 
 import java.time.LocalDateTime;
 

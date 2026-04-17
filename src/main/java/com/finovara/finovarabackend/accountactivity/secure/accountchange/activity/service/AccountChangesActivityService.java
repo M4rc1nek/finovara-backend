@@ -1,9 +1,9 @@
-package com.finovara.finovarabackend.accountactivity.secure.accountchange.activities.service;
+package com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.service;
 
-import com.finovara.finovarabackend.accountactivity.secure.accountchange.activities.dto.AccountChangesActivityDto;
-import com.finovara.finovarabackend.accountactivity.secure.accountchange.activities.model.AccountChangesActivity;
-import com.finovara.finovarabackend.accountactivity.secure.accountchange.activities.model.AccountChangesActivityType;
-import com.finovara.finovarabackend.accountactivity.secure.accountchange.activities.repository.AccountChangesActivityRepository;
+import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto;
+import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
+import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.model.AccountChangesActivityType;
+import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.repository.AccountChangesActivityRepository;
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
 import com.finovara.finovarabackend.accountactivity.secure.core.SecurityActivityCore;
