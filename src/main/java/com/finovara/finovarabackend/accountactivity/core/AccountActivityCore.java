@@ -3,17 +3,15 @@ package com.finovara.finovarabackend.accountactivity.core;
 import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 public abstract class AccountActivityCore<T, D, S> {
 
 	protected final UserManagerService userManagerService;
-
-	protected AccountActivityCore(UserManagerService userManagerService) {
-		this.userManagerService = userManagerService;
-	}
 
 	public List<D> getActivities(String email, SortType sort, int pageSize) {
 		Pageable pageable = sort.getPageable(pageSize);
