@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.security.login.activities.service;
 
+import com.finovara.finovarabackend.accountactivity.security.core.SecurityActivityCore;
 import com.finovara.finovarabackend.accountactivity.security.login.activities.dto.LoginActivityDto;
 import com.finovara.finovarabackend.accountactivity.security.login.activities.model.LoginActivity;
 import com.finovara.finovarabackend.accountactivity.security.login.activities.model.LoginActivityStatus;
@@ -12,8 +13,6 @@ import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswor
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -22,67 +21,81 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
+public class LoginActivityService extends SecurityActivityCore<LoginActivity, LoginActivityArchive> {
 
-public class LoginActivityService {
-
-    private final UserManagerService userManagerService;
     private final LoginActivityRepository loginActivityRepository;
-    private final LoginActivityArchiveService archiveLoginActivityService;
-
-    private final ClientData clientData;
-
-    private final PasswordConfirmationService passwordConfirmationService;
+    private final LoginActivityArchiveService archiveService;
 
     @Value("${user-activity.login.page-size}")
     private int pageSize;
 
+    public LoginActivityService(
+            UserManagerService userManagerService,
+            PasswordConfirmationService passwordConfirmationService,
+            ClientData clientData,
+            LoginActivityRepository loginActivityRepository,
+            LoginActivityArchiveService archiveService) {
+        super(userManagerService, passwordConfirmationService, clientData);
+        this.loginActivityRepository = loginActivityRepository;
+        this.archiveService = archiveService;
+    }
+
     @Transactional
-    public void createLoginActivity(String email, LoginActivityStatus loginActivityStatus, HttpServletRequest request) {
-
+    public void createLoginActivity(String email, LoginActivityStatus status, HttpServletRequest request) {
         User user = userManagerService.getUserByEmailOrThrow(email);
-        String ipAddress = clientData.getClientIp(request);
 
-        LoginActivity loginActivity = LoginActivity.builder()
+        String ip = clientData.getClientIp(request);
+
+        LoginActivity activity = LoginActivity.builder()
                 .userAssigned(user)
                 .type("Login")
-                .status(loginActivityStatus)
+                .status(status)
                 .date(LocalDateTime.now())
                 .browser(clientData.getUserBrowser(request))
-                .ipAddress(ipAddress)
-                .location(clientData.getUserLocation(ipAddress))
+                .ipAddress(ip)
+                .location(clientData.getUserLocation(ip))
                 .build();
 
-        loginActivityRepository.save(loginActivity);
+        saveActivity(activity);
+        moveToArchive(user, pageSize);
+    }
 
-        moveToArchive(email);
+    public void confirmPassword(String email, ConfirmPasswordDto dto) {
+        passwordConfirmationService.confirmPassword(email, dto);
     }
 
     public List<LoginActivityDto> getLoginActivity(String email) {
         return loginActivityRepository.findByUserAssignedEmailOrderByDesc(email);
     }
 
-    public void confirmPasswordToLoginActivity(String email, ConfirmPasswordDto confirmPasswordDto) {
-        passwordConfirmationService.confirmPassword(email, confirmPasswordDto);
+    @Override
+    protected void saveActivity(LoginActivity a) {
+        loginActivityRepository.save(a);
     }
 
-    @Transactional
-    private void moveToArchive(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    @Override
+    protected long countActivities(Long userId) {
+        return loginActivityRepository.countActivityLoginByUserAssignedId(userId);
+    }
 
-        long countedActivities = loginActivityRepository.countActivityLoginByUserAssignedId(user.getId());
+    @Override
+    protected List<LoginActivity> findActivitiesToArchive(Long userId, int pageSize) {
+        return loginActivityRepository.findOldestByUserAssignedId(userId, PageRequest.of(0, pageSize));
+    }
 
-        if (countedActivities > pageSize) {
-            List<LoginActivity> activitiesToMove = loginActivityRepository.findOldestByUserAssignedId(user.getId(), PageRequest.of(0, pageSize));
-            List<LoginActivityArchive> activitiesToArchive = activitiesToMove.stream().map(archiveLoginActivityService::mapToArchive)
-                    .toList();
-            archiveLoginActivityService.archive(activitiesToArchive);
+    @Override
+    protected LoginActivityArchive mapToArchive(LoginActivity a) {
+        return archiveService.mapToArchive(a);
+    }
 
-            loginActivityRepository.deleteAll(activitiesToMove);
+    @Override
+    protected void archive(List<LoginActivityArchive> a) {
+        archiveService.archive(a);
+    }
 
-        }
-
+    @Override
+    protected void deleteActivities(List<LoginActivity> a) {
+        loginActivityRepository.deleteAll(a);
     }
 }

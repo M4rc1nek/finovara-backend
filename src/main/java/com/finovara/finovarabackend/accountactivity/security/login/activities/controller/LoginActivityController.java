@@ -23,7 +23,7 @@ public class LoginActivityController {
 
     @PostMapping
     public ResponseEntity<Void> confirmPasswordToUserActivityLogin(@RequestBody ConfirmPasswordDto confirmPasswordDto) {
-        loginActivityService.confirmPasswordToLoginActivity(SecurityUtils.getCurrentUserEmail(), confirmPasswordDto);
+        loginActivityService.confirmPassword(SecurityUtils.getCurrentUserEmail(), confirmPasswordDto);
         return ResponseEntity.noContent().build();
     }
 }
