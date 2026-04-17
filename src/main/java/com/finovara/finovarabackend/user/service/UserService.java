@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.user.service;
 
-import com.finovara.finovarabackend.accountactivity.security.login.activities.model.LoginActivityStatus;
-import com.finovara.finovarabackend.accountactivity.security.login.activities.service.LoginActivityService;
+import com.finovara.finovarabackend.accountactivity.secure.login.activities.model.LoginActivityStatus;
+import com.finovara.finovarabackend.accountactivity.secure.login.activities.service.LoginActivityService;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.security.service.JwtService;

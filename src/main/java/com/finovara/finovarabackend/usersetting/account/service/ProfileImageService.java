@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.usersetting.account.service;
 
-import com.finovara.finovarabackend.accountactivity.security.accountchange.activities.model.AccountChangesActivityType;
-import com.finovara.finovarabackend.accountactivity.security.accountchange.activities.service.AccountChangesActivityService;
+import com.finovara.finovarabackend.accountactivity.secure.accountchange.activities.model.AccountChangesActivityType;
+import com.finovara.finovarabackend.accountactivity.secure.accountchange.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
