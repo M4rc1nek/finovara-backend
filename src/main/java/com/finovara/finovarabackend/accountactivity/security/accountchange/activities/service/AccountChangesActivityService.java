@@ -6,14 +6,13 @@ import com.finovara.finovarabackend.accountactivity.security.accountchange.activ
 import com.finovara.finovarabackend.accountactivity.security.accountchange.activities.repository.AccountChangesActivityRepository;
 import com.finovara.finovarabackend.accountactivity.security.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.finovarabackend.accountactivity.security.accountchange.archive.service.AccountChangeArchiveService;
+import com.finovara.finovarabackend.accountactivity.security.core.SecurityActivityCore;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -22,27 +21,35 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
-public class AccountChangesActivityService {
+public class AccountChangesActivityService
+        extends SecurityActivityCore<AccountChangesActivity, AccountChangeArchive> {
+
+    private final AccountChangesActivityRepository accountChangesActivityRepository;
+    private final AccountChangeArchiveService accountChangeArchiveService;
 
     @Value("${user-activity.account-changes.page-size}")
     private int pageSize;
 
-    private final UserManagerService userManagerService;
-    private final AccountChangesActivityRepository accountChangesActivityRepository;
-    private final PasswordConfirmationService passwordConfirmationService;
-    private final AccountChangeArchiveService accountChangeArchiveService;
-
-    private final ClientData clientData;
+    public AccountChangesActivityService(
+            UserManagerService userManagerService,
+            PasswordConfirmationService passwordConfirmationService,
+            ClientData clientData,
+            AccountChangesActivityRepository accountChangesActivityRepository,
+            AccountChangeArchiveService accountChangeArchiveService
+    ) {
+        super(userManagerService, passwordConfirmationService, clientData);
+        this.accountChangesActivityRepository = accountChangesActivityRepository;
+        this.accountChangeArchiveService = accountChangeArchiveService;
+    }
 
     @Transactional
     public void createAccountChangesActivity(String email, AccountChangesActivityType type, HttpServletRequest request) {
         User user = userManagerService.getUserByEmailOrThrow(email);
+
         String ipAddress = clientData.getClientIp(request);
 
-        AccountChangesActivity accountChangesActivity = AccountChangesActivity.builder()
+        AccountChangesActivity activity = AccountChangesActivity.builder()
                 .userAssigned(user)
                 .type(type)
                 .date(LocalDateTime.now())
@@ -51,32 +58,45 @@ public class AccountChangesActivityService {
                 .location(clientData.getUserLocation(ipAddress))
                 .build();
 
-        accountChangesActivityRepository.save(accountChangesActivity);
-
-        moveToArchive(email);
+        saveActivity(activity);
+        moveToArchive(user, pageSize);
     }
 
     public List<AccountChangesActivityDto> getAccountChangesActivity(String email) {
         return accountChangesActivityRepository.findByUserAssignedEmailOrderByIdDesc(email);
     }
 
-    public void confirmPasswordToAccountChangesActivity(String email, ConfirmPasswordDto confirmPasswordDto) {
-        passwordConfirmationService.confirmPassword(email, confirmPasswordDto);
+    public void confirmPasswordToAccountChangesActivity(String email, ConfirmPasswordDto dto) {
+        passwordConfirmationService.confirmPassword(email, dto);
     }
 
-    @Transactional
-    private void moveToArchive(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    @Override
+    protected void saveActivity(AccountChangesActivity activity) {
+        accountChangesActivityRepository.save(activity);
+    }
 
-        long countedAccountChangesActivities = accountChangesActivityRepository.countAccountChangesByUserAssignedId(user.getId());
+    @Override
+    protected long countActivities(Long userId) {
+        return accountChangesActivityRepository.countAccountChangesByUserAssignedId(userId);
+    }
 
-        if (countedAccountChangesActivities > pageSize) {
-            List<AccountChangesActivity> activitiesToMove = accountChangesActivityRepository.findFewByUserAssignedId(user.getId(), PageRequest.of(0, pageSize));
-            List<AccountChangeArchive> activitiesToArchive = activitiesToMove.stream().map(accountChangeArchiveService::mapToArchive)
-                    .toList();
-            accountChangeArchiveService.archive(activitiesToArchive);
+    @Override
+    protected List<AccountChangesActivity> findActivitiesToArchive(Long userId, int pageSize) {
+        return accountChangesActivityRepository.findFewByUserAssignedId(userId, PageRequest.of(0, pageSize));
+    }
 
-            accountChangesActivityRepository.deleteAll(activitiesToMove);
-        }
+    @Override
+    protected AccountChangeArchive mapToArchive(AccountChangesActivity activity) {
+        return accountChangeArchiveService.mapToArchive(activity);
+    }
+
+    @Override
+    protected void archive(List<AccountChangeArchive> archives) {
+        accountChangeArchiveService.archive(archives);
+    }
+
+    @Override
+    protected void deleteActivities(List<AccountChangesActivity> activities) {
+        accountChangesActivityRepository.deleteAll(activities);
     }
 }

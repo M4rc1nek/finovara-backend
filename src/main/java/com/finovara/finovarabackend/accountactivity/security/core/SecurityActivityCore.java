@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.accountactivity.security.core;
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
-import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
