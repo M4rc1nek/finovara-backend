@@ -1,8 +1,8 @@
 package com.finovara.finovarabackend.accountactivity.login.activities.service.create;
 
-import com.finovara.finovarabackend.accountactivity.login.activities.model.LoginActivityStatus;
-import com.finovara.finovarabackend.accountactivity.login.activities.repository.LoginActivityRepository;
-import com.finovara.finovarabackend.accountactivity.login.activities.service.LoginActivityService;
+import com.finovara.finovarabackend.accountactivity.security.login.activities.model.LoginActivityStatus;
+import com.finovara.finovarabackend.accountactivity.security.login.activities.repository.LoginActivityRepository;
+import com.finovara.finovarabackend.accountactivity.security.login.activities.service.LoginActivityService;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;

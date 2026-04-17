@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.accountactivity.accountchange.activities.service.get;
 
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.dto.AccountChangesActivityDto;
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivityType;
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.repository.AccountChangesActivityRepository;
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
+import com.finovara.finovarabackend.accountactivity.security.accountchange.activities.dto.AccountChangesActivityDto;
+import com.finovara.finovarabackend.accountactivity.security.accountchange.activities.model.AccountChangesActivityType;
+import com.finovara.finovarabackend.accountactivity.security.accountchange.activities.repository.AccountChangesActivityRepository;
+import com.finovara.finovarabackend.accountactivity.security.accountchange.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

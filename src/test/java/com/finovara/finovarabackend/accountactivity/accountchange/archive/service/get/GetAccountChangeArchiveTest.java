@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.accountactivity.accountchange.archive.service.get;
 
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivityType;
-import com.finovara.finovarabackend.accountactivity.accountchange.archive.dto.AccountChangeArchiveDto;
-import com.finovara.finovarabackend.accountactivity.accountchange.archive.repository.AccountChangeArchiveRepository;
-import com.finovara.finovarabackend.accountactivity.accountchange.archive.service.AccountChangeArchiveService;
+import com.finovara.finovarabackend.accountactivity.security.accountchange.activities.model.AccountChangesActivityType;
+import com.finovara.finovarabackend.accountactivity.security.accountchange.archive.dto.AccountChangeArchiveDto;
+import com.finovara.finovarabackend.accountactivity.security.accountchange.archive.repository.AccountChangeArchiveRepository;
+import com.finovara.finovarabackend.accountactivity.security.accountchange.archive.service.AccountChangeArchiveService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

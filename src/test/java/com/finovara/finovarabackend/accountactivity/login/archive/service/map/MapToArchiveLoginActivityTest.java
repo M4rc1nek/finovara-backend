@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.accountactivity.login.archive.service.map;
 
-import com.finovara.finovarabackend.accountactivity.login.activities.model.LoginActivity;
-import com.finovara.finovarabackend.accountactivity.login.activities.model.LoginActivityStatus;
-import com.finovara.finovarabackend.accountactivity.login.archive.model.LoginActivityArchive;
-import com.finovara.finovarabackend.accountactivity.login.archive.service.LoginActivityArchiveService;
+import com.finovara.finovarabackend.accountactivity.security.login.activities.model.LoginActivity;
+import com.finovara.finovarabackend.accountactivity.security.login.activities.model.LoginActivityStatus;
+import com.finovara.finovarabackend.accountactivity.security.login.archive.model.LoginActivityArchive;
+import com.finovara.finovarabackend.accountactivity.security.login.archive.service.LoginActivityArchiveService;
 import com.finovara.finovarabackend.user.model.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

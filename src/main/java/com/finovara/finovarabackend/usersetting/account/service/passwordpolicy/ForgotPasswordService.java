@@ -1,6 +1,5 @@
 package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
 
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
@@ -10,7 +9,6 @@ import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.Forgo
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordRequestDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
-import com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;

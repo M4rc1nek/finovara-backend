@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.accountchange.activities.service.confirmpassword;
 
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
+import com.finovara.finovarabackend.accountactivity.security.accountchange.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
 import org.junit.jupiter.api.Test;

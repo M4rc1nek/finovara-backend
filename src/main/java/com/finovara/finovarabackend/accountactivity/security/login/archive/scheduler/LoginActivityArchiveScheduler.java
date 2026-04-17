@@ -1,0 +1,20 @@
+package com.finovara.finovarabackend.accountactivity.security.login.archive.scheduler;
+
+import com.finovara.finovarabackend.accountactivity.security.login.archive.processor.LoginActivityArchiveProcessor;
+import lombok.RequiredArgsConstructor;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class LoginActivityArchiveScheduler {
+
+    private final LoginActivityArchiveProcessor loginActivityArchiveProcessor;
+
+    @Scheduled(cron = "${scheduler.user-activity.login.archive-cron}", zone = "Europe/Warsaw")
+    @SchedulerLock(name = "deleteLoginActivityArchive", lockAtMostFor = "10m", lockAtLeastFor = "30s")
+    public void deleteLoginActivityArchive() {
+        loginActivityArchiveProcessor.deleteLoginActivitiesFromArchive();
+    }
+}

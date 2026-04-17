@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.usersetting.accountsetting.profileimage.service;
 
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.model.AccountChangesActivityType;
-import com.finovara.finovarabackend.accountactivity.accountchange.activities.service.AccountChangesActivityService;
+import com.finovara.finovarabackend.accountactivity.security.accountchange.activities.model.AccountChangesActivityType;
+import com.finovara.finovarabackend.accountactivity.security.accountchange.activities.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.service.ProfileImageService;
