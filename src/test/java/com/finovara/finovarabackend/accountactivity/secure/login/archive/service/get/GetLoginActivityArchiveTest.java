@@ -1,8 +1,9 @@
-package com.finovara.finovarabackend.accountactivity.secure.login.archive.service;
+package com.finovara.finovarabackend.accountactivity.secure.login.archive.service.get;
 
 import com.finovara.finovarabackend.accountactivity.secure.login.activities.model.LoginActivityStatus;
 import com.finovara.finovarabackend.accountactivity.secure.login.archive.dto.LoginActivityArchiveDto;
 import com.finovara.finovarabackend.accountactivity.secure.login.archive.repository.LoginActivityArchiveRepository;
+import com.finovara.finovarabackend.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
