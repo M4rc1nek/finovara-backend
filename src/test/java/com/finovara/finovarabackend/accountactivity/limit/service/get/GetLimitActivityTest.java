@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.accountactivity.limit.service.get;
 
+import com.finovara.finovarabackend.accountactivity.model.SortType;
 import com.finovara.finovarabackend.accountactivity.limit.dto.LimitActivityDto;
 import com.finovara.finovarabackend.accountactivity.limit.mapper.LimitActivityMapper;
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivity;
-import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivitySort;
 import com.finovara.finovarabackend.accountactivity.limit.repository.LimitActivityRepository;
 import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityService;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +60,7 @@ class GetLimitActivityTest {
         when(limitActivityMapper.mapToLimitActivity(activity)).thenReturn(dto);
 
         List<LimitActivityDto> result =
-                limitActivityService.getLimitActivity(EMAIL, LimitActivitySort.NEWEST);
+                limitActivityService.getLimitActivity(EMAIL, SortType.NEWEST);
 
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
@@ -76,7 +76,7 @@ class GetLimitActivityTest {
                 .thenReturn(List.of());
 
         List<LimitActivityDto> result =
-                limitActivityService.getLimitActivity(EMAIL, LimitActivitySort.OLDEST);
+                limitActivityService.getLimitActivity(EMAIL, SortType.OLDEST);
 
         assertEquals(0, result.size());
 

@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.accountactivity.settings.controller;
 
+import com.finovara.finovarabackend.accountactivity.model.SortType;
 import com.finovara.finovarabackend.accountactivity.settings.dto.SettingsActivityDto;
-import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivitySort;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class SettingActivityController {
     private final SettingsActivityService settingsActivityService;
 
     @GetMapping
-    public ResponseEntity<List<SettingsActivityDto>> getSettingsActivities(@RequestParam(required = false)SettingActivitySort sort){
+    public ResponseEntity<List<SettingsActivityDto>> getSettingsActivities(@RequestParam(defaultValue = "NEWEST") SortType sort){
         return ResponseEntity.ok(settingsActivityService.getSettingsActivities(SecurityUtils.getCurrentUserEmail(), sort));
     }
 

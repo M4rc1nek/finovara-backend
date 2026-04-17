@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.accountactivity.expense.controller;
 
+import com.finovara.finovarabackend.accountactivity.model.SortType;
 import com.finovara.finovarabackend.accountactivity.expense.dto.ExpenseActivityDto;
-import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivitySort;
 import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class ExpenseActivityController {
     private final ExpenseActivityService expenseActivityService;
 
     @GetMapping
-    public ResponseEntity<List<ExpenseActivityDto>> getExpenseActivity(@RequestParam(required = false) ExpenseActivitySort sort) {
+    public ResponseEntity<List<ExpenseActivityDto>> getExpenseActivity(@RequestParam(defaultValue = "NEWEST") SortType sort) {
         return ResponseEntity.ok(expenseActivityService.getExpenseActivity(SecurityUtils.getCurrentUserEmail(), sort));
     }
 }

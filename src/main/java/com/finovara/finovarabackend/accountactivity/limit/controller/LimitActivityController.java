@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.accountactivity.limit.controller;
 
+import com.finovara.finovarabackend.accountactivity.model.SortType;
 import com.finovara.finovarabackend.accountactivity.limit.dto.LimitActivityDto;
-import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivitySort;
 import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityService;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class LimitActivityController {
     private final LimitActivityService limitActivityService;
 
     @GetMapping
-    public ResponseEntity<List<LimitActivityDto>> getLimitActivity(@RequestParam(required = false) LimitActivitySort sort) {
+    public ResponseEntity<List<LimitActivityDto>> getLimitActivity(@RequestParam(defaultValue = "NEWEST") SortType sort) {
         return ResponseEntity.ok(limitActivityService.getLimitActivity(SecurityUtils.getCurrentUserEmail(), sort));
     }
 

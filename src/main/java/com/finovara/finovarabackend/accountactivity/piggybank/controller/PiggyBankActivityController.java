@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.accountactivity.piggybank.controller;
 
+import com.finovara.finovarabackend.accountactivity.model.SortType;
 import com.finovara.finovarabackend.accountactivity.piggybank.dto.PiggyBankActivityDto;
-import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivitySort;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class PiggyBankActivityController {
     private final PiggyBankActivityService piggyBankActivityService;
 
     @GetMapping
-    public ResponseEntity<List<PiggyBankActivityDto>> getPiggyBanksActivities(@RequestParam(required = false)PiggyBankActivitySort sort) {
+    public ResponseEntity<List<PiggyBankActivityDto>> getPiggyBanksActivities(@RequestParam(defaultValue = "NEWEST") SortType sort) {
         return ResponseEntity.ok(piggyBankActivityService.getPiggyBankActivities(SecurityUtils.getCurrentUserEmail(), sort));
     }
 

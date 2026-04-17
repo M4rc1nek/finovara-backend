@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.accountactivity.settings.service.get;
 
+import com.finovara.finovarabackend.accountactivity.model.SortType;
 import com.finovara.finovarabackend.accountactivity.settings.dto.SettingsActivityDto;
 import com.finovara.finovarabackend.accountactivity.settings.mapper.SettingsActivityMapper;
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingsActivity;
-import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivitySort;
 import com.finovara.finovarabackend.accountactivity.settings.repository.SettingsActivityRepository;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +53,7 @@ class GetSettingsActivitiesTest {
 
         when(settingsActivityMapper.mapToSettingActivity(activity)).thenReturn(dto);
 
-        List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(EMAIL, SettingActivitySort.NEWEST);
+        List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(EMAIL, SortType.NEWEST);
 
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
@@ -67,7 +67,7 @@ class GetSettingsActivitiesTest {
 
         when(settingsActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
 
-        List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(EMAIL, SettingActivitySort.OLDEST);
+        List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(EMAIL, SortType.OLDEST);
 
         assertEquals(0, result.size());
 

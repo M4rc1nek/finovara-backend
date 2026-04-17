@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.accountactivity.revenue.service.get;
 
+import com.finovara.finovarabackend.accountactivity.model.SortType;
 import com.finovara.finovarabackend.accountactivity.revenue.dto.RevenueActivityDto;
 import com.finovara.finovarabackend.accountactivity.revenue.mapper.RevenueActivityMapper;
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivity;
-import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivitySort;
 import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
 import com.finovara.finovarabackend.accountactivity.revenue.repository.RevenueActivityRepository;
 import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
@@ -60,7 +60,7 @@ class GetRevenueActivityTest {
 
         when(revenueActivityMapper.mapToRevenueActivity(activity)).thenReturn(dto);
 
-        List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(EMAIL, RevenueActivitySort.NEWEST);
+        List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(EMAIL, SortType.NEWEST);
 
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
@@ -74,7 +74,7 @@ class GetRevenueActivityTest {
 
         when(revenueActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
 
-        List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(EMAIL, RevenueActivitySort.OLDEST);
+        List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(EMAIL, SortType.OLDEST);
 
         assertEquals(0, result.size());
 

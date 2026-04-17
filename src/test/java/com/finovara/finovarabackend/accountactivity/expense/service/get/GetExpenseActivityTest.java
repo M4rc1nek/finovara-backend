@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.accountactivity.expense.service.get;
 
+import com.finovara.finovarabackend.accountactivity.model.SortType;
 import com.finovara.finovarabackend.accountactivity.expense.dto.ExpenseActivityDto;
 import com.finovara.finovarabackend.accountactivity.expense.mapper.ExpenseActivityMapper;
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivity;
-import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivitySort;
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
 import com.finovara.finovarabackend.accountactivity.expense.repository.ExpenseActivityRepository;
 import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
@@ -61,7 +61,7 @@ class GetExpenseActivityTest {
 
         when(expenseActivityMapper.mapToExpenseActivity(activity)).thenReturn(dto);
 
-        List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(EMAIL, ExpenseActivitySort.NEWEST);
+        List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(EMAIL, SortType.NEWEST);
 
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
@@ -75,7 +75,7 @@ class GetExpenseActivityTest {
 
         when(expenseActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
 
-        List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(EMAIL, ExpenseActivitySort.OLDEST);
+        List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(EMAIL, SortType.OLDEST);
 
         assertEquals(0, result.size());
 

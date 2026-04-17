@@ -1,9 +1,9 @@
 package com.finovara.finovarabackend.accountactivity.piggybank.service.get;
 
+import com.finovara.finovarabackend.accountactivity.model.SortType;
 import com.finovara.finovarabackend.accountactivity.piggybank.dto.PiggyBankActivityDto;
 import com.finovara.finovarabackend.accountactivity.piggybank.mapper.PiggyBankActivityMapper;
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivity;
-import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivitySort;
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.repository.PiggyBankActivityRepository;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
@@ -65,7 +65,7 @@ class GetPiggyBankActivitiesTest {
 
         when(piggyBankActivityMapper.mapToPiggyBankActivity(activity)).thenReturn(dto);
 
-        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(EMAIL, PiggyBankActivitySort.NEWEST);
+        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(EMAIL, SortType.NEWEST);
 
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
@@ -79,7 +79,7 @@ class GetPiggyBankActivitiesTest {
 
         when(piggyBankActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
 
-        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(EMAIL, PiggyBankActivitySort.OLDEST);
+        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(EMAIL, SortType.OLDEST);
 
         assertEquals(0, result.size());
 

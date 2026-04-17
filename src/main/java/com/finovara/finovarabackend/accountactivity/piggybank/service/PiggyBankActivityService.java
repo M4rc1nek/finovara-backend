@@ -1,21 +1,18 @@
 package com.finovara.finovarabackend.accountactivity.piggybank.service;
 
+import com.finovara.finovarabackend.accountactivity.core.AccountActivityCore;
+import com.finovara.finovarabackend.accountactivity.model.SortType;
 import com.finovara.finovarabackend.accountactivity.piggybank.dto.PiggyBankActivityDto;
 import com.finovara.finovarabackend.accountactivity.piggybank.mapper.PiggyBankActivityMapper;
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivity;
-import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivitySort;
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.repository.PiggyBankActivityRepository;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
-import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,61 +22,70 @@ import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
-public class PiggyBankActivityService {
+public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActivity, PiggyBankActivityDto, PiggyBank> {
 
     @Value("${user-activity.piggy-bank.page-size}")
     private int pageSize;
 
-    private final UserManagerService userManagerService;
     private final PiggyBankActivityRepository piggyBankActivityRepository;
     private final PiggyBankActivityMapper piggyBankActivityMapper;
 
+    public PiggyBankActivityService(UserManagerService userManagerService,
+                                    PiggyBankActivityRepository piggyBankActivityRepository,
+                                    PiggyBankActivityMapper piggyBankActivityMapper) {
+        super(userManagerService);
+        this.piggyBankActivityRepository = piggyBankActivityRepository;
+        this.piggyBankActivityMapper = piggyBankActivityMapper;
+    }
+
     @Transactional
     public void createSimplePiggyBankActivity(String email, PiggyBank piggyBank, PiggyBankActivityType activityType) {
-        buildPiggyBankActivity(email, piggyBank, activityType);
+        PiggyBankActivity piggyBankActivity = buildActivity(email, piggyBank);
+        piggyBankActivity.setActivityType(activityType);
+        piggyBankActivityRepository.save(piggyBankActivity);
     }
 
     @Transactional
     public void createPaymentPiggyBankActivity(String email, PiggyBank piggyBank, PiggyBankActivityType activityType, BigDecimal paidAmount) {
-        PiggyBankActivity piggyBankActivity = buildPiggyBankActivity(email, piggyBank, activityType);
+        PiggyBankActivity piggyBankActivity = buildActivity(email, piggyBank);
+        piggyBankActivity.setActivityType(activityType);
         piggyBankActivity.setAmountPaid(paidAmount);
+        piggyBankActivityRepository.save(piggyBankActivity);
     }
 
     @Transactional
     public void createEditPiggyBankActivity(String email, PiggyBank piggyBank, PiggyBankActivityType activityType,
                                             BigDecimal previousGoalAmount, PiggyBankGoalType previousGoalType, String previousPiggyBankName) {
-        PiggyBankActivity piggyBankActivity = buildPiggyBankActivity(email, piggyBank, activityType);
+        PiggyBankActivity piggyBankActivity = buildActivity(email, piggyBank);
+        piggyBankActivity.setActivityType(activityType);
         piggyBankActivity.setPreviousPiggyBankName(previousPiggyBankName);
         piggyBankActivity.setPreviousGoalType(previousGoalType);
         piggyBankActivity.setPreviousGoalAmount(previousGoalAmount);
+        piggyBankActivityRepository.save(piggyBankActivity);
     }
 
-    public List<PiggyBankActivityDto> getPiggyBankActivities(String email, PiggyBankActivitySort sort) {
-
-        Pageable pageable = switch (sort) {
-            case NEWEST -> PageRequest.of(0, pageSize, Sort.by("createdAt").descending());
-            case OLDEST -> PageRequest.of(0, pageSize, Sort.by("createdAt").ascending());
-        };
-
-        return piggyBankActivityRepository.findByUserAssignedEmail(email, pageable)
-                .stream().map(piggyBankActivityMapper::mapToPiggyBankActivity)
-                .toList();
+    public List<PiggyBankActivityDto> getPiggyBankActivities(String email, SortType sort) {
+        return getActivities(email, sort, pageSize);
     }
 
-    private PiggyBankActivity buildPiggyBankActivity(String email, PiggyBank piggyBank, PiggyBankActivityType activityType) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    @Override
+    protected List<PiggyBankActivity> getRepositoryFindByUserEmail(String email, Pageable pageable) {
+        return piggyBankActivityRepository.findByUserAssignedEmail(email, pageable);
+    }
 
-        PiggyBankActivity piggyBankActivity = PiggyBankActivity.builder()
-                .userAssigned(user)
+    @Override
+    protected PiggyBankActivityDto mapToDto(PiggyBankActivity entity) {
+        return piggyBankActivityMapper.mapToPiggyBankActivity(entity);
+    }
+
+    @Override
+    protected PiggyBankActivity buildActivity(String email, PiggyBank piggyBank) {
+        return PiggyBankActivity.builder()
+                .userAssigned(getUser(email))
                 .piggyBankName(piggyBank.getName())
-                .activityType(activityType)
                 .goalType(piggyBank.getGoalType())
                 .goalAmount(piggyBank.getGoalAmount())
                 .date(LocalDateTime.now())
                 .build();
-
-        piggyBankActivityRepository.save(piggyBankActivity);
-        return piggyBankActivity;
     }
 }
