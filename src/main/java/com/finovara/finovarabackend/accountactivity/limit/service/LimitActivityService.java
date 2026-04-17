@@ -6,7 +6,7 @@ import com.finovara.finovarabackend.accountactivity.limit.mapper.LimitActivityMa
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivity;
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivityType;
 import com.finovara.finovarabackend.accountactivity.limit.repository.LimitActivityRepository;
-import com.finovara.finovarabackend.accountactivity.model.SortType;
+import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.expense.controller;
 
-import com.finovara.finovarabackend.accountactivity.model.SortType;
+import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.accountactivity.expense.dto.ExpenseActivityDto;
 import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
 import com.finovara.finovarabackend.security.SecurityUtils;

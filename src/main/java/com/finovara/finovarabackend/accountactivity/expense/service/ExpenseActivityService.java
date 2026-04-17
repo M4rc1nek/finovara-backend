@@ -6,7 +6,7 @@ import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivit
 import com.finovara.finovarabackend.accountactivity.expense.mapper.ExpenseActivityMapper;
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivity;
 import com.finovara.finovarabackend.accountactivity.expense.repository.ExpenseActivityRepository;
-import com.finovara.finovarabackend.accountactivity.model.SortType;
+import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;

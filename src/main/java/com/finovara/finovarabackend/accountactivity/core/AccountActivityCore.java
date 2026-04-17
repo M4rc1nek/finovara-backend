@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.core;
 
-import com.finovara.finovarabackend.accountactivity.model.SortType;
+import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.springframework.data.domain.Pageable;

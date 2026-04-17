@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.settings.service.get;
 
-import com.finovara.finovarabackend.accountactivity.model.SortType;
+import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.accountactivity.settings.dto.SettingsActivityDto;
 import com.finovara.finovarabackend.accountactivity.settings.mapper.SettingsActivityMapper;
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingsActivity;

@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.expense.service.get;
 
-import com.finovara.finovarabackend.accountactivity.model.SortType;
+import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.accountactivity.expense.dto.ExpenseActivityDto;
 import com.finovara.finovarabackend.accountactivity.expense.mapper.ExpenseActivityMapper;
 import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivity;

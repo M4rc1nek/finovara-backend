@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.piggybank.controller;
 
-import com.finovara.finovarabackend.accountactivity.model.SortType;
+import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.accountactivity.piggybank.dto.PiggyBankActivityDto;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.security.SecurityUtils;

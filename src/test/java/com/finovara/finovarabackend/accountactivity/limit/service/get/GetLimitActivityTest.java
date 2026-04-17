@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.limit.service.get;
 
-import com.finovara.finovarabackend.accountactivity.model.SortType;
+import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.accountactivity.limit.dto.LimitActivityDto;
 import com.finovara.finovarabackend.accountactivity.limit.mapper.LimitActivityMapper;
 import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivity;

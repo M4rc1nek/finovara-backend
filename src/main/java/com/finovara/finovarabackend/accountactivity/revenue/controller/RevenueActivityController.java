@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.accountactivity.revenue.controller;
 
-import com.finovara.finovarabackend.accountactivity.model.SortType;
+import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.accountactivity.revenue.dto.RevenueActivityDto;
 import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
 import com.finovara.finovarabackend.security.SecurityUtils;

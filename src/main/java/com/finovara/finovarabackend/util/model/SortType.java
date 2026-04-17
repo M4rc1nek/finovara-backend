@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.accountactivity.model;
+package com.finovara.finovarabackend.util.model;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
