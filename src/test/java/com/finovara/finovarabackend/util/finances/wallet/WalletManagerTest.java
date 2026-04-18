@@ -26,21 +26,21 @@ class WalletManagerTest {
     private WalletManagerService walletManagerService;
 
     @Test
-    void shouldReturnWalletWhenEmailExists() {
+    void shouldReturnWalletWhenUserIdExists() {
         Wallet wallet = new Wallet();
         wallet.setId(1L);
 
-        when(walletRepository.findByUserAssignedEmail("test@example.com")).thenReturn(Optional.of(wallet));
+        when(walletRepository.findByUserAssignedId(1L)).thenReturn(Optional.of(wallet));
 
-        Wallet result = walletManagerService.getWalletByUserEmailOrThrow("test@example.com");
+        Wallet result = walletManagerService.getWalletByUserIdOrThrow(1L);
 
         assertEquals(1L, result.getId());
     }
 
     @Test
-    void shouldThrowWalletNotFoundExceptionWhenEmailDoesNotExist() {
-        when(walletRepository.findByUserAssignedEmail("test@example.com")).thenReturn(Optional.empty());
+    void shouldThrowWalletNotFoundExceptionWhenUserIdDoesNotExist() {
+        when(walletRepository.findByUserAssignedId(1L)).thenReturn(Optional.empty());
 
-        assertThrows(WalletNotFoundException.class, () -> walletManagerService.getWalletByUserEmailOrThrow("test@example.com"));
+        assertThrows(WalletNotFoundException.class, () -> walletManagerService.getWalletByUserIdOrThrow(1L));
     }
 }

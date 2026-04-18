@@ -2,10 +2,10 @@ package com.finovara.finovarabackend.usersetting.accountsetting.passwordpolicy.f
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.ForgotPasswordDto;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.ForgotPasswordService;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -22,7 +23,7 @@ import static org.mockito.Mockito.when;
 class VerifyCodeTest {
 
     @Mock
-    private UserManagerService userManagerService;
+    private UserRepository userRepository;
 
     @InjectMocks
     private ForgotPasswordService forgotPasswordService;
@@ -43,7 +44,7 @@ class VerifyCodeTest {
     void shouldPassWhenCodeMatches() {
         accountSettings.setForgotPasswordCode(123456);
         accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
 
         forgotPasswordService.verifyCode(EMAIL, new ForgotPasswordDto(EMAIL, 123456));
@@ -54,7 +55,7 @@ class VerifyCodeTest {
         accountSettings.setForgotPasswordCode(123456);
         accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().minusMinutes(2));
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
         assertThrows(InvalidInputException.class, () -> forgotPasswordService.verifyCode(EMAIL, new ForgotPasswordDto(EMAIL, 123456)));
 
@@ -63,7 +64,7 @@ class VerifyCodeTest {
     @Test
     void shouldThrowExceptionWhenCodeDoesNotMatch() {
         accountSettings.setForgotPasswordCode(123456);
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
         assertThrows(InvalidInputException.class, () -> forgotPasswordService.verifyCode(EMAIL, new ForgotPasswordDto(EMAIL, 999999)));
     }
@@ -71,7 +72,7 @@ class VerifyCodeTest {
     @Test
     void shouldThrowExceptionWhenCodeIsNotGenerated(){
         accountSettings.setForgotPasswordCode(null);
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
         assertThrows(InvalidInputException.class, () -> forgotPasswordService.verifyCode(EMAIL, new ForgotPasswordDto(EMAIL, null)));
 

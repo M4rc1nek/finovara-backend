@@ -41,24 +41,23 @@ class HandleSmartScanTest {
     private SmartScanService smartScanService;
 
     private ExpenseSettings expenseSettings;
-    private final String EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
         User user = new User();
-        user.setId(1L);
-        user.setEmail(EMAIL);
+        user.setId(USER_ID);
         expenseSettings = new ExpenseSettings();
         user.setExpenseSettings(expenseSettings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @Test
     void shouldDoNothingWhenSmartScanDisabled() {
         expenseSettings.setSmartScanEnabled(false);
 
-        smartScanService.handleSmartScan(EMAIL, null, BigDecimal.valueOf(100), SmartScanMode.ADD);
+        smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(100), SmartScanMode.ADD);
 
         verifyNoInteractions(passwordConfirmationService, expenseRepository);
     }
@@ -66,9 +65,9 @@ class HandleSmartScanTest {
     @Test
     void shouldDoNothingWhenNotFifthExpense() {
         expenseSettings.setSmartScanEnabled(true);
-        when(expenseRepository.countExpensesByUserAssignedId(1L)).thenReturn(3L);
+        when(expenseRepository.countExpensesByUserAssignedId(USER_ID)).thenReturn(3L);
 
-        smartScanService.handleSmartScan(EMAIL, null, BigDecimal.valueOf(100), SmartScanMode.ADD);
+        smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(100), SmartScanMode.ADD);
 
         verifyNoInteractions(passwordConfirmationService);
     }
@@ -76,7 +75,7 @@ class HandleSmartScanTest {
     @Test
     void shouldThrowExceptionWhenUnusualExpenseWithoutPassword() {
         expenseSettings.setSmartScanEnabled(true);
-        when(expenseRepository.countExpensesByUserAssignedId(1L)).thenReturn(4L);
+        when(expenseRepository.countExpensesByUserAssignedId(USER_ID)).thenReturn(4L);
 
         List<Expense> lastFive = IntStream.range(0, 4)
                 .mapToObj(i -> {
@@ -86,11 +85,11 @@ class HandleSmartScanTest {
                 })
                 .toList();
 
-        when(expenseRepository.findFiveLastByUserAssignedId(1L, PageRequest.of(0, 4))).thenReturn(lastFive);
+        when(expenseRepository.findFiveLastByUserAssignedId(USER_ID, PageRequest.of(0, 4))).thenReturn(lastFive);
 
         BigDecimal newExpense = BigDecimal.valueOf(400);
 
-        assertThrows(SmartScanConfirmationRequiredException.class, () -> smartScanService.handleSmartScan(EMAIL, null, newExpense, SmartScanMode.ADD));
+        assertThrows(SmartScanConfirmationRequiredException.class, () -> smartScanService.handleSmartScan(USER_ID, null, newExpense, SmartScanMode.ADD));
 
         verifyNoInteractions(passwordConfirmationService);
     }
@@ -98,7 +97,7 @@ class HandleSmartScanTest {
     @Test
     void shouldConfirmPasswordWhenUnusualExpenseWithPassword() {
         expenseSettings.setSmartScanEnabled(true);
-        when(expenseRepository.countExpensesByUserAssignedId(1L)).thenReturn(4L);
+        when(expenseRepository.countExpensesByUserAssignedId(USER_ID)).thenReturn(4L);
 
         List<Expense> lastFive = IntStream.range(0, 4)
                 .mapToObj(i -> {
@@ -108,13 +107,13 @@ class HandleSmartScanTest {
                 })
                 .toList();
 
-        when(expenseRepository.findFiveLastByUserAssignedId(1L, PageRequest.of(0, 4))).thenReturn(lastFive);
+        when(expenseRepository.findFiveLastByUserAssignedId(USER_ID, PageRequest.of(0, 4))).thenReturn(lastFive);
 
         BigDecimal newExpense = BigDecimal.valueOf(400);
         ConfirmPasswordDto passwordDto = new ConfirmPasswordDto("password");
 
-        smartScanService.handleSmartScan(EMAIL, passwordDto, newExpense, SmartScanMode.ADD);
+        smartScanService.handleSmartScan(USER_ID, passwordDto, newExpense, SmartScanMode.ADD);
 
-        verify(passwordConfirmationService).confirmPassword(EMAIL, passwordDto);
+        verify(passwordConfirmationService).confirmPassword(USER_ID, passwordDto);
     }
 }

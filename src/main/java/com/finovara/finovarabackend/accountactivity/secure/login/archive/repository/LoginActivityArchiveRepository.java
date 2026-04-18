@@ -16,6 +16,15 @@ public interface LoginActivityArchiveRepository extends JpaRepository<LoginActiv
            SELECT new com.finovara.finovarabackend.accountactivity.secure.login.archive.dto.LoginActivityArchiveDto(
            l.type, l.status, l.moveToArchiveDate, l.activityLoginDate, l.browser, l.ipAddress, l.location)
            FROM LoginActivityArchive l
+           WHERE l.userAssigned.id = :userId
+           ORDER BY l.id DESC
+            """)
+    List<LoginActivityArchiveDto> findAllByUserAssignedIdOrderByIdDesc(@Param("userId") Long userId);
+
+    @Query("""
+           SELECT new com.finovara.finovarabackend.accountactivity.secure.login.archive.dto.LoginActivityArchiveDto(
+           l.type, l.status, l.moveToArchiveDate, l.activityLoginDate, l.browser, l.ipAddress, l.location)
+           FROM LoginActivityArchive l
            WHERE l.userAssigned.email = :email
            ORDER BY l.id DESC
             """)

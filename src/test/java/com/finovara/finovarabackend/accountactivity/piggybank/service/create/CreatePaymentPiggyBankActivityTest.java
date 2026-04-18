@@ -33,13 +33,13 @@ class CreatePaymentPiggyBankActivityTest {
     @InjectMocks
     private PiggyBankActivityService piggyBankActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private final Long USER_ID = 1L;
 
     @Test
     void shouldCreatePaymentPiggyBankActivitySuccessfully() {
 
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
 
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setName("Vacation Fund");
@@ -49,9 +49,9 @@ class CreatePaymentPiggyBankActivityTest {
         BigDecimal paidAmount = new BigDecimal("500");
         LocalDateTime now = LocalDateTime.now();
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
-        piggyBankActivityService.createPaymentPiggyBankActivity(EMAIL, piggyBank, PiggyBankActivityType.ADDED_PIGGY_BANK, paidAmount);
+        piggyBankActivityService.createPaymentPiggyBankActivity(USER_ID, piggyBank, PiggyBankActivityType.ADDED_PIGGY_BANK, paidAmount);
 
         verify(piggyBankActivityRepository).save(argThat(activity ->
                 activity.getUserAssigned().equals(user) &&
@@ -74,11 +74,11 @@ class CreatePaymentPiggyBankActivityTest {
 
         BigDecimal paidAmount = new BigDecimal("500");
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
                 piggyBankActivityService.createPaymentPiggyBankActivity(
-                        EMAIL,
+                        USER_ID,
                         piggyBank,
                         PiggyBankActivityType.DELETED_PIGGY_BANK,
                         paidAmount

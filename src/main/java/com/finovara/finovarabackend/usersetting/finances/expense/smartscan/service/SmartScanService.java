@@ -37,29 +37,29 @@ public class SmartScanService {
     private final SettingsActivityService settingsActivityService;
 
     @Transactional
-    public void saveSmartScan(String email, SmartScanDto settings) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void saveSmartScan(Long userId, SmartScanDto settings) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         expenseSettings.setSmartScanEnabled(settings.smartScanEnabled());
         if (expenseSettings.isSmartScanEnabled()) {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.EXPENSE_SMART_SCAN);
+            settingsActivityService.createSettingActivity(userId, SettingActivityStatus.ENABLED, SettingType.EXPENSE_SMART_SCAN);
         } else {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.EXPENSE_SMART_SCAN);
+            settingsActivityService.createSettingActivity(userId, SettingActivityStatus.DISABLED, SettingType.EXPENSE_SMART_SCAN);
         }
     }
 
     @Transactional
-    public SmartScanDto getSmartScan(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public SmartScanDto getSmartScan(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         return new SmartScanDto(expenseSettings.isSmartScanEnabled());
     }
 
     @Transactional
-    public void handleSmartScan(String email, ConfirmPasswordDto confirmPasswordDto, BigDecimal newExpenseAmount, SmartScanMode mode) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void handleSmartScan(Long userId, ConfirmPasswordDto confirmPasswordDto, BigDecimal newExpenseAmount, SmartScanMode mode) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         if (!expenseSettings.isSmartScanEnabled()) return;
@@ -71,7 +71,7 @@ public class SmartScanService {
         BigDecimal expenseAnomalyThreshold = calculateAnomalyThreshold(user);
 
         if (newExpenseAmount.compareTo(expenseAnomalyThreshold) > 0) {
-            requirePasswordConfirmation(user, confirmPasswordDto);
+            requirePasswordConfirmation(userId, confirmPasswordDto);
         }
     }
 
@@ -95,12 +95,12 @@ public class SmartScanService {
         return averageAmountExpense.multiply(ANOMALY_MULTIPLIER);
     }
 
-    private void requirePasswordConfirmation(User user, ConfirmPasswordDto confirmPasswordDto) {
+    private void requirePasswordConfirmation(Long userId, ConfirmPasswordDto confirmPasswordDto) {
         if (confirmPasswordDto == null || confirmPasswordDto.password() == null) {
             throw new SmartScanConfirmationRequiredException("Unusual expense detected. Password confirmation required.");
         }
 
-        passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
+        passwordConfirmationService.confirmPassword(userId, confirmPasswordDto);
     }
 
 }

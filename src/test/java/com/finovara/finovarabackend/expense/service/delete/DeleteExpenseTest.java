@@ -43,47 +43,47 @@ class DeleteExpenseTest {
 
     @Test
     void shouldDeleteExpenseSuccessfully() {
-        String email = "test@mail.com";
+        Long userId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         Expense expense = new Expense();
         expense.setId(1L);
         expense.setUserAssigned(user);
         expense.setAmount(new BigDecimal("100"));
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(expenseRepository.findByIdAndUserAssignedId(expense.getId(), user.getId())).thenReturn(Optional.of(expense));
 
-        expenseService.deleteExpense(expense.getId(), email);
+        expenseService.deleteExpense(expense.getId(), userId);
 
         InOrder inOrder = inOrder(roundUpService, walletService, expenseActivityService, expenseRepository);
-        inOrder.verify(roundUpService).handleExpenseForRoundUp(email, expense.getId(), PiggyBankAutomationMode.ROLLBACK);
-        inOrder.verify(walletService).addBalanceToWallet(email, new BigDecimal("100"));
-        inOrder.verify(expenseActivityService).createExpenseActivity(email, ExpenseActivityType.DELETED_EXPENSE, expense);
+        inOrder.verify(roundUpService).handleExpenseForRoundUp(userId, expense.getId(), PiggyBankAutomationMode.ROLLBACK);
+        inOrder.verify(walletService).addBalanceToWallet(userId, new BigDecimal("100"));
+        inOrder.verify(expenseActivityService).createExpenseActivity(userId, ExpenseActivityType.DELETED_EXPENSE, expense);
         inOrder.verify(expenseRepository).delete(expense);
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(expenseRepository).findByIdAndUserAssignedId(expense.getId(), user.getId());
         verifyNoMoreInteractions(roundUpService, walletService, expenseActivityService, expenseRepository);
     }
 
     @Test
     void shouldThrowWhenExpenseDoesNotExist() {
-        String email = "test@gmail.com";
+        Long userId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         Long expenseId = 1L;
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(expenseRepository.findByIdAndUserAssignedId(expenseId, user.getId())).thenReturn(Optional.empty());
 
-        assertThrows(ExpenseNotFoundException.class, () -> expenseService.deleteExpense(expenseId, email));
+        assertThrows(ExpenseNotFoundException.class, () -> expenseService.deleteExpense(expenseId, userId));
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(expenseRepository).findByIdAndUserAssignedId(expenseId, user.getId());
         verify(expenseRepository, never()).delete(any());
         verifyNoInteractions(roundUpService, walletService, expenseActivityService);

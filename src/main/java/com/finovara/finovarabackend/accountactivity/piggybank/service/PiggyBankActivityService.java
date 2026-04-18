@@ -39,24 +39,24 @@ public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActiv
     }
 
     @Transactional
-    public void createSimplePiggyBankActivity(String email, PiggyBank piggyBank, PiggyBankActivityType activityType) {
-        PiggyBankActivity piggyBankActivity = buildActivity(email, piggyBank);
+    public void createSimplePiggyBankActivity(Long userId, PiggyBank piggyBank, PiggyBankActivityType activityType) {
+        PiggyBankActivity piggyBankActivity = buildActivity(userId, piggyBank);
         piggyBankActivity.setActivityType(activityType);
         piggyBankActivityRepository.save(piggyBankActivity);
     }
 
     @Transactional
-    public void createPaymentPiggyBankActivity(String email, PiggyBank piggyBank, PiggyBankActivityType activityType, BigDecimal paidAmount) {
-        PiggyBankActivity piggyBankActivity = buildActivity(email, piggyBank);
+    public void createPaymentPiggyBankActivity(Long userId, PiggyBank piggyBank, PiggyBankActivityType activityType, BigDecimal paidAmount) {
+        PiggyBankActivity piggyBankActivity = buildActivity(userId, piggyBank);
         piggyBankActivity.setActivityType(activityType);
         piggyBankActivity.setAmountPaid(paidAmount);
         piggyBankActivityRepository.save(piggyBankActivity);
     }
 
     @Transactional
-    public void createEditPiggyBankActivity(String email, PiggyBank piggyBank, PiggyBankActivityType activityType,
+    public void createEditPiggyBankActivity(Long userId, PiggyBank piggyBank, PiggyBankActivityType activityType,
                                             BigDecimal previousGoalAmount, PiggyBankGoalType previousGoalType, String previousPiggyBankName) {
-        PiggyBankActivity piggyBankActivity = buildActivity(email, piggyBank);
+        PiggyBankActivity piggyBankActivity = buildActivity(userId, piggyBank);
         piggyBankActivity.setActivityType(activityType);
         piggyBankActivity.setPreviousPiggyBankName(previousPiggyBankName);
         piggyBankActivity.setPreviousGoalType(previousGoalType);
@@ -64,13 +64,13 @@ public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActiv
         piggyBankActivityRepository.save(piggyBankActivity);
     }
 
-    public List<PiggyBankActivityDto> getPiggyBankActivities(String email, SortType sort) {
-        return getActivities(email, sort, pageSize);
+    public List<PiggyBankActivityDto> getPiggyBankActivities(Long userId, SortType sort) {
+        return getActivities(userId, sort, pageSize);
     }
 
     @Override
-    protected List<PiggyBankActivity> getRepositoryFindByUserEmail(String email, Pageable pageable) {
-        return piggyBankActivityRepository.findByUserAssignedEmail(email, pageable);
+    protected List<PiggyBankActivity> getRepositoryFindByUserId(Long userId, Pageable pageable) {
+        return piggyBankActivityRepository.findByUserAssignedId(userId, pageable);
     }
 
     @Override
@@ -79,9 +79,9 @@ public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActiv
     }
 
     @Override
-    protected PiggyBankActivity buildActivity(String email, PiggyBank piggyBank) {
+    protected PiggyBankActivity buildActivity(Long userId, PiggyBank piggyBank) {
         return PiggyBankActivity.builder()
-                .userAssigned(getUser(email))
+                .userAssigned(getUser(userId))
                 .piggyBankName(piggyBank.getName())
                 .goalType(piggyBank.getGoalType())
                 .goalAmount(piggyBank.getGoalAmount())

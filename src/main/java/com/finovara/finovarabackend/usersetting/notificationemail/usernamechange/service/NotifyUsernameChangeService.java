@@ -52,9 +52,9 @@ public class NotifyUsernameChangeService extends AbstractNotificationEmailServic
     }
 
     @Override
-    protected void handleActivity(String email, boolean enabled) {
+    protected void handleActivity(Long userId, boolean enabled) {
         settingsActivityService.createSettingActivity(
-                email,
+                userId,
                 enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED,
                 SettingType.NOTIFICATION_USERNAME_CHANGED
         );

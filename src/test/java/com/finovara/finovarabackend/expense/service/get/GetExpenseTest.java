@@ -37,26 +37,26 @@ class GetExpenseTest {
     @Test
     void shouldReturnExpensesForUser() {
 
-        String email = "test@email.com";
+        Long userId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         Expense expense1 = new Expense();
         Expense expense2 = new Expense();
 
         ExpenseDto dto = new ExpenseDto(null, null, new BigDecimal("100"), ExpenseCategory.FOOD, null, "food");
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(expenseRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of(expense1, expense2));
 
         when(expenseMapper.mapExpenseToDto(any(Expense.class))).thenReturn(dto);
 
-        List<ExpenseDto> result = expenseService.getExpense(email);
+        List<ExpenseDto> result = expenseService.getExpense(userId);
 
         assertEquals(2, result.size());
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(expenseRepository).findAllByUserAssignedId(user.getId());
         verify(expenseMapper, times(2)).mapExpenseToDto(any(Expense.class));
     }
@@ -64,15 +64,15 @@ class GetExpenseTest {
     @Test
     void shouldReturnEmptyListWhenUserHasNoExpenses() {
 
-        String email = "test@email.com";
+        Long userId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(expenseRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of());
 
-        List<ExpenseDto> result = expenseService.getExpense(email);
+        List<ExpenseDto> result = expenseService.getExpense(userId);
 
         assertTrue(result.isEmpty());
 
@@ -83,11 +83,11 @@ class GetExpenseTest {
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
 
-        String email = "test@email.com";
+        Long userId = 1L;
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> expenseService.getExpense(email));
+        assertThrows(UserNotFoundException.class, () -> expenseService.getExpense(userId));
 
         verify(expenseRepository, never()).findAllByUserAssignedId(any());
     }

@@ -33,20 +33,20 @@ class AddBalanceToWalletTest {
     @InjectMocks
     private WalletService walletService;
 
-    private final String EMAIL = "test@mail.com";
+    private final Long USER_ID = 1L;
 
     @Test
     void shouldAddBalanceSuccessfully() {
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
 
         Wallet wallet = new Wallet();
         wallet.setBalance(new BigDecimal("100"));
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(walletManagerService.getWalletByUserEmailOrThrow(EMAIL)).thenReturn(wallet);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
 
-        WalletDto result = walletService.addBalanceToWallet(EMAIL, new BigDecimal("50"));
+        WalletDto result = walletService.addBalanceToWallet(USER_ID, new BigDecimal("50"));
 
         assertEquals(new BigDecimal("150"), result.balance());
         verify(walletRepository).save(wallet);
@@ -54,7 +54,7 @@ class AddBalanceToWalletTest {
 
     @Test
     void shouldThrowExceptionWhenAmountIsNegative() {
-        assertThrows(IllegalArgumentException.class, () -> walletService.addBalanceToWallet(EMAIL, new BigDecimal("-10")));
+        assertThrows(IllegalArgumentException.class, () -> walletService.addBalanceToWallet(USER_ID, new BigDecimal("-10")));
 
         verify(walletRepository, never()).save(any());
     }

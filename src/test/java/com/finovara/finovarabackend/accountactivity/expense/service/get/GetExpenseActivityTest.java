@@ -37,7 +37,7 @@ class GetExpenseActivityTest {
     @InjectMocks
     private ExpenseActivityService expenseActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setUp() {
@@ -57,29 +57,29 @@ class GetExpenseActivityTest {
                 LocalDateTime.now()
         );
 
-        when(expenseActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of(activity));
+        when(expenseActivityRepository.findByUserAssignedId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
 
         when(expenseActivityMapper.mapToExpenseActivity(activity)).thenReturn(dto);
 
-        List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(EMAIL, SortType.NEWEST);
+        List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(USER_ID, SortType.NEWEST);
 
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
 
-        verify(expenseActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verify(expenseActivityRepository).findByUserAssignedId(eq(USER_ID), any(Pageable.class));
         verify(expenseActivityMapper).mapToExpenseActivity(activity);
     }
 
     @Test
     void shouldReturnEmptyListWhenUserHasNoActivities() {
 
-        when(expenseActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
+        when(expenseActivityRepository.findByUserAssignedId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
 
-        List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(EMAIL, SortType.OLDEST);
+        List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(USER_ID, SortType.OLDEST);
 
         assertEquals(0, result.size());
 
-        verify(expenseActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verify(expenseActivityRepository).findByUserAssignedId(eq(USER_ID), any(Pageable.class));
         verifyNoInteractions(expenseActivityMapper);
     }
 

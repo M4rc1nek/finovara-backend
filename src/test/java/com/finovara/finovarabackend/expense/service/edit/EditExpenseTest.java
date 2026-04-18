@@ -59,11 +59,11 @@ class EditExpenseTest {
     @Test
     void shouldEditExpenseSuccessfully() {
 
-        String email = "test@email.com";
+        Long userId = 1L;
         Long expenseId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         Expense existingExpense = new Expense();
         existingExpense.setId(expenseId);
@@ -83,24 +83,24 @@ class EditExpenseTest {
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
 
-        expenseService.editExpense(dto, email, expenseId, null);
+        expenseService.editExpense(dto, userId, expenseId, null);
 
-        verify(walletService).addBalanceToWallet(email, new BigDecimal("100"));
-        verify(walletService).removeBalanceFromWallet(email, new BigDecimal("200"));
-        verify(roundUpService).handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.ROLLBACK);
-        verify(expenseActivityService).updateExpenseActivity(email, ExpenseActivityType.EDITED_EXPENSE, existingExpense, oldAmount, oldCategory);
-        verify(smartScanService).handleSmartScan(email, dto.confirmPasswordDto(), dto.expenseDto().amount(), SmartScanMode.EDIT);
+        verify(walletService).addBalanceToWallet(userId, new BigDecimal("100"));
+        verify(walletService).removeBalanceFromWallet(userId, new BigDecimal("200"));
+        verify(roundUpService).handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
+        verify(expenseActivityService).updateExpenseActivity(userId, ExpenseActivityType.EDITED_EXPENSE, existingExpense, oldAmount, oldCategory);
+        verify(smartScanService).handleSmartScan(userId, dto.confirmPasswordDto(), dto.expenseDto().amount(), SmartScanMode.EDIT);
         verify(expenseRepository).save(existingExpense);
-        verify(roundUpService).handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.APPLY);
-        verify(controlAmountService).handleExpenseAmountControl(email, dto.expenseDto().amount());
+        verify(roundUpService).handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.APPLY);
+        verify(controlAmountService).handleExpenseAmountControl(userId, dto.expenseDto().amount());
     }
 
     @Test
     void shouldThrowExceptionWhenExpenseDoesNotBelongToUser() {
-        String email = "test@email.com";
+        Long userId = 2L;
         Long expenseId = 1L;
 
         User loggedUser = new User();
@@ -120,9 +120,9 @@ class EditExpenseTest {
         );
 
         when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(loggedUser);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(loggedUser);
 
-        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, PeriodType.DAILY));
+        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, userId, expenseId, PeriodType.DAILY));
 
         verify(expenseRepository, never()).save(any());
 
@@ -131,7 +131,7 @@ class EditExpenseTest {
     @Test
     void shouldThrowExceptionWhenExpenseDoesNotExist() {
 
-        String email = "test@email.com";
+        Long userId = 1L;
         Long expenseId = 1L;
 
         ExpenseRequestDto dto = new ExpenseRequestDto(
@@ -143,13 +143,13 @@ class EditExpenseTest {
         when(expenseManagerService.getExpenseByIdOrThrow(expenseId))
                 .thenThrow(new ExpenseNotFoundException("Expense not found"));
 
-        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, PeriodType.DAILY));
+        assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(dto, userId, expenseId, PeriodType.DAILY));
         verify(expenseRepository, never()).save(any());
     }
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
-        String email = "test@email.com";
+        Long userId = 1L;
 
         Long expenseId = 1L;
 
@@ -159,9 +159,9 @@ class EditExpenseTest {
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> expenseService.editExpense(dto, email, expenseId, null));
+        assertThrows(UserNotFoundException.class, () -> expenseService.editExpense(dto, userId, expenseId, null));
         verify(expenseRepository, never()).save(any());
 
     }

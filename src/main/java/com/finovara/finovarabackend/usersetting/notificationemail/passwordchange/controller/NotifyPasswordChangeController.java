@@ -16,12 +16,12 @@ public class NotifyPasswordChangeController {
 
     @PatchMapping
     public ResponseEntity<Void> saveNotifyPasswordChange(@RequestBody NotificationEmailDto dto) {
-        notifyPasswordChangeService.saveEmailNotification(SecurityUtils.getCurrentUserEmail(), dto);
+        notifyPasswordChangeService.saveEmailNotification(SecurityUtils.getCurrentUserId(), dto);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
     public ResponseEntity<NotificationEmailDto> getNotifyPasswordChange() {
-        return ResponseEntity.ok(notifyPasswordChangeService.getEmailNotification(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(notifyPasswordChangeService.getEmailNotification(SecurityUtils.getCurrentUserId()));
     }
 }

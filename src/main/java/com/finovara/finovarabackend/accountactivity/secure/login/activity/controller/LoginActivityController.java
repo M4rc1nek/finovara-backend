@@ -18,12 +18,12 @@ public class LoginActivityController {
 
     @GetMapping
     public ResponseEntity<List<LoginActivityDto>> getUserLoginActivity() {
-        return ResponseEntity.ok(loginActivityService.getLoginActivity(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(loginActivityService.getLoginActivity(SecurityUtils.getCurrentUserId()));
     }
 
     @PostMapping
     public ResponseEntity<Void> confirmPasswordToUserActivityLogin(@RequestBody ConfirmPasswordDto confirmPasswordDto) {
-        loginActivityService.confirmPassword(SecurityUtils.getCurrentUserEmail(), confirmPasswordDto);
+        loginActivityService.confirmPassword(SecurityUtils.getCurrentUserId(), confirmPasswordDto);
         return ResponseEntity.noContent().build();
     }
 }

@@ -27,7 +27,7 @@ class GetNotifyOnAccountDeletedTest {
     private NotifyOnAccountDeletedService notifyOnAccountDeletedService;
 
     private NotificationEmailSettings notificationEmailSettings;
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -35,7 +35,7 @@ class GetNotifyOnAccountDeletedTest {
         notificationEmailSettings = new NotificationEmailSettings();
         user.setNotificationEmailSettings(notificationEmailSettings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @ParameterizedTest
@@ -45,7 +45,7 @@ class GetNotifyOnAccountDeletedTest {
     void shouldReturnNotificationFlagBasedOnSettings(boolean enabled) {
         notificationEmailSettings.setNotifyOnAccountDeleted(enabled);
 
-        NotificationEmailDto dto = notifyOnAccountDeletedService.getEmailNotification(EMAIL);
+        NotificationEmailDto dto = notifyOnAccountDeletedService.getEmailNotification(USER_ID);
 
         assertEquals(dto.enabled(), enabled);
     }

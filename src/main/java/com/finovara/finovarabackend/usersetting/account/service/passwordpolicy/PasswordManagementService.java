@@ -28,6 +28,6 @@ public class PasswordManagementService {
     }
 
     private void createActivity(User user, HttpServletRequest request) {
-        accountChangesActivityService.createAccountChangesActivity(user.getEmail(), AccountChangesActivityType.PASSWORD_CHANGED, request);
+        accountChangesActivityService.createAccountChangesActivity(user.getId(), AccountChangesActivityType.PASSWORD_CHANGED, request);
     }
 }

@@ -11,6 +11,11 @@ import org.springframework.stereotype.Service;
 public class PiggyBankManagerService {
     private final PiggyBankRepository piggyBankRepository;
 
+    public PiggyBank getPiggyBankByUserId(Long piggyBankId, Long userId) {
+        return piggyBankRepository.findByIdAndUserAssignedId(piggyBankId, userId)
+                .orElseThrow(() -> new PiggyBankNotFoundException("Piggy Bank not found"));
+    }
+
     public PiggyBank getPiggyBankByUserEmail(Long piggyBankId, String email) {
         return piggyBankRepository.findByIdAndUserAssignedEmail(piggyBankId, email)
                 .orElseThrow(() -> new PiggyBankNotFoundException("Piggy Bank not found"));

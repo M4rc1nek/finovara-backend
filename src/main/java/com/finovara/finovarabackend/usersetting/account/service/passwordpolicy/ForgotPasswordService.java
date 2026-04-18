@@ -3,13 +3,13 @@ package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
+import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.ForgotPasswordDto;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordRequestDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +38,6 @@ public class ForgotPasswordService {
     @Value("${mail.recipient.address}")
     private String recipientAddress;
 
-    private final UserManagerService userManagerService;
     private final PasswordEncoder passwordEncoder;
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
@@ -75,7 +74,7 @@ public class ForgotPasswordService {
     }
 
     public void verifyCode(String email, ForgotPasswordDto forgotPasswordDto) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+        User user = getUserByEmailOrThrow(email);
         AccountSettings accountSettings = user.getAccountSettings();
 
         if (accountSettings.getForgotPasswordCode() == null) {
@@ -94,7 +93,7 @@ public class ForgotPasswordService {
 
     @Transactional
     public void changePasswordWithCode(String email, PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+        User user = getUserByEmailOrThrow(email);
         AccountSettings accountSettings = user.getAccountSettings();
 
         verifyCode(email, passwordRequestDto.forgotPasswordDto());
@@ -121,7 +120,7 @@ public class ForgotPasswordService {
     }
 
     private int generateSecureCode(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+        User user = getUserByEmailOrThrow(email);
         AccountSettings accountSettings = user.getAccountSettings();
 
         LocalDateTime startCodeExpiration = LocalDateTime.now();
@@ -141,7 +140,7 @@ public class ForgotPasswordService {
     }
 
     private String loadTemplate(String code, String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+        User user = getUserByEmailOrThrow(email);
         try {
             ClassPathResource resource = new ClassPathResource(TEMPLATE_PATH);
 
@@ -155,6 +154,11 @@ public class ForgotPasswordService {
         } catch (Exception e) {
             throw new ServiceUnavailableException("Failed to load email template", e);
         }
+    }
+
+    private User getUserByEmailOrThrow(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
 }

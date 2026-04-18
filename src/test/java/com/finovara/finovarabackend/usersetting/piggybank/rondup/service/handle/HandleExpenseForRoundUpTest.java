@@ -53,7 +53,7 @@ class HandleExpenseForRoundUpTest {
     @InjectMocks
     private RoundUpService roundUpService;
 
-    private final String email = "test@test.com";
+    private final Long userId = 1L;
     private final Long expenseId = 1L;
 
     private User user;
@@ -65,8 +65,7 @@ class HandleExpenseForRoundUpTest {
     void setup() {
 
         user = new User();
-        user.setEmail(email);
-        user.setId(1L);
+        user.setId(userId);
 
         wallet = new Wallet();
         wallet.setBalance(BigDecimal.valueOf(500));
@@ -81,18 +80,18 @@ class HandleExpenseForRoundUpTest {
         settings.setRoundUpActive(true);
         piggyBank.setSettings(settings);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(expenseManagerService.getExpenseByUserIdOrThrow(expenseId, user.getId())).thenReturn(expense);
-        when(piggyBankRepository.findAllByUserAssignedEmail(email)).thenReturn(List.of(piggyBank));
-        when(walletRepository.findByUserAssignedEmail(email)).thenReturn(Optional.of(wallet));
+        when(piggyBankRepository.findAllByUserAssignedId(userId)).thenReturn(List.of(piggyBank));
+        when(walletRepository.findByUserAssignedId(userId)).thenReturn(Optional.of(wallet));
     }
 
     @Test
     void shouldDoNothingWhenNoPiggyBanks() {
 
-        when(piggyBankRepository.findAllByUserAssignedEmail(email)).thenReturn(List.of());
+        when(piggyBankRepository.findAllByUserAssignedId(userId)).thenReturn(List.of());
 
-        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.APPLY);
+        roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.APPLY);
 
         verifyNoInteractions(roundUpCore);
         verifyNoInteractions(goalCompletionService);
@@ -101,29 +100,29 @@ class HandleExpenseForRoundUpTest {
     @Test
     void shouldCallCoreApplyMode() {
 
-        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.APPLY);
+        roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.APPLY);
 
-        verify(roundUpCore).process(eq(email), eq(piggyBank), eq(wallet), any(BigDecimal.class), eq(PiggyBankAutomationMode.APPLY));
+        verify(roundUpCore).process(eq(userId), eq(piggyBank), eq(wallet), any(BigDecimal.class), eq(PiggyBankAutomationMode.APPLY));
 
-        verify(goalCompletionService).handleGoalCompletion(email);
+        verify(goalCompletionService).handleGoalCompletion(userId);
     }
 
     @Test
     void shouldCallCoreRollbackMode() {
 
-        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.ROLLBACK);
+        roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
 
-        verify(roundUpCore).process(eq(email), eq(piggyBank), eq(wallet), any(BigDecimal.class), eq(PiggyBankAutomationMode.ROLLBACK));
+        verify(roundUpCore).process(eq(userId), eq(piggyBank), eq(wallet), any(BigDecimal.class), eq(PiggyBankAutomationMode.ROLLBACK));
 
-        verify(goalCompletionService).handleGoalCompletion(email);
+        verify(goalCompletionService).handleGoalCompletion(userId);
     }
 
     @Test
     void shouldThrowWhenWalletNotFound() {
 
-        when(walletRepository.findByUserAssignedEmail(email)).thenReturn(Optional.empty());
+        when(walletRepository.findByUserAssignedId(userId)).thenReturn(Optional.empty());
 
-        assertThrows(WalletNotFoundException.class, () -> roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.APPLY));
+        assertThrows(WalletNotFoundException.class, () -> roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.APPLY));
 
         verifyNoInteractions(roundUpCore);
     }
@@ -133,9 +132,9 @@ class HandleExpenseForRoundUpTest {
 
         piggyBank.getSettings().setRoundUpActive(false);
 
-        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.APPLY);
+        roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.APPLY);
 
         verifyNoInteractions(roundUpCore);
-        verify(goalCompletionService).handleGoalCompletion(email);
+        verify(goalCompletionService).handleGoalCompletion(userId);
     }
 }

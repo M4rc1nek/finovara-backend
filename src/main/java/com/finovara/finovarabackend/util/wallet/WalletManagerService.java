@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 public class WalletManagerService {
     private final WalletRepository walletRepository;
 
-    public Wallet getWalletByUserEmailOrThrow(String email) {
-        return walletRepository.findByUserAssignedEmail(email)
+    public Wallet getWalletByUserIdOrThrow(Long userId) {
+        return walletRepository.findByUserAssignedId(userId)
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found for this user"));
     }
 }

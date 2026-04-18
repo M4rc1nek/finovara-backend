@@ -28,12 +28,12 @@ class GetCountQuantityLimitTest {
     private User user;
     private ExpenseSettings expenseSettings;
 
-    private final String EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
         user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
         expenseSettings = new ExpenseSettings();
         user.setExpenseSettings(expenseSettings);
     }
@@ -44,9 +44,9 @@ class GetCountQuantityLimitTest {
         expenseSettings.setPeriodType(PeriodType.DAILY);
         expenseSettings.setNumberOfQuantityLimit(5);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
-        CountQuantityLimitDto dto = countQuantityLimitService.getCountQuantityLimit(EMAIL);
+        CountQuantityLimitDto dto = countQuantityLimitService.getCountQuantityLimit(USER_ID);
 
         assertEquals(true, dto.expenseCountLimitEnabled());
         assertEquals(PeriodType.DAILY, dto.periodType());
@@ -59,9 +59,9 @@ class GetCountQuantityLimitTest {
         expenseSettings.setPeriodType(PeriodType.WEEKLY);
         expenseSettings.setNumberOfQuantityLimit(10);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
-        CountQuantityLimitDto dto = countQuantityLimitService.getCountQuantityLimit(EMAIL);
+        CountQuantityLimitDto dto = countQuantityLimitService.getCountQuantityLimit(USER_ID);
 
         assertEquals(false, dto.expenseCountLimitEnabled());
         assertEquals(PeriodType.WEEKLY, dto.periodType());

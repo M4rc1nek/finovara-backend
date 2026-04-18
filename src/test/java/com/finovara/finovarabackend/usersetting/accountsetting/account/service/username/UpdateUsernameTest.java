@@ -60,7 +60,7 @@ class UpdateUsernameTest {
 
         verify(userRepository).save(user);
         verify(accountChangesActivityService).createAccountChangesActivity(
-                user.getEmail(),
+                userId,
                 AccountChangesActivityType.USERNAME_CHANGED,
                 request
         );

@@ -37,7 +37,7 @@ class GetPiggyBankActivitiesTest {
     @InjectMocks
     private PiggyBankActivityService piggyBankActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setUp() {
@@ -61,29 +61,29 @@ class GetPiggyBankActivitiesTest {
                 LocalDateTime.now()
         );
 
-        when(piggyBankActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of(activity));
+        when(piggyBankActivityRepository.findByUserAssignedId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
 
         when(piggyBankActivityMapper.mapToPiggyBankActivity(activity)).thenReturn(dto);
 
-        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(EMAIL, SortType.NEWEST);
+        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(USER_ID, SortType.NEWEST);
 
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
 
-        verify(piggyBankActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verify(piggyBankActivityRepository).findByUserAssignedId(eq(USER_ID), any(Pageable.class));
         verify(piggyBankActivityMapper).mapToPiggyBankActivity(activity);
     }
 
     @Test
     void shouldReturnEmptyListWhenUserHasNoActivities() {
 
-        when(piggyBankActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
+        when(piggyBankActivityRepository.findByUserAssignedId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
 
-        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(EMAIL, SortType.OLDEST);
+        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(USER_ID, SortType.OLDEST);
 
         assertEquals(0, result.size());
 
-        verify(piggyBankActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verify(piggyBankActivityRepository).findByUserAssignedId(eq(USER_ID), any(Pageable.class));
         verifyNoInteractions(piggyBankActivityMapper);
     }
 }

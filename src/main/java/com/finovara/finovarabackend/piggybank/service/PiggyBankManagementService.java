@@ -42,8 +42,8 @@ public class PiggyBankManagementService {
     private final PiggyBankMapper piggyBankMapper;
 
     @Transactional
-    public Long addPiggyBank(PiggyBankDto piggyBankDto, String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public Long addPiggyBank(PiggyBankDto piggyBankDto, Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         long currentPiggyBanks = piggyBankRepository.countPiggyBanksByUserId(user.getId());
 
@@ -68,7 +68,7 @@ public class PiggyBankManagementService {
                 .build();
 
         PiggyBank saved = piggyBankRepository.save(piggyBank);
-        piggyBankActivityService.createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.ADDED_PIGGY_BANK);
+        piggyBankActivityService.createSimplePiggyBankActivity(userId, piggyBank, PiggyBankActivityType.ADDED_PIGGY_BANK);
         PiggyBankSettings settings = settingsFactory.createDefaultPiggyBankSettings(saved);
         piggyBankSettingsRepository.save(settings);
 
@@ -76,9 +76,9 @@ public class PiggyBankManagementService {
     }
 
     @Transactional
-    public Long editPiggyBank(String email, PiggyBankDto piggyBankDto, Long piggyBankId) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+    public Long editPiggyBank(Long userId, PiggyBankDto piggyBankDto, Long piggyBankId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         //safety check
         if (piggyBank.getUserAssigned() == null || !piggyBank.getUserAssigned().getId().equals(user.getId())) {
@@ -100,14 +100,14 @@ public class PiggyBankManagementService {
         piggyBank.setGoalAmount(piggyBankDto.goalAmount());
         piggyBank.setGoalType(piggyBankDto.goalType());
 
-        piggyBankActivityService.createEditPiggyBankActivity(email, piggyBank, PiggyBankActivityType.EDITED_PIGGY_BANK, previousGoalAmount, previousGoalType, previousName);
+        piggyBankActivityService.createEditPiggyBankActivity(userId, piggyBank, PiggyBankActivityType.EDITED_PIGGY_BANK, previousGoalAmount, previousGoalType, previousName);
         PiggyBank saved = piggyBankRepository.save(piggyBank);
 
         return saved.getId();
     }
 
-    public List<PiggyBankDto> getAllPiggyBanks(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public List<PiggyBankDto> getAllPiggyBanks(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedId(user.getId());
 
         return piggyBanks.stream()
@@ -117,13 +117,13 @@ public class PiggyBankManagementService {
     }
 
     @Transactional
-    public void deletePiggyBank(String email, Long piggyBankId) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+    public void deletePiggyBank(Long userId, Long piggyBankId) {
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         if (piggyBank == null || piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             throw new InvalidInputException("Cannot delete piggy bank with balance.  Withdraw funds first.");
         }
-        piggyBankActivityService.createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
+        piggyBankActivityService.createSimplePiggyBankActivity(userId, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
         piggyBankRepository.delete(piggyBank);
     }
 }

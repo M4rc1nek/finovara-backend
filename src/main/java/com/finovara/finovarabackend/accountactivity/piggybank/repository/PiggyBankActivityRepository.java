@@ -14,4 +14,7 @@ public interface PiggyBankActivityRepository extends JpaRepository<PiggyBankActi
 
     @Query("SELECT e FROM PiggyBankActivity e WHERE e.userAssigned.email = :email")
     List<PiggyBankActivity> findByUserAssignedEmail(@Param("email") String email, Pageable pageable);
+
+    @Query("SELECT e FROM PiggyBankActivity e WHERE e.userAssigned.id = :userId")
+    List<PiggyBankActivity> findByUserAssignedId(@Param("userId") Long userId, Pageable pageable);
 }

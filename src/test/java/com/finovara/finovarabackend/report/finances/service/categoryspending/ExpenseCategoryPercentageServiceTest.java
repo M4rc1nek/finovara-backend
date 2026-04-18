@@ -37,11 +37,11 @@ class ExpenseCategoryPercentageServiceTest {
     @InjectMocks
     private ExpenseCategoryPercentageService expenseCategoryPercentageService;
 
-    private String email;
+    private Long userId;
 
     @BeforeEach
     void setUp() {
-        email = "test@email.com";
+        userId = 1L;
     }
 
     @ParameterizedTest
@@ -60,12 +60,12 @@ class ExpenseCategoryPercentageServiceTest {
 
         List<Expense> expenseCategory = List.of(expense, expense2);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(financialPeriodService.getExpensesSum(user.getId(), periodType)).thenReturn(summedExpenses);
         when(financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, ExpenseCategory.CLOTHING))
                 .thenReturn(expenseCategory);
 
-        ExpenseCategoryPercentageDto result = expenseCategoryPercentageService.getExpensePercentageByCategoryReport(email, ExpenseCategory.CLOTHING, periodType);
+        ExpenseCategoryPercentageDto result = expenseCategoryPercentageService.getExpensePercentageByCategoryReport(userId, ExpenseCategory.CLOTHING, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.valueOf(50));
         assertThat(result.category()).isEqualTo(ExpenseCategory.CLOTHING);
@@ -77,13 +77,13 @@ class ExpenseCategoryPercentageServiceTest {
         User user = new User();
         user.setId(1L);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(financialPeriodService.getExpensesSum(user.getId(), periodType)).thenReturn(BigDecimal.ZERO);
 
         when(financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, ExpenseCategory.CLOTHING))
                 .thenReturn(List.of());
 
-        ExpenseCategoryPercentageDto result = expenseCategoryPercentageService.getExpensePercentageByCategoryReport(email, ExpenseCategory.CLOTHING, periodType);
+        ExpenseCategoryPercentageDto result = expenseCategoryPercentageService.getExpensePercentageByCategoryReport(userId, ExpenseCategory.CLOTHING, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -91,10 +91,10 @@ class ExpenseCategoryPercentageServiceTest {
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
-                expenseCategoryPercentageService.getExpensePercentageByCategoryReport(email, ExpenseCategory.FOOD, PeriodType.MONTHLY));
+                expenseCategoryPercentageService.getExpensePercentageByCategoryReport(userId, ExpenseCategory.FOOD, PeriodType.MONTHLY));
     }
 
 }

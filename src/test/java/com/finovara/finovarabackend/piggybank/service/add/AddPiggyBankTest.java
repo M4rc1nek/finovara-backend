@@ -47,9 +47,9 @@ class AddPiggyBankTest {
 
     @Test
     void shouldAddPiggyBankSuccessfully() {
-        String email = "test@email.com";
+        Long userId = 1L;
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setId(1L);
@@ -60,64 +60,64 @@ class AddPiggyBankTest {
         PiggyBankDto dto = new PiggyBankDto(null, null, "PiggyBank", BigDecimal.valueOf(100),
                 null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(piggyBankRepository.countPiggyBanksByUserId(user.getId())).thenReturn(0L);
         when(piggyBankRepository.existsByNameAndUserAssignedId(dto.name(), user.getId())).thenReturn(false);
         when(piggyBankRepository.save(any(PiggyBank.class))).thenReturn(piggyBank);
         when(settingsFactory.createDefaultPiggyBankSettings(any())).thenReturn(settings);
 
-        piggyBankManagementService.addPiggyBank(dto, email);
+        piggyBankManagementService.addPiggyBank(dto, userId);
 
         verify(piggyBankRepository).save(any(PiggyBank.class));
-        verify(piggyBankActivityService).createSimplePiggyBankActivity(eq(email), any(PiggyBank.class), eq(PiggyBankActivityType.ADDED_PIGGY_BANK));
+        verify(piggyBankActivityService).createSimplePiggyBankActivity(eq(userId), any(PiggyBank.class), eq(PiggyBankActivityType.ADDED_PIGGY_BANK));
         verify(settingsFactory).createDefaultPiggyBankSettings(any(PiggyBank.class));
         verify(piggyBankSettingsRepository).save(settings);
     }
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
-        String email = "test@email.com";
+        Long userId = 1L;
         PiggyBankDto dto = new PiggyBankDto(null, null, "PiggyBank", BigDecimal.valueOf(100),
                 null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
-        when(userManagerService.getUserByEmailOrThrow(email))
+        when(userManagerService.getUserByIdOrThrow(userId))
                 .thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> piggyBankManagementService.addPiggyBank(dto, email));
+        assertThrows(UserNotFoundException.class, () -> piggyBankManagementService.addPiggyBank(dto, userId));
 
         verify(piggyBankRepository, never()).save(any());
     }
 
     @Test
     void shouldThrowWhenMaxPiggyBanksReached() {
-        String email = "test@email.com";
+        Long userId = 1L;
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         PiggyBankDto dto = new PiggyBankDto(null, null, "PiggyBank", BigDecimal.valueOf(100),
                 null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(piggyBankRepository.countPiggyBanksByUserId(user.getId())).thenReturn(5L);
 
-        assertThrows(InvalidInputException.class, () -> piggyBankManagementService.addPiggyBank(dto, email));
+        assertThrows(InvalidInputException.class, () -> piggyBankManagementService.addPiggyBank(dto, userId));
         verify(piggyBankRepository, never()).save(any());
     }
 
     @Test
     void shouldThrowWhenNameAlreadyExists() {
-        String email = "test@email.com";
+        Long userId = 1L;
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         PiggyBankDto dto = new PiggyBankDto(null, null, "PiggyBank", BigDecimal.valueOf(100),
                 null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(piggyBankRepository.countPiggyBanksByUserId(user.getId())).thenReturn(0L);
         when(piggyBankRepository.existsByNameAndUserAssignedId(dto.name(), user.getId())).thenReturn(true);
 
-        assertThrows(NameAlreadyExistsException.class, () -> piggyBankManagementService.addPiggyBank(dto, email));
+        assertThrows(NameAlreadyExistsException.class, () -> piggyBankManagementService.addPiggyBank(dto, userId));
         verify(piggyBankRepository, never()).save(any());
     }
 }

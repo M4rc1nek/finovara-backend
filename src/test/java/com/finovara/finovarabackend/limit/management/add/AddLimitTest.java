@@ -43,7 +43,6 @@ class AddLimitTest {
     @Test
     void shouldCreateLimitSuccessfully() {
 
-        String email = "test@test.com";
         Long userId = 1L;
 
         LimitDto dto = new LimitDto(userId, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
@@ -51,7 +50,7 @@ class AddLimitTest {
         User user = new User();
         user.setId(userId);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(limitRepository.findByUserAssignedIdAndType(userId, dto.periodType()))
                 .thenReturn(Collections.emptyList());
 
@@ -60,20 +59,19 @@ class AddLimitTest {
 
         when(limitRepository.save(any(Limit.class))).thenReturn(savedLimit);
 
-        Long result = limitManagementService.createLimit(dto, email);
+        Long result = limitManagementService.createLimit(dto, userId);
 
         assertEquals(10L, result);
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(limitRepository).findByUserAssignedIdAndType(userId, dto.periodType());
-        verify(limitActivityService).createLimitActivity(eq(email), eq(LimitActivityType.ADDED_LIMIT), any(Limit.class));
+        verify(limitActivityService).createLimitActivity(eq(userId), eq(LimitActivityType.ADDED_LIMIT), any(Limit.class));
         verify(limitRepository).save(any(Limit.class));
     }
 
     @Test
     void shouldThrowExceptionWhenLimitAlreadyExists() {
 
-        String email = "test@test.com";
         Long userId = 1L;
 
         LimitDto dto = new LimitDto(userId, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
@@ -83,9 +81,9 @@ class AddLimitTest {
 
         Limit existingLimit = new Limit();
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(limitRepository.findByUserAssignedIdAndType(userId, dto.periodType())).thenReturn(List.of(existingLimit));
-        assertThrows(LimitAlreadyExistsException.class, () -> limitManagementService.createLimit(dto, email));
+        assertThrows(LimitAlreadyExistsException.class, () -> limitManagementService.createLimit(dto, userId));
         verify(limitRepository).findByUserAssignedIdAndType(userId, dto.periodType());
         verify(limitRepository, never()).save(any());
         verifyNoInteractions(limitActivityService);
@@ -93,13 +91,13 @@ class AddLimitTest {
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
-        String email = "test@email.com";
+        Long userId = 1L;
         LimitDto dto = new LimitDto(null, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> limitManagementService.createLimit(dto, email));
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        assertThrows(UserNotFoundException.class, () -> limitManagementService.createLimit(dto, userId));
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(limitRepository, never()).save(any());
     }
 }

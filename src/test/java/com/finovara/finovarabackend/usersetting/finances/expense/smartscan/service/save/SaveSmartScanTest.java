@@ -33,7 +33,7 @@ class SaveSmartScanTest {
     private SmartScanService smartScanService;
 
     private ExpenseSettings expenseSettings;
-    private final String EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setUp() {
@@ -41,26 +41,26 @@ class SaveSmartScanTest {
         expenseSettings = new ExpenseSettings();
         user.setExpenseSettings(expenseSettings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @Test
     void shouldEnableSmartScan() {
         SmartScanDto dto = new SmartScanDto(true);
 
-        smartScanService.saveSmartScan(EMAIL, dto);
+        smartScanService.saveSmartScan(USER_ID, dto);
 
         assertTrue(expenseSettings.isSmartScanEnabled());
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.ENABLED, SettingType.EXPENSE_SMART_SCAN);
+        verify(settingsActivityService).createSettingActivity(USER_ID, SettingActivityStatus.ENABLED, SettingType.EXPENSE_SMART_SCAN);
     }
 
     @Test
     void shouldDisableSmartScan() {
         SmartScanDto dto = new SmartScanDto(false);
 
-        smartScanService.saveSmartScan(EMAIL, dto);
+        smartScanService.saveSmartScan(USER_ID, dto);
 
         assertFalse(expenseSettings.isSmartScanEnabled());
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.DISABLED, SettingType.EXPENSE_SMART_SCAN);
+        verify(settingsActivityService).createSettingActivity(USER_ID, SettingActivityStatus.DISABLED, SettingType.EXPENSE_SMART_SCAN);
     }
 }

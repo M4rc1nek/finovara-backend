@@ -40,9 +40,9 @@ class GetLimitTest {
 
     @Test
     void shouldGetLimitStatsSuccessfully() {
-        String email = "user@example.com";
+        Long userId = 1L;
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         Limit limit1 = new Limit();
         limit1.setId(10L);
@@ -54,15 +54,15 @@ class GetLimitTest {
         LimitStatsDto dto2 = new LimitStatsDto(20L, null, new BigDecimal("200"), new BigDecimal("50"),
                 new BigDecimal("150"), new BigDecimal("25"), null, LocalDate.now());
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(limitRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of(limit1, limit2));
         when(limitCalculateService.calculateLimitStats(user.getId(), 10L, LocalDate.now())).thenReturn(dto1);
         when(limitCalculateService.calculateLimitStats(user.getId(), 20L, LocalDate.now())).thenReturn(dto2);
 
-        List<LimitStatsDto> result = limitService.getLimitStats(email);
+        List<LimitStatsDto> result = limitService.getLimitStats(userId);
 
         assertThat(result, contains(dto1, dto2));
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(limitRepository).findAllByUserAssignedId(user.getId());
         verify(limitCalculateService).calculateLimitStats(user.getId(), 10L, LocalDate.now());
         verify(limitCalculateService).calculateLimitStats(user.getId(), 20L, LocalDate.now());
@@ -70,29 +70,29 @@ class GetLimitTest {
 
     @Test
     void shouldThrowExceptionWhenUserNotFound() {
-        String email = "test@example.com";
+        Long userId = 1L;
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> limitService.getLimitStats(email));
+        assertThrows(UserNotFoundException.class, () -> limitService.getLimitStats(userId));
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verifyNoInteractions(limitRepository, limitCalculateService);
     }
 
     @Test
     void shouldReturnEmptyListWhenNoLimits() {
-        String email = "user@example.com";
+        Long userId = 1L;
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(limitRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of());
 
-        List<LimitStatsDto> result = limitService.getLimitStats(email);
+        List<LimitStatsDto> result = limitService.getLimitStats(userId);
 
         assertThat(result, is(empty()));
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(limitRepository).findAllByUserAssignedId(user.getId());
         verifyNoInteractions(limitCalculateService);
     }

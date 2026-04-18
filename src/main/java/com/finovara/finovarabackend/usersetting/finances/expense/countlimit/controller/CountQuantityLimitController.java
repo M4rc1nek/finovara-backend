@@ -20,18 +20,18 @@ public class CountQuantityLimitController {
 
     @PatchMapping
     public ResponseEntity<Void> saveCountQuantityExpenseLimit(@RequestBody @Valid CountQuantityLimitDto countQuantityLimitDto) {
-        countQuantityLimitService.saveCountQuantityLimit(SecurityUtils.getCurrentUserEmail(), countQuantityLimitDto);
+        countQuantityLimitService.saveCountQuantityLimit(SecurityUtils.getCurrentUserId(), countQuantityLimitDto);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/emergency-mode")
     public ResponseEntity<Void> saveCountQuantityExpenseEmergencyMode(@RequestBody CountQuantityLimitEmergencyModeDto countQuantityLimitEmergencyModeDto) {
-        countQuantityLimitEmergencyModeService.saveEmergencyMode(SecurityUtils.getCurrentUserEmail(), countQuantityLimitEmergencyModeDto);
+        countQuantityLimitEmergencyModeService.saveEmergencyMode(SecurityUtils.getCurrentUserId(), countQuantityLimitEmergencyModeDto);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
     public ResponseEntity<CountQuantityLimitDto> getCountQuantityExpenseLimit() {
-        return ResponseEntity.ok(countQuantityLimitService.getCountQuantityLimit(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(countQuantityLimitService.getCountQuantityLimit(SecurityUtils.getCurrentUserId()));
     }
 }

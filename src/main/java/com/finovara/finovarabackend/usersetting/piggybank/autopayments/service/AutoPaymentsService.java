@@ -36,9 +36,9 @@ public class AutoPaymentsService {
     private final AutoPaymentsCore autoPaymentsCore;
 
     @Transactional
-    public void createAutomation(String email, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
-        userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+    public void createAutomation(Long userId, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
+        userManagerService.getUserByIdOrThrow(userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
@@ -54,9 +54,9 @@ public class AutoPaymentsService {
     }
 
     @Transactional
-    public AutoPaymentsDto getAutomation(String email, Long piggyBankId) {
-        userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+    public AutoPaymentsDto getAutomation(Long userId, Long piggyBankId) {
+        userManagerService.getUserByIdOrThrow(userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
@@ -67,9 +67,9 @@ public class AutoPaymentsService {
     }
 
     @Transactional
-    public void saveAutoPaymentsPiggyBank(String email, Long piggyBankId, AutoPaymentsDto settings) {
-        userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+    public void saveAutoPaymentsPiggyBank(Long userId, Long piggyBankId, AutoPaymentsDto settings) {
+        userManagerService.getUserByIdOrThrow(userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
@@ -78,16 +78,16 @@ public class AutoPaymentsService {
         piggyBankSettings.setAutomationActive(settings.isAutomationActive());
         piggyBankSettings.setAutomationPercentage(settings.isAutomationActive() ? settings.percentage() : BigDecimal.ZERO);
         if (piggyBankSettings.isAutomationActive()) {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.PIGGY_BANK_AUTO_PAYMENTS);
+            settingsActivityService.createSettingActivity(userId, SettingActivityStatus.ENABLED, SettingType.PIGGY_BANK_AUTO_PAYMENTS);
         } else {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.PIGGY_BANK_AUTO_PAYMENTS);
+            settingsActivityService.createSettingActivity(userId, SettingActivityStatus.DISABLED, SettingType.PIGGY_BANK_AUTO_PAYMENTS);
         }
     }
 
     @Transactional
-    public void handleRevenuePiggyBankAutomation(String email, BigDecimal revenueAmount, PiggyBankAutomationMode mode) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
+    public void handleRevenuePiggyBankAutomation(Long userId, BigDecimal revenueAmount, PiggyBankAutomationMode mode) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
+        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
 
         if (user.getPiggyBanks() == null || user.getPiggyBanks().isEmpty()) return;
 
@@ -98,11 +98,11 @@ public class AutoPaymentsService {
             if (!settings.isAutomationActive()) continue;
 
             BigDecimal automationAmount = CalculatePercentage.calculateValueFromPercentage(revenueAmount, settings.getAutomationPercentage());
-            autoPaymentsCore.process(email, piggyBank, wallet, automationAmount, mode);
+            autoPaymentsCore.process(userId, piggyBank, wallet, automationAmount, mode);
 
         }
 
-        goalCompletionService.handleGoalCompletion(email);
+        goalCompletionService.handleGoalCompletion(userId);
     }
 
     private void validatePercentage(AutoPaymentsDto autoPaymentsDto) {
@@ -112,4 +112,3 @@ public class AutoPaymentsService {
     }
 
 }
-

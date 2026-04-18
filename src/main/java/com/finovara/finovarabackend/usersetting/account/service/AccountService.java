@@ -40,7 +40,7 @@ public class AccountService {
 
         user.setUsername(accountSettingsDto.username());
         userRepository.save(user);
-        accountChangesActivityService.createAccountChangesActivity(user.getEmail(), AccountChangesActivityType.USERNAME_CHANGED, request);
+        accountChangesActivityService.createAccountChangesActivity(userId, AccountChangesActivityType.USERNAME_CHANGED, request);
         notifyUsernameChangeService.sendEmail(user);
         return accountSettingsDto;
     }
@@ -49,19 +49,20 @@ public class AccountService {
     public void deleteAccount(ConfirmPasswordDto confirmPasswordDto, Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
-        passwordConfirmationService.confirmPassword(user.getEmail(), confirmPasswordDto);
+        passwordConfirmationService.confirmPassword(userId, confirmPasswordDto);
         userRepository.delete(user);
         log.info("User account has been deleted. User email: {}", user.getEmail());
         notifyOnAccountDeletedService.sendEmail(user);
     }
 
     @Transactional
-    public AccountSettingsDto getAccountSettings(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public AccountSettingsDto getAccountSettings(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         String profileImageUrl = buildProfileImageUrl(user.getProfileImagePath());
 
         return new AccountSettingsDto(user.getUsername(), user.getEmail(), user.getCreatedAt(), profileImageUrl);
     }
+
 
     private String buildProfileImageUrl(String profileImagePath) {
         if (profileImagePath == null) {

@@ -2,6 +2,7 @@ package com.finovara.finovarabackend.usersetting.accountsetting.passwordpolicy.f
 
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.ChangePasswordDto;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.ForgotPasswordDto;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordRequestDto;
@@ -11,7 +12,6 @@ import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.F
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordManagementService;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -30,7 +31,7 @@ import static org.mockito.Mockito.*;
 class ChangePasswordWithCodeTest {
 
     @Mock
-    private UserManagerService userManagerService;
+    private UserRepository userRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
@@ -73,7 +74,7 @@ class ChangePasswordWithCodeTest {
 
         accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("newPass", "encodedOldPassword")).thenReturn(false);
 
         PasswordRequestDto dto = buildPasswordRequest("newPass", "newPass", 123456);
@@ -89,7 +90,7 @@ class ChangePasswordWithCodeTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
 
         accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
         PasswordRequestDto dto = buildPasswordRequest("pass1", "pass2", 123456);
 
@@ -101,7 +102,7 @@ class ChangePasswordWithCodeTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
 
         accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("oldPass", "encodedOldPassword")).thenReturn(true);
 
         PasswordRequestDto dto = buildPasswordRequest("oldPass", "oldPass", 123456);
@@ -115,7 +116,7 @@ class ChangePasswordWithCodeTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
 
         accountSettings.setForgotPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
         PasswordRequestDto dto = buildPasswordRequest("", "", 123456);
 

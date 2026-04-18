@@ -18,6 +18,6 @@ public class SmartReportController {
 
     @PostMapping
     public ResponseEntity<String> askQuestion(@RequestParam String userQuestion) {
-        return ResponseEntity.ok(smartReportService.generateResponse(SecurityUtils.getCurrentUserEmail(), userQuestion));
+        return ResponseEntity.ok(smartReportService.generateResponse(SecurityUtils.getCurrentUserId(), userQuestion));
     }
 }

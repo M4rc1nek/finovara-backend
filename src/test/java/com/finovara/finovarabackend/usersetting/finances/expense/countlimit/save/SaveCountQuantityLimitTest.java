@@ -41,7 +41,7 @@ class SaveCountQuantityLimitTest {
     private User user;
     private ExpenseSettings expenseSettings;
 
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -53,42 +53,42 @@ class SaveCountQuantityLimitTest {
 
     @Test
     void shouldEnableCountQuantityLimitWhenLimitIsSufficient() {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(anyLong(), any(), any()))
                 .thenReturn(3L);
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
-        countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
+        countQuantityLimitService.saveCountQuantityLimit(USER_ID, dto);
 
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.ENABLED, SettingType.EXPENSE_COUNT_LIMIT);
+        verify(settingsActivityService).createSettingActivity(USER_ID, SettingActivityStatus.ENABLED, SettingType.EXPENSE_COUNT_LIMIT);
         assertTrue(expenseSettings.isCountQuantityLimitEnabled());
         assertEquals(5, expenseSettings.getNumberOfQuantityLimit());
     }
 
     @Test
     void shouldThrowWhenLimitLessThanAlreadyCountedExpenses() {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(anyLong(), any(), any()))
                 .thenReturn(5L);
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 3);
 
         assertThrows(StateConflictException.class, () -> {
-            countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
+            countQuantityLimitService.saveCountQuantityLimit(USER_ID, dto);
         });
     }
 
     @Test
     void shouldDisableCountQuantityLimit() {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(false, PeriodType.DAILY, 5);
         expenseSettings.setQuantityLimitEmergencyModeUsed(true);
 
-        countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
+        countQuantityLimitService.saveCountQuantityLimit(USER_ID, dto);
 
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.DISABLED, SettingType.EXPENSE_COUNT_LIMIT);
+        verify(settingsActivityService).createSettingActivity(USER_ID, SettingActivityStatus.DISABLED, SettingType.EXPENSE_COUNT_LIMIT);
         assertFalse(expenseSettings.isCountQuantityLimitEnabled());
         assertFalse(expenseSettings.isQuantityLimitEmergencyModeUsed());
         verify(expenseRepository, never())
@@ -97,7 +97,7 @@ class SaveCountQuantityLimitTest {
 
     @Test
     void shouldResetEmergencyModeWhenStrategyChanges() {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
         when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(anyLong(), any(), any()))
                 .thenReturn(2L);
 
@@ -106,7 +106,7 @@ class SaveCountQuantityLimitTest {
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
 
-        countQuantityLimitService.saveCountQuantityLimit(EMAIL, dto);
+        countQuantityLimitService.saveCountQuantityLimit(USER_ID, dto);
 
         assertFalse(expenseSettings.isQuantityLimitEmergencyModeUsed());
         assertEquals(PeriodType.DAILY, expenseSettings.getPeriodType());

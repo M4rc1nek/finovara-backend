@@ -17,13 +17,13 @@ public class SmartScanController {
 
     @PatchMapping
     public ResponseEntity<Void> saveSmartScan(@RequestBody SmartScanDto smartScanDto) {
-        smartScanService.saveSmartScan(SecurityUtils.getCurrentUserEmail(), smartScanDto);
+        smartScanService.saveSmartScan(SecurityUtils.getCurrentUserId(), smartScanDto);
         return ResponseEntity.noContent().build();
     }
     @GetMapping
 
     public ResponseEntity<SmartScanDto> getSmartScan() {
-        return ResponseEntity.ok(smartScanService.getSmartScan(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(smartScanService.getSmartScan(SecurityUtils.getCurrentUserId()));
     }
 
 }

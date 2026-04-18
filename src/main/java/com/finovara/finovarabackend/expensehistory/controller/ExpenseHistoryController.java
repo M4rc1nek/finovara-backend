@@ -23,7 +23,7 @@ public class ExpenseHistoryController {
 
     @GetMapping
     public ResponseEntity<List<ExpenseDto>> getExpenseHistory(@RequestParam PeriodType periodType, @RequestParam ExpenseCategory category) {
-        return ResponseEntity.ok(expenseHistoryService.getExpenseByCategory(SecurityUtils.getCurrentUserEmail(), periodType, category));
+        return ResponseEntity.ok(expenseHistoryService.getExpenseByCategory(SecurityUtils.getCurrentUserId(), periodType, category));
     }
 
 }

@@ -26,7 +26,7 @@ class GetNotifyPasswordChangeTest {
     private NotifyPasswordChangeService notifyPasswordChangeService;
 
     private NotificationEmailSettings notificationEmailSettings;
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -34,7 +34,7 @@ class GetNotifyPasswordChangeTest {
         notificationEmailSettings = new NotificationEmailSettings();
         user.setNotificationEmailSettings(notificationEmailSettings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @ParameterizedTest
@@ -44,7 +44,7 @@ class GetNotifyPasswordChangeTest {
     void shouldReturnNotificationFlagBasedOnSettings(boolean enabled) {
         notificationEmailSettings.setNotifyOnPasswordChange(enabled);
 
-        NotificationEmailDto dto = notifyPasswordChangeService.getEmailNotification(EMAIL);
+        NotificationEmailDto dto = notifyPasswordChangeService.getEmailNotification(USER_ID);
 
         assertEquals(dto.enabled(), enabled);
     }

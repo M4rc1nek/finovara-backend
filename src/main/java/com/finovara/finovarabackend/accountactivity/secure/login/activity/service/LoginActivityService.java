@@ -42,8 +42,8 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
     }
 
     @Transactional
-    public void createLoginActivity(String email, LoginActivityStatus status, HttpServletRequest request) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void createLoginActivity(Long userId, LoginActivityStatus status, HttpServletRequest request) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         String ip = clientData.getClientIp(request);
 
@@ -61,12 +61,12 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
         moveToArchive(user, pageSize);
     }
 
-    public void confirmPassword(String email, ConfirmPasswordDto dto) {
-        passwordConfirmationService.confirmPassword(email, dto);
+    public void confirmPassword(Long userId, ConfirmPasswordDto dto) {
+        passwordConfirmationService.confirmPassword(userId, dto);
     }
 
-    public List<LoginActivityDto> getLoginActivity(String email) {
-        return loginActivityRepository.findByUserAssignedEmailOrderByDesc(email);
+    public List<LoginActivityDto> getLoginActivity(Long userId) {
+        return loginActivityRepository.findByUserAssignedIdOrderByDesc(userId);
     }
 
     @Override

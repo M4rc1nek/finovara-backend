@@ -32,22 +32,22 @@ class UpdateExpenseActivityTest {
     @InjectMocks
     private ExpenseActivityService expenseActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private final Long USER_ID = 1L;
 
     @Test
     void shouldUpdateExpenseActivitySuccessfully() {
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
 
         Expense expense = new Expense();
         expense.setAmount(new BigDecimal("200"));
         expense.setCategory(ExpenseCategory.FOOD);
         LocalDateTime now = LocalDateTime.now();
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         expenseActivityService.updateExpenseActivity(
-                EMAIL,
+                USER_ID,
                 ExpenseActivityType.ADDED_EXPENSE,
                 expense,
                 new BigDecimal("150"),
@@ -70,11 +70,11 @@ class UpdateExpenseActivityTest {
         expense.setAmount(new BigDecimal("200"));
         expense.setCategory(ExpenseCategory.FOOD);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
                 expenseActivityService.updateExpenseActivity(
-                        EMAIL,
+                        USER_ID,
                         ExpenseActivityType.EDITED_EXPENSE,
                         expense,
                         new BigDecimal("150"),

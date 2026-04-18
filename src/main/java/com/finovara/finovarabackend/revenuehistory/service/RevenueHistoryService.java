@@ -20,8 +20,8 @@ public class RevenueHistoryService {
     private final FinancialPeriodService financialPeriodService;
     private final RevenueMapper revenueMapper;
 
-    public List<RevenueDto> getRevenueByCategory(String email, PeriodType periodType, RevenueCategory category) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public List<RevenueDto> getRevenueByCategory(Long userId, PeriodType periodType, RevenueCategory category) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         List<Revenue> revenues = financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, category);
 

@@ -33,20 +33,20 @@ class RemoveBalanceFromWalletTest {
     @InjectMocks
     private WalletService walletService;
 
-    private final String EMAIL = "test@mail.com";
+    private final Long USER_ID = 1L;
 
     @Test
     void ShouldRemoveBalanceSuccessfully() {
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
 
         Wallet wallet = new Wallet();
         wallet.setBalance(new BigDecimal("100"));
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(walletManagerService.getWalletByUserEmailOrThrow(EMAIL)).thenReturn(wallet);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
 
-        WalletDto result = walletService.removeBalanceFromWallet(EMAIL, new BigDecimal("50"));
+        WalletDto result = walletService.removeBalanceFromWallet(USER_ID, new BigDecimal("50"));
 
         assertEquals(new BigDecimal("50"), result.balance());
         verify(walletRepository).save(wallet);
@@ -56,9 +56,9 @@ class RemoveBalanceFromWalletTest {
     void shouldThrowExceptionWhenInsufficientFunds() {
         Wallet wallet = Wallet.builder().balance(new BigDecimal("30")).build();
 
-        when(walletManagerService.getWalletByUserEmailOrThrow(EMAIL)).thenReturn(wallet);
+        when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
 
-        assertThrows(InvalidInputException.class, () -> walletService.removeBalanceFromWallet(EMAIL, new BigDecimal("50")));
+        assertThrows(InvalidInputException.class, () -> walletService.removeBalanceFromWallet(USER_ID, new BigDecimal("50")));
 
         verify(walletRepository, never()).save(any());
         verifyNoInteractions(userManagerService);
@@ -69,9 +69,9 @@ class RemoveBalanceFromWalletTest {
         Wallet wallet = new Wallet();
         wallet.setBalance(new BigDecimal("100"));
 
-        when(walletManagerService.getWalletByUserEmailOrThrow(EMAIL)).thenReturn(wallet);
+        when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
 
-        assertThrows(IllegalArgumentException.class, () -> walletService.removeBalanceFromWallet(EMAIL, new BigDecimal("-10")));
+        assertThrows(IllegalArgumentException.class, () -> walletService.removeBalanceFromWallet(USER_ID, new BigDecimal("-10")));
 
         verify(walletRepository, never()).save(any());
         verifyNoInteractions(userManagerService);

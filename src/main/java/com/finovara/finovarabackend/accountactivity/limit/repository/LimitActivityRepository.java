@@ -12,6 +12,9 @@ import java.util.List;
 @Repository
 public interface LimitActivityRepository extends JpaRepository<LimitActivity, Long> {
 
+    @Query("SELECT e FROM LimitActivity e WHERE e.userAssigned.id = :userId")
+    List<LimitActivity> findByUserAssignedId(@Param("userId") Long userId, Pageable pageable);
+
     @Query("SELECT e FROM LimitActivity e WHERE e.userAssigned.email = :email")
     List<LimitActivity> findByUserAssignedEmail(@Param("email") String email, Pageable pageable);
 }

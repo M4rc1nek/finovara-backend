@@ -39,6 +39,7 @@ class PasswordManagementTest {
     @BeforeEach
     void setUp(){
         user = new User();
+        user.setId(1L);
         user.setEmail("activity@test.com");
     }
     @Test
@@ -54,7 +55,7 @@ class PasswordManagementTest {
 
         verify(userRepository).save(user);
 
-        verify(accountChangesActivityService).createAccountChangesActivity("activity@test.com", AccountChangesActivityType.PASSWORD_CHANGED, request);
+        verify(accountChangesActivityService).createAccountChangesActivity(user.getId(), AccountChangesActivityType.PASSWORD_CHANGED, request);
 
         verify(notifyPasswordChangeService).sendEmail(user);
     }
@@ -84,7 +85,7 @@ class PasswordManagementTest {
 
         passwordManagementService.updatePassword(user, "newPass", request);
 
-        verify(accountChangesActivityService).createAccountChangesActivity("activity@test.com", AccountChangesActivityType.PASSWORD_CHANGED, request);
+        verify(accountChangesActivityService).createAccountChangesActivity(user.getId(), AccountChangesActivityType.PASSWORD_CHANGED, request);
     }
 
     @Test

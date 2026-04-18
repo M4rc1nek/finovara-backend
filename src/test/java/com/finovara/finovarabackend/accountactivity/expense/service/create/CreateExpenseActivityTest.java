@@ -33,19 +33,18 @@ class CreateExpenseActivityTest {
 
     @Test
     void shouldCreateExpenseActivitySuccessfully() {
-        String email = "user@example.com";
+        Long userId = 1L;
         User user = new User();
-        user.setId(1L);
-        user.setEmail(email);
+        user.setId(userId);
 
         Expense expense = new Expense();
         expense.setAmount(new BigDecimal("100.50"));
         expense.setCategory(ExpenseCategory.FOOD);
         LocalDateTime now = LocalDateTime.now();
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-        expenseActivityService.createExpenseActivity(email, ExpenseActivityType.EDITED_EXPENSE, expense);
+        expenseActivityService.createExpenseActivity(userId, ExpenseActivityType.EDITED_EXPENSE, expense);
 
         verify(expenseActivityRepository).save(argThat(activity ->
                 activity.getUserAssigned().equals(user) &&

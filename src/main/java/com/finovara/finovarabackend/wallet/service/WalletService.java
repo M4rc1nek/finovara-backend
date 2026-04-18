@@ -20,22 +20,22 @@ public class WalletService {
     private final UserManagerService userManagerService;
     private final WalletManagerService walletManagerService;
 
-    public WalletDto addBalanceToWallet(String email, BigDecimal amount) {
-        return modifyWalletBalance(email, amount, BigDecimal::add);
+    public WalletDto addBalanceToWallet(Long userId, BigDecimal amount) {
+        return modifyWalletBalance(userId, amount, BigDecimal::add);
     }
 
-    public WalletDto removeBalanceFromWallet(String email, BigDecimal amount) {
-        Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
+    public WalletDto removeBalanceFromWallet(Long userId, BigDecimal amount) {
+        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
         if (wallet == null || wallet.getBalance().compareTo(amount) < 0) {
             throw new InvalidInputException("Insufficient funds");
         }
-        return modifyWalletBalance(email, amount, BigDecimal::subtract);
+        return modifyWalletBalance(userId, amount, BigDecimal::subtract);
     }
 
-    public WalletDto getWalletForUser(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public WalletDto getWalletForUser(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
-        Wallet wallet = walletRepository.findByUserAssignedEmail(email).orElse(null);
+        Wallet wallet = walletRepository.findByUserAssignedId(userId).orElse(null);
         if (wallet == null) {
             wallet = Wallet.builder()
                     .balance(BigDecimal.ZERO)
@@ -46,11 +46,11 @@ public class WalletService {
         return returnNewWalletDto(user, wallet);
     }
 
-    private WalletDto modifyWalletBalance(String email, BigDecimal amount, BiFunction<BigDecimal, BigDecimal, BigDecimal> operation) {
+    private WalletDto modifyWalletBalance(Long userId, BigDecimal amount, BiFunction<BigDecimal, BigDecimal, BigDecimal> operation) {
         validateAmount(amount);
 
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
+        User user = userManagerService.getUserByIdOrThrow(userId);
+        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
 
         BigDecimal newBalance = operation.apply(wallet.getBalance(), amount);
         wallet.setBalance(newBalance);

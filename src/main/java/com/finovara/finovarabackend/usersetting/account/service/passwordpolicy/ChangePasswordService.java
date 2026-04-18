@@ -15,8 +15,8 @@ public class ChangePasswordService {
     private final UserManagerService userManagerService;
     private final PasswordManagementService passwordManagementService;
 
-    public void changePassword(String email, PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void changePassword(Long userId, PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         String newPassword = passwordRequestDto.changePasswordDto().newPassword();
 
         if (!newPassword.equals(passwordRequestDto.changePasswordDto().confirmNewPassword())) {

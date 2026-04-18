@@ -35,10 +35,10 @@ class GetPiggyBankTest {
 
     @Test
     void shouldReturnAllPiggyBanksForUser() {
-        String email = "test@email.com";
+        Long userId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         PiggyBank piggy1 = new PiggyBank();
         piggy1.setId(10L);
@@ -55,12 +55,12 @@ class GetPiggyBankTest {
         PiggyBankDto dto2 = new PiggyBankDto(11L, 1L, "Piggy 2", new BigDecimal("200"),
                 null, null, null, 0.2, false);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(piggyBankRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of(piggy1, piggy2));
         when(piggyBankMapper.mapToPiggyBankDto(eq(piggy1), eq(user), anyDouble(), anyBoolean())).thenReturn(dto1);
         when(piggyBankMapper.mapToPiggyBankDto(eq(piggy2), eq(user), anyDouble(), anyBoolean())).thenReturn(dto2);
 
-        List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(email);
+        List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(userId);
 
         assertEquals(2, result.size());
         assertEquals("Piggy 1", result.get(0).name());
@@ -70,39 +70,39 @@ class GetPiggyBankTest {
         assertEquals(1L, result.get(0).userId());
         assertEquals(1L, result.get(1).userId());
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(piggyBankRepository).findAllByUserAssignedId(user.getId());
         verify(piggyBankMapper, times(2)).mapToPiggyBankDto(any(), eq(user), anyDouble(), anyBoolean());
     }
 
     @Test
     void shouldReturnEmptyListWhenUserHasNoPiggyBanks() {
-        String email = "test@email.com";
+        Long userId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(piggyBankRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of());
 
-        List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(email);
+        List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(userId);
 
         assertEquals(0, result.size());
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(piggyBankRepository).findAllByUserAssignedId(user.getId());
         verifyNoInteractions(piggyBankMapper);
     }
 
     @Test
     void shouldThrowExceptionWhenUserNotFound() {
-        String email = "notfound@email.com";
+        Long userId = 1L;
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(RuntimeException.class, () -> piggyBankManagementService.getAllPiggyBanks(email));
+        assertThrows(RuntimeException.class, () -> piggyBankManagementService.getAllPiggyBanks(userId));
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verifyNoInteractions(piggyBankRepository);
         verifyNoInteractions(piggyBankMapper);
     }

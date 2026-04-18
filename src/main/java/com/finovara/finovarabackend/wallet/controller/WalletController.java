@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUserEmail;
+import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUserId;
 
 @RestController
 @RequiredArgsConstructor
@@ -16,7 +16,6 @@ public class WalletController {
 
     @GetMapping("/wallet")
     public ResponseEntity<WalletDto> getWallet() {
-        return ResponseEntity.ok(walletService.getWalletForUser(getCurrentUserEmail()));
+        return ResponseEntity.ok(walletService.getWalletForUser(getCurrentUserId()));
     }
 }
-

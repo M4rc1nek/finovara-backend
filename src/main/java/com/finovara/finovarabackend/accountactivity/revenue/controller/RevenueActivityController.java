@@ -22,6 +22,6 @@ public class RevenueActivityController {
 
     @GetMapping
     public ResponseEntity<List<RevenueActivityDto>> getRevenueActivity(@RequestParam(defaultValue = "NEWEST") SortType sort) {
-        return ResponseEntity.ok(revenueActivityService.getRevenueActivity(SecurityUtils.getCurrentUserEmail(), sort));
+        return ResponseEntity.ok(revenueActivityService.getRevenueActivity(SecurityUtils.getCurrentUserId(), sort));
     }
 }

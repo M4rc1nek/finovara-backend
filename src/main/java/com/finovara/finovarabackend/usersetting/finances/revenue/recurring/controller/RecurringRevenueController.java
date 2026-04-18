@@ -16,13 +16,13 @@ public class RecurringRevenueController {
 
     @PatchMapping
     public ResponseEntity<Void> saveRecurringRevenueSetting(@RequestBody RecurringRevenueDto dto) {
-        recurringRevenueService.saveRecurringRevenue(SecurityUtils.getCurrentUserEmail(), dto);
+        recurringRevenueService.saveRecurringRevenue(SecurityUtils.getCurrentUserId(), dto);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
     public ResponseEntity<RecurringRevenueDto> getRecurringRevenue() {
-        return ResponseEntity.ok(recurringRevenueService.getRecurringRevenue(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(recurringRevenueService.getRecurringRevenue(SecurityUtils.getCurrentUserId()));
     }
 
 }

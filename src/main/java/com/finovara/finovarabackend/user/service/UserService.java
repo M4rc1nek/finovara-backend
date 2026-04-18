@@ -8,7 +8,6 @@ import com.finovara.finovarabackend.security.service.JwtService;
 import com.finovara.finovarabackend.user.dto.UserLoginDto;
 import com.finovara.finovarabackend.user.dto.UserRegisterDto;
 import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
-import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
@@ -18,12 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -38,61 +35,65 @@ public class UserService {
     private final SettingsFactory settingsFactory;
     private final LoginActivityService loginActivityService;
 
-    public UserRegisterDto registerUser(UserRegisterDto userRegisterDto) {
-
-        if (userRepository.existsByUsername(userRegisterDto.username())) {
-            log.info("User cannot register. Username is already taken. Username: {}", userRegisterDto.username());
+    public UserRegisterDto registerUser(UserRegisterDto dto) {
+        if (userRepository.existsByUsername(dto.username())) {
             throw new NameAlreadyExistsException("Username is already taken");
         }
 
-        if (userRepository.existsByEmail(userRegisterDto.email())) {
-            log.info("User cannot register. Email is already taken.  UserEmail: {}", userRegisterDto.email());
+        if (userRepository.existsByEmail(dto.email())) {
             throw new EmailAlreadyExistsException("Email is already taken");
         }
 
         User user = User.builder()
-                .username(userRegisterDto.username())
-                .email(userRegisterDto.email())
-                .password(passwordEncoder.encode(userRegisterDto.password()))
+                .username(dto.username())
+                .email(dto.email())
+                .password(passwordEncoder.encode(dto.password()))
                 .createdAt(LocalDateTime.now())
                 .build();
+
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         user.setRevenueSettings(settingsFactory.createDefaultRevenueSettings(user));
         user.setNotificationEmailSettings(settingsFactory.createDefaultNotificationSettings(user));
+
         User savedUser = userRepository.save(user);
 
-        String jwtToken = jwtService.generateToken(
-                new org.springframework.security.core.userdetails.User(
-                        savedUser.getEmail(),
-                        savedUser.getPassword(),
-                        List.of()
-                )
+        String jwtToken = jwtService.generateToken(savedUser);
+        return new UserRegisterDto(
+                savedUser.getId(),
+                savedUser.getUsername(),
+                null,
+                savedUser.getEmail(),
+                jwtToken
         );
-
-        return new UserRegisterDto(user.getId(), savedUser.getUsername(), null, savedUser.getEmail(), jwtToken);
-
     }
 
     public UserLoginDto loginUser(String email, String rawPassword, HttpServletRequest request) {
+        User userByEmail = userRepository.findByEmail(email).orElse(null);
+
         try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, rawPassword));
-            loginActivityService.createLoginActivity(email, LoginActivityStatus.SUCCESSFUL, request);
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, rawPassword));
+
+            if (userByEmail == null) {
+                throw new WrongPasswordException("Incorrect email or password");
+            }
+
+            loginActivityService.createLoginActivity(userByEmail.getId(), LoginActivityStatus.SUCCESSFUL, request);
+
+            String jwtToken = jwtService.generateToken(userByEmail);
+
+            return new UserLoginDto(
+                    userByEmail.getId(),
+                    userByEmail.getUsername(),
+                    userByEmail.getEmail(),
+                    null,
+                    jwtToken
+            );
+
         } catch (AuthenticationException e) {
-            loginActivityService.createLoginActivity(email, LoginActivityStatus.UNSUCCESSFUL, request);
+            if (userByEmail != null) {
+                loginActivityService.createLoginActivity(userByEmail.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
+            }
             throw new WrongPasswordException("Incorrect email or password");
         }
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                List.of()
-        );
-        String jwtToken = jwtService.generateToken(userDetails);
-        return new UserLoginDto(user.getId(), user.getUsername(), email, null, jwtToken);
     }
-
 }

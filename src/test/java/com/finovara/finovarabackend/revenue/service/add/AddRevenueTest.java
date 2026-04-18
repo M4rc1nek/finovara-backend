@@ -45,27 +45,28 @@ class AddRevenueTest {
     @Test
     void shouldAddRevenueSuccessfully() {
         RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test revenue");
-        String email = "test@test.com";
+        Long userId = 1L;
         User user = new User();
+        user.setId(userId);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-        revenueService.addRevenue(dto, email);
+        revenueService.addRevenue(dto, userId);
 
-        verify(walletService).addBalanceToWallet(email, dto.amount());
-        verify(revenueActivityService).createRevenueActivity(eq(email), eq(RevenueActivityType.ADDED_REVENUE), any(Revenue.class));
+        verify(walletService).addBalanceToWallet(userId, dto.amount());
+        verify(revenueActivityService).createRevenueActivity(eq(userId), eq(RevenueActivityType.ADDED_REVENUE), any(Revenue.class));
         verify(revenueRepository).save(any(Revenue.class));
-        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, dto.amount(), PiggyBankAutomationMode.APPLY);
+        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(userId, dto.amount(), PiggyBankAutomationMode.APPLY);
     }
 
     @Test
     void shouldThrowExceptionWhenUserNotFound() {
         RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test revenue");
-        String email = "test@test.com";
+        Long userId = 1L;
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> revenueService.addRevenue(dto, email));
+        assertThrows(UserNotFoundException.class, () -> revenueService.addRevenue(dto, userId));
         verify(revenueRepository, never()).save(any());
 
     }

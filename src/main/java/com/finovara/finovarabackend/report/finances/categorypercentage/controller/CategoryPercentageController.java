@@ -24,12 +24,12 @@ public class CategoryPercentageController {
 
     @GetMapping("/expense")
     public ResponseEntity<ExpenseCategoryPercentageDto> getExpensePercentageByCategory(@RequestParam ExpenseCategory category, @RequestParam PeriodType periodType) {
-        return ResponseEntity.ok(expenseCategoryPercentageService.getExpensePercentageByCategoryReport(SecurityUtils.getCurrentUserEmail(), category, periodType));
+        return ResponseEntity.ok(expenseCategoryPercentageService.getExpensePercentageByCategoryReport(SecurityUtils.getCurrentUserId(), category, periodType));
     }
 
     @GetMapping("/revenue")
     public ResponseEntity<RevenueCategoryPercentageDto> getRevenuePercentageByCategory(@RequestParam RevenueCategory category, @RequestParam PeriodType periodType) {
-        return ResponseEntity.ok(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(SecurityUtils.getCurrentUserEmail(), category, periodType));
+        return ResponseEntity.ok(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(SecurityUtils.getCurrentUserId(), category, periodType));
     }
 
 }

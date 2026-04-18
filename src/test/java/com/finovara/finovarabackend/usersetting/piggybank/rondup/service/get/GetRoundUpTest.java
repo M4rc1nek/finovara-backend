@@ -28,7 +28,7 @@ class GetRoundUpTest {
     private RoundUpService roundUpService;
 
     private PiggyBank piggyBank;
-    private final String EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
     private final Long PIGGY_BANK_ID = 1L;
 
     @BeforeEach
@@ -37,14 +37,14 @@ class GetRoundUpTest {
         PiggyBankSettings settings = new PiggyBankSettings();
         piggyBank.setSettings(settings);
 
-        when(piggyBankManagerService.getPiggyBankByUserEmail(PIGGY_BANK_ID, EMAIL)).thenReturn(piggyBank);
+        when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
     }
 
     @Test
     void shouldReturnRoundUpActiveTrue() {
         piggyBank.getSettings().setRoundUpActive(true);
 
-        RoundUpDto result = roundUpService.getRoundUp(EMAIL, PIGGY_BANK_ID);
+        RoundUpDto result = roundUpService.getRoundUp(USER_ID, PIGGY_BANK_ID);
 
         assertEquals(true, result.roundUpActive());
     }
@@ -53,7 +53,7 @@ class GetRoundUpTest {
     void shouldReturnRoundUpActiveFalse() {
         piggyBank.getSettings().setRoundUpActive(false);
 
-        RoundUpDto result = roundUpService.getRoundUp(EMAIL, PIGGY_BANK_ID);
+        RoundUpDto result = roundUpService.getRoundUp(USER_ID, PIGGY_BANK_ID);
 
         assertEquals(false, result.roundUpActive());
     }

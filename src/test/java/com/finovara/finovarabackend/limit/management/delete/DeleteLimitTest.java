@@ -35,54 +35,54 @@ class DeleteLimitTest {
 
     @Test
     void shouldDeleteLimitSuccessfully() {
-        String email = "user@example.com";
+        Long userId = 1L;
         Long limitId = 10L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         Limit limit = new Limit();
         limit.setId(limitId);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(limitRepository.findByIdAndUserAssignedId(user.getId(), limitId)).thenReturn(java.util.Optional.of(limit));
 
-        limitManagementService.deleteLimit(email, limitId);
+        limitManagementService.deleteLimit(userId, limitId);
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(limitRepository).findByIdAndUserAssignedId(user.getId(), limitId);
-        verify(limitActivityService).createLimitActivity(email, LimitActivityType.DELETED_LIMIT, limit);
+        verify(limitActivityService).createLimitActivity(userId, LimitActivityType.DELETED_LIMIT, limit);
         verify(limitRepository).delete(limit);
     }
 
     @Test
     void shouldThrowExceptionWhenUserNotFound() {
-        String email = "missing@example.com";
+        Long userId = 1L;
         Long limitId = 10L;
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> limitManagementService.deleteLimit(email, limitId));
+        assertThrows(UserNotFoundException.class, () -> limitManagementService.deleteLimit(userId, limitId));
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verifyNoInteractions(limitRepository, limitActivityService);
         verify(limitRepository, never()).delete(any());
     }
 
     @Test
     void shouldThrowExceptionWhenLimitNotFound() {
-        String email = "user@example.com";
+        Long userId = 1L;
         Long limitId = 10L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(limitRepository.findByIdAndUserAssignedId(user.getId(), limitId)).thenReturn(java.util.Optional.empty());
 
-      assertThrows(ActiveLimitNotFoundException.class,() -> limitManagementService.deleteLimit(email, limitId));
+      assertThrows(ActiveLimitNotFoundException.class,() -> limitManagementService.deleteLimit(userId, limitId));
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(limitRepository).findByIdAndUserAssignedId(user.getId(), limitId);
         verifyNoInteractions(limitActivityService);
         verify(limitRepository, never()).delete(any());

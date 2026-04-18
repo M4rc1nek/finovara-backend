@@ -62,7 +62,7 @@ class RecurringRevenueProcessorTest {
                         today,
                         "Cykliczny przychód"
                 ),
-                user.getEmail()
+                user.getId()
         );
     }
 
@@ -89,7 +89,7 @@ class RecurringRevenueProcessorTest {
         recurringRevenueProcessor.generateRecurringRevenues();
 
         verify(revenueService, times(4)) // today-3, today-2, today-1, today
-                .addRevenue(any(RevenueDto.class), eq(user.getEmail()));
+                .addRevenue(any(RevenueDto.class), eq(user.getId()));
     }
 
     @Test
@@ -101,6 +101,6 @@ class RecurringRevenueProcessorTest {
 
         recurringRevenueProcessor.generateRecurringRevenues();
 
-        verify(revenueService, never()).addRevenue(any(), any());
+        verify(revenueService, never()).addRevenue(any(), anyLong());
     }
 }

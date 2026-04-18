@@ -33,22 +33,22 @@ class CreateRevenueActivityTest {
     @InjectMocks
     private RevenueActivityService revenueActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private final Long USER_ID = 1L;
 
     @Test
     void shouldCreateRevenueActivitySuccessfully() {
 
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
 
         Revenue revenue = new Revenue();
         revenue.setAmount(new BigDecimal("1000"));
         revenue.setCategory(RevenueCategory.SALARY);
         LocalDateTime now = LocalDateTime.now();
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
-        revenueActivityService.createRevenueActivity(EMAIL, RevenueActivityType.ADDED_REVENUE, revenue);
+        revenueActivityService.createRevenueActivity(USER_ID, RevenueActivityType.ADDED_REVENUE, revenue);
 
         verify(revenueActivityRepository).save(argThat(activity ->
                 activity.getUserAssigned().equals(user) &&
@@ -66,11 +66,11 @@ class CreateRevenueActivityTest {
         revenue.setAmount(new BigDecimal("1000"));
         revenue.setCategory(RevenueCategory.SALARY);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
                 revenueActivityService.createRevenueActivity(
-                        EMAIL,
+                        USER_ID,
                         RevenueActivityType.ADDED_REVENUE,
                         revenue
                 )

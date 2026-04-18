@@ -37,28 +37,28 @@ public class RevenueActivityService extends AccountActivityCore<RevenueActivity,
     }
 
     @Transactional
-    public void createRevenueActivity(String email, RevenueActivityType revenueActivityType, Revenue revenue) {
-        RevenueActivity revenueActivity = buildActivity(email, revenue);
+    public void createRevenueActivity(Long userId, RevenueActivityType revenueActivityType, Revenue revenue) {
+        RevenueActivity revenueActivity = buildActivity(userId, revenue);
         revenueActivity.setType(revenueActivityType);
         revenueActivityRepository.save(revenueActivity);
     }
 
     @Transactional
-    public void updateRevenueActivity(String email, RevenueActivityType revenueActivityType, Revenue revenue, BigDecimal previousAmount, RevenueCategory previousCategory) {
-        RevenueActivity revenueActivity = buildActivity(email, revenue);
+    public void updateRevenueActivity(Long userId, RevenueActivityType revenueActivityType, Revenue revenue, BigDecimal previousAmount, RevenueCategory previousCategory) {
+        RevenueActivity revenueActivity = buildActivity(userId, revenue);
         revenueActivity.setType(revenueActivityType);
         revenueActivity.setPreviousCategory(previousCategory);
         revenueActivity.setPreviousAmount(previousAmount);
         revenueActivityRepository.save(revenueActivity);
     }
 
-    public List<RevenueActivityDto> getRevenueActivity(String email, SortType sort) {
-        return getActivities(email, sort, pageSize);
+    public List<RevenueActivityDto> getRevenueActivity(Long userId, SortType sort) {
+        return getActivities(userId, sort, pageSize);
     }
 
     @Override
-    protected List<RevenueActivity> getRepositoryFindByUserEmail(String email, Pageable pageable) {
-        return revenueActivityRepository.findByUserAssignedEmail(email, pageable);
+    protected List<RevenueActivity> getRepositoryFindByUserId(Long userId, Pageable pageable) {
+        return revenueActivityRepository.findByUserAssignedId(userId, pageable);
     }
 
     @Override
@@ -67,13 +67,12 @@ public class RevenueActivityService extends AccountActivityCore<RevenueActivity,
     }
 
     @Override
-    protected RevenueActivity buildActivity(String email, Revenue revenue) {
+    protected RevenueActivity buildActivity(Long userId, Revenue revenue) {
         return RevenueActivity.builder()
-                .userAssigned(getUser(email))
+                .userAssigned(getUser(userId))
                 .amount(revenue.getAmount())
                 .category(revenue.getCategory())
                 .createdAt(LocalDateTime.now())
                 .build();
     }
-
 }

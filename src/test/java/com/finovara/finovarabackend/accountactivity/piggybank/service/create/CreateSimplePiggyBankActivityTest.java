@@ -33,13 +33,13 @@ class CreateSimplePiggyBankActivityTest {
     @InjectMocks
     private PiggyBankActivityService piggyBankActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private final Long USER_ID = 1L;
 
     @Test
     void shouldCreateSimplePiggyBankActivitySuccessfully() {
 
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
 
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setName("Vacation Fund");
@@ -47,8 +47,8 @@ class CreateSimplePiggyBankActivityTest {
         piggyBank.setGoalAmount(new BigDecimal("2000"));
         LocalDateTime now = LocalDateTime.now();
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        piggyBankActivityService.createSimplePiggyBankActivity(EMAIL, piggyBank, PiggyBankActivityType.ADDED_PIGGY_BANK);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        piggyBankActivityService.createSimplePiggyBankActivity(USER_ID, piggyBank, PiggyBankActivityType.ADDED_PIGGY_BANK);
 
         verify(piggyBankActivityRepository).save(argThat(activity ->
                 activity.getUserAssigned().equals(user) &&
@@ -68,11 +68,11 @@ class CreateSimplePiggyBankActivityTest {
         piggyBank.setGoalType(PiggyBankGoalType.ELECTRONICS);
         piggyBank.setGoalAmount(new BigDecimal("2000"));
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
                 piggyBankActivityService.createSimplePiggyBankActivity(
-                        EMAIL,
+                        USER_ID,
                         piggyBank,
                         PiggyBankActivityType.ADDED_PIGGY_BANK
                 )

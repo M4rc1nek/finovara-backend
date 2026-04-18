@@ -20,8 +20,8 @@ public class ExpenseHistoryService {
     private final FinancialPeriodService financialPeriodService;
     private final ExpenseMapper expenseMapper;
 
-    public List<ExpenseDto> getExpenseByCategory(String email, PeriodType periodType, ExpenseCategory category) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public List<ExpenseDto> getExpenseByCategory(Long userId, PeriodType periodType, ExpenseCategory category) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         List<Expense> expenses = financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, category);
 

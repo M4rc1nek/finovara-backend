@@ -17,14 +17,23 @@ public interface AccountChangesActivityRepository extends JpaRepository<AccountC
             SELECT new com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto(
             a.type, a.createdAt, a.browser, a.ipAddress, a.location) 
             FROM AccountChangesActivity a 
-            WHERE a.userAssigned.email = :email 
+            WHERE a.userAssigned.id = :userId
             ORDER BY a.id DESC
             """)
-    List<AccountChangesActivityDto> findByUserAssignedEmailOrderByIdDesc(@Param("email") String email);
+    List<AccountChangesActivityDto> findByUserAssignedIdOrderByIdDesc(@Param("userId") Long userId);
 
     @Query("SELECT COUNT(u) FROM AccountChangesActivity u WHERE u.userAssigned.id = :userId")
     long countAccountChangesByUserAssignedId(Long userId);
 
     @Query("SELECT u FROM AccountChangesActivity u WHERE u.userAssigned.id = :userId ORDER BY u.id  ")
     List<AccountChangesActivity> findFewByUserAssignedId(Long userId, Pageable pageable);
+
+    @Query("""
+            SELECT new com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto(
+            a.type, a.createdAt, a.browser, a.ipAddress, a.location)
+            FROM AccountChangesActivity a
+            WHERE a.userAssigned.email = :email
+            ORDER BY a.id DESC
+            """)
+    List<AccountChangesActivityDto> findByUserAssignedEmailOrderByIdDesc(@Param("email") String email);
 }

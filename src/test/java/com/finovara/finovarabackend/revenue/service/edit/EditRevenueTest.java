@@ -52,14 +52,14 @@ class EditRevenueTest {
     @Test
     void shouldEditRevenueSuccessfully() {
         //given
-        String email = "test@test.com";
+        Long userId = 1L;
 
         Revenue existingRevenue = new Revenue();
         existingRevenue.setId(10L);
         Long revenueId = existingRevenue.getId();
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         Wallet wallet = new Wallet();
         wallet.setBalance(new BigDecimal(1000));
@@ -69,20 +69,20 @@ class EditRevenueTest {
         existingRevenue.setCategory(RevenueCategory.SALARY);
         //when
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(revenueManagerService.getRevenueOrThrow(revenueId)).thenReturn(existingRevenue);
-        when(walletRepository.findByUserAssignedEmail(email)).thenReturn(Optional.of(wallet));
+        when(walletRepository.findByUserAssignedId(userId)).thenReturn(Optional.of(wallet));
 
         existingRevenue.setUserAssigned(user);
 
         //then
 
-        revenueService.editRevenue(dto, revenueId, email);
+        revenueService.editRevenue(dto, revenueId, userId);
 
-        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, new BigDecimal("50"), PiggyBankAutomationMode.ROLLBACK);
-        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, new BigDecimal("100"), PiggyBankAutomationMode.APPLY);
+        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(userId, new BigDecimal("50"), PiggyBankAutomationMode.ROLLBACK);
+        verify(autoPaymentsService).handleRevenuePiggyBankAutomation(userId, new BigDecimal("100"), PiggyBankAutomationMode.APPLY);
 
-        verify(revenueActivityService).updateRevenueActivity(eq(email), eq(RevenueActivityType.EDITED_REVENUE),
+        verify(revenueActivityService).updateRevenueActivity(eq(userId), eq(RevenueActivityType.EDITED_REVENUE),
                 eq(existingRevenue), eq(new BigDecimal("50")), eq(RevenueCategory.SALARY));
 
         verify(walletRepository).save(wallet);
@@ -93,13 +93,13 @@ class EditRevenueTest {
     @Test
     void shouldThrowExceptionWhenRevenueBelongsToAnotherUser() {
         //given
-        String email = "test@test.com";
+        Long userId = 2L;
 
         User revenueOwner = new User();
         revenueOwner.setId(1L);
 
         User user = new User();
-        user.setId(2L);
+        user.setId(userId);
 
         Revenue existingRevenue = new Revenue();
         existingRevenue.setId(10L);
@@ -117,20 +117,20 @@ class EditRevenueTest {
         //when
         when(revenueManagerService.getRevenueOrThrow(revenueId)).thenReturn(existingRevenue);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
         //then
-        assertThrows(RevenueNotFoundException.class, () -> revenueService.editRevenue(dto, revenueId, email));
+        assertThrows(RevenueNotFoundException.class, () -> revenueService.editRevenue(dto, revenueId, userId));
         verify(revenueRepository, never()).save(any());
 
     }
 
     @Test
     void shouldThrowExceptionWhenWalletDoesNotExist() {
-        String email = "test@mail.com";
+        Long userId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         Revenue revenue = new Revenue();
         revenue.setId(10L);
@@ -141,10 +141,10 @@ class EditRevenueTest {
         RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edited revenue test");
 
         when(revenueManagerService.getRevenueOrThrow(revenueId)).thenReturn(revenue);
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(walletRepository.findByUserAssignedEmail(email)).thenReturn(Optional.empty());
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+        when(walletRepository.findByUserAssignedId(userId)).thenReturn(Optional.empty());
 
-        assertThrows(WalletNotFoundException.class, () -> revenueService.editRevenue(dto, revenueId, email));
+        assertThrows(WalletNotFoundException.class, () -> revenueService.editRevenue(dto, revenueId, userId));
         verify(revenueRepository, never()).save(any());
 
     }

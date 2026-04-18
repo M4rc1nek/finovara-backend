@@ -17,12 +17,12 @@ public class ControlAmountController {
 
     @PatchMapping
     public ResponseEntity<Void> saveExpenseAmountControl(@RequestBody @Valid ControlAmountDto controlAmountDto) {
-        controlAmountService.saveExpenseAmountControl(SecurityUtils.getCurrentUserEmail(), controlAmountDto);
+        controlAmountService.saveExpenseAmountControl(SecurityUtils.getCurrentUserId(), controlAmountDto);
         return ResponseEntity.noContent().build();
     }
     @GetMapping
     public ResponseEntity<ControlAmountDto> getExpenseAmountControl() {
-        return ResponseEntity.ok(controlAmountService.getExpenseAmountControl(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(controlAmountService.getExpenseAmountControl(SecurityUtils.getCurrentUserId()));
     }
 
 }

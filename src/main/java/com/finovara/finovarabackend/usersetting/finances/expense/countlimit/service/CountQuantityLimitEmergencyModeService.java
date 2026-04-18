@@ -15,8 +15,8 @@ public class CountQuantityLimitEmergencyModeService {
     private final UserManagerService userManagerService;
 
     @Transactional
-    public void saveEmergencyMode(String email, CountQuantityLimitEmergencyModeDto dto) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void saveEmergencyMode(Long userId, CountQuantityLimitEmergencyModeDto dto) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         expenseSettings.setQuantityLimitEmergencyModeEnabled(dto.expenseQuantityLimitEmergencyModeEnabled());

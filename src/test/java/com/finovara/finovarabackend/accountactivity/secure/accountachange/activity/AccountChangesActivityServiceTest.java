@@ -66,14 +66,14 @@ class AccountChangesActivityServiceTest {
 
     @Test
     void shouldCreateActivityAndNotArchiveWhenBelowThreshold() {
-        when(userManagerService.getUserByEmailOrThrow("test@test.com")).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(1L)).thenReturn(user);
         when(clientData.getClientIp(request)).thenReturn("127.0.0.1");
         when(clientData.getUserBrowser(request)).thenReturn("Chrome");
         when(clientData.getUserLocation("127.0.0.1")).thenReturn("PL");
 
         when(accountChangesActivityRepository.countAccountChangesByUserAssignedId(1L)).thenReturn((long) (pageSize - 1));
 
-        accountChangesActivityService.createAccountChangesActivity("test@test.com", AccountChangesActivityType.PASSWORD_CHANGED, request);
+        accountChangesActivityService.createAccountChangesActivity(1L, AccountChangesActivityType.PASSWORD_CHANGED, request);
 
         verify(accountChangesActivityRepository, times(1)).save(any(AccountChangesActivity.class));
         verify(archiveService, never()).archive(any());
@@ -81,7 +81,7 @@ class AccountChangesActivityServiceTest {
 
     @Test
     void shouldArchiveWhenThresholdExceeded() {
-        when(userManagerService.getUserByEmailOrThrow("test@test.com")).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(1L)).thenReturn(user);
         when(clientData.getClientIp(request)).thenReturn("127.0.0.1");
         when(clientData.getUserBrowser(request)).thenReturn("Chrome");
         when(clientData.getUserLocation("127.0.0.1")).thenReturn("PL");
@@ -92,7 +92,7 @@ class AccountChangesActivityServiceTest {
         when(accountChangesActivityRepository.findFewByUserAssignedId(eq(1L), any(PageRequest.class))).thenReturn(List.of(activity));
         when(archiveService.mapToArchive(activity)).thenReturn(mock(AccountChangeArchive.class));
 
-        accountChangesActivityService.createAccountChangesActivity("test@test.com", AccountChangesActivityType.PASSWORD_CHANGED, request);
+        accountChangesActivityService.createAccountChangesActivity(1L, AccountChangesActivityType.PASSWORD_CHANGED, request);
 
         verify(accountChangesActivityRepository, times(1)).save(any(AccountChangesActivity.class));
         verify(archiveService, times(1)).archive(anyList());
@@ -101,21 +101,23 @@ class AccountChangesActivityServiceTest {
 
     @Test
     void shouldReturnActivitiesDto() {
+        Long userId = 1L;
         List<AccountChangesActivityDto> dtos = List.of(mock(AccountChangesActivityDto.class));
 
-        when(accountChangesActivityRepository.findByUserAssignedEmailOrderByIdDesc("test@test.com")).thenReturn(dtos);
+        when(accountChangesActivityRepository.findByUserAssignedIdOrderByIdDesc(userId)).thenReturn(dtos);
 
-        List<AccountChangesActivityDto> result = accountChangesActivityService.getAccountChangesActivity("test@test.com");
+        List<AccountChangesActivityDto> result = accountChangesActivityService.getAccountChangesActivity(userId);
 
         assertEquals(1, result.size());
-        verify(accountChangesActivityRepository, times(1)).findByUserAssignedEmailOrderByIdDesc("test@test.com");
+        verify(accountChangesActivityRepository, times(1)).findByUserAssignedIdOrderByIdDesc(userId);
     }
 
     @Test
     void shouldConfirmPassword() {
+        Long userId = 1L;
         ConfirmPasswordDto dto = mock(ConfirmPasswordDto.class);
-        accountChangesActivityService.confirmPasswordToAccountChangesActivity("test@test.com", dto);
+        accountChangesActivityService.confirmPasswordToAccountChangesActivity(userId, dto);
 
-        verify(passwordConfirmationService, times(1)).confirmPassword("test@test.com", dto);
+        verify(passwordConfirmationService, times(1)).confirmPassword(userId, dto);
     }
 }

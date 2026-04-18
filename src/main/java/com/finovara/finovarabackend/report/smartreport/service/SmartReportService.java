@@ -25,8 +25,8 @@ public class SmartReportService {
                 SmartReportHandler::getType, handler -> handler));
     }
 
-    public String generateResponse(String email, String userQuestion) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public String generateResponse(Long userId, String userQuestion) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         SmartReportType type = smartReportQuestionService.getTypeFromQuestion(userQuestion);
 

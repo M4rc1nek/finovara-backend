@@ -37,7 +37,7 @@ class SaveAutoPaymentsTest {
     @InjectMocks
     private AutoPaymentsService autoPaymentsService;
 
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
     private PiggyBank piggyBank;
 
     @BeforeEach
@@ -46,36 +46,36 @@ class SaveAutoPaymentsTest {
         PiggyBankSettings settings = new PiggyBankSettings();
         piggyBank.setSettings(settings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(null); // user not used further
-        when(piggyBankManagerService.getPiggyBankByUserEmail(1L, EMAIL)).thenReturn(piggyBank);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(new com.finovara.finovarabackend.user.model.User());
+        when(piggyBankManagerService.getPiggyBankByUserId(1L, USER_ID)).thenReturn(piggyBank);
     }
 
     @Test
     void shouldSaveActiveAutomationWithPercentage() {
         AutoPaymentsDto dto = new AutoPaymentsDto(true, BigDecimal.valueOf(20));
 
-        autoPaymentsService.saveAutoPaymentsPiggyBank(EMAIL, 1L, dto);
+        autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, 1L, dto);
 
         assertTrue(piggyBank.getSettings().isAutomationActive());
         assertEquals(BigDecimal.valueOf(20), piggyBank.getSettings().getAutomationPercentage());
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.ENABLED, SettingType.PIGGY_BANK_AUTO_PAYMENTS);
+        verify(settingsActivityService).createSettingActivity(USER_ID, SettingActivityStatus.ENABLED, SettingType.PIGGY_BANK_AUTO_PAYMENTS);
     }
 
     @Test
     void shouldSaveInactiveAutomationWithZeroPercentage() {
         AutoPaymentsDto dto = new AutoPaymentsDto(false, null);
 
-        autoPaymentsService.saveAutoPaymentsPiggyBank(EMAIL, 1L, dto);
+        autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, 1L, dto);
 
         assertFalse(piggyBank.getSettings().isAutomationActive());
         assertEquals(BigDecimal.ZERO, piggyBank.getSettings().getAutomationPercentage());
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.DISABLED, SettingType.PIGGY_BANK_AUTO_PAYMENTS);
+        verify(settingsActivityService).createSettingActivity(USER_ID, SettingActivityStatus.DISABLED, SettingType.PIGGY_BANK_AUTO_PAYMENTS);
     }
 
     @Test
     void shouldThrowExceptionWhenActiveWithoutPercentage() {
         AutoPaymentsDto dto = new AutoPaymentsDto(true, null);
 
-        assertThrows(IllegalArgumentException.class, () -> autoPaymentsService.saveAutoPaymentsPiggyBank(EMAIL, 1L, dto));
+        assertThrows(IllegalArgumentException.class, () -> autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, 1L, dto));
     }
 }

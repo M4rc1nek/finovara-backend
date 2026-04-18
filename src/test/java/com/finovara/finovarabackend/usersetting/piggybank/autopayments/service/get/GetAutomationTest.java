@@ -31,13 +31,13 @@ class GetAutomationTest {
     @InjectMocks
     private AutoPaymentsService autoPaymentsService;
 
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
     private PiggyBank piggyBank;
 
     @BeforeEach
     void setup() {
         User user = new User();
-        user.setEmail(EMAIL);
+        user.setId(USER_ID);
 
         piggyBank = new PiggyBank();
         PiggyBankSettings settings = new PiggyBankSettings();
@@ -45,13 +45,13 @@ class GetAutomationTest {
         settings.setAutomationPercentage(BigDecimal.valueOf(15));
         piggyBank.setSettings(settings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(piggyBankManagerService.getPiggyBankByUserEmail(1L, EMAIL)).thenReturn(piggyBank);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        when(piggyBankManagerService.getPiggyBankByUserId(1L, USER_ID)).thenReturn(piggyBank);
     }
 
     @Test
     void shouldReturnCorrectAutomationSettings() {
-        AutoPaymentsDto result = autoPaymentsService.getAutomation(EMAIL, 1L);
+        AutoPaymentsDto result = autoPaymentsService.getAutomation(USER_ID, 1L);
 
         assertEquals(true, result.isAutomationActive());
         assertEquals(BigDecimal.valueOf(15), result.percentage());
@@ -62,7 +62,7 @@ class GetAutomationTest {
         piggyBank.getSettings().setAutomationActive(false);
         piggyBank.getSettings().setAutomationPercentage(BigDecimal.ZERO);
 
-        AutoPaymentsDto result = autoPaymentsService.getAutomation(EMAIL, 1L);
+        AutoPaymentsDto result = autoPaymentsService.getAutomation(USER_ID, 1L);
 
         assertEquals(false, result.isAutomationActive());
         assertEquals(BigDecimal.ZERO, result.percentage());

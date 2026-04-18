@@ -33,13 +33,13 @@ class UpdateRevenueActivityTest {
     @InjectMocks
     private RevenueActivityService revenueActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private final Long USER_ID = 1L;
 
     @Test
     void shouldUpdateRevenueActivitySuccessfully() {
 
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
 
         Revenue revenue = new Revenue();
         revenue.setAmount(new BigDecimal("2000"));
@@ -49,9 +49,9 @@ class UpdateRevenueActivityTest {
         RevenueCategory previousCategory = RevenueCategory.SALARY;
         LocalDateTime now = LocalDateTime.now();
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
-        revenueActivityService.updateRevenueActivity(EMAIL, RevenueActivityType.EDITED_REVENUE, revenue, previousAmount, previousCategory);
+        revenueActivityService.updateRevenueActivity(USER_ID, RevenueActivityType.EDITED_REVENUE, revenue, previousAmount, previousCategory);
 
         verify(revenueActivityRepository).save(argThat(activity ->
                 activity.getUserAssigned().equals(user) &&
@@ -74,11 +74,11 @@ class UpdateRevenueActivityTest {
         BigDecimal previousAmount = new BigDecimal("1500");
         RevenueCategory previousCategory = RevenueCategory.SALARY;
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
                 revenueActivityService.updateRevenueActivity(
-                        EMAIL,
+                        USER_ID,
                         RevenueActivityType.EDITED_REVENUE,
                         revenue,
                         previousAmount,

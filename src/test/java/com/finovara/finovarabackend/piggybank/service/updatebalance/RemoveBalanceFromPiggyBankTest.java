@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.piggybank.service.transaction;
+package com.finovara.finovarabackend.piggybank.service.updatebalance;
 
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
@@ -50,7 +50,7 @@ class PiggyBankTransactionServiceTest {
 
     @Test
     void shouldRemoveBalanceSuccessfully() {
-        String email = "test@test.com";
+        Long userId = 1L;
         Long piggyBankId = 1L;
 
         User user = new User();
@@ -61,11 +61,11 @@ class PiggyBankTransactionServiceTest {
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("200"));
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(piggyBank);
-        when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+        when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+        when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-        piggyBankTransactionService.removeBalanceFromPiggyBank(email, piggyBankId, new BigDecimal("100"));
+        piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"));
 
         assertEquals(new BigDecimal("400"), wallet.getBalance());
         assertEquals(new BigDecimal("100"), piggyBank.getAmount());
@@ -74,7 +74,7 @@ class PiggyBankTransactionServiceTest {
         verify(piggyBankRepository).save(piggyBank);
 
         verify(piggyBankActivityService).createPaymentPiggyBankActivity(
-                eq(email),
+                eq(userId),
                 eq(piggyBank),
                 eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK),
                 eq(new BigDecimal("100"))
@@ -83,7 +83,7 @@ class PiggyBankTransactionServiceTest {
 
     @Test
     void shouldThrowWhenInsufficientPiggyBankFunds() {
-        String email = "test@test.com";
+        Long userId = 1L;
         Long piggyBankId = 1L;
 
         User user = new User();
@@ -94,11 +94,11 @@ class PiggyBankTransactionServiceTest {
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("50"));
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(piggyBank);
-        when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+        when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+        when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-        assertThrows(InvalidInputException.class, () -> piggyBankTransactionService.removeBalanceFromPiggyBank(email, piggyBankId, new BigDecimal("100")));
+        assertThrows(InvalidInputException.class, () -> piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100")));
 
         verify(piggyBankRepository, never()).save(any());
         verify(walletRepository, never()).save(any());
@@ -106,12 +106,12 @@ class PiggyBankTransactionServiceTest {
 
     @Test
     void shouldThrowWhenUserNotFound_remove() {
-        String email = "test@test.com";
+        Long userId = 1L;
         Long piggyBankId = 1L;
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> piggyBankTransactionService.removeBalanceFromPiggyBank(email, piggyBankId, new BigDecimal("100")));
+        assertThrows(UserNotFoundException.class, () -> piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100")));
 
         verify(piggyBankRepository, never()).save(any());
         verify(walletRepository, never()).save(any());

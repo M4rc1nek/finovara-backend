@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +45,7 @@ class HandleGoalCompletionTest {
     @InjectMocks
     private GoalCompletionService goalCompletionService;
 
-    private static final String EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
 
     private User user;
     private Wallet wallet;
@@ -54,7 +55,7 @@ class HandleGoalCompletionTest {
     @BeforeEach
     void setup() {
         user = new User();
-        user.setEmail(EMAIL);
+        user.setId(USER_ID);
 
         wallet = new Wallet();
         wallet.setBalance(BigDecimal.valueOf(500));
@@ -68,18 +69,18 @@ class HandleGoalCompletionTest {
 
         piggyBank.setSettings(settings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(walletManagerService.getWalletByUserEmailOrThrow(EMAIL)).thenReturn(wallet);
-        when(piggyBankRepository.findAllByUserAssignedEmail(EMAIL)).thenReturn(List.of(piggyBank));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
+        when(piggyBankRepository.findAllByUserAssignedId(USER_ID)).thenReturn(List.of(piggyBank));
     }
 
     @Test
     void shouldNotCallCoreWhenGoalNotReached() {
         piggyBank.setAmount(BigDecimal.valueOf(100));
 
-        goalCompletionService.handleGoalCompletion(EMAIL);
+        goalCompletionService.handleGoalCompletion(USER_ID);
 
-        verify(goalCompletionCore, never()).apply(any(), any(), any(), any(), any());
+        verify(goalCompletionCore, never()).apply(anyLong(), any(), any(), any(), any());
 
         verify(walletRepository).save(wallet);
     }
@@ -88,9 +89,9 @@ class HandleGoalCompletionTest {
     void shouldCallCoreWhenGoalReached() {
         piggyBank.setAmount(BigDecimal.valueOf(200));
 
-        goalCompletionService.handleGoalCompletion(EMAIL);
+        goalCompletionService.handleGoalCompletion(USER_ID);
 
-        verify(goalCompletionCore).apply(eq(EMAIL), eq(piggyBank), eq(wallet), eq(user), eq(GoalCompletionStrategy.WITHDRAW_AND_KEEP));
+        verify(goalCompletionCore).apply(eq(USER_ID), eq(piggyBank), eq(wallet), eq(user), eq(GoalCompletionStrategy.WITHDRAW_AND_KEEP));
 
         verify(walletRepository).save(wallet);
     }
@@ -100,9 +101,9 @@ class HandleGoalCompletionTest {
         settings.setGoalCompletionStrategy(null);
         piggyBank.setAmount(BigDecimal.valueOf(200));
 
-        goalCompletionService.handleGoalCompletion(EMAIL);
+        goalCompletionService.handleGoalCompletion(USER_ID);
 
-        verify(goalCompletionCore).apply(eq(EMAIL), eq(piggyBank), eq(wallet), eq(user), eq(GoalCompletionStrategy.NONE));
+        verify(goalCompletionCore).apply(eq(USER_ID), eq(piggyBank), eq(wallet), eq(user), eq(GoalCompletionStrategy.NONE));
     }
 
     @Test
@@ -115,11 +116,11 @@ class HandleGoalCompletionTest {
         secondSettings.setGoalCompletionStrategy(GoalCompletionStrategy.NONE);
         second.setSettings(secondSettings);
 
-        when(piggyBankRepository.findAllByUserAssignedEmail(EMAIL)).thenReturn(List.of(piggyBank, second));
+        when(piggyBankRepository.findAllByUserAssignedId(USER_ID)).thenReturn(List.of(piggyBank, second));
 
-        goalCompletionService.handleGoalCompletion(EMAIL);
+        goalCompletionService.handleGoalCompletion(USER_ID);
 
-        verify(goalCompletionCore, times(2)).apply(any(), any(), any(), any(), any());
+        verify(goalCompletionCore, times(2)).apply(anyLong(), any(), any(), any(), any());
 
         verify(walletRepository).save(wallet);
     }

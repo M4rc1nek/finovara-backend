@@ -18,32 +18,32 @@ public class GoalCompletionCore {
 
     private final PiggyBankActivityService piggyBankActivityService;
 
-    public void apply(String email, PiggyBank piggyBank, Wallet wallet, User user, GoalCompletionStrategy strategy) {
+    public void apply(Long userId, PiggyBank piggyBank, Wallet wallet, User user, GoalCompletionStrategy strategy) {
 
         switch (strategy) {
             case NONE -> {
             }
 
-            case WITHDRAW_AND_KEEP -> withdrawAndKeep(email, piggyBank, wallet);
+            case WITHDRAW_AND_KEEP -> withdrawAndKeep(userId, piggyBank, wallet);
 
-            case WITHDRAW_AND_DELETE -> withdrawAndDelete(email, piggyBank, wallet, user);
+            case WITHDRAW_AND_DELETE -> withdrawAndDelete(userId, piggyBank, wallet, user);
         }
     }
 
-    private void withdrawAndKeep(String email, PiggyBank piggyBank, Wallet wallet) {
+    private void withdrawAndKeep(Long userId, PiggyBank piggyBank, Wallet wallet) {
         BigDecimal amountToTransfer = piggyBank.getAmount();
         transferFunds(piggyBank, wallet);
 
-        piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, amountToTransfer);
+        piggyBankActivityService.createPaymentPiggyBankActivity(userId, piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, amountToTransfer);
     }
 
-    private void withdrawAndDelete(String email, PiggyBank piggyBank, Wallet wallet, User user) {
+    private void withdrawAndDelete(Long userId, PiggyBank piggyBank, Wallet wallet, User user) {
         BigDecimal amountToTransfer = piggyBank.getAmount();
 
         transferFunds(piggyBank, wallet);
 
-        piggyBankActivityService.createPaymentPiggyBankActivity(email, piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, amountToTransfer);
-        piggyBankActivityService.createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
+        piggyBankActivityService.createPaymentPiggyBankActivity(userId, piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, amountToTransfer);
+        piggyBankActivityService.createSimplePiggyBankActivity(userId, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
 
         if (piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             throw new InvalidInputException("Cannot delete piggy bank with balance.");

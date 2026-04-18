@@ -16,12 +16,12 @@ public class NotifyUsernameChangeController {
 
     @PatchMapping
     public ResponseEntity<Void> saveNotifyUsernameChange(@RequestBody NotificationEmailDto dto) {
-        notifyUsernameChangeService.saveEmailNotification(SecurityUtils.getCurrentUserEmail(), dto);
+        notifyUsernameChangeService.saveEmailNotification(SecurityUtils.getCurrentUserId(), dto);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
     public ResponseEntity<NotificationEmailDto> getNotifyUsernameChange() {
-        return ResponseEntity.ok(notifyUsernameChangeService.getEmailNotification(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(notifyUsernameChangeService.getEmailNotification(SecurityUtils.getCurrentUserId()));
     }
 }

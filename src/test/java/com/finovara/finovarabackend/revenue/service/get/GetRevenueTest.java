@@ -37,57 +37,57 @@ class GetRevenueTest {
 
     @Test
     void shouldReturnListOfRevenueDto() {
-        String email = "test@test.com";
+        Long userId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         Revenue revenue1 = new Revenue();
         Revenue revenue2 = new Revenue();
 
         RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edited revenue test");
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(revenueRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of(revenue1, revenue2));
 
         when(revenueMapper.mapRevenueToDto(any(Revenue.class))).thenReturn(dto);
 
-        List<RevenueDto> result = revenueService.getRevenue(email);
+        List<RevenueDto> result = revenueService.getRevenue(userId);
 
         // then
         assertEquals(2, result.size());
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(revenueRepository).findAllByUserAssignedId(user.getId());
         verify(revenueMapper, times(2)).mapRevenueToDto(any(Revenue.class));
     }
 
     @Test
     void shouldReturnEmptyListWhenNoRevenues() {
-        String email = "test@email.com";
+        Long userId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(revenueRepository.findAllByUserAssignedId(user.getId())).thenReturn(List.of());
 
-        List<RevenueDto> result = revenueService.getRevenue(email);
+        List<RevenueDto> result = revenueService.getRevenue(userId);
 
         assertEquals(0, result.size());
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(revenueRepository).findAllByUserAssignedId(user.getId());
         verifyNoInteractions(revenueMapper);
     }
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
-        String email = "test@email.com";
+        Long userId = 1L;
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> revenueService.getRevenue(email));
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        assertThrows(UserNotFoundException.class, () -> revenueService.getRevenue(userId));
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verifyNoInteractions(revenueRepository, revenueMapper);
 
     }

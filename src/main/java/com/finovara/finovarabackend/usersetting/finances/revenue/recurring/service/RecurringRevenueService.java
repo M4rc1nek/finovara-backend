@@ -19,8 +19,8 @@ public class RecurringRevenueService {
     private final SettingsActivityService settingsActivityService;
 
     @Transactional
-    public void saveRecurringRevenue(String email, RecurringRevenueDto dto) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void saveRecurringRevenue(Long userId, RecurringRevenueDto dto) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         RevenueSettings revenueSettings = user.getRevenueSettings();
 
         revenueSettings.setRecurringRevenuesEnable(dto.recurringRevenueEnable());
@@ -29,18 +29,18 @@ public class RecurringRevenueService {
         revenueSettings.setPeriodType(dto.periodType());
 
         if (dto.recurringRevenueEnable()) {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.REVENUE_RECURRING);
+            settingsActivityService.createSettingActivity(userId, SettingActivityStatus.ENABLED, SettingType.REVENUE_RECURRING);
             revenueSettings.setRecurringStartDate(dto.startDate());
             revenueSettings.setNextExecutionDate(dto.startDate());
         } else {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.REVENUE_RECURRING);
+            settingsActivityService.createSettingActivity(userId, SettingActivityStatus.DISABLED, SettingType.REVENUE_RECURRING);
             revenueSettings.setNextExecutionDate(null);
         }
 
     }
 
-    public RecurringRevenueDto getRecurringRevenue(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public RecurringRevenueDto getRecurringRevenue(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         RevenueSettings settings = user.getRevenueSettings();
 
         return new RecurringRevenueDto(
@@ -53,4 +53,3 @@ public class RecurringRevenueService {
         );
     }
 }
-

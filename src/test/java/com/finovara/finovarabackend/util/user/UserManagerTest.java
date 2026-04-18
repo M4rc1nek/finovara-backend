@@ -44,23 +44,4 @@ class UserManagerTest {
         assertThrows(UserNotFoundException.class,
                 () -> userManagerService.getUserByIdOrThrow(1L));
     }
-
-    @Test
-    void shouldReturnUserWhenEmailExists() {
-        User user = new User();
-        user.setId(1L);
-
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
-
-        User result = userManagerService.getUserByEmailOrThrow("test@example.com");
-
-        assertEquals(1L, result.getId());
-    }
-
-    @Test
-    void shouldThrowUserNotFoundExceptionWhenEmailDoesNotExist() {
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
-
-        assertThrows(UserNotFoundException.class, () -> userManagerService.getUserByEmailOrThrow("test@example.com"));
-    }
 }

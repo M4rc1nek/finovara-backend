@@ -66,14 +66,14 @@ class LoginActivityServiceTest {
 
     @Test
     void shouldCreateActivityAndNotArchiveWhenBelowThreshold() {
-        when(userManagerService.getUserByEmailOrThrow("user@test.com")).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(1L)).thenReturn(user);
         when(clientData.getClientIp(request)).thenReturn("127.0.0.1");
         when(clientData.getUserBrowser(request)).thenReturn("Firefox");
         when(clientData.getUserLocation("127.0.0.1")).thenReturn("PL");
 
         when(loginActivityRepository.countActivityLoginByUserAssignedId(1L)).thenReturn((long) (pageSize - 1));
 
-        loginActivityService.createLoginActivity("user@test.com", LoginActivityStatus.SUCCESSFUL, request);
+        loginActivityService.createLoginActivity(1L, LoginActivityStatus.SUCCESSFUL, request);
 
         verify(loginActivityRepository, times(1)).save(any(LoginActivity.class));
         verify(archiveService, never()).archive(any());
@@ -81,7 +81,7 @@ class LoginActivityServiceTest {
 
     @Test
     void shouldArchiveWhenThresholdExceeded() {
-        when(userManagerService.getUserByEmailOrThrow("user@test.com")).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(1L)).thenReturn(user);
         when(clientData.getClientIp(request)).thenReturn("127.0.0.1");
         when(clientData.getUserBrowser(request)).thenReturn("Firefox");
         when(clientData.getUserLocation("127.0.0.1")).thenReturn("PL");
@@ -92,7 +92,7 @@ class LoginActivityServiceTest {
         when(loginActivityRepository.findOldestByUserAssignedId(eq(1L), any(PageRequest.class))).thenReturn(List.of(activity));
         when(archiveService.mapToArchive(activity)).thenReturn(mock(LoginActivityArchive.class));
 
-        loginActivityService.createLoginActivity("user@test.com", LoginActivityStatus.SUCCESSFUL, request);
+        loginActivityService.createLoginActivity(1L, LoginActivityStatus.SUCCESSFUL, request);
 
         verify(loginActivityRepository, times(1)).save(any(LoginActivity.class));
         verify(archiveService, times(1)).archive(anyList());
@@ -101,21 +101,23 @@ class LoginActivityServiceTest {
 
     @Test
     void shouldReturnLoginActivityDto() {
+        Long userId = 1L;
         List<LoginActivityDto> dtos = List.of(mock(LoginActivityDto.class));
 
-        when(loginActivityRepository.findByUserAssignedEmailOrderByDesc("user@test.com")).thenReturn(dtos);
+        when(loginActivityRepository.findByUserAssignedIdOrderByDesc(userId)).thenReturn(dtos);
 
-        List<LoginActivityDto> result = loginActivityService.getLoginActivity("user@test.com");
+        List<LoginActivityDto> result = loginActivityService.getLoginActivity(userId);
 
         assertEquals(1, result.size());
-        verify(loginActivityRepository, times(1)).findByUserAssignedEmailOrderByDesc("user@test.com");
+        verify(loginActivityRepository, times(1)).findByUserAssignedIdOrderByDesc(userId);
     }
 
     @Test
     void shouldConfirmPassword() {
+        Long userId = 1L;
         ConfirmPasswordDto dto = mock(ConfirmPasswordDto.class);
-        loginActivityService.confirmPassword("user@test.com", dto);
+        loginActivityService.confirmPassword(userId, dto);
 
-        verify(passwordConfirmationService, times(1)).confirmPassword("user@test.com", dto);
+        verify(passwordConfirmationService, times(1)).confirmPassword(userId, dto);
     }
 }

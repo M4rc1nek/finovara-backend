@@ -32,9 +32,9 @@ public class PiggyBankTransactionService {
     private final GoalCompletionService goalCompletionService;
 
     @Transactional
-    public void addBalanceToPiggyBank(String email, Long piggyBankId, BigDecimal amount) {
+    public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount) {
 
-        UserContext userContext = getEntitiesForTransaction(email, piggyBankId);
+        UserContext userContext = getEntitiesForTransaction(userId, piggyBankId);
 
         PiggyBankValidator.validateAmount(amount);
         PiggyBankValidator.validateSufficientFunds(userContext.wallet.getBalance(), amount);
@@ -42,7 +42,7 @@ public class PiggyBankTransactionService {
         userContext.wallet.setBalance(userContext.wallet.getBalance().subtract(amount));
         userContext.piggyBank.setAmount(userContext.piggyBank.getAmount().add(amount));
 
-        piggyBankActivityService.createPaymentPiggyBankActivity(email, userContext.piggyBank,
+        piggyBankActivityService.createPaymentPiggyBankActivity(userId, userContext.piggyBank,
                 PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, amount);
         PiggyBankCalculator.calculateProgress(userContext.piggyBank);
         boolean completed = PiggyBankCheckGoalCompletion.isGoalCompleted((userContext.piggyBank));
@@ -51,14 +51,14 @@ public class PiggyBankTransactionService {
         piggyBankRepository.save(userContext.piggyBank);
 
         if (completed) {
-            goalCompletionService.handleGoalCompletion(email);
+            goalCompletionService.handleGoalCompletion(userId);
         }
     }
 
     @Transactional
-    public void removeBalanceFromPiggyBank(String email, Long piggyBankId, BigDecimal amount) {
+    public void removeBalanceFromPiggyBank(Long userId, Long piggyBankId, BigDecimal amount) {
 
-        UserContext userContext = getEntitiesForTransaction(email, piggyBankId);
+        UserContext userContext = getEntitiesForTransaction(userId, piggyBankId);
 
         PiggyBankValidator.validateAmount(amount);
         PiggyBankValidator.validateSufficientFunds(userContext.piggyBank.getAmount(), amount);
@@ -69,7 +69,7 @@ public class PiggyBankTransactionService {
         PiggyBankCalculator.calculateProgress(userContext.piggyBank);
         PiggyBankCheckGoalCompletion.isGoalCompleted((userContext.piggyBank));
 
-        piggyBankActivityService.createPaymentPiggyBankActivity(email, userContext.piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, amount);
+        piggyBankActivityService.createPaymentPiggyBankActivity(userId, userContext.piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, amount);
 
         walletRepository.save(userContext.wallet);
         piggyBankRepository.save(userContext.piggyBank);
@@ -79,10 +79,10 @@ public class PiggyBankTransactionService {
 
     }
 
-    private UserContext getEntitiesForTransaction(String email, Long piggyBankId) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
-        Wallet wallet = walletManagerService.getWalletByUserEmailOrThrow(email);
+    private UserContext getEntitiesForTransaction(Long userId, Long piggyBankId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
 
         return new UserContext(wallet, piggyBank, user);
     }

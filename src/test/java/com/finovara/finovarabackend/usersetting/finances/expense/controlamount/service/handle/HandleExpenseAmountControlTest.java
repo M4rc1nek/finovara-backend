@@ -29,7 +29,7 @@ class HandleExpenseAmountControlTest {
     private User user;
     private ExpenseSettings expenseSettings;
 
-    private final String EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -40,49 +40,49 @@ class HandleExpenseAmountControlTest {
 
     @Test
     void shouldThrowExceptionWhenAmountExceedsBlockedAmount() {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         expenseSettings.setAmountThresholdEnabled(true);
         expenseSettings.setBlockedAmount(BigDecimal.valueOf(100));
 
         BigDecimal newAmount = BigDecimal.valueOf(150);
 
-        assertThrows(InvalidInputException.class, () -> controlAmountService.handleExpenseAmountControl(EMAIL, newAmount));
+        assertThrows(InvalidInputException.class, () -> controlAmountService.handleExpenseAmountControl(USER_ID, newAmount));
     }
 
     @Test
     void shouldAllowAmountEqualOrLessThanBlockedAmount() {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         expenseSettings.setAmountThresholdEnabled(true);
         expenseSettings.setBlockedAmount(BigDecimal.valueOf(100));
 
         BigDecimal newAmount = BigDecimal.valueOf(100);
 
-        controlAmountService.handleExpenseAmountControl(EMAIL, newAmount);
+        controlAmountService.handleExpenseAmountControl(USER_ID, newAmount);
     }
 
     @Test
     void shouldAllowAnyAmountWhenControlIsDisabled() {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         expenseSettings.setAmountThresholdEnabled(false);
         expenseSettings.setBlockedAmount(BigDecimal.valueOf(50));
 
         BigDecimal newAmount = BigDecimal.valueOf(1000);
 
-        controlAmountService.handleExpenseAmountControl(EMAIL, newAmount);
+        controlAmountService.handleExpenseAmountControl(USER_ID, newAmount);
     }
 
     @Test
     void shouldTreatNullBlockedAmountAsZero() {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         expenseSettings.setAmountThresholdEnabled(true);
         expenseSettings.setBlockedAmount(null);
 
         BigDecimal newAmount = BigDecimal.valueOf(10);
 
-        assertThrows(InvalidInputException.class, () -> controlAmountService.handleExpenseAmountControl(EMAIL, newAmount));
+        assertThrows(InvalidInputException.class, () -> controlAmountService.handleExpenseAmountControl(USER_ID, newAmount));
     }
 }

@@ -39,15 +39,15 @@ class HandleAutoPaymentsTest {
     @InjectMocks
     private AutoPaymentsService autoPaymentsService;
 
-    private String email;
+    private Long userId;
     private Wallet wallet;
 
     @BeforeEach
     void setUp() {
-        email = "test@mail.com";
+        userId = 1L;
         wallet = new Wallet();
 
-        when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
+        when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
     }
 
     @Test
@@ -55,9 +55,9 @@ class HandleAutoPaymentsTest {
         User user = new User();
         user.setPiggyBanks(List.of());
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
 
         verifyNoInteractions(autoPaymentsCore);
         verifyNoInteractions(goalCompletionService);
@@ -68,9 +68,9 @@ class HandleAutoPaymentsTest {
         User user = new User();
         user.setPiggyBanks(null);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
 
         verifyNoInteractions(autoPaymentsCore);
         verifyNoInteractions(goalCompletionService);
@@ -87,12 +87,12 @@ class HandleAutoPaymentsTest {
         User user = new User();
         user.setPiggyBanks(List.of(piggyBank));
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
 
         verifyNoInteractions(autoPaymentsCore);
-        verify(goalCompletionService).handleGoalCompletion(email);
+        verify(goalCompletionService).handleGoalCompletion(userId);
     }
 
     @Test
@@ -113,15 +113,15 @@ class HandleAutoPaymentsTest {
         User user = new User();
         user.setPiggyBanks(List.of(activePiggyBank, inactivePiggyBank));
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
 
-        verify(autoPaymentsCore).process(eq(email), eq(activePiggyBank), eq(wallet), any(), eq(PiggyBankAutomationMode.APPLY));
+        verify(autoPaymentsCore).process(eq(userId), eq(activePiggyBank), eq(wallet), any(), eq(PiggyBankAutomationMode.APPLY));
 
-        verify(autoPaymentsCore, never()).process(eq(email), eq(inactivePiggyBank), any(), any(), any());
+        verify(autoPaymentsCore, never()).process(eq(userId), eq(inactivePiggyBank), any(), any(), any());
 
-        verify(goalCompletionService).handleGoalCompletion(email);
+        verify(goalCompletionService).handleGoalCompletion(userId);
     }
 
     @ParameterizedTest
@@ -137,12 +137,12 @@ class HandleAutoPaymentsTest {
         User user = new User();
         user.setPiggyBanks(List.of(piggyBank));
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, BigDecimal.TEN, mode);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, BigDecimal.TEN, mode);
 
-        verify(autoPaymentsCore).process(eq(email), eq(piggyBank), eq(wallet), argThat(amount -> amount.compareTo(new BigDecimal("1.00")) == 0), eq(mode));
+        verify(autoPaymentsCore).process(eq(userId), eq(piggyBank), eq(wallet), argThat(amount -> amount.compareTo(new BigDecimal("1.00")) == 0), eq(mode));
 
-        verify(goalCompletionService).handleGoalCompletion(email);
+        verify(goalCompletionService).handleGoalCompletion(userId);
     }
 }

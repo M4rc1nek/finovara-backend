@@ -14,18 +14,18 @@ public abstract class AbstractNotificationEmailService {
     protected final NotificationEmailSender notificationEmailSender;
 
     @Transactional
-    public void saveEmailNotification(String email, NotificationEmailDto dto) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void saveEmailNotification(Long userId, NotificationEmailDto dto) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
         boolean enabled = isEnabled(dto);
         applySetting(settings, enabled);
 
-        handleActivity(email, enabled);
+        handleActivity(userId, enabled);
     }
 
-    public NotificationEmailDto getEmailNotification(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public NotificationEmailDto getEmailNotification(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         NotificationEmailSettings settings = user.getNotificationEmailSettings();
 
         return mapToDto(settings);
@@ -49,6 +49,6 @@ public abstract class AbstractNotificationEmailService {
 
     protected abstract void sendEmailToUser(User user);
 
-    protected void handleActivity(String email, boolean enabled) {
+    protected void handleActivity(Long userId, boolean enabled) {
     }
 }

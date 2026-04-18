@@ -29,29 +29,29 @@ class PasswordConfirmationTest {
 
     @Test
     void shouldNotThrowExceptionWhenPasswordMatches() {
-        String email = "test@example.com";
+        Long userId = 1L;
         ConfirmPasswordDto dto = new ConfirmPasswordDto("correctPassword");
 
         User user = new User();
         user.setPassword("encodedPassword");
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(passwordEncoder.matches("correctPassword", "encodedPassword")).thenReturn(true);
 
-        assertDoesNotThrow(() -> passwordConfirmationService.confirmPassword(email, dto));
+        assertDoesNotThrow(() -> passwordConfirmationService.confirmPassword(userId, dto));
     }
 
     @Test
     void shouldThrowWrongPasswordExceptionWhenPasswordDoesNotMatch() {
-        String email = "test@example.com";
+        Long userId = 1L;
         ConfirmPasswordDto dto = new ConfirmPasswordDto("wrongPassword");
 
         User user = new User();
         user.setPassword("encodedPassword");
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(passwordEncoder.matches("wrongPassword", "encodedPassword")).thenReturn(false);
 
-        assertThrows(WrongPasswordException.class, () -> passwordConfirmationService.confirmPassword(email, dto));
+        assertThrows(WrongPasswordException.class, () -> passwordConfirmationService.confirmPassword(userId, dto));
     }
 }

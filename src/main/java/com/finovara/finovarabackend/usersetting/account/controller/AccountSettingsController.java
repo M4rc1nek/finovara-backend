@@ -26,7 +26,7 @@ public class AccountSettingsController {
 
     @GetMapping
     public ResponseEntity<AccountSettingsDto> getAccountSettings() {
-        return ResponseEntity.ok(accountService.getAccountSettings(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(accountService.getAccountSettings(SecurityUtils.getCurrentUserId()));
     }
 
     @DeleteMapping("/{userId}")
@@ -37,7 +37,7 @@ public class AccountSettingsController {
 
     @PutMapping
     public ResponseEntity<Void> changeUserPassword(@RequestBody @Valid PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
-        changePasswordService.changePassword(SecurityUtils.getCurrentUserEmail(), passwordRequestDto, request);
+        changePasswordService.changePassword(SecurityUtils.getCurrentUserId(), passwordRequestDto, request);
         return ResponseEntity.noContent().build();
     }
 

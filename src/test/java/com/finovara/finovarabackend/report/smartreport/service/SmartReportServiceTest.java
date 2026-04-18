@@ -27,20 +27,20 @@ class SmartReportServiceTest {
     @Mock
     private SmartReportHandler handler;
 
-    private final String EMAIL = "test@mail.com";
+    private static final Long USER_ID = 1L;
     User user;
 
     @BeforeEach
     void setUp(){
         user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
     }
 
     @Test
     void shouldReturnResponseFromHandler() {
         String question = "Ile wydałem w tym miesiącu?";
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         when(smartReportQuestionService.getTypeFromQuestion(question)).thenReturn(SmartReportType.MONTH_SPENDING);
 
@@ -53,11 +53,11 @@ class SmartReportServiceTest {
                 smartReportQuestionService
         );
 
-        String result = smartReportService.generateResponse(EMAIL, question);
+        String result = smartReportService.generateResponse(USER_ID, question);
 
         assertEquals("50.00", result);
 
-        verify(userManagerService).getUserByEmailOrThrow(EMAIL);
+        verify(userManagerService).getUserByIdOrThrow(USER_ID);
         verify(smartReportQuestionService).getTypeFromQuestion(question);
         verify(handler).getType();
     }
@@ -66,7 +66,7 @@ class SmartReportServiceTest {
     void shouldReturnDefaultMessageWhenTypeIsNull() {
         String question = "unknown question";
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
         when(smartReportQuestionService.getTypeFromQuestion(question)).thenReturn(null);
 
         SmartReportService smartReportService = new SmartReportService(
@@ -75,11 +75,11 @@ class SmartReportServiceTest {
                 smartReportQuestionService
         );
 
-        String result = smartReportService.generateResponse(EMAIL, question);
+        String result = smartReportService.generateResponse(USER_ID, question);
 
         assertEquals("Nie  jestem aż tak inteligenty aby odpowiedzieć na to pytanie, zadaj pytanie z księgi pytań!", result);
 
-        verify(userManagerService).getUserByEmailOrThrow(EMAIL);
+        verify(userManagerService).getUserByIdOrThrow(USER_ID);
         verify(smartReportQuestionService).getTypeFromQuestion(question);
     }
 
@@ -87,7 +87,7 @@ class SmartReportServiceTest {
     void shouldReturnUnsupportedMessageWhenHandlerNotFound() {
         String question = "Ile wydałem w tym miesiącu?";
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         when(smartReportQuestionService.getTypeFromQuestion(question)).thenReturn(SmartReportType.MONTH_SPENDING);
 
@@ -97,11 +97,11 @@ class SmartReportServiceTest {
                 smartReportQuestionService
         );
 
-        String result = smartReportService.generateResponse(EMAIL, question);
+        String result = smartReportService.generateResponse(USER_ID, question);
 
         assertEquals("Report type not supported", result);
 
-        verify(userManagerService).getUserByEmailOrThrow(EMAIL);
+        verify(userManagerService).getUserByIdOrThrow(USER_ID);
         verify(smartReportQuestionService).getTypeFromQuestion(question);
     }
 }

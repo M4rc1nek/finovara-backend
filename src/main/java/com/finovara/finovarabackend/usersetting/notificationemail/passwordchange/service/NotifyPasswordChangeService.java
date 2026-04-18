@@ -53,9 +53,9 @@ public class NotifyPasswordChangeService extends AbstractNotificationEmailServic
     }
 
     @Override
-    protected void handleActivity(String email, boolean enabled) {
+    protected void handleActivity(Long userId, boolean enabled) {
         settingsActivityService.createSettingActivity(
-                email,
+                userId,
                 enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED,
                 SettingType.NOTIFICATION_PASSWORD_CHANGED
         );

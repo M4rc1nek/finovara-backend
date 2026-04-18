@@ -37,28 +37,28 @@ public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity,
     }
 
     @Transactional
-    public void createExpenseActivity(String email, ExpenseActivityType expenseActivityType, Expense expense) {
-        ExpenseActivity expenseActivity = buildActivity(email, expense);
+    public void createExpenseActivity(Long userId, ExpenseActivityType expenseActivityType, Expense expense) {
+        ExpenseActivity expenseActivity = buildActivity(userId, expense);
         expenseActivity.setType(expenseActivityType);
         expenseActivityRepository.save(expenseActivity);
     }
 
     @Transactional
-    public void updateExpenseActivity(String email, ExpenseActivityType expenseActivityType, Expense expense, BigDecimal previousAmount, ExpenseCategory previousCategory) {
-        ExpenseActivity expenseActivity = buildActivity(email, expense);
+    public void updateExpenseActivity(Long userId, ExpenseActivityType expenseActivityType, Expense expense, BigDecimal previousAmount, ExpenseCategory previousCategory) {
+        ExpenseActivity expenseActivity = buildActivity(userId, expense);
         expenseActivity.setType(expenseActivityType);
         expenseActivity.setPreviousCategory(previousCategory);
         expenseActivity.setPreviousAmount(previousAmount);
         expenseActivityRepository.save(expenseActivity);
     }
 
-    public List<ExpenseActivityDto> getExpenseActivity(String email, SortType sort) {
-        return getActivities(email, sort, pageSize);
+    public List<ExpenseActivityDto> getExpenseActivity(Long userId, SortType sort) {
+        return getActivities(userId, sort, pageSize);
     }
 
     @Override
-    protected List<ExpenseActivity> getRepositoryFindByUserEmail(String email, Pageable pageable) {
-        return expenseActivityRepository.findByUserAssignedEmail(email, pageable);
+    protected List<ExpenseActivity> getRepositoryFindByUserId(Long userId, Pageable pageable) {
+        return expenseActivityRepository.findByUserAssignedId(userId, pageable);
     }
 
     @Override
@@ -67,13 +67,12 @@ public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity,
     }
 
     @Override
-    protected ExpenseActivity buildActivity(String email, Expense expense) {
+    protected ExpenseActivity buildActivity(Long userId, Expense expense) {
         return ExpenseActivity.builder()
-                .userAssigned(getUser(email))
+                .userAssigned(getUser(userId))
                 .amount(expense.getAmount())
                 .category(expense.getCategory())
                 .createdAt(LocalDateTime.now())
                 .build();
     }
-
 }

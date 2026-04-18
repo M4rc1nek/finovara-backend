@@ -43,8 +43,8 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
     }
 
     @Transactional
-    public void createAccountChangesActivity(String email, AccountChangesActivityType type, HttpServletRequest request) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void createAccountChangesActivity(Long userId, AccountChangesActivityType type, HttpServletRequest request) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         String ipAddress = clientData.getClientIp(request);
 
@@ -61,12 +61,12 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
         moveToArchive(user, pageSize);
     }
 
-    public List<AccountChangesActivityDto> getAccountChangesActivity(String email) {
-        return accountChangesActivityRepository.findByUserAssignedEmailOrderByIdDesc(email);
+    public List<AccountChangesActivityDto> getAccountChangesActivity(Long userId) {
+        return accountChangesActivityRepository.findByUserAssignedIdOrderByIdDesc(userId);
     }
 
-    public void confirmPasswordToAccountChangesActivity(String email, ConfirmPasswordDto dto) {
-        passwordConfirmationService.confirmPassword(email, dto);
+    public void confirmPasswordToAccountChangesActivity(Long userId, ConfirmPasswordDto dto) {
+        passwordConfirmationService.confirmPassword(userId, dto);
     }
 
     @Override

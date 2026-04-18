@@ -34,7 +34,7 @@ class UpdateLimitActivityTest {
     @InjectMocks
     private LimitActivityService limitActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private final Long USER_ID = 1L;
 
     Limit limit;
 
@@ -49,13 +49,13 @@ class UpdateLimitActivityTest {
     void shouldUpdateLimitActivitySuccessfully() {
 
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
         LocalDateTime now = LocalDateTime.now();
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         limitActivityService.updateLimitActivity(
-                EMAIL,
+                USER_ID,
                 LimitActivityType.EDITED_LIMIT,
                 limit,
                 new BigDecimal("800")
@@ -74,11 +74,11 @@ class UpdateLimitActivityTest {
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
                 limitActivityService.updateLimitActivity(
-                        EMAIL,
+                        USER_ID,
                         LimitActivityType.EDITED_LIMIT,
                         limit,
                         new BigDecimal("800")

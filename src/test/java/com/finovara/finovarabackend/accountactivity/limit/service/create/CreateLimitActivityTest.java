@@ -33,13 +33,13 @@ class CreateLimitActivityTest {
     @InjectMocks
     private LimitActivityService limitActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private final Long USER_ID = 1L;
 
     @Test
     void shouldCreateLimitActivitySuccessfully() {
 
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
 
         Limit limit = new Limit();
         limit.setAmount(new BigDecimal("500"));
@@ -48,9 +48,9 @@ class CreateLimitActivityTest {
 
 
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
-        limitActivityService.createLimitActivity(EMAIL, LimitActivityType.ADDED_LIMIT, limit);
+        limitActivityService.createLimitActivity(USER_ID, LimitActivityType.ADDED_LIMIT, limit);
 
         verify(limitActivityRepository).save(argThat(activity ->
                 activity.getUserAssigned().equals(user) &&
@@ -68,11 +68,11 @@ class CreateLimitActivityTest {
         limit.setAmount(new BigDecimal("500"));
         limit.setPeriodType(PeriodType.MONTHLY);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
                 limitActivityService.createLimitActivity(
-                        EMAIL,
+                        USER_ID,
                         LimitActivityType.ADDED_LIMIT,
                         limit
                 )

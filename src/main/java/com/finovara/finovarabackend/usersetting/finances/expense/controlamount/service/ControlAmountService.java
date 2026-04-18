@@ -25,8 +25,8 @@ public class ControlAmountService {
     private final SettingsActivityService settingsActivityService;
 
     @Transactional
-    public void saveExpenseAmountControl(String email, ControlAmountDto controlAmountDto) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void saveExpenseAmountControl(Long userId, ControlAmountDto controlAmountDto) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         BigDecimal blockedAmount = Optional.ofNullable(controlAmountDto.blockedAmount()).orElse(BigDecimal.ZERO);
@@ -34,22 +34,22 @@ public class ControlAmountService {
         expenseSettings.setAmountThresholdEnabled(controlAmountDto.expenseAmountThresholdEnabled());
         expenseSettings.setBlockedAmount(blockedAmount);
         if(expenseSettings.isAmountThresholdEnabled()){
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.EXPENSE_CONTROL_AMOUNT);
+            settingsActivityService.createSettingActivity(userId, SettingActivityStatus.ENABLED, SettingType.EXPENSE_CONTROL_AMOUNT);
         }else {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.EXPENSE_CONTROL_AMOUNT);
+            settingsActivityService.createSettingActivity(userId, SettingActivityStatus.DISABLED, SettingType.EXPENSE_CONTROL_AMOUNT);
         }
     }
 
     @Transactional
-    public ControlAmountDto getExpenseAmountControl(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public ControlAmountDto getExpenseAmountControl(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         return new ControlAmountDto(expenseSettings.isAmountThresholdEnabled(), expenseSettings.getBlockedAmount());
     }
 
-    public void handleExpenseAmountControl(String email, BigDecimal newAmount) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void handleExpenseAmountControl(Long userId, BigDecimal newAmount) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         BigDecimal blockedAmount = Optional.ofNullable(expenseSettings.getBlockedAmount()).orElse(BigDecimal.ZERO);

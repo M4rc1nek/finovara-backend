@@ -16,12 +16,12 @@ public class NotifyOnAccountDeletedController {
 
     @PatchMapping
     public ResponseEntity<Void> saveNotifyAccountDeleted(@RequestBody NotificationEmailDto dto) {
-        notifyOnAccountDeletedService.saveEmailNotification(SecurityUtils.getCurrentUserEmail(), dto);
+        notifyOnAccountDeletedService.saveEmailNotification(SecurityUtils.getCurrentUserId(), dto);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping
     public ResponseEntity<NotificationEmailDto> getNotifyAccountDeleted() {
-        return ResponseEntity.ok(notifyOnAccountDeletedService.getEmailNotification(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(notifyOnAccountDeletedService.getEmailNotification(SecurityUtils.getCurrentUserId()));
     }
 }

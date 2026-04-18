@@ -47,11 +47,11 @@ class AddBalanceToPiggyBankTest {
     @Mock
     private WalletManagerService walletManagerService;
 
-    String email;
-    private final Long PIGGY_BANK_ID = 1L;
+    private final Long userId = 1L;
+    private final Long piggyBankId = 1L;
+
     @BeforeEach
     void setUp(){
-        email = "test@email.com";
     }
 
     @Test
@@ -65,11 +65,11 @@ class AddBalanceToPiggyBankTest {
         piggyBank.setAmount(new BigDecimal("200"));
         piggyBank.setGoalAmount(new BigDecimal("1000"));
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(piggyBankManagerService.getPiggyBankByUserEmail(PIGGY_BANK_ID, email)).thenReturn(piggyBank);
-        when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+        when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+        when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-        piggyBankTransactionService.addBalanceToPiggyBank(email, PIGGY_BANK_ID, new BigDecimal("100"));
+        piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"));
 
         assertEquals(new BigDecimal("400"), wallet.getBalance());
         assertEquals(new BigDecimal("300"), piggyBank.getAmount());
@@ -78,7 +78,7 @@ class AddBalanceToPiggyBankTest {
         verify(piggyBankRepository).save(piggyBank);
 
         verify(piggyBankActivityService).createPaymentPiggyBankActivity(
-                eq(email),
+                eq(userId),
                 eq(piggyBank),
                 eq(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY),
                 eq(new BigDecimal("100"))
@@ -96,15 +96,15 @@ class AddBalanceToPiggyBankTest {
         piggyBank.setAmount(new BigDecimal("900"));
         piggyBank.setGoalAmount(new BigDecimal("1000"));
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(piggyBankManagerService.getPiggyBankByUserEmail(PIGGY_BANK_ID, email)).thenReturn(piggyBank);
-        when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+        when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+        when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-        piggyBankTransactionService.addBalanceToPiggyBank(email, PIGGY_BANK_ID, new BigDecimal("100"));
+        piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"));
 
         assertEquals(new BigDecimal("1000"), piggyBank.getAmount());
 
-        verify(goalCompletionService).handleGoalCompletion(email);
+        verify(goalCompletionService).handleGoalCompletion(userId);
     }
 
     @Test
@@ -118,11 +118,11 @@ class AddBalanceToPiggyBankTest {
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("200"));
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
-        when(piggyBankManagerService.getPiggyBankByUserEmail(PIGGY_BANK_ID, email)).thenReturn(piggyBank);
-        when(walletManagerService.getWalletByUserEmailOrThrow(email)).thenReturn(wallet);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+        when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+        when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-        assertThrows(InvalidInputException.class, () -> piggyBankTransactionService.addBalanceToPiggyBank(email, PIGGY_BANK_ID, new BigDecimal("100")));
+        assertThrows(InvalidInputException.class, () -> piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100")));
 
         verify(piggyBankRepository, never()).save(any());
         verify(walletRepository, never()).save(any());
@@ -130,10 +130,10 @@ class AddBalanceToPiggyBankTest {
 
     @Test
     void shouldThrowWhenUserNotFound() {
-        when(userManagerService.getUserByEmailOrThrow(email))
+        when(userManagerService.getUserByIdOrThrow(userId))
                 .thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> piggyBankTransactionService.addBalanceToPiggyBank(email, PIGGY_BANK_ID, new BigDecimal("100")));
+        assertThrows(UserNotFoundException.class, () -> piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100")));
 
         verify(piggyBankRepository, never()).save(any());
         verify(walletRepository, never()).save(any());

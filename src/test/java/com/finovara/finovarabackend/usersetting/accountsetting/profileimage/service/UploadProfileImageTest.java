@@ -70,7 +70,7 @@ class UploadProfileImageTest {
 
         verify(userRepository).save(user);
 
-        verify(accountChangesActivityService).createAccountChangesActivity(user.getEmail(), AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
+        verify(accountChangesActivityService).createAccountChangesActivity(user.getId(), AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
     }
 
     @Test

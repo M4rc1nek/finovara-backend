@@ -38,4 +38,8 @@ public class AccountChangeArchiveService {
     public List<AccountChangeArchiveDto> getAccountChangeArchive(String email) {
         return accountChangeArchiveRepository.findAllByUserAssignedEmailOrderByIdDesc(email);
     }
+
+    public List<AccountChangeArchiveDto> getAccountChangeArchive(Long userId) {
+        return accountChangeArchiveRepository.findAllByUserAssignedIdOrderByIdDesc(userId);
+    }
 }

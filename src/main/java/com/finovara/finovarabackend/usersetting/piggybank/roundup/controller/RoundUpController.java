@@ -18,17 +18,17 @@ public class RoundUpController {
 
     @PostMapping
     public ResponseEntity<Long> addDefaultPiggyBank(@RequestBody @Valid PiggyBankDto piggyBankDto) {
-        return ResponseEntity.ok(roundUpService.addDefaultPiggyBank(piggyBankDto, SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(roundUpService.addDefaultPiggyBank(piggyBankDto, SecurityUtils.getCurrentUserId()));
     }
 
     @GetMapping("/{piggyBankId}")
     public ResponseEntity<RoundUpDto> getRoundUp(@PathVariable Long piggyBankId) {
-        return ResponseEntity.ok(roundUpService.getRoundUp(SecurityUtils.getCurrentUserEmail(), piggyBankId));
+        return ResponseEntity.ok(roundUpService.getRoundUp(SecurityUtils.getCurrentUserId(), piggyBankId));
     }
 
     @PatchMapping("/{piggyBankId}")
     public ResponseEntity<Void> saveRoundUpPiggyBank(@RequestBody @Valid RoundUpDto roundUpDto, @PathVariable Long piggyBankId) {
-        roundUpService.saveRoundUpPiggyBank(SecurityUtils.getCurrentUserEmail(), piggyBankId, roundUpDto);
+        roundUpService.saveRoundUpPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, roundUpDto);
         return ResponseEntity.noContent().build();
     }
 

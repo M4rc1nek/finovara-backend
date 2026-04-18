@@ -32,8 +32,8 @@ class SaveRoundUpTest {
     private RoundUpService roundUpService;
 
     private PiggyBank piggyBank;
-    private final String EMAIL = "test@test.com";
-    private final Long PIGGY_BANK_ID = 1L;
+    private final Long userId = 1L;
+    private final Long piggyBankId = 1L;
 
     @BeforeEach
     void setup() {
@@ -41,27 +41,27 @@ class SaveRoundUpTest {
         PiggyBankSettings settings = new PiggyBankSettings();
         piggyBank.setSettings(settings);
 
-        when(piggyBankManagerService.getPiggyBankByUserEmail(PIGGY_BANK_ID, EMAIL)).thenReturn(piggyBank);
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(null);
+        when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(null);
     }
 
     @Test
     void shouldSaveRoundUpActiveEnabled() {
         RoundUpDto dto = new RoundUpDto(true);
 
-        roundUpService.saveRoundUpPiggyBank(EMAIL, PIGGY_BANK_ID, dto);
+        roundUpService.saveRoundUpPiggyBank(userId, piggyBankId, dto);
 
         assert(piggyBank.getSettings().isRoundUpActive());
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.ENABLED, SettingType.PIGGY_BANK_ROUND_UP);
+        verify(settingsActivityService).createSettingActivity(userId, SettingActivityStatus.ENABLED, SettingType.PIGGY_BANK_ROUND_UP);
     }
 
     @Test
     void shouldSaveRoundUpActiveDisabled() {
         RoundUpDto dto = new RoundUpDto(false);
 
-        roundUpService.saveRoundUpPiggyBank(EMAIL, PIGGY_BANK_ID, dto);
+        roundUpService.saveRoundUpPiggyBank(userId, piggyBankId, dto);
 
         assert(!piggyBank.getSettings().isRoundUpActive());
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.DISABLED, SettingType.PIGGY_BANK_ROUND_UP);
+        verify(settingsActivityService).createSettingActivity(userId, SettingActivityStatus.DISABLED, SettingType.PIGGY_BANK_ROUND_UP);
     }
 }

@@ -37,7 +37,7 @@ class SaveRecurringRevenueTest {
     private RecurringRevenueService recurringRevenueService;
 
     private RevenueSettings revenueSettings;
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -45,7 +45,7 @@ class SaveRecurringRevenueTest {
         revenueSettings = new RevenueSettings();
         user.setRevenueSettings(revenueSettings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @Test
@@ -60,7 +60,7 @@ class SaveRecurringRevenueTest {
                 null
         );
 
-        recurringRevenueService.saveRecurringRevenue(EMAIL, dto);
+        recurringRevenueService.saveRecurringRevenue(USER_ID, dto);
 
         assertTrue(revenueSettings.isRecurringRevenuesEnable());
         assertEquals(BigDecimal.valueOf(500), revenueSettings.getRecurringAmount());
@@ -69,7 +69,7 @@ class SaveRecurringRevenueTest {
         assertEquals(startDate, revenueSettings.getRecurringStartDate());
         assertEquals(startDate, revenueSettings.getNextExecutionDate());
 
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.ENABLED, SettingType.REVENUE_RECURRING);
+        verify(settingsActivityService).createSettingActivity(USER_ID, SettingActivityStatus.ENABLED, SettingType.REVENUE_RECURRING);
     }
 
     @Test
@@ -84,7 +84,7 @@ class SaveRecurringRevenueTest {
                 null
         );
 
-        recurringRevenueService.saveRecurringRevenue(EMAIL, dto);
+        recurringRevenueService.saveRecurringRevenue(USER_ID, dto);
 
         assertFalse(revenueSettings.isRecurringRevenuesEnable());
         assertEquals(BigDecimal.valueOf(500), revenueSettings.getRecurringAmount());
@@ -92,6 +92,6 @@ class SaveRecurringRevenueTest {
         assertEquals(PeriodType.MONTHLY, revenueSettings.getPeriodType());
         assertNull(revenueSettings.getNextExecutionDate());
 
-        verify(settingsActivityService).createSettingActivity(EMAIL, SettingActivityStatus.DISABLED, SettingType.REVENUE_RECURRING);
+        verify(settingsActivityService).createSettingActivity(USER_ID, SettingActivityStatus.DISABLED, SettingType.REVENUE_RECURRING);
     }
 }

@@ -41,16 +41,16 @@ class HandleExpenseLimitExceededTest {
     private CountQuantityLimitService countQuantityLimitService;
 
     private ExpenseSettings expenseSettings;
-    private final String EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
         expenseSettings = new ExpenseSettings();
         user.setExpenseSettings(expenseSettings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @Test
@@ -58,7 +58,7 @@ class HandleExpenseLimitExceededTest {
         expenseSettings.setCountQuantityLimitEnabled(false);
 
         countQuantityLimitService.handleExpenseLimitExceeded(
-                EMAIL,
+                USER_ID,
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 5),
                 PeriodType.DAILY,
                 null
@@ -72,20 +72,20 @@ class HandleExpenseLimitExceededTest {
         expenseSettings.setCountQuantityLimitEnabled(true);
         expenseSettings.setQuantityLimitEmergencyModeEnabled(true);
 
-        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(1L), any(), any()))
+        when(expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(eq(USER_ID), any(), any()))
                 .thenReturn(5L);
 
         CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
         ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("password");
 
         countQuantityLimitService.handleExpenseLimitExceeded(
-                EMAIL,
+                USER_ID,
                 dto,
                 PeriodType.DAILY,
                 confirmPasswordDto
         );
 
-        verify(passwordConfirmationService).confirmPassword(EMAIL, confirmPasswordDto);
+        verify(passwordConfirmationService).confirmPassword(USER_ID, confirmPasswordDto);
         assertFalse(expenseSettings.isQuantityLimitEmergencyModeEnabled());
         assertTrue(expenseSettings.isQuantityLimitEmergencyModeUsed());
     }

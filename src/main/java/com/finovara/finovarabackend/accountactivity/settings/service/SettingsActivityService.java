@@ -36,19 +36,19 @@ public class SettingsActivityService extends AccountActivityCore<SettingsActivit
 
 
     @Transactional
-    public void createSettingActivity(String email, SettingActivityStatus status, SettingType type) {
-        SettingsActivity settingsActivity = buildActivity(email, type);
+    public void createSettingActivity(Long userId, SettingActivityStatus status, SettingType type) {
+        SettingsActivity settingsActivity = buildActivity(userId, type);
         settingsActivity.setStatus(status);
         settingsActivityRepository.save(settingsActivity);
     }
 
-    public List<SettingsActivityDto> getSettingsActivities(String email, SortType sort) {
-        return getActivities(email, sort, pageSize);
+    public List<SettingsActivityDto> getSettingsActivities(Long userId, SortType sort) {
+        return getActivities(userId, sort, pageSize);
     }
 
     @Override
-    protected List<SettingsActivity> getRepositoryFindByUserEmail(String email, Pageable pageable) {
-        return settingsActivityRepository.findByUserAssignedEmail(email, pageable);
+    protected List<SettingsActivity> getRepositoryFindByUserId(Long userId, Pageable pageable) {
+        return settingsActivityRepository.findByUserAssignedId(userId, pageable);
     }
 
     @Override
@@ -57,9 +57,9 @@ public class SettingsActivityService extends AccountActivityCore<SettingsActivit
     }
 
     @Override
-    protected SettingsActivity buildActivity(String email, SettingType type) {
+    protected SettingsActivity buildActivity(Long userId, SettingType type) {
         return SettingsActivity.builder()
-                .userAssigned(getUser(email))
+                .userAssigned(getUser(userId))
                 .settingType(type)
                 .createdAt(LocalDateTime.now())
                 .build();

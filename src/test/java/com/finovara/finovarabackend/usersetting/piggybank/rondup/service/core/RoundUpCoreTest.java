@@ -29,7 +29,7 @@ class RoundUpCoreTest {
     @InjectMocks
     private RoundUpCore roundUpCore;
 
-    private final String EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
 
     @Test
     void shouldApplyRoundUpSuccessfully() {
@@ -41,12 +41,12 @@ class RoundUpCoreTest {
 
         BigDecimal roundUp = new BigDecimal("5.00");
 
-        roundUpCore.process(EMAIL, piggyBank, wallet, roundUp, PiggyBankAutomationMode.APPLY);
+        roundUpCore.process(USER_ID, piggyBank, wallet, roundUp, PiggyBankAutomationMode.APPLY);
 
         assertEquals(new BigDecimal("15.00"), piggyBank.getAmount());
         assertEquals(new BigDecimal("45.00"), wallet.getBalance());
 
-        verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(EMAIL), eq(piggyBank), eq(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING), eq(roundUp));
+        verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(USER_ID), eq(piggyBank), eq(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING), eq(roundUp));
     }
 
     @Test
@@ -59,12 +59,12 @@ class RoundUpCoreTest {
 
         BigDecimal roundUp = new BigDecimal("5.00");
 
-        roundUpCore.process(EMAIL, piggyBank, wallet, roundUp, PiggyBankAutomationMode.ROLLBACK);
+        roundUpCore.process(USER_ID, piggyBank, wallet, roundUp, PiggyBankAutomationMode.ROLLBACK);
 
         assertEquals(new BigDecimal("15.00"), piggyBank.getAmount());
         assertEquals(new BigDecimal("15.00"), wallet.getBalance());
 
-        verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(EMAIL), eq(piggyBank), eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING), eq(roundUp));
+        verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(USER_ID), eq(piggyBank), eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING), eq(roundUp));
     }
 
     @Test
@@ -77,12 +77,12 @@ class RoundUpCoreTest {
 
         BigDecimal roundUp = new BigDecimal("5.00");
 
-        roundUpCore.process(EMAIL, piggyBank, wallet, roundUp, PiggyBankAutomationMode.ROLLBACK);
+        roundUpCore.process(USER_ID, piggyBank, wallet, roundUp, PiggyBankAutomationMode.ROLLBACK);
 
         assertThat(piggyBank.getAmount()).isEqualByComparingTo(BigDecimal.ZERO);
         assertThat(wallet.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(13));
 
-        verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(EMAIL), eq(piggyBank), eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING), eq(new BigDecimal("3.00")));
+        verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(USER_ID), eq(piggyBank), eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING), eq(new BigDecimal("3.00")));
     }
 
     @Test
@@ -93,7 +93,7 @@ class RoundUpCoreTest {
         Wallet wallet = new Wallet();
         wallet.setBalance(new BigDecimal("50.00"));
 
-        roundUpCore.process(EMAIL, piggyBank, wallet, BigDecimal.ZERO, PiggyBankAutomationMode.APPLY);
+        roundUpCore.process(USER_ID, piggyBank, wallet, BigDecimal.ZERO, PiggyBankAutomationMode.APPLY);
 
         assertEquals(new BigDecimal("10.00"), piggyBank.getAmount());
         assertEquals(new BigDecimal("50.00"), wallet.getBalance());
@@ -109,7 +109,7 @@ class RoundUpCoreTest {
         Wallet wallet = new Wallet();
         wallet.setBalance(new BigDecimal("10.00"));
 
-        roundUpCore.process(EMAIL, piggyBank, wallet, new BigDecimal("5.00"), PiggyBankAutomationMode.ROLLBACK);
+        roundUpCore.process(USER_ID, piggyBank, wallet, new BigDecimal("5.00"), PiggyBankAutomationMode.ROLLBACK);
 
         assertEquals(BigDecimal.ZERO, piggyBank.getAmount());
         assertEquals(new BigDecimal("10.00"), wallet.getBalance());
@@ -127,7 +127,7 @@ class RoundUpCoreTest {
 
         BigDecimal roundUp = new BigDecimal("5.00");
 
-        assertThrows(InvalidInputException.class, () -> roundUpCore.process(EMAIL, piggyBank, wallet, roundUp, PiggyBankAutomationMode.APPLY));
+        assertThrows(InvalidInputException.class, () -> roundUpCore.process(USER_ID, piggyBank, wallet, roundUp, PiggyBankAutomationMode.APPLY));
 
         verifyNoInteractions(piggyBankActivityService);
     }

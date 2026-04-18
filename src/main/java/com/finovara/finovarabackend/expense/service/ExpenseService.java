@@ -51,12 +51,12 @@ public class ExpenseService {
     private final FinancialPeriodService financialPeriodService;
 
     @Transactional
-    public Long addExpense(ExpenseRequestDto expenseRequestDto, String email, PeriodType periodType) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public Long addExpense(ExpenseRequestDto expenseRequestDto, Long userId, PeriodType periodType) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         validateLimitOrThrow(user.getId(), periodType, BigDecimal.ZERO, expenseRequestDto.expenseDto().amount());
 
-        countQuantityLimitService.handleExpenseLimitExceeded(email, expenseRequestDto.countQuantityLimitDto(),
+        countQuantityLimitService.handleExpenseLimitExceeded(userId, expenseRequestDto.countQuantityLimitDto(),
                 expenseRequestDto.countQuantityLimitDto().periodType(), expenseRequestDto.confirmPasswordDto());
 
         Expense expense = Expense.builder()
@@ -70,24 +70,24 @@ public class ExpenseService {
         if (expenseRequestDto.expenseDto().amount().compareTo(BigDecimal.ONE) < 0) {
             throw new InvalidInputException("Expense amount must be positive");
         }
-        expenseActivityService.createExpenseActivity(email, ExpenseActivityType.ADDED_EXPENSE, expense);
+        expenseActivityService.createExpenseActivity(userId, ExpenseActivityType.ADDED_EXPENSE, expense);
 
-        smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.ADD);
+        smartScanService.handleSmartScan(userId, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.ADD);
 
-        walletService.removeBalanceFromWallet(email, expense.getAmount());
+        walletService.removeBalanceFromWallet(userId, expense.getAmount());
         expenseRepository.save(expense);
 
-        roundUpService.handleExpenseForRoundUp(email, expense.getId(), PiggyBankAutomationMode.APPLY);
+        roundUpService.handleExpenseForRoundUp(userId, expense.getId(), PiggyBankAutomationMode.APPLY);
 
-        controlAmountService.handleExpenseAmountControl(email, expense.getAmount());
+        controlAmountService.handleExpenseAmountControl(userId, expense.getAmount());
 
         return expense.getId();
     }
 
     @Transactional
-    public Long editExpense(ExpenseRequestDto expenseRequestDto, String email, Long expenseId, PeriodType periodType) {
+    public Long editExpense(ExpenseRequestDto expenseRequestDto, Long userId, Long expenseId, PeriodType periodType) {
         Expense existingExpense = expenseManagerService.getExpenseByIdOrThrow(expenseId);
-        User user = userManagerService.getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         if (!existingExpense.getUserAssigned().getId().equals(user.getId())) {
             throw new ExpenseNotFoundException("Expense not found for this user");
@@ -95,9 +95,9 @@ public class ExpenseService {
 
         validateLimitOrThrow(user.getId(), periodType, existingExpense.getAmount(), expenseRequestDto.expenseDto().amount());
 
-        walletService.addBalanceToWallet(email, existingExpense.getAmount());
-        walletService.removeBalanceFromWallet(email, expenseRequestDto.expenseDto().amount());
-        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.ROLLBACK);
+        walletService.addBalanceToWallet(userId, existingExpense.getAmount());
+        walletService.removeBalanceFromWallet(userId, expenseRequestDto.expenseDto().amount());
+        roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
 
         BigDecimal oldAmount = existingExpense.getAmount();
         ExpenseCategory oldCategory = existingExpense.getCategory();
@@ -106,22 +106,22 @@ public class ExpenseService {
         existingExpense.setCategory(expenseRequestDto.expenseDto().category());
         existingExpense.setDescription(expenseRequestDto.expenseDto().description());
 
-        expenseActivityService.updateExpenseActivity(email, ExpenseActivityType.EDITED_EXPENSE, existingExpense, oldAmount, oldCategory);
+        expenseActivityService.updateExpenseActivity(userId, ExpenseActivityType.EDITED_EXPENSE, existingExpense, oldAmount, oldCategory);
 
-        smartScanService.handleSmartScan(email, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.EDIT);
+        smartScanService.handleSmartScan(userId, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.EDIT);
 
         expenseRepository.save(existingExpense);
 
-        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.APPLY);
+        roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.APPLY);
 
-        controlAmountService.handleExpenseAmountControl(email, expenseRequestDto.expenseDto().amount());
+        controlAmountService.handleExpenseAmountControl(userId, expenseRequestDto.expenseDto().amount());
 
         return expenseId;
 
     }
 
-    public List<ExpenseDto> getExpense(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public List<ExpenseDto> getExpense(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         List<Expense> expenses = expenseRepository.findAllByUserAssignedId(user.getId());
 
         return expenses.stream()
@@ -130,13 +130,13 @@ public class ExpenseService {
     }
 
     @Transactional
-    public void deleteExpense(Long expenseId, String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void deleteExpense(Long expenseId, Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         Expense expense = expenseRepository.findByIdAndUserAssignedId(expenseId, user.getId())
                 .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
-        roundUpService.handleExpenseForRoundUp(email, expenseId, PiggyBankAutomationMode.ROLLBACK);
-        walletService.addBalanceToWallet(email, expense.getAmount());
-        expenseActivityService.createExpenseActivity(email, ExpenseActivityType.DELETED_EXPENSE, expense);
+        roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
+        walletService.addBalanceToWallet(userId, expense.getAmount());
+        expenseActivityService.createExpenseActivity(userId, ExpenseActivityType.DELETED_EXPENSE, expense);
         expenseRepository.delete(expense);
 
     }

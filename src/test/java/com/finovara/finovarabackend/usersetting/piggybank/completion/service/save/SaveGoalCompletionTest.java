@@ -31,7 +31,7 @@ class SaveGoalCompletionTest {
     @InjectMocks
     private GoalCompletionService goalCompletionService;
 
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
     private PiggyBank piggyBank;
 
     @Test
@@ -45,12 +45,12 @@ class SaveGoalCompletionTest {
         GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_DELETE);
 
         User user = new User();
-        user.setEmail(EMAIL);
+        user.setId(USER_ID);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBank.getId(), EMAIL)).thenReturn(piggyBank);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        when(piggyBankManagerService.getPiggyBankByUserId(piggyBank.getId(), USER_ID)).thenReturn(piggyBank);
 
-        goalCompletionService.saveGoalCompletion(EMAIL, 1L, dto);
+        goalCompletionService.saveGoalCompletion(USER_ID, 1L, dto);
 
         assertEquals(GoalCompletionStrategy.WITHDRAW_AND_DELETE, piggyBank.getSettings().getGoalCompletionStrategy());
     }
@@ -59,8 +59,8 @@ class SaveGoalCompletionTest {
     void shouldThrowExceptionWhenUserDoesNotExist() {
         GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_DELETE);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> goalCompletionService.saveGoalCompletion(EMAIL, 1L, dto));
+        assertThrows(UserNotFoundException.class, () -> goalCompletionService.saveGoalCompletion(USER_ID, 1L, dto));
     }
 }

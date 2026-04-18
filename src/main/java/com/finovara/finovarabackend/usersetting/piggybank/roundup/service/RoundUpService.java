@@ -44,43 +44,43 @@ public class RoundUpService {
     private final RoundUpCore roundUpCore;
 
     @Transactional
-    public RoundUpDto getRoundUp(String email, Long piggyBankId) {
-        userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+    public RoundUpDto getRoundUp(Long userId, Long piggyBankId) {
+        userManagerService.getUserByIdOrThrow(userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         return new RoundUpDto(piggyBankSettings.isRoundUpActive());
     }
 
     @Transactional
-    public Long addDefaultPiggyBank(PiggyBankDto piggyBankDto, String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
-        return piggyBankManagementService.addPiggyBank(piggyBankDto, user.getEmail());
+    public Long addDefaultPiggyBank(PiggyBankDto piggyBankDto, Long userId) {
+        userManagerService.getUserByIdOrThrow(userId);
+        return piggyBankManagementService.addPiggyBank(piggyBankDto, userId);
     }
 
     @Transactional
-    public void saveRoundUpPiggyBank(String email, Long piggyBankId, RoundUpDto dto) {
-        userManagerService.getUserByEmailOrThrow(email);
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email);
+    public void saveRoundUpPiggyBank(Long userId, Long piggyBankId, RoundUpDto dto) {
+        userManagerService.getUserByIdOrThrow(userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         PiggyBankSettings settings = piggyBank.getSettings();
         settings.setRoundUpActive(dto.roundUpActive());
         if (settings.isRoundUpActive()) {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.ENABLED, SettingType.PIGGY_BANK_ROUND_UP);
+            settingsActivityService.createSettingActivity(userId, SettingActivityStatus.ENABLED, SettingType.PIGGY_BANK_ROUND_UP);
         } else {
-            settingsActivityService.createSettingActivity(email, SettingActivityStatus.DISABLED, SettingType.PIGGY_BANK_ROUND_UP);
+            settingsActivityService.createSettingActivity(userId, SettingActivityStatus.DISABLED, SettingType.PIGGY_BANK_ROUND_UP);
         }
     }
 
     @Transactional
-    public void handleExpenseForRoundUp(String email, Long expenseId, PiggyBankAutomationMode mode) {
+    public void handleExpenseForRoundUp(Long userId, Long expenseId, PiggyBankAutomationMode mode) {
 
-        User user = userManagerService.getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByIdOrThrow(userId);
         Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, user.getId());
 
-        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedEmail(email);
+        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedId(userId);
 
-        Wallet wallet = walletRepository.findByUserAssignedEmail(email)
+        Wallet wallet = walletRepository.findByUserAssignedId(userId)
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
 
         if (piggyBanks == null || piggyBanks.isEmpty()) return;
@@ -94,10 +94,10 @@ public class RoundUpService {
 
             if (!settings.isRoundUpActive()) continue;
 
-            roundUpCore.process(email, piggyBank, wallet, roundUpAmount, mode);
+            roundUpCore.process(userId, piggyBank, wallet, roundUpAmount, mode);
         }
 
-        goalCompletionService.handleGoalCompletion(email);
+        goalCompletionService.handleGoalCompletion(userId);
     }
 
     private BigDecimal calculateRoundUp(BigDecimal amount) {

@@ -12,6 +12,9 @@ import java.util.List;
 @Repository
 public interface SettingsActivityRepository extends JpaRepository<SettingsActivity, Long> {
 
+    @Query("SELECT s FROM SettingsActivity s WHERE s.userAssigned.id = :userId")
+    List<SettingsActivity> findByUserAssignedId(@Param("userId") Long userId, Pageable pageable);
+
     @Query("SELECT s FROM SettingsActivity s WHERE s.userAssigned.email = :email")
     List<SettingsActivity> findByUserAssignedEmail(@Param("email") String email, Pageable pageable);
 

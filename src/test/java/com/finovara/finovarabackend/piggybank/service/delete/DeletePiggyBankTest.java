@@ -33,46 +33,46 @@ class DeletePiggyBankTest {
 
     @Test
     void shouldDeletePiggyBankWhenBalanceIsZero() {
-        String email = "test@email.com";
+        Long userId = 1L;
         Long piggyBankId = 1L;
 
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(BigDecimal.ZERO);
 
-        when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(piggyBank);
+        when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-        piggyBankManagementService.deletePiggyBank(email, piggyBankId);
+        piggyBankManagementService.deletePiggyBank(userId, piggyBankId);
 
-        verify(piggyBankActivityService).createSimplePiggyBankActivity(email, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
+        verify(piggyBankActivityService).createSimplePiggyBankActivity(userId, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
         verify(piggyBankRepository).delete(piggyBank);
     }
 
     @Test
     void shouldThrowExceptionWhenPiggyBankIsNull() {
-        String email = "test@email.com";
+        Long userId = 1L;
         Long piggyBankId = 1L;
 
-        when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(null);
+        when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(null);
 
-        assertThrows(InvalidInputException.class, () -> piggyBankManagementService.deletePiggyBank(email, piggyBankId));
+        assertThrows(InvalidInputException.class, () -> piggyBankManagementService.deletePiggyBank(userId, piggyBankId));
 
-        verify(piggyBankActivityService, never()).createSimplePiggyBankActivity(anyString(), any(), any());
+        verify(piggyBankActivityService, never()).createSimplePiggyBankActivity(anyLong(), any(), any());
         verify(piggyBankRepository, never()).delete(any());
     }
 
     @Test
     void shouldThrowExceptionWhenBalanceIsGreaterThanZero() {
-        String email = "test@email.com";
+        Long userId = 1L;
         Long piggyBankId = 1L;
 
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("100"));
 
-        when(piggyBankManagerService.getPiggyBankByUserEmail(piggyBankId, email)).thenReturn(piggyBank);
+        when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-        assertThrows(InvalidInputException.class, () -> piggyBankManagementService.deletePiggyBank(email, piggyBankId));
+        assertThrows(InvalidInputException.class, () -> piggyBankManagementService.deletePiggyBank(userId, piggyBankId));
 
-        verify(piggyBankActivityService, never()).createSimplePiggyBankActivity(anyString(), any(), any());
+        verify(piggyBankActivityService, never()).createSimplePiggyBankActivity(anyLong(), any(), any());
         verify(piggyBankRepository, never()).delete(any());
     }
 }

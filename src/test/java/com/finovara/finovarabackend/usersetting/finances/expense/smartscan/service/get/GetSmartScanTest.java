@@ -26,7 +26,7 @@ class GetSmartScanTest {
     private SmartScanService smartScanService;
 
     private ExpenseSettings expenseSettings;
-    private final String EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -34,14 +34,14 @@ class GetSmartScanTest {
         expenseSettings = new ExpenseSettings();
         user.setExpenseSettings(expenseSettings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @Test
     void shouldReturnEnabledTrue() {
         expenseSettings.setSmartScanEnabled(true);
 
-        SmartScanDto result = smartScanService.getSmartScan(EMAIL);
+        SmartScanDto result = smartScanService.getSmartScan(USER_ID);
 
         assertTrue(result.smartScanEnabled());
     }
@@ -50,7 +50,7 @@ class GetSmartScanTest {
     void shouldReturnEnabledFalse() {
         expenseSettings.setSmartScanEnabled(false);
 
-        SmartScanDto result = smartScanService.getSmartScan(EMAIL);
+        SmartScanDto result = smartScanService.getSmartScan(USER_ID);
 
         assertFalse(result.smartScanEnabled());
     }

@@ -33,7 +33,7 @@ class SaveNotifyPasswordChangeTest {
     private NotifyPasswordChangeService notifyPasswordChangeService;
 
     private NotificationEmailSettings notificationEmailSettings;
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -41,7 +41,7 @@ class SaveNotifyPasswordChangeTest {
         notificationEmailSettings = new NotificationEmailSettings();
         user.setNotificationEmailSettings(notificationEmailSettings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @ParameterizedTest
@@ -53,11 +53,11 @@ class SaveNotifyPasswordChangeTest {
         notificationEmailSettings.setNotifyOnPasswordChange(enabled);
         NotificationEmailDto dto = new NotificationEmailDto(enabled);
 
-        notifyPasswordChangeService.saveEmailNotification(EMAIL, dto);
+        notifyPasswordChangeService.saveEmailNotification(USER_ID, dto);
         assertEquals(enabled, notificationEmailSettings.isNotifyOnPasswordChange());
 
         verify(settingsActivityService).createSettingActivity(
-                EMAIL,
+                USER_ID,
                 expectedStatus,
                 NOTIFICATION_PASSWORD_CHANGED
         );

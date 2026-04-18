@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUserEmail;
+import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUserId;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,23 +21,23 @@ public class ExpenseController {
 
     @PostMapping("/addExpense")
     public ResponseEntity<Long> addExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto, @RequestParam(required = false) PeriodType periodType) {
-        return ResponseEntity.ok(expenseService.addExpense(expenseRequestDto, getCurrentUserEmail(), periodType));
+        return ResponseEntity.ok(expenseService.addExpense(expenseRequestDto, getCurrentUserId(), periodType));
     }
 
     @PutMapping("/editExpense/{expenseId}")
     public ResponseEntity<Long> editExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto, @PathVariable Long expenseId, @RequestParam(required = false) PeriodType periodType) {
-        return ResponseEntity.ok(expenseService.editExpense(expenseRequestDto, getCurrentUserEmail(), expenseId, periodType));
+        return ResponseEntity.ok(expenseService.editExpense(expenseRequestDto, getCurrentUserId(), expenseId, periodType));
     }
 
     @DeleteMapping("/deleteExpense/{expenseId}")
     public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId) {
-        expenseService.deleteExpense(expenseId, getCurrentUserEmail());
+        expenseService.deleteExpense(expenseId, getCurrentUserId());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/getExpense")
     public ResponseEntity<List<ExpenseDto>> getExpense() {
-        return ResponseEntity.ok(expenseService.getExpense(getCurrentUserEmail()));
+        return ResponseEntity.ok(expenseService.getExpense(getCurrentUserId()));
     }
 
 }

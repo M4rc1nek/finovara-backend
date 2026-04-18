@@ -39,8 +39,8 @@ public class RevenueService {
     private final RevenueActivityService revenueActivityService;
 
     @Transactional
-    public Long addRevenue(RevenueDto revenueDto, String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public Long addRevenue(RevenueDto revenueDto, Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         Revenue revenue = Revenue.builder()
                 .amount(revenueDto.amount())
@@ -49,32 +49,32 @@ public class RevenueService {
                 .description(revenueDto.description())
                 .userAssigned(user)
                 .build();
-        walletService.addBalanceToWallet(email, revenue.getAmount());
-        revenueActivityService.createRevenueActivity(email, RevenueActivityType.ADDED_REVENUE, revenue);
+        walletService.addBalanceToWallet(userId, revenue.getAmount());
+        revenueActivityService.createRevenueActivity(userId, RevenueActivityType.ADDED_REVENUE, revenue);
         //wallet jest zapisywany w repo klasie WalletService
         revenueRepository.save(revenue);
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, revenue.getAmount(), PiggyBankAutomationMode.APPLY);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.APPLY);
 
         return revenue.getId();
     }
 
     @Transactional
-    public Long editRevenue(RevenueDto revenueDto, Long revenueId, String email) {
+    public Long editRevenue(RevenueDto revenueDto, Long revenueId, Long userId) {
         Revenue existingRevenue = revenueManagerService.getRevenueOrThrow(revenueId);
-        User user = userManagerService.getUserByEmailOrThrow(email);
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         if (!existingRevenue.getUserAssigned().getId().equals(user.getId())) {
             throw new RevenueNotFoundException("Revenue not found for this user");
         }
 
-        Wallet wallet = walletRepository.findByUserAssignedEmail(email)
+        Wallet wallet = walletRepository.findByUserAssignedId(userId)
                 .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
 
         BigDecimal oldAmount = existingRevenue.getAmount();
         BigDecimal newAmount = revenueDto.amount();
         RevenueCategory oldCategory = existingRevenue.getCategory();
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, oldAmount, PiggyBankAutomationMode.ROLLBACK);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, oldAmount, PiggyBankAutomationMode.ROLLBACK);
 
         wallet.setBalance(wallet.getBalance().subtract(oldAmount));
         wallet.setBalance(wallet.getBalance().add(newAmount));
@@ -83,8 +83,8 @@ public class RevenueService {
         existingRevenue.setCategory(revenueDto.category());
         existingRevenue.setDescription(revenueDto.description());
 
-        revenueActivityService.updateRevenueActivity(email, RevenueActivityType.EDITED_REVENUE, existingRevenue, oldAmount, oldCategory);
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, newAmount, PiggyBankAutomationMode.APPLY);
+        revenueActivityService.updateRevenueActivity(userId, RevenueActivityType.EDITED_REVENUE, existingRevenue, oldAmount, oldCategory);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, newAmount, PiggyBankAutomationMode.APPLY);
 
         walletRepository.save(wallet);
         revenueRepository.save(existingRevenue);
@@ -92,8 +92,8 @@ public class RevenueService {
         return revenueId;
     }
 
-    public List<RevenueDto> getRevenue(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public List<RevenueDto> getRevenue(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         List<Revenue> revenue = revenueRepository.findAllByUserAssignedId(user.getId());
 
         return revenue.stream()
@@ -102,16 +102,13 @@ public class RevenueService {
     }
 
     @Transactional
-    public void deleteRevenue(Long revenueId, String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void deleteRevenue(Long revenueId, Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         Revenue revenue = revenueRepository.findByIdAndUserAssignedId(revenueId, user.getId())
                 .orElseThrow(() -> new RevenueNotFoundException("Revenue not found"));
-        autoPaymentsService.handleRevenuePiggyBankAutomation(email, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
-        walletService.removeBalanceFromWallet(email, revenue.getAmount());
-        revenueActivityService.createRevenueActivity(email, RevenueActivityType.DELETED_REVENUE, revenue);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
+        walletService.removeBalanceFromWallet(userId, revenue.getAmount());
+        revenueActivityService.createRevenueActivity(userId, RevenueActivityType.DELETED_REVENUE, revenue);
         revenueRepository.delete(revenue);
     }
 }
-
-
-

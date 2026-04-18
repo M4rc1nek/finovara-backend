@@ -22,7 +22,7 @@ public class LimitActivityController {
 
     @GetMapping
     public ResponseEntity<List<LimitActivityDto>> getLimitActivity(@RequestParam(defaultValue = "NEWEST") SortType sort) {
-        return ResponseEntity.ok(limitActivityService.getLimitActivity(SecurityUtils.getCurrentUserEmail(), sort));
+        return ResponseEntity.ok(limitActivityService.getLimitActivity(SecurityUtils.getCurrentUserId(), sort));
     }
 
 }

@@ -2,11 +2,11 @@ package com.finovara.finovarabackend.usersetting.accountsetting.passwordpolicy.f
 
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.ForgotPasswordDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.ForgotPasswordService;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,7 +29,7 @@ class ForgotPasswordEmailSendTest {
     @Mock
     private JavaMailSender javaMailSender;
     @Mock
-    private UserManagerService userManagerService;
+    private UserRepository userRepository;
     @Mock
     private AccountRepository accountRepository;
     @InjectMocks
@@ -54,7 +56,7 @@ class ForgotPasswordEmailSendTest {
         ForgotPasswordDto dto = new ForgotPasswordDto(EMAIL, null);
 
         when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
         forgotPasswordService.emailSend(EMAIL, dto);
 
         verify(javaMailSender).send(any(MimeMessage.class));
@@ -67,7 +69,7 @@ class ForgotPasswordEmailSendTest {
         ForgotPasswordDto dto = new ForgotPasswordDto(EMAIL, null);
 
         when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
         forgotPasswordService.emailSend(EMAIL, dto);
 
         assertNotNull(accountSettings.getForgotPasswordCode());

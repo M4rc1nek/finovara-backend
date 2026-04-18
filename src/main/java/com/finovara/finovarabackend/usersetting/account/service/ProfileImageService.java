@@ -49,7 +49,7 @@ public class ProfileImageService {
 
             user.setProfileImagePath(filePath.toString());
             userRepository.save(user);
-            accountChangesActivityService.createAccountChangesActivity(user.getEmail(), AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
+            accountChangesActivityService.createAccountChangesActivity(user.getId(), AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
 
 
             if (oldFilePath != null) {
@@ -84,10 +84,11 @@ public class ProfileImageService {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("File is empty");
         }
-        if (!file.getContentType().startsWith("image/")) {
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("File is not an image");
         }
-        // Dodaję limit rozmiaru (opcjonalne, ale dobre)
+        // Dodaje limit rozmiaru (opcjonalne, ale dobre)
         if (file.getSize() > 5 * 1024 * 1024) { // 5MB
             throw new IllegalArgumentException("File is too large (max 5MB)");
         }

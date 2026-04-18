@@ -13,21 +13,21 @@ public abstract class AccountActivityCore<T, D, S> {
 
 	protected final UserManagerService userManagerService;
 
-	public List<D> getActivities(String email, SortType sort, int pageSize) {
+	public List<D> getActivities(Long userId, SortType sort, int pageSize) {
 		Pageable pageable = sort.getPageable(pageSize);
-		return getRepositoryFindByUserEmail(email, pageable)
+		return getRepositoryFindByUserId(userId, pageable)
 				.stream()
 				.map(this::mapToDto)
 				.toList();
 	}
 
-	protected abstract List<T> getRepositoryFindByUserEmail(String email, Pageable pageable);
+	protected abstract List<T> getRepositoryFindByUserId(Long userId, Pageable pageable);
 
 	protected abstract D mapToDto(T entity);
 
-	protected abstract T buildActivity(String email, S source);
+	protected abstract T buildActivity(Long userId, S source);
 
-	protected User getUser(String email) {
-		return userManagerService.getUserByEmailOrThrow(email);
+	protected User getUser(Long userId) {
+		return userManagerService.getUserByIdOrThrow(userId);
 	}
 }

@@ -31,7 +31,7 @@ class ChangePasswordTest {
     @InjectMocks
     private ChangePasswordService changePasswordService;
 
-    private final String USER_EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
 
     @Test
     void shouldChangePasswordSuccessfully() {
@@ -41,11 +41,11 @@ class ChangePasswordTest {
                 new PasswordRequestDto(confirmPasswordDto, changePasswordDto, null);
 
         User user = new User();
-        user.setEmail(USER_EMAIL);
+        user.setId(USER_ID);
 
-        when(userManagerService.getUserByEmailOrThrow(USER_EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
-        changePasswordService.changePassword(USER_EMAIL, passwordRequestDto, request);
+        changePasswordService.changePassword(USER_ID, passwordRequestDto, request);
 
         verify(passwordManagementService).updatePassword(user, "newPass", request);
     }
@@ -58,11 +58,11 @@ class ChangePasswordTest {
                 new PasswordRequestDto(confirmPasswordDto, changePasswordDto, null);
 
         User user = new User();
-        user.setEmail(USER_EMAIL);
+        user.setId(USER_ID);
 
-        when(userManagerService.getUserByEmailOrThrow(USER_EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
-        assertThrows(MissingRequirementException.class, () -> changePasswordService.changePassword(USER_EMAIL, passwordRequestDto, request));
+        assertThrows(MissingRequirementException.class, () -> changePasswordService.changePassword(USER_ID, passwordRequestDto, request));
 
         verify(passwordManagementService, never()).updatePassword(any(), any(), any());
     }
@@ -75,11 +75,11 @@ class ChangePasswordTest {
                 new PasswordRequestDto(confirmPasswordDto, changePasswordDto, null);
 
         User user = new User();
-        user.setEmail(USER_EMAIL);
+        user.setId(USER_ID);
 
-        when(userManagerService.getUserByEmailOrThrow(USER_EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
-        assertThrows(MissingRequirementException.class, () -> changePasswordService.changePassword(USER_EMAIL, passwordRequestDto, request));
+        assertThrows(MissingRequirementException.class, () -> changePasswordService.changePassword(USER_ID, passwordRequestDto, request));
 
         verify(passwordManagementService, never()).updatePassword(any(), any(), any());
     }

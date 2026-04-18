@@ -23,6 +23,6 @@ public class RevenueHistoryController {
 
     @GetMapping
     public ResponseEntity<List<RevenueDto>> getRevenueHistory(@RequestParam PeriodType periodType, @RequestParam RevenueCategory category) {
-        return ResponseEntity.ok(revenueHistoryService.getRevenueByCategory(SecurityUtils.getCurrentUserEmail(), periodType, category));
+        return ResponseEntity.ok(revenueHistoryService.getRevenueByCategory(SecurityUtils.getCurrentUserId(), periodType, category));
     }
 }

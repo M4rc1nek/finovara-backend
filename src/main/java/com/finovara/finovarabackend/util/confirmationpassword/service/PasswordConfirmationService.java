@@ -15,8 +15,8 @@ public class PasswordConfirmationService {
     private final UserManagerService userManagerService;
     private final PasswordEncoder passwordEncoder;
 
-    public void confirmPassword(String email, ConfirmPasswordDto confirmPasswordDto) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void confirmPassword(Long userId, ConfirmPasswordDto confirmPasswordDto) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
 
         if (!passwordEncoder.matches(confirmPasswordDto.password(), user.getPassword())) {
             throw new WrongPasswordException("Incorrect password");

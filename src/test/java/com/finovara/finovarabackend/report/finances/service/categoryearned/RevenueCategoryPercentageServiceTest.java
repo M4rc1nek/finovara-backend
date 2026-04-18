@@ -37,11 +37,11 @@ class RevenueCategoryPercentageServiceTest {
     @InjectMocks
     private RevenueCategoryPercentageService revenueCategoryPercentageService;
 
-    private String email;
+    private Long userId;
 
     @BeforeEach
     void setUp() {
-        email = "test@email.com";
+        userId = 1L;
     }
 
     @ParameterizedTest
@@ -60,12 +60,12 @@ class RevenueCategoryPercentageServiceTest {
 
         List<Revenue> revenueCategory = List.of(revenue1, revenue2);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(financialPeriodService.getRevenueSum(user.getId(), periodType)).thenReturn(summedRevenue);
         when(financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, RevenueCategory.SALARY))
                 .thenReturn(revenueCategory);
 
-        RevenueCategoryPercentageDto result = revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(email, RevenueCategory.SALARY, periodType);
+        RevenueCategoryPercentageDto result = revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(userId, RevenueCategory.SALARY, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.valueOf(50));
         assertThat(result.category()).isEqualTo(RevenueCategory.SALARY);
@@ -77,13 +77,13 @@ class RevenueCategoryPercentageServiceTest {
         User user = new User();
         user.setId(1L);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(financialPeriodService.getRevenueSum(user.getId(), periodType)).thenReturn(BigDecimal.ZERO);
 
         when(financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, RevenueCategory.SALARY))
                 .thenReturn(List.of());
 
-        RevenueCategoryPercentageDto result = revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(email, RevenueCategory.SALARY, periodType);
+        RevenueCategoryPercentageDto result = revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(userId, RevenueCategory.SALARY, periodType);
 
         assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -91,9 +91,9 @@ class RevenueCategoryPercentageServiceTest {
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
-                revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(email, RevenueCategory.BONUS, PeriodType.WEEKLY));
+                revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(userId, RevenueCategory.BONUS, PeriodType.WEEKLY));
     }
 }

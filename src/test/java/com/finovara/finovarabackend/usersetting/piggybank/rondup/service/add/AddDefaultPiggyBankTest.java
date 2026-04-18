@@ -32,25 +32,25 @@ class AddDefaultPiggyBankTest {
     @InjectMocks
     private RoundUpService roundUpService;
 
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
 
     @Test
     void shouldAddDefaultPiggyBank() {
         User user = new User();
-        user.setEmail(EMAIL);
+        user.setId(USER_ID);
 
         PiggyBankDto dto = new PiggyBankDto(123L, 1L, "My piggy bank", new BigDecimal("100"),
                 null, PiggyBankGoalType.GIFTS, new BigDecimal("250"), null, false);
 
         Long expectedId = 123L;
 
-        when(piggyBankManagementService.addPiggyBank(dto, EMAIL)).thenReturn(expectedId);
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(piggyBankManagementService.addPiggyBank(dto, USER_ID)).thenReturn(expectedId);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
-        Long result = roundUpService.addDefaultPiggyBank(dto, EMAIL);
+        Long result = roundUpService.addDefaultPiggyBank(dto, USER_ID);
 
         assertEquals(expectedId, result);
-        verify(piggyBankManagementService).addPiggyBank(dto, EMAIL);
+        verify(piggyBankManagementService).addPiggyBank(dto, USER_ID);
     }
 
     @Test
@@ -58,8 +58,8 @@ class AddDefaultPiggyBankTest {
         PiggyBankDto dto = new PiggyBankDto(12L, null, "My piggy bank", new BigDecimal("50"),
                 null, PiggyBankGoalType.GIFTS, new BigDecimal("100"), null, false);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> roundUpService.addDefaultPiggyBank(dto, EMAIL));
+        assertThrows(UserNotFoundException.class, () -> roundUpService.addDefaultPiggyBank(dto, USER_ID));
     }
 }

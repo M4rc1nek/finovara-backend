@@ -26,7 +26,7 @@ class GetNotifyUsernameChangeTest {
     private NotifyUsernameChangeService notifyUsernameChangeService;
 
     private NotificationEmailSettings notificationEmailSettings;
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -34,7 +34,7 @@ class GetNotifyUsernameChangeTest {
         notificationEmailSettings = new NotificationEmailSettings();
         user.setNotificationEmailSettings(notificationEmailSettings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @ParameterizedTest
@@ -44,7 +44,7 @@ class GetNotifyUsernameChangeTest {
     void shouldReturnNotificationFlagBasedOnSettings(boolean enabled) {
         notificationEmailSettings.setNotifyOnUsernameChange(enabled);
 
-        NotificationEmailDto dto = notifyUsernameChangeService.getEmailNotification(EMAIL);
+        NotificationEmailDto dto = notifyUsernameChangeService.getEmailNotification(USER_ID);
 
         assertEquals(dto.enabled(), enabled);
     }

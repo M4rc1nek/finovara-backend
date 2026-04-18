@@ -32,7 +32,7 @@ class SaveNotifyUsernameChangeTest {
     private NotifyUsernameChangeService notifyUsernameChangeService;
 
     private NotificationEmailSettings notificationEmailSettings;
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -40,7 +40,7 @@ class SaveNotifyUsernameChangeTest {
         notificationEmailSettings = new NotificationEmailSettings();
         user.setNotificationEmailSettings(notificationEmailSettings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @ParameterizedTest
@@ -52,11 +52,11 @@ class SaveNotifyUsernameChangeTest {
         notificationEmailSettings.setNotifyOnUsernameChange(enabled);
         NotificationEmailDto dto = new NotificationEmailDto(enabled);
 
-        notifyUsernameChangeService.saveEmailNotification(EMAIL, dto);
+        notifyUsernameChangeService.saveEmailNotification(USER_ID, dto);
         assertEquals(enabled, notificationEmailSettings.isNotifyOnUsernameChange());
 
         verify(settingsActivityService).createSettingActivity(
-                EMAIL,
+                USER_ID,
                 expectedStatus,
                 NOTIFICATION_USERNAME_CHANGED
         );

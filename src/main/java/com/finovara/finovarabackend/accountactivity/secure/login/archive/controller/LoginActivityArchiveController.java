@@ -20,7 +20,7 @@ public class LoginActivityArchiveController {
 
     @GetMapping
     public ResponseEntity<List<LoginActivityArchiveDto>> getLoginActivityArchive() {
-        return ResponseEntity.ok(archiveLoginActivityService.getLoginActivityArchive(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(archiveLoginActivityService.getLoginActivityArchive(SecurityUtils.getCurrentUserId()));
     }
 
 }

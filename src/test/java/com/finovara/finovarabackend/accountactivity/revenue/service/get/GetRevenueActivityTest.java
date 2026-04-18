@@ -36,7 +36,7 @@ class GetRevenueActivityTest {
     @InjectMocks
     private RevenueActivityService revenueActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setUp() {
@@ -56,29 +56,29 @@ class GetRevenueActivityTest {
                 LocalDateTime.now()
         );
 
-        when(revenueActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of(activity));
+        when(revenueActivityRepository.findByUserAssignedId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
 
         when(revenueActivityMapper.mapToRevenueActivity(activity)).thenReturn(dto);
 
-        List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(EMAIL, SortType.NEWEST);
+        List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(USER_ID, SortType.NEWEST);
 
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
 
-        verify(revenueActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verify(revenueActivityRepository).findByUserAssignedId(eq(USER_ID), any(Pageable.class));
         verify(revenueActivityMapper).mapToRevenueActivity(activity);
     }
 
     @Test
     void shouldReturnEmptyListWhenUserHasNoActivities() {
 
-        when(revenueActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
+        when(revenueActivityRepository.findByUserAssignedId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
 
-        List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(EMAIL, SortType.OLDEST);
+        List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(USER_ID, SortType.OLDEST);
 
         assertEquals(0, result.size());
 
-        verify(revenueActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verify(revenueActivityRepository).findByUserAssignedId(eq(USER_ID), any(Pageable.class));
         verifyNoInteractions(revenueActivityMapper);
     }
 }

@@ -27,8 +27,8 @@ public class LimitManagementService {
     private final LimitActivityService limitActivityService;
 
     @Transactional
-    public Long createLimit(LimitDto limitDto, String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public Long createLimit(LimitDto limitDto, Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         List<Limit> existingLimit = limitRepository.findByUserAssignedIdAndType(user.getId(), limitDto.periodType());
 
         if (!existingLimit.isEmpty()) {
@@ -41,7 +41,7 @@ public class LimitManagementService {
                 .isActive(true)
                 .userAssigned(user)
                 .build();
-        limitActivityService.createLimitActivity(email, LimitActivityType.ADDED_LIMIT, limit);
+        limitActivityService.createLimitActivity(userId, LimitActivityType.ADDED_LIMIT, limit);
 
         Limit savedLimit = limitRepository.save(limit);
 
@@ -50,8 +50,8 @@ public class LimitManagementService {
     }
 
     @Transactional
-    public Long editLimit(LimitDto limitDto, Long limitId, String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public Long editLimit(LimitDto limitDto, Long limitId, Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         Limit limit = limitRepository.findByIdAndUserAssignedId(user.getId(), limitId)
                 .orElseThrow(() -> new ActiveLimitNotFoundException("Active limit not found"));
 
@@ -64,14 +64,14 @@ public class LimitManagementService {
         limit.setPeriodType(limitDto.periodType());
         limit.setAmount(limitDto.amount());
 
-        limitActivityService.updateLimitActivity(email, LimitActivityType.EDITED_LIMIT, limit, oldLimitAmount);
+        limitActivityService.updateLimitActivity(userId, LimitActivityType.EDITED_LIMIT, limit, oldLimitAmount);
 
         limitRepository.save(limit);
         return limitId;
     }
 
-    public List<LimitStatsDto> getLimitStats(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public List<LimitStatsDto> getLimitStats(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         List<Limit> limits = limitRepository.findAllByUserAssignedId(user.getId());
         LocalDate today = LocalDate.now();
 
@@ -82,11 +82,11 @@ public class LimitManagementService {
     }
 
     @Transactional
-    public void deleteLimit(String email, Long limitId) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void deleteLimit(Long userId, Long limitId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         Limit limit = limitRepository.findByIdAndUserAssignedId(user.getId(), limitId)
                 .orElseThrow(() -> new ActiveLimitNotFoundException("Active limit not found"));
-        limitActivityService.createLimitActivity(email, LimitActivityType.DELETED_LIMIT, limit);
+        limitActivityService.createLimitActivity(userId, LimitActivityType.DELETED_LIMIT, limit);
         limitRepository.delete(limit);
     }
 

@@ -29,40 +29,40 @@ class GetWalletForUserTest {
     @InjectMocks
     private WalletService walletService;
 
-    private final String EMAIL = "test@mail.com";
+    private final Long USER_ID = 1L;
 
     @Test
     void shouldReturnExistingWallet() {
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
 
         Wallet wallet = new Wallet();
         wallet.setId(4L);
         wallet.setBalance(new BigDecimal("100"));
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(walletRepository.findByUserAssignedEmail(EMAIL)).thenReturn(Optional.of(wallet));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        when(walletRepository.findByUserAssignedId(USER_ID)).thenReturn(Optional.of(wallet));
 
-        WalletDto result = walletService.getWalletForUser(EMAIL);
+        WalletDto result = walletService.getWalletForUser(USER_ID);
 
         assertEquals(new BigDecimal("100"), result.balance());
         assertEquals(4L, result.id());
-        assertEquals(1L, result.userId());
+        assertEquals(USER_ID, result.userId());
         verify(walletRepository, never()).save(any());
     }
 
     @Test
     void shouldCreateWalletWhenNotExist() {
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(walletRepository.findByUserAssignedEmail(EMAIL)).thenReturn(Optional.empty());
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        when(walletRepository.findByUserAssignedId(USER_ID)).thenReturn(Optional.empty());
 
-        WalletDto result = walletService.getWalletForUser(EMAIL);
+        WalletDto result = walletService.getWalletForUser(USER_ID);
 
         assertEquals(BigDecimal.ZERO, result.balance());
-        assertEquals(1L, result.userId());
+        assertEquals(USER_ID, result.userId());
         verify(walletRepository).save(any(Wallet.class));
     }
 }

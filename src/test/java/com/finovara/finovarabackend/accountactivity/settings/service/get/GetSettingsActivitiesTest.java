@@ -32,7 +32,7 @@ class GetSettingsActivitiesTest {
     @InjectMocks
     private SettingsActivityService settingsActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setUp() {
@@ -49,29 +49,29 @@ class GetSettingsActivitiesTest {
                 LocalDateTime.now()
         );
 
-        when(settingsActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of(activity));
+        when(settingsActivityRepository.findByUserAssignedId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
 
         when(settingsActivityMapper.mapToSettingActivity(activity)).thenReturn(dto);
 
-        List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(EMAIL, SortType.NEWEST);
+        List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(USER_ID, SortType.NEWEST);
 
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
 
-        verify(settingsActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verify(settingsActivityRepository).findByUserAssignedId(eq(USER_ID), any(Pageable.class));
         verify(settingsActivityMapper).mapToSettingActivity(activity);
     }
 
     @Test
     void shouldReturnEmptyListWhenUserHasNoActivities() {
 
-        when(settingsActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class))).thenReturn(List.of());
+        when(settingsActivityRepository.findByUserAssignedId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
 
-        List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(EMAIL, SortType.OLDEST);
+        List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(USER_ID, SortType.OLDEST);
 
         assertEquals(0, result.size());
 
-        verify(settingsActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verify(settingsActivityRepository).findByUserAssignedId(eq(USER_ID), any(Pageable.class));
         verifyNoInteractions(settingsActivityMapper);
     }
 }

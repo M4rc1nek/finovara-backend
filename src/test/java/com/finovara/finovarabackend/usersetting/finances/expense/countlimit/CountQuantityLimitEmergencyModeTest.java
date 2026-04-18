@@ -28,7 +28,7 @@ class CountQuantityLimitEmergencyModeTest {
     private User user;
     private ExpenseSettings expenseSettings;
 
-    private final String EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -43,12 +43,12 @@ class CountQuantityLimitEmergencyModeTest {
             "false"
     })
     void shouldSetEmergencyModeBasedOnDto(boolean enabled) {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         CountQuantityLimitEmergencyModeDto dto =
                 new CountQuantityLimitEmergencyModeDto(enabled);
 
-        emergencyModeService.saveEmergencyMode(EMAIL, dto);
+        emergencyModeService.saveEmergencyMode(USER_ID, dto);
 
         assertEquals(enabled, expenseSettings.isQuantityLimitEmergencyModeEnabled());
     }

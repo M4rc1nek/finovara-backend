@@ -37,13 +37,11 @@ class EditLimitTest {
     @InjectMocks
     private LimitManagementService limitManagementService;
 
-    private String email;
     private Long limitId;
     private Long userId;
 
     @BeforeEach
     void setUp() {
-        email = "test@test.com";
         limitId = 1L;
         userId = 1L;
     }
@@ -60,30 +58,30 @@ class EditLimitTest {
         limit.setUserAssigned(user);
         limit.setAmount(new BigDecimal("100"));
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(limitRepository.findByIdAndUserAssignedId(userId, limitId)).thenReturn(Optional.of(limit));
         when(limitRepository.save(any(Limit.class))).thenReturn(limit);
 
-        Long result = limitManagementService.editLimit(dto, limitId, email);
+        Long result = limitManagementService.editLimit(dto, limitId, userId);
 
         assertEquals(limitId, result);
         assertEquals(dto.amount(), limit.getAmount());
         assertEquals(dto.periodType(), limit.getPeriodType());
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(limitRepository).findByIdAndUserAssignedId(userId, limitId);
-        verify(limitActivityService).updateLimitActivity(email, LimitActivityType.EDITED_LIMIT, limit, new BigDecimal("100"));
+        verify(limitActivityService).updateLimitActivity(userId, LimitActivityType.EDITED_LIMIT, limit, new BigDecimal("100"));
         verify(limitRepository).save(limit);
     }
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
         LimitDto dto = new LimitDto(userId, null, null, null, new BigDecimal("200"), true);
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> limitManagementService.editLimit(dto, limitId, email));
+        assertThrows(UserNotFoundException.class, () -> limitManagementService.editLimit(dto, limitId, userId));
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verifyNoInteractions(limitRepository, limitActivityService);
         verify(limitRepository, never()).save(any());
     }
@@ -94,12 +92,12 @@ class EditLimitTest {
         User user = new User();
         user.setId(userId);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(limitRepository.findByIdAndUserAssignedId(userId, limitId)).thenReturn(Optional.empty());
 
-        assertThrows(ActiveLimitNotFoundException.class, () -> limitManagementService.editLimit(dto, limitId, email));
+        assertThrows(ActiveLimitNotFoundException.class, () -> limitManagementService.editLimit(dto, limitId, userId));
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(limitRepository).findByIdAndUserAssignedId(userId, limitId);
         verifyNoInteractions(limitActivityService);
         verify(limitRepository, never()).save(any());

@@ -30,7 +30,7 @@ class GetRecurringRevenueTest {
     private RecurringRevenueService recurringRevenueService;
 
     private RevenueSettings revenueSettings;
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -38,7 +38,7 @@ class GetRecurringRevenueTest {
         revenueSettings = new RevenueSettings();
         user.setRevenueSettings(revenueSettings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @Test
@@ -51,7 +51,7 @@ class GetRecurringRevenueTest {
         revenueSettings.setRecurringStartDate(startDate);
         revenueSettings.setNextExecutionDate(startDate.plusDays(1));
 
-        RecurringRevenueDto dto = recurringRevenueService.getRecurringRevenue(EMAIL);
+        RecurringRevenueDto dto = recurringRevenueService.getRecurringRevenue(USER_ID);
 
         assertTrue(dto.recurringRevenueEnable());
         assertEquals(BigDecimal.valueOf(500), dto.amount());
@@ -71,7 +71,7 @@ class GetRecurringRevenueTest {
         revenueSettings.setRecurringStartDate(startDate);
         revenueSettings.setNextExecutionDate(null);
 
-        RecurringRevenueDto dto = recurringRevenueService.getRecurringRevenue(EMAIL);
+        RecurringRevenueDto dto = recurringRevenueService.getRecurringRevenue(USER_ID);
 
         assertEquals(false, dto.recurringRevenueEnable());
         assertEquals(BigDecimal.valueOf(200), dto.amount());

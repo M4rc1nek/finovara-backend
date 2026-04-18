@@ -20,8 +20,8 @@ public class RevenueCategoryPercentageService {
     private final UserManagerService userManagerService;
     private final FinancialPeriodService financialPeriodService;
 
-    public RevenueCategoryPercentageDto getRevenuePercentageByCategoryReport(String email, RevenueCategory category, PeriodType periodType) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public RevenueCategoryPercentageDto getRevenuePercentageByCategoryReport(Long userId, RevenueCategory category, PeriodType periodType) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         BigDecimal totalRevenue = financialPeriodService.getRevenueSum(user.getId(), periodType);
         List<Revenue> revenuesInCategory = financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, category);
 

@@ -41,15 +41,15 @@ class RevenueHistoryServiceTest {
     private RevenueHistoryService revenueHistoryService;
 
     private User user;
-    private String email;
+    private Long userId;
     private Revenue revenue;
     private RevenueDto revenueDto;
 
     @BeforeEach
     void setUp() {
         user = new User();
-        user.setId(1L);
-        email = "test@email.com";
+        userId = 1L;
+        user.setId(userId);
 
         revenue = new Revenue();
         revenueDto = new RevenueDto(null, null, new BigDecimal(200),
@@ -60,26 +60,26 @@ class RevenueHistoryServiceTest {
     @ParameterizedTest
     @EnumSource(PeriodType.class)
     void shouldReturnMappedRevenuesForEachPeriod(PeriodType periodType) {
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(financialPeriodService.getRevenuesInPeriodByCategory(1L, periodType, RevenueCategory.SALARY)).thenReturn(List.of(revenue));
         when(revenueMapper.mapRevenueToDto(revenue)).thenReturn(revenueDto);
 
-        List<RevenueDto> result = revenueHistoryService.getRevenueByCategory(email, periodType, RevenueCategory.SALARY);
+        List<RevenueDto> result = revenueHistoryService.getRevenueByCategory(userId, periodType, RevenueCategory.SALARY);
 
         assertThat(result).hasSize(1);
         assertThat(result.getFirst()).isEqualTo(revenueDto);
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(financialPeriodService).getRevenuesInPeriodByCategory(1L, periodType, RevenueCategory.SALARY);
         verify(revenueMapper).mapRevenueToDto(revenue);
     }
 
     @Test
     void shouldReturnEmptyListWhenNoRevenues() {
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(financialPeriodService.getRevenuesInPeriodByCategory(1L, PeriodType.DAILY, RevenueCategory.SALARY)).thenReturn(List.of());
 
-        List<RevenueDto> result = revenueHistoryService.getRevenueByCategory(email, PeriodType.DAILY, RevenueCategory.SALARY);
+        List<RevenueDto> result = revenueHistoryService.getRevenueByCategory(userId, PeriodType.DAILY, RevenueCategory.SALARY);
 
         assertThat(result).isEmpty();
 

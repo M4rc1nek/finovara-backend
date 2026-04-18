@@ -19,12 +19,12 @@ public class AccountChangesActivityController {
 
     @GetMapping
     public ResponseEntity<List<AccountChangesActivityDto>> getAccountChangesActivity() {
-        return ResponseEntity.ok(accountChangesActivityService.getAccountChangesActivity(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(accountChangesActivityService.getAccountChangesActivity(SecurityUtils.getCurrentUserId()));
     }
 
     @PostMapping
     public ResponseEntity<Void> confirmPasswordToAccountChangesActivity(@RequestBody ConfirmPasswordDto confirmPasswordDto) {
-        accountChangesActivityService.confirmPasswordToAccountChangesActivity(SecurityUtils.getCurrentUserEmail(), confirmPasswordDto);
+        accountChangesActivityService.confirmPasswordToAccountChangesActivity(SecurityUtils.getCurrentUserId(), confirmPasswordDto);
         return ResponseEntity.noContent().build();
     }
 }

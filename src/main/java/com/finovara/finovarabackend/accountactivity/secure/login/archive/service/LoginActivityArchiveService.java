@@ -39,4 +39,8 @@ public class LoginActivityArchiveService {
     public List<LoginActivityArchiveDto> getLoginActivityArchive(String email) {
         return loginActivityArchiveRepository.findAllByUserAssignedEmailOrderByIdDesc(email);
     }
+
+    public List<LoginActivityArchiveDto> getLoginActivityArchive(Long userId) {
+        return loginActivityArchiveRepository.findAllByUserAssignedIdOrderByIdDesc(userId);
+    }
 }

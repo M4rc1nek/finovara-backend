@@ -17,18 +17,18 @@ public class AutoPaymentsController {
 
     @PutMapping("/{piggyBankId}")
     public ResponseEntity<Void> createAutomation(@RequestBody @Valid AutoPaymentsDto autoPaymentsDto, @PathVariable Long piggyBankId) {
-        autoPaymentsService.createAutomation(SecurityUtils.getCurrentUserEmail(), piggyBankId, autoPaymentsDto);
+        autoPaymentsService.createAutomation(SecurityUtils.getCurrentUserId(), piggyBankId, autoPaymentsDto);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{piggyBankId}")
     public ResponseEntity<AutoPaymentsDto> getAutomation(@PathVariable Long piggyBankId) {
-        return ResponseEntity.ok(autoPaymentsService.getAutomation(SecurityUtils.getCurrentUserEmail(), piggyBankId));
+        return ResponseEntity.ok(autoPaymentsService.getAutomation(SecurityUtils.getCurrentUserId(), piggyBankId));
     }
 
     @PatchMapping("/{piggyBankId}")
     public ResponseEntity<Void> saveAutoPaymentsPiggyBank(@RequestBody @Valid AutoPaymentsDto autoPaymentsDto, @PathVariable Long piggyBankId) {
-        autoPaymentsService.saveAutoPaymentsPiggyBank(SecurityUtils.getCurrentUserEmail(), piggyBankId, autoPaymentsDto);
+        autoPaymentsService.saveAutoPaymentsPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, autoPaymentsDto);
         return ResponseEntity.noContent().build();
     }
 

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUserEmail;
+import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUserId;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,22 +18,22 @@ public class RevenueController {
 
     @PostMapping("/addRevenue")
     public ResponseEntity<Long> addRevenue(@RequestBody @Valid RevenueDto revenueDto) {
-        return ResponseEntity.ok(revenueService.addRevenue(revenueDto, getCurrentUserEmail()));
+        return ResponseEntity.ok(revenueService.addRevenue(revenueDto, getCurrentUserId()));
     }
 
     @PutMapping("/editRevenue/{revenueId}")
     public ResponseEntity<Long> editRevenue(@RequestBody @Valid RevenueDto revenueDto, @PathVariable Long revenueId) {
-        return ResponseEntity.ok(revenueService.editRevenue(revenueDto, revenueId, getCurrentUserEmail()));
+        return ResponseEntity.ok(revenueService.editRevenue(revenueDto, revenueId, getCurrentUserId()));
     }
 
     @DeleteMapping("/deleteRevenue/{revenueId}")
     public ResponseEntity<Void> deleteRevenue(@PathVariable Long revenueId) {
-        revenueService.deleteRevenue(revenueId, getCurrentUserEmail());
+        revenueService.deleteRevenue(revenueId, getCurrentUserId());
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/getRevenue")
     public ResponseEntity<List<RevenueDto>> getRevenue() {
-        return ResponseEntity.ok(revenueService.getRevenue(getCurrentUserEmail()));
+        return ResponseEntity.ok(revenueService.getRevenue(getCurrentUserId()));
     }
 }

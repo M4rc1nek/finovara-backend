@@ -29,19 +29,19 @@ class CreateSettingsActivityTest {
     @InjectMocks
     private SettingsActivityService settingsActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private final Long USER_ID = 1L;
 
     @Test
     void shouldCreateSettingsActivitySuccessfully() {
 
         User user = new User();
-        user.setId(1L);
+        user.setId(USER_ID);
         LocalDateTime now = LocalDateTime.now();
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         settingsActivityService.createSettingActivity(
-                EMAIL,
+                USER_ID,
                 SettingActivityStatus.ENABLED,
                 SettingType.NOTIFICATION_PASSWORD_CHANGED
         );
@@ -57,11 +57,11 @@ class CreateSettingsActivityTest {
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
 
         assertThrows(UserNotFoundException.class, () ->
                 settingsActivityService.createSettingActivity(
-                        EMAIL,
+                        USER_ID,
                         SettingActivityStatus.ENABLED,
                         SettingType.PIGGY_BANK_ROUND_UP
                 )

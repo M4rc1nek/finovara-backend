@@ -22,7 +22,7 @@ public class SettingActivityController {
 
     @GetMapping
     public ResponseEntity<List<SettingsActivityDto>> getSettingsActivities(@RequestParam(defaultValue = "NEWEST") SortType sort){
-        return ResponseEntity.ok(settingsActivityService.getSettingsActivities(SecurityUtils.getCurrentUserEmail(), sort));
+        return ResponseEntity.ok(settingsActivityService.getSettingsActivities(SecurityUtils.getCurrentUserId(), sort));
     }
 
 }

@@ -44,7 +44,7 @@ public class RecurringRevenueProcessor {
                 "Cykliczny przychód"
         );
 
-        revenueService.addRevenue(dto, user.getEmail());
+        revenueService.addRevenue(dto, user.getId());
     }
 
 }

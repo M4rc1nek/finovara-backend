@@ -30,7 +30,7 @@ class ControlAmountServiceGetTest {
     private User user;
     private ExpenseSettings expenseSettings;
 
-    private final String EMAIL = "test@test.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
@@ -41,12 +41,12 @@ class ControlAmountServiceGetTest {
 
     @Test
     void shouldReturnCorrectControlAmountDtoWhenEnabled() {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         expenseSettings.setAmountThresholdEnabled(true);
         expenseSettings.setBlockedAmount(BigDecimal.valueOf(200));
 
-        ControlAmountDto result = controlAmountService.getExpenseAmountControl(EMAIL);
+        ControlAmountDto result = controlAmountService.getExpenseAmountControl(USER_ID);
 
         assertTrue(result.expenseAmountThresholdEnabled());
         assertEquals(BigDecimal.valueOf(200), result.blockedAmount());
@@ -54,12 +54,12 @@ class ControlAmountServiceGetTest {
 
     @Test
     void shouldReturnCorrectControlAmountDtoWhenDisabled() {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
 
         expenseSettings.setAmountThresholdEnabled(false);
         expenseSettings.setBlockedAmount(BigDecimal.valueOf(50));
 
-        ControlAmountDto result = controlAmountService.getExpenseAmountControl(EMAIL);
+        ControlAmountDto result = controlAmountService.getExpenseAmountControl(USER_ID);
 
         assertFalse(result.expenseAmountThresholdEnabled());
         assertEquals(BigDecimal.valueOf(50), result.blockedAmount());
@@ -67,8 +67,8 @@ class ControlAmountServiceGetTest {
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new InvalidInputException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new InvalidInputException("User not found"));
 
-        assertThrows(InvalidInputException.class, () -> controlAmountService.getExpenseAmountControl(EMAIL));
+        assertThrows(InvalidInputException.class, () -> controlAmountService.getExpenseAmountControl(USER_ID));
     }
 }

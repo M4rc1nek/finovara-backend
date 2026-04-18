@@ -20,7 +20,7 @@ public class AccountChangeArchiveController {
 
     @GetMapping
     public ResponseEntity<List<AccountChangeArchiveDto>> getAccountChangeArchive() {
-        return ResponseEntity.ok(accountChangeArchiveService.getAccountChangeArchive(SecurityUtils.getCurrentUserEmail()));
+        return ResponseEntity.ok(accountChangeArchiveService.getAccountChangeArchive(SecurityUtils.getCurrentUserId()));
     }
 
 }

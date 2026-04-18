@@ -44,47 +44,47 @@ class DeleteRevenueTest {
 
     @Test
     void shouldDeleteRevenueSuccessfully() {
-        String email = "test@mail.com";
+        Long userId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         Revenue revenue = new Revenue();
         revenue.setId(1L);
         revenue.setUserAssigned(user);
         revenue.setAmount(new BigDecimal("100"));
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(revenueRepository.findByIdAndUserAssignedId(revenue.getId(), user.getId())).thenReturn(Optional.of(revenue));
 
-        revenueService.deleteRevenue(revenue.getId(), email);
+        revenueService.deleteRevenue(revenue.getId(), userId);
 
         InOrder inOrder = inOrder(autoPaymentsService, walletService, revenueActivityService, revenueRepository);
-        inOrder.verify(autoPaymentsService).handleRevenuePiggyBankAutomation(email, new BigDecimal("100"), PiggyBankAutomationMode.ROLLBACK);
-        inOrder.verify(walletService).removeBalanceFromWallet(email, new BigDecimal("100"));
-        inOrder.verify(revenueActivityService).createRevenueActivity(email, RevenueActivityType.DELETED_REVENUE, revenue);
+        inOrder.verify(autoPaymentsService).handleRevenuePiggyBankAutomation(userId, new BigDecimal("100"), PiggyBankAutomationMode.ROLLBACK);
+        inOrder.verify(walletService).removeBalanceFromWallet(userId, new BigDecimal("100"));
+        inOrder.verify(revenueActivityService).createRevenueActivity(userId, RevenueActivityType.DELETED_REVENUE, revenue);
         inOrder.verify(revenueRepository).delete(revenue);
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(revenueRepository).findByIdAndUserAssignedId(revenue.getId(), user.getId());
         verifyNoMoreInteractions(autoPaymentsService, walletService, revenueActivityService, revenueRepository);
     }
 
     @Test
     void shouldThrowWhenRevenueDoesNotExist() {
-        String email = "test@gmail.com";
+        Long userId = 1L;
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         Long revenueId = 1L;
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(revenueRepository.findByIdAndUserAssignedId(revenueId, user.getId())).thenReturn(Optional.empty());
 
-        assertThrows(RevenueNotFoundException.class, () -> revenueService.deleteRevenue(revenueId, email));
+        assertThrows(RevenueNotFoundException.class, () -> revenueService.deleteRevenue(revenueId, userId));
 
-        verify(userManagerService).getUserByEmailOrThrow(email);
+        verify(userManagerService).getUserByIdOrThrow(userId);
         verify(revenueRepository).findByIdAndUserAssignedId(revenueId, user.getId());
         verify(revenueRepository, never()).delete(any());
         verifyNoInteractions(autoPaymentsService, walletService, revenueActivityService);

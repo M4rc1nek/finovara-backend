@@ -36,27 +36,27 @@ public class LimitActivityService extends AccountActivityCore<LimitActivity, Lim
     }
 
     @Transactional
-    public void createLimitActivity(String email, LimitActivityType limitActivityType, Limit limit) {
-        LimitActivity limitActivity = buildActivity(email, limit);
+    public void createLimitActivity(Long userId, LimitActivityType limitActivityType, Limit limit) {
+        LimitActivity limitActivity = buildActivity(userId, limit);
         limitActivity.setLimitActivityType(limitActivityType);
         limitActivityRepository.save(limitActivity);
     }
 
     @Transactional
-    public void updateLimitActivity(String email, LimitActivityType limitActivityType, Limit limit, BigDecimal previousAmount) {
-        LimitActivity limitActivity = buildActivity(email, limit);
+    public void updateLimitActivity(Long userId, LimitActivityType limitActivityType, Limit limit, BigDecimal previousAmount) {
+        LimitActivity limitActivity = buildActivity(userId, limit);
         limitActivity.setLimitActivityType(limitActivityType);
         limitActivity.setPreviousAmount(previousAmount);
         limitActivityRepository.save(limitActivity);
     }
 
-    public List<LimitActivityDto> getLimitActivity(String email, SortType sort) {
-        return getActivities(email, sort, pageSize);
+    public List<LimitActivityDto> getLimitActivity(Long userId, SortType sort) {
+        return getActivities(userId, sort, pageSize);
     }
 
     @Override
-    protected List<LimitActivity> getRepositoryFindByUserEmail(String email, Pageable pageable) {
-        return limitActivityRepository.findByUserAssignedEmail(email, pageable);
+    protected List<LimitActivity> getRepositoryFindByUserId(Long userId, Pageable pageable) {
+        return limitActivityRepository.findByUserAssignedId(userId, pageable);
     }
 
     @Override
@@ -65,9 +65,9 @@ public class LimitActivityService extends AccountActivityCore<LimitActivity, Lim
     }
 
     @Override
-    protected LimitActivity buildActivity(String email, Limit limit) {
+    protected LimitActivity buildActivity(Long userId, Limit limit) {
         return LimitActivity.builder()
-                .userAssigned(getUser(email))
+                .userAssigned(getUser(userId))
                 .periodType(limit.getPeriodType())
                 .amount(limit.getAmount())
                 .createdAt(LocalDateTime.now())

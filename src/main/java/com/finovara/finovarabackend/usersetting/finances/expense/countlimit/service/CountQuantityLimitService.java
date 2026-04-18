@@ -30,13 +30,13 @@ public class CountQuantityLimitService {
     private final CountQuantityLimitValidator countQuantityLimitValidator;
 
     @Transactional
-    public void saveCountQuantityLimit(String email, CountQuantityLimitDto dto) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void saveCountQuantityLimit(Long userId, CountQuantityLimitDto dto) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         expenseSettings.setCountQuantityLimitEnabled(dto.expenseCountLimitEnabled());
 
-        createActivity(email, dto.expenseCountLimitEnabled());
+        createActivity(userId, dto.expenseCountLimitEnabled());
 
         if (!dto.expenseCountLimitEnabled()) {
             handleDisable(expenseSettings);
@@ -58,8 +58,8 @@ public class CountQuantityLimitService {
     }
 
     @Transactional
-    public void handleExpenseLimitExceeded(String email, CountQuantityLimitDto dto, PeriodType periodType, ConfirmPasswordDto confirmPasswordDto) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public void handleExpenseLimitExceeded(Long userId, CountQuantityLimitDto dto, PeriodType periodType, ConfirmPasswordDto confirmPasswordDto) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         if (!expenseSettings.isCountQuantityLimitEnabled()) return;
@@ -69,15 +69,15 @@ public class CountQuantityLimitService {
 
             countQuantityLimitValidator.validateEmergencyMode(countedExpenses, confirmPasswordDto,expenseSettings);
 
-            passwordConfirmationService.confirmPassword(email, confirmPasswordDto);
+            passwordConfirmationService.confirmPassword(userId, confirmPasswordDto);
             expenseSettings.setQuantityLimitEmergencyModeEnabled(false);
             expenseSettings.setQuantityLimitEmergencyModeUsed(true);
         }
     }
 
     @Transactional
-    public CountQuantityLimitDto getCountQuantityLimit(String email) {
-        User user = userManagerService.getUserByEmailOrThrow(email);
+    public CountQuantityLimitDto getCountQuantityLimit(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
         ExpenseSettings expenseSettings = user.getExpenseSettings();
 
         return new CountQuantityLimitDto(expenseSettings.isCountQuantityLimitEnabled(),
@@ -91,9 +91,9 @@ public class CountQuantityLimitService {
         return expenseRepository.countExpensesByUserAssignedIdAndCreatedAtBetween(user.getId(), start, today);
     }
 
-    private void createActivity(String email, boolean enabled) {
+    private void createActivity(Long userId, boolean enabled) {
         settingsActivityService.createSettingActivity(
-                email,
+                userId,
                 enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED,
                 SettingType.EXPENSE_COUNT_LIMIT
         );

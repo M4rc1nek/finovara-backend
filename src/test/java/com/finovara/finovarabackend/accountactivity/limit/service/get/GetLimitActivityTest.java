@@ -35,7 +35,7 @@ class GetLimitActivityTest {
     @InjectMocks
     private LimitActivityService limitActivityService;
 
-    private final String EMAIL = "test@mail.com";
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setUp() {
@@ -54,33 +54,33 @@ class GetLimitActivityTest {
                 LocalDateTime.now()
         );
 
-        when(limitActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class)))
+        when(limitActivityRepository.findByUserAssignedId(eq(USER_ID), any(Pageable.class)))
                 .thenReturn(List.of(activity));
 
         when(limitActivityMapper.mapToLimitActivity(activity)).thenReturn(dto);
 
         List<LimitActivityDto> result =
-                limitActivityService.getLimitActivity(EMAIL, SortType.NEWEST);
+                limitActivityService.getLimitActivity(USER_ID, SortType.NEWEST);
 
         assertEquals(1, result.size());
         assertEquals(dto, result.getFirst());
 
-        verify(limitActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verify(limitActivityRepository).findByUserAssignedId(eq(USER_ID), any(Pageable.class));
         verify(limitActivityMapper).mapToLimitActivity(activity);
     }
 
     @Test
     void shouldReturnEmptyListWhenUserHasNoActivities() {
 
-        when(limitActivityRepository.findByUserAssignedEmail(eq(EMAIL), any(Pageable.class)))
+        when(limitActivityRepository.findByUserAssignedId(eq(USER_ID), any(Pageable.class)))
                 .thenReturn(List.of());
 
         List<LimitActivityDto> result =
-                limitActivityService.getLimitActivity(EMAIL, SortType.OLDEST);
+                limitActivityService.getLimitActivity(USER_ID, SortType.OLDEST);
 
         assertEquals(0, result.size());
 
-        verify(limitActivityRepository).findByUserAssignedEmail(eq(EMAIL), any(Pageable.class));
+        verify(limitActivityRepository).findByUserAssignedId(eq(USER_ID), any(Pageable.class));
         verifyNoInteractions(limitActivityMapper);
     }
 }

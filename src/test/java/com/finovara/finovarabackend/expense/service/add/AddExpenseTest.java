@@ -70,11 +70,11 @@ class AddExpenseTest {
     void shouldAddExpenseSuccessfully() {
 
         // given
-        String email = "test@email.com";
+        Long userId = 1L;
         BigDecimal amount = new BigDecimal("100");
 
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         ExpenseRequestDto dto = new ExpenseRequestDto(
                 new ExpenseDto(null, null, amount, ExpenseCategory.SAVINGS, null, "test"),
@@ -82,7 +82,7 @@ class AddExpenseTest {
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
         when(financialPeriodService.getExpensesSum(anyLong(), eq(PeriodType.DAILY))).thenReturn(BigDecimal.ZERO);
         when(expenseRepository.save(any())).thenAnswer(invocation -> {
@@ -92,31 +92,31 @@ class AddExpenseTest {
         });
 
         // when
-        Long result = expenseService.addExpense(dto, email, PeriodType.DAILY);
+        Long result = expenseService.addExpense(dto, userId, PeriodType.DAILY);
 
         // then
         assertEquals(1L, result);
 
-        verify(countQuantityLimitService).handleExpenseLimitExceeded(email, dto.countQuantityLimitDto(),
+        verify(countQuantityLimitService).handleExpenseLimitExceeded(userId, dto.countQuantityLimitDto(),
                 dto.countQuantityLimitDto().periodType(), dto.confirmPasswordDto());
 
-        verify(expenseActivityService).createExpenseActivity(eq(email), eq(ExpenseActivityType.ADDED_EXPENSE), any());
-        verify(smartScanService).handleSmartScan(email, dto.confirmPasswordDto(), amount, SmartScanMode.ADD);
+        verify(expenseActivityService).createExpenseActivity(eq(userId), eq(ExpenseActivityType.ADDED_EXPENSE), any());
+        verify(smartScanService).handleSmartScan(userId, dto.confirmPasswordDto(), amount, SmartScanMode.ADD);
 
-        verify(walletService).removeBalanceFromWallet(email, amount);
+        verify(walletService).removeBalanceFromWallet(userId, amount);
 
         verify(expenseRepository).save(any(Expense.class));
 
-        verify(roundUpService).handleExpenseForRoundUp(eq(email), anyLong(), eq(PiggyBankAutomationMode.APPLY));
+        verify(roundUpService).handleExpenseForRoundUp(eq(userId), anyLong(), eq(PiggyBankAutomationMode.APPLY));
 
-        verify(controlAmountService).handleExpenseAmountControl(email, amount);
+        verify(controlAmountService).handleExpenseAmountControl(userId, amount);
     }
 
     @Test
     void shouldThrowExceptionWhenAmountIsLessThanOne() {
-        String email = "sas@op.pl";
+        Long userId = 1L;
         User user = new User();
-        user.setId(1L);
+        user.setId(userId);
 
         ExpenseRequestDto dto = new ExpenseRequestDto(
                 new ExpenseDto(null, null, new BigDecimal("0.50"), ExpenseCategory.SAVINGS, null, "test"),
@@ -124,16 +124,16 @@ class AddExpenseTest {
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(financialPeriodService.getExpensesSum(anyLong(), eq(PeriodType.DAILY))).thenReturn(BigDecimal.ZERO);
 
-        assertThrows(InvalidInputException.class, () -> expenseService.addExpense(dto, email, PeriodType.DAILY));
+        assertThrows(InvalidInputException.class, () -> expenseService.addExpense(dto, userId, PeriodType.DAILY));
         verify(expenseRepository, never()).save(any());
     }
 
     @Test
     void shouldThrowExceptionWhenUserDoesNotExist() {
-        String email = "sas@op.pl";
+        Long userId = 1L;
 
         ExpenseRequestDto dto = new ExpenseRequestDto(
                 new ExpenseDto(null, null, new BigDecimal("0.50"), ExpenseCategory.SAVINGS, null, "test"),
@@ -141,9 +141,9 @@ class AddExpenseTest {
                 new CountQuantityLimitDto(true, PeriodType.DAILY, 10)
         );
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> expenseService.addExpense(dto, email, null));
+        assertThrows(UserNotFoundException.class, () -> expenseService.addExpense(dto, userId, null));
         verify(expenseRepository, never()).save(any());
     }
 }

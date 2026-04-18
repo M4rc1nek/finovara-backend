@@ -27,6 +27,7 @@ class AccountSettingsGetTest {
     @Test
     void shouldReturnAccountSettings() {
 
+        Long userId = 1L;
         String email = "test@test.com";
 
         User user = new User();
@@ -35,9 +36,9 @@ class AccountSettingsGetTest {
         user.setCreatedAt(LocalDateTime.of(2024, 1, 10, 12, 0));
         user.setProfileImagePath("avatar.png");
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-        AccountSettingsDto result = accountService.getAccountSettings(email);
+        AccountSettingsDto result = accountService.getAccountSettings(userId);
 
         assertThat(result.username()).isEqualTo("john123");
         assertThat(result.email()).isEqualTo(email);
@@ -47,6 +48,7 @@ class AccountSettingsGetTest {
     @Test
     void shouldReturnNullProfileImageWhenPathIsNull() {
 
+        Long userId = 1L;
         String email = "test@test.com";
 
         User user = new User();
@@ -55,9 +57,9 @@ class AccountSettingsGetTest {
         user.setCreatedAt(LocalDateTime.of(2026, 3, 1, 12, 0));
         user.setProfileImagePath(null);
 
-        when(userManagerService.getUserByEmailOrThrow(email)).thenReturn(user);
+        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-        AccountSettingsDto result = accountService.getAccountSettings(email);
+        AccountSettingsDto result = accountService.getAccountSettings(userId);
 
         assertThat(result.profileImageUrl()).isNull();
     }

@@ -39,20 +39,20 @@ class AddGoalCompletionTest {
     @InjectMocks
     private GoalCompletionService goalCompletionService;
 
-    private final String EMAIL = "test@test.com";
+    private final Long USER_ID = 1L;
     private PiggyBank piggyBank;
 
     @BeforeEach
     void setup() {
         User user = new User();
-        user.setEmail(EMAIL);
+        user.setId(USER_ID);
 
         piggyBank = new PiggyBank();
         PiggyBankSettings settings = new PiggyBankSettings();
         piggyBank.setSettings(settings);
 
-        when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
-        when(piggyBankManagerService.getPiggyBankByUserEmail(1L, EMAIL)).thenReturn(piggyBank);
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        when(piggyBankManagerService.getPiggyBankByUserId(1L, USER_ID)).thenReturn(piggyBank);
     }
 
     @Test
@@ -61,7 +61,7 @@ class AddGoalCompletionTest {
 
         GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_KEEP);
 
-        assertThrows(InvalidInputException.class, () -> goalCompletionService.addGoalCompletion(1L, EMAIL, dto));
+        assertThrows(InvalidInputException.class, () -> goalCompletionService.addGoalCompletion(1L, USER_ID, dto));
     }
 
     @Test
@@ -70,7 +70,7 @@ class AddGoalCompletionTest {
 
         GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_KEEP);
 
-        goalCompletionService.addGoalCompletion(1L, EMAIL, dto);
+        goalCompletionService.addGoalCompletion(1L, USER_ID, dto);
 
         assertEquals(GoalCompletionStrategy.WITHDRAW_AND_KEEP, piggyBank.getSettings().getGoalCompletionStrategy());
 
