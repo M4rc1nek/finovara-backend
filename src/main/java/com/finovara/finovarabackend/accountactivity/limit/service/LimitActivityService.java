@@ -42,6 +42,7 @@ public class LimitActivityService extends AccountActivityCore<LimitActivity, Lim
         limitActivityRepository.save(limitActivity);
     }
 
+    @Transactional
     public void updateLimitActivity(String email, LimitActivityType limitActivityType, Limit limit, BigDecimal previousAmount) {
         LimitActivity limitActivity = buildActivity(email, limit);
         limitActivity.setLimitActivityType(limitActivityType);
