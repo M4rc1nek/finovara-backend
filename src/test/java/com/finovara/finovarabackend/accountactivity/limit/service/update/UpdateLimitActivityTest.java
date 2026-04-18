@@ -67,7 +67,7 @@ class UpdateLimitActivityTest {
                         activity.getPeriodType() == PeriodType.MONTHLY &&
                         activity.getAmount().compareTo(new BigDecimal("1000")) == 0 &&
                         activity.getPreviousAmount().compareTo(new BigDecimal("800")) == 0 &&
-                        !activity.getDate().isBefore(now)
+                        !activity.getCreatedAt().isBefore(now)
         ));
     }
 

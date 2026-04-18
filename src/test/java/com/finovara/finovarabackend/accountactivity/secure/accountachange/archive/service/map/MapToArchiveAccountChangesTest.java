@@ -31,7 +31,7 @@ class MapToArchiveAccountChangesTest {
         AccountChangesActivity activity = AccountChangesActivity.builder()
                 .userAssigned(user)
                 .type(AccountChangesActivityType.PASSWORD_CHANGED)
-                .date(LocalDateTime.of(2026, 3, 10, 8, 0))
+                .createdAt(LocalDateTime.of(2026, 3, 10, 8, 0))
                 .browser("Chrome")
                 .ipAddress("127.0.0.1")
                 .location("TestCity")

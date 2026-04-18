@@ -56,7 +56,7 @@ class CreateSimplePiggyBankActivityTest {
                         activity.getActivityType() == PiggyBankActivityType.ADDED_PIGGY_BANK &&
                         activity.getGoalType() == PiggyBankGoalType.ELECTRONICS &&
                         activity.getGoalAmount().compareTo(new BigDecimal("2000")) == 0 &&
-                        !activity.getDate().isBefore(now)
+                        !activity.getCreatedAt().isBefore(now)
         ));
     }
 

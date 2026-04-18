@@ -85,7 +85,7 @@ public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActiv
                 .piggyBankName(piggyBank.getName())
                 .goalType(piggyBank.getGoalType())
                 .goalAmount(piggyBank.getGoalAmount())
-                .date(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 }

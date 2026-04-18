@@ -72,7 +72,7 @@ public class RevenueActivityService extends AccountActivityCore<RevenueActivity,
                 .userAssigned(getUser(email))
                 .amount(revenue.getAmount())
                 .category(revenue.getCategory())
-                .date(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 

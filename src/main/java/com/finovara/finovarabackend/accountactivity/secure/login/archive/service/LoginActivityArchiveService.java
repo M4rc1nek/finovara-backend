@@ -24,7 +24,7 @@ public class LoginActivityArchiveService {
                 .type("Login")
                 .status(loginActivity.getStatus())
                 .moveToArchiveDate(LocalDateTime.now())
-                .activityLoginDate(loginActivity.getDate())
+                .activityLoginDate(loginActivity.getCreatedAt())
                 .browser(loginActivity.getBrowser())
                 .ipAddress(loginActivity.getIpAddress())
                 .location(loginActivity.getLocation())

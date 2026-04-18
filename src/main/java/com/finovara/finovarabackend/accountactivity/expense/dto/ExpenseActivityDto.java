@@ -12,6 +12,6 @@ public record ExpenseActivityDto(
         BigDecimal previousAmount,
         ExpenseCategory category,
         ExpenseCategory previousCategory,
-        LocalDateTime date
+        LocalDateTime createdAt
 ) {
 }

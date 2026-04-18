@@ -25,7 +25,7 @@ public class SettingsActivity {
     @Enumerated(EnumType.STRING)
     private SettingType settingType;
 
-    private LocalDateTime date;
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

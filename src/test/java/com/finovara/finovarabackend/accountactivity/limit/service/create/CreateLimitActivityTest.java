@@ -57,7 +57,7 @@ class CreateLimitActivityTest {
                         activity.getLimitActivityType() == LimitActivityType.ADDED_LIMIT &&
                         activity.getPeriodType() == PeriodType.MONTHLY &&
                         activity.getAmount().compareTo(new BigDecimal("500")) == 0 &&
-                        !activity.getDate().isBefore(now)
+                        !activity.getCreatedAt().isBefore(now)
         ));
     }
 

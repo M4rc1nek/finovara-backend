@@ -69,7 +69,7 @@ public class LimitActivityService extends AccountActivityCore<LimitActivity, Lim
                 .userAssigned(getUser(email))
                 .periodType(limit.getPeriodType())
                 .amount(limit.getAmount())
-                .date(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 }

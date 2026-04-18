@@ -8,6 +8,6 @@ import java.time.LocalDateTime;
 public record SettingsActivityDto(
         SettingActivityStatus status,
         SettingType settingType,
-        LocalDateTime date
+        LocalDateTime createdAt
 ) {
 }

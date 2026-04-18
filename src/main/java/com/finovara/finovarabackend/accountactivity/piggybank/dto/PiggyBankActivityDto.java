@@ -16,6 +16,6 @@ public record PiggyBankActivityDto(
         BigDecimal previousGoalAmount,
         BigDecimal amountPaid,
         BigDecimal amountPaidOut,
-        LocalDateTime date
+        LocalDateTime createdAt
 ) {
 }

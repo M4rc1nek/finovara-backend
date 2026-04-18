@@ -72,7 +72,7 @@ public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity,
                 .userAssigned(getUser(email))
                 .amount(expense.getAmount())
                 .category(expense.getCategory())
-                .date(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .build();
     }
 

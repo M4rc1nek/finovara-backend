@@ -33,7 +33,7 @@ public class RevenueActivity {
     @Enumerated(EnumType.STRING)
     private RevenueCategory previousCategory;
 
-    private LocalDateTime date;
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

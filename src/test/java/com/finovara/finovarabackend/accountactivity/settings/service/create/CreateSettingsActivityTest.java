@@ -50,7 +50,7 @@ class CreateSettingsActivityTest {
                 activity.getUserAssigned().equals(user) &&
                         activity.getStatus() == SettingActivityStatus.ENABLED &&
                         activity.getSettingType() == SettingType.NOTIFICATION_PASSWORD_CHANGED &&
-                        !activity.getDate().isBefore(now)
+                        !activity.getCreatedAt().isBefore(now)
         ));
     }
 

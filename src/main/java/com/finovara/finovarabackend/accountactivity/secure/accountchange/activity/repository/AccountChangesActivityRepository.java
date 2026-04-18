@@ -14,8 +14,8 @@ import java.util.List;
 public interface AccountChangesActivityRepository extends JpaRepository<AccountChangesActivity, Long> {
 
     @Query("""
-            SELECT com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto(
-            a.type, a.date, a.browser, a.ipAddress, a.location) 
+            SELECT new com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto(
+            a.type, a.createdAt, a.browser, a.ipAddress, a.location) 
             FROM AccountChangesActivity a 
             WHERE a.userAssigned.email = :email 
             ORDER BY a.id DESC

@@ -32,7 +32,7 @@ class MapToArchiveLoginActivityTest {
         LoginActivity loginActivity = LoginActivity.builder()
                 .userAssigned(user)
                 .status(LoginActivityStatus.SUCCESSFUL)
-                .date(LocalDateTime.of(2026, 3, 10, 9, 30))
+                .createdAt(LocalDateTime.of(2026, 3, 10, 9, 30))
                 .browser("Firefox")
                 .ipAddress("192.168.1.100")
                 .location("Berlin")

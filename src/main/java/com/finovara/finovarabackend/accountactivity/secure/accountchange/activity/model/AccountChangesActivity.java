@@ -22,7 +22,7 @@ public class AccountChangesActivity {
     @Enumerated(EnumType.STRING)
     private AccountChangesActivityType type;
 
-    private LocalDateTime date;
+    private LocalDateTime createdAt;
 
     private String browser;
 

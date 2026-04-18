@@ -13,7 +13,7 @@ public class LimitActivityMapper {
                 activity.getPeriodType(),
                 activity.getAmount(),
                 activity.getPreviousAmount(),
-                activity.getDate()
+                activity.getCreatedAt()
         );
     }
 }

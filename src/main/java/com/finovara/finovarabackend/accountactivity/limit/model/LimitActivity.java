@@ -30,7 +30,7 @@ public class LimitActivity {
     private BigDecimal amount;
     private BigDecimal previousAmount;
 
-    private LocalDateTime date;
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

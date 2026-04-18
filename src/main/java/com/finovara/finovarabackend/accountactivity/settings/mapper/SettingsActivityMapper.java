@@ -10,7 +10,7 @@ public class SettingsActivityMapper {
         return new SettingsActivityDto(
                 activity.getStatus(),
                 activity.getSettingType(),
-                activity.getDate()
+                activity.getCreatedAt()
         );
     }
 }

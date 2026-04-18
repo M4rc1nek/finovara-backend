@@ -14,7 +14,7 @@ public class RevenueActivityMapper {
                 activity.getPreviousAmount(),
                 activity.getCategory(),
                 activity.getPreviousCategory(),
-                activity.getDate()
+                activity.getCreatedAt()
         );
     }
 }

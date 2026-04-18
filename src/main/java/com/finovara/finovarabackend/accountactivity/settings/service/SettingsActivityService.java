@@ -61,7 +61,7 @@ public class SettingsActivityService extends AccountActivityCore<SettingsActivit
         return SettingsActivity.builder()
                 .userAssigned(getUser(email))
                 .settingType(type)
-                .date(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .build();
 
     }

@@ -23,7 +23,7 @@ public class AccountChangeArchiveService {
                 .userAssigned(accountChangesActivity.getUserAssigned())
                 .type(accountChangesActivity.getType())
                 .moveToArchiveDate(LocalDateTime.now())
-                .activityAccountChangesDate(accountChangesActivity.getDate())
+                .activityAccountChangesDate(accountChangesActivity.getCreatedAt())
                 .browser(accountChangesActivity.getBrowser())
                 .ipAddress(accountChangesActivity.getIpAddress())
                 .location(accountChangesActivity.getLocation())

@@ -55,7 +55,7 @@ class CreateRevenueActivityTest {
                         activity.getType() == RevenueActivityType.ADDED_REVENUE &&
                         activity.getAmount().compareTo(new BigDecimal("1000")) == 0 &&
                         activity.getCategory() == RevenueCategory.SALARY &&
-                        !activity.getDate().isBefore(now)
+                        !activity.getCreatedAt().isBefore(now)
         ));
     }
 

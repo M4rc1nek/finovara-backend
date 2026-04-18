@@ -60,7 +60,7 @@ class UpdateExpenseActivityTest {
                         activity.getCategory() == ExpenseCategory.FOOD &&
                         activity.getPreviousAmount().equals(new BigDecimal("150")) &&
                         activity.getPreviousCategory() == ExpenseCategory.TRANSPORT &&
-                        !activity.getDate().isBefore(now)
+                        !activity.getCreatedAt().isBefore(now)
         ));
     }
 

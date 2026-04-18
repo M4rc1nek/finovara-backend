@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 public record AccountChangesActivityDto(
         AccountChangesActivityType type,
-        LocalDateTime date,
+        LocalDateTime createdAt,
         String browser,
         String ipAddress,
         String location

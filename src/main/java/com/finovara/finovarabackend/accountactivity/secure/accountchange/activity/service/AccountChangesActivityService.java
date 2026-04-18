@@ -51,7 +51,7 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
         AccountChangesActivity activity = AccountChangesActivity.builder()
                 .userAssigned(user)
                 .type(type)
-                .date(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .browser(clientData.getUserBrowser(request))
                 .ipAddress(ipAddress)
                 .location(clientData.getUserLocation(ipAddress))

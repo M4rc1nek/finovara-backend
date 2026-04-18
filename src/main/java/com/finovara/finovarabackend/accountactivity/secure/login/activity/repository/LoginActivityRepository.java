@@ -15,7 +15,7 @@ public interface LoginActivityRepository extends JpaRepository<LoginActivity, Lo
 
     @Query("""
             SELECT new com.finovara.finovarabackend.accountactivity.secure.login.activity.dto.LoginActivityDto(
-            l.type, l.status, l.date, l.browser, l.ipAddress, l.location)
+            l.type, l.status, l.createdAt, l.browser, l.ipAddress, l.location)
             FROM LoginActivity l
             WHERE l.userAssigned.email = :email
             ORDER BY l.id DESC

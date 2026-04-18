@@ -12,6 +12,6 @@ public record RevenueActivityDto(
         BigDecimal previousAmount,
         RevenueCategory category,
         RevenueCategory previousCategory,
-        LocalDateTime date
+        LocalDateTime createdAt
 ) {
 }

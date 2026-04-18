@@ -14,7 +14,7 @@ public class ExpenseActivityMapper {
                 activity.getPreviousAmount(),
                 activity.getCategory(),
                 activity.getPreviousCategory(),
-                activity.getDate()
+                activity.getCreatedAt()
         );
 
     }

@@ -52,7 +52,7 @@ class CreateExpenseActivityTest {
                         activity.getType() == ExpenseActivityType.EDITED_EXPENSE &&
                         activity.getAmount().equals(new BigDecimal("100.50")) &&
                         activity.getCategory() == ExpenseCategory.FOOD &&
-                        !activity.getDate().isBefore(now)
+                        !activity.getCreatedAt().isBefore(now)
 
         ));
     }

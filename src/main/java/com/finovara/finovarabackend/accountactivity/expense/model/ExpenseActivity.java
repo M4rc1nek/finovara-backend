@@ -31,7 +31,7 @@ public class ExpenseActivity {
     @Enumerated(EnumType.STRING)
     private ExpenseCategory previousCategory;
 
-    private LocalDateTime date;
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

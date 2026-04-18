@@ -11,6 +11,6 @@ public record LimitActivityDto(
         PeriodType periodType,
         BigDecimal amount,
         BigDecimal previousAmount,
-        LocalDateTime date
+        LocalDateTime createdAt
 ) {
 }

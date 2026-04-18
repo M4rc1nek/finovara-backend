@@ -17,7 +17,7 @@ public class PiggyBankActivityMapper {
                 activity.getPreviousGoalAmount(),
                 activity.getAmountPaid(),
                 activity.getAmountPaidOut(),
-                activity.getDate()
+                activity.getCreatedAt()
         );
     }
 }

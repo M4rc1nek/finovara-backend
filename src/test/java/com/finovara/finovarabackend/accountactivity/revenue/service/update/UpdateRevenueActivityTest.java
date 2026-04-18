@@ -60,7 +60,7 @@ class UpdateRevenueActivityTest {
                         activity.getCategory() == RevenueCategory.BONUS &&
                         activity.getPreviousAmount().compareTo(previousAmount) == 0 &&
                         activity.getPreviousCategory() == previousCategory &&
-                        !activity.getDate().isBefore(now)
+                        !activity.getCreatedAt().isBefore(now)
         ));
     }
 

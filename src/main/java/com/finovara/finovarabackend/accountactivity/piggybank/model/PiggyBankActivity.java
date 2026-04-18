@@ -38,7 +38,7 @@ public class PiggyBankActivity {
     private String previousPiggyBankName;
 
 
-    private LocalDateTime date;
+    private LocalDateTime createdAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

@@ -24,7 +24,7 @@ public class LoginActivity {
     @Enumerated(EnumType.STRING)
     private LoginActivityStatus status;
 
-    private LocalDateTime date;
+    private LocalDateTime createdAt;
 
     private String browser;
 

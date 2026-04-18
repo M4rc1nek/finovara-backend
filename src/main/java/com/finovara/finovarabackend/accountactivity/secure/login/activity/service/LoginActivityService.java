@@ -51,7 +51,7 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
                 .userAssigned(user)
                 .type("Login")
                 .status(status)
-                .date(LocalDateTime.now())
+                .createdAt(LocalDateTime.now())
                 .browser(clientData.getUserBrowser(request))
                 .ipAddress(ip)
                 .location(clientData.getUserLocation(ip))

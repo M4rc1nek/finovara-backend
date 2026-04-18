@@ -225,7 +225,7 @@
             <column name="previous_amount" type="DECIMAL(19,2)"/>
             <column name="category" type="VARCHAR(255)"/>
             <column name="previous_category" type="VARCHAR(255)"/>
-            <column name="date" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" foreignKeyName="fk_expense_activity_user" references="users(id)"/>
             </column>
@@ -241,7 +241,7 @@
             <column name="previous_amount" type="DECIMAL(19,2)"/>
             <column name="category" type="VARCHAR(255)"/>
             <column name="previous_category" type="VARCHAR(255)"/>
-            <column name="date" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" foreignKeyName="fk_revenue_activity_user" references="users(id)"/>
             </column>
@@ -257,7 +257,7 @@
             <column name="period_type" type="VARCHAR(255)"/>
             <column name="amount" type="DECIMAL(19,2)"/>
             <column name="previous_amount" type="DECIMAL(19,2)"/>
-            <column name="date" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
 
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" foreignKeyName="fk_limit_activity_user" references="users(id)"/>
@@ -283,7 +283,7 @@
             <column name="amount_paid" type="DECIMAL(19,2)"/>
             <column name="amount_paid_out" type="DECIMAL(19,2)"/>
 
-            <column name="date" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
 
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" foreignKeyName="fk_piggy_bank_activity_user" references="users(id)"/>
@@ -298,7 +298,7 @@
             </column>
             <column name="type" type="VARCHAR(255)"/>
             <column name="status" type="VARCHAR(255)"/>
-            <column name="date" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
             <column name="browser" type="VARCHAR(255)"/>
             <column name="ip_address" type="VARCHAR(255)"/>
             <column name="location" type="VARCHAR(255)"/>
@@ -332,7 +332,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="type" type="VARCHAR(255)"/>
-            <column name="date" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
             <column name="browser" type="VARCHAR(255)"/>
             <column name="ip_address" type="VARCHAR(255)"/>
             <column name="location" type="VARCHAR(255)"/>
@@ -366,7 +366,7 @@
             </column>
             <column name="status" type="VARCHAR(255)"/>
             <column name="setting_type" type="VARCHAR(255)"/>
-            <column name="date" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" foreignKeyName="fk_setting_activity" references="users(id)"/>
             </column>
