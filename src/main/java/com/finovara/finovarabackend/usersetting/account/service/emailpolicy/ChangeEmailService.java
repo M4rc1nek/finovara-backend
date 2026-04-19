@@ -9,6 +9,7 @@ import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswor
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +39,7 @@ public class ChangeEmailService {
     private final EmailValidator emailValidator;
     private final PasswordValidator passwordValidator;
     private final CodeValidator codeValidator;
+    private final EmailUpdateService emailUpdateService;
 
     @Value("${mail.recipient.address}")
     private String recipientAddress;
@@ -76,7 +78,7 @@ public class ChangeEmailService {
     }
 
     @Transactional
-    public void changeEmailAddressWithCode(Long userId, ChangeEmailDto dto) {
+    public void changeEmailAddressWithCode(Long userId, ChangeEmailDto dto, HttpServletRequest request) {
         User user = userManagerService.getUserByIdOrThrow(userId);
         AccountSettings settings = user.getAccountSettings();
 
@@ -88,9 +90,7 @@ public class ChangeEmailService {
         settings.setEmailChangeCodeExpiresAt(null);
         settings.setPendingEmail(null);
 
-        user.setEmail(newEmail);
-
-        accountRepository.save(settings);
+        emailUpdateService.updateEmail(user, newEmail, request);
     }
 
     private int generateSecureCode(Long userId, String newEmail) {

@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.usersetting.account.controller;
 import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.usersetting.account.dto.ChangeEmailDto;
 import com.finovara.finovarabackend.usersetting.account.service.emailpolicy.ChangeEmailService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +23,8 @@ public class EmailChangeController {
     }
 
     @PutMapping("/confirm")
-    public ResponseEntity<Void> confirmEmailWithCode(@RequestBody @Valid ChangeEmailDto dto) {
-        changeEmailService.changeEmailAddressWithCode(SecurityUtils.getCurrentUserId(), dto);
+    public ResponseEntity<Void> confirmEmailWithCode(@RequestBody @Valid ChangeEmailDto dto, HttpServletRequest request) {
+        changeEmailService.changeEmailAddressWithCode(SecurityUtils.getCurrentUserId(), dto, request);
         return ResponseEntity.noContent().build();
     }
 }

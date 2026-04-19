@@ -1,35 +1,29 @@
-package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
+package com.finovara.finovarabackend.usersetting.account.service.emailpolicy;
 
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
-import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.service.NotifyPasswordChangeService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class PasswordUpdateService {
+public class EmailUpdateService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final AccountChangesActivityService accountChangesActivityService;
-    private final NotifyPasswordChangeService notifyPasswordChangeService;
 
     @Transactional
-    public void updatePassword(User user, String newPassword, HttpServletRequest request) {
-        user.setPassword(passwordEncoder.encode(newPassword));
+    public void updateEmail(User user, String email, HttpServletRequest request) {
+        user.setEmail(email);
         userRepository.save(user);
 
         createActivity(user, request);
-
-        notifyPasswordChangeService.sendEmail(user);
     }
 
     private void createActivity(User user, HttpServletRequest request) {
-        accountChangesActivityService.createAccountChangesActivity(user.getId(), AccountChangesActivityType.PASSWORD_CHANGED, request);
+        accountChangesActivityService.createAccountChangesActivity(user.getId(), AccountChangesActivityType.EMAIL_CHANGED, request);
     }
 }
