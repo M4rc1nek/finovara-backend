@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class PasswordConfirmationService {
+public class PasswordValidator {
 
     private final UserManagerService userManagerService;
     private final PasswordEncoder passwordEncoder;
