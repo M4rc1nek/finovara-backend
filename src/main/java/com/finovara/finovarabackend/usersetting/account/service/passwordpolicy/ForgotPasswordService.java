@@ -127,11 +127,6 @@ public class ForgotPasswordService {
 
         int code = SECURE_RANDOM.nextInt(900000) + 100000;
 
-        if (accountSettings == null) {
-            accountSettings = new AccountSettings();
-            accountSettings.setUserAssigned(user);
-            user.setAccountSettings(accountSettings);
-        }
         accountSettings.setForgotPasswordCode(code);
         accountSettings.setForgotPasswordCodeExpiresAt(startCodeExpiration.plusMinutes(15));
 
