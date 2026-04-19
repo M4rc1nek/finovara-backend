@@ -14,6 +14,7 @@ import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordVa
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -26,6 +27,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChangeEmailService {
@@ -44,9 +46,6 @@ public class ChangeEmailService {
 
     @Async
     public void emailSend(Long userId, ChangeEmailDto changeEmailDto) {
-        User user = userManagerService.getUserByIdOrThrow(userId);
-        validateEmail(user, changeEmailDto);
-
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -74,14 +73,6 @@ public class ChangeEmailService {
 
         Integer code = accountSettings.getEmailChangeCode();
 
-        if (code == null) {
-            throw new InvalidInputException("No code generated");
-        }
-
-        if (accountSettings.getPendingEmail() == null || !accountSettings.getPendingEmail().equals(changeEmailDto.email())) {
-            throw new InvalidInputException("Email mismatch");
-        }
-
         if (!code.equals(changeEmailDto.code())) {
             throw new InvalidInputException("Incorrect code");
         }
@@ -92,7 +83,6 @@ public class ChangeEmailService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         AccountSettings accountSettings = user.getAccountSettings();
 
-        validateEmail(user, changeEmailDto);
         verifyCode(userId, changeEmailDto);
 
         String newEmail = accountSettings.getPendingEmail();
