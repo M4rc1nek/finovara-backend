@@ -10,7 +10,7 @@ import com.finovara.finovarabackend.accountactivity.secure.core.SecurityActivity
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,12 +32,12 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
 
     public AccountChangesActivityService(
             UserManagerService userManagerService,
-            PasswordConfirmationService passwordConfirmationService,
+            PasswordValidator passwordValidator,
             ClientData clientData,
             AccountChangesActivityRepository accountChangesActivityRepository,
             AccountChangeArchiveService accountChangeArchiveService
     ) {
-        super(userManagerService, passwordConfirmationService, clientData);
+        super(userManagerService, passwordValidator, clientData);
         this.accountChangesActivityRepository = accountChangesActivityRepository;
         this.accountChangeArchiveService = accountChangeArchiveService;
     }
@@ -66,7 +66,7 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
     }
 
     public void confirmPasswordToAccountChangesActivity(Long userId, ConfirmPasswordDto dto) {
-        passwordConfirmationService.confirmPassword(userId, dto);
+        passwordValidator.validatePassword(userId, dto);
     }
 
     @Override

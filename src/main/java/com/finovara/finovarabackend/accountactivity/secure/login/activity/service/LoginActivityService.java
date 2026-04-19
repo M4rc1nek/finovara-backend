@@ -10,7 +10,7 @@ import com.finovara.finovarabackend.accountactivity.secure.login.archive.service
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,11 +32,11 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
 
     public LoginActivityService(
             UserManagerService userManagerService,
-            PasswordConfirmationService passwordConfirmationService,
+            PasswordValidator passwordValidator,
             ClientData clientData,
             LoginActivityRepository loginActivityRepository,
             LoginActivityArchiveService archiveService) {
-        super(userManagerService, passwordConfirmationService, clientData);
+        super(userManagerService, passwordValidator, clientData);
         this.loginActivityRepository = loginActivityRepository;
         this.archiveService = archiveService;
     }
@@ -62,7 +62,7 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
     }
 
     public void confirmPassword(Long userId, ConfirmPasswordDto dto) {
-        passwordConfirmationService.confirmPassword(userId, dto);
+        passwordValidator.validatePassword(userId, dto);
     }
 
     public List<LoginActivityDto> getLoginActivity(Long userId) {

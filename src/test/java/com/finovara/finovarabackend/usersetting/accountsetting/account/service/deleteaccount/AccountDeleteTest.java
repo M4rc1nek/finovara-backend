@@ -6,7 +6,7 @@ import com.finovara.finovarabackend.usersetting.account.service.AccountService;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +25,7 @@ class AccountDeleteTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private PasswordConfirmationService passwordConfirmationService;
+    private PasswordValidator passwordValidator;
     @Mock
     private NotifyOnAccountDeletedService notifyOnAccountDeletedService;
 
@@ -51,7 +51,7 @@ class AccountDeleteTest {
 
         accountService.deleteAccount(confirmPasswordDto, userId);
 
-        verify(passwordConfirmationService).confirmPassword(userId, confirmPasswordDto);
+        verify(passwordValidator).validatePassword(userId, confirmPasswordDto);
         verify(userRepository).delete(user);
         verify(notifyOnAccountDeletedService).sendEmail(user);
     }
@@ -98,6 +98,6 @@ class AccountDeleteTest {
 
         accountService.deleteAccount(confirmPasswordDto, userId);
 
-        verify(passwordConfirmationService).confirmPassword(userId, confirmPasswordDto);
+        verify(passwordValidator).validatePassword(userId, confirmPasswordDto);
     }
 }

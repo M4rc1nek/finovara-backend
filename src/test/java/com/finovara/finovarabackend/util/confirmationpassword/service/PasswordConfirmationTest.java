@@ -25,7 +25,7 @@ class PasswordConfirmationTest {
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private PasswordConfirmationService passwordConfirmationService;
+    private PasswordValidator passwordValidator;
 
     @Test
     void shouldNotThrowExceptionWhenPasswordMatches() {
@@ -38,7 +38,7 @@ class PasswordConfirmationTest {
         when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(passwordEncoder.matches("correctPassword", "encodedPassword")).thenReturn(true);
 
-        assertDoesNotThrow(() -> passwordConfirmationService.confirmPassword(userId, dto));
+        assertDoesNotThrow(() -> passwordValidator.validatePassword(userId, dto));
     }
 
     @Test
@@ -52,6 +52,6 @@ class PasswordConfirmationTest {
         when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(passwordEncoder.matches("wrongPassword", "encodedPassword")).thenReturn(false);
 
-        assertThrows(WrongPasswordException.class, () -> passwordConfirmationService.confirmPassword(userId, dto));
+        assertThrows(WrongPasswordException.class, () -> passwordValidator.validatePassword(userId, dto));
     }
 }

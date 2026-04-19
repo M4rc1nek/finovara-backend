@@ -8,7 +8,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.S
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,7 @@ class HandleSmartScanTest {
     private ExpenseRepository expenseRepository;
 
     @Mock
-    private PasswordConfirmationService passwordConfirmationService;
+    private PasswordValidator passwordValidator;
 
     @InjectMocks
     private SmartScanService smartScanService;
@@ -59,7 +59,7 @@ class HandleSmartScanTest {
 
         smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(100), SmartScanMode.ADD);
 
-        verifyNoInteractions(passwordConfirmationService, expenseRepository);
+        verifyNoInteractions(passwordValidator, expenseRepository);
     }
 
     @Test
@@ -69,7 +69,7 @@ class HandleSmartScanTest {
 
         smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(100), SmartScanMode.ADD);
 
-        verifyNoInteractions(passwordConfirmationService);
+        verifyNoInteractions(passwordValidator);
     }
 
     @Test
@@ -91,7 +91,7 @@ class HandleSmartScanTest {
 
         assertThrows(SmartScanConfirmationRequiredException.class, () -> smartScanService.handleSmartScan(USER_ID, null, newExpense, SmartScanMode.ADD));
 
-        verifyNoInteractions(passwordConfirmationService);
+        verifyNoInteractions(passwordValidator);
     }
 
     @Test
@@ -114,6 +114,6 @@ class HandleSmartScanTest {
 
         smartScanService.handleSmartScan(USER_ID, passwordDto, newExpense, SmartScanMode.ADD);
 
-        verify(passwordConfirmationService).confirmPassword(USER_ID, passwordDto);
+        verify(passwordValidator).validatePassword(USER_ID, passwordDto);
     }
 }

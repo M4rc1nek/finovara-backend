@@ -111,7 +111,8 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-
+            <column name="email_change_code" type="INT"/>
+            <column name="pending_email" type="VARCHAR(255)"/>
             <column name="forgot_password_code" type="INT"/>
             <column name="forgot_password_code_expires_at" type="TIMESTAMP"/>
 

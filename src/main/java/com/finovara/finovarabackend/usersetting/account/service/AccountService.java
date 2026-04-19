@@ -9,7 +9,7 @@ import com.finovara.finovarabackend.usersetting.account.dto.AccountSettingsDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.finovarabackend.usersetting.notificationemail.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -25,7 +25,7 @@ import java.nio.file.Paths;
 public class AccountService {
     private final UserRepository userRepository;
     private final UserManagerService userManagerService;
-    private final PasswordConfirmationService passwordConfirmationService;
+    private final PasswordValidator passwordValidator;
     private final AccountChangesActivityService accountChangesActivityService;
     private final NotifyUsernameChangeService notifyUsernameChangeService;
     private final NotifyOnAccountDeletedService notifyOnAccountDeletedService;
@@ -49,7 +49,7 @@ public class AccountService {
     public void deleteAccount(ConfirmPasswordDto confirmPasswordDto, Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
-        passwordConfirmationService.confirmPassword(userId, confirmPasswordDto);
+        passwordValidator.validatePassword(userId, confirmPasswordDto);
         userRepository.delete(user);
         log.info("User account has been deleted. User email: {}", user.getEmail());
         notifyOnAccountDeletedService.sendEmail(user);

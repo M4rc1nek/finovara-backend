@@ -21,6 +21,9 @@ public class AccountSettings {
     private Integer forgotPasswordCode;
     private LocalDateTime forgotPasswordCodeExpiresAt;
 
+    private Integer emailChangeCode;
+    private String pendingEmail;
+
     @OneToOne
     @JoinColumn(name = "user_id")
     private User userAssigned;

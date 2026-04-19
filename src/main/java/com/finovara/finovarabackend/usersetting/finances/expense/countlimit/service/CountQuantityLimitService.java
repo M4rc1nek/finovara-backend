@@ -10,7 +10,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.validator.CountQuantityLimitValidator;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
@@ -25,7 +25,7 @@ public class CountQuantityLimitService {
 
     private final UserManagerService userManagerService;
     private final ExpenseRepository expenseRepository;
-    private final PasswordConfirmationService passwordConfirmationService;
+    private final PasswordValidator passwordValidator;
     private final SettingsActivityService settingsActivityService;
     private final CountQuantityLimitValidator countQuantityLimitValidator;
 
@@ -69,7 +69,7 @@ public class CountQuantityLimitService {
 
             countQuantityLimitValidator.validateEmergencyMode(countedExpenses, confirmPasswordDto,expenseSettings);
 
-            passwordConfirmationService.confirmPassword(userId, confirmPasswordDto);
+            passwordValidator.validatePassword(userId, confirmPasswordDto);
             expenseSettings.setQuantityLimitEmergencyModeEnabled(false);
             expenseSettings.setQuantityLimitEmergencyModeUsed(true);
         }

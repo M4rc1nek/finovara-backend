@@ -31,7 +31,7 @@ class PasswordChangeEmailTest {
         verify(emailTemplateService).sendEmail(
                 user,
                 "Finovara - Zmiana hasła",
-                "email/password-changed.html",
+                "email/password/password-changed.html",
                 "john_doe",
                 null
         );

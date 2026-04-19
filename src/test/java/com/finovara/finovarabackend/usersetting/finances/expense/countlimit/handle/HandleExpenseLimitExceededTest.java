@@ -7,7 +7,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.serv
 import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.validator.CountQuantityLimitValidator;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ class HandleExpenseLimitExceededTest {
     private ExpenseRepository expenseRepository;
 
     @Mock
-    private PasswordConfirmationService passwordConfirmationService;
+    private PasswordValidator passwordValidator;
 
     @Mock
     private CountQuantityLimitValidator countQuantityLimitValidator;
@@ -64,7 +64,7 @@ class HandleExpenseLimitExceededTest {
                 null
         );
 
-        verifyNoInteractions(passwordConfirmationService);
+        verifyNoInteractions(passwordValidator);
     }
 
     @Test
@@ -85,7 +85,7 @@ class HandleExpenseLimitExceededTest {
                 confirmPasswordDto
         );
 
-        verify(passwordConfirmationService).confirmPassword(USER_ID, confirmPasswordDto);
+        verify(passwordValidator).validatePassword(USER_ID, confirmPasswordDto);
         assertFalse(expenseSettings.isQuantityLimitEmergencyModeEnabled());
         assertTrue(expenseSettings.isQuantityLimitEmergencyModeUsed());
     }

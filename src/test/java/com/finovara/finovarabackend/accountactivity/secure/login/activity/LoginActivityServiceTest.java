@@ -10,7 +10,7 @@ import com.finovara.finovarabackend.accountactivity.secure.login.archive.service
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +34,7 @@ class LoginActivityServiceTest {
     private UserManagerService userManagerService;
 
     @Mock
-    private PasswordConfirmationService passwordConfirmationService;
+    private PasswordValidator passwordValidator;
 
     @Mock
     private ClientData clientData;
@@ -118,6 +118,6 @@ class LoginActivityServiceTest {
         ConfirmPasswordDto dto = mock(ConfirmPasswordDto.class);
         loginActivityService.confirmPassword(userId, dto);
 
-        verify(passwordConfirmationService, times(1)).confirmPassword(userId, dto);
+        verify(passwordValidator, times(1)).validatePassword(userId, dto);
     }
 }

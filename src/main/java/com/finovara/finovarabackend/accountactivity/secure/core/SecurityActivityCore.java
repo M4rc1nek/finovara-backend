@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.accountactivity.secure.core;
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
 
@@ -12,7 +12,7 @@ import java.util.List;
 public abstract class SecurityActivityCore<A, AR> {
 
     protected final UserManagerService userManagerService;
-    protected final PasswordConfirmationService passwordConfirmationService;
+    protected final PasswordValidator passwordValidator;
     protected final ClientData clientData;
 
     protected abstract void saveActivity(A activity);

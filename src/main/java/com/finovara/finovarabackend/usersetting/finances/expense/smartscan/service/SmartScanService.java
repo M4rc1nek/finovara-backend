@@ -11,7 +11,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.S
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordConfirmationService;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class SmartScanService {
 
     private final UserManagerService userManagerService;
     private final ExpenseRepository expenseRepository;
-    private final PasswordConfirmationService passwordConfirmationService;
+    private final PasswordValidator passwordValidator;
     private final SettingsActivityService settingsActivityService;
 
     @Transactional
@@ -100,7 +100,7 @@ public class SmartScanService {
             throw new SmartScanConfirmationRequiredException("Unusual expense detected. Password confirmation required.");
         }
 
-        passwordConfirmationService.confirmPassword(userId, confirmPasswordDto);
+        passwordValidator.validatePassword(userId, confirmPasswordDto);
     }
 
 }

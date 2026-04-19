@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class PasswordChangeEmailService {
-    private static final String TEMPLATE_PATH = "email/password-changed.html";
+    private static final String TEMPLATE_PATH = "email/password/password-changed.html";
 
     private final EmailTemplateService emailTemplateService;
 

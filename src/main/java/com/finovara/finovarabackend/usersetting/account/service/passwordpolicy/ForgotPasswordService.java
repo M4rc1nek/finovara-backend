@@ -32,7 +32,7 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class ForgotPasswordService {
-    private static final String TEMPLATE_PATH = "email/reset-password.html";
+    private static final String TEMPLATE_PATH = "email/password/reset-password.html";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Value("${mail.recipient.address}")
