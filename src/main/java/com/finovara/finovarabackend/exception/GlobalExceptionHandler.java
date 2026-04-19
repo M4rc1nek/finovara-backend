@@ -101,7 +101,7 @@ public class GlobalExceptionHandler {
                 exception.getMessage(),
                 webRequest.getDescription(false).replace("uri=", "")
         );
-        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler(Exception.class)
