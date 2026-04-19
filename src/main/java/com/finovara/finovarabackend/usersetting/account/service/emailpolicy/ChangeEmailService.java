@@ -1,11 +1,12 @@
 package com.finovara.finovarabackend.usersetting.account.service.emailpolicy;
 
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.account.dto.ChangeEmailDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -34,12 +36,16 @@ public class ChangeEmailService {
     private final AccountRepository accountRepository;
     private final UserManagerService userManagerService;
     private final EmailValidator emailValidator;
+    private final PasswordValidator passwordValidator;
+    private final CodeValidator codeValidator;
 
     @Value("${mail.recipient.address}")
     private String recipientAddress;
 
     @Async
     public void sendEmailAsync(User user, String email, int code) {
+        log.info("Email change requested: userId={}, email={}", user.getId(), email);
+
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -55,7 +61,7 @@ public class ChangeEmailService {
             javaMailSender.send(message);
 
         } catch (Exception e) {
-            log.error("Email sending failed", e);
+            throw new ServiceUnavailableException("Email sending failed", e);
         }
     }
 
@@ -63,6 +69,8 @@ public class ChangeEmailService {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         emailValidator.validateEmail(user, dto);
+        passwordValidator.validatePassword(user.getId(), new ConfirmPasswordDto(dto.password()));
+
         int code = generateSecureCode(user.getId(), dto.email());
         sendEmailAsync(user, dto.email(), code);
     }
@@ -72,32 +80,17 @@ public class ChangeEmailService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         AccountSettings settings = user.getAccountSettings();
 
-        verifyCode(settings, dto);
+        codeValidator.verifyCode(settings, dto);
 
         String newEmail = settings.getPendingEmail();
 
         settings.setEmailChangeCode(null);
+        settings.setEmailChangeCodeExpiresAt(null);
         settings.setPendingEmail(null);
 
         user.setEmail(newEmail);
 
         accountRepository.save(settings);
-    }
-
-    private void verifyCode(AccountSettings settings, ChangeEmailDto dto) {
-        Integer code = settings.getEmailChangeCode();
-
-        if (code == null) {
-            throw new InvalidInputException("No code generated");
-        }
-
-        if (settings.getPendingEmail() == null || !settings.getPendingEmail().equals(dto.email())) {
-            throw new InvalidInputException("Email mismatch");
-        }
-
-        if (!code.equals(dto.code())) {
-            throw new InvalidInputException("Incorrect code");
-        }
     }
 
     private int generateSecureCode(Long userId, String newEmail) {
@@ -107,10 +100,10 @@ public class ChangeEmailService {
         int code = SECURE_RANDOM.nextInt(900000) + 100000;
 
         settings.setEmailChangeCode(code);
+        settings.setEmailChangeCodeExpiresAt(LocalDateTime.now().plusMinutes(15));
         settings.setPendingEmail(newEmail);
 
         accountRepository.save(settings);
-
         return code;
     }
 

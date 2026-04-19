@@ -22,6 +22,7 @@ public class AccountSettings {
     private LocalDateTime forgotPasswordCodeExpiresAt;
 
     private Integer emailChangeCode;
+    private LocalDateTime emailChangeCodeExpiresAt;
     private String pendingEmail;
 
     @OneToOne
