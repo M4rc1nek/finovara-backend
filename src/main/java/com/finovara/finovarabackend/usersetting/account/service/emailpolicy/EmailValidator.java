@@ -6,16 +6,12 @@ import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsEx
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.ChangeEmailDto;
-import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
 @Component
 @RequiredArgsConstructor
 public class EmailValidator {
 
-    private final PasswordValidator passwordValidator;
     private final UserRepository userRepository;
 
     public void validateEmail(User user, ChangeEmailDto changeEmailDto) {
@@ -28,8 +24,6 @@ public class EmailValidator {
         if (newEmail.equalsIgnoreCase(user.getEmail())) {
             throw new InvalidInputException("New mail cannot be the same");
         }
-
-        passwordValidator.validatePassword(user.getId(), new ConfirmPasswordDto(changeEmailDto.password()));
 
         if (userRepository.existsByEmail(newEmail)) {
             throw new EmailAlreadyExistsException("Email already in use");
