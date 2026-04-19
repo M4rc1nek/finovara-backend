@@ -38,7 +38,6 @@ public class RoundUpService {
     private final PiggyBankManagementService piggyBankManagementService;
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
-    private final PiggyBankActivityService piggyBankActivityService;
     private final GoalCompletionService goalCompletionService;
     private final SettingsActivityService settingsActivityService;
     private final RoundUpCore roundUpCore;
