@@ -15,7 +15,7 @@ public class PasswordValidator {
     private final UserManagerService userManagerService;
     private final PasswordEncoder passwordEncoder;
 
-    public void confirmPassword(Long userId, ConfirmPasswordDto confirmPasswordDto) {
+    public void validatePassword(Long userId, ConfirmPasswordDto confirmPasswordDto) {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         if (!passwordEncoder.matches(confirmPasswordDto.password(), user.getPassword())) {
