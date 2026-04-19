@@ -109,12 +109,6 @@ public class ChangeEmailService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         AccountSettings accountSettings = user.getAccountSettings();
 
-        if (accountSettings == null) {
-            accountSettings = new AccountSettings();
-            accountSettings.setUserAssigned(user);
-            user.setAccountSettings(accountSettings);
-        }
-
         int code = SECURE_RANDOM.nextInt(900000) + 100000;
 
         accountSettings.setEmailChangeCode(code);

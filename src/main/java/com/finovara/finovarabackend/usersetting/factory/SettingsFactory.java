@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.usersetting.factory;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
@@ -61,6 +62,16 @@ public class SettingsFactory {
                 .notifyOnPasswordChange(false)
                 .notifyOnUsernameChange(false)
                 .notifyOnAccountDeleted(false)
+                .build();
+    }
+
+    public AccountSettings createDefaultAccountSettings(User user) {
+        return AccountSettings.builder()
+                .userAssigned(user)
+                .emailChangeCode(null)
+                .pendingEmail(null)
+                .forgotPasswordCode(null)
+                .forgotPasswordCodeExpiresAt(null)
                 .build();
     }
 

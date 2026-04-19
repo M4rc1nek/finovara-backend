@@ -54,6 +54,7 @@ public class UserService {
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         user.setRevenueSettings(settingsFactory.createDefaultRevenueSettings(user));
         user.setNotificationEmailSettings(settingsFactory.createDefaultNotificationSettings(user));
+        user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
 
         User savedUser = userRepository.save(user);
 
