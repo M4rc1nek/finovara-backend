@@ -78,6 +78,7 @@ public class ForgotPasswordService {
         AccountSettings accountSettings = user.getAccountSettings();
 
         if (accountSettings.getForgotPasswordCode() == null) {
+            log.info("No code generated for ForgotPassword");
             throw new InvalidInputException("No code generated");
         }
 

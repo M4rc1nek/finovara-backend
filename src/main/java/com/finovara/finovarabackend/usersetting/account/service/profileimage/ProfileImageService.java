@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.account.service;
+package com.finovara.finovarabackend.usersetting.account.service.profileimage;
 
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;

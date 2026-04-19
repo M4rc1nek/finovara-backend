@@ -1,7 +1,8 @@
 package com.finovara.finovarabackend.usersetting.account.controller;
 
+import com.finovara.finovarabackend.security.SecurityUtils;
 import com.finovara.finovarabackend.usersetting.account.dto.ChangeEmailDto;
-import com.finovara.finovarabackend.usersetting.account.service.ChangeEmailService;
+import com.finovara.finovarabackend.usersetting.account.service.emailpolicy.ChangeEmailService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,21 +15,15 @@ public class EmailChangeController {
 
     private final ChangeEmailService changeEmailService;
 
-    @PostMapping("/{userId}")
-    public ResponseEntity<Void> sendEmail(@PathVariable Long userId, @RequestBody @Valid ChangeEmailDto changeEmailDto) {
-        changeEmailService.emailSend(userId, changeEmailDto);
+    @PostMapping
+    public ResponseEntity<Void> requestEmailChange(@RequestBody @Valid ChangeEmailDto dto) {
+        changeEmailService.requestEmailChange(SecurityUtils.getCurrentUserId(), dto);
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{userId}/verify-code")
-    public ResponseEntity<Void> verifyCode(@PathVariable Long userId, @RequestBody @Valid ChangeEmailDto changeEmailDto) {
-        changeEmailService.verifyCode(userId, changeEmailDto);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping("/{userId}/change-email")
-    public ResponseEntity<Void> changeEmailAddress(@PathVariable Long userId, @RequestBody @Valid ChangeEmailDto changeEmailDto) {
-        changeEmailService.changeEmailAddressWithCode(userId, changeEmailDto);
+    @PutMapping("/confirm")
+    public ResponseEntity<Void> confirmEmailWithCode(@RequestBody @Valid ChangeEmailDto dto) {
+        changeEmailService.changeEmailAddressWithCode(SecurityUtils.getCurrentUserId(), dto);
         return ResponseEntity.noContent().build();
     }
 }

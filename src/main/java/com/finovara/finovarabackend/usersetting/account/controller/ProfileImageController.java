@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.usersetting.account.controller;
 
-import com.finovara.finovarabackend.usersetting.account.service.ProfileImageService;
+import com.finovara.finovarabackend.usersetting.account.service.profileimage.ProfileImageService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

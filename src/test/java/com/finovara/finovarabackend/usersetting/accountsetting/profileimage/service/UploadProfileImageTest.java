@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.accountactivity.secure.accountchange.activit
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
-import com.finovara.finovarabackend.usersetting.account.service.ProfileImageService;
+import com.finovara.finovarabackend.usersetting.account.service.profileimage.ProfileImageService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 
 import jakarta.servlet.http.HttpServletRequest;

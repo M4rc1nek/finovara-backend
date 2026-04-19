@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.usersetting.accountsetting.profileimage.ser
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
-import com.finovara.finovarabackend.usersetting.account.service.ProfileImageService;
+import com.finovara.finovarabackend.usersetting.account.service.profileimage.ProfileImageService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

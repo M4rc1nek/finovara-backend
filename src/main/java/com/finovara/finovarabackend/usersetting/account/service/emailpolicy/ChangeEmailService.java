@@ -1,16 +1,11 @@
-package com.finovara.finovarabackend.usersetting.account.service;
+package com.finovara.finovarabackend.usersetting.account.service.emailpolicy;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
-import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
-import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.ChangeEmailDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
-import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -35,76 +30,86 @@ public class ChangeEmailService {
     private static final String TEMPLATE_PATH = "email/change-email.html";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    private final UserRepository userRepository;
     private final JavaMailSender javaMailSender;
     private final AccountRepository accountRepository;
     private final UserManagerService userManagerService;
-    private final PasswordValidator passwordValidator;
+    private final EmailValidator emailValidator;
 
     @Value("${mail.recipient.address}")
     private String recipientAddress;
 
     @Async
-    public void emailSend(Long userId, ChangeEmailDto changeEmailDto) {
+    public void sendEmailAsync(User user, String email, int code) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setTo(changeEmailDto.email());
+            helper.setTo(email);
             helper.setFrom("Finovara <" + recipientAddress + ">");
             helper.setReplyTo(recipientAddress);
             helper.setSubject("Zmiana adresu e-mail");
 
-            int code = generateSecureCode(userId, changeEmailDto.email());
             String html = loadTemplate(user.getUsername(), String.valueOf(code));
-
             helper.setText(html, true);
 
             javaMailSender.send(message);
 
-        } catch (Exception exception) {
-            throw new ServiceUnavailableException("Failed to send email", exception);
+        } catch (Exception e) {
+            log.error("Email sending failed", e);
         }
     }
 
-    public void verifyCode(Long userId, ChangeEmailDto changeEmailDto) {
+    public void requestEmailChange(Long userId, ChangeEmailDto dto) {
         User user = userManagerService.getUserByIdOrThrow(userId);
-        AccountSettings accountSettings = user.getAccountSettings();
 
-        Integer code = accountSettings.getEmailChangeCode();
+        emailValidator.validateEmail(user, dto);
+        int code = generateSecureCode(user.getId(), dto.email());
+        sendEmailAsync(user, dto.email(), code);
+    }
 
-        if (!code.equals(changeEmailDto.code())) {
+    @Transactional
+    public void changeEmailAddressWithCode(Long userId, ChangeEmailDto dto) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
+        AccountSettings settings = user.getAccountSettings();
+
+        verifyCode(settings, dto);
+
+        String newEmail = settings.getPendingEmail();
+
+        settings.setEmailChangeCode(null);
+        settings.setPendingEmail(null);
+
+        user.setEmail(newEmail);
+
+        accountRepository.save(settings);
+    }
+
+    private void verifyCode(AccountSettings settings, ChangeEmailDto dto) {
+        Integer code = settings.getEmailChangeCode();
+
+        if (code == null) {
+            throw new InvalidInputException("No code generated");
+        }
+
+        if (settings.getPendingEmail() == null || !settings.getPendingEmail().equals(dto.email())) {
+            throw new InvalidInputException("Email mismatch");
+        }
+
+        if (!code.equals(dto.code())) {
             throw new InvalidInputException("Incorrect code");
         }
     }
 
-    @Transactional
-    public void changeEmailAddressWithCode(Long userId, ChangeEmailDto changeEmailDto) {
-        User user = userManagerService.getUserByIdOrThrow(userId);
-        AccountSettings accountSettings = user.getAccountSettings();
-
-        verifyCode(userId, changeEmailDto);
-
-        String newEmail = accountSettings.getPendingEmail();
-
-        accountSettings.setEmailChangeCode(null);
-        accountSettings.setPendingEmail(null);
-
-        user.setEmail(newEmail);
-
-        accountRepository.save(accountSettings);
-    }
-
     private int generateSecureCode(Long userId, String newEmail) {
         User user = userManagerService.getUserByIdOrThrow(userId);
-        AccountSettings accountSettings = user.getAccountSettings();
+        AccountSettings settings = user.getAccountSettings();
 
         int code = SECURE_RANDOM.nextInt(900000) + 100000;
 
-        accountSettings.setEmailChangeCode(code);
-        accountSettings.setPendingEmail(newEmail);
+        settings.setEmailChangeCode(code);
+        settings.setPendingEmail(newEmail);
 
-        accountRepository.save(accountSettings);
+        accountRepository.save(settings);
 
         return code;
     }
@@ -122,25 +127,7 @@ public class ChangeEmailService {
             }
 
         } catch (Exception e) {
-            throw new ServiceUnavailableException("Failed to load email template", e);
-        }
-    }
-
-    private void validateEmail(User user, ChangeEmailDto changeEmailDto) {
-        String newEmail = changeEmailDto.email();
-
-        if (newEmail == null || newEmail.isBlank()) {
-            throw new MissingRequirementException("Email cannot be empty");
-        }
-
-        if (newEmail.equalsIgnoreCase(user.getEmail())) {
-            throw new InvalidInputException("New mail cannot be the same");
-        }
-
-        passwordValidator.validatePassword(user.getId(), new ConfirmPasswordDto(changeEmailDto.password()));
-
-        if (userRepository.existsByEmail(newEmail)) {
-            throw new EmailAlreadyExistsException("Email already in use");
+            throw new ServiceUnavailableException("Failed to load template", e);
         }
     }
 }
