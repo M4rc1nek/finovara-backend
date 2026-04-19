@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class PasswordManagementService {
+public class PasswordUpdateService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AccountChangesActivityService accountChangesActivityService;

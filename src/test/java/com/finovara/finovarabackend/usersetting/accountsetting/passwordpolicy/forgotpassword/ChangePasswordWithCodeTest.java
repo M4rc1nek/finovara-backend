@@ -9,7 +9,7 @@ import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.Passw
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.ForgotPasswordService;
-import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordManagementService;
+import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordUpdateService;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,7 +37,7 @@ class ChangePasswordWithCodeTest {
     @Mock
     private AccountRepository accountRepository;
     @Mock
-    private PasswordManagementService passwordManagementService;
+    private PasswordUpdateService passwordUpdateService;
 
     @InjectMocks
     private ForgotPasswordService forgotPasswordService;
@@ -82,7 +82,7 @@ class ChangePasswordWithCodeTest {
         forgotPasswordService.changePasswordWithCode(EMAIL, dto, request);
 
         verify(accountRepository).save(accountSettings);
-        verify(passwordManagementService).updatePassword(user, "newPass", request);
+        verify(passwordUpdateService).updatePassword(user, "newPass", request);
     }
 
     @Test

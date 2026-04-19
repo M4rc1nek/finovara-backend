@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class ChangePasswordService {
 
     private final UserManagerService userManagerService;
-    private final PasswordManagementService passwordManagementService;
+    private final PasswordUpdateService passwordUpdateService;
 
     public void changePassword(Long userId, PasswordRequestDto passwordRequestDto, HttpServletRequest request) {
         User user = userManagerService.getUserByIdOrThrow(userId);
@@ -27,6 +27,6 @@ public class ChangePasswordService {
             throw new MissingRequirementException("The new password cannot be empty");
         }
 
-        passwordManagementService.updatePassword(user, newPassword, request);
+        passwordUpdateService.updatePassword(user, newPassword, request);
     }
 }

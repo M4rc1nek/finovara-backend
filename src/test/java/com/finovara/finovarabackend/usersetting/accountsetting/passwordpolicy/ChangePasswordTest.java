@@ -5,7 +5,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.ChangePasswordDto;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordRequestDto;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.ChangePasswordService;
-import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordManagementService;
+import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordUpdateService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +24,7 @@ class ChangePasswordTest {
     @Mock
     private UserManagerService userManagerService;
     @Mock
-    private PasswordManagementService passwordManagementService;
+    private PasswordUpdateService passwordUpdateService;
     @Mock
     private HttpServletRequest request;
 
@@ -47,7 +47,7 @@ class ChangePasswordTest {
 
         changePasswordService.changePassword(USER_ID, passwordRequestDto, request);
 
-        verify(passwordManagementService).updatePassword(user, "newPass", request);
+        verify(passwordUpdateService).updatePassword(user, "newPass", request);
     }
 
     @Test
@@ -64,7 +64,7 @@ class ChangePasswordTest {
 
         assertThrows(MissingRequirementException.class, () -> changePasswordService.changePassword(USER_ID, passwordRequestDto, request));
 
-        verify(passwordManagementService, never()).updatePassword(any(), any(), any());
+        verify(passwordUpdateService, never()).updatePassword(any(), any(), any());
     }
 
     @Test
@@ -81,6 +81,6 @@ class ChangePasswordTest {
 
         assertThrows(MissingRequirementException.class, () -> changePasswordService.changePassword(USER_ID, passwordRequestDto, request));
 
-        verify(passwordManagementService, never()).updatePassword(any(), any(), any());
+        verify(passwordUpdateService, never()).updatePassword(any(), any(), any());
     }
 }

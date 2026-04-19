@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.accountactivity.secure.accountchange.activit
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
-import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordManagementService;
+import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordUpdateService;
 import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.service.NotifyPasswordChangeService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,7 @@ class PasswordManagementTest {
     private NotifyPasswordChangeService notifyPasswordChangeService;
 
     @InjectMocks
-    private PasswordManagementService passwordManagementService;
+    private PasswordUpdateService passwordUpdateService;
 
     private HttpServletRequest request;
     private User user;
@@ -49,7 +49,7 @@ class PasswordManagementTest {
 
         when(passwordEncoder.encode(rawPassword)).thenReturn(encodedPassword);
 
-        passwordManagementService.updatePassword(user, rawPassword, request);
+        passwordUpdateService.updatePassword(user, rawPassword, request);
 
         assertEquals(encodedPassword, user.getPassword());
 
@@ -64,7 +64,7 @@ class PasswordManagementTest {
     void shouldEncodePasswordWithCorrectValue() {
         String rawPassword = "myPassword";
 
-        passwordManagementService.updatePassword(user, rawPassword, request);
+        passwordUpdateService.updatePassword(user, rawPassword, request);
 
         verify(passwordEncoder).encode("myPassword");
     }
@@ -73,7 +73,7 @@ class PasswordManagementTest {
     void shouldSaveUserWithUpdatedPassword() {
         when(passwordEncoder.encode(any())).thenReturn("encodedPass");
 
-        passwordManagementService.updatePassword(user, "newPass", request);
+        passwordUpdateService.updatePassword(user, "newPass", request);
 
         verify(userRepository).save(user);
         assertEquals("encodedPass", user.getPassword());
@@ -83,7 +83,7 @@ class PasswordManagementTest {
     void shouldCreateActivityWithCorrectData() {
         when(passwordEncoder.encode(any())).thenReturn("encodedPass");
 
-        passwordManagementService.updatePassword(user, "newPass", request);
+        passwordUpdateService.updatePassword(user, "newPass", request);
 
         verify(accountChangesActivityService).createAccountChangesActivity(user.getId(), AccountChangesActivityType.PASSWORD_CHANGED, request);
     }
@@ -92,7 +92,7 @@ class PasswordManagementTest {
     void shouldSendNotificationEmail() {
         when(passwordEncoder.encode(any())).thenReturn("encodedPass");
 
-        passwordManagementService.updatePassword(user, "newPass", request);
+        passwordUpdateService.updatePassword(user, "newPass", request);
 
         verify(notifyPasswordChangeService).sendEmail(user);
     }

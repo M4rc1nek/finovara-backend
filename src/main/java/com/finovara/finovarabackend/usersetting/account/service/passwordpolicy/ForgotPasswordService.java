@@ -42,7 +42,7 @@ public class ForgotPasswordService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final JavaMailSender javaMailSender;
-    private final PasswordManagementService passwordManagementService;
+    private final PasswordUpdateService passwordUpdateService;
 
     public void validateEmailExists(String email) {
         if (!userRepository.existsByEmail(email)) {
@@ -113,7 +113,7 @@ public class ForgotPasswordService {
             throw new MissingRequirementException("The new password cannot be empty");
         }
 
-        passwordManagementService.updatePassword(user, newPassword, request);
+        passwordUpdateService.updatePassword(user, newPassword, request);
 
         accountSettings.setForgotPasswordCode(null);
         accountSettings.setForgotPasswordCodeExpiresAt(null);
