@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/email-change")
 @RequiredArgsConstructor
-public class EmailResetController {
+public class EmailChangeController {
 
     private final EmailChangeService emailChangeService;
 
