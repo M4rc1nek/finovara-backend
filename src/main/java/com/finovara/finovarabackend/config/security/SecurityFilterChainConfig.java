@@ -48,7 +48,7 @@ public class SecurityFilterChainConfig {
                         .requestMatchers("/register", "/login").permitAll()
                         .requestMatchers("/api/profile-image/**").permitAll()
                         .requestMatchers("/profile-images/**").permitAll()
-                        .requestMatchers("/api/forgot-password/**").permitAll()
+                        .requestMatchers("/api/password-reset/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

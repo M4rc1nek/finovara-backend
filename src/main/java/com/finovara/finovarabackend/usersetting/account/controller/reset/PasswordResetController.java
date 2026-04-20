@@ -1,0 +1,31 @@
+package com.finovara.finovarabackend.usersetting.account.controller.reset;
+
+import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordResetConfirmDto;
+import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordResetRequestDto;
+import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordResetService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/password-reset")
+@RequiredArgsConstructor
+public class PasswordResetController {
+
+    private final PasswordResetService passwordResetService;
+
+    @PostMapping("/request")
+    public ResponseEntity<Void> requestPasswordReset(@RequestBody @Valid PasswordResetRequestDto passwordResetRequestDto) {
+        passwordResetService.requestPasswordReset(passwordResetRequestDto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/confirm")
+    public ResponseEntity<Void> confirmPasswordReset(@RequestBody @Valid PasswordResetConfirmDto passwordResetConfirmDto, HttpServletRequest request) {
+        passwordResetService.confirmPasswordReset(passwordResetConfirmDto, request);
+        return ResponseEntity.noContent().build();
+    }
+
+}

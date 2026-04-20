@@ -16,6 +16,5 @@ public class EmailChangeNotifier {
     @Async
     public void sendEmail(User user) {
         emailTemplateService.sendEmail(user, "Finovara - Zmiana adresu e-mail", TEMPLATE_PATH, user.getUsername(),user.getEmail());
-        //moze dlatego ze dalem tu email jako null
     }
 }

@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
+package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.change;
 
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
