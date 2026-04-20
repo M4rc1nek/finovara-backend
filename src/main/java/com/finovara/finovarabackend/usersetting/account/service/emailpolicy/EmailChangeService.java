@@ -26,7 +26,6 @@ public class EmailChangeService {
     private final VerificationCodeEmailService verificationCodeEmailService;
     private final PasswordValidator passwordValidator;
     private final EmailUpdateService emailUpdateService;
-    private final NotifyEmailChangeService notifyEmailChangeService;
 
     @Transactional
     public void requestEmailChange(Long userId, EmailChangeRequestDto dto) {
@@ -48,7 +47,6 @@ public class EmailChangeService {
         verificationCodeManager.removeEmailChangeCode(settings);
 
         emailUpdateService.updateEmail(user, newEmail, request);
-        notifyEmailChangeService.sendEmail(user);
     }
 
     private void validateEmailChangeRequest(User user, EmailChangeRequestDto dto) {

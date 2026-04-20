@@ -24,7 +24,6 @@ public class PasswordResetService {
     private final CredentialValidationService credentialValidationService;
     private final VerificationCodeManager verificationCodeManager;
     private final VerificationCodeEmailService verificationCodeEmailService;
-    private final NotifyPasswordChangeService notifyPasswordChangeService;
     private final PasswordUpdateService passwordUpdateService;
 
     @Transactional
@@ -44,7 +43,6 @@ public class PasswordResetService {
         verificationCodeManager.removePasswordResetCode(accountSettings);
 
         passwordUpdateService.updatePassword(user, dto.newPassword(), request);
-        notifyPasswordChangeService.sendEmail(user);
     }
 
     private void generateAndSendPasswordResetCode(User user, String email) {
