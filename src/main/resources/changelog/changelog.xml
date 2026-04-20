@@ -133,6 +133,7 @@
             </column>
             <column name="notify_on_password_change" type="BOOLEAN"/>
             <column name="notify_on_username_change" type="BOOLEAN"/>
+            <column name="notify_on_email_change" type="BOOLEAN"/>
             <column name="notify_on_account_deleted" type="BOOLEAN"/>
 
             <column name="user_id" type="BIGINT">

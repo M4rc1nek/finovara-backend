@@ -19,6 +19,7 @@ public class NotificationEmailSettings {
 
     private boolean  notifyOnPasswordChange;
     private boolean  notifyOnUsernameChange;
+    private boolean  notifyOnEmailChange;
     private boolean  notifyOnAccountDeleted;
 
 

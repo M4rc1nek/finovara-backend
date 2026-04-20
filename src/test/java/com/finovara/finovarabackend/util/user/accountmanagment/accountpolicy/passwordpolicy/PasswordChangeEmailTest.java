@@ -1,8 +1,8 @@
 package com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.passwordpolicy;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.user.accountmanagment.emailtemplate.EmailTemplateService;
-import com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy.PasswordChangeEmailService;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.emailtemplate.EmailTemplateService;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.emailsender.PasswordChangeNotifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,7 +18,7 @@ class PasswordChangeEmailTest {
     private EmailTemplateService emailTemplateService;
 
     @InjectMocks
-    private PasswordChangeEmailService passwordChangeEmailService;
+    private PasswordChangeNotifier passwordChangeNotifier;
 
     @Test
     void shouldCallSendEmailWithCorrectParameters() {
@@ -26,7 +26,7 @@ class PasswordChangeEmailTest {
         user.setUsername("john_doe");
         user.setEmail("john@example.com");
 
-        passwordChangeEmailService.sendEmail(user);
+        passwordChangeNotifier.sendEmail(user);
 
         verify(emailTemplateService).sendEmail(
                 user,

@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ChangeEmailService {
 
-    private static final String TEMPLATE_PATH = "email/change-email.html";
+    private static final String TEMPLATE_PATH = "email/emailchange/change-email-code.html";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final JavaMailSender javaMailSender;

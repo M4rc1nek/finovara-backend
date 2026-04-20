@@ -1,7 +1,7 @@
-package com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.controller;
+package com.finovara.finovarabackend.usersetting.notificationemail.action.accountdeleted.controller;
 
 import com.finovara.finovarabackend.security.SecurityUtils;
-import com.finovara.finovarabackend.usersetting.notificationemail.accountdeleted.service.NotifyOnAccountDeletedService;
+import com.finovara.finovarabackend.usersetting.notificationemail.action.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.finovarabackend.usersetting.notificationemail.dto.NotificationEmailDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

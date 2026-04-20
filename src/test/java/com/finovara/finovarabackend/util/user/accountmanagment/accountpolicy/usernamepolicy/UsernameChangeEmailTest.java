@@ -1,8 +1,8 @@
 package com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.usernamepolicy;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.user.accountmanagment.emailtemplate.EmailTemplateService;
-import com.finovara.finovarabackend.util.user.accountmanagment.usernamepolicy.UsernameChangeEmailService;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.emailtemplate.EmailTemplateService;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.emailsender.UsernameChangeNotifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,7 +18,7 @@ class UsernameChangeEmailTest {
     private EmailTemplateService emailTemplateService;
 
     @InjectMocks
-    private UsernameChangeEmailService usernameChangeEmailService;
+    private UsernameChangeNotifier usernameChangeNotifier;
 
     @Test
     void shouldCallSendEmailWithCorrectParameters() {
@@ -26,7 +26,7 @@ class UsernameChangeEmailTest {
         user.setUsername("john_doe");
         user.setEmail("john@example.com");
 
-        usernameChangeEmailService.sendEmail(user);
+        usernameChangeNotifier.sendEmail(user);
 
         verify(emailTemplateService).sendEmail(
                 user,

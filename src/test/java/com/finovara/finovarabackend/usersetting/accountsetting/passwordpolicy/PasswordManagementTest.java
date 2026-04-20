@@ -5,7 +5,7 @@ import com.finovara.finovarabackend.accountactivity.secure.accountchange.activit
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordUpdateService;
-import com.finovara.finovarabackend.usersetting.notificationemail.passwordchange.service.NotifyPasswordChangeService;
+import com.finovara.finovarabackend.usersetting.notificationemail.action.passwordchange.service.NotifyPasswordChangeService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

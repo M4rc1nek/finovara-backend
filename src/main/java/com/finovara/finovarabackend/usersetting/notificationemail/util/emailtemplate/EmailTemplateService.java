@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.util.user.accountmanagment.emailtemplate;
+package com.finovara.finovarabackend.usersetting.notificationemail.util.emailtemplate;
 
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.user.model.User;

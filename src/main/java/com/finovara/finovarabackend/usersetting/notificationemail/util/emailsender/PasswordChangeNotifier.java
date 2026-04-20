@@ -1,14 +1,14 @@
-package com.finovara.finovarabackend.util.user.accountmanagment.passwordpolicy;
+package com.finovara.finovarabackend.usersetting.notificationemail.util.emailsender;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.user.accountmanagment.emailtemplate.EmailTemplateService;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.emailtemplate.EmailTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class PasswordChangeEmailService {
+public class PasswordChangeNotifier {
     private static final String TEMPLATE_PATH = "email/password/password-changed.html";
 
     private final EmailTemplateService emailTemplateService;

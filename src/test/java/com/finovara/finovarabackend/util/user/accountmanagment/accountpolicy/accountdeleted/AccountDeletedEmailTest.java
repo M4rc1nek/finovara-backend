@@ -1,8 +1,8 @@
 package com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.accountdeleted;
 
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.user.accountmanagment.emailtemplate.EmailTemplateService;
-import com.finovara.finovarabackend.util.user.accountmanagment.accountpolicy.accountdeleted.AccountDeletedEmailService;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.emailsender.AccountDeletedNotifier;
+import com.finovara.finovarabackend.usersetting.notificationemail.util.emailtemplate.EmailTemplateService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,7 +18,7 @@ class AccountDeletedEmailTest {
     private EmailTemplateService emailTemplateService;
 
     @InjectMocks
-    private AccountDeletedEmailService accountDeletedEmailService;
+    private AccountDeletedNotifier accountDeletedNotifier;
 
     @Test
     void shouldCallSendEmailWithCorrectParameters() {
@@ -26,7 +26,7 @@ class AccountDeletedEmailTest {
         user.setUsername("john_doe");
         user.setEmail("john@example.com");
 
-        accountDeletedEmailService.sendEmail(user);
+        accountDeletedNotifier.sendEmail(user);
 
         verify(emailTemplateService).sendEmail(
                 user,
