@@ -7,7 +7,6 @@ import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.service.security.CredentialValidationService;
 import com.finovara.finovarabackend.usersetting.account.service.security.VerificationCodeManager;
 import com.finovara.finovarabackend.usersetting.account.service.security.VerificationCodeEmailService;
-import com.finovara.finovarabackend.usersetting.notificationemail.action.emailchange.service.NotifyEmailChangeService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
