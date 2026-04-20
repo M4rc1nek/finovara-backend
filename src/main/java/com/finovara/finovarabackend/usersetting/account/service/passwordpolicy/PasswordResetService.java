@@ -7,9 +7,9 @@ import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.Passw
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordResetRequestDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.change.PasswordUpdateService;
-import com.finovara.finovarabackend.usersetting.account.service.security.CredentialValidationService;
-import com.finovara.finovarabackend.usersetting.account.service.security.VerificationCodeManager;
-import com.finovara.finovarabackend.usersetting.account.service.security.VerificationCodeEmailService;
+import com.finovara.finovarabackend.usersetting.account.service.verification.CredentialValidationService;
+import com.finovara.finovarabackend.usersetting.account.service.verification.VerificationCodeManager;
+import com.finovara.finovarabackend.usersetting.account.service.verification.VerificationCodeEmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

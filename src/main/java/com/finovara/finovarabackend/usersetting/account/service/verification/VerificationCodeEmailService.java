@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.account.service.security;
+package com.finovara.finovarabackend.usersetting.account.service.verification;
 
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.user.model.User;

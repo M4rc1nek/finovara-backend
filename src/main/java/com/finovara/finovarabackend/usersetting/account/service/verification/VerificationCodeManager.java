@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.account.service.security;
+package com.finovara.finovarabackend.usersetting.account.service.verification;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
