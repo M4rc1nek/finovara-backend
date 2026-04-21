@@ -111,20 +111,22 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+            <column name="reset_password_code" type="INT"/>
+            <column name="reset_password_code_expires_at" type="TIMESTAMP"/>
+            <column name="password_reset_attempts" type="INT"/>
+            <column name="attempts_password_expires_at" type="TIMESTAMP"/>
+
             <column name="email_change_code" type="INT"/>
             <column name="pending_email" type="VARCHAR(255)"/>
             <column name="email_change_code_expires_at" type="TIMESTAMP"/>
-            <column name="forgot_password_code" type="INT"/>
-            <column name="forgot_password_code_expires_at" type="TIMESTAMP"/>
-
+            <column name="email_change_attempts" type="INT"/>
+            <column name="attempts_email_expires_at" type="TIMESTAMP"/>
 
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_account_settings_user"
-                             references="users(id)"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_account_settings_user" references="users(id)"/>
             </column>
         </createTable>
     </changeSet>
-
 
     <changeSet id="create-notification-settings" author="Marcin Parśniak">
         <createTable tableName="notification_settings">
@@ -395,7 +397,8 @@
                 <constraints nullable="false" foreignKeyName="fk_notifications_user" references="users(id)"/>
             </column>
         </createTable>
-        <addUniqueConstraint tableName="notifications" columnNames="user_id, deduplication_key" constraintName="uk_notifications_user_dedup"/>
+        <addUniqueConstraint tableName="notifications" columnNames="user_id, deduplication_key"
+                             constraintName="uk_notifications_user_dedup"/>
     </changeSet>
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">

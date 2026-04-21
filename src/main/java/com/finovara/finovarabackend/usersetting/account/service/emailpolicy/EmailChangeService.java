@@ -39,7 +39,9 @@ public class EmailChangeService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         AccountSettings settings = user.getAccountSettings();
 
+        verificationCodeManager.verifyEmailChangeAttemptsCode(userId,settings);
         verificationCodeManager.verifyEmailChangeCode(settings, dto.code());
+
 
         String newEmail = settings.getPendingEmail();
 

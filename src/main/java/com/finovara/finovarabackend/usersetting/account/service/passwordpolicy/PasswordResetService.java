@@ -1,6 +1,5 @@
 package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
 
-import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordResetConfirmDto;
@@ -10,6 +9,7 @@ import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.c
 import com.finovara.finovarabackend.usersetting.account.service.verification.CredentialValidationService;
 import com.finovara.finovarabackend.usersetting.account.service.verification.VerificationCodeManager;
 import com.finovara.finovarabackend.usersetting.account.service.verification.VerificationCodeEmailService;
+import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,22 +24,25 @@ public class PasswordResetService {
     private final VerificationCodeManager verificationCodeManager;
     private final VerificationCodeEmailService verificationCodeEmailService;
     private final PasswordUpdateService passwordUpdateService;
+    private final UserManagerService userManagerService;
 
     @Transactional
     public void requestPasswordReset(PasswordResetRequestDto dto) {
-        User user = getUserByEmailOrThrow(dto.email());
+        User user = userManagerService.getUserByEmailOrThrow(dto.email());
 
         generateAndSendPasswordResetCode(user, dto.email());
     }
 
     @Transactional
     public void confirmPasswordReset(PasswordResetConfirmDto dto, HttpServletRequest request) {
-        User user = getUserByEmailOrThrow(dto.email());
-        AccountSettings accountSettings = user.getAccountSettings();
+        User user = userManagerService.getUserByEmailOrThrow(dto.email());
+        AccountSettings settings = user.getAccountSettings();
 
+        verificationCodeManager.verifyPasswordResetAttemptsCode(dto.email(), settings);
         validatePasswordReset(user, dto);
-        verificationCodeManager.verifyPasswordResetCode(accountSettings, dto.code());
-        verificationCodeManager.removePasswordResetCode(accountSettings);
+        verificationCodeManager.verifyPasswordResetCode(settings, dto.code());
+
+        verificationCodeManager.removePasswordResetCode(settings);
 
         passwordUpdateService.updatePassword(user, dto.newPassword(), request);
     }
@@ -52,10 +55,4 @@ public class PasswordResetService {
     private void validatePasswordReset(User user, PasswordResetConfirmDto dto) {
         credentialValidationService.validateNewPassword(dto.newPassword(), dto.confirmNewPassword(), user.getPassword());
     }
-
-    private User getUserByEmailOrThrow(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-    }
-
 }

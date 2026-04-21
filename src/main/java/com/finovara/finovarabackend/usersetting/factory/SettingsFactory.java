@@ -70,8 +70,10 @@ public class SettingsFactory {
                 .userAssigned(user)
                 .emailChangeCode(null)
                 .pendingEmail(null)
-                .forgotPasswordCode(null)
-                .forgotPasswordCodeExpiresAt(null)
+                .resetPasswordCode(null)
+                .resetPasswordCodeExpiresAt(null)
+                .attemptsEmailExpiresAt(null)
+                .attemptsPasswordExpiresAt(null)
                 .build();
     }
 

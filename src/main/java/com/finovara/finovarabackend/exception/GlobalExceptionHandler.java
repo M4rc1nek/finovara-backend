@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.exception.conflict.StateConflictException;
 import com.finovara.finovarabackend.exception.forbidden.NotAuthorizedException;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
+import com.finovara.finovarabackend.exception.tomanyrequest.TooManyRequestsException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
@@ -91,6 +92,17 @@ public class GlobalExceptionHandler {
                 webRequest.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ErrorResponseDto> handleToManyRequests(TooManyRequestsException exception, WebRequest webRequest) {
+        ErrorResponseDto body = new ErrorResponseDto(
+                HttpStatus.TOO_MANY_REQUESTS.value(),
+                HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     @ExceptionHandler(ServiceUnavailableException.class)

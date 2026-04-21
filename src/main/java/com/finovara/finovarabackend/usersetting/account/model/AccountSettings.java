@@ -18,12 +18,17 @@ public class AccountSettings {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer forgotPasswordCode;
-    private LocalDateTime forgotPasswordCodeExpiresAt;
+    private Integer resetPasswordCode;
+    private LocalDateTime resetPasswordCodeExpiresAt;
+    private int  passwordResetAttempts;
+    private LocalDateTime attemptsPasswordExpiresAt;
 
     private Integer emailChangeCode;
     private LocalDateTime emailChangeCodeExpiresAt;
     private String pendingEmail;
+    private int  emailChangeAttempts;
+    private LocalDateTime attemptsEmailExpiresAt;
+
 
     @OneToOne
     @JoinColumn(name = "user_id")
