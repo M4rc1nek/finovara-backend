@@ -95,3 +95,10 @@ scheduler:
     recurring-frequency: "0 0 0 * * ?"
   notification:
     delete-cron: "0 0 0 ? * 1"
+
+
+
+verification-code-manager:
+  code-expiration-minutes: 15
+  attempts-expiration-minutes: 2
+  max-attempts: 5

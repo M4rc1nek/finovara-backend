@@ -30,5 +30,5 @@ public interface AccountRepository extends JpaRepository<AccountSettings, Long> 
     int getEmailChangeAttemptsByUserId(@Param("userId") Long userId);
 
     @Query("SELECT a.passwordResetAttempts FROM AccountSettings a WHERE a.userAssigned.email = :email")
-    int getPasswordResetAttemptsByUserId(@Param("email") String email);
+    int getPasswordResetAttemptsByUserEmail(@Param("email") String email);
 }

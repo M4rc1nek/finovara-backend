@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.exception.tomanyrequest.TooManyRequestsExcep
 import com.finovara.finovarabackend.usersetting.account.dto.AttemptsDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
+import com.finovara.finovarabackend.usersetting.account.service.verification.properties.VerificationCodeProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -18,30 +19,29 @@ import java.time.LocalDateTime;
 public class VerificationCodeManager {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final int CODE_EXPIRATION_MINUTES = 15;
-    private static final int ATTEMPTS_EXPIRATION_MINUTES = 2;
-    private static final int MAX_ATTEMPTS = 5;
+    private final VerificationCodeProperties verificationCodeProperties;
 
     private final AccountRepository accountRepository;
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AttemptsDto verifyEmailChangeAttemptsCode(Long userId, AccountSettings settings) {
         LocalDateTime now = LocalDateTime.now();
 
         if (settings.getAttemptsEmailExpiresAt() == null || settings.getAttemptsEmailExpiresAt().isBefore(now)) {
             settings.setEmailChangeAttempts(0);
-            settings.setAttemptsEmailExpiresAt(now.plusMinutes(ATTEMPTS_EXPIRATION_MINUTES));
+            settings.setAttemptsEmailExpiresAt(now.plusMinutes(verificationCodeProperties.getAttemptsExpirationMinutes()));
             accountRepository.save(settings);
         }
 
-        int updated = accountRepository.incrementEmailChangeAttempts(userId, MAX_ATTEMPTS);
+        int updated = accountRepository.incrementEmailChangeAttempts(userId, verificationCodeProperties.getMaxAttempts());
         int attempts = accountRepository.getEmailChangeAttemptsByUserId(userId);
-        int remainingAttempts = Math.max(0, MAX_ATTEMPTS - attempts);
+        int remainingAttempts = Math.max(0, verificationCodeProperties.getMaxAttempts() - attempts);
 
         if (updated == 0) {
             throw new TooManyRequestsException("Email change attempts limit exceeded", remainingAttempts);
         }
 
-        return new AttemptsDto(attempts, MAX_ATTEMPTS, remainingAttempts);
+        return new AttemptsDto(attempts, verificationCodeProperties.getMaxAttempts(), remainingAttempts);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -50,27 +50,26 @@ public class VerificationCodeManager {
 
         if (settings.getAttemptsPasswordExpiresAt() == null || settings.getAttemptsPasswordExpiresAt().isBefore(now)) {
             settings.setPasswordResetAttempts(0);
-            settings.setAttemptsPasswordExpiresAt(now.plusMinutes(ATTEMPTS_EXPIRATION_MINUTES));
+            settings.setAttemptsPasswordExpiresAt(now.plusMinutes(verificationCodeProperties.getAttemptsExpirationMinutes()));
             accountRepository.save(settings);
         }
 
-        int updated = accountRepository.incrementPasswordResetAttempts(email, MAX_ATTEMPTS);
-        int attempts = accountRepository.getPasswordResetAttemptsByUserId(email);
-        int remainingAttempts = Math.max(0, MAX_ATTEMPTS - attempts);
+        int updated = accountRepository.incrementPasswordResetAttempts(email, verificationCodeProperties.getMaxAttempts());
+        int attempts = accountRepository.getPasswordResetAttemptsByUserEmail(email);
+        int remainingAttempts = Math.max(0, verificationCodeProperties.getMaxAttempts() - attempts);
 
         if (updated == 0) {
             throw new TooManyRequestsException("Password reset attempts limit exceeded", remainingAttempts);
         }
 
-        return new AttemptsDto(attempts, MAX_ATTEMPTS, remainingAttempts);
+        return new AttemptsDto(attempts, verificationCodeProperties.getMaxAttempts(), remainingAttempts);
 
     }
-
 
     public int generatePasswordResetCode(AccountSettings settings) {
         int code = generateCode();
         settings.setResetPasswordCode(code);
-        settings.setResetPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(CODE_EXPIRATION_MINUTES));
+        settings.setResetPasswordCodeExpiresAt(LocalDateTime.now().plusMinutes(verificationCodeProperties.getCodeExpirationMinutes()));
         accountRepository.save(settings);
         return code;
     }
@@ -78,7 +77,7 @@ public class VerificationCodeManager {
     public int generateEmailChangeCode(AccountSettings settings, String pendingEmail) {
         int code = generateCode();
         settings.setEmailChangeCode(code);
-        settings.setEmailChangeCodeExpiresAt(LocalDateTime.now().plusMinutes(CODE_EXPIRATION_MINUTES));
+        settings.setEmailChangeCodeExpiresAt(LocalDateTime.now().plusMinutes(verificationCodeProperties.getCodeExpirationMinutes()));
         settings.setPendingEmail(pendingEmail);
         accountRepository.save(settings);
         return code;
