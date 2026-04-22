@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.usersetting.account.controller.reset;
 
 import com.finovara.finovarabackend.security.SecurityUtils;
+import com.finovara.finovarabackend.usersetting.account.dto.AttemptsDto;
 import com.finovara.finovarabackend.usersetting.account.dto.emailpolicy.EmailChangeConfirmDto;
 import com.finovara.finovarabackend.usersetting.account.dto.emailpolicy.EmailChangeRequestDto;
 import com.finovara.finovarabackend.usersetting.account.service.emailpolicy.EmailChangeService;
@@ -24,8 +25,7 @@ public class EmailChangeController {
     }
 
     @PutMapping("/confirm")
-    public ResponseEntity<Void> confirmEmailWithCode(@RequestBody @Valid EmailChangeConfirmDto dto, HttpServletRequest request) {
-        emailChangeService.confirmEmailChange(SecurityUtils.getCurrentUserId(), dto, request);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<AttemptsDto> confirmEmailWithCode(@RequestBody @Valid EmailChangeConfirmDto dto, HttpServletRequest request) {
+        return ResponseEntity.ok(emailChangeService.confirmEmailChange(SecurityUtils.getCurrentUserId(), dto, request));
     }
 }

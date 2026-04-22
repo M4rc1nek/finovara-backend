@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.usersetting.account.service.emailpolicy;
 
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.account.dto.AttemptsDto;
 import com.finovara.finovarabackend.usersetting.account.dto.emailpolicy.EmailChangeConfirmDto;
 import com.finovara.finovarabackend.usersetting.account.dto.emailpolicy.EmailChangeRequestDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
@@ -35,11 +36,11 @@ public class EmailChangeService {
     }
 
     @Transactional
-    public void confirmEmailChange(Long userId, EmailChangeConfirmDto dto, HttpServletRequest request) {
+    public AttemptsDto confirmEmailChange(Long userId, EmailChangeConfirmDto dto, HttpServletRequest request) {
         User user = userManagerService.getUserByIdOrThrow(userId);
         AccountSettings settings = user.getAccountSettings();
 
-        verificationCodeManager.verifyEmailChangeAttemptsCode(userId,settings);
+        AttemptsDto attemptsDto = verificationCodeManager.verifyEmailChangeAttemptsCode(userId,settings);
         verificationCodeManager.verifyEmailChangeCode(settings, dto.code());
 
 
@@ -48,6 +49,7 @@ public class EmailChangeService {
         verificationCodeManager.removeEmailChangeCode(settings);
 
         emailUpdateService.updateEmail(user, newEmail, request);
+        return attemptsDto;
     }
 
     private void validateEmailChangeRequest(User user, EmailChangeRequestDto dto) {

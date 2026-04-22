@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.usersetting.account.controller.reset;
 
+import com.finovara.finovarabackend.usersetting.account.dto.AttemptsDto;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordResetConfirmDto;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordResetRequestDto;
 import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.PasswordResetService;
@@ -23,9 +24,8 @@ public class PasswordResetController {
     }
 
     @PutMapping("/confirm")
-    public ResponseEntity<Void> confirmPasswordReset(@RequestBody @Valid PasswordResetConfirmDto passwordResetConfirmDto, HttpServletRequest request) {
-        passwordResetService.confirmPasswordReset(passwordResetConfirmDto, request);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<AttemptsDto> confirmPasswordReset(@RequestBody @Valid PasswordResetConfirmDto passwordResetConfirmDto, HttpServletRequest request) {
+      return ResponseEntity.ok(passwordResetService.confirmPasswordReset(passwordResetConfirmDto, request));
     }
 
 }

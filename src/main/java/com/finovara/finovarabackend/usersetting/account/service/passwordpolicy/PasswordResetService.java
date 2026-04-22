@@ -2,6 +2,7 @@ package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.usersetting.account.dto.AttemptsDto;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordResetConfirmDto;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.PasswordResetRequestDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
@@ -34,17 +35,19 @@ public class PasswordResetService {
     }
 
     @Transactional
-    public void confirmPasswordReset(PasswordResetConfirmDto dto, HttpServletRequest request) {
+    public AttemptsDto confirmPasswordReset(PasswordResetConfirmDto dto, HttpServletRequest request) {
         User user = userManagerService.getUserByEmailOrThrow(dto.email());
         AccountSettings settings = user.getAccountSettings();
 
-        verificationCodeManager.verifyPasswordResetAttemptsCode(dto.email(), settings);
+      AttemptsDto attemptsDto =  verificationCodeManager.verifyPasswordResetAttemptsCode(dto.email(), settings);
         validatePasswordReset(user, dto);
         verificationCodeManager.verifyPasswordResetCode(settings, dto.code());
 
         verificationCodeManager.removePasswordResetCode(settings);
 
         passwordUpdateService.updatePassword(user, dto.newPassword(), request);
+
+        return attemptsDto;
     }
 
     private void generateAndSendPasswordResetCode(User user, String email) {
