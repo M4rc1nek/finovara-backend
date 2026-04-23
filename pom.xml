@@ -13,7 +13,7 @@
 
     <groupId>finovara</groupId>
     <artifactId>finovara-backend</artifactId>
-    <version>0.43.35-SNAPSHOT</version>
+    <version>0.44.36-SNAPSHOT</version>
     <name>finovara-backend</name>
     <description>Backend REST API for Finovara – a personal finance management application</description>
 
