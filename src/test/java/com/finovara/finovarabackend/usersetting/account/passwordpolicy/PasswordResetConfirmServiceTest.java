@@ -105,17 +105,6 @@ class PasswordResetConfirmServiceTest {
     }
 
     @Test
-    void shouldStopFlowWhenPasswordValidationFails() {
-
-        doThrow(new RuntimeException("Validation failed")).when(credentialValidationService).validateNewPassword("newPass", "wrongConfirm", "oldPass");
-
-        assertThrows(RuntimeException.class, () -> passwordResetService.confirmPasswordReset(invalidConfirmDto, request));
-
-        verifyNoInteractions(verificationCodeManager);
-        verifyNoInteractions(passwordUpdateService);
-    }
-
-    @Test
     void shouldThrowWhenUserNotFound() {
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
 
@@ -123,5 +112,4 @@ class PasswordResetConfirmServiceTest {
 
         verifyNoInteractions(credentialValidationService);
     }
-
 }

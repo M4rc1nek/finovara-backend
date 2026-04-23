@@ -57,7 +57,7 @@ class PasswordResetRequestServiceTest {
     }
 
     @Test
-    void shouldThrowWhenUserNotFound() {
+    void shouldThrowExceptionWhenUserNotFound() {
         PasswordResetRequestDto dto = new PasswordResetRequestDto(email);
 
         when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
