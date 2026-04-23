@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PasswordResetService {
 
-    private final UserRepository userRepository;
     private final CredentialValidationService credentialValidationService;
     private final VerificationCodeManager verificationCodeManager;
     private final VerificationCodeEmailService verificationCodeEmailService;
