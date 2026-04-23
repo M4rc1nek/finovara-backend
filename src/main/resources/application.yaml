@@ -100,5 +100,5 @@ scheduler:
 
 verification-code-manager:
   code-expiration-minutes: 15
-  attempts-expiration-minutes: 2
+  attempts-expiration-minutes: 15
   max-attempts: 5
