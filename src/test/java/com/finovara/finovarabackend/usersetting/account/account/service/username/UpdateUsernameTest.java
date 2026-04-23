@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.accountsetting.account.service.username;
+package com.finovara.finovarabackend.usersetting.account.account.service.username;
 
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.model.AccountChangesActivityType;
 import com.finovara.finovarabackend.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;

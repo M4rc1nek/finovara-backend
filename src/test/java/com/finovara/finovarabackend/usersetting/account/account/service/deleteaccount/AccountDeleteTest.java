@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.accountsetting.account.service.deleteaccount;
+package com.finovara.finovarabackend.usersetting.account.account.service.deleteaccount;
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;

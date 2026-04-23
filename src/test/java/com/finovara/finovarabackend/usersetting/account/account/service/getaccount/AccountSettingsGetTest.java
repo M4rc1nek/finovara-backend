@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.accountsetting.account.service.getaccount;
+package com.finovara.finovarabackend.usersetting.account.account.service.getaccount;
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.account.dto.AccountSettingsDto;
