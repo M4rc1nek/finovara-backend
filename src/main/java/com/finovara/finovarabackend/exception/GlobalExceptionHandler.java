@@ -1,12 +1,13 @@
 package com.finovara.finovarabackend.exception;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.exception.badrequest.InvalidVerificationCodeException;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
 import com.finovara.finovarabackend.exception.conflict.StateConflictException;
 import com.finovara.finovarabackend.exception.forbidden.NotAuthorizedException;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
-import com.finovara.finovarabackend.exception.tomanyrequest.TooManyRequestsException;
+import com.finovara.finovarabackend.exception.tomanyrequest.VerificationAttemptsExceededException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
@@ -83,6 +84,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(InvalidVerificationCodeException.class)
+    public ResponseEntity<AttemptsErrorResponseDto> handleInvalidVerificationCode(InvalidVerificationCodeException exception, WebRequest webRequest) {
+        AttemptsErrorResponseDto body = new AttemptsErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", ""),
+                exception.getAttempts()
+        );
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(NotAuthorizedException.class)
     public ResponseEntity<ErrorResponseDto> handleForbidden(NotAuthorizedException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
@@ -94,13 +107,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler(TooManyRequestsException.class)
-    public ResponseEntity<ErrorResponseDto> handleToManyRequests(TooManyRequestsException exception, WebRequest webRequest) {
-        ErrorResponseDto body = new ErrorResponseDto(
+    @ExceptionHandler(VerificationAttemptsExceededException.class)
+    public ResponseEntity<AttemptsErrorResponseDto> handleToManyVerificationAttempts(VerificationAttemptsExceededException exception, WebRequest webRequest) {
+        AttemptsErrorResponseDto body = new AttemptsErrorResponseDto(
                 HttpStatus.TOO_MANY_REQUESTS.value(),
                 HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(),
                 exception.getMessage(),
-                webRequest.getDescription(false).replace("uri=", "")
+                webRequest.getDescription(false).replace("uri=", ""),
+                exception.getAttempts()
         );
         return new ResponseEntity<>(body, HttpStatus.TOO_MANY_REQUESTS);
     }
