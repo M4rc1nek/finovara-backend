@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.usersetting.account.service.verification;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.exception.tomanyrequest.TooManyRequestsException;
+import com.finovara.finovarabackend.exception.tomanyrequest.VerificationAttemptsExceededException;
 import com.finovara.finovarabackend.usersetting.account.dto.AttemptsDto;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.repository.AccountRepository;
@@ -36,12 +36,13 @@ public class VerificationCodeManager {
         int updated = accountRepository.incrementEmailChangeAttempts(userId, verificationCodeProperties.getMaxAttempts());
         int attempts = accountRepository.getEmailChangeAttemptsByUserId(userId);
         int remainingAttempts = Math.max(0, verificationCodeProperties.getMaxAttempts() - attempts);
+        AttemptsDto attemptsDto = new AttemptsDto(attempts, verificationCodeProperties.getMaxAttempts(), remainingAttempts);
 
         if (updated == 0) {
-            throw new TooManyRequestsException("Email change attempts limit exceeded", remainingAttempts);
+            throw new VerificationAttemptsExceededException("Email change attempts limit exceeded", attemptsDto);
         }
 
-        return new AttemptsDto(attempts, verificationCodeProperties.getMaxAttempts(), remainingAttempts);
+        return attemptsDto;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -57,11 +58,27 @@ public class VerificationCodeManager {
         int updated = accountRepository.incrementPasswordResetAttempts(email, verificationCodeProperties.getMaxAttempts());
         int attempts = accountRepository.getPasswordResetAttemptsByUserEmail(email);
         int remainingAttempts = Math.max(0, verificationCodeProperties.getMaxAttempts() - attempts);
+        AttemptsDto attemptsDto = new AttemptsDto(attempts, verificationCodeProperties.getMaxAttempts(), remainingAttempts);
 
         if (updated == 0) {
-            throw new TooManyRequestsException("Password reset attempts limit exceeded", remainingAttempts);
+            throw new VerificationAttemptsExceededException("Password reset attempts limit exceeded", attemptsDto);
         }
 
+        return attemptsDto;
+
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public AttemptsDto getCurrentEmailChangeAttempts(Long userId) {
+        int attempts = accountRepository.getEmailChangeAttemptsByUserId(userId);
+        int remainingAttempts = Math.max(0, verificationCodeProperties.getMaxAttempts() - attempts);
+        return new AttemptsDto(attempts, verificationCodeProperties.getMaxAttempts(), remainingAttempts);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public AttemptsDto getCurrentPasswordResetAttempts(String email) {
+        int attempts = accountRepository.getPasswordResetAttemptsByUserEmail(email);
+        int remainingAttempts = Math.max(0, verificationCodeProperties.getMaxAttempts() - attempts);
         return new AttemptsDto(attempts, verificationCodeProperties.getMaxAttempts(), remainingAttempts);
 
     }

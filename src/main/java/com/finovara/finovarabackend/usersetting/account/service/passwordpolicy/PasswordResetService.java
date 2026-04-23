@@ -1,5 +1,7 @@
 package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
 
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.exception.badrequest.InvalidVerificationCodeException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.account.dto.AttemptsDto;
@@ -39,9 +41,15 @@ public class PasswordResetService {
         User user = userManagerService.getUserByEmailOrThrow(dto.email());
         AccountSettings settings = user.getAccountSettings();
 
-      AttemptsDto attemptsDto =  verificationCodeManager.verifyPasswordResetAttemptsCode(dto.email(), settings);
         validatePasswordReset(user, dto);
-        verificationCodeManager.verifyPasswordResetCode(settings, dto.code());
+        try {
+            verificationCodeManager.verifyPasswordResetCode(settings, dto.code());
+        } catch (InvalidInputException exception) {
+            AttemptsDto attemptsDto = verificationCodeManager.verifyPasswordResetAttemptsCode(dto.email(), settings);
+            throw new InvalidVerificationCodeException(exception.getMessage(), attemptsDto);
+        }
+
+        AttemptsDto attemptsDto = verificationCodeManager.getCurrentPasswordResetAttempts(dto.email());
 
         verificationCodeManager.removePasswordResetCode(settings);
 

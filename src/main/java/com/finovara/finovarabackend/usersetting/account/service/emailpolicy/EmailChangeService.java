@@ -1,5 +1,7 @@
 package com.finovara.finovarabackend.usersetting.account.service.emailpolicy;
 
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.exception.badrequest.InvalidVerificationCodeException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.account.dto.AttemptsDto;
 import com.finovara.finovarabackend.usersetting.account.dto.emailpolicy.EmailChangeConfirmDto;
@@ -40,8 +42,14 @@ public class EmailChangeService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         AccountSettings settings = user.getAccountSettings();
 
-        AttemptsDto attemptsDto = verificationCodeManager.verifyEmailChangeAttemptsCode(userId,settings);
-        verificationCodeManager.verifyEmailChangeCode(settings, dto.code());
+        try {
+            verificationCodeManager.verifyEmailChangeCode(settings, dto.code());
+        } catch (InvalidInputException exception) {
+            AttemptsDto attemptsDto = verificationCodeManager.verifyEmailChangeAttemptsCode(userId, settings);
+            throw new InvalidVerificationCodeException(exception.getMessage(), attemptsDto);
+        }
+
+        AttemptsDto attemptsDto = verificationCodeManager.getCurrentEmailChangeAttempts(userId);
 
 
         String newEmail = settings.getPendingEmail();
