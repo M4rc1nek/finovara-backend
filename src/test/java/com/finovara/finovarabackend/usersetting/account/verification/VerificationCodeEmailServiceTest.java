@@ -7,6 +7,8 @@ import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -17,15 +19,16 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class VerificationCodeEmailServiceTest {
 
+    @Mock
     private JavaMailSender javaMailSender;
+
+    @InjectMocks
     private VerificationCodeEmailService service;
+
     private User user;
 
     @BeforeEach
-    void SetUp() {
-        javaMailSender = mock(JavaMailSender.class);
-        service = new VerificationCodeEmailService(javaMailSender);
-
+    void setUp() {
         ReflectionTestUtils.setField(service, "recipientAddress", "test@finovara.com");
 
         MimeMessage mimeMessage = mock(MimeMessage.class);
@@ -37,31 +40,33 @@ class VerificationCodeEmailServiceTest {
     }
 
     @Test
-    void ShouldSendEmailChangeCodeCorrectly() {
+    void shouldSendEmailChangeCodeCorrectly() {
         service.sendEmailChangeCode(user, "user@test.com", 123456);
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
     @Test
-    void ShouldSendPasswordResetCodeCorrectly() {
+    void shouldSendPasswordResetCodeCorrectly() {
         service.sendPasswordResetCode(user, "user@test.com", 654321);
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
     @Test
-    void ShouldThrowExceptionWhenMailSenderCreateFails() {
+    void shouldThrowExceptionWhenCreateMimeMessageFails() {
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException());
 
         assertThrows(ServiceUnavailableException.class, () -> service.sendEmailChangeCode(user, "fail@test.com", 111111));
     }
 
     @Test
-    void ShouldThrowExceptionWhenMailSenderSendFails() {
+    void shouldThrowExceptionWhenSendFails() {
+        MimeMessage mimeMessage = mock(MimeMessage.class);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
         doThrow(new RuntimeException()).when(javaMailSender).send(any(MimeMessage.class));
 
         assertThrows(ServiceUnavailableException.class, () -> service.sendPasswordResetCode(user, "fail@test.com", 222222));
     }
-
 }
