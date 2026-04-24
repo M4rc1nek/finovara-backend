@@ -37,7 +37,7 @@ public class VerificationCodeEmailService {
     @Async
     public void sendPasswordResetCode(User user, String email, int code) {
         log.info("Password reset code requested: userId={}, email={}", user.getId(), email);
-        sendEmail(user, email, code, "Przypomnienie Hasla", PASSWORD_RESET_TEMPLATE_PATH);
+        sendEmail(user, email, code, "Przypomnienie Hasła", PASSWORD_RESET_TEMPLATE_PATH);
     }
 
     private void sendEmail(User user, String email, int code, String subject, String templatePath) {
