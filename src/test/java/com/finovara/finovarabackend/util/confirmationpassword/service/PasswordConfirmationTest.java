@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PasswordConfirmationTest {
+class PasswordValidatorTest {
 
     @Mock
     private UserManagerService userManagerService;
