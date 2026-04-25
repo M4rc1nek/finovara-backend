@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.account.profileimage.service;
+package com.finovara.finovarabackend.usersetting.account.service.profileimage.service;
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;

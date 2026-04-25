@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.account.passwordpolicy.change;
+package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.change;
 
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;

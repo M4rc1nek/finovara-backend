@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.account.passwordpolicy;
+package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.badrequest.InvalidVerificationCodeException;

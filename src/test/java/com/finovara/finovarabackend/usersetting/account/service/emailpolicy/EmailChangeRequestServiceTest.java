@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.account.emailpolicy;
+package com.finovara.finovarabackend.usersetting.account.service.emailpolicy;
 
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;

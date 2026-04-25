@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.account.verification.credentialvalidation;
+package com.finovara.finovarabackend.usersetting.account.service.verification.credentialvalidation;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
