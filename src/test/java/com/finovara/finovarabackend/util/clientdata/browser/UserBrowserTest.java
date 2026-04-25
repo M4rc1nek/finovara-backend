@@ -1,6 +1,5 @@
-package com.finovara.finovarabackend.util.clientdata.browser.service.get;
+package com.finovara.finovarabackend.util.clientdata.browser;
 
-import com.finovara.finovarabackend.util.clientdata.browser.UserBrowser;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class GetUserBrowserTest {
+class UserBrowserTest {
 
     @Mock
     private HttpServletRequest request;

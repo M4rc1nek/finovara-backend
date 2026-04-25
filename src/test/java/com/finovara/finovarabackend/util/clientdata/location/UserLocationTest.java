@@ -1,6 +1,5 @@
-package com.finovara.finovarabackend.util.clientdata.location.service.get;
+package com.finovara.finovarabackend.util.clientdata.location;
 
-import com.finovara.finovarabackend.util.clientdata.location.UserLocation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,7 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
 @ExtendWith(MockitoExtension.class)
-class GetUserLocationTest {
+class UserLocationTest {
 
     @Mock
     private RestTemplate restTemplate;

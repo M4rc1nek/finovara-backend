@@ -1,9 +1,8 @@
-package com.finovara.finovarabackend.util.clientdata.metadata.service;
+package com.finovara.finovarabackend.util.clientdata.metadata;
 
 import com.finovara.finovarabackend.util.clientdata.browser.UserBrowser;
 import com.finovara.finovarabackend.util.clientdata.ip.ClientIp;
 import com.finovara.finovarabackend.util.clientdata.location.UserLocation;
-import com.finovara.finovarabackend.util.clientdata.metadata.ClientData;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +16,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class GetClientDataTest {
+class ClientDataTest {
 
     @Mock
     private UserLocation userLocation;
@@ -29,7 +28,7 @@ class GetClientDataTest {
 
     @Test
     void shouldReturnClientIpFromClientIpService() {
-        try(MockedStatic<ClientIp> clientIpStatic = mockStatic(ClientIp.class)) {
+        try (MockedStatic<ClientIp> clientIpStatic = mockStatic(ClientIp.class)) {
             clientIpStatic.when(() -> ClientIp.getClientIpAddress(request)).thenReturn("192.168.1.10");
 
             String result = clientData.getClientIp(request);

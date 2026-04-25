@@ -1,6 +1,5 @@
-package com.finovara.finovarabackend.util.clientdata.ip.service.get;
+package com.finovara.finovarabackend.util.clientdata.ip;
 
-import com.finovara.finovarabackend.util.clientdata.ip.ClientIp;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +12,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class GetClientIpAddressTest {
+class ClientIpTest {
 
     @Mock
     private HttpServletRequest request;
