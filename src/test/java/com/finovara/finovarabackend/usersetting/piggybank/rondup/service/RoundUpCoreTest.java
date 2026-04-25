@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.piggybank.rondup.service.core;
+package com.finovara.finovarabackend.usersetting.piggybank.rondup.service;
 
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
