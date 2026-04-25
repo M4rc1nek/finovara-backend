@@ -14,6 +14,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
+import com.finovara.finovarabackend.util.piggybank.exception.notfound.PiggyBankNotFoundException;
 import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,23 +54,25 @@ class PiggyBankManagementServiceTest {
     private PiggyBankMapper piggyBankMapper;
 
     private User user;
+    private Long userId;
+    private Long piggyBankId;
 
     @BeforeEach
     void setUp() {
+        userId = 1L;
+        piggyBankId = 1L;
         user = new User();
-        user.setId(1L);
+        user.setId(userId);
     }
 
     @Nested
     class AddPiggyBankTests {
         @Test
         void shouldAddPiggyBankSuccessfully() {
-
-            PiggyBankDto dto = new PiggyBankDto(null, null, "Piggy", BigDecimal.valueOf(100), null,
-                    PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
+            PiggyBankDto dto = new PiggyBankDto(null, null, "Piggy", BigDecimal.valueOf(100), null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
             PiggyBank piggyBank = new PiggyBank();
-            piggyBank.setId(1L);
+            piggyBank.setId(piggyBankId);
             piggyBank.setUserAssigned(user);
 
             PiggyBankSettings settings = new PiggyBankSettings();
@@ -92,9 +95,7 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldThrowWhenMaxPiggyBanksReached() {
-
-            PiggyBankDto dto = new PiggyBankDto(null, null, "Piggy", BigDecimal.valueOf(100), null,
-                    PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
+            PiggyBankDto dto = new PiggyBankDto(null, null, "Piggy", BigDecimal.valueOf(100), null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
             when(userManagerService.getUserByIdOrThrow(1L)).thenReturn(user);
             when(piggyBankRepository.countPiggyBanksByUserId(1L)).thenReturn(5L);
@@ -106,9 +107,7 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldThrowWhenNameAlreadyExists() {
-
-            PiggyBankDto dto = new PiggyBankDto(null, null, "Piggy", BigDecimal.valueOf(100), null,
-                    PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
+            PiggyBankDto dto = new PiggyBankDto(null, null, "Piggy", BigDecimal.valueOf(100), null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
             when(userManagerService.getUserByIdOrThrow(1L)).thenReturn(user);
             when(piggyBankRepository.countPiggyBanksByUserId(1L)).thenReturn(0L);
@@ -121,9 +120,7 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldThrowWhenUserNotFound() {
-
-            PiggyBankDto dto = new PiggyBankDto(null, null, "Piggy", BigDecimal.valueOf(100), null,
-                    PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
+            PiggyBankDto dto = new PiggyBankDto(null, null, "Piggy", BigDecimal.valueOf(100), null, PiggyBankGoalType.GIFTS, BigDecimal.valueOf(230), null, null);
 
             when(userManagerService.getUserByIdOrThrow(1L)).thenThrow(new UserNotFoundException("x"));
 
@@ -132,23 +129,103 @@ class PiggyBankManagementServiceTest {
             verify(piggyBankRepository, never()).save(any());
         }
     }
+    @Nested
+    class EditPiggyBankTests {
+        @Test
+        void shouldEditPiggyBankSuccessfully() {
+            PiggyBank piggyBank = new PiggyBank();
+            piggyBank.setId(piggyBankId);
+            piggyBank.setName("Old name");
+            piggyBank.setGoalAmount(BigDecimal.valueOf(200));
+            piggyBank.setGoalType(PiggyBankGoalType.GIFTS);
+            piggyBank.setUserAssigned(user);
 
+            PiggyBankDto dto = new PiggyBankDto(piggyBankId, userId, "New name", BigDecimal.valueOf(100), null, PiggyBankGoalType.GIFTS,
+                    BigDecimal.valueOf(200), null, null);
+
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(piggyBankRepository.existsByNameAndUserAssignedId(dto.name(), userId)).thenReturn(false);
+            when(piggyBankRepository.save(any(PiggyBank.class))).thenAnswer(i -> i.getArgument(0));
+
+            Long result = service.editPiggyBank(userId, dto, piggyBankId);
+
+            assertEquals(piggyBankId, result);
+
+            verify(piggyBankRepository).save(piggyBank);
+
+            assertEquals("New name", piggyBank.getName());
+            assertEquals(BigDecimal.valueOf(200), piggyBank.getGoalAmount());
+            assertEquals(PiggyBankGoalType.GIFTS, piggyBank.getGoalType());
+
+            verify(piggyBankActivityService).createEditPiggyBankActivity(eq(userId), eq(piggyBank), eq(PiggyBankActivityType.EDITED_PIGGY_BANK),
+                    any(), any(), eq("Old name"));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenPiggyBankNotFound() {
+            PiggyBankDto dto = new PiggyBankDto(piggyBankId, userId, "New name", BigDecimal.valueOf(200), null, PiggyBankGoalType.GIFTS, null, null, null);
+
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenThrow(new PiggyBankNotFoundException("Piggy bank not found"));
+
+            assertThrows(PiggyBankNotFoundException.class, () -> service.editPiggyBank(userId, dto, piggyBankId));
+
+            verify(piggyBankRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenNameAlreadyExists() {
+            PiggyBank existing = new PiggyBank();
+            existing.setId(piggyBankId);
+            existing.setName("Old name");
+            existing.setUserAssigned(user);
+
+            PiggyBankDto dto = new PiggyBankDto(piggyBankId, userId, "Another existing name", BigDecimal.valueOf(200), null,
+                    PiggyBankGoalType.GIFTS, null, null, null);
+
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(existing);
+            when(piggyBankRepository.existsByNameAndUserAssignedId(dto.name(), userId)).thenReturn(true);
+
+            assertThrows(NameAlreadyExistsException.class, () -> service.editPiggyBank(userId, dto, piggyBankId));
+
+            verify(piggyBankRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldThrowWhenPiggyBankBelongsToAnotherUsers() {
+            User otherUser = new User();
+            otherUser.setId(999L);
+
+            PiggyBank piggyBank = new PiggyBank();
+            piggyBank.setId(piggyBankId);
+            piggyBank.setUserAssigned(otherUser);
+
+            PiggyBankDto dto = new PiggyBankDto(piggyBankId, userId, "New name", BigDecimal.valueOf(200),
+                    null, PiggyBankGoalType.GIFTS, null, null, null);
+
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+
+            assertThrows(PiggyBankNotFoundException.class, () -> service.editPiggyBank(userId, dto, piggyBankId));
+
+            verify(piggyBankRepository, never()).save(any());
+        }
+    }
 
     @Nested
     class GetPiggyBankTests {
-
         @Test
         void shouldReturnAllPiggyBanks() {
+            PiggyBank piggyBank = new PiggyBank();
+            piggyBank.setId(piggyBankId);
+            piggyBank.setAmount(BigDecimal.TEN);
 
-            PiggyBank piggy = new PiggyBank();
-            piggy.setId(1L);
-            piggy.setAmount(BigDecimal.TEN);
-
-            PiggyBankDto dto = new PiggyBankDto(1L, 1L, "Piggy", BigDecimal.TEN, null, null,
-                    null, 0.5, false);
+            PiggyBankDto dto = new PiggyBankDto(1L, 1L, "Piggy", BigDecimal.TEN, null, null, null, 0.5, false);
 
             when(userManagerService.getUserByIdOrThrow(1L)).thenReturn(user);
-            when(piggyBankRepository.findAllByUserAssignedId(1L)).thenReturn(List.of(piggy));
+            when(piggyBankRepository.findAllByUserAssignedId(1L)).thenReturn(List.of(piggyBank));
             when(piggyBankMapper.mapToPiggyBankDto(any(), eq(user), anyDouble(), anyBoolean())).thenReturn(dto);
 
             List<PiggyBankDto> result = service.getAllPiggyBanks(1L);
@@ -161,7 +238,6 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldReturnEmptyList() {
-
             when(userManagerService.getUserByIdOrThrow(1L)).thenReturn(user);
             when(piggyBankRepository.findAllByUserAssignedId(1L)).thenReturn(List.of());
 
@@ -173,8 +249,7 @@ class PiggyBankManagementServiceTest {
         }
 
         @Test
-        void shouldThrowWhenUserNotFound() {
-
+        void shouldThrowExceptionWhenUserNotFound() {
             when(userManagerService.getUserByIdOrThrow(1L)).thenThrow(new UserNotFoundException("x"));
 
             assertThrows(UserNotFoundException.class, () -> service.getAllPiggyBanks(1L));
@@ -185,10 +260,8 @@ class PiggyBankManagementServiceTest {
 
     @Nested
     class DeletePiggyBankTests {
-
         @Test
         void shouldDeletePiggyBank() {
-
             PiggyBank piggy = new PiggyBank();
             piggy.setAmount(BigDecimal.ZERO);
 
@@ -203,7 +276,6 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldThrowWhenBalanceNotZero() {
-
             PiggyBank piggy = new PiggyBank();
             piggy.setAmount(BigDecimal.TEN);
 
@@ -216,7 +288,6 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldThrowWhenPiggyBankNull() {
-
             when(piggyBankManagerService.getPiggyBankByUserId(1L, 1L)).thenReturn(null);
 
             assertThrows(InvalidInputException.class, () -> service.deletePiggyBank(1L, 1L));
