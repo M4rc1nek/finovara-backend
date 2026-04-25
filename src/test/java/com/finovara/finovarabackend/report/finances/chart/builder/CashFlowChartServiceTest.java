@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.finances.builder;
+package com.finovara.finovarabackend.report.finances.chart.builder;
 
 import com.finovara.finovarabackend.report.finances.chart.builder.CashFlowChartService;
 import com.finovara.finovarabackend.report.finances.chart.dto.CashFlowDto;
