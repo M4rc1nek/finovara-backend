@@ -1,7 +1,6 @@
-package com.finovara.finovarabackend.report.finances.categoryearned;
+package com.finovara.finovarabackend.report.finances.categorypercentage.revenue.service;
 
 import com.finovara.finovarabackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
-import com.finovara.finovarabackend.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
