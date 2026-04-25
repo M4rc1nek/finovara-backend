@@ -3,8 +3,6 @@ package com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.account.dto.passwordpolicy.ChangePasswordDto;
-import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.change.ChangePasswordService;
-import com.finovara.finovarabackend.usersetting.account.service.passwordpolicy.change.PasswordUpdateService;
 import com.finovara.finovarabackend.usersetting.account.service.verification.CredentialValidationService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,19 +37,20 @@ class ChangePasswordServiceTest {
     ChangePasswordDto dto;
     Long userId;
     String newPassword;
+
     @BeforeEach
-    void setUp(){
+    void setUp() {
         userId = 1L;
         newPassword = "newPass";
         dto = new ChangePasswordDto(newPassword, newPassword);
     }
+
     @Test
     void shouldChangePasswordSuccessfully() {
         User user = new User();
         String oldPassword = "oldPass";
 
         user.setPassword(oldPassword);
-
 
         when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
