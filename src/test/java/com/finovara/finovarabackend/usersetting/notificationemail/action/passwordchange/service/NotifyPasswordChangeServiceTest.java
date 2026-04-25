@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.notificationemail.action.emailchange.service;
+package com.finovara.finovarabackend.usersetting.notificationemail.action.passwordchange.service;
 
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
 import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
@@ -17,7 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static com.finovara.finovarabackend.accountactivity.settings.model.SettingType.NOTIFICATION_EMAIL_CHANGED;
+import static com.finovara.finovarabackend.accountactivity.settings.model.SettingType.NOTIFICATION_PASSWORD_CHANGED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class NotifyEmailChangeServiceTest {
+class NotifyPasswordChangeServiceTest {
 
     @Mock
     private NotificationEmailSender notificationEmailSender;
@@ -37,7 +37,7 @@ class NotifyEmailChangeServiceTest {
     private SettingsActivityService settingsActivityService;
 
     @InjectMocks
-    private NotifyEmailChangeService notifyEmailChangeService;
+    private NotifyPasswordChangeService notifyPasswordChangeService;
 
     private User user;
     private Long userId;
@@ -55,18 +55,18 @@ class NotifyEmailChangeServiceTest {
 
     @Nested
     class SaveEmailNotificationTest {
+
         @ParameterizedTest
         @CsvSource({"true, ENABLED", "false, DISABLED"})
         void shouldSaveAndCreateActivity(boolean enabled, SettingActivityStatus expectedStatus) {
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
             NotificationEmailDto dto = new NotificationEmailDto(enabled);
+            notifyPasswordChangeService.saveEmailNotification(userId, dto);
 
-            notifyEmailChangeService.saveEmailNotification(userId, dto);
+            assertEquals(enabled, notificationEmailSettings.isNotifyOnPasswordChange());
 
-            assertEquals(enabled, notificationEmailSettings.isNotifyOnEmailChange());
-
-            verify(settingsActivityService).createSettingActivity(userId, expectedStatus, NOTIFICATION_EMAIL_CHANGED);
+            verify(settingsActivityService).createSettingActivity(userId, expectedStatus, NOTIFICATION_PASSWORD_CHANGED);
         }
     }
 
@@ -77,31 +77,29 @@ class NotifyEmailChangeServiceTest {
         void shouldReturnEnabled() {
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-            notificationEmailSettings.setNotifyOnEmailChange(true);
+            notificationEmailSettings.setNotifyOnPasswordChange(true);
 
-            NotificationEmailDto dto = notifyEmailChangeService.getEmailNotification(userId);
+            NotificationEmailDto dto = notifyPasswordChangeService.getEmailNotification(userId);
 
             assertEquals(true, dto.enabled());
         }
+
         @Test
         void shouldReturnDisabled() {
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-            notificationEmailSettings.setNotifyOnEmailChange(false);
-
-            NotificationEmailDto dto = notifyEmailChangeService.getEmailNotification(userId);
+            notificationEmailSettings.setNotifyOnPasswordChange(false);
+            NotificationEmailDto dto = notifyPasswordChangeService.getEmailNotification(userId);
 
             assertEquals(false, dto.enabled());
         }
-
     }
 
     @Nested
     class SendEmailTest {
         @Test
         void shouldCallSenderToSendEmail() {
-            notifyEmailChangeService.sendEmail(user);
-
+            notifyPasswordChangeService.sendEmail(user);
             verify(notificationEmailSender).sendIfEnabled(eq(user), any(), any());
         }
     }
