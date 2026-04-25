@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.report.finances.chart.builder.CashFlowChartS
 import com.finovara.finovarabackend.report.finances.chart.dto.CashFlowDto;
 import com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,46 +32,50 @@ class AverageCashFlowChartServiceTest {
     @InjectMocks
     private AverageCashFlowChartService service;
 
+    private Long userId;
+    private List<DailyCashDto> expenses;
+    private List<DailyCashDto> revenues;
+    private List<CashFlowDto> resultDto;
+
+    @BeforeEach
+    void setUp() {
+        userId = 1L;
+        expenses = List.of(mock(DailyCashDto.class));
+        revenues = List.of(mock(DailyCashDto.class));
+        resultDto = List.of(mock(CashFlowDto.class));
+    }
+
     @Test
     void shouldReturnCashFlowChartForUser() {
-        Long userId = 1L;
-
-        List<DailyCashDto> expenses = List.of(mock(DailyCashDto.class));
-        List<DailyCashDto> revenues = List.of(mock(DailyCashDto.class));
-
-        List<CashFlowDto> expectedResult = List.of(mock(CashFlowDto.class));
-
         when(expenseRepository.avgExpensesGroupedByDate(userId)).thenReturn(expenses);
         when(revenueRepository.avgRevenuesGroupedByDate(userId)).thenReturn(revenues);
-        when(cashFlowChartService.getCashFlowChart(expenses, revenues)).thenReturn(expectedResult);
+        when(cashFlowChartService.getCashFlowChart(expenses, revenues)).thenReturn(resultDto);
 
         List<CashFlowDto> result = service.getAverageCashFlowChart(userId);
 
-        assertEquals(expectedResult, result);
+        assertEquals(resultDto, result);
 
-        verify(expenseRepository, times(1)).avgExpensesGroupedByDate(userId);
-        verify(revenueRepository, times(1)).avgRevenuesGroupedByDate(userId);
-        verify(cashFlowChartService, times(1)).getCashFlowChart(expenses, revenues);
+        verify(expenseRepository).avgExpensesGroupedByDate(userId);
+        verify(revenueRepository).avgRevenuesGroupedByDate(userId);
+        verify(cashFlowChartService).getCashFlowChart(expenses, revenues);
     }
 
     @Test
     void shouldHandleEmptyData() {
-        Long userId = 2L;
-
         List<DailyCashDto> emptyExpenses = List.of();
         List<DailyCashDto> emptyRevenues = List.of();
-        List<CashFlowDto> expectedResult = List.of();
+        List<CashFlowDto> emptyResult = List.of();
 
-        when(expenseRepository.avgExpensesGroupedByDate(userId)).thenReturn(emptyExpenses);
-        when(revenueRepository.avgRevenuesGroupedByDate(userId)).thenReturn(emptyRevenues);
-        when(cashFlowChartService.getCashFlowChart(emptyExpenses, emptyRevenues)).thenReturn(expectedResult);
+        when(expenseRepository.avgExpensesGroupedByDate(2L)).thenReturn(emptyExpenses);
+        when(revenueRepository.avgRevenuesGroupedByDate(2L)).thenReturn(emptyRevenues);
+        when(cashFlowChartService.getCashFlowChart(emptyExpenses, emptyRevenues)).thenReturn(emptyResult);
 
-        List<CashFlowDto> result = service.getAverageCashFlowChart(userId);
+        List<CashFlowDto> result = service.getAverageCashFlowChart(2L);
 
-        assertEquals(expectedResult, result);
+        assertEquals(emptyResult, result);
 
-        verify(expenseRepository).avgExpensesGroupedByDate(userId);
-        verify(revenueRepository).avgRevenuesGroupedByDate(userId);
+        verify(expenseRepository).avgExpensesGroupedByDate(2L);
+        verify(revenueRepository).avgRevenuesGroupedByDate(2L);
         verify(cashFlowChartService).getCashFlowChart(emptyExpenses, emptyRevenues);
     }
 }
