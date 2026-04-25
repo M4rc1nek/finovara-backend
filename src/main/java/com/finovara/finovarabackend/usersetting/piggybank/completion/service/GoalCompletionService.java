@@ -32,7 +32,7 @@ public class GoalCompletionService {
 
     @Transactional
     public void addGoalCompletion(Long piggyBankId, Long userId, GoalCompletionDto goalCompletionDto) {
-        User user = userManagerService.getUserByIdOrThrow(userId);
+        userManagerService.getUserByIdOrThrow(userId);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 

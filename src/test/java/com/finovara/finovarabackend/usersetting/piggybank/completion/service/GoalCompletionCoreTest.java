@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.piggybank.completion.service.core;
+package com.finovara.finovarabackend.usersetting.piggybank.completion.service;
 
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
@@ -6,7 +6,6 @@ import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
-import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionCore;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
