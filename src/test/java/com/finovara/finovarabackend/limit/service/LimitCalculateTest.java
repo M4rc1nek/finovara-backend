@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.limit.calculate.service;
+package com.finovara.finovarabackend.limit.service;
 
 import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
 import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
@@ -7,7 +7,6 @@ import com.finovara.finovarabackend.limit.model.Limit;
 import com.finovara.finovarabackend.limit.model.LimitStatus;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import com.finovara.finovarabackend.limit.repository.LimitRepository;
-import com.finovara.finovarabackend.limit.service.LimitCalculateService;
 import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
