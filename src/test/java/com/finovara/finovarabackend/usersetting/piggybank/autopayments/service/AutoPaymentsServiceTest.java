@@ -68,7 +68,6 @@ class AutoPaymentsServiceTest {
         piggyBank.setSettings(settings);
 
         when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-        lenient().when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
     }
 
     @Nested
