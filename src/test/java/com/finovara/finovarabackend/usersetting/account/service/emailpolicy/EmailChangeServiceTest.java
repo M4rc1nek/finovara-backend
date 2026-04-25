@@ -45,7 +45,7 @@ class EmailChangeServiceTest {
     private HttpServletRequest request;
 
     @InjectMocks
-    private EmailChangeService service;
+    private EmailChangeService emailChangeService;
 
     private User user;
     private AccountSettings settings;
@@ -74,7 +74,7 @@ class EmailChangeServiceTest {
 
             EmailChangeRequestDto dto = new EmailChangeRequestDto(email, password);
 
-            service.requestEmailChange(userId, dto);
+            emailChangeService.requestEmailChange(userId, dto);
 
             verify(credentialValidationService).validateEmailChange(user, email);
             verify(passwordValidator).validatePassword(eq(userId), any());
@@ -91,7 +91,7 @@ class EmailChangeServiceTest {
 
             EmailChangeRequestDto dto = new EmailChangeRequestDto(email, password);
 
-            assertThatThrownBy(() -> service.requestEmailChange(userId, dto)).isInstanceOf(InvalidInputException.class);
+            assertThatThrownBy(() -> emailChangeService.requestEmailChange(userId, dto)).isInstanceOf(InvalidInputException.class);
 
             verify(verificationCodeManager, never()).generateEmailChangeCode(any(), any());
             verify(verificationCodeEmailService, never()).sendEmailChangeCode(any(), any(), anyInt());
@@ -106,7 +106,7 @@ class EmailChangeServiceTest {
 
             EmailChangeRequestDto dto = new EmailChangeRequestDto(email, password);
 
-            assertThatThrownBy(() -> service.requestEmailChange(userId, dto)).isInstanceOf(InvalidInputException.class);
+            assertThatThrownBy(() -> emailChangeService.requestEmailChange(userId, dto)).isInstanceOf(InvalidInputException.class);
 
             verify(passwordValidator, never()).validatePassword(anyLong(), any());
         }
@@ -130,7 +130,7 @@ class EmailChangeServiceTest {
 
             EmailChangeConfirmDto dto = new EmailChangeConfirmDto(code);
 
-            AttemptsDto result = service.confirmEmailChange(userId, dto, request);
+            AttemptsDto result = emailChangeService.confirmEmailChange(userId, dto, request);
 
             assertThat(result).isEqualTo(attempts);
 
@@ -145,7 +145,7 @@ class EmailChangeServiceTest {
 
             EmailChangeConfirmDto dto = new EmailChangeConfirmDto(code);
 
-            assertThatThrownBy(() -> service.confirmEmailChange(userId, dto, request)).isInstanceOf(InvalidVerificationCodeException.class);
+            assertThatThrownBy(() -> emailChangeService.confirmEmailChange(userId, dto, request)).isInstanceOf(InvalidVerificationCodeException.class);
 
             verify(verificationCodeManager, never()).removeEmailChangeCode(any());
             verify(emailUpdateService, never()).updateEmail(any(), any(), any());
@@ -162,7 +162,7 @@ class EmailChangeServiceTest {
 
             EmailChangeConfirmDto dto = new EmailChangeConfirmDto(code);
 
-            service.confirmEmailChange(userId, dto, request);
+            emailChangeService.confirmEmailChange(userId, dto, request);
 
             verify(emailUpdateService).updateEmail(user, anotherEmail, request);
         }
