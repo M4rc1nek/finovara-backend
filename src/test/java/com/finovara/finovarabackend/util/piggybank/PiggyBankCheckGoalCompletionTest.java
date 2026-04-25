@@ -1,7 +1,6 @@
-package com.finovara.finovarabackend.util.finances.piggybank;
+package com.finovara.finovarabackend.util.piggybank;
 
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
-import com.finovara.finovarabackend.util.piggybank.PiggyBankCheckGoalCompletion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

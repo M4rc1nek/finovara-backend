@@ -1,8 +1,7 @@
-package com.finovara.finovarabackend.util.finances.piggybank;
+package com.finovara.finovarabackend.util.piggybank;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
-import com.finovara.finovarabackend.util.piggybank.PiggyBankValidator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
