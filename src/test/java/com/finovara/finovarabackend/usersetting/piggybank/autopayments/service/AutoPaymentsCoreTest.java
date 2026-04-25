@@ -1,10 +1,9 @@
-package com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.core;
+package com.finovara.finovarabackend.usersetting.piggybank.autopayments.service;
 
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsCore;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
