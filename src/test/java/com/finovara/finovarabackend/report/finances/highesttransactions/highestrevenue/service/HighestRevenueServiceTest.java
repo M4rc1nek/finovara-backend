@@ -1,8 +1,7 @@
-package com.finovara.finovarabackend.report.finances.highest;
+package com.finovara.finovarabackend.report.finances.highesttransactions.highestrevenue.service;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.report.finances.highesttransactions.highestrevenue.dto.HighestRevenueDto;
-import com.finovara.finovarabackend.report.finances.highesttransactions.highestrevenue.service.HighestRevenueService;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,10 +20,12 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class HighestRevenueTest {
+class HighestRevenueServiceTest {
 
     @Mock
     private RevenueRepository revenueRepository;
@@ -64,4 +65,5 @@ class HighestRevenueTest {
     void shouldThrowExceptionForNullPeriodType() {
         assertThrows(InvalidInputException.class, () -> highestRevenueService.getHighestRevenue(USER_ID, null));
     }
+
 }

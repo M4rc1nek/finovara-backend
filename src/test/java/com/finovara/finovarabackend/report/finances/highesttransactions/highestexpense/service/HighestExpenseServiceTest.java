@@ -1,9 +1,8 @@
-package com.finovara.finovarabackend.report.finances.highest;
+package com.finovara.finovarabackend.report.finances.highesttransactions.highestexpense.service;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.finances.highesttransactions.highestexpense.dto.HighestExpenseDto;
-import com.finovara.finovarabackend.report.finances.highesttransactions.highestexpense.service.HighestExpenseService;
 import com.finovara.finovarabackend.util.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,8 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class HighestExpenseTest {
-
+class HighestExpenseServiceTest {
     private static final Long USER_ID = 1L;
 
     @Mock
@@ -62,8 +60,7 @@ class HighestExpenseTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenUnsupportedPeriod (){
+    void shouldThrowExceptionWhenUnsupportedPeriod() {
         assertThrows(InvalidInputException.class, () -> highestExpenseService.getHighestExpense(USER_ID, null));
     }
-
 }
