@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.usersetting.account.service.verification;
 
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.account.service.verification.VerificationCodeEmailService;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,13 +22,13 @@ class VerificationCodeEmailServiceTest {
     private JavaMailSender javaMailSender;
 
     @InjectMocks
-    private VerificationCodeEmailService service;
+    private VerificationCodeEmailService verificationCodeEmailService;
 
     private User user;
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(service, "recipientAddress", "test@finovara.com");
+        ReflectionTestUtils.setField(verificationCodeEmailService, "recipientAddress", "test@finovara.com");
 
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -41,14 +40,14 @@ class VerificationCodeEmailServiceTest {
 
     @Test
     void shouldSendEmailChangeCodeCorrectly() {
-        service.sendEmailChangeCode(user, "user@test.com", 123456);
+        verificationCodeEmailService.sendEmailChangeCode(user, "user@test.com", 123456);
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
     @Test
     void shouldSendPasswordResetCodeCorrectly() {
-        service.sendPasswordResetCode(user, "user@test.com", 654321);
+        verificationCodeEmailService.sendPasswordResetCode(user, "user@test.com", 654321);
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
@@ -57,7 +56,7 @@ class VerificationCodeEmailServiceTest {
     void shouldThrowExceptionWhenCreateMimeMessageFails() {
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException());
 
-        assertThrows(ServiceUnavailableException.class, () -> service.sendEmailChangeCode(user, "fail@test.com", 111111));
+        assertThrows(ServiceUnavailableException.class, () -> verificationCodeEmailService.sendEmailChangeCode(user, "fail@test.com", 111111));
     }
 
     @Test
@@ -67,6 +66,6 @@ class VerificationCodeEmailServiceTest {
 
         doThrow(new RuntimeException()).when(javaMailSender).send(any(MimeMessage.class));
 
-        assertThrows(ServiceUnavailableException.class, () -> service.sendPasswordResetCode(user, "fail@test.com", 222222));
+        assertThrows(ServiceUnavailableException.class, () -> verificationCodeEmailService.sendPasswordResetCode(user, "fail@test.com", 222222));
     }
 }
