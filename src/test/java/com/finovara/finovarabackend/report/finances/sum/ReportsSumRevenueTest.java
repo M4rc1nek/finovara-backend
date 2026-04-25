@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.finances.service.sum;
+package com.finovara.finovarabackend.report.finances.sum;
 
 import com.finovara.finovarabackend.report.dto.ReportDto;
 import com.finovara.finovarabackend.report.finances.sum.service.ReportSummaryService;
@@ -14,42 +14,45 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ReportsSumExpenseTest {
+class ReportsSumRevenueTest {
     @Mock
     private FinancialPeriodService financialPeriodService;
 
     @InjectMocks
     private ReportSummaryService reportSummaryService;
 
+
     @ParameterizedTest
     @EnumSource(PeriodType.class)
-    void shouldSumExpenseInPeriod(PeriodType periodType) {
+    void shouldSumRevenueInPeriod(PeriodType periodType) {
         Long userId = 1L;
         BigDecimal amount = BigDecimal.valueOf(100);
 
-        when(financialPeriodService.getExpensesSum(userId, periodType)).thenReturn(amount);
+        when(financialPeriodService.getRevenueSum(userId, periodType)).thenReturn(amount);
 
-        ReportDto result = reportSummaryService.sumExpense(userId, periodType);
+        ReportDto result = reportSummaryService.sumRevenue(userId, periodType);
 
         assertThat(result.amount()).isEqualByComparingTo("100");
         assertThat(result.periodType()).isEqualTo(periodType);
-        verify(financialPeriodService).getExpensesSum(userId, periodType);
+        verify(financialPeriodService).getRevenueSum(userId, periodType);
         verifyNoMoreInteractions(financialPeriodService);
     }
+
 
     @Test
     void shouldReturnZeroWhenNoData() {
         Long userId = 1L;
 
-        when(financialPeriodService.getExpensesSum(userId, PeriodType.DAILY)).thenReturn(BigDecimal.ZERO);
+        when(financialPeriodService.getRevenueSum(userId, PeriodType.DAILY)).thenReturn(BigDecimal.ZERO);
 
-        ReportDto result = reportSummaryService.sumExpense(userId, PeriodType.DAILY);
+        ReportDto result = reportSummaryService.sumRevenue(userId, PeriodType.DAILY);
 
         assertThat(result.amount()).isEqualByComparingTo("0");
         verifyNoMoreInteractions(financialPeriodService);
     }
+
 }

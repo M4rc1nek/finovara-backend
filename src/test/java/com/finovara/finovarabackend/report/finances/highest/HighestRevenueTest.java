@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.finances.service.highest;
+package com.finovara.finovarabackend.report.finances.highest;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.report.finances.highesttransactions.highestrevenue.dto.HighestRevenueDto;

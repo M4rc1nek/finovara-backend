@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.finances.service.categoryspending;
+package com.finovara.finovarabackend.report.finances.categoryspending;
 
 import com.finovara.finovarabackend.expense.model.Expense;
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;

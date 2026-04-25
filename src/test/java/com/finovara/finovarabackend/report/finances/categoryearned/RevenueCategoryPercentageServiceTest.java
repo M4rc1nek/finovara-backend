@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.report.finances.service.categoryearned;
+package com.finovara.finovarabackend.report.finances.categoryearned;
 
 import com.finovara.finovarabackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
 import com.finovara.finovarabackend.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
