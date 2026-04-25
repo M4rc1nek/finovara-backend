@@ -1,8 +1,7 @@
-package com.finovara.finovarabackend.report.smartreport.service.handler.expenserate;
+package com.finovara.finovarabackend.report.smartreport.service.handler;
 
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.smartreport.model.SmartReportType;
-import com.finovara.finovarabackend.report.smartreport.service.handler.ExpenseRateHandler;
 import com.finovara.finovarabackend.report.smartreport.service.loader.SmartReportTemplateService;
 import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
 import org.junit.jupiter.api.Test;
@@ -19,7 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ExpenseRateTest {
+class ExpenseRateHandlerTest {
 
     @Mock
     private ExpenseRepository expenseRepository;

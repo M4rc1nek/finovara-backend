@@ -1,8 +1,7 @@
-package com.finovara.finovarabackend.report.smartreport.service.handler.averagedayspending;
+package com.finovara.finovarabackend.report.smartreport.service.handler;
 
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.smartreport.model.SmartReportType;
-import com.finovara.finovarabackend.report.smartreport.service.handler.AverageDaySpendingHandler;
 import com.finovara.finovarabackend.report.smartreport.service.loader.SmartReportTemplateService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AverageDaySpendingTest {
+class AverageDaySpendingHandlerTest {
     @Mock
     private SmartReportTemplateService templateService;
     @Mock

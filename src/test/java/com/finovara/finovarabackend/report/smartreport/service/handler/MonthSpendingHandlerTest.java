@@ -1,8 +1,7 @@
-package com.finovara.finovarabackend.report.smartreport.service.handler.MonthSpending;
+package com.finovara.finovarabackend.report.smartreport.service.handler;
 
 import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
 import com.finovara.finovarabackend.report.smartreport.model.SmartReportType;
-import com.finovara.finovarabackend.report.smartreport.service.handler.MonthSpendingHandler;
 import com.finovara.finovarabackend.report.smartreport.service.loader.SmartReportTemplateService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,7 +18,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class MonthSpendingTest {
+class MonthSpendingHandlerTest {
 
     @Mock
     private ExpenseRepository expenseRepository;
