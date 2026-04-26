@@ -11,7 +11,7 @@ public record UserRegisterDto(
         String username,
 
         @NotBlank
-        @Size(min = 8)
+        @Size(min = 8, max = 55, message = "Hasło musi mieć od 8 do 55 znaków")
         @Pattern(
                 regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).*$",
                 message = "Hasło musi mieć min. 8 znaków, jedną dużą literę, jedną cyfrę i jeden znak specjalny"
