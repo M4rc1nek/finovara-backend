@@ -2,6 +2,7 @@ package com.finovara.finovarabackend.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
@@ -18,9 +19,11 @@ public class GeneratePasswordService {
     private static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String DIGITS = "0123456789";
     private static final String SPECIAL = "!@#$%^&*";
-    private static final Integer length = 8;
-
     private static final String ALL = LOWER + UPPER + DIGITS + SPECIAL;
+
+    @Value("${password-generator.length}")
+    private int length;
+
 
     private static final SecureRandom random = new SecureRandom();
 
