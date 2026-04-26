@@ -45,7 +45,7 @@ public class SecurityFilterChainConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/register", "/login").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/generatePassword").permitAll()
                         .requestMatchers("/api/profile-image/**").permitAll()
                         .requestMatchers("/profile-images/**").permitAll()
                         .requestMatchers("/api/password-reset/**").permitAll()

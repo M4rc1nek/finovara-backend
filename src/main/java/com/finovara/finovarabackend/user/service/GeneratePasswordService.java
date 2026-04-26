@@ -1,0 +1,52 @@
+package com.finovara.finovarabackend.user.service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class GeneratePasswordService {
+
+    private static final String LOWER = "abcdefghijklmnopqrstuvwxyz";
+    private static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String DIGITS = "0123456789";
+    private static final String SPECIAL = "!@#$%^&*";
+    private static final Integer length = 8;
+
+    private static final String ALL = LOWER + UPPER + DIGITS + SPECIAL;
+
+    private static final SecureRandom random = new SecureRandom();
+
+    public String generatePassword() {
+        List<Character> password = new ArrayList<>();
+
+        password.add(randomChar(UPPER));
+        password.add(randomChar(DIGITS));
+        password.add(randomChar(SPECIAL));
+
+        for (int i = password.size(); i < length; i++) {
+            password.add(randomChar(ALL));
+        }
+
+        Collections.shuffle(password, random);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        for (char character : password) {
+            stringBuilder.append(character);
+        }
+
+        return stringBuilder.toString();
+    }
+
+    private static char randomChar(String source) {
+        int index = random.nextInt(source.length());
+        return source.charAt(index);
+    }
+}
