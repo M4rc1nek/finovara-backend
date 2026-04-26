@@ -28,6 +28,9 @@ public class GeneratePasswordService {
     private static final SecureRandom random = new SecureRandom();
 
     public String generatePassword() {
+        if (length < 3) {
+            throw new InvalidInputException("Password length must be at least 3");
+        }
         List<Character> password = new ArrayList<>();
 
         password.add(randomChar(UPPER));
