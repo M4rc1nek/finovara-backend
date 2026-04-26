@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.user.service;
 
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +24,6 @@ public class GeneratePasswordService {
 
     @Value("${password-generator.length}")
     private int length;
-
 
     private static final SecureRandom random = new SecureRandom();
 
