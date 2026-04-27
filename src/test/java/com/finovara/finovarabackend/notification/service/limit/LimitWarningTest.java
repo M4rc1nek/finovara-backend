@@ -49,7 +49,6 @@ public class LimitWarningTest {
     void shouldReturnNotificationWhenThresholdReached() {
         LimitStatsDto stats = mock(LimitStatsDto.class);
         when(stats.percentage()).thenReturn(BigDecimal.valueOf(80));
-        when(stats.createdAt()).thenReturn(LocalDate.now());
         when(stats.periodType()).thenReturn(null);
         when(stats.limitId()).thenReturn(10L);
 
@@ -64,7 +63,6 @@ public class LimitWarningTest {
     void shouldReturnNotificationWhenExactly75() {
         LimitStatsDto stats = mock(LimitStatsDto.class);
         when(stats.percentage()).thenReturn(BigDecimal.valueOf(75));
-        when(stats.createdAt()).thenReturn(LocalDate.now());
         when(stats.limitId()).thenReturn(10L);
 
         when(limitCalculateService.calculateLimitStats(userId, 10L, LocalDate.now())).thenReturn(stats);

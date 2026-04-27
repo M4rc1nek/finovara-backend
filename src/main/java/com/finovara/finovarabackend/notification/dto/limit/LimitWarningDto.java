@@ -6,12 +6,12 @@ import com.finovara.finovarabackend.notification.model.NotificationType;
 import com.finovara.finovarabackend.util.model.PeriodType;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @JsonTypeName("LIMIT_EXCEEDED_WARNING")
 public record LimitWarningDto(
         NotificationType type,
-        LocalDate createdAt,
+        LocalDateTime createdAt,
         BigDecimal limitPercentage,
         PeriodType period,
         Long limitId,

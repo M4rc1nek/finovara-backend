@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -48,7 +48,7 @@ public class PiggyBankWarningService extends ThresholdWarningService<PiggyBank, 
     protected NotificationResponse buildNotification(PiggyBank piggyBank, BigDecimal percentage, Long userId) {
         return new PiggyBankWarningDto(
                 NotificationType.PIGGY_BANK_GOAL_APPROACHING,
-                LocalDate.now(),
+                LocalDateTime.now(),
                 piggyBank.getGoalType(),
                 piggyBank.getName(),
                 piggyBank.getId(),

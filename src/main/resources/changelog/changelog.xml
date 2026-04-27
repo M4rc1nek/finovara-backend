@@ -386,7 +386,7 @@
             <column name="type" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
-            <column name="created_at" type="DATE">
+            <column name="created_at" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
             <column name="deduplication_key" type="VARCHAR(255)">

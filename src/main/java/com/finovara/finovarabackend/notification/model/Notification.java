@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notifications", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "deduplication_key"}))
@@ -24,7 +24,7 @@ public class Notification {
     private NotificationType type;
 
     @Column(nullable = false)
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "deduplication_key", nullable = false, length = 255)
     private String deduplicationKey;

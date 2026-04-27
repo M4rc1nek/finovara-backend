@@ -47,7 +47,6 @@ public class LimitExceededTest {
     void shouldReturnNotificationWhenThresholdExceeded() {
         LimitStatsDto stats = mock(LimitStatsDto.class);
         when(stats.percentage()).thenReturn(BigDecimal.valueOf(150));
-        when(stats.createdAt()).thenReturn(LocalDate.now());
         when(stats.periodType()).thenReturn(null);
         when(stats.limitId()).thenReturn(10L);
 
@@ -75,7 +74,6 @@ public class LimitExceededTest {
     void shouldReturnNotificationWhenThresholdExactly100() {
         LimitStatsDto stats = mock(LimitStatsDto.class);
         when(stats.percentage()).thenReturn(BigDecimal.valueOf(100));
-        when(stats.createdAt()).thenReturn(LocalDate.now());
         when(stats.periodType()).thenReturn(null);
         when(stats.limitId()).thenReturn(10L);
 

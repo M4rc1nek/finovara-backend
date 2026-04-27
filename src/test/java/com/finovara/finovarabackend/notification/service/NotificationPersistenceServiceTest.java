@@ -23,7 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -210,7 +210,7 @@ class NotificationPersistenceServiceTest {
     }
 
     private NotificationResponse createDto(Long limitId) {
-        return new LimitWarningDto(NotificationType.LIMIT_EXCEEDED_WARNING, LocalDate.now(),
+        return new LimitWarningDto(NotificationType.LIMIT_EXCEEDED_WARNING, LocalDateTime.now(),
                 BigDecimal.valueOf(50), PeriodType.WEEKLY, limitId, BigDecimal.valueOf(100));
     }
 
@@ -225,7 +225,7 @@ class NotificationPersistenceServiceTest {
         return """
                 {
                   "type": "LIMIT_EXCEEDED_WARNING",
-                  "createdAt": "2026-01-01",
+                  "createdAt": "2026-01-01T00:00:00",
                   "limitId": 1
                 }
                 """;

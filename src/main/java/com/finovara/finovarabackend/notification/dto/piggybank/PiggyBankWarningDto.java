@@ -6,12 +6,12 @@ import com.finovara.finovarabackend.notification.model.NotificationType;
 import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @JsonTypeName("PIGGY_BANK_GOAL_APPROACHING")
 public record PiggyBankWarningDto(
         NotificationType type,
-        LocalDate createdAt,
+        LocalDateTime createdAt,
         PiggyBankGoalType goalType,
         String piggyBankName,
         Long piggyBankId,

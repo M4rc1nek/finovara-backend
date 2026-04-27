@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -41,7 +42,7 @@ public class LimitExceededService extends ThresholdReachedService<Limit, LimitSt
     protected NotificationResponse buildNotification(Limit entity, LimitStatsDto context, Long userId) {
         return new LimitExceededDto(
                 NotificationType.LIMIT_EXCEEDED,
-                context.createdAt(),
+                LocalDateTime.now(),
                 context.periodType(),
                 context.limitId(),
                 context.percentage()

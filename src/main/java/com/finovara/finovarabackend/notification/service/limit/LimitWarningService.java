@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -41,7 +42,7 @@ public class LimitWarningService extends ThresholdWarningService<Limit, LimitSta
     protected NotificationResponse buildNotification(Limit limit, LimitStatsDto stats, Long userId) {
         return new LimitWarningDto(
                 NotificationType.LIMIT_EXCEEDED_WARNING,
-                stats.createdAt(),
+                LocalDateTime.now(),
                 stats.percentage(),
                 stats.periodType(),
                 stats.limitId(),

@@ -7,7 +7,7 @@ import com.finovara.finovarabackend.notification.dto.limit.LimitWarningDto;
 import com.finovara.finovarabackend.notification.dto.piggybank.PiggyBankWarningDto;
 import com.finovara.finovarabackend.notification.model.NotificationType;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes({
@@ -19,7 +19,7 @@ import java.time.LocalDate;
 public interface NotificationResponse {
     NotificationType type();
 
-    LocalDate createdAt();
+    LocalDateTime createdAt();
 
     String deduplicationKey();
 }
