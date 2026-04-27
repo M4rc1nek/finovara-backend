@@ -1,5 +1,8 @@
 package com.finovara.finovarabackend.usersetting.notificationemail.action.accountdeleted.service;
 
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.notificationemail.core.AbstractNotificationEmailService;
 import com.finovara.finovarabackend.usersetting.notificationemail.dto.NotificationEmailDto;
@@ -12,11 +15,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class NotifyOnAccountDeletedService extends AbstractNotificationEmailService {
     private final AccountDeletedNotifier accountDeletedNotifier;
+    private final SettingsActivityService settingsActivityService;
+
 
     public NotifyOnAccountDeletedService(UserManagerService userManagerService, NotificationEmailSender notificationEmailSender,
-                                         AccountDeletedNotifier accountDeletedNotifier) {
+                                         SettingsActivityService settingsActivityService ,AccountDeletedNotifier accountDeletedNotifier) {
         super(userManagerService, notificationEmailSender);
         this.accountDeletedNotifier = accountDeletedNotifier;
+        this.settingsActivityService = settingsActivityService;
     }
 
     @Override
@@ -42,5 +48,14 @@ public class NotifyOnAccountDeletedService extends AbstractNotificationEmailServ
     @Override
     protected void sendEmailToUser(User user) {
         accountDeletedNotifier.sendEmail(user);
+    }
+
+    @Override
+    protected void handleActivity(Long userId, boolean enabled) {
+        settingsActivityService.createSettingActivity(
+                userId,
+                enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED,
+                SettingType.NOTIFICATION_ACCOUNT_DELETED
+        );
     }
 }

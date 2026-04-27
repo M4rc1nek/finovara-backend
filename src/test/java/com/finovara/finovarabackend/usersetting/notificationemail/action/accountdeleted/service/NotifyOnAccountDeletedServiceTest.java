@@ -1,5 +1,8 @@
 package com.finovara.finovarabackend.usersetting.notificationemail.action.accountdeleted.service;
 
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
+import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.notificationemail.dto.NotificationEmailDto;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
@@ -28,6 +31,9 @@ class NotifyOnAccountDeletedServiceTest {
     @Mock
     private UserManagerService userManagerService;
 
+    @Mock
+    private SettingsActivityService settingsActivityService;
+
     @InjectMocks
     private NotifyOnAccountDeletedService notifyOnAccountDeletedService;
 
@@ -47,7 +53,7 @@ class NotifyOnAccountDeletedServiceTest {
     }
 
     @Nested
-    class GetNotifyOnAccountDeletedTest {
+    class GetNotifyOnAccountDeleted {
         @Test
         void shouldReturnEnabled() {
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
@@ -71,7 +77,7 @@ class NotifyOnAccountDeletedServiceTest {
     }
 
     @Nested
-    class SaveNotifyOnAccountDeletedTest {
+    class SaveNotifyOnAccountDeleted {
         @Test
         void shouldSaveTrue() {
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
@@ -96,7 +102,32 @@ class NotifyOnAccountDeletedServiceTest {
     }
 
     @Nested
-    class SendEmailTest {
+    class HandleActivity {
+        @Test
+        void shouldCreateActivityWithEnabledStatus() {
+            notifyOnAccountDeletedService.handleActivity(userId, true);
+
+            verify(settingsActivityService).createSettingActivity(
+                    userId,
+                    SettingActivityStatus.ENABLED,
+                    SettingType.NOTIFICATION_ACCOUNT_DELETED
+            );
+        }
+
+        @Test
+        void shouldCreateActivityWithDisabledStatus() {
+            notifyOnAccountDeletedService.handleActivity(userId, false);
+
+            verify(settingsActivityService).createSettingActivity(
+                    userId,
+                    SettingActivityStatus.DISABLED,
+                    SettingType.NOTIFICATION_ACCOUNT_DELETED
+            );
+        }
+    }
+
+    @Nested
+    class SendEmail {
         @Test
         void shouldCallSenderToSendEmail() {
             notifyOnAccountDeletedService.sendEmail(user);
