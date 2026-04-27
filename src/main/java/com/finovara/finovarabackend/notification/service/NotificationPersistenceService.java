@@ -2,14 +2,18 @@ package com.finovara.finovarabackend.notification.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.model.Notification;
 import com.finovara.finovarabackend.notification.repository.NotificationRepository;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,6 +28,9 @@ public class NotificationPersistenceService {
     private final NotificationRepository notificationRepository;
     private final UserManagerService userManagerService;
     private final ObjectMapper objectMapper;
+
+    @Value("${notification-persistence.page-size}")
+    private int pageSize;
 
     @Transactional
     public void saveAll(Long userId, List<NotificationResponse> dtoList) {
@@ -47,11 +54,18 @@ public class NotificationPersistenceService {
     }
 
     @Transactional
-    public List<NotificationResponse> getUserNotifications(Long userId) {
+    public List<NotificationResponse> getUserNotifications(Long userId, SortType sortType) {
         userManagerService.getUserByIdOrThrow(userId);
 
-        List<Notification> notifications = notificationRepository.getAllNotifications(userId);
+        if ((sortType != SortType.NEWEST) && (sortType != SortType.OLDEST)) {
+            throw new InvalidInputException("Unsupported sort type for notifications");
+
+        }
+        Pageable pageable = sortType.getPageable(pageSize);
+
+        List<Notification> notifications = notificationRepository.findAllByUserAssignedId(userId, pageable);
         List<NotificationResponse> result = new ArrayList<>();
+
 
         for (Notification notification : notifications) {
             if (notification.getPayload() == null || notification.getPayload().isBlank()) {

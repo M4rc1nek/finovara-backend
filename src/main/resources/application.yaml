@@ -72,6 +72,9 @@ user-activity:
   settings:
     page-size: 100
 
+notification-persistence:
+  page-size: 5
+
 
 scheduler:
   user-activity:

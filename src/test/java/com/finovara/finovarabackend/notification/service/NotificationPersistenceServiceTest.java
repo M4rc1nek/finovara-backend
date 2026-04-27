@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.notification.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.notification.dto.NotificationResponse;
 import com.finovara.finovarabackend.notification.dto.limit.LimitWarningDto;
 import com.finovara.finovarabackend.notification.model.Notification;
@@ -8,21 +9,27 @@ import com.finovara.finovarabackend.notification.model.NotificationType;
 import com.finovara.finovarabackend.notification.repository.NotificationRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.finovarabackend.util.model.SortType;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -104,7 +111,6 @@ class NotificationPersistenceServiceTest {
             verify(notificationRepository).saveAll(captor.capture());
 
             List<Notification> saved = captor.getValue();
-
             assertThat(saved).hasSize(1);
         }
 
@@ -122,16 +128,24 @@ class NotificationPersistenceServiceTest {
 
     @Nested
     class GetUserNotifications {
+        @BeforeEach
+        void setUpPageSize() {
+            ReflectionTestUtils.setField(notificationPersistenceService, "pageSize", 5);
+        }
+
         @Test
         void shouldGetUserNotificationCorrectly() {
             Notification n1 = createNotification(1L, validJson());
             Notification n2 = createNotification(2L, validJson());
 
-            when(notificationRepository.getAllNotifications(userId)).thenReturn(List.of(n1, n2));
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
+            when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
+                    .thenReturn(List.of(n1, n2));
 
-            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId);
+            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.NEWEST);
 
             assertThat(result).hasSize(2);
+            assertThat(result).allMatch(Objects::nonNull);
         }
 
         @Test
@@ -140,11 +154,14 @@ class NotificationPersistenceServiceTest {
             Notification n2 = createNotification(2L, null);
             Notification n3 = createNotification(3L, "");
 
-            when(notificationRepository.getAllNotifications(userId)).thenReturn(List.of(n1, n2, n3));
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
+            when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
+                    .thenReturn(List.of(n1, n2, n3));
 
-            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId);
+            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.NEWEST);
 
             assertThat(result).hasSize(1);
+            assertThat(result.getFirst().deduplicationKey()).isNotNull();
         }
 
         @Test
@@ -152,20 +169,43 @@ class NotificationPersistenceServiceTest {
             Notification n1 = createNotification(1L, null);
             Notification n2 = createNotification(2L, "");
 
-            when(notificationRepository.getAllNotifications(userId)).thenReturn(List.of(n1, n2));
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
+            when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
+                    .thenReturn(List.of(n1, n2));
 
-            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId);
+            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.NEWEST);
 
             assertThat(result).isEmpty();
         }
 
         @Test
         void shouldReturnEmptyWhenNoNotifications() {
-            when(notificationRepository.getAllNotifications(userId)).thenReturn(List.of());
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
+            when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
+                    .thenReturn(List.of());
 
-            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId);
+            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.NEWEST);
 
             assertThat(result).isEmpty();
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = SortType.class, names = {"AMOUNT_ASC", "AMOUNT_DESC"})
+        void shouldThrowExceptionWhenSortTypeIsUnsupported(SortType sortType) {
+            assertThrows(InvalidInputException.class, () -> notificationPersistenceService.getUserNotifications(userId, sortType));
+        }
+
+        @Test
+        void shouldSupportOldestSortType() {
+            Notification n1 = createNotification(1L, validJson());
+
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
+            when(notificationRepository.findAllByUserAssignedId(userId, SortType.OLDEST.getPageable(5)))
+                    .thenReturn(List.of(n1));
+
+            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.OLDEST);
+
+            assertThat(result).hasSize(1);
         }
     }
 
