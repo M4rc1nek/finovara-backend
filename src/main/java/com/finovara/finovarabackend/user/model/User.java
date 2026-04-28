@@ -16,7 +16,7 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.revenue.model.Revenue;
 import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
-import com.finovara.finovarabackend.usersetting.finances.revenue.model.RevenueSettings;
+import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import jakarta.persistence.*;
@@ -89,8 +89,8 @@ public class User {
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private ExpenseSettings expenseSettings;
 
-    @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
-    private RevenueSettings revenueSettings;
+    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    private List<RecurringSettings> recurringSettings;
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private AccountSettings accountSettings;

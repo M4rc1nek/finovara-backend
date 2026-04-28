@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.finances.revenue.recurring.service;
+package com.finovara.finovarabackend.usersetting.finances.recurring.recurring.service;
 
 import static org.mockito.Mockito.verify;
 /*

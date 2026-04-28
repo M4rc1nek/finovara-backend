@@ -52,7 +52,7 @@ public class UserService {
                 .build();
 
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
-        user.setRevenueSettings(settingsFactory.createDefaultRevenueSettings(user));
+        user.setRecurringSettings(settingsFactory.createDefaultRecurringSettings(user));
         user.setNotificationEmailSettings(settingsFactory.createDefaultNotificationSettings(user));
         user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
 
