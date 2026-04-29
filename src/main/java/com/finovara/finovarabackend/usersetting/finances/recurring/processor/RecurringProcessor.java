@@ -1,11 +1,8 @@
 package com.finovara.finovarabackend.usersetting.finances.recurring.processor;
 
-import com.finovara.finovarabackend.revenue.dto.RevenueDto;
-import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
 import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
-import com.finovara.finovarabackend.usersetting.finances.recurring.service.RecurringExecutionService;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.execution.RecurringExecutionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
