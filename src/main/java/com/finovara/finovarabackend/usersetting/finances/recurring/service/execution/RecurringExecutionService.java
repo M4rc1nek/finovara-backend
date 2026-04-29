@@ -10,6 +10,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringDescription;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ public class RecurringExecutionService {
     private final RevenueService revenueService;
     private final ExpenseService expenseService;
     private final PiggyBankTransactionService piggyBankTransactionService;
+    private final RecurringExpenseValidator recurringExpenseValidator;
 
     public void execute(RecurringSettings settings, LocalDate date) {
         if (settings.getType() == null) {
@@ -65,6 +67,7 @@ public class RecurringExecutionService {
                 limitPeriodType, expenseSettings.getNumberOfQuantityLimit());
 
         ExpenseRequestDto requestDto = new ExpenseRequestDto(expenseDto, new ConfirmPasswordDto(null), countQuantityLimitDto);
+        recurringExpenseValidator.validate(settings, expenseSettings, settings.getUserAssigned().getWallet());
         expenseService.addExpense(requestDto, settings.getUserAssigned().getId(), limitPeriodType);
     }
 
