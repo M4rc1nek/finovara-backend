@@ -1,10 +1,11 @@
-package com.finovara.finovarabackend.usersetting.finances.recurring.service;
+package com.finovara.finovarabackend.usersetting.finances.recurring.service.transaction;
 
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
-import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.usersetting.finances.recurring.dto.RecurringSavingsDto;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.RecurringCommonFields;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,18 +18,14 @@ public class RecurringSavingsService {
     public void saveSavingsSettings(Long userId, RecurringSavingsDto dto) {
         RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.SAVINGS);
 
-        if (dto.enable() && dto.piggyBankId() == null) {
-            throw new MissingRequirementException("Piggy bank id is required for recurring savings");
-        }
-
         settings.setPiggyBankId(dto.piggyBankId());
         settings.setRevenueCategory(null);
         settings.setExpenseCategory(null);
 
         recurringSettingsSupport.applyCommonFields(
+                userId,
                 settings,
                 new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate()),
-                userId,
                 SettingType.SAVINGS_RECURRING
         );
     }

@@ -1,9 +1,11 @@
-package com.finovara.finovarabackend.usersetting.finances.recurring.service;
+package com.finovara.finovarabackend.usersetting.finances.recurring.service.transaction;
 
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
 import com.finovara.finovarabackend.usersetting.finances.recurring.dto.RecurringRevenueDto;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.RecurringCommonFields;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +24,9 @@ public class RecurringRevenueService {
         settings.setPiggyBankId(null);
 
         recurringSettingsSupport.applyCommonFields(
+                userId,
                 settings,
                 new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate()),
-                userId,
                 SettingType.REVENUE_RECURRING
         );
     }

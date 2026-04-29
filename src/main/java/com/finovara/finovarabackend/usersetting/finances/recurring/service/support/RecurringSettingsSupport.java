@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.finances.recurring.service;
+package com.finovara.finovarabackend.usersetting.finances.recurring.service.support;
 
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingActivityStatus;
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.accountactivity.settings.service.SettingsAct
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
 import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.RecurringCommonFields;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

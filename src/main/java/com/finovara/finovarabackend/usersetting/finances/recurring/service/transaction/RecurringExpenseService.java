@@ -1,10 +1,11 @@
-package com.finovara.finovarabackend.usersetting.finances.recurring.service;
+package com.finovara.finovarabackend.usersetting.finances.recurring.service.transaction;
 
-import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.usersetting.finances.recurring.dto.RecurringExpenseDto;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.RecurringCommonFields;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +17,6 @@ public class RecurringExpenseService {
 
     public void saveExpenseSettings(Long userId, RecurringExpenseDto dto) {
         RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE);
-
-        if (dto.enable() && dto.expenseCategory() == null) {
-            throw new MissingRequirementException("Expense category is required for recurring expense");
-        }
 
         settings.setExpenseCategory(dto.expenseCategory());
         settings.setRevenueCategory(null);
