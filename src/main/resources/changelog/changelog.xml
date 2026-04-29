@@ -173,7 +173,7 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet id="create-recurring-settings-v2" author="Marcin Parśniak">
+    <changeSet id="create-recurring-settings" author="Marcin Parśniak">
         <createTable tableName="recurring_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -191,6 +191,7 @@
             <column name="created_at" type="DATE">
                 <constraints nullable="false"/>
             </column>
+            <column name="piggy_bank_id" type="BIGINT"/>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="true" foreignKeyName="fk_recurring_settings_user" references="users(id)"/>
             </column>

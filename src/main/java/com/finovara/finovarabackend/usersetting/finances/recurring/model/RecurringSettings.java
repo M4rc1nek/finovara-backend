@@ -9,7 +9,6 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,16 +26,19 @@ public class RecurringSettings  {
     @Column(nullable = false)
     private boolean enable;
 
-    private BigDecimal amount;
-
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private RecurringType type;
+
+    private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     private RevenueCategory revenueCategory;
 
     @Enumerated(EnumType.STRING)
     private ExpenseCategory expenseCategory;
+
+    private Long piggyBankId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "recurring_period")

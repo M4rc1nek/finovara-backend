@@ -44,6 +44,7 @@ public class SettingsFactory {
                         .type(type)
                         .revenueCategory(null)
                         .expenseCategory(null)
+                        .piggyBankId(null)
                         .periodType(PeriodType.MONTHLY)
                         .startDate(null)
                         .nextExecutionDate(null)
