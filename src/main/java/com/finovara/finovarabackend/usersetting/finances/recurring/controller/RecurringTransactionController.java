@@ -7,6 +7,7 @@ import com.finovara.finovarabackend.usersetting.finances.recurring.dto.Recurring
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.transaction.RecurringExpenseService;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.transaction.RecurringRevenueService;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.transaction.RecurringSavingsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class RecurringTransactionController {
 
 
     @PatchMapping("/expense")
-    public ResponseEntity<Void> saveRecurringExpenseSetting(@RequestBody RecurringExpenseDto dto) {
+    public ResponseEntity<Void> saveRecurringExpenseSetting(@RequestBody @Valid RecurringExpenseDto dto) {
         recurringExpenseService.saveExpenseSettings(SecurityUtils.getCurrentUserId(), dto);
         return ResponseEntity.noContent().build();
     }
@@ -33,7 +34,7 @@ public class RecurringTransactionController {
     }
 
     @PatchMapping("/revenue")
-    public ResponseEntity<Void> saveRecurringRevenueSetting(@RequestBody RecurringRevenueDto dto) {
+    public ResponseEntity<Void> saveRecurringRevenueSetting(@RequestBody @Valid RecurringRevenueDto dto) {
         recurringRevenueService.saveRevenueSettings(SecurityUtils.getCurrentUserId(), dto);
         return ResponseEntity.noContent().build();
     }
@@ -44,7 +45,7 @@ public class RecurringTransactionController {
     }
 
     @PatchMapping("/savings")
-    public ResponseEntity<Void> saveRecurringSavingsSetting(@RequestBody RecurringSavingsDto dto) {
+    public ResponseEntity<Void> saveRecurringSavingsSetting(@RequestBody @Valid RecurringSavingsDto dto) {
         recurringSavingsService.saveSavingsSettings(SecurityUtils.getCurrentUserId(), dto);
         return ResponseEntity.noContent().build();
     }
