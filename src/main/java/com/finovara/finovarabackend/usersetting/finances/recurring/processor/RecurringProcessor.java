@@ -3,7 +3,6 @@ package com.finovara.finovarabackend.usersetting.finances.recurring.processor;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.execution.RecurringExecutionService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,7 +33,6 @@ public class RecurringProcessor {
         }
     }
 
-    @Transactional
     private void processSingle(RecurringSettings settings, LocalDate today) {
         int safetyCounter = 0;
         int maxIterations = 100;
@@ -47,6 +45,7 @@ public class RecurringProcessor {
         }
 
         settings.setNextExecutionDate(nextDate);
+        recurringSettingsRepository.save(settings);
     }
 
 }

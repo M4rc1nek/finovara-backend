@@ -10,14 +10,11 @@ import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringDescription;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
-import com.finovara.finovarabackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.piggybank.exception.notfound.PiggyBankNotFoundException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
