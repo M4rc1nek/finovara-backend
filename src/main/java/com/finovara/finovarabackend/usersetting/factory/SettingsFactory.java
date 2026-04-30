@@ -40,7 +40,7 @@ public class SettingsFactory {
                 .map(type -> RecurringSettings.builder()
                         .userAssigned(user)
                         .enable(false)
-                        .amount(BigDecimal.ZERO)
+                        .amount(BigDecimal.ONE)
                         .type(type)
                         .revenueCategory(null)
                         .expenseCategory(null)
