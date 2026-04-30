@@ -11,6 +11,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSe
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringDescription;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class RecurringExecutionService {
     private final ExpenseService expenseService;
     private final PiggyBankTransactionService piggyBankTransactionService;
     private final RecurringExpenseValidator recurringExpenseValidator;
+    private final RecurringRevenueValidator recurringRevenueValidator;
 
     public void execute(RecurringSettings settings, LocalDate date) {
         if (settings.getType() == null) {
@@ -39,6 +41,7 @@ public class RecurringExecutionService {
 
     private void createRevenue(RecurringSettings settings, LocalDate date) {
         RevenueDto dto = buildRevenueDto(settings, date);
+        recurringRevenueValidator.validate(settings);
         revenueService.addRevenue(dto, settings.getUserAssigned().getId());
     }
 
@@ -57,6 +60,7 @@ public class RecurringExecutionService {
         ExpenseSettings expenseSettings = settings.getUserAssigned().getExpenseSettings();
         if (expenseSettings == null) {
             return;
+
         }
 
         ExpenseDto expenseDto = buildExpenseDto(settings, date);
