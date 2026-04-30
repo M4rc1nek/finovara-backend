@@ -5,6 +5,8 @@ import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankA
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
+import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import java.math.BigDecimal;
 public class GoalCompletionCore {
 
     private final PiggyBankActivityService piggyBankActivityService;
+    private final RecurringSettingsRepository recurringSettingsRepository;
 
     public void apply(Long userId, PiggyBank piggyBank, Wallet wallet, User user, GoalCompletionStrategy strategy) {
 
@@ -48,6 +51,9 @@ public class GoalCompletionCore {
         if (piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             throw new InvalidInputException("Cannot delete piggy bank with balance.");
         }
+
+        recurringSettingsRepository.findByUserAssignedIdAndPiggyBankId(user.getId(),piggyBank.getId())
+                .ifPresent(settings -> settings.setEnable(false));
 
         user.getPiggyBanks().remove(piggyBank);
     }

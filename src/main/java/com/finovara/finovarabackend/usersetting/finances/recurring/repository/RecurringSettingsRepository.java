@@ -30,4 +30,7 @@ public interface RecurringSettingsRepository extends JpaRepository<RecurringSett
                   AND rs.type = :type
             """)
     Optional<RecurringSettings> findByUserAssignedIdAndType(@Param("userId") Long userId, @Param("type") RecurringType type);
+
+    @Query("SELECT rs FROM RecurringSettings rs WHERE rs.userAssigned.id = :userId AND rs.piggyBankId = :piggyBankId")
+    Optional<RecurringSettings> findByUserAssignedIdAndPiggyBankId(Long userId, Long piggyBankId);
 }
