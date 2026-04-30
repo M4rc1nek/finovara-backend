@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.S
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
 import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.util.RecurringBasicValidator;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,14 +17,16 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class RecurringExpenseValidator {
     private final SmartScanService smartScanService;
+    private  final RecurringBasicValidator recurringBasicValidator;
 
-    public void validate(RecurringSettings recurringSettings, ExpenseSettings expenseSettings, Wallet wallet) {
-        if (recurringSettings.getAmount().compareTo(wallet.getBalance()) > 0) {
+    public void validate(RecurringSettings settings, ExpenseSettings expenseSettings, Wallet wallet) {
+        recurringBasicValidator.validateBasics(settings, settings.getExpenseCategory());
+        if (settings.getAmount().compareTo(wallet.getBalance()) > 0) {
             throw new InvalidInputException("Insufficient funds");
         }
 
         if (expenseSettings.isCountQuantityLimitEnabled()) {
-            int planned = countPlannedExecutions(recurringSettings, LocalDate.now());
+            int planned = countPlannedExecutions(settings, LocalDate.now());
             int limit = expenseSettings.getNumberOfQuantityLimit();
 
             if (planned > limit) {
@@ -31,14 +34,14 @@ public class RecurringExpenseValidator {
             }
         }
 
-        if (expenseSettings.isAmountThresholdEnabled() && recurringSettings.getAmount().compareTo(expenseSettings.getBlockedAmount()) > 0) {
+        if (expenseSettings.isAmountThresholdEnabled() && settings.getAmount().compareTo(expenseSettings.getBlockedAmount()) > 0) {
             throw new InvalidInputException("Expense amount exceeds the allowed limit: " + expenseSettings.getBlockedAmount());
         }
 
 
         if (expenseSettings.isSmartScanEnabled()) {
             try {
-                smartScanService.handleSmartScan(recurringSettings.getUserAssigned().getId(), null, recurringSettings.getAmount(), SmartScanMode.ADD);
+                smartScanService.handleSmartScan(settings.getUserAssigned().getId(), null, settings.getAmount(), SmartScanMode.ADD);
             } catch (SmartScanConfirmationRequiredException exception) {
                 throw new InvalidInputException("You cannot create this recurring expense because the amount is considered unusual. Try lowering the amount or disable Smart Scan.");
             }
