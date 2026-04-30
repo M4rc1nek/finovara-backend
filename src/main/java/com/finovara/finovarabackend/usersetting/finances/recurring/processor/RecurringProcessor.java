@@ -5,11 +5,13 @@ import com.finovara.finovarabackend.usersetting.finances.recurring.repository.Re
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.execution.RecurringExecutionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RecurringProcessor {
@@ -17,8 +19,8 @@ public class RecurringProcessor {
     private final RecurringSettingsRepository recurringSettingsRepository;
     private final RecurringExecutionService recurringExecutionService;
 
-    @Transactional
     public void generateRecurringTransaction() {
+        log.info("Started generating recurring transaction");
         LocalDate today = LocalDate.now();
         List<RecurringSettings> settingsList = recurringSettingsRepository.findDueRecurring(today);
 
@@ -32,6 +34,7 @@ public class RecurringProcessor {
         }
     }
 
+    @Transactional
     private void processSingle(RecurringSettings settings, LocalDate today) {
         int safetyCounter = 0;
         int maxIterations = 100;

@@ -10,14 +10,21 @@ import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringDescription;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
+import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.finovarabackend.util.piggybank.exception.notfound.PiggyBankNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecurringExecutionService {
@@ -27,6 +34,7 @@ public class RecurringExecutionService {
     private final PiggyBankTransactionService piggyBankTransactionService;
     private final RecurringExpenseValidator recurringExpenseValidator;
     private final RecurringRevenueValidator recurringRevenueValidator;
+    private final RecurringSavingsValidator recurringSavingsValidator;
 
     public void execute(RecurringSettings settings, LocalDate date) {
         if (settings.getType() == null) {
@@ -49,7 +57,14 @@ public class RecurringExecutionService {
         if (settings.getUserAssigned() == null || settings.getPiggyBankId() == null) {
             return;
         }
-        piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserAssigned().getId(), settings.getPiggyBankId(), settings.getAmount());
+        recurringSavingsValidator.validate(settings, settings.getUserAssigned().getWallet());
+        try{
+            piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserAssigned().getId(), settings.getPiggyBankId(), settings.getAmount());
+        }catch (PiggyBankNotFoundException e){
+            log.warn("PiggyBank not found for recurring settings id={}, disabling", settings.getId());
+            settings.setEnable(false);
+
+        }
     }
 
     private void createExpense(RecurringSettings settings, LocalDate date) {
