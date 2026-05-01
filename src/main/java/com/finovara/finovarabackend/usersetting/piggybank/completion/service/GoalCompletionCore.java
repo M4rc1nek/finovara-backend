@@ -5,7 +5,6 @@ import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankA
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
 import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.finovarabackend.wallet.model.Wallet;
@@ -52,7 +51,7 @@ public class GoalCompletionCore {
             throw new InvalidInputException("Cannot delete piggy bank with balance.");
         }
 
-        recurringSettingsRepository.findByUserAssignedIdAndPiggyBankId(user.getId(),piggyBank.getId())
+        recurringSettingsRepository.findByUserAssignedIdAndPiggyBankId(user.getId(), piggyBank.getId())
                 .ifPresent(settings -> settings.setEnable(false));
 
         user.getPiggyBanks().remove(piggyBank);

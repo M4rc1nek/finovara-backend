@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankA
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -26,6 +28,9 @@ class GoalCompletionCoreTest {
 
     @Mock
     private PiggyBankActivityService piggyBankActivityService;
+
+    @Mock
+    private RecurringSettingsRepository recurringSettingsRepository;
 
     @InjectMocks
     private GoalCompletionCore goalCompletionCore;
@@ -39,12 +44,14 @@ class GoalCompletionCoreTest {
     @BeforeEach
     void setup() {
         piggyBank = new PiggyBank();
+        piggyBank.setId(10L);
         piggyBank.setAmount(BigDecimal.valueOf(200));
 
         wallet = new Wallet();
         wallet.setBalance(BigDecimal.valueOf(500));
 
         user = new User();
+        user.setId(USER_ID);
         user.setPiggyBanks(new ArrayList<>());
         user.getPiggyBanks().add(piggyBank);
     }
@@ -56,7 +63,7 @@ class GoalCompletionCoreTest {
         assertEquals(BigDecimal.valueOf(500), wallet.getBalance());
         assertEquals(BigDecimal.valueOf(200), piggyBank.getAmount());
 
-        verifyNoInteractions(piggyBankActivityService);
+        verifyNoInteractions(piggyBankActivityService, recurringSettingsRepository);
     }
 
     @Test
@@ -66,14 +73,24 @@ class GoalCompletionCoreTest {
         assertEquals(BigDecimal.valueOf(700), wallet.getBalance());
         assertEquals(BigDecimal.ZERO, piggyBank.getAmount());
 
-        verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(USER_ID), eq(piggyBank), eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING), eq(BigDecimal.valueOf(200)));
+        verify(piggyBankActivityService).createPaymentPiggyBankActivity(
+                eq(USER_ID),
+                eq(piggyBank),
+                eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING),
+                eq(BigDecimal.valueOf(200))
+        );
 
         verify(piggyBankActivityService, never()).createSimplePiggyBankActivity(anyLong(), any(), any());
+        verifyNoInteractions(recurringSettingsRepository);
+
         assertTrue(user.getPiggyBanks().contains(piggyBank));
     }
 
     @Test
     void shouldTransferMoneyAndDeletePiggyBank() {
+        when(recurringSettingsRepository.findByUserAssignedIdAndPiggyBankId(USER_ID, piggyBank.getId()))
+                .thenReturn(Optional.empty());
+
         goalCompletionCore.apply(USER_ID, piggyBank, wallet, user, GoalCompletionStrategy.WITHDRAW_AND_DELETE);
 
         assertEquals(BigDecimal.valueOf(700), wallet.getBalance());
@@ -81,6 +98,8 @@ class GoalCompletionCoreTest {
 
         verify(piggyBankActivityService).createPaymentPiggyBankActivity(anyLong(), any(), any(), any());
         verify(piggyBankActivityService).createSimplePiggyBankActivity(eq(USER_ID), eq(piggyBank), eq(PiggyBankActivityType.DELETED_PIGGY_BANK));
+
+        verify(recurringSettingsRepository).findByUserAssignedIdAndPiggyBankId(USER_ID, piggyBank.getId());
 
         assertFalse(user.getPiggyBanks().contains(piggyBank));
     }
@@ -94,7 +113,12 @@ class GoalCompletionCoreTest {
         assertEquals(BigDecimal.valueOf(500), wallet.getBalance());
         assertEquals(BigDecimal.ZERO, piggyBank.getAmount());
 
-        verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(USER_ID), eq(piggyBank), eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING), eq(BigDecimal.ZERO));
+        verify(piggyBankActivityService).createPaymentPiggyBankActivity(
+                eq(USER_ID),
+                eq(piggyBank),
+                eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING),
+                eq(BigDecimal.ZERO)
+        );
     }
 
     @Test
@@ -106,13 +130,16 @@ class GoalCompletionCoreTest {
         assertEquals(BigDecimal.valueOf(500), wallet.getBalance());
         assertNull(piggyBank.getAmount());
 
-        verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(USER_ID), eq(piggyBank), eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING), isNull());
+        verify(piggyBankActivityService).createPaymentPiggyBankActivity(
+                eq(USER_ID),
+                eq(piggyBank),
+                eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING),
+                isNull()
+        );
     }
 
     @Test
     void shouldThrowWhenDeleteAndMoneyStillExists() {
-        piggyBank.setAmount(BigDecimal.valueOf(200));
-
         doAnswer(invocation -> {
             piggyBank.setAmount(BigDecimal.valueOf(100));
             return null;
