@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.piggybank.controller;
 
+import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankTransactionService;
@@ -44,7 +45,7 @@ public class PiggyBankManagementController {
 
     @PostMapping("/{piggyBankId}/deposit")
     public ResponseEntity<Void> addBalanceToPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
-        piggyBankTransactionService.addBalanceToPiggyBank(getCurrentUserId(), piggyBankId, amount);
+        piggyBankTransactionService.addBalanceToPiggyBank(getCurrentUserId(), piggyBankId, amount, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
         return ResponseEntity.noContent().build();
     }
 

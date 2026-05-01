@@ -32,7 +32,7 @@ public class PiggyBankTransactionService {
     private final GoalCompletionService goalCompletionService;
 
     @Transactional
-    public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount) {
+    public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, PiggyBankActivityType piggyBankActivityType) {
 
         UserContext userContext = getEntitiesForTransaction(userId, piggyBankId);
 
@@ -43,7 +43,7 @@ public class PiggyBankTransactionService {
         userContext.piggyBank.setAmount(userContext.piggyBank.getAmount().add(amount));
 
         piggyBankActivityService.createPaymentPiggyBankActivity(userId, userContext.piggyBank,
-                PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, amount);
+                piggyBankActivityType, amount);
         PiggyBankCalculator.calculateProgress(userContext.piggyBank);
         boolean completed = PiggyBankCheckGoalCompletion.isGoalCompleted((userContext.piggyBank));
 

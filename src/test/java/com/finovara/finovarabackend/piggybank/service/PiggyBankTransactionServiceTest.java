@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 class PiggyBankTransactionServiceTest {
 
     @InjectMocks
-    private PiggyBankTransactionService service;
+    private PiggyBankTransactionService piggyBankTransactionService;
 
     @Mock
     private WalletRepository walletRepository;
@@ -50,20 +50,17 @@ class PiggyBankTransactionServiceTest {
     @Mock
     private WalletManagerService walletManagerService;
 
-
     private User user;
-    private  Long userId;
+    private Long userId;
     private PiggyBank piggyBank;
-    private  Long piggyBankId;
+    private Long piggyBankId;
     private Wallet wallet;
-
 
     @BeforeEach
     void setUp() {
         user = new User();
         userId = 1L;
         piggyBankId = 1L;
-
         wallet = new Wallet();
         piggyBank = new PiggyBank();
     }
@@ -72,7 +69,6 @@ class PiggyBankTransactionServiceTest {
     class AddBalanceTests {
         @Test
         void shouldAddBalanceSuccessfully() {
-
             wallet.setBalance(new BigDecimal("500"));
             piggyBank.setAmount(new BigDecimal("200"));
             piggyBank.setGoalAmount(new BigDecimal("1000"));
@@ -81,14 +77,14 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-            service.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"));
+            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
 
             assertEquals(new BigDecimal("400"), wallet.getBalance());
             assertEquals(new BigDecimal("300"), piggyBank.getAmount());
 
             verify(walletRepository).save(wallet);
             verify(piggyBankRepository).save(piggyBank);
-
             verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(userId), eq(piggyBank),
                     eq(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY), eq(new BigDecimal("100")));
         }
@@ -103,10 +99,10 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-            service.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"));
+            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
 
             assertEquals(new BigDecimal("1000"), piggyBank.getAmount());
-
             verify(goalCompletionService).handleGoalCompletion(userId);
         }
 
@@ -119,7 +115,9 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-            assertThrows(InvalidInputException.class, () -> service.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100")));
+            assertThrows(InvalidInputException.class, () ->
+                    piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                            PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY));
 
             verify(piggyBankRepository, never()).save(any());
             verify(walletRepository, never()).save(any());
@@ -127,10 +125,10 @@ class PiggyBankTransactionServiceTest {
 
         @Test
         void shouldThrowWhenUserNotFound() {
-
             when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("x"));
 
-            assertThrows(UserNotFoundException.class, () -> service.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100")));
+            assertThrows(UserNotFoundException.class, () -> piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                            PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY));
 
             verifyNoInteractions(walletRepository, piggyBankRepository);
         }
@@ -140,7 +138,6 @@ class PiggyBankTransactionServiceTest {
     class RemoveBalanceTests {
         @Test
         void shouldRemoveBalanceSuccessfully() {
-
             wallet.setBalance(new BigDecimal("300"));
             piggyBank.setAmount(new BigDecimal("200"));
 
@@ -148,21 +145,19 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-            service.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"));
+            piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"));
 
             assertEquals(new BigDecimal("400"), wallet.getBalance());
             assertEquals(new BigDecimal("100"), piggyBank.getAmount());
 
             verify(walletRepository).save(wallet);
             verify(piggyBankRepository).save(piggyBank);
-
             verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(userId), eq(piggyBank),
                     eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK), eq(new BigDecimal("100")));
         }
 
         @Test
         void shouldThrowWhenInsufficientPiggyBankFunds() {
-
             wallet.setBalance(new BigDecimal("300"));
             piggyBank.setAmount(new BigDecimal("50"));
 
@@ -170,7 +165,8 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-            assertThrows(InvalidInputException.class, () -> service.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100")));
+            assertThrows(InvalidInputException.class, () ->
+                    piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100")));
 
             verify(piggyBankRepository, never()).save(any());
             verify(walletRepository, never()).save(any());
@@ -178,10 +174,10 @@ class PiggyBankTransactionServiceTest {
 
         @Test
         void shouldThrowWhenUserNotFound_remove() {
-
             when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("x"));
 
-            assertThrows(UserNotFoundException.class, () -> service.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100")));
+            assertThrows(UserNotFoundException.class, ()
+                    -> piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100")));
 
             verifyNoInteractions(walletRepository, piggyBankRepository);
         }

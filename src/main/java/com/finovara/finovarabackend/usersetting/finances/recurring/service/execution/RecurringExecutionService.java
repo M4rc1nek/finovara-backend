@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.usersetting.finances.recurring.service.execution;
 
+import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.expense.dto.ExpenseDto;
 import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
@@ -56,7 +57,8 @@ public class RecurringExecutionService {
         }
         recurringSavingsValidator.validate(settings, settings.getUserAssigned().getWallet());
         try{
-            piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserAssigned().getId(), settings.getPiggyBankId(), settings.getAmount());
+            piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserAssigned().getId(), settings.getPiggyBankId(), settings.getAmount(),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
         }catch (PiggyBankNotFoundException e){
             log.warn("PiggyBank not found for recurring settings id={}, disabling", settings.getId());
             settings.setEnable(false);
