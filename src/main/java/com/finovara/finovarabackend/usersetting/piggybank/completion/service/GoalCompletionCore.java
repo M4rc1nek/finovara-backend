@@ -47,12 +47,12 @@ public class GoalCompletionCore {
         piggyBankActivityService.createPaymentPiggyBankActivity(userId, piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, amountToTransfer);
         piggyBankActivityService.createSimplePiggyBankActivity(userId, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
 
-        if (piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
-            throw new InvalidInputException("Cannot delete piggy bank with balance.");
-        }
-
         recurringSettingsRepository.findByUserAssignedIdAndPiggyBankId(user.getId(), piggyBank.getId())
-                .ifPresent(settings -> settings.setEnable(false));
+                .ifPresent(settings -> {
+                    settings.setEnable(false);
+                    settings.setPiggyBankId(null);
+                    settings.setNextExecutionDate(null);
+                });
 
         user.getPiggyBanks().remove(piggyBank);
     }
