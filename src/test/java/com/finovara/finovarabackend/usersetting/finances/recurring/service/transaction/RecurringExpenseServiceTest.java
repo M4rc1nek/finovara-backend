@@ -5,7 +5,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSe
 import com.finovara.finovarabackend.usersetting.finances.recurring.dto.RecurringExpenseDto;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
-import com.finovara.finovarabackend.usersetting.finances.recurring.service.RecurringCommonFields;
+import com.finovara.finovarabackend.usersetting.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
 import com.finovara.finovarabackend.user.model.User;

@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.usersetting.finances.recurring.service;
+package com.finovara.finovarabackend.usersetting.finances.recurring.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.finovara.finovarabackend.util.model.PeriodType;
