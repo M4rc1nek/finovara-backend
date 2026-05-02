@@ -11,12 +11,12 @@ import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
 import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
+import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.finovarabackend.util.piggybank.PiggyBankCalculator;
 import com.finovara.finovarabackend.util.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.finovarabackend.util.piggybank.PiggyBankValidator;
-import com.finovara.finovarabackend.util.piggybank.exception.notfound.PiggyBankNotFoundException;
 import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
@@ -38,6 +38,7 @@ public class PiggyBankManagementService {
     private final PiggyBankManagerService piggyBankManagerService;
     private final PiggyBankActivityService piggyBankActivityService;
     private final PiggyBankSettingsRepository piggyBankSettingsRepository;
+    private final RecurringSettingsRepository recurringSettingsRepository;
     private final SettingsFactory settingsFactory;
     private final PiggyBankMapper piggyBankMapper;
 
@@ -80,11 +81,6 @@ public class PiggyBankManagementService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
-        //safety check
-        if (piggyBank.getUserAssigned() == null || !piggyBank.getUserAssigned().getId().equals(user.getId())) {
-            throw new PiggyBankNotFoundException("Piggy bank not found for this user");
-        }
-
         if (piggyBankRepository.existsByNameAndUserAssignedId(piggyBankDto.name(), user.getId())
                 && !piggyBank.getName().equals(piggyBankDto.name())) {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
@@ -123,6 +119,13 @@ public class PiggyBankManagementService {
         if (piggyBank == null || piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             throw new InvalidInputException("Cannot delete piggy bank with balance.  Withdraw funds first.");
         }
+        recurringSettingsRepository.findByUserAssignedIdAndPiggyBankId(userId, piggyBankId)
+                .ifPresent(settings -> {
+                    settings.setEnable(false);
+                    settings.setPiggyBankId(null);
+                    settings.setNextExecutionDate(null);
+                });
+
         piggyBankActivityService.createSimplePiggyBankActivity(userId, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
         piggyBankRepository.delete(piggyBank);
     }
