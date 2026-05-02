@@ -4,6 +4,7 @@ import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankAct
 import com.finovara.finovarabackend.expense.model.ExpenseCategory;
 import com.finovara.finovarabackend.expense.service.ExpenseService;
 import com.finovara.finovarabackend.piggybank.service.PiggyBankTransactionService;
+import com.finovara.finovarabackend.revenue.model.RevenueCategory;
 import com.finovara.finovarabackend.revenue.service.RevenueService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
@@ -105,6 +106,8 @@ class RecurringExecutionServiceTest {
         @Test
         void shouldCreateRevenue() {
             settings.setType(RecurringType.REVENUE);
+            settings.setRevenueCategory(RevenueCategory.SALARY);
+
 
             recurringExecutionService.execute(settings, date);
 
@@ -120,6 +123,8 @@ class RecurringExecutionServiceTest {
 
             verifyNoInteractions(revenueService);
         }
+
+
     }
 
     @Nested
