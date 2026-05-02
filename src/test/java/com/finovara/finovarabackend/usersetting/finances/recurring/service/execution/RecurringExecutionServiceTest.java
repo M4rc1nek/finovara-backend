@@ -108,7 +108,6 @@ class RecurringExecutionServiceTest {
             settings.setType(RecurringType.REVENUE);
             settings.setRevenueCategory(RevenueCategory.SALARY);
 
-
             recurringExecutionService.execute(settings, date);
 
             verify(recurringRevenueValidator).validate(settings);
@@ -123,8 +122,6 @@ class RecurringExecutionServiceTest {
 
             verifyNoInteractions(revenueService);
         }
-
-
     }
 
     @Nested
