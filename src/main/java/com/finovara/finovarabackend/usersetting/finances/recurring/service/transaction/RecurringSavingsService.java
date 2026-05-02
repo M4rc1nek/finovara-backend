@@ -1,11 +1,15 @@
 package com.finovara.finovarabackend.usersetting.finances.recurring.service.transaction;
 
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.dto.RecurringSavingsDto;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.RecurringCommonFields;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringSavingsValidator;
+import com.finovara.finovarabackend.wallet.model.Wallet;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +18,9 @@ import org.springframework.stereotype.Service;
 public class RecurringSavingsService {
 
     private final RecurringSettingsSupport recurringSettingsSupport;
+    private final RecurringSavingsValidator recurringSavingsValidator;
 
+    @Transactional
     public void saveSavingsSettings(Long userId, RecurringSavingsDto dto) {
         RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.SAVINGS);
 
@@ -28,6 +34,11 @@ public class RecurringSavingsService {
                 new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate()),
                 SettingType.SAVINGS_RECURRING
         );
+
+        if (settings.isEnable()) {
+            Wallet wallet = settings.getUserAssigned().getWallet();
+            recurringSavingsValidator.validate(settings, wallet);
+        }
     }
 
     public RecurringSavingsDto getSavingsSettings(Long userId) {
