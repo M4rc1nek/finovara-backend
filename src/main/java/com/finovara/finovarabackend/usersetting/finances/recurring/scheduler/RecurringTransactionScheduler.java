@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class RecurringRevenueScheduler {
+public class RecurringTransactionScheduler {
     private final RecurringProcessor recurringProcessor;
 
     @Scheduled(cron = "${scheduler.recurring-settings.frequency}", zone = "Europe/Warsaw")
