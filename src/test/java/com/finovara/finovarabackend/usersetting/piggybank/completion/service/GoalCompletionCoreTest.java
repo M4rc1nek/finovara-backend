@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankA
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.finovarabackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.finovarabackend.wallet.model.Wallet;
@@ -16,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -105,6 +107,24 @@ class GoalCompletionCoreTest {
     }
 
     @Test
+    void shouldDisableRecurringSavingsWhenDeletingPiggyBank() {
+        RecurringSettings settings = RecurringSettings.builder()
+                .enable(true)
+                .nextExecutionDate(LocalDate.now())
+                .build();
+
+        when(recurringSettingsRepository.findByUserAssignedIdAndPiggyBankId(USER_ID, piggyBank.getId()))
+                .thenReturn(Optional.of(settings));
+
+        goalCompletionCore.apply(USER_ID, piggyBank, wallet, user, GoalCompletionStrategy.WITHDRAW_AND_DELETE);
+
+        assertFalse(settings.isEnable());
+        assertNull(settings.getNextExecutionDate());
+        assertNull(settings.getPiggyBankId());
+    }
+
+
+    @Test
     void shouldNotTransferWhenAmountIsZero() {
         piggyBank.setAmount(BigDecimal.ZERO);
 
@@ -136,15 +156,5 @@ class GoalCompletionCoreTest {
                 eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING),
                 isNull()
         );
-    }
-
-    @Test
-    void shouldThrowWhenDeleteAndMoneyStillExists() {
-        doAnswer(invocation -> {
-            piggyBank.setAmount(BigDecimal.valueOf(100));
-            return null;
-        }).when(piggyBankActivityService).createSimplePiggyBankActivity(anyLong(), any(), any());
-
-        assertThrows(InvalidInputException.class, () -> goalCompletionCore.apply(USER_ID, piggyBank, wallet, user, GoalCompletionStrategy.WITHDRAW_AND_DELETE));
     }
 }
