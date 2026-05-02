@@ -11,7 +11,6 @@ import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.
 import com.finovara.finovarabackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringDescription;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.finovarabackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringSavingsValidator;
@@ -56,23 +55,6 @@ public class RecurringExecutionService {
         revenueService.addRevenue(dto, settings.getUserAssigned().getId());
     }
 
-    private void createSavings(RecurringSettings settings) {
-        if (settings.getUserAssigned() == null || settings.getPiggyBankId() == null) {
-            return;
-        }
-        recurringSavingsValidator.validate(settings, settings.getUserAssigned().getWallet());
-
-        try {
-            piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserAssigned().getId(), settings.getPiggyBankId(), settings.getAmount(),
-                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
-        } catch (PiggyBankNotFoundException e) {
-            log.warn("PiggyBank not found for recurring settings id={}, disabling", settings.getId());
-            settings.setEnable(false);
-            settings.setNextExecutionDate(null);
-        }
-
-    }
-
     private void createExpense(RecurringSettings settings, LocalDate date) {
         if (settings.getUserAssigned() == null || settings.getExpenseCategory() == null) {
             return;
@@ -91,6 +73,23 @@ public class RecurringExecutionService {
         ExpenseRequestDto requestDto = new ExpenseRequestDto(expenseDto, new ConfirmPasswordDto(null), buildCountQuantityLimitDto(expenseSettings, limitPeriodType));
 
         expenseService.addExpense(requestDto, settings.getUserAssigned().getId(), limitPeriodType);
+    }
+
+    private void createSavings(RecurringSettings settings) {
+        if (settings.getUserAssigned() == null || settings.getPiggyBankId() == null) {
+            return;
+        }
+        recurringSavingsValidator.validate(settings, settings.getUserAssigned().getWallet());
+
+        try {
+            piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserAssigned().getId(), settings.getPiggyBankId(), settings.getAmount(),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
+        } catch (PiggyBankNotFoundException e) {
+            log.warn("PiggyBank not found for recurring settings id={}, disabling", settings.getId());
+            settings.setEnable(false);
+            settings.setNextExecutionDate(null);
+        }
+
     }
 
     private PeriodType resolveLimitPeriodType(RecurringSettings settings, ExpenseSettings expenseSettings) {
