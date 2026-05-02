@@ -11,57 +11,85 @@ import com.finovara.finovarabackend.wallet.model.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
 public class RecurringExpenseValidator {
+
+    private static final int MAX_ITERATIONS = 100;
+
     private final SmartScanService smartScanService;
-    private  final RecurringBasicValidator recurringBasicValidator;
+    private final RecurringBasicValidator recurringBasicValidator;
 
     public void validate(RecurringSettings settings, ExpenseSettings expenseSettings, Wallet wallet) {
         recurringBasicValidator.validateBasics(settings, settings.getExpenseCategory());
-        if (settings.getAmount().compareTo(wallet.getBalance()) > 0) {
+
+        validateBalance(settings, wallet);
+        validateQuantityLimit(settings, expenseSettings);
+        validateAmountThreshold(settings, expenseSettings);
+        validateSmartScan(settings, expenseSettings);
+    }
+
+    private void validateBalance(RecurringSettings settings, Wallet wallet) {
+        BigDecimal amount = settings.getAmount();
+
+        if (amount.compareTo(wallet.getBalance()) > 0) {
             throw new InvalidInputException("Insufficient funds");
         }
+    }
 
-        if (expenseSettings.isCountQuantityLimitEnabled()) {
-            int planned = countPlannedExecutions(settings, LocalDate.now());
-            int limit = expenseSettings.getNumberOfQuantityLimit();
-
-            if (planned > limit) {
-                throw new InvalidInputException("Expense count limit exceeded. Limit: " + limit + ", required: " + planned);
-            }
+    private void validateQuantityLimit(RecurringSettings settings, ExpenseSettings expenseSettings) {
+        if (!expenseSettings.isCountQuantityLimitEnabled()) {
+            return;
         }
 
-        if (expenseSettings.isAmountThresholdEnabled() && settings.getAmount().compareTo(expenseSettings.getBlockedAmount()) > 0) {
-            throw new InvalidInputException("Expense amount exceeds the allowed limit: " + expenseSettings.getBlockedAmount());
+        int planned = countPlannedExecutions(settings, LocalDate.now());
+        int limit = expenseSettings.getNumberOfQuantityLimit();
+
+        if (planned > limit) {
+            throw new InvalidInputException("Expense count limit exceeded. Limit: " + limit + ", required: " + planned);
+        }
+    }
+
+    private void validateAmountThreshold(RecurringSettings settings, ExpenseSettings expenseSettings) {
+        if (!expenseSettings.isAmountThresholdEnabled()) {
+            return;
         }
 
+        BigDecimal amount = settings.getAmount();
+        BigDecimal blockedAmount = expenseSettings.getBlockedAmount();
 
-        if (expenseSettings.isSmartScanEnabled()) {
-            try {
-                smartScanService.handleSmartScan(settings.getUserAssigned().getId(), null, settings.getAmount(), SmartScanMode.ADD);
-            } catch (SmartScanConfirmationRequiredException exception) {
-                throw new InvalidInputException("You cannot create this recurring expense because the amount is considered unusual. Try lowering the amount or disable Smart Scan.");
-            }
+        if (amount.compareTo(blockedAmount) > 0) {
+            throw new InvalidInputException("Expense amount exceeds the allowed limit: " + blockedAmount);
+        }
+    }
+
+    private void validateSmartScan(RecurringSettings settings, ExpenseSettings expenseSettings) {
+        if (!expenseSettings.isSmartScanEnabled()) {
+            return;
         }
 
+        try {
+            smartScanService.handleSmartScan(settings.getUserAssigned().getId(), null, settings.getAmount(), SmartScanMode.ADD);
+        } catch (SmartScanConfirmationRequiredException exception) {
+            throw new InvalidInputException("You cannot create this recurring expense because the amount is considered unusual. " +
+                    "Try lowering the amount or disable Smart Scan.");
+        }
     }
 
     private int countPlannedExecutions(RecurringSettings settings, LocalDate today) {
         int count = 0;
-        int safetyCounter = 0;
-        int maxIterations = 100;
+        int iterationGuard = 0;
 
         LocalDate nextDate = settings.getNextExecutionDate();
 
-        while (!nextDate.isAfter(today) && safetyCounter++ < maxIterations) {
+        while (!nextDate.isAfter(today) && iterationGuard++ < MAX_ITERATIONS) {
             count++;
             nextDate = settings.getPeriodType().addPeriod(nextDate);
         }
 
         return count;
     }
-
 }
