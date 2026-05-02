@@ -6,6 +6,8 @@ import com.finovara.finovarabackend.usersetting.finances.recurring.model.Recurri
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.RecurringCommonFields;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
+import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +16,9 @@ import org.springframework.stereotype.Service;
 public class RecurringRevenueService {
 
     private final RecurringSettingsSupport recurringSettingsSupport;
+    private final RecurringRevenueValidator recurringRevenueValidator;
 
+    @Transactional
     public void saveRevenueSettings(Long userId, RecurringRevenueDto dto) {
 
         RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.REVENUE);
@@ -29,6 +33,10 @@ public class RecurringRevenueService {
                 new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate()),
                 SettingType.REVENUE_RECURRING
         );
+
+        if (settings.isEnable()) {
+            recurringRevenueValidator.validate(settings);
+        }
     }
 
     public RecurringRevenueDto getRevenueSettings(Long userId) {
