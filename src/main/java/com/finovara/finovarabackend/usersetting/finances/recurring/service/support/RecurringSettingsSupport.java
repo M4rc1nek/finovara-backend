@@ -7,6 +7,7 @@ import com.finovara.finovarabackend.usersetting.finances.recurring.model.Recurri
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
 import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.RecurringCommonFields;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +20,7 @@ public class RecurringSettingsSupport {
 
     public RecurringSettings getSettings(Long userId, RecurringType type) {
         return recurringSettingsRepository.findByUserAssignedIdAndType(userId, type)
-                .orElseThrow();
+                .orElseThrow(() -> new EntityNotFoundException("RecurringSettings not found for userId=" + userId + ", type=" + type));
     }
 
     public void applyCommonFields(Long userId, RecurringSettings settings, RecurringCommonFields fields, SettingType settingType) {
