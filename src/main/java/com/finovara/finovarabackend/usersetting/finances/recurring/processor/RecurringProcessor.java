@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.usersetting.finances.recurring.processor;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.execution.RecurringExecutionService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -14,10 +15,12 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class RecurringProcessor {
+    private static final int MAX_ITERATIONS = 100;
 
     private final RecurringSettingsRepository recurringSettingsRepository;
     private final RecurringExecutionService recurringExecutionService;
 
+    @Transactional
     public void generateRecurringTransaction() {
         log.info("Started generating recurring transaction");
         LocalDate today = LocalDate.now();
@@ -35,16 +38,20 @@ public class RecurringProcessor {
 
     private void processSingle(RecurringSettings settings, LocalDate today) {
         int safetyCounter = 0;
-        int maxIterations = 100;
 
         LocalDate nextDate = settings.getNextExecutionDate();
 
-        while (!nextDate.isAfter(today) && safetyCounter++ < maxIterations) {
+        while (settings.isEnable() && !nextDate.isAfter(today) && safetyCounter++ < MAX_ITERATIONS) {
             recurringExecutionService.execute(settings, nextDate);
+
+            if (!settings.isEnable()) {
+                break;
+            }
+
             nextDate = settings.getPeriodType().addPeriod(nextDate);
         }
 
-        settings.setNextExecutionDate(nextDate);
+        settings.setNextExecutionDate(settings.isEnable() ? nextDate : null);
         recurringSettingsRepository.save(settings);
     }
 
