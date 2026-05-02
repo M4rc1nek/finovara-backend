@@ -48,6 +48,9 @@ public class RecurringExecutionService {
     }
 
     private void createRevenue(RecurringSettings settings, LocalDate date) {
+        if(settings.getUserAssigned() == null || settings.getRevenueCategory() == null){
+            return;
+        }
         recurringRevenueValidator.validate(settings);
         RevenueDto dto = buildRevenueDto(settings, date);
         revenueService.addRevenue(dto, settings.getUserAssigned().getId());
