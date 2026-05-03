@@ -23,6 +23,11 @@ public interface PiggyBankRepository extends JpaRepository<PiggyBank, Long> {
     @Query("SELECT COUNT(pb) FROM PiggyBank pb WHERE pb.userAssigned.id = :userId")
     long countPiggyBanksByUserId(@Param("userId") Long userId);
 
-
-    boolean existsByNameAndUserAssignedId(String Name, Long userId);
+    @Query("""
+                SELECT COUNT(p) > 0 
+                FROM PiggyBank p 
+                WHERE LOWER(p.name) = LOWER(:name) 
+                  AND p.userAssignedId = :userId
+            """)
+    boolean existsByNameIgnoreCase(@Param("userId") Long userId, @Param("name") String name);
 }

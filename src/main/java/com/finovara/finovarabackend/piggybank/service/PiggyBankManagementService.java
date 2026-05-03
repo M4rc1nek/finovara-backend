@@ -53,7 +53,7 @@ public class PiggyBankManagementService {
             throw new InvalidInputException("you have reached the maximum number of piggy banks: " + maxPiggyBanks);
         }
 
-        if (piggyBankRepository.existsByNameAndUserAssignedId(piggyBankDto.name(), user.getId())) {
+        if (piggyBankRepository.existsByNameIgnoreCase(user.getId(), piggyBankDto.name())) {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
 
@@ -81,8 +81,8 @@ public class PiggyBankManagementService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
-        if (piggyBankRepository.existsByNameAndUserAssignedId(piggyBankDto.name(), user.getId())
-                && !piggyBank.getName().equals(piggyBankDto.name())) {
+        if (piggyBankRepository.existsByNameIgnoreCase(user.getId(), piggyBankDto.name())
+                && !piggyBank.getName().equalsIgnoreCase(piggyBankDto.name())) {
             throw new NameAlreadyExistsException("This piggy bank name already exists");
         }
 
