@@ -20,9 +20,6 @@ public interface PiggyBankRepository extends JpaRepository<PiggyBank, Long> {
     @Query("SELECT pb FROM PiggyBank pb WHERE pb.userAssigned.id = :userId")
     List<PiggyBank> findAllByUserAssignedId(@Param("userId") Long userId);
 
-    @Query("SELECT pb FROM PiggyBank pb WHERE pb.userAssigned.email = :email")
-    List<PiggyBank> findAllByUserAssignedEmail(@Param("email") String email);
-
     @Query("SELECT COUNT(pb) FROM PiggyBank pb WHERE pb.userAssigned.id = :userId")
     long countPiggyBanksByUserId(@Param("userId") Long userId);
 
