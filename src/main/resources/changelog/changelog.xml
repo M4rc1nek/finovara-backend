@@ -104,9 +104,13 @@
                 <constraints nullable="false" foreignKeyName="fk_piggybank_user" references="users(id)"/>
             </column>
         </createTable>
-    </changeSet>
 
-    <changeSet id="create-account-settings" author="Marcin Parśniak">
+        <sql>
+            CREATE UNIQUE INDEX unique_piggy_bank_user_name
+            ON piggy_banks (user_id, LOWER(name));
+        </sql>
+    </changeSet>
+<changeSet id="create-account-settings" author="Marcin Parśniak">
         <createTable tableName="account_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>

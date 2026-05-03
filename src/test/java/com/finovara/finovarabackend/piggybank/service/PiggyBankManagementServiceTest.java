@@ -91,7 +91,7 @@ class PiggyBankManagementServiceTest {
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
-            when(piggyBankRepository.existsByNameAndUserAssignedId(defaultDto.name(), userId)).thenReturn(false);
+            when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(false);
             when(piggyBankRepository.save(any())).thenReturn(saved);
             when(settingsFactory.createDefaultPiggyBankSettings(any())).thenReturn(new PiggyBankSettings());
 
@@ -121,10 +121,9 @@ class PiggyBankManagementServiceTest {
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
-            when(piggyBankRepository.existsByNameAndUserAssignedId(any(), eq(userId))).thenReturn(true);
+            when(piggyBankRepository.existsByNameIgnoreCase(eq(userId), any())).thenReturn(true);
 
-            assertThrows(NameAlreadyExistsException.class,
-                    () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
+            assertThrows(NameAlreadyExistsException.class, () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
         }
 
         @Test
@@ -150,7 +149,7 @@ class PiggyBankManagementServiceTest {
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
-            when(piggyBankRepository.existsByNameAndUserAssignedId(defaultDto.name(), userId)).thenReturn(false);
+            when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(false);
             when(piggyBankRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
             Long result = piggyBankManagementService.editPiggyBank(userId, defaultDto, piggyBankId);
@@ -172,7 +171,7 @@ class PiggyBankManagementServiceTest {
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
-            when(piggyBankRepository.existsByNameAndUserAssignedId(defaultDto.name(), userId)).thenReturn(true);
+            when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(true);
 
             assertThrows(NameAlreadyExistsException.class, () -> piggyBankManagementService.editPiggyBank(userId, defaultDto, piggyBankId));
         }
