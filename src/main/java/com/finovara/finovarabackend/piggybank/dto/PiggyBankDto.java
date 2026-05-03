@@ -1,8 +1,7 @@
 package com.finovara.finovarabackend.piggybank.dto;
 
 import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,6 +14,8 @@ public record PiggyBankDto(
         @NotBlank
         String name,
 
+        @DecimalMin(value = "0.01", message = "Amount must be at least 0.01")
+        @DecimalMax(value = "10000000", message = "Amount must not exceed 10 000 000")
         BigDecimal amount,
         LocalDate createdAt,
 
