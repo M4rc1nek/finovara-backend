@@ -106,5 +106,10 @@ verification-code-manager:
   attempts-expiration-minutes: 15
   max-attempts: 5
 
+contact:
+  rate-limit:
+    max-requests: 3
+    window-hours: 1
+
 password-generator:
   length: 8
