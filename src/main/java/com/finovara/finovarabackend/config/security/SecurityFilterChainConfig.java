@@ -49,7 +49,7 @@ public class SecurityFilterChainConfig {
                         .requestMatchers("/api/profile-image/**").permitAll()
                         .requestMatchers("/profile-images/**").permitAll()
                         .requestMatchers("/api/password-reset/**").permitAll()
-                        .requestMatchers("/contact").permitAll()
+                        .requestMatchers("/api/contact").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

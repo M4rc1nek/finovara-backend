@@ -17,10 +17,10 @@ public class ContactService {
     private final JavaMailSender mailSender;
 
     @Value("${mail.recipient.address}")
-    String recipientAddress;
+    private String recipientAddress;
 
     @Value("${mail.from.address}")
-    String fromAddress;
+    private String fromAddress;
 
     @Async
     public void sendContactEmail(ContactDto dto) {
