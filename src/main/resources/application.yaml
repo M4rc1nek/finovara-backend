@@ -43,6 +43,8 @@ logging:
 mail:
   recipient:
     address: finovaracenter@gmail.com
+  from:
+    address: support@finovara.pl
 
 
 expenses:
