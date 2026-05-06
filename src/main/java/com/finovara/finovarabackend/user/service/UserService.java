@@ -11,6 +11,7 @@ import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsEx
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
+import com.finovara.finovarabackend.util.email.EmailDomainValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ public class UserService {
 
     private final SettingsFactory settingsFactory;
     private final LoginActivityService loginActivityService;
+    private final EmailDomainValidator emailDomainValidator;
 
     public UserRegisterDto registerUser(UserRegisterDto dto) {
         if (userRepository.existsByUsername(dto.username())) {
@@ -43,6 +45,8 @@ public class UserService {
         if (userRepository.existsByEmail(dto.email())) {
             throw new EmailAlreadyExistsException("Email is already taken");
         }
+
+        emailDomainValidator.validateDomainHasMxRecord(dto.email());
 
         User user = User.builder()
                 .username(dto.username())

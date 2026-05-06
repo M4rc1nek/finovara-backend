@@ -12,6 +12,7 @@ import com.finovara.finovarabackend.usersetting.account.service.verification.Ver
 import com.finovara.finovarabackend.usersetting.account.service.verification.VerificationCodeEmailService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
+import com.finovara.finovarabackend.util.email.EmailDomainValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class EmailChangeService {
     private final VerificationCodeEmailService verificationCodeEmailService;
     private final PasswordValidator passwordValidator;
     private final EmailUpdateService emailUpdateService;
+    private final EmailDomainValidator emailDomainValidator;
 
     @Transactional
     public void requestEmailChange(Long userId, EmailChangeRequestDto dto) {
@@ -62,6 +64,7 @@ public class EmailChangeService {
 
     private void validateEmailChangeRequest(User user, EmailChangeRequestDto dto) {
         credentialValidationService.validateEmailChange(user, dto.email());
+        emailDomainValidator.validateDomainHasMxRecord(dto.email());
         passwordValidator.validatePassword(user.getId(), new ConfirmPasswordDto(dto.password()));
     }
 

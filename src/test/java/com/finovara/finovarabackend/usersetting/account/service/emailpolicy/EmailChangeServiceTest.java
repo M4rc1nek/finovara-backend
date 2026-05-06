@@ -10,7 +10,9 @@ import com.finovara.finovarabackend.usersetting.account.model.AccountSettings;
 import com.finovara.finovarabackend.usersetting.account.service.verification.CredentialValidationService;
 import com.finovara.finovarabackend.usersetting.account.service.verification.VerificationCodeEmailService;
 import com.finovara.finovarabackend.usersetting.account.service.verification.VerificationCodeManager;
+import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
+import com.finovara.finovarabackend.util.email.EmailDomainValidator;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +44,8 @@ class EmailChangeServiceTest {
     @Mock
     private EmailUpdateService emailUpdateService;
     @Mock
+    private EmailDomainValidator emailDomainValidator;
+    @Mock
     private HttpServletRequest request;
 
     @InjectMocks
@@ -72,43 +76,45 @@ class EmailChangeServiceTest {
 
             when(verificationCodeManager.generateEmailChangeCode(settings, email)).thenReturn(code);
 
-            EmailChangeRequestDto dto = new EmailChangeRequestDto(email, password);
-
-            emailChangeService.requestEmailChange(userId, dto);
+            emailChangeService.requestEmailChange(userId, new EmailChangeRequestDto(email, password));
 
             verify(credentialValidationService).validateEmailChange(user, email);
-            verify(passwordValidator).validatePassword(eq(userId), any());
+            verify(emailDomainValidator).validateDomainHasMxRecord(email);
+            verify(passwordValidator).validatePassword(userId, new ConfirmPasswordDto(password));
             verify(verificationCodeManager).generateEmailChangeCode(settings, email);
             verify(verificationCodeEmailService).sendEmailChangeCode(user, email, code);
         }
 
         @Test
-        void shouldNotGenerateCodeWhenValidationFails() {
+        void shouldNotGenerateCodeWhenEmailValidationFails() {
             String email = "bad@mail.com";
             String password = "password";
 
-            doThrow(new InvalidInputException("invalid")).when(credentialValidationService).validateEmailChange(user, email);
+            doThrow(new InvalidInputException("invalid"))
+                    .when(credentialValidationService).validateEmailChange(user, email);
 
-            EmailChangeRequestDto dto = new EmailChangeRequestDto(email, password);
+            assertThatThrownBy(() -> emailChangeService.requestEmailChange(userId, new EmailChangeRequestDto(email, password)))
+                    .isInstanceOf(InvalidInputException.class);
 
-            assertThatThrownBy(() -> emailChangeService.requestEmailChange(userId, dto)).isInstanceOf(InvalidInputException.class);
-
+            verify(emailDomainValidator, never()).validateDomainHasMxRecord(any());
+            verify(passwordValidator, never()).validatePassword(anyLong(), any());
             verify(verificationCodeManager, never()).generateEmailChangeCode(any(), any());
             verify(verificationCodeEmailService, never()).sendEmailChangeCode(any(), any(), anyInt());
         }
 
         @Test
-        void shouldNotValidatePasswordIfEmailValidationFails() {
+        void shouldNotValidatePasswordIfDomainValidationFails() {
             String email = "bad@mail.com";
             String password = "password";
 
-            doThrow(new InvalidInputException("email invalid")).when(credentialValidationService).validateEmailChange(user, email);
+            doThrow(new InvalidInputException("invalid domain"))
+                    .when(emailDomainValidator).validateDomainHasMxRecord(email);
 
-            EmailChangeRequestDto dto = new EmailChangeRequestDto(email, password);
-
-            assertThatThrownBy(() -> emailChangeService.requestEmailChange(userId, dto)).isInstanceOf(InvalidInputException.class);
+            assertThatThrownBy(() -> emailChangeService.requestEmailChange(userId, new EmailChangeRequestDto(email, password)))
+                    .isInstanceOf(InvalidInputException.class);
 
             verify(passwordValidator, never()).validatePassword(anyLong(), any());
+            verify(verificationCodeManager, never()).generateEmailChangeCode(any(), any());
         }
     }
 
@@ -125,15 +131,11 @@ class EmailChangeServiceTest {
         @Test
         void shouldConfirmEmailChangeSuccessfully() {
             AttemptsDto attempts = new AttemptsDto(1, 5, 4);
-
             when(verificationCodeManager.getCurrentEmailChangeAttempts(userId)).thenReturn(attempts);
 
-            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(code);
-
-            AttemptsDto result = emailChangeService.confirmEmailChange(userId, dto, request);
+            AttemptsDto result = emailChangeService.confirmEmailChange(userId, new EmailChangeConfirmDto(code), request);
 
             assertThat(result).isEqualTo(attempts);
-
             verify(verificationCodeManager).verifyEmailChangeCode(settings, code);
             verify(verificationCodeManager).removeEmailChangeCode(settings);
             verify(emailUpdateService).updateEmail(user, newEmail, request);
@@ -141,11 +143,15 @@ class EmailChangeServiceTest {
 
         @Test
         void shouldNotRemoveCodeWhenVerificationFails() {
-            doThrow(new InvalidInputException("Invalid code")).when(verificationCodeManager).verifyEmailChangeCode(settings, code);
+            AttemptsDto attempts = new AttemptsDto(2, 5, 3);
 
-            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(code);
+            doThrow(new InvalidInputException("Invalid code"))
+                    .when(verificationCodeManager).verifyEmailChangeCode(settings, code);
 
-            assertThatThrownBy(() -> emailChangeService.confirmEmailChange(userId, dto, request)).isInstanceOf(InvalidVerificationCodeException.class);
+            when(verificationCodeManager.verifyEmailChangeAttemptsCode(userId, settings)).thenReturn(attempts);
+
+            assertThatThrownBy(() -> emailChangeService.confirmEmailChange(userId, new EmailChangeConfirmDto(code), request))
+                    .isInstanceOf(InvalidVerificationCodeException.class);
 
             verify(verificationCodeManager, never()).removeEmailChangeCode(any());
             verify(emailUpdateService, never()).updateEmail(any(), any(), any());
@@ -153,16 +159,13 @@ class EmailChangeServiceTest {
 
         @Test
         void shouldUpdateEmailWithCorrectPendingEmail() {
-            AttemptsDto attempts = new AttemptsDto(2, 5, 3);
             String anotherEmail = "different@mail.com";
-
             settings.setPendingEmail(anotherEmail);
 
+            AttemptsDto attempts = new AttemptsDto(2, 5, 3);
             when(verificationCodeManager.getCurrentEmailChangeAttempts(userId)).thenReturn(attempts);
 
-            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(code);
-
-            emailChangeService.confirmEmailChange(userId, dto, request);
+            emailChangeService.confirmEmailChange(userId, new EmailChangeConfirmDto(code), request);
 
             verify(emailUpdateService).updateEmail(user, anotherEmail, request);
         }
