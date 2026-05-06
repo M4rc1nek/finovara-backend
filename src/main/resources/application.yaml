@@ -46,6 +46,11 @@ mail:
   from:
     address: support@finovara.pl
 
+nbp:
+  api:
+    url: https://api.nbp.pl/api
+  properties:
+    scale: 4
 
 expenses:
   highest:
