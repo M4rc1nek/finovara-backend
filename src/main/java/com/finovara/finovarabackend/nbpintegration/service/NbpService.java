@@ -15,7 +15,12 @@ public class NbpService {
     private final NbpApiClient nbpApiClient;
 
     public List<NbpTableDto> getAllRates() {
-        return nbpApiClient.getAllRates("json");
+        try{
+            return nbpApiClient.getAllRates("json");
+        }catch (FeignException exception){
+            log.error("Failed to fetch rates from NBP API", exception);
+            throw new ServiceUnavailableException("Failed to get all rates", exception);
+        }
     }
 
     public double convertCurrencies(String fromCurrency, String toCurrency, double amount, NbpConversionType conversionType) {
