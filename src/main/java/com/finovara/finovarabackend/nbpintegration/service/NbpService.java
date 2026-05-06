@@ -1,17 +1,30 @@
 package com.finovara.finovarabackend.nbpintegration.service;
 
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.finovarabackend.nbpintegration.client.NbpApiClient;
 import com.finovara.finovarabackend.nbpintegration.dto.NbpTableDto;
 import com.finovara.finovarabackend.nbpintegration.model.NbpConversionType;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NbpService {
+
+    @Value("${nbp.properties.scale}")
+    private int scale;
+
+
+    private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
     private final NbpApiClient nbpApiClient;
 
     public List<NbpTableDto> getAllRates() {
@@ -23,9 +36,9 @@ public class NbpService {
         }
     }
 
-    public double convertCurrencies(String fromCurrency, String toCurrency, double amount, NbpConversionType conversionType) {
+    public BigDecimal convertCurrencies(String fromCurrency, String toCurrency, BigDecimal amount, NbpConversionType conversionType) {
         if (fromCurrency.equalsIgnoreCase(toCurrency)) {
-            return amount;
+            return amount.setScale(scale, ROUNDING_MODE);
         }
 
         List<NbpTableDto.Rate> exchangeRates = fetchExchangeRates();
@@ -37,24 +50,24 @@ public class NbpService {
         };
     }
 
-    private double convertFromPln(List<NbpTableDto.Rate> exchangeRates, String toCurrency, double amount) {
-        double toRate = findRateByCode(exchangeRates, toCurrency);
-        return amount / toRate;
+    private BigDecimal convertFromPln(List<NbpTableDto.Rate> exchangeRates, String toCurrency, BigDecimal amount) {
+        BigDecimal toRate = findRateByCode(exchangeRates, toCurrency);
+        return amount.divide(toRate, scale, ROUNDING_MODE);
     }
 
-    private double convertToPln(List<NbpTableDto.Rate> exchangeRates, String fromCurrency, double amount) {
-        double fromRate = findRateByCode(exchangeRates, fromCurrency);
-        return amount * fromRate;
+    private BigDecimal convertToPln(List<NbpTableDto.Rate> exchangeRates, String fromCurrency, BigDecimal amount) {
+        BigDecimal fromRate = findRateByCode(exchangeRates, fromCurrency);
+        return amount.multiply(fromRate).setScale(scale, ROUNDING_MODE);
     }
 
-    private double convertBetweenForeignCurrencies(List<NbpTableDto.Rate> exchangeRates, String fromCurrency, String toCurrency, double amount) {
-        double fromRate = findRateByCode(exchangeRates, fromCurrency);
-        double toRate = findRateByCode(exchangeRates, toCurrency);
-        double amountInPln = amount * fromRate;
-        return amountInPln / toRate;
+    private BigDecimal convertBetweenForeignCurrencies(List<NbpTableDto.Rate> exchangeRates, String fromCurrency, String toCurrency, BigDecimal amount) {
+        BigDecimal fromRate = findRateByCode(exchangeRates, fromCurrency);
+        BigDecimal toRate = findRateByCode(exchangeRates, toCurrency);
+        BigDecimal amountInPln = amount.multiply(fromRate);
+        return amountInPln.divide(toRate, scale, ROUNDING_MODE);
     }
 
-    private double findRateByCode(List<NbpTableDto.Rate> exchangeRates, String currencyCode) {
+    private BigDecimal findRateByCode(List<NbpTableDto.Rate> exchangeRates, String currencyCode) {
         return exchangeRates.stream()
                 .filter(rate -> rate.currencyCode().equalsIgnoreCase(currencyCode))
                 .findFirst()

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -24,7 +25,7 @@ public class NbpController {
     }
 
     @GetMapping("/convert")
-    public double convert(@RequestParam double amount, @RequestParam String from, @RequestParam String to,
+    public BigDecimal convert(@RequestParam BigDecimal amount, @RequestParam String from, @RequestParam String to,
                           @RequestParam(defaultValue = "FROM_PLN") NbpConversionType nbpConversionType) {
         return nbpService.convertCurrencies(from, to, amount, nbpConversionType);
     }
