@@ -58,6 +58,10 @@ public class NbpService {
     }
 
     private List<NbpTableDto.Rate> fetchExchangeRates() {
-        return getAllRates().getFirst().rates();
+        List<NbpTableDto> tables = getAllRates();
+        if (tables == null || tables.isEmpty()) {
+            throw new InvalidInputException("Exchange rates are currently unavailable.");
+        }
+        return tables.getFirst().rates();
     }
 }
