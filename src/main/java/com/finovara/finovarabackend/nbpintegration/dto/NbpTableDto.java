@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.nbpintegration.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -27,7 +28,7 @@ public record NbpTableDto(
             String currencyCode,
 
             @JsonProperty("mid")
-            double averageRate
+            BigDecimal averageRate
     ) {
     }
 }
