@@ -7,12 +7,13 @@ import com.finovara.finovarabackend.exception.conflict.StateConflictException;
 import com.finovara.finovarabackend.exception.forbidden.NotAuthorizedException;
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
+import com.finovara.finovarabackend.exception.tomanyrequest.TooManyRequests;
 import com.finovara.finovarabackend.exception.tomanyrequest.VerificationAttemptsExceededException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
-import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
 import com.finovara.finovarabackend.limit.exception.conflict.LimitAlreadyExistsException;
+import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
 import com.finovara.finovarabackend.limit.exception.unprocessablecontent.LimitExceededException;
 import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
 import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
@@ -28,7 +29,7 @@ import org.springframework.web.context.request.WebRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({EmailAlreadyExistsException.class, NameAlreadyExistsException.class, LimitAlreadyExistsException.class, SmartScanConfirmationRequiredException.class, StateConflictException.class })
+    @ExceptionHandler({EmailAlreadyExistsException.class, NameAlreadyExistsException.class, LimitAlreadyExistsException.class, SmartScanConfirmationRequiredException.class, StateConflictException.class})
     public ResponseEntity<ErrorResponseDto> handleConflictExceptions(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.CONFLICT.value(),
@@ -115,6 +116,17 @@ public class GlobalExceptionHandler {
                 exception.getMessage(),
                 webRequest.getDescription(false).replace("uri=", ""),
                 exception.getAttempts()
+        );
+        return new ResponseEntity<>(body, HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    @ExceptionHandler(TooManyRequests.class)
+    public ResponseEntity<ErrorResponseDto> handleTooManyRequests(TooManyRequests exception, WebRequest webRequest) {
+        ErrorResponseDto body = new ErrorResponseDto(
+                HttpStatus.TOO_MANY_REQUESTS.value(),
+                HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(body, HttpStatus.TOO_MANY_REQUESTS);
     }

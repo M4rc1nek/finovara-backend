@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.config.security;
 
+import com.finovara.finovarabackend.contact.filter.ContactRateLimitFilter;
 import com.finovara.finovarabackend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +25,7 @@ public class SecurityFilterChainConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
+    private final ContactRateLimitFilter contactRateLimitFilter;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -49,10 +51,12 @@ public class SecurityFilterChainConfig {
                         .requestMatchers("/api/profile-image/**").permitAll()
                         .requestMatchers("/profile-images/**").permitAll()
                         .requestMatchers("/api/password-reset/**").permitAll()
+                        .requestMatchers("/api/contact").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
+                .addFilterBefore(contactRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
