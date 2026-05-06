@@ -1,6 +1,6 @@
 package com.finovara.finovarabackend.config.security;
 
-import com.finovara.finovarabackend.contact.filter.ContactRateLimitFilter;
+import com.finovara.finovarabackend.ratelimit.filter.RateLimitFilter;
 import com.finovara.finovarabackend.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +25,7 @@ public class SecurityFilterChainConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
-    private final ContactRateLimitFilter contactRateLimitFilter;
+    private final RateLimitFilter rateLimitFilter;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -56,7 +56,7 @@ public class SecurityFilterChainConfig {
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(contactRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
