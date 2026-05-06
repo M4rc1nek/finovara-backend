@@ -105,16 +105,21 @@ scheduler:
     delete-cron: "0 0 0 ? * 1"
 
 
-
 verification-code-manager:
   code-expiration-minutes: 15
   attempts-expiration-minutes: 15
   max-attempts: 5
 
-contact:
-  rate-limit:
-    max-requests: 3
-    window-hours: 1
 
 password-generator:
   length: 8
+
+
+rate-limit:
+  endpoints:
+    - path: /api/contact
+      max-requests: 3
+      window-hours: 1
+    - path: /api/currencies/**
+      max-requests: 3
+      window-hours: 1
