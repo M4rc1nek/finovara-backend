@@ -4,6 +4,7 @@ import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankAct
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
+import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,8 +37,8 @@ class AutoPaymentsCoreTest {
         piggyBank = new PiggyBank();
         piggyBank.setAmount(BigDecimal.valueOf(100));
 
-        wallet = new Wallet();
-        wallet.setBalance(BigDecimal.valueOf(500));
+        wallet = Wallet.create(new User());
+        wallet.deposit(BigDecimal.valueOf(500));
     }
 
 
@@ -53,7 +54,7 @@ class AutoPaymentsCoreTest {
 
     @Test
     void shouldApplyOnlyAvailableBalance() {
-        wallet.setBalance(BigDecimal.valueOf(50));
+        wallet.withdraw(BigDecimal.valueOf(450));
 
         autoPaymentsCore.process(USER_ID, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.APPLY);
 
@@ -65,7 +66,7 @@ class AutoPaymentsCoreTest {
 
     @Test
     void shouldApplyZeroWhenWalletEmpty() {
-        wallet.setBalance(BigDecimal.ZERO);
+        wallet.withdraw(BigDecimal.valueOf(500));
 
         autoPaymentsCore.process(USER_ID, piggyBank, wallet, BigDecimal.valueOf(200), PiggyBankAutomationMode.APPLY);
 

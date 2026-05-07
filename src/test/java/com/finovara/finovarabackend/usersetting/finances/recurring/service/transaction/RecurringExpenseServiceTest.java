@@ -47,7 +47,7 @@ class RecurringExpenseServiceTest {
 
         User user = new User();
         user.setExpenseSettings(new ExpenseSettings());
-        user.setWallet(new Wallet());
+        user.setWallet(Wallet.create(user));
 
         settings.setUserAssigned(user);
     }

@@ -109,8 +109,8 @@ class RevenueServiceTest {
 
             RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit");
 
-            Wallet wallet = new Wallet();
-            wallet.setBalance(new BigDecimal("1000"));
+            Wallet wallet = Wallet.create(user);
+            wallet.deposit(new BigDecimal("1000"));
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(revenueManagerService.getRevenueOrThrow(10L)).thenReturn(revenue);

@@ -49,13 +49,13 @@ class GoalCompletionCoreTest {
         piggyBank.setId(10L);
         piggyBank.setAmount(BigDecimal.valueOf(200));
 
-        wallet = new Wallet();
-        wallet.setBalance(BigDecimal.valueOf(500));
-
         user = new User();
         user.setId(USER_ID);
         user.setPiggyBanks(new ArrayList<>());
         user.getPiggyBanks().add(piggyBank);
+
+        wallet = Wallet.create(user);
+        wallet.deposit(BigDecimal.valueOf(500));
     }
 
     @Test

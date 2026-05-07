@@ -4,6 +4,7 @@ import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.util.RecurringBasicValidator;
 import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,8 +41,8 @@ class RecurringSavingsValidatorTest {
 
         recurringSettings.setUserAssigned(new com.finovara.finovarabackend.user.model.User());
 
-        wallet = new Wallet();
-        wallet.setBalance(BigDecimal.valueOf(1000));
+        wallet = Wallet.create(new User());
+        wallet.deposit(BigDecimal.valueOf(1000));
     }
 
     @Test
@@ -58,7 +59,7 @@ class RecurringSavingsValidatorTest {
         recurringSettings.setPiggyBankId(10L);
         recurringSettings.setAmount(BigDecimal.valueOf(2000));
 
-        wallet.setBalance(BigDecimal.valueOf(100));
+        wallet.withdraw(BigDecimal.valueOf(900));
         InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
                 () -> recurringSavingsValidator.validate(recurringSettings, wallet));
 

@@ -77,8 +77,8 @@ class RoundUpServiceTest {
         user = new User();
         user.setId(userId);
 
-        wallet = new Wallet();
-        wallet.setBalance(BigDecimal.valueOf(500));
+        wallet = Wallet.create(user);
+        wallet.deposit(BigDecimal.valueOf(500));
 
         expense = new Expense();
         expense.setAmount(BigDecimal.valueOf(123.45));
