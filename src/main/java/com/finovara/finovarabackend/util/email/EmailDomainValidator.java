@@ -24,6 +24,7 @@ public class EmailDomainValidator {
             Attributes attrs = ctx.getAttributes(domain, new String[]{"MX"});
 
             if (attrs == null || attrs.get("MX") == null) {
+                log.info("MX attr: {}", attrs != null ? attrs.get("MX") : "null");
                 throw new InvalidInputException("Invalid email domain: " + domain);
             }
 

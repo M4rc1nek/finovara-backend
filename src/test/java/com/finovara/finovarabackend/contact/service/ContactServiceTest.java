@@ -1,68 +1,62 @@
 package com.finovara.finovarabackend.contact.service;
 
 import com.finovara.finovarabackend.contact.dto.ContactDto;
+import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.finovarabackend.util.email.EmailDomainValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.MailSendException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ContactServiceTest {
 
     @Mock
-    private JavaMailSender mailSender;
+    private EmailDomainValidator emailDomainValidator;
+
+    @Mock
+    private ContactSendEmail contactSendEmail;
 
     @InjectMocks
     private ContactService contactService;
 
+    private ContactDto dto;
+
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(contactService, "recipientAddress", "finovaracenter@gmail.com");
-        ReflectionTestUtils.setField(contactService, "fromAddress", "support@finovara.pl");
+        dto = new ContactDto(
+                "John Doe",
+                "Hello, I need help with my account",
+                "Support request",
+                "john@finovara.com"
+        );
     }
 
     @Test
-    void shouldSendEmailWithCorrectFields() {
-        ContactDto dto = new ContactDto("Jan Kowalski", "Mam pytanie", "Pomoc", "jan@example.com");
-        ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+    void shouldValidateEmailAndSendContactEmail() {
+        contactService.requestContactEmail(dto);
 
-        contactService.sendContactEmail(dto);
-
-        verify(mailSender).send(captor.capture());
-        SimpleMailMessage sent = captor.getValue();
-
-        assertThat(sent.getTo()).containsExactly("finovaracenter@gmail.com");
-        assertThat(sent.getFrom()).isEqualTo("support@finovara.pl");
-        assertThat(sent.getSubject()).isEqualTo("Pomoc");
-        assertThat(sent.getReplyTo()).isEqualTo("jan@example.com");
-        assertThat(sent.getText()).contains("Jan Kowalski", "jan@example.com", "Mam pytanie");
+        verify(emailDomainValidator).validateDomainHasMxRecord("john@finovara.com");
+        verify(contactSendEmail).sendContactEmail(dto);
     }
 
     @Test
-    void shouldNotThrowWhenMailSenderFails() {
-        ContactDto dto = new ContactDto("Jan Kowalski", "Mam pytanie", "Pomoc", "jan@example.com");
-        doThrow(new MailSendException("SMTP error")).when(mailSender).send(any(SimpleMailMessage.class));
+    void shouldNotSendEmailWhenValidationFails() {
+        doThrow(new InvalidInputException("No MX record"))
+                .when(emailDomainValidator)
+                .validateDomainHasMxRecord("john@finovara.com");
 
-        assertThatCode(() -> contactService.sendContactEmail(dto)).doesNotThrowAnyException();
-    }
+        try {
 
-    @Test
-    void shouldCallMailSenderExactlyOnce() {
-        ContactDto dto = new ContactDto("Anna Nowak", "Wiadomość", "Temat", "anna@example.com");
+            contactService.requestContactEmail(dto);
+        } catch (Exception exception) {
+        }
 
-        contactService.sendContactEmail(dto);
-
-        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+        verify(emailDomainValidator).validateDomainHasMxRecord("john@finovara.com");
+        verifyNoInteractions(contactSendEmail);
     }
 }
