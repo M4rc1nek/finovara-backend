@@ -76,8 +76,8 @@ public class RevenueService {
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, oldAmount, PiggyBankAutomationMode.ROLLBACK);
 
-        wallet.setBalance(wallet.getBalance().subtract(oldAmount));
-        wallet.setBalance(wallet.getBalance().add(newAmount));
+        wallet.withdraw(oldAmount);
+        wallet.deposit(newAmount);
 
         existingRevenue.setAmount(revenueDto.amount());
         existingRevenue.setCategory(revenueDto.category());
