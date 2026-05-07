@@ -26,7 +26,9 @@ public class AutoPaymentsCore {
         BigDecimal availableToTransfer = wallet.getBalance().min(automationAmount);
 
         piggyBank.setAmount(piggyBank.getAmount().add(availableToTransfer));
-        wallet.setBalance(wallet.getBalance().subtract(availableToTransfer));
+        if (availableToTransfer.signum() > 0) {
+            wallet.withdraw(availableToTransfer);
+        }
 
         piggyBankActivityService.createPaymentPiggyBankActivity(
                 userId,
@@ -40,7 +42,9 @@ public class AutoPaymentsCore {
         BigDecimal amountToRollback = automationAmount.min(piggyBank.getAmount());
 
         piggyBank.setAmount(piggyBank.getAmount().subtract(amountToRollback));
-        wallet.setBalance(wallet.getBalance().add(amountToRollback));
+        if (amountToRollback.signum() > 0) {
+            wallet.deposit(amountToRollback);
+        }
 
         piggyBankActivityService.createPaymentPiggyBankActivity(
                 userId,
