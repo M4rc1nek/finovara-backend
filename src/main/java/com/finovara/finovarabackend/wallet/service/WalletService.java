@@ -1,18 +1,19 @@
 package com.finovara.finovarabackend.wallet.service;
 
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import com.finovara.finovarabackend.util.wallet.WalletManagerService;
 import com.finovara.finovarabackend.wallet.dto.WalletDto;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.function.BiFunction;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class WalletService {
@@ -20,42 +21,35 @@ public class WalletService {
     private final UserManagerService userManagerService;
     private final WalletManagerService walletManagerService;
 
+    @Transactional
     public WalletDto addBalanceToWallet(Long userId, BigDecimal amount) {
-        return modifyWalletBalance(userId, amount, BigDecimal::add);
-    }
-
-    public WalletDto removeBalanceFromWallet(Long userId, BigDecimal amount) {
-        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
-        if (wallet == null || wallet.getBalance().compareTo(amount) < 0) {
-            throw new InvalidInputException("Insufficient funds");
-        }
-        return modifyWalletBalance(userId, amount, BigDecimal::subtract);
-    }
-
-    public WalletDto getWalletForUser(Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
+        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
 
-        Wallet wallet = walletRepository.findByUserAssignedId(userId).orElse(null);
-        if (wallet == null) {
-            wallet = Wallet.builder()
-                    .balance(BigDecimal.ZERO)
-                    .userAssigned(user).build();
-            walletRepository.save(wallet);
-        }
+        wallet.deposit(amount);
+        log.info("Adding balance to wallet for userId: {}", userId);
 
         return returnNewWalletDto(user, wallet);
     }
 
-    private WalletDto modifyWalletBalance(Long userId, BigDecimal amount, BiFunction<BigDecimal, BigDecimal, BigDecimal> operation) {
-        validateAmount(amount);
-
+    @Transactional
+    public WalletDto removeBalanceFromWallet(Long userId, BigDecimal amount) {
         User user = userManagerService.getUserByIdOrThrow(userId);
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
 
-        BigDecimal newBalance = operation.apply(wallet.getBalance(), amount);
-        wallet.setBalance(newBalance);
+        wallet.withdraw(amount);
+        log.info("Withdrawing balance from wallet for userId: {}", userId);
 
-        walletRepository.save(wallet);
+        return returnNewWalletDto(user, wallet);
+    }
+
+    @Transactional
+    public WalletDto getWalletForUser(Long userId) {
+        User user = userManagerService.getUserByIdOrThrow(userId);
+
+        Wallet wallet = walletRepository.findByUserAssignedId(userId)
+                .orElseGet(() -> walletRepository.save(Wallet.create(user)));
+
         return returnNewWalletDto(user, wallet);
     }
 
@@ -66,9 +60,4 @@ public class WalletService {
                 wallet.getBalance());
     }
 
-    private void validateAmount(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Amount must be non negative");
-        }
-    }
 }

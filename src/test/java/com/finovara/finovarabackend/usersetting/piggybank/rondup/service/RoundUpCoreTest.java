@@ -4,6 +4,7 @@ import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankAct
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
+import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpCore;
 import com.finovara.finovarabackend.wallet.model.Wallet;
@@ -36,8 +37,8 @@ class RoundUpCoreTest {
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("10.00"));
 
-        Wallet wallet = new Wallet();
-        wallet.setBalance(new BigDecimal("50.00"));
+        Wallet wallet = Wallet.create(new User());
+        wallet.deposit(new BigDecimal("50.00"));
 
         BigDecimal roundUp = new BigDecimal("5.00");
 
@@ -54,8 +55,8 @@ class RoundUpCoreTest {
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("20.00"));
 
-        Wallet wallet = new Wallet();
-        wallet.setBalance(new BigDecimal("10.00"));
+        Wallet wallet = Wallet.create(new User());
+        wallet.deposit(new BigDecimal("10.00"));
 
         BigDecimal roundUp = new BigDecimal("5.00");
 
@@ -72,8 +73,8 @@ class RoundUpCoreTest {
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("3.00"));
 
-        Wallet wallet = new Wallet();
-        wallet.setBalance(new BigDecimal("10.00"));
+        Wallet wallet = Wallet.create(new User());
+        wallet.deposit(new BigDecimal("10.00"));
 
         BigDecimal roundUp = new BigDecimal("5.00");
 
@@ -90,8 +91,8 @@ class RoundUpCoreTest {
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("10.00"));
 
-        Wallet wallet = new Wallet();
-        wallet.setBalance(new BigDecimal("50.00"));
+        Wallet wallet = Wallet.create(new User());
+        wallet.deposit(new BigDecimal("50.00"));
 
         roundUpCore.process(USER_ID, piggyBank, wallet, BigDecimal.ZERO, PiggyBankAutomationMode.APPLY);
 
@@ -106,8 +107,8 @@ class RoundUpCoreTest {
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(BigDecimal.ZERO);
 
-        Wallet wallet = new Wallet();
-        wallet.setBalance(new BigDecimal("10.00"));
+        Wallet wallet = Wallet.create(new User());
+        wallet.deposit(new BigDecimal("10.00"));
 
         roundUpCore.process(USER_ID, piggyBank, wallet, new BigDecimal("5.00"), PiggyBankAutomationMode.ROLLBACK);
 
@@ -122,8 +123,8 @@ class RoundUpCoreTest {
         PiggyBank piggyBank = new PiggyBank();
         piggyBank.setAmount(new BigDecimal("10.00"));
 
-        Wallet wallet = new Wallet();
-        wallet.setBalance(new BigDecimal("2.00"));
+        Wallet wallet = Wallet.create(new User());
+        wallet.deposit(new BigDecimal("2.00"));
 
         BigDecimal roundUp = new BigDecimal("5.00");
 

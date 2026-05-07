@@ -60,8 +60,8 @@ class AutoPaymentsServiceTest {
 
     @BeforeEach
     void setup() {
-        wallet = new Wallet();
         user = new User();
+        wallet = Wallet.create(user);
 
         PiggyBankSettings settings = new PiggyBankSettings();
         piggyBank = new PiggyBank();

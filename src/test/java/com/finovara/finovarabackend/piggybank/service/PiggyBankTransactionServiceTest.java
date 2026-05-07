@@ -61,7 +61,7 @@ class PiggyBankTransactionServiceTest {
         user = new User();
         userId = 1L;
         piggyBankId = 1L;
-        wallet = new Wallet();
+        wallet = Wallet.create(user);
         piggyBank = new PiggyBank();
     }
 
@@ -69,7 +69,7 @@ class PiggyBankTransactionServiceTest {
     class AddBalanceTests {
         @Test
         void shouldAddBalanceSuccessfully() {
-            wallet.setBalance(new BigDecimal("500"));
+            wallet.deposit(new BigDecimal("500"));
             piggyBank.setAmount(new BigDecimal("200"));
             piggyBank.setGoalAmount(new BigDecimal("1000"));
 
@@ -91,7 +91,7 @@ class PiggyBankTransactionServiceTest {
 
         @Test
         void shouldCallGoalCompletionWhenGoalReached() {
-            wallet.setBalance(new BigDecimal("500"));
+            wallet.deposit(new BigDecimal("500"));
             piggyBank.setAmount(new BigDecimal("900"));
             piggyBank.setGoalAmount(new BigDecimal("1000"));
 
@@ -108,7 +108,7 @@ class PiggyBankTransactionServiceTest {
 
         @Test
         void shouldThrowWhenInsufficientFunds() {
-            wallet.setBalance(new BigDecimal("50"));
+            wallet.deposit(new BigDecimal("50"));
             piggyBank.setAmount(new BigDecimal("200"));
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
@@ -138,7 +138,7 @@ class PiggyBankTransactionServiceTest {
     class RemoveBalanceTests {
         @Test
         void shouldRemoveBalanceSuccessfully() {
-            wallet.setBalance(new BigDecimal("300"));
+            wallet.deposit(new BigDecimal("300"));
             piggyBank.setAmount(new BigDecimal("200"));
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
@@ -158,7 +158,7 @@ class PiggyBankTransactionServiceTest {
 
         @Test
         void shouldThrowWhenInsufficientPiggyBankFunds() {
-            wallet.setBalance(new BigDecimal("300"));
+            wallet.deposit(new BigDecimal("300"));
             piggyBank.setAmount(new BigDecimal("50"));
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);

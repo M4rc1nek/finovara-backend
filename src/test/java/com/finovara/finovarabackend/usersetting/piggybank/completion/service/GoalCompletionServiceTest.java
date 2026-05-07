@@ -221,8 +221,11 @@ class GoalCompletionServiceTest {
     }
 
     private Wallet createWallet() {
-        Wallet wallet = new Wallet();
-        wallet.setBalance(BigDecimal.valueOf(500));
+        User user = new User();
+        user.setId(USER_ID);
+
+        Wallet wallet = Wallet.create(user);
+        wallet.deposit(BigDecimal.valueOf(500));
         return wallet;
     }
 

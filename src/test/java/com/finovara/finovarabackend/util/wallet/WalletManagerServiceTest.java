@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.util.wallet;
 
 import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
+import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import com.finovara.finovarabackend.wallet.repository.WalletRepository;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ class WalletManagerServiceTest {
     void shouldReturnWalletWhenExists() {
         Long userId = 1L;
 
-        Wallet wallet = new Wallet();
+        Wallet wallet = Wallet.create(new User());
 
         when(walletRepository.findByUserAssignedId(userId)).thenReturn(Optional.of(wallet));
 

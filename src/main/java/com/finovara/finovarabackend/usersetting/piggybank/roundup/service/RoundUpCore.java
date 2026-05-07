@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.usersetting.piggybank.roundup.service;
 
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.finovarabackend.wallet.model.Wallet;
@@ -29,12 +28,8 @@ public class RoundUpCore {
 
         if (roundUpAmount.compareTo(BigDecimal.ZERO) <= 0) return;
 
-        if (wallet.getBalance().compareTo(roundUpAmount) < 0) {
-            throw new InvalidInputException("Insufficient funds for round-up");
-        }
-
         piggyBank.setAmount(piggyBank.getAmount().add(roundUpAmount));
-        wallet.setBalance(wallet.getBalance().subtract(roundUpAmount));
+        wallet.withdraw(roundUpAmount);
 
         piggyBankActivityService.createPaymentPiggyBankActivity(userId, piggyBank, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, roundUpAmount);
     }
@@ -46,7 +41,7 @@ public class RoundUpCore {
         if (amountToRollback.compareTo(BigDecimal.ZERO) <= 0) return;
 
         piggyBank.setAmount(piggyBank.getAmount().subtract(amountToRollback));
-        wallet.setBalance(wallet.getBalance().add(amountToRollback));
+        wallet.deposit(amountToRollback);
 
         piggyBankActivityService.createPaymentPiggyBankActivity(userId, piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, amountToRollback);
     }

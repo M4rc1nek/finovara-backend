@@ -1,10 +1,11 @@
 package com.finovara.finovarabackend.usersetting.finances.recurring.service.transaction;
 
 import com.finovara.finovarabackend.accountactivity.settings.model.SettingType;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.usersetting.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.finovarabackend.usersetting.finances.recurring.dto.RecurringSavingsDto;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringType;
-import com.finovara.finovarabackend.usersetting.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.finovarabackend.util.model.PeriodType;
@@ -44,8 +45,11 @@ class RecurringSavingsServiceTest {
         userId = 1L;
         settings = new RecurringSettings();
 
-        settings.setUserAssigned(new com.finovara.finovarabackend.user.model.User());
-        settings.getUserAssigned().setWallet(new Wallet());
+        User user = new User();
+        Wallet wallet = Wallet.create(user);
+        user.setWallet(wallet);
+
+        settings.setUserAssigned(user);
     }
 
     @Nested

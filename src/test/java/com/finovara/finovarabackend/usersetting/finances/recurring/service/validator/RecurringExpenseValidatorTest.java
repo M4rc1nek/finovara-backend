@@ -7,6 +7,7 @@ import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.servi
 import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.finovarabackend.usersetting.finances.recurring.service.validator.util.RecurringBasicValidator;
 import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -47,7 +48,7 @@ class RecurringExpenseValidatorTest {
         recurringSettings.setNextExecutionDate(LocalDate.of(2025, 1, 1));
 
         expenseSettings = new ExpenseSettings();
-        wallet = new Wallet();
+        wallet = Wallet.create(new User());
 
         recurringSettings.setUserAssigned(new com.finovara.finovarabackend.user.model.User());
         recurringSettings.getUserAssigned().setId(1L);
@@ -60,7 +61,7 @@ class RecurringExpenseValidatorTest {
         void shouldPassValidationWhenAllRulesAreValid() {
             recurringSettings.setExpenseCategory(com.finovara.finovarabackend.expense.model.ExpenseCategory.FOOD);
 
-            wallet.setBalance(BigDecimal.valueOf(1000));
+            wallet.deposit(BigDecimal.valueOf(1000));
 
             expenseSettings.setCountQuantityLimitEnabled(false);
             expenseSettings.setAmountThresholdEnabled(false);
@@ -75,7 +76,7 @@ class RecurringExpenseValidatorTest {
         void shouldThrowExceptionWhenBalanceIsInsufficient() {
             recurringSettings.setExpenseCategory(com.finovara.finovarabackend.expense.model.ExpenseCategory.FOOD);
 
-            wallet.setBalance(BigDecimal.valueOf(10));
+            wallet.deposit(BigDecimal.valueOf(10));
 
             expenseSettings.setCountQuantityLimitEnabled(false);
             expenseSettings.setAmountThresholdEnabled(false);
@@ -91,7 +92,7 @@ class RecurringExpenseValidatorTest {
         void shouldThrowExceptionWhenAmountThresholdExceeded() {
             recurringSettings.setExpenseCategory(com.finovara.finovarabackend.expense.model.ExpenseCategory.FOOD);
 
-            wallet.setBalance(BigDecimal.valueOf(1000));
+            wallet.deposit(BigDecimal.valueOf(1000));
 
             expenseSettings.setAmountThresholdEnabled(true);
             expenseSettings.setBlockedAmount(BigDecimal.valueOf(50));
@@ -111,7 +112,7 @@ class RecurringExpenseValidatorTest {
         void shouldThrowExceptionWhenSmartScanFails() {
             recurringSettings.setExpenseCategory(com.finovara.finovarabackend.expense.model.ExpenseCategory.FOOD);
 
-            wallet.setBalance(BigDecimal.valueOf(1000));
+            wallet.deposit(BigDecimal.valueOf(1000));
 
             expenseSettings.setSmartScanEnabled(true);
             expenseSettings.setCountQuantityLimitEnabled(false);
@@ -135,7 +136,7 @@ class RecurringExpenseValidatorTest {
         void shouldThrowExceptionWhenQuantityLimitExceeded() {
             recurringSettings.setExpenseCategory(com.finovara.finovarabackend.expense.model.ExpenseCategory.FOOD);
 
-            wallet.setBalance(BigDecimal.valueOf(1000));
+            wallet.deposit(BigDecimal.valueOf(1000));
 
             expenseSettings.setCountQuantityLimitEnabled(true);
             expenseSettings.setNumberOfQuantityLimit(0);

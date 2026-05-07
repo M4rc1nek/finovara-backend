@@ -50,9 +50,8 @@ class WalletServiceTest {
     class GetWalletForUser {
         @Test
         void shouldReturnExistingWallet() {
-            Wallet wallet = new Wallet();
-            wallet.setId(4L);
-            wallet.setBalance(new BigDecimal("100"));
+            Wallet wallet = Wallet.create(user);
+            wallet.deposit(new BigDecimal("100"));
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(walletRepository.findByUserAssignedId(userId)).thenReturn(Optional.of(wallet));
@@ -60,7 +59,7 @@ class WalletServiceTest {
             WalletDto result = walletService.getWalletForUser(userId);
 
             assertEquals(new BigDecimal("100"), result.balance());
-            assertEquals(4L, result.id());
+            assertEquals(wallet.getId(), result.id());
             assertEquals(userId, result.userId());
 
             verify(walletRepository, never()).save(any());
@@ -85,8 +84,8 @@ class WalletServiceTest {
 
         @Test
         void shouldAddBalanceSuccessfully() {
-            Wallet wallet = new Wallet();
-            wallet.setBalance(new BigDecimal("100"));
+            Wallet wallet = Wallet.create(user);
+            wallet.deposit(new BigDecimal("100"));
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
@@ -99,7 +98,12 @@ class WalletServiceTest {
 
         @Test
         void shouldThrowExceptionWhenAmountIsNegative() {
-            assertThrows(IllegalArgumentException.class, () -> walletService.addBalanceToWallet(userId, new BigDecimal("-10")));
+            Wallet wallet = Wallet.create(user);
+
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
+
+            assertThrows(InvalidInputException.class, () -> walletService.addBalanceToWallet(userId, new BigDecimal("-10")));
 
             verifyNoInteractions(walletRepository);
         }
@@ -110,8 +114,8 @@ class WalletServiceTest {
     class RemoveBalanceFromWallet {
         @Test
         void shouldRemoveBalanceSuccessfully() {
-            Wallet wallet = new Wallet();
-            wallet.setBalance(new BigDecimal("100"));
+            Wallet wallet = Wallet.create(user);
+            wallet.deposit(new BigDecimal("100"));
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
@@ -124,26 +128,28 @@ class WalletServiceTest {
 
         @Test
         void shouldThrowExceptionWhenInsufficientFunds() {
-            Wallet wallet = Wallet.builder().balance(new BigDecimal("30")).build();
+            Wallet wallet = Wallet.create(user);
+            wallet.deposit(new BigDecimal("30"));
 
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
             assertThrows(InvalidInputException.class, () -> walletService.removeBalanceFromWallet(userId, new BigDecimal("50")));
 
-            verifyNoInteractions(userManagerService);
             verifyNoInteractions(walletRepository);
         }
 
         @Test
         void shouldThrowExceptionWhenAmountIsNegative() {
-            Wallet wallet = new Wallet();
-            wallet.setBalance(new BigDecimal("100"));
+            Wallet wallet = Wallet.create(user);
+            wallet.deposit(new BigDecimal("100"));
+
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-            assertThrows(IllegalArgumentException.class, () -> walletService.removeBalanceFromWallet(userId, new BigDecimal("-10")));
+            assertThrows(InvalidInputException.class, () -> walletService.removeBalanceFromWallet(userId, new BigDecimal("-10")));
 
-            verifyNoInteractions(userManagerService);
             verifyNoInteractions(walletRepository);
         }
     }
