@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.ratelimit.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finovara.finovarabackend.exception.ErrorResponseDto;
 import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
+import com.finovara.finovarabackend.ratelimit.RateLimitMessage;
 import com.finovara.finovarabackend.util.clientdata.ip.ClientIp;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
@@ -49,7 +50,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         Bucket bucket = buckets.computeIfAbsent(bucketKey, k -> createBucket(rateLimitEndpoint));
 
         if (!bucket.tryConsume(1)) {
-            writeTooManyRequestsException(request, response, rateLimitEndpoint);
+            writeTooManyRequestsException(request, response);
             return;
         }
 
@@ -74,14 +75,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 .build();
     }
 
-
-    private void writeTooManyRequestsException(HttpServletRequest request, HttpServletResponse response, RateLimitProperties.Endpoint rateLimitEndpoint) {
+    private void writeTooManyRequestsException(HttpServletRequest request, HttpServletResponse response) {
         try {
             response.setStatus(TOO_MANY_REQUESTS);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
 
-            String message = "Too many requests. Try again in " + rateLimitEndpoint.getWindowHours() + " hour(s).";
+            String message = RateLimitMessage.TRY_AGAIN_IN_1HOUR.label();
 
             ErrorResponseDto errorResponse = new ErrorResponseDto(
                     TOO_MANY_REQUESTS,
@@ -94,7 +94,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             response.flushBuffer();
 
         } catch (IOException e) {
-            throw new ServiceUnavailableException("Failed to throw Too many Request Exception",e);
+            throw new ServiceUnavailableException("Failed to throw Too many Request Exception", e);
         }
     }
 }

@@ -2,6 +2,7 @@ package com.finovara.finovarabackend.ratelimit.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finovara.finovarabackend.exception.ErrorResponseDto;
+import com.finovara.finovarabackend.ratelimit.RateLimitMessage;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -109,7 +110,7 @@ class RateLimitFilterTest {
 
             assertThat(errorDto.status()).isEqualTo(429);
             assertThat(errorDto.error()).isEqualTo("Too Many Requests");
-            assertThat(errorDto.message()).contains("Try again in 1 hour(s)");
+            assertThat(errorDto.message()).contains(RateLimitMessage.TRY_AGAIN_IN_1HOUR.label());
 
             verify(filterChain, times(1)).doFilter(any(), any());
         }
