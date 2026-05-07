@@ -2,7 +2,6 @@ package com.finovara.finovarabackend.usersetting.piggybank.completion.service;
 
 import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
 import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.piggybank.model.PiggyBank;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
@@ -64,7 +63,7 @@ public class GoalCompletionCore {
             return;
         }
 
-        wallet.setBalance(wallet.getBalance().add(amount));
+        wallet.deposit(amount);
         piggyBank.setAmount(BigDecimal.ZERO);
     }
 }
