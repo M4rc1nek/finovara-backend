@@ -120,6 +120,6 @@ rate-limit:
     - path: /api/contact
       max-requests: 3
       window-hours: 1
-    - path: /api/currencies/**
-      max-requests: 3
+    - path: /api/currencies/convert
+      max-requests: 8
       window-hours: 1
