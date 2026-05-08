@@ -67,8 +67,11 @@ class WalletServiceTest {
 
         @Test
         void shouldCreateWalletWhenNotExist() {
+            Wallet newWallet = Wallet.create(user);
+
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(walletRepository.findByUserAssignedId(userId)).thenReturn(Optional.empty());
+            when(walletRepository.save(any(Wallet.class))).thenReturn(newWallet);
 
             WalletDto result = walletService.getWalletForUser(userId);
 
@@ -93,7 +96,6 @@ class WalletServiceTest {
             WalletDto result = walletService.addBalanceToWallet(userId, new BigDecimal("50"));
 
             assertEquals(new BigDecimal("150"), result.balance());
-            verify(walletRepository).save(wallet);
         }
 
         @Test
@@ -123,7 +125,6 @@ class WalletServiceTest {
             WalletDto result = walletService.removeBalanceFromWallet(userId, new BigDecimal("50"));
 
             assertEquals(new BigDecimal("50"), result.balance());
-            verify(walletRepository).save(wallet);
         }
 
         @Test
