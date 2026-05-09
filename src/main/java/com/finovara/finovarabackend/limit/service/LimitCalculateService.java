@@ -21,14 +21,10 @@ public class LimitCalculateService {
     private final LimitRepository limitRepository;
     private final LimitMapper limitMapper;
 
-    public LimitStatsDto calculateLimitStats(Long userId, Long limitId, LocalDate date) {
-        Limit limit = limitRepository.findByIdAndUserAssignedId(userId, limitId)
-                .orElseThrow(() -> new ActiveLimitNotFoundException("Active Limit not found"));
-
+    public LimitStatsDto calculateLimitStats(Limit limit, Long userId, LocalDate date) {
         BigDecimal spent = financialPeriodService.getExpensesSum(userId, limit.getPeriodType());
 
         BigDecimal remaining = limit.getAmount().subtract(spent);
-
         if (remaining.compareTo(BigDecimal.ZERO) < 0) {
             remaining = BigDecimal.ZERO;
         }
@@ -37,6 +33,13 @@ public class LimitCalculateService {
         LimitStatus status = determineStatus(percentage);
 
         return limitMapper.mapLimitStatsToDto(limit, spent, remaining, percentage, status, date);
+    }
+
+    public LimitStatsDto calculateLimitStats(Long userId, Long limitId, LocalDate date) {
+        Limit limit = limitRepository.findByIdAndUserAssignedId(userId, limitId)
+                .orElseThrow(() -> new ActiveLimitNotFoundException("Active Limit not found"));
+
+        return calculateLimitStats(limit, userId, date);
     }
 
     private LimitStatus determineStatus(BigDecimal percentage) {

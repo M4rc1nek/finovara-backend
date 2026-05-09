@@ -30,7 +30,7 @@ public class LimitExceededService extends ThresholdReachedService<Limit, LimitSt
 
     @Override
     protected LimitStatsDto calculate(Limit entity, Long userId) {
-        return limitCalculateService.calculateLimitStats(userId, entity.getId(), LocalDate.now());
+        return limitCalculateService.calculateLimitStats(entity, userId, LocalDate.now());
     }
 
     @Override
