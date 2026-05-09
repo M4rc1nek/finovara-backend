@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class RevenuePercentagePdfStrategyTest {
+class RevenuePercentagePdfTest {
 
     @Mock
     private RevenueCategoryPercentageService revenueCategoryPercentageService;
@@ -29,26 +29,26 @@ class RevenuePercentagePdfStrategyTest {
     @Mock
     private PdfReportDocument document;
 
-    private RevenuePercentagePdfStrategy revenuePercentagePdfStrategy;
+    private RevenuePercentagePdf revenuePercentagePdf;
 
     @BeforeEach
     void setUp() {
-        revenuePercentagePdfStrategy = new RevenuePercentagePdfStrategy(revenueCategoryPercentageService);
+        revenuePercentagePdf = new RevenuePercentagePdf(revenueCategoryPercentageService);
     }
 
     @Test
     void shouldReturnCorrectType() {
-        assertThat(revenuePercentagePdfStrategy.getType()).isEqualTo(PdfReportType.PERCENTAGE_OF_REVENUES);
+        assertThat(revenuePercentagePdf.getType()).isEqualTo(PdfReportType.PERCENTAGE_OF_REVENUES);
     }
 
     @Test
     void shouldReturnCorrectTitle() {
-        assertThat(revenuePercentagePdfStrategy.getTitle(PeriodType.MONTHLY)).isEqualTo("Udział procentowy przychodów");
+        assertThat(revenuePercentagePdf.getTitle(PeriodType.MONTHLY)).isEqualTo("Udział procentowy przychodów");
     }
 
     @Test
     void shouldReturnCorrectFileName() {
-        assertThat(revenuePercentagePdfStrategy.getFileName(PeriodType.MONTHLY)).contains("udzial-procentowy-przychodow");
+        assertThat(revenuePercentagePdf.getFileName(PeriodType.MONTHLY)).contains("udzial-procentowy-przychodow");
     }
 
     @Test
@@ -58,7 +58,7 @@ class RevenuePercentagePdfStrategyTest {
             return new RevenueCategoryPercentageDto(new BigDecimal("10"), category);
         });
 
-        revenuePercentagePdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        revenuePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addSection("Udział przychodów według kategorii");
         verify(document).addInfo("Okres:", PdfReportText.periodLabel(PeriodType.MONTHLY));
@@ -72,7 +72,7 @@ class RevenuePercentagePdfStrategyTest {
     void shouldHandleZeroPercentages() throws Exception {
         when(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(eq(1L), any(RevenueCategory.class), eq(PeriodType.MONTHLY))).thenAnswer(invocation -> new RevenueCategoryPercentageDto(BigDecimal.ZERO, invocation.getArgument(1)));
 
-        revenuePercentagePdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        revenuePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addPieChart(any(), any(), any());
         verify(document).addTable(any(), any());
@@ -82,7 +82,7 @@ class RevenuePercentagePdfStrategyTest {
     void shouldHandleNullPercentages() throws Exception {
         when(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(eq(1L), any(RevenueCategory.class), eq(PeriodType.MONTHLY))).thenAnswer(invocation -> new RevenueCategoryPercentageDto(null, invocation.getArgument(1)));
 
-        revenuePercentagePdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        revenuePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addPieChart(any(), any(), any());
         verify(document).addTable(any(), any());
@@ -92,7 +92,7 @@ class RevenuePercentagePdfStrategyTest {
     void shouldCallServiceForAllCategories() throws Exception {
         when(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(anyLong(), any(RevenueCategory.class), any())).thenReturn(new RevenueCategoryPercentageDto(BigDecimal.TEN, RevenueCategory.SALARY));
 
-        revenuePercentagePdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        revenuePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
 
         for (RevenueCategory category : RevenueCategory.values()) {
             verify(revenueCategoryPercentageService).getRevenuePercentageByCategoryReport(1L, category, PeriodType.MONTHLY);
