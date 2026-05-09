@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ExpensePercentagePdfStrategyTest {
+class ExpensePercentagePdfTest {
 
     @Mock
     private ExpenseCategoryPercentageService expenseCategoryPercentageService;
@@ -29,26 +29,26 @@ class ExpensePercentagePdfStrategyTest {
     @Mock
     private PdfReportDocument document;
 
-    private ExpensePercentagePdfStrategy expensePercentagePdfStrategy;
+    private ExpensePercentagePdf expensePercentagePdf;
 
     @BeforeEach
     void setUp() {
-        expensePercentagePdfStrategy = new ExpensePercentagePdfStrategy(expenseCategoryPercentageService);
+        expensePercentagePdf = new ExpensePercentagePdf(expenseCategoryPercentageService);
     }
 
     @Test
     void shouldReturnCorrectType() {
-        assertThat(expensePercentagePdfStrategy.getType()).isEqualTo(PdfReportType.PERCENTAGE_OF_EXPENSES);
+        assertThat(expensePercentagePdf.getType()).isEqualTo(PdfReportType.PERCENTAGE_OF_EXPENSES);
     }
 
     @Test
     void shouldReturnCorrectTitle() {
-        assertThat(expensePercentagePdfStrategy.getTitle(PeriodType.MONTHLY)).isEqualTo("Udział procentowy wydatków");
+        assertThat(expensePercentagePdf.getTitle(PeriodType.MONTHLY)).isEqualTo("Udział procentowy wydatków");
     }
 
     @Test
     void shouldReturnCorrectFileName() {
-        assertThat(expensePercentagePdfStrategy.getFileName(PeriodType.MONTHLY)).contains("udzial-procentowy-wydatkow");
+        assertThat(expensePercentagePdf.getFileName(PeriodType.MONTHLY)).contains("udzial-procentowy-wydatkow");
     }
 
     @Test
@@ -58,7 +58,7 @@ class ExpensePercentagePdfStrategyTest {
             return new ExpenseCategoryPercentageDto(new BigDecimal("10"), category);
         });
 
-        expensePercentagePdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        expensePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addSection("Udział wydatków według kategorii");
         verify(document).addInfo("Okres:", PdfReportText.periodLabel(PeriodType.MONTHLY));
@@ -72,7 +72,7 @@ class ExpensePercentagePdfStrategyTest {
     void shouldHandleZeroValues() throws Exception {
         when(expenseCategoryPercentageService.getExpensePercentageByCategoryReport(anyLong(), any(ExpenseCategory.class), any())).thenAnswer(invocation -> new ExpenseCategoryPercentageDto(BigDecimal.ZERO, invocation.getArgument(1)));
 
-        expensePercentagePdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        expensePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addPieChart(any(), any(), any());
         verify(document).addTable(any(), any());
@@ -82,7 +82,7 @@ class ExpensePercentagePdfStrategyTest {
     void shouldHandleNullValuesGracefully() throws Exception {
         when(expenseCategoryPercentageService.getExpensePercentageByCategoryReport(anyLong(), any(ExpenseCategory.class), any())).thenAnswer(invocation -> new ExpenseCategoryPercentageDto(null, invocation.getArgument(1)));
 
-        expensePercentagePdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        expensePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addPieChart(any(), any(), any());
         verify(document).addTable(any(), any());
@@ -92,7 +92,7 @@ class ExpensePercentagePdfStrategyTest {
     void shouldCallServiceForAllExpenseCategories() throws Exception {
         when(expenseCategoryPercentageService.getExpensePercentageByCategoryReport(anyLong(), any(ExpenseCategory.class), any())).thenReturn(new ExpenseCategoryPercentageDto(BigDecimal.TEN, ExpenseCategory.FOOD));
 
-        expensePercentagePdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        expensePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
 
         for (ExpenseCategory category : ExpenseCategory.values()) {
             verify(expenseCategoryPercentageService).getExpensePercentageByCategoryReport(1L, category, PeriodType.MONTHLY);
