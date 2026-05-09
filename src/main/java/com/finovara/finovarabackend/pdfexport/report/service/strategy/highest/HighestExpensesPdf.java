@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.pdfexport.report.service.strategy.highest;
 
 import com.finovara.finovarabackend.pdfexport.report.model.PdfReportType;
-import com.finovara.finovarabackend.pdfexport.report.service.ReportPdfStrategy;
+import com.finovara.finovarabackend.pdfexport.report.service.ReportPdfHandler;
 import com.finovara.finovarabackend.pdfexport.report.document.PdfReportDocument;
 import com.finovara.finovarabackend.pdfexport.report.service.strategy.label.PdfReportText;
 import com.finovara.finovarabackend.report.finances.highesttransactions.highestexpense.dto.HighestExpenseDto;
@@ -15,7 +15,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class HighestExpensesPdfStrategy implements ReportPdfStrategy {
+public class HighestExpensesPdf implements ReportPdfHandler {
     private final HighestExpenseService highestExpenseService;
 
     @Override
