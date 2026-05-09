@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class HighestRevenuesPdfStrategyTest {
+class HighestRevenuesPdfTest {
 
     @Mock
     private HighestRevenueService highestRevenueService;
@@ -29,11 +29,11 @@ class HighestRevenuesPdfStrategyTest {
     @Mock
     private PdfReportDocument document;
 
-    private HighestRevenuesPdfStrategy highestRevenuesPdfStrategy;
+    private HighestRevenuesPdf highestRevenuesPdfStrategy;
 
     @BeforeEach
     void setUp() {
-        highestRevenuesPdfStrategy = new HighestRevenuesPdfStrategy(highestRevenueService);
+        highestRevenuesPdfStrategy = new HighestRevenuesPdf(highestRevenueService);
     }
 
     @Test
