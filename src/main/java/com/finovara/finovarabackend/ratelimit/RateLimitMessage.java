@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum RateLimitMessage {
 
-    TRY_AGAIN_IN_1HOUR("Zbyt wiele żądań. Spróbuj ponownie za 1 godzinę");
+    TRY_AGAIN_IN_1HOUR("Zbyt wiele żądań. Spróbuj ponownie później");
 
     private final String label;
 
