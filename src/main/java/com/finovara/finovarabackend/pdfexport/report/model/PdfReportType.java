@@ -1,6 +1,7 @@
 package com.finovara.finovarabackend.pdfexport.report.model;
 
 public enum PdfReportType {
+    IMPORTANT_INFORMATION,
     SUM_FINANCES,
     AVERAGE_FINANCES,
     HIGHEST_EXPENSES,
