@@ -123,3 +123,6 @@ rate-limit:
     - path: /api/currencies/convert
       max-requests: 8
       window-hours: 1
+    - path: /api/pdf/reports/**
+      max-requests: 14
+      window-hours: 1
