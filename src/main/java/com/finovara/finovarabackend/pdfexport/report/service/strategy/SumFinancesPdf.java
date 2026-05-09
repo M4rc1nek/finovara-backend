@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.pdfexport.report.service.strategy;
 
 import com.finovara.finovarabackend.pdfexport.report.document.PdfReportDocument;
 import com.finovara.finovarabackend.pdfexport.report.model.PdfReportType;
-import com.finovara.finovarabackend.pdfexport.report.service.ReportPdfStrategy;
+import com.finovara.finovarabackend.pdfexport.report.service.ReportPdfHandler;
 import com.finovara.finovarabackend.pdfexport.report.service.strategy.label.PdfReportText;
 import com.finovara.finovarabackend.report.dto.ReportDto;
 import com.finovara.finovarabackend.report.finances.sum.service.ReportSummaryService;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class SumFinancesPdfStrategy implements ReportPdfStrategy {
+public class SumFinancesPdf implements ReportPdfHandler {
     private final ReportSummaryService reportSummaryService;
 
     @Override
@@ -42,7 +42,7 @@ public class SumFinancesPdfStrategy implements ReportPdfStrategy {
 
         document.addSection("Podsumowanie");
         document.addInfo("Okres:", PdfReportText.periodLabel(periodType));
-        document.addLineChart("Porównanie przepływu", List.of("Przychody", "Wydatki"), List.of(revenue.amount(), expense.amount()), true);
+        document.addLineChart("Porównanie przepływu", List.of("Przychody", "Wydatki", "Bilans"), List.of(revenue.amount(), expense.amount(), balance), true);
         document.addTable(
                 new String[]{"Typ", "Wartość"},
                 List.of(
