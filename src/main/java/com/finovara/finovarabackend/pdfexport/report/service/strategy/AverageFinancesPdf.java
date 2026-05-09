@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.pdfexport.report.service.strategy;
 
 import com.finovara.finovarabackend.pdfexport.report.model.PdfReportType;
-import com.finovara.finovarabackend.pdfexport.report.service.ReportPdfStrategy;
+import com.finovara.finovarabackend.pdfexport.report.service.ReportPdfHandler;
 import com.finovara.finovarabackend.pdfexport.report.document.PdfReportDocument;
 import com.finovara.finovarabackend.pdfexport.report.service.strategy.label.PdfReportText;
 import com.finovara.finovarabackend.report.dto.ReportDto;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class AverageFinancesPdfStrategy implements ReportPdfStrategy {
+public class AverageFinancesPdf implements ReportPdfHandler {
     private final ReportAverageService reportAverageService;
 
     @Override
@@ -42,7 +42,7 @@ public class AverageFinancesPdfStrategy implements ReportPdfStrategy {
 
         document.addSection("Średnie wartości");
         document.addInfo("Okres:", PdfReportText.periodLabel(periodType));
-        document.addLineChart("Relacja średnich wartości", List.of("Przychody", "Wydatki"), List.of(revenue.amount(), expense.amount()), true);
+        document.addLineChart("Relacja średnich wartości", List.of("Przychody", "Wydatki", "Różnica średnich"), List.of(revenue.amount(), expense.amount(), difference), true);
         document.addTable(
                 new String[]{"Typ", "Średnia wartość"},
                 List.of(
