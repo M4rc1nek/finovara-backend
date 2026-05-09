@@ -17,6 +17,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -274,7 +275,7 @@ public class PdfReportDocument implements AutoCloseable {
         horizontalLine(y - 54, BORDER);
         text("Raport PDF", MARGIN, y - 82, 11, boldFont, TEAL);
         text(title, MARGIN, y - 110, 22, boldFont, NAVY);
-        text("Wygenerowano: " + LocalDateTime.now().format(CREATED_AT_FORMAT), MARGIN, y - 130, 10, regularFont, MUTED);
+        text("Wygenerowano: " + LocalDateTime.now(ZoneId.of("Europe/Warsaw")).format(CREATED_AT_FORMAT), MARGIN, y - 130, 10, regularFont, MUTED);
         y -= 158;
     }
 
