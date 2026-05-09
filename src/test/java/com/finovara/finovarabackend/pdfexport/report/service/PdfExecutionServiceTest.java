@@ -28,7 +28,7 @@ class PdfExecutionServiceTest {
     private PdfReportDocumentFactory factory;
 
     @Mock
-    private ReportPdfStrategy strategy;
+    private ReportPdfHandler strategy;
 
     @Mock
     private PdfReportDocument document;
