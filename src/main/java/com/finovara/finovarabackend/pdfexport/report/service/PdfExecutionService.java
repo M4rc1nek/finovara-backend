@@ -15,9 +15,9 @@ import java.util.Map;
 @Service
 public class PdfExecutionService {
     private final PdfReportDocumentFactory documentFactory;
-    private final Map<PdfReportType, ReportPdfStrategy> strategies;
+    private final Map<PdfReportType, ReportPdfHandler> strategies;
 
-    public PdfExecutionService(PdfReportDocumentFactory documentFactory, List<ReportPdfStrategy> strategies) {
+    public PdfExecutionService(PdfReportDocumentFactory documentFactory, List<ReportPdfHandler> strategies) {
         this.documentFactory = documentFactory;
         this.strategies = new EnumMap<>(PdfReportType.class);
         strategies.forEach(strategy -> this.strategies.put(strategy.getType(), strategy));
@@ -25,7 +25,7 @@ public class PdfExecutionService {
 
     public byte[] execute(PdfReportType type, PeriodType periodType, Long userId) {
         validatePeriodType(periodType);
-        ReportPdfStrategy strategy = getStrategy(type);
+        ReportPdfHandler strategy = getStrategy(type);
 
         try (PdfReportDocument document = documentFactory.create(strategy.getTitle(periodType))) {
             strategy.generate(document, userId, periodType);
@@ -46,12 +46,12 @@ public class PdfExecutionService {
         }
     }
 
-    private ReportPdfStrategy getStrategy(PdfReportType type) {
+    private ReportPdfHandler getStrategy(PdfReportType type) {
         if (type == null) {
             throw new InvalidInputException("Report type is required.");
         }
 
-        ReportPdfStrategy strategy = strategies.get(type);
+        ReportPdfHandler strategy = strategies.get(type);
         if (strategy == null) {
             throw new InvalidInputException("Unsupported PDF report type: " + type);
         }
