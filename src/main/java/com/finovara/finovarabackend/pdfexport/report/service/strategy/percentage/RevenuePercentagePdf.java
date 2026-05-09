@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.pdfexport.report.service.strategy.percentage;
 
 import com.finovara.finovarabackend.pdfexport.report.model.PdfReportType;
-import com.finovara.finovarabackend.pdfexport.report.service.ReportPdfStrategy;
+import com.finovara.finovarabackend.pdfexport.report.service.ReportPdfHandler;
 import com.finovara.finovarabackend.pdfexport.report.document.PdfReportDocument;
 import com.finovara.finovarabackend.pdfexport.report.service.strategy.label.PdfReportText;
 import com.finovara.finovarabackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
@@ -17,7 +17,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class RevenuePercentagePdfStrategy implements ReportPdfStrategy {
+public class RevenuePercentagePdf implements ReportPdfHandler {
     private final RevenueCategoryPercentageService revenueCategoryPercentageService;
 
     @Override
