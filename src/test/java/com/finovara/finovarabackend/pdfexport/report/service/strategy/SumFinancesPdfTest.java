@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SumFinancesPdfStrategyTest {
+class SumFinancesPdfTest {
 
     @Mock
     private ReportSummaryService reportSummaryService;
@@ -29,26 +29,26 @@ class SumFinancesPdfStrategyTest {
     @Mock
     private PdfReportDocument document;
 
-    private SumFinancesPdfStrategy sumFinancesPdfStrategy;
+    private SumFinancesPdf sumFinancesPdf;
 
     @BeforeEach
     void setUp() {
-        sumFinancesPdfStrategy = new SumFinancesPdfStrategy(reportSummaryService);
+        sumFinancesPdf = new SumFinancesPdf(reportSummaryService);
     }
 
     @Test
     void shouldReturnCorrectType() {
-        assertThat(sumFinancesPdfStrategy.getType()).isEqualTo(PdfReportType.SUM_FINANCES);
+        assertThat(sumFinancesPdf.getType()).isEqualTo(PdfReportType.SUM_FINANCES);
     }
 
     @Test
     void shouldReturnConstantTitle() {
-        assertThat(sumFinancesPdfStrategy.getTitle(PeriodType.MONTHLY)).isEqualTo("Zsumowane przychody i wydatki");
+        assertThat(sumFinancesPdf.getTitle(PeriodType.MONTHLY)).isEqualTo("Zsumowane przychody i wydatki");
     }
 
     @Test
     void shouldReturnFileNameContainingBaseName() {
-        String fileName = sumFinancesPdfStrategy.getFileName(PeriodType.MONTHLY);
+        String fileName = sumFinancesPdf.getFileName(PeriodType.MONTHLY);
 
         assertThat(fileName).contains("zsumowane-przychody-wydatki");
     }
@@ -64,11 +64,19 @@ class SumFinancesPdfStrategyTest {
         when(reportSummaryService.sumRevenue(1L, PeriodType.MONTHLY)).thenReturn(revenue);
         when(reportSummaryService.sumExpense(1L, PeriodType.MONTHLY)).thenReturn(expense);
 
-        sumFinancesPdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        when(document.formatMoney(new BigDecimal("1000"))).thenReturn("1000");
+        when(document.formatMoney(new BigDecimal("400"))).thenReturn("400");
+
+        sumFinancesPdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addSection("Podsumowanie");
         verify(document).addInfo("Okres:", PdfReportText.periodLabel(PeriodType.MONTHLY));
-        verify(document).addLineChart(eq("Porównanie przepływu"), eq(List.of("Przychody", "Wydatki")), anyList(), eq(true));
+        verify(document).addLineChart(
+                eq("Porównanie przepływu"),
+                eq(List.of("Przychody", "Wydatki", "Bilans")),
+                eq(List.of(new BigDecimal("1000"), new BigDecimal("400"), new BigDecimal("600"))),
+                eq(true)
+        );
         verify(document).addTable(eq(new String[]{"Typ", "Wartość"}), anyList());
         verify(document).addSummary("Bilans", new BigDecimal("600"));
     }
@@ -84,10 +92,17 @@ class SumFinancesPdfStrategyTest {
         when(reportSummaryService.sumRevenue(1L, PeriodType.MONTHLY)).thenReturn(revenue);
         when(reportSummaryService.sumExpense(1L, PeriodType.MONTHLY)).thenReturn(expense);
 
-        sumFinancesPdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        when(document.formatMoney(BigDecimal.ZERO)).thenReturn("0");
+
+        sumFinancesPdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addSummary("Bilans", BigDecimal.ZERO);
-        verify(document).addLineChart(eq("Porównanie przepływu"), anyList(), anyList(), eq(true));
+        verify(document).addLineChart(
+                eq("Porównanie przepływu"),
+                eq(List.of("Przychody", "Wydatki", "Bilans")),
+                eq(List.of(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO)),
+                eq(true)
+        );
     }
 
     @Test
@@ -101,8 +116,17 @@ class SumFinancesPdfStrategyTest {
         when(reportSummaryService.sumRevenue(1L, PeriodType.MONTHLY)).thenReturn(revenue);
         when(reportSummaryService.sumExpense(1L, PeriodType.MONTHLY)).thenReturn(expense);
 
-        sumFinancesPdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        when(document.formatMoney(new BigDecimal("100"))).thenReturn("100");
+        when(document.formatMoney(new BigDecimal("300"))).thenReturn("300");
+
+        sumFinancesPdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addSummary("Bilans", new BigDecimal("-200"));
+        verify(document).addLineChart(
+                eq("Porównanie przepływu"),
+                eq(List.of("Przychody", "Wydatki", "Bilans")),
+                eq(List.of(new BigDecimal("100"), new BigDecimal("300"), new BigDecimal("-200"))),
+                eq(true)
+        );
     }
 }
