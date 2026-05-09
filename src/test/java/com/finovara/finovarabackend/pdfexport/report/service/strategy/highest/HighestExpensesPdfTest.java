@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class HighestExpensesPdfStrategyTest {
+class HighestExpensesPdfTest {
 
     @Mock
     private HighestExpenseService highestExpenseService;
@@ -29,26 +29,26 @@ class HighestExpensesPdfStrategyTest {
     @Mock
     private PdfReportDocument document;
 
-    private HighestExpensesPdfStrategy highestExpensesPdfStrategy;
+    private HighestExpensesPdf highestExpensesPdf;
 
     @BeforeEach
     void setUp() {
-        highestExpensesPdfStrategy = new HighestExpensesPdfStrategy(highestExpenseService);
+        highestExpensesPdf = new HighestExpensesPdf(highestExpenseService);
     }
 
     @Test
     void shouldReturnCorrectType() {
-        assertThat(highestExpensesPdfStrategy.getType()).isEqualTo(PdfReportType.HIGHEST_EXPENSES);
+        assertThat(highestExpensesPdf.getType()).isEqualTo(PdfReportType.HIGHEST_EXPENSES);
     }
 
     @Test
     void shouldReturnCorrectTitle() {
-        assertThat(highestExpensesPdfStrategy.getTitle(PeriodType.MONTHLY)).isEqualTo("Największe wydatki");
+        assertThat(highestExpensesPdf.getTitle(PeriodType.MONTHLY)).isEqualTo("Największe wydatki");
     }
 
     @Test
     void shouldReturnCorrectFileName() {
-        assertThat(highestExpensesPdfStrategy.getFileName(PeriodType.MONTHLY)).contains("najwieksze-wydatki");
+        assertThat(highestExpensesPdf.getFileName(PeriodType.MONTHLY)).contains("najwieksze-wydatki");
     }
 
     @Test
@@ -64,7 +64,7 @@ class HighestExpensesPdfStrategyTest {
 
         when(highestExpenseService.getHighestExpense(1L, PeriodType.MONTHLY)).thenReturn(List.of(dto1, dto2));
 
-        highestExpensesPdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        highestExpensesPdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addSection("Największe wydatki");
         verify(document).addInfo("Okres:", PdfReportText.periodLabel(PeriodType.MONTHLY));
@@ -78,7 +78,7 @@ class HighestExpensesPdfStrategyTest {
     void shouldHandleEmptyList() throws Exception {
         when(highestExpenseService.getHighestExpense(1L, PeriodType.MONTHLY)).thenReturn(List.of());
 
-        highestExpensesPdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        highestExpensesPdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addSection("Największe wydatki");
         verify(document).addBarChart(any(), any(), any(), eq(true));
@@ -94,7 +94,7 @@ class HighestExpensesPdfStrategyTest {
 
         when(highestExpenseService.getHighestExpense(1L, PeriodType.MONTHLY)).thenReturn(List.of(dto));
 
-        highestExpensesPdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        highestExpensesPdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(document).addBarChart(any(), any(), any(), eq(true));
         verify(document).addTable(any(), any());
@@ -104,7 +104,7 @@ class HighestExpensesPdfStrategyTest {
     void shouldCallServiceOnce() throws Exception {
         when(highestExpenseService.getHighestExpense(anyLong(), any())).thenReturn(List.of());
 
-        highestExpensesPdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+        highestExpensesPdf.generate(document, 1L, PeriodType.MONTHLY);
 
         verify(highestExpenseService).getHighestExpense(1L, PeriodType.MONTHLY);
     }
