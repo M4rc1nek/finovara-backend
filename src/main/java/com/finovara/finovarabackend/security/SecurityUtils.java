@@ -1,5 +1,6 @@
 package com.finovara.finovarabackend.security;
 
+import com.finovara.finovarabackend.security.jwt.CustomUserDetails;
 import lombok.experimental.UtilityClass;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
