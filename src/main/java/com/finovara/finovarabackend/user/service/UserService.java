@@ -4,7 +4,7 @@ import com.finovara.finovarabackend.accountactivity.secure.login.activity.model.
 import com.finovara.finovarabackend.accountactivity.secure.login.activity.service.LoginActivityService;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
-import com.finovara.finovarabackend.security.service.JwtService;
+import com.finovara.finovarabackend.security.jwt.JwtService;
 import com.finovara.finovarabackend.user.dto.UserLoginDto;
 import com.finovara.finovarabackend.user.dto.UserRegisterDto;
 import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
