@@ -1,6 +1,5 @@
-package com.finovara.finovarabackend.security;
+package com.finovara.finovarabackend.security.jwt;
 
-import com.finovara.finovarabackend.security.service.JwtService;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import io.jsonwebtoken.JwtException;
