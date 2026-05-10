@@ -126,3 +126,17 @@ rate-limit:
     - path: /api/pdf/reports/**
       max-requests: 14
       window-hours: 1
+
+
+security:
+  whitelist:
+    - /api/auth/register
+    - /api/auth/login
+    - /api/auth/generatePassword
+    - /api/profile-image/**
+    - /profile-images/**
+    - /api/password-reset/**
+    - /api/contact
+  cors:
+    allowed-origins:
+      - http://localhost:5173
