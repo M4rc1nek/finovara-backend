@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class LimitExceededTest {
+
     @Mock
     private LimitRepository limitRepository;
 
@@ -38,22 +39,24 @@ public class LimitExceededTest {
     @BeforeEach
     void setUp() {
         userId = 1L;
+
         limit = new Limit();
         limit.setId(10L);
+
         when(limitRepository.findAllByUserAssignedId(userId)).thenReturn(List.of(limit));
     }
 
     @Test
     void shouldReturnNotificationWhenThresholdExceeded() {
         LimitStatsDto stats = mock(LimitStatsDto.class);
+
         when(stats.percentage()).thenReturn(BigDecimal.valueOf(150));
         when(stats.periodType()).thenReturn(null);
         when(stats.limitId()).thenReturn(10L);
 
-        when(limitCalculateService.calculateLimitStats(userId, 10L, LocalDate.now())).thenReturn(stats);
+        when(limitCalculateService.calculateLimitStats(limit, userId, LocalDate.now())).thenReturn(stats);
 
         List<NotificationResponse> result = limitExceededService.getNotifications(userId);
-
 
         assertEquals(1, result.size());
     }
@@ -61,9 +64,10 @@ public class LimitExceededTest {
     @Test
     void shouldNotReturnNotificationWhenBelowThreshold() {
         LimitStatsDto stats = mock(LimitStatsDto.class);
+
         when(stats.percentage()).thenReturn(BigDecimal.valueOf(50));
 
-        when(limitCalculateService.calculateLimitStats(userId, 10L, LocalDate.now())).thenReturn(stats);
+        when(limitCalculateService.calculateLimitStats(limit, userId, LocalDate.now())).thenReturn(stats);
 
         List<NotificationResponse> result = limitExceededService.getNotifications(userId);
 
@@ -73,11 +77,12 @@ public class LimitExceededTest {
     @Test
     void shouldReturnNotificationWhenThresholdExactly100() {
         LimitStatsDto stats = mock(LimitStatsDto.class);
+
         when(stats.percentage()).thenReturn(BigDecimal.valueOf(100));
         when(stats.periodType()).thenReturn(null);
         when(stats.limitId()).thenReturn(10L);
 
-        when(limitCalculateService.calculateLimitStats(userId, 10L, LocalDate.now())).thenReturn(stats);
+        when(limitCalculateService.calculateLimitStats(limit, userId, LocalDate.now())).thenReturn(stats);
 
         List<NotificationResponse> result = limitExceededService.getNotifications(userId);
 
