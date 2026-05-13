@@ -40,10 +40,16 @@ public class User {
 
     private String username;
     private String password;
+    private boolean passwordSet;
     private String email;
     private LocalDateTime createdAt;
     @Column(name = "profile_image_path")
     private String profileImagePath;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "oauth_provider")
+    private OAuthProvider oauthProvider;
+    @Column(name = "provider_user_id")
+    private String providerUserId;
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private List<Expense> expenses;
