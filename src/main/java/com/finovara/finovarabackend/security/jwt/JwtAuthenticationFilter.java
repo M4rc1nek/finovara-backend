@@ -22,6 +22,8 @@ import java.io.IOException;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final String SET_PASSWORD_PATH = "/api/auth/set-password";
+
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
@@ -72,11 +74,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            if (!user.isPasswordSet() && !isSetPasswordRequest(request)) {
+                SecurityContextHolder.clearContext();
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Password setup required");
+                return;
+            }
         } catch (JwtException | IllegalArgumentException exception) {
             log.debug("JWT authentication failed: {}", exception.getMessage());
             SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean isSetPasswordRequest(HttpServletRequest request) {
+        String requestPath = request.getRequestURI();
+        String contextPath = request.getContextPath();
+
+        if (contextPath != null && !contextPath.isBlank() && requestPath.startsWith(contextPath)) {
+            requestPath = requestPath.substring(contextPath.length());
+        }
+
+        return SET_PASSWORD_PATH.equals(requestPath);
     }
 }
