@@ -52,7 +52,7 @@ public class ProfileImageService {
             accountChangesActivityService.createAccountChangesActivity(user.getId(), AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
 
 
-            if (oldFilePath != null) {
+            if (isLocalProfileImagePath(oldFilePath)) {
                 Files.deleteIfExists(Paths.get(oldFilePath));
             }
 
@@ -70,7 +70,9 @@ public class ProfileImageService {
         }
 
         try {
-            Files.deleteIfExists(Paths.get(user.getProfileImagePath()));
+            if (isLocalProfileImagePath(user.getProfileImagePath())) {
+                Files.deleteIfExists(Paths.get(user.getProfileImagePath()));
+            }
             user.setProfileImagePath(null);
             userRepository.save(user);
 
@@ -88,9 +90,14 @@ public class ProfileImageService {
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("File is not an image");
         }
-        // Dodaje limit rozmiaru (opcjonalne, ale dobre)
         if (file.getSize() > 5 * 1024 * 1024) { // 5MB
             throw new IllegalArgumentException("File is too large (max 5MB)");
         }
+    }
+
+    private boolean isLocalProfileImagePath(String profileImagePath) {
+        return profileImagePath != null
+                && !profileImagePath.startsWith("http://")
+                && !profileImagePath.startsWith("https://");
     }
 }
