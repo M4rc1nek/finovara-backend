@@ -43,7 +43,7 @@ services:
       finovara-test:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "8443:8443"
     environment:
       # produkcja
       DB_PASSWORD: ${DB_PASSWORD}
@@ -51,6 +51,8 @@ services:
       DB_TEST_PASSWORD: ${DB_TEST_PASSWORD}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       SPRING_PROFILES_ACTIVE: default   # zmień na 'test' dla testów
     volumes:
       - ./uploads:/app/uploads

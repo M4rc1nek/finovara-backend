@@ -3,6 +3,17 @@ spring:
     url: jdbc:postgresql://finovara-test:5432/finovara_test
     username: postgres
     password: ${DB_TEST_PASSWORD}
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-google-client-id
+            client-secret: test-google-client-secret
+            scope:
+              - openid
+              - email
+              - profile
 
 application:
   security:

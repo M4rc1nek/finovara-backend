@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
     url: jdbc:postgresql://finovara-db:5432/finovara_db
     username: postgres
@@ -27,6 +29,26 @@ spring:
           ssl:
             enable: true
             trust: smtp.gmail.com
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - openid
+              - email
+              - profile
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    key-store: classpath:localhost.p12
+    key-store-type: PKCS12
+    key-store-password: changeit
+    key-alias: 1
+
 application:
   security:
     jwt:
@@ -132,11 +154,14 @@ security:
   whitelist:
     - /api/auth/register
     - /api/auth/login
+    - /api/auth/google
     - /api/auth/generatePassword
     - /api/profile-image/**
     - /profile-images/**
     - /api/password-reset/**
     - /api/contact
+    - /oauth2/**
+    - /login/oauth2/**
   cors:
     allowed-origins:
-      - http://localhost:5173
+      - https://localhost:5173
