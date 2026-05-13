@@ -1,0 +1,105 @@
+package com.finovara.finovarabackend.security.oauth2;
+
+import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
+import com.finovara.finovarabackend.security.oauth2.dto.GoogleOAuth2UserInfo;
+import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.finovarabackend.user.model.OAuthProvider;
+import com.finovara.finovarabackend.user.model.User;
+import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class GoogleOAuth2UserService {
+
+    private static final OAuthProvider GOOGLE_PROVIDER = OAuthProvider.GOOGLE;
+
+    private final UserRepository userRepository;
+    private final SettingsFactory settingsFactory;
+
+    @Transactional
+    public User synchronize(OAuth2User oauth2User) {
+        GoogleOAuth2UserInfo userInfo = GoogleOAuth2UserInfo.from(oauth2User.getAttributes());
+
+        return userRepository.findByOauthProviderAndProviderUserId(GOOGLE_PROVIDER, userInfo.providerUserId())
+                .map(user -> synchronizeExistingGoogleUser(user, userInfo))
+                .orElseGet(() -> createGoogleUser(userInfo));
+    }
+
+    private User createGoogleUser(GoogleOAuth2UserInfo userInfo) {
+        if (userRepository.existsByEmail(userInfo.email())) {
+            throw new EmailAlreadyExistsException("User already exists");
+        }
+
+        User user = User.builder()
+                .username(resolveUniqueUsername(userInfo.name(), userInfo.email()))
+                .email(userInfo.email())
+                .password(null)
+                .createdAt(LocalDateTime.now())
+                .profileImagePath(userInfo.picture())
+                .oauthProvider(GOOGLE_PROVIDER)
+                .providerUserId(userInfo.providerUserId())
+                .build();
+        user.setPasswordSet(false);
+
+        user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
+        user.setRecurringSettings(settingsFactory.createDefaultRecurringSettings(user));
+        user.setNotificationEmailSettings(settingsFactory.createDefaultNotificationSettings(user));
+        user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
+
+        return userRepository.save(user);
+    }
+
+    private User synchronizeExistingGoogleUser(User user, GoogleOAuth2UserInfo userInfo) {
+        if (userRepository.existsByEmailAndIdNot(userInfo.email(), user.getId())) {
+            throw new EmailAlreadyExistsException("User already exists");
+        }
+
+        user.setEmail(userInfo.email());
+        user.setProfileImagePath(userInfo.picture());
+        synchronizeUsername(user, userInfo);
+
+        return userRepository.save(user);
+    }
+
+    private void synchronizeUsername(User user, GoogleOAuth2UserInfo userInfo) {
+        String googleName = normalizeUsername(userInfo.name(), userInfo.email());
+
+        if (googleName.equals(user.getUsername())) {
+            return;
+        }
+
+        if (userRepository.existsByUsernameAndIdNot(googleName, user.getId())) {
+            throw new NameAlreadyExistsException("Username is already taken");
+        }
+
+        user.setUsername(googleName);
+    }
+
+    private String resolveUniqueUsername(String name, String email) {
+        String baseUsername = normalizeUsername(name, email);
+        if (!userRepository.existsByUsername(baseUsername)) {
+            return baseUsername;
+        }
+
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        return baseUsername + "-" + suffix;
+    }
+
+    private String normalizeUsername(String name, String email) {
+        if (StringUtils.hasText(name)) {
+            return name.trim();
+        }
+
+        int atIndex = email.indexOf('@');
+        return atIndex > 0 ? email.substring(0, atIndex) : email;
+    }
+}
