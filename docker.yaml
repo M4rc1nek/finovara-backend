@@ -53,6 +53,7 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
       SPRING_PROFILES_ACTIVE: default   # zmień na 'test' dla testów
     volumes:
       - ./uploads:/app/uploads
