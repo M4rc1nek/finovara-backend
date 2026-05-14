@@ -8,12 +8,16 @@ import com.finovara.finovarabackend.security.oauth2.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -51,21 +55,24 @@ public class SecurityFilterChainConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         String[] whitelist = securityProperties.getWhitelist().toArray(new String[0]);
-
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(whitelist).permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
+                .exceptionHandling(exception -> exception
+                        .defaultAuthenticationEntryPointFor(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                                new RegexRequestMatcher("^/api/.*", null)))
+
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authorization -> authorization
-                                .authorizationRequestRepository(authorizationRequestRepository)
-                        )
+                                .authorizationRequestRepository(authorizationRequestRepository))
                         .successHandler(oauth2LoginSuccessHandler)
-                        .failureHandler(oauth2LoginFailureHandler)
-                )
+                        .failureHandler(oauth2LoginFailureHandler))
+
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
