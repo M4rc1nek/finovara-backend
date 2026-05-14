@@ -5,6 +5,7 @@ import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsExceptio
 import com.finovara.finovarabackend.security.jwt.JwtService;
 import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
 import com.finovara.finovarabackend.user.model.User;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -114,7 +115,24 @@ class OAuth2LoginSuccessHandlerTest {
     class RedirectUrlConstruction {
 
         @Test
-        void shouldIncludeJwtTokenInRedirectUrl() throws Exception {
+        void shouldSetJwtTokenInHttpOnlyCookie() throws Exception {
+            OAuth2User oauth2User = mock(OAuth2User.class);
+            stubSuccessfulFlow(oauth2User);
+
+            handler.onAuthenticationSuccess(request, response, authentication);
+
+            ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
+            verify(response).addCookie(cookieCaptor.capture());
+
+            Cookie cookie = cookieCaptor.getValue();
+            assertThat(cookie.getName()).isEqualTo("oauth2_access_token");
+            assertThat(cookie.getValue()).isEqualTo("mock-jwt-token");
+            assertThat(cookie.isHttpOnly()).isTrue();
+            assertThat(cookie.getMaxAge()).isEqualTo(86400);
+        }
+
+        @Test
+        void shouldNotIncludeJwtTokenInRedirectUrl() throws Exception {
             OAuth2User oauth2User = mock(OAuth2User.class);
             stubSuccessfulFlow(oauth2User);
 
@@ -122,7 +140,7 @@ class OAuth2LoginSuccessHandlerTest {
 
             ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
             verify(response).sendRedirect(urlCaptor.capture());
-            assertThat(urlCaptor.getValue()).contains("token=mock-jwt-token");
+            assertThat(urlCaptor.getValue()).doesNotContain("token=");
         }
 
         @Test
