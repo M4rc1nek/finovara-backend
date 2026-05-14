@@ -71,6 +71,7 @@ public class OAuth2AuthorizationRequestCookieStore implements AuthorizationReque
 
     private void removeAuthorizationRequestCookies(HttpServletResponse response) {
         addCookie(response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME, "", 0, false);
+        addCookie(response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME, "", 0, true);
     }
 
     private String serialize(OAuth2AuthorizationRequest authorizationRequest) {
