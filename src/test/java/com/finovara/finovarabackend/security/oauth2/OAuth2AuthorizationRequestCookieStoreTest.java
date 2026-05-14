@@ -95,14 +95,18 @@ class OAuth2AuthorizationRequestCookieStoreTest {
             store.saveAuthorizationRequest(null, httpServletRequest, httpServletResponse);
 
             ArgumentCaptor<Cookie> captor = ArgumentCaptor.forClass(Cookie.class);
-            verify(httpServletResponse).addCookie(captor.capture());
+            verify(httpServletResponse, times(2)).addCookie(captor.capture());
 
-            Cookie cookie = captor.getValue();
-            assertEquals("oauth2_auth_request", cookie.getName());
-            assertEquals("", cookie.getValue());
-            assertEquals(0, cookie.getMaxAge());
-            assertEquals("/", cookie.getPath());
-            assertTrue(cookie.isHttpOnly());
+            assertEquals(2, captor.getAllValues().size());
+            assertTrue(captor.getAllValues().stream().anyMatch(Cookie::getSecure));
+            assertTrue(captor.getAllValues().stream().anyMatch(cookie -> !cookie.getSecure()));
+            captor.getAllValues().forEach(cookie -> {
+                assertEquals("oauth2_auth_request", cookie.getName());
+                assertEquals("", cookie.getValue());
+                assertEquals(0, cookie.getMaxAge());
+                assertEquals("/", cookie.getPath());
+                assertTrue(cookie.isHttpOnly());
+            });
         }
 
         @Test
@@ -163,11 +167,14 @@ class OAuth2AuthorizationRequestCookieStoreTest {
             store.removeAuthorizationRequest(httpServletRequest, httpServletResponse);
 
             ArgumentCaptor<Cookie> captor = ArgumentCaptor.forClass(Cookie.class);
-            verify(httpServletResponse).addCookie(captor.capture());
+            verify(httpServletResponse, times(2)).addCookie(captor.capture());
 
-            Cookie cookie = captor.getValue();
-            assertEquals("", cookie.getValue());
-            assertEquals(0, cookie.getMaxAge());
+            assertTrue(captor.getAllValues().stream().anyMatch(Cookie::getSecure));
+            assertTrue(captor.getAllValues().stream().anyMatch(cookie -> !cookie.getSecure()));
+            captor.getAllValues().forEach(cookie -> {
+                assertEquals("", cookie.getValue());
+                assertEquals(0, cookie.getMaxAge());
+            });
         }
     }
 }
