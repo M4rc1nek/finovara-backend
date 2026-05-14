@@ -6,6 +6,7 @@ import com.finovara.finovarabackend.security.jwt.JwtService;
 import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.profile.ProfileImageUrlBuilder;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,6 +27,9 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
+
+    private static final String ACCESS_TOKEN_COOKIE_NAME = "oauth2_access_token";
+    private static final int ACCESS_TOKEN_COOKIE_MAX_AGE_SECONDS = 24 * 60 * 60;
 
     private final GoogleOAuth2UserService googleOAuth2UserService;
     private final JwtService jwtService;
@@ -50,9 +54,10 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             String profileImageUrl = ProfileImageUrlBuilder.buildProfileImageUrl(user.getProfileImagePath());
 
+            addAccessTokenCookie(response, token, request.isSecure());
+
             String redirectUrl = UriComponentsBuilder
                     .fromUriString("https://localhost:5173/oauth2/success")
-                    .queryParam("token", token)
                     .queryParam("id", user.getId())
                     .queryParam("username", user.getUsername())
                     .queryParam("email", user.getEmail())
@@ -80,6 +85,16 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             log.error("OAuth2 authentication failed", exception);
             response.sendRedirect("https://localhost:5173/auth?error=oauth2_authentication_failed");
         }
+    }
+
+    private void addAccessTokenCookie(HttpServletResponse response, String token, boolean secure) {
+        Cookie cookie = new Cookie(ACCESS_TOKEN_COOKIE_NAME, token);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(secure);
+        cookie.setMaxAge(ACCESS_TOKEN_COOKIE_MAX_AGE_SECONDS);
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
     }
 
 }
