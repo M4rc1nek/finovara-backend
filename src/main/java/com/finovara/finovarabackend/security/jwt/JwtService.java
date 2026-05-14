@@ -15,6 +15,7 @@ import java.util.function.Function;
 public class JwtService {
 
     private static final String USER_ID_CLAIM = "userId";
+    private static final String PASSWORD_SET_CLAIM = "passwordSet";
 
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
@@ -26,6 +27,7 @@ public class JwtService {
         return Jwts.builder()
                 .setSubject(user.getId().toString())
                 .claim(USER_ID_CLAIM, user.getId())
+                .claim(PASSWORD_SET_CLAIM, user.isPasswordSet())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)

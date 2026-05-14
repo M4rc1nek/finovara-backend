@@ -2,6 +2,9 @@ package com.finovara.finovarabackend.security;
 
 import com.finovara.finovarabackend.ratelimit.filter.RateLimitFilter;
 import com.finovara.finovarabackend.security.jwt.JwtAuthenticationFilter;
+import com.finovara.finovarabackend.security.oauth2.OAuth2AuthorizationRequestCookieStore;
+import com.finovara.finovarabackend.security.oauth2.OAuth2LoginFailureHandler;
+import com.finovara.finovarabackend.security.oauth2.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +30,9 @@ public class SecurityFilterChainConfig {
     private final AuthenticationProvider authenticationProvider;
     private final RateLimitFilter rateLimitFilter;
     private final SecurityProperties securityProperties;
+    private final OAuth2AuthorizationRequestCookieStore authorizationRequestRepository;
+    private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
+    private final OAuth2LoginFailureHandler oauth2LoginFailureHandler;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -53,7 +59,14 @@ public class SecurityFilterChainConfig {
                         .requestMatchers(whitelist).permitAll()
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(authorization -> authorization
+                                .authorizationRequestRepository(authorizationRequestRepository)
+                        )
+                        .successHandler(oauth2LoginSuccessHandler)
+                        .failureHandler(oauth2LoginFailureHandler)
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

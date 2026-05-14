@@ -10,14 +10,13 @@ import com.finovara.finovarabackend.usersetting.notificationemail.action.account
 import com.finovara.finovarabackend.usersetting.notificationemail.action.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
 import com.finovara.finovarabackend.util.confirmationpassword.service.PasswordValidator;
+import com.finovara.finovarabackend.util.profile.ProfileImageUrlBuilder;
 import com.finovara.finovarabackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.nio.file.Paths;
 
 @Slf4j
 @Service
@@ -58,18 +57,9 @@ public class AccountService {
     @Transactional
     public AccountSettingsDto getAccountSettings(Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
-        String profileImageUrl = buildProfileImageUrl(user.getProfileImagePath());
+        String profileImageUrl = ProfileImageUrlBuilder.buildProfileImageUrl(user.getProfileImagePath());
 
         return new AccountSettingsDto(user.getUsername(), user.getEmail(), user.getCreatedAt(), profileImageUrl);
-    }
-
-
-    private String buildProfileImageUrl(String profileImagePath) {
-        if (profileImagePath == null) {
-            return null;
-        }
-        String filename = Paths.get(profileImagePath).getFileName().toString();
-        return "/profile-images/" + filename;
     }
 
 }

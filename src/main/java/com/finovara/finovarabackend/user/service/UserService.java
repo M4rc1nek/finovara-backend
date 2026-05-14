@@ -52,6 +52,7 @@ public class UserService {
                 .username(dto.username())
                 .email(dto.email())
                 .password(passwordEncoder.encode(dto.password()))
+                .passwordSet(true)
                 .createdAt(LocalDateTime.now())
                 .build();
 
