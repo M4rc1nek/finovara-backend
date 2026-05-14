@@ -2,6 +2,7 @@ package com.finovara.finovarabackend.security.jwt;
 
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,6 +78,23 @@ class JwtAuthenticationFilterTest {
     @Test
     void shouldAllowProtectedEndpointWhenPasswordIsSet() throws ServletException, IOException {
         MockHttpServletRequest request = authenticatedRequest("GET", "/api/dashboard");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        User user = user(true);
+
+        when(jwtService.isTokenValid("jwt-token")).thenReturn(true);
+        when(jwtService.extractUserId("jwt-token")).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        filter.doFilter(request, response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNotNull();
+    }
+
+    @Test
+    void shouldAuthenticateWithOAuth2AccessTokenCookie() throws ServletException, IOException {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dashboard");
+        request.setCookies(new Cookie("oauth2_access_token", "jwt-token"));
         MockHttpServletResponse response = new MockHttpServletResponse();
         User user = user(true);
 
