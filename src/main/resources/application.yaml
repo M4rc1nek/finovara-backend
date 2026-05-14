@@ -152,10 +152,7 @@ rate-limit:
 
 security:
   whitelist:
-    - /api/auth/register
-    - /api/auth/login
-    - /api/auth/google
-    - /api/auth/generatePassword
+    - /api/auth/**
     - /api/profile-image/**
     - /profile-images/**
     - /api/password-reset/**
