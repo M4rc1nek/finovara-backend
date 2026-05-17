@@ -1,19 +1,17 @@
 package com.finovara.finovarabackend.user.controller;
 
+import com.finovara.finovarabackend.security.jwt.logout.LogoutService;
 import com.finovara.finovarabackend.user.dto.UserLoginDto;
 import com.finovara.finovarabackend.user.dto.UserRegisterDto;
-import com.finovara.finovarabackend.security.oauth2.OAuth2AccessTokenCookie;
 import com.finovara.finovarabackend.user.service.GeneratePasswordService;
 import com.finovara.finovarabackend.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +25,7 @@ public class UserController {
 
     private final UserService userService;
     private final GeneratePasswordService generatePasswordService;
+    private final LogoutService logoutService;
 
     @PostMapping("/register")
     public ResponseEntity<UserRegisterDto> registerUser(@RequestBody @Valid UserRegisterDto userRegisterDto) {
@@ -47,14 +46,7 @@ public class UserController {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
-        OAuth2AccessTokenCookie.clear(response);
-        SecurityContextHolder.clearContext();
-
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-
+        logoutService.logout(request, response);
         return ResponseEntity.noContent().build();
     }
 

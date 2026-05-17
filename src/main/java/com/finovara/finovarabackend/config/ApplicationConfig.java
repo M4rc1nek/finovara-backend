@@ -2,7 +2,7 @@ package com.finovara.finovarabackend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.finovara.finovarabackend.security.jwt.CustomUserDetails;
+import com.finovara.finovarabackend.security.CustomUserDetails;
 import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

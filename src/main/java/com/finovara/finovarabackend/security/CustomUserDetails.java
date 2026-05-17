@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.security.jwt;
+package com.finovara.finovarabackend.security;
 
 import com.finovara.finovarabackend.user.model.User;
 import lombok.Getter;

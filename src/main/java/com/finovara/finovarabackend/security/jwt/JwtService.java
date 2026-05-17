@@ -1,9 +1,11 @@
 package com.finovara.finovarabackend.security.jwt;
 
+import com.finovara.finovarabackend.security.jwt.logout.JwtBlacklistService;
 import com.finovara.finovarabackend.user.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +14,12 @@ import java.util.Date;
 import java.util.function.Function;
 
 @Service
+@RequiredArgsConstructor
 public class JwtService {
 
     private static final String USER_ID_CLAIM = "userId";
     private static final String PASSWORD_SET_CLAIM = "passwordSet";
+    private final JwtBlacklistService jwtBlacklistService;
 
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
@@ -49,8 +53,9 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token) {
-        return !isTokenExpired(token);
+        return !jwtBlacklistService.isBlacklisted(token) && !isTokenExpired(token);
     }
+
     private <T> T extractClaim(String token, Function<Claims, T> resolver) {
         return resolver.apply(extractAllClaims(token));
     }
@@ -67,7 +72,7 @@ public class JwtService {
         return extractExpiration(token).before(new Date());
     }
 
-    private Date extractExpiration(String token) {
+    public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 

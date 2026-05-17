@@ -1,13 +1,12 @@
 package com.finovara.finovarabackend.security.jwt;
 
+import com.finovara.finovarabackend.security.CustomUserDetails;
 import com.finovara.finovarabackend.security.SecurityProperties;
-import com.finovara.finovarabackend.security.oauth2.OAuth2AccessTokenCookie;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,20 +19,17 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Optional;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class JwtOAuth2AuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
     private static final String SET_PASSWORD_PATH = "/api/auth/set-password";
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final SecurityProperties securityProperties;
+    private final JwtTokenResolver jwtTokenResolver;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
@@ -43,7 +39,7 @@ public class JwtOAuth2AuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String jwt = resolveJwt(request);
+        String jwt = jwtTokenResolver.resolve(request).orElse(null);
         if (jwt == null) {
             filterChain.doFilter(request, response);
             return;
@@ -121,33 +117,4 @@ public class JwtOAuth2AuthenticationFilter extends OncePerRequestFilter {
         return requestPath;
     }
 
-    private String resolveJwt(HttpServletRequest request) {
-        return extractBearerToken(request)
-                .or(() -> extractOAuth2AccessTokenCookie(request))
-                .orElse(null);
-    }
-
-    private Optional<String> extractBearerToken(HttpServletRequest request) {
-        String authHeader = request.getHeader(AUTHORIZATION_HEADER);
-        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-            return Optional.empty();
-        }
-
-        return Optional.of(authHeader.substring(BEARER_PREFIX.length()));
-    }
-
-    private Optional<String> extractOAuth2AccessTokenCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return Optional.empty();
-        }
-
-        for (Cookie cookie : cookies) {
-            if (OAuth2AccessTokenCookie.COOKIE_NAME.equals(cookie.getName())) {
-                return Optional.of(cookie.getValue());
-            }
-        }
-
-        return Optional.empty();
-    }
 }
