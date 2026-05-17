@@ -13,6 +13,7 @@ public record UserLoginDto(
 
         @NotBlank
         String password,
+        String userProfileImage,
 
         String jwtToken
 ) {
