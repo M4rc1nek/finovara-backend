@@ -1,11 +1,13 @@
 package com.finovara.finovarabackend.security.jwt;
 
+import com.finovara.finovarabackend.security.SecurityProperties;
+import com.finovara.finovarabackend.security.oauth2.OAuth2AccessTokenCookie;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import io.jsonwebtoken.JwtException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,20 +16,25 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtOAuth2AuthenticationFilter extends OncePerRequestFilter {
 
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
     private static final String SET_PASSWORD_PATH = "/api/auth/set-password";
-    private static final String ACCESS_TOKEN_COOKIE_NAME = "oauth2_access_token";
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final SecurityProperties securityProperties;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(
@@ -75,6 +82,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authToken);
 
             if (!user.isPasswordSet() && !isSetPasswordRequest(request)) {
+                if (isWhitelistedRequest(request)) {
+                    SecurityContextHolder.clearContext();
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 SecurityContextHolder.clearContext();
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Password setup required");
                 return;
@@ -88,33 +101,53 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isSetPasswordRequest(HttpServletRequest request) {
+        return SET_PASSWORD_PATH.equals(normalizedPath(request));
+    }
+
+    private boolean isWhitelistedRequest(HttpServletRequest request) {
+        String path = normalizedPath(request);
+        return securityProperties.getWhitelist().stream()
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
+    }
+
+    private String normalizedPath(HttpServletRequest request) {
         String requestPath = request.getRequestURI();
         String contextPath = request.getContextPath();
 
         if (contextPath != null && !contextPath.isBlank() && requestPath.startsWith(contextPath)) {
-            requestPath = requestPath.substring(contextPath.length());
+            return requestPath.substring(contextPath.length());
         }
 
-        return SET_PASSWORD_PATH.equals(requestPath);
+        return requestPath;
     }
 
     private String resolveJwt(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7);
+        return extractBearerToken(request)
+                .or(() -> extractOAuth2AccessTokenCookie(request))
+                .orElse(null);
+    }
+
+    private Optional<String> extractBearerToken(HttpServletRequest request) {
+        String authHeader = request.getHeader(AUTHORIZATION_HEADER);
+        if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
+            return Optional.empty();
         }
 
+        return Optional.of(authHeader.substring(BEARER_PREFIX.length()));
+    }
+
+    private Optional<String> extractOAuth2AccessTokenCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
-            return null;
+            return Optional.empty();
         }
 
         for (Cookie cookie : cookies) {
-            if (ACCESS_TOKEN_COOKIE_NAME.equals(cookie.getName())) {
-                return cookie.getValue();
+            if (OAuth2AccessTokenCookie.COOKIE_NAME.equals(cookie.getName())) {
+                return Optional.of(cookie.getValue());
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 }

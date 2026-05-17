@@ -1,7 +1,7 @@
 package com.finovara.finovarabackend.security;
 
 import com.finovara.finovarabackend.ratelimit.filter.RateLimitFilter;
-import com.finovara.finovarabackend.security.jwt.JwtAuthenticationFilter;
+import com.finovara.finovarabackend.security.jwt.JwtOAuth2AuthenticationFilter;
 import com.finovara.finovarabackend.security.oauth2.OAuth2AuthorizationRequestCookieStore;
 import com.finovara.finovarabackend.security.oauth2.OAuth2LoginFailureHandler;
 import com.finovara.finovarabackend.security.oauth2.OAuth2LoginSuccessHandler;
@@ -30,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityFilterChainConfig {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
+    private final JwtOAuth2AuthenticationFilter jwtOAuth2AuthFilter;
     private final AuthenticationProvider authenticationProvider;
     private final RateLimitFilter rateLimitFilter;
     private final SecurityProperties securityProperties;
@@ -76,7 +76,7 @@ public class SecurityFilterChainConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtOAuth2AuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
