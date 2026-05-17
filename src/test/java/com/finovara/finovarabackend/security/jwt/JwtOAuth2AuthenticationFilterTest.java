@@ -38,7 +38,7 @@ class JwtOAuth2AuthenticationFilterTest {
     void setUp() {
         SecurityProperties securityProperties = new SecurityProperties();
         securityProperties.setWhitelist(List.of("/api/auth/**"));
-        filter = new JwtOAuth2AuthenticationFilter(jwtService, userRepository, securityProperties);
+        filter = new JwtOAuth2AuthenticationFilter(jwtService, userRepository, securityProperties, new JwtTokenResolver());
         SecurityContextHolder.clearContext();
     }
 
