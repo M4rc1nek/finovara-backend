@@ -51,7 +51,6 @@ public class ProfileImageService {
             userRepository.save(user);
             accountChangesActivityService.createAccountChangesActivity(user.getId(), AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
 
-
             if (isLocalProfileImagePath(oldFilePath)) {
                 Files.deleteIfExists(Paths.get(oldFilePath));
             }
@@ -62,7 +61,7 @@ public class ProfileImageService {
     }
 
     @Transactional
-    public void deleteProfileImage(Long userId) {
+    public void deleteProfileImage(Long userId, HttpServletRequest request) {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         if (user.getProfileImagePath() == null) {
@@ -74,13 +73,13 @@ public class ProfileImageService {
                 Files.deleteIfExists(Paths.get(user.getProfileImagePath()));
             }
             user.setProfileImagePath(null);
+            accountChangesActivityService.createAccountChangesActivity(userId, AccountChangesActivityType.PROFILE_IMG_DELETED, request);
             userRepository.save(user);
 
         } catch (IOException e) {
             throw new ServiceUnavailableException("Cannot delete profile image", e);
         }
     }
-
 
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {

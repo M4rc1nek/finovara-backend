@@ -19,7 +19,7 @@ public class ProfileImageController {
     }
 
     @DeleteMapping("/{userId}")
-    public void deleteProfileImage(@PathVariable Long userId) {
-        profileImageService.deleteProfileImage(userId);
+    public void deleteProfileImage(@PathVariable Long userId, HttpServletRequest request) {
+        profileImageService.deleteProfileImage(userId, request);
     }
 }
