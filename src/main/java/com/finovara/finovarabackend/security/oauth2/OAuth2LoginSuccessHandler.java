@@ -1,12 +1,13 @@
 package com.finovara.finovarabackend.security.oauth2;
 
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.model.LoginActivityStatus;
+import com.finovara.finovarabackend.accountactivity.secure.login.activity.service.LoginActivityService;
 import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
 import com.finovara.finovarabackend.security.jwt.JwtService;
 import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.util.profile.ProfileImageUrlBuilder;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,12 +29,10 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-    private static final String ACCESS_TOKEN_COOKIE_NAME = "oauth2_access_token";
-    private static final int ACCESS_TOKEN_COOKIE_MAX_AGE_SECONDS = 24 * 60 * 60;
-
     private final GoogleOAuth2UserService googleOAuth2UserService;
     private final JwtService jwtService;
     private final OAuth2AuthorizationRequestCookieStore authorizationRequestRepository;
+    private final LoginActivityService loginActivityService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -51,10 +50,10 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             User user = googleOAuth2UserService.synchronize(oauth2User);
             String token = jwtService.generateToken(user);
 
-
             String profileImageUrl = ProfileImageUrlBuilder.buildProfileImageUrl(user.getProfileImagePath());
+            loginActivityService.createLoginActivity(user.getId(), LoginActivityStatus.SUCCESSFUL, request);
 
-            addAccessTokenCookie(response, token, request.isSecure());
+            OAuth2AccessTokenCookie.add(response, token, request.isSecure());
 
             String redirectUrl = UriComponentsBuilder
                     .fromUriString("https://localhost:5173/oauth2/success")
@@ -85,16 +84,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             log.error("OAuth2 authentication failed", exception);
             response.sendRedirect("https://localhost:5173/auth?error=oauth2_authentication_failed");
         }
-    }
-
-    private void addAccessTokenCookie(HttpServletResponse response, String token, boolean secure) {
-        Cookie cookie = new Cookie(ACCESS_TOKEN_COOKIE_NAME, token);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(secure);
-        cookie.setMaxAge(ACCESS_TOKEN_COOKIE_MAX_AGE_SECONDS);
-        cookie.setAttribute("SameSite", "Lax");
-        response.addCookie(cookie);
     }
 
 }
