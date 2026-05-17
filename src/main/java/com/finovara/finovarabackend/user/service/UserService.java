@@ -3,6 +3,7 @@ package com.finovara.finovarabackend.user.service;
 import com.finovara.finovarabackend.accountactivity.secure.login.activity.model.LoginActivityStatus;
 import com.finovara.finovarabackend.accountactivity.secure.login.activity.service.LoginActivityService;
 import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
+import com.finovara.finovarabackend.exception.conflict.StateConflictException;
 import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
 import com.finovara.finovarabackend.security.jwt.JwtService;
 import com.finovara.finovarabackend.user.dto.UserLoginDto;
@@ -12,6 +13,7 @@ import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
 import com.finovara.finovarabackend.util.email.EmailDomainValidator;
+import com.finovara.finovarabackend.util.profile.ProfileImageUrlBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,6 +78,11 @@ public class UserService {
     public UserLoginDto loginUser(String email, String rawPassword, HttpServletRequest request) {
         User userByEmail = userRepository.findByEmail(email).orElse(null);
 
+        if (userByEmail != null && !userByEmail.isPasswordSet()) {
+            loginActivityService.createLoginActivity(userByEmail.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
+            throw new StateConflictException("Local password is not set for this account. Use Google login or set a local password first.");
+        }
+
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, rawPassword));
 
@@ -86,12 +93,14 @@ public class UserService {
             loginActivityService.createLoginActivity(userByEmail.getId(), LoginActivityStatus.SUCCESSFUL, request);
 
             String jwtToken = jwtService.generateToken(userByEmail);
+            String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(userByEmail.getProfileImagePath());
 
             return new UserLoginDto(
                     userByEmail.getId(),
                     userByEmail.getUsername(),
                     userByEmail.getEmail(),
                     null,
+                    userProfileImage,
                     jwtToken
             );
 
