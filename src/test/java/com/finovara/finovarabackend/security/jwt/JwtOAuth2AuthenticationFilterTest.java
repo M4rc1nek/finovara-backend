@@ -1,5 +1,7 @@
 package com.finovara.finovarabackend.security.jwt;
 
+import com.finovara.finovarabackend.security.SecurityProperties;
+import com.finovara.finovarabackend.security.oauth2.OAuth2AccessTokenCookie;
 import com.finovara.finovarabackend.user.model.User;
 import com.finovara.finovarabackend.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
@@ -16,24 +18,27 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class JwtAuthenticationFilterTest {
+class JwtOAuth2AuthenticationFilterTest {
 
     @Mock
     private JwtService jwtService;
     @Mock
     private UserRepository userRepository;
 
-    private JwtAuthenticationFilter filter;
+    private JwtOAuth2AuthenticationFilter filter;
 
     @BeforeEach
     void setUp() {
-        filter = new JwtAuthenticationFilter(jwtService, userRepository);
+        SecurityProperties securityProperties = new SecurityProperties();
+        securityProperties.setWhitelist(List.of("/api/auth/**"));
+        filter = new JwtOAuth2AuthenticationFilter(jwtService, userRepository, securityProperties);
         SecurityContextHolder.clearContext();
     }
 
@@ -76,6 +81,38 @@ class JwtAuthenticationFilterTest {
     }
 
     @Test
+    void shouldAllowLoginEndpointWhenOAuth2PasswordIsNotSet() throws ServletException, IOException {
+        MockHttpServletRequest request = authenticatedRequest("POST", "/api/auth/login");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        User user = user(false);
+
+        when(jwtService.isTokenValid("jwt-token")).thenReturn(true);
+        when(jwtService.extractUserId("jwt-token")).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        filter.doFilter(request, response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    }
+
+    @Test
+    void shouldAllowRegisterEndpointWhenOAuth2PasswordIsNotSet() throws ServletException, IOException {
+        MockHttpServletRequest request = authenticatedRequest("POST", "/api/auth/register");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        User user = user(false);
+
+        when(jwtService.isTokenValid("jwt-token")).thenReturn(true);
+        when(jwtService.extractUserId("jwt-token")).thenReturn(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        filter.doFilter(request, response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    }
+
+    @Test
     void shouldAllowProtectedEndpointWhenPasswordIsSet() throws ServletException, IOException {
         MockHttpServletRequest request = authenticatedRequest("GET", "/api/dashboard");
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -94,7 +131,7 @@ class JwtAuthenticationFilterTest {
     @Test
     void shouldAuthenticateWithOAuth2AccessTokenCookie() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dashboard");
-        request.setCookies(new Cookie("oauth2_access_token", "jwt-token"));
+        request.setCookies(new Cookie(OAuth2AccessTokenCookie.COOKIE_NAME, "jwt-token"));
         MockHttpServletResponse response = new MockHttpServletResponse();
         User user = user(true);
 
