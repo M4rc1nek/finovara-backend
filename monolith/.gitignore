@@ -14,10 +14,17 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
+**/.idea/
+
 *.iws
 *.iml
 *.ipr
+
+# User-specific IDEA files
+**/workspace.xml
+**/tasks.xml
+**/shelf/
 
 ### NetBeans ###
 /nbproject/private/
@@ -34,10 +41,25 @@ build/
 
 ### ENV ###
 .env
-
+.env.*
 
 ### FULL CODE ###
 full_backend_code.txt
 
 ### OTHER ###
 uploads/profile-images
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.temp
+*.swp
+
+# Empty accidental folders
+Finovara/
