@@ -1,0 +1,19 @@
+version: '3.9'
+
+services:
+  finovara-gateway:
+    build: .
+    container_name: finovara-gateway
+    ports:
+      - "443:8888"
+    environment:
+      MONOLIT_URL: https://finovara-app:8443
+      SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
+    restart: always
+    networks:
+      - finovara-network
+
+networks:
+  finovara-network:
+    external: true
+    name: finovara-network
