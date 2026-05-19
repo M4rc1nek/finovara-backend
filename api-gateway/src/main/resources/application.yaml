@@ -12,14 +12,39 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      httpclient:
-        ssl:
-          use-insecure-trust-manager: true  # tylko do wewnętrznej sieci Docker
-      routes:
-        - id: monolit
-          uri: ${MONOLIT_URL}
-          predicates:
-            - Path=/**
+      server:
+        webflux:
+          globalcors:
+            add-to-simple-url-handler-mapping: true
+            cors-configurations:
+              '[/**]':
+                allowed-origins:
+                  - https://localhost:5173
+                allowed-methods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                  - PATCH
+                allowed-headers:
+                  - "*"
+                allow-credentials: true
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+          httpclient:
+            ssl:
+              use-insecure-trust-manager: true
+          routes:
+            - id: monolit
+              uri: ${MONOLIT_URL}
+              predicates:
+                - Path=/**
+
+logging:
+  level:
+    root: WARN
+    com.finovara_backend.api_gateway: INFO
 
 management:
   endpoints:
