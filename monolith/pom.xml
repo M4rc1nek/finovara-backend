@@ -24,7 +24,7 @@
         <uap-java.version>1.5.4</uap-java.version>
         <shedlock.version>5.13.0</shedlock.version>
         <jacoco.version>0.8.14</jacoco.version>
-        <spring-cloud.version>2025.1.0</spring-cloud.version>
+        <spring-cloud.version>2025.1.1</spring-cloud.version>
     </properties>
 
     <dependencies>
