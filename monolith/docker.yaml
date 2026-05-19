@@ -16,6 +16,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       retries: 10
+    networks:
+      - finovara-network
 
   # Baza testowa
   finovara-test:
@@ -32,6 +34,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       retries: 10
+    networks:
+      - finovara-network
 
   # Aplikacja Spring Boot
   finovara-app:
@@ -54,7 +58,14 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
-      SPRING_PROFILES_ACTIVE: default   # zmień na 'test' dla testów
+      SPRING_PROFILES_ACTIVE: default
     volumes:
       - ./uploads:/app/uploads
     restart: always
+    networks:
+      - finovara-network
+
+networks:
+  finovara-network:
+    external: true
+    name: finovara-network
