@@ -1,0 +1,32 @@
+# Default ignored files
+/shelf/
+/.idea/workspace.xml
+/misc.xml
+/qaplug_profiles.xml
+vcs.xml
+modules.xml
+jarRepositories.xml
+encodings.xml
+compiler.xml
+Finovara-backend.iml
+$PROJECT_FILE$
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.temp
+*.swp
+
+
