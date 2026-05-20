@@ -25,11 +25,13 @@ public class ProfileImageService {
 
     private final UserRepository userRepository;
     private final UserManagerService userManagerService;
-
     private final AccountChangesActivityService accountChangesActivityService;
 
     @Value("${application.upload.profile-images-directory}")
     private String profileImagesDirectory;
+
+    @Value("${application.upload.profile-images-default-directory}")
+    private String profileImagesDefaultDirectory;
 
     @Transactional
     public void uploadProfileImage(MultipartFile file, Long userId, HttpServletRequest request) {
@@ -51,7 +53,7 @@ public class ProfileImageService {
             userRepository.save(user);
             accountChangesActivityService.createAccountChangesActivity(user.getId(), AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
 
-            if (isLocalProfileImagePath(oldFilePath)) {
+            if (isLocalProfileImagePath(oldFilePath) && !isDefaultProfileImage(oldFilePath)) {
                 Files.deleteIfExists(Paths.get(oldFilePath));
             }
 
@@ -63,16 +65,20 @@ public class ProfileImageService {
     @Transactional
     public void deleteProfileImage(Long userId, HttpServletRequest request) {
         User user = userManagerService.getUserByIdOrThrow(userId);
+        String currentPath = user.getProfileImagePath();
 
-        if (user.getProfileImagePath() == null) {
-            throw new IllegalArgumentException("Profile image does not exist");
+        if (currentPath == null || isDefaultProfileImage(currentPath)) {
+            throw new IllegalArgumentException("Profile image does not exist or is already default");
         }
 
         try {
-            if (isLocalProfileImagePath(user.getProfileImagePath())) {
-                Files.deleteIfExists(Paths.get(user.getProfileImagePath()));
+            if (isLocalProfileImagePath(currentPath)) {
+                Files.deleteIfExists(Paths.get(currentPath));
             }
-            user.setProfileImagePath(null);
+
+            String defaultPath = Paths.get(profileImagesDefaultDirectory).resolve("UserProf.png").toString();
+            user.setProfileImagePath(defaultPath);
+
             accountChangesActivityService.createAccountChangesActivity(userId, AccountChangesActivityType.PROFILE_IMG_DELETED, request);
             userRepository.save(user);
 
@@ -98,5 +104,9 @@ public class ProfileImageService {
         return profileImagePath != null
                 && !profileImagePath.startsWith("http://")
                 && !profileImagePath.startsWith("https://");
+    }
+
+    private boolean isDefaultProfileImage(String profileImagePath) {
+        return profileImagePath != null && profileImagePath.contains("UserProf.png");
     }
 }
