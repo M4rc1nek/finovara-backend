@@ -36,12 +36,14 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "https://localhost:8443/login/oauth2/code/google"
             scope:
               - openid
               - email
               - profile
 server:
   port: 8443
+  forward-headers-strategy: framework
   ssl:
     enabled: true
     key-store: classpath:localhost.p12

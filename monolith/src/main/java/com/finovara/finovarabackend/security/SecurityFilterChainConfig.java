@@ -49,6 +49,8 @@ public class SecurityFilterChainConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authorization -> authorization
                                 .authorizationRequestRepository(authorizationRequestRepository))
+                        .redirectionEndpoint(redirection -> redirection
+                                .baseUri("/login/oauth2/code/**"))
                         .successHandler(oauth2LoginSuccessHandler)
                         .failureHandler(oauth2LoginFailureHandler))
 
