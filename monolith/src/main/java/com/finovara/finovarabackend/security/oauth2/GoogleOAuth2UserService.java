@@ -64,10 +64,26 @@ public class GoogleOAuth2UserService {
         }
 
         user.setEmail(userInfo.email());
-        user.setProfileImagePath(userInfo.picture());
+        synchronizeProfileImage(user, userInfo);
         synchronizeUsername(user, userInfo);
 
         return userRepository.save(user);
+    }
+
+    private void synchronizeProfileImage(User user, GoogleOAuth2UserInfo userInfo) {
+        boolean hasCustomProfileImage = hasCustomProfileImage(user.getProfileImagePath());
+
+        if (!hasCustomProfileImage) {
+            user.setProfileImagePath(userInfo.picture());
+        }
+    }
+
+    private boolean hasCustomProfileImage(String profileImagePath) {
+        return StringUtils.hasText(profileImagePath) && !isRemoteProfileImagePath(profileImagePath);
+    }
+
+    private boolean isRemoteProfileImagePath(String profileImagePath) {
+        return profileImagePath.startsWith("http://") || profileImagePath.startsWith("https://");
     }
 
     private void synchronizeUsername(User user, GoogleOAuth2UserInfo userInfo) {
