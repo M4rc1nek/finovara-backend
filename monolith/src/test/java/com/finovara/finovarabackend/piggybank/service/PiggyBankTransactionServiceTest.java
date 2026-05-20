@@ -173,7 +173,7 @@ class PiggyBankTransactionServiceTest {
         }
 
         @Test
-        void shouldThrowWhenUserNotFound_remove() {
+        void shouldThrowWhenUserNotFoundRemove() {
             when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("x"));
 
             assertThrows(UserNotFoundException.class, ()
