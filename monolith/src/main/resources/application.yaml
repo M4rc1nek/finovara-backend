@@ -56,6 +56,8 @@ application:
       expiration: 86400000
   upload:
     profile-images-directory: uploads/profile-images
+    profile-images-default-directory: uploads/profile-images/default
+
 logging:
   level:
     root: INFO
