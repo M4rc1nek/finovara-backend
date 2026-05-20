@@ -17,12 +17,14 @@ import com.finovara.finovarabackend.util.profile.ProfileImageUrlBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 
 @Slf4j
@@ -39,6 +41,9 @@ public class UserService {
     private final LoginActivityService loginActivityService;
     private final EmailDomainValidator emailDomainValidator;
 
+    @Value("${application.upload.profile-images-default-directory}")
+    private String profileImagesDefaultDirectory;
+
     public UserRegisterDto registerUser(UserRegisterDto dto) {
         if (userRepository.existsByUsername(dto.username())) {
             throw new NameAlreadyExistsException("Username is already taken");
@@ -50,11 +55,14 @@ public class UserService {
 
         emailDomainValidator.validateDomainHasMxRecord(dto.email());
 
+        String defaultImagePath = Paths.get(profileImagesDefaultDirectory).resolve("UserProf.png").toString();
+
         User user = User.builder()
                 .username(dto.username())
                 .email(dto.email())
                 .password(passwordEncoder.encode(dto.password()))
                 .passwordSet(true)
+                .profileImagePath(defaultImagePath)
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -66,10 +74,14 @@ public class UserService {
         User savedUser = userRepository.save(user);
 
         String jwtToken = jwtService.generateToken(savedUser);
+
+        String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(savedUser.getProfileImagePath());
+
         return new UserRegisterDto(
                 savedUser.getId(),
                 savedUser.getUsername(),
                 null,
+                userProfileImage,
                 savedUser.getEmail(),
                 jwtToken
         );
@@ -91,7 +103,6 @@ public class UserService {
             }
 
             loginActivityService.createLoginActivity(userByEmail.getId(), LoginActivityStatus.SUCCESSFUL, request);
-
             String jwtToken = jwtService.generateToken(userByEmail);
             String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(userByEmail.getProfileImagePath());
 

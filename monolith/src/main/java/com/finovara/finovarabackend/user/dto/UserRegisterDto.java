@@ -17,6 +17,7 @@ public record UserRegisterDto(
                 message = "Hasło musi mieć min. 8 znaków, jedną dużą literę, jedną cyfrę i jeden znak specjalny"
         )
         String password,
+        String userProfileImage,
 
         @Email
         @NotBlank
