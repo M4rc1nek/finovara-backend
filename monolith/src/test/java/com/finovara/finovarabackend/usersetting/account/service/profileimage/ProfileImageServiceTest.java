@@ -44,144 +44,262 @@ class ProfileImageServiceTest {
     private ProfileImageService profileImageService;
 
     @TempDir
-    Path tempDirectory;
+    Path uploadDir;
+
+    @TempDir
+    Path defaultDir;
 
     private User user;
-    private Long userId;
+    private static final Long USER_ID = 1L;
 
     @BeforeEach
-    void setUp() {
-        userId = 1L;
-
+    void setUp() throws Exception {
         user = new User();
-        user.setId(userId);
+        user.setId(USER_ID);
         user.setEmail("test@test.com");
 
-        ReflectionTestUtils.setField(profileImageService, "profileImagesDirectory", tempDirectory.toString());
+        Files.createFile(defaultDir.resolve("UserProf.png"));
 
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+        ReflectionTestUtils.setField(profileImageService, "profileImagesDirectory", uploadDir.toString());
+        ReflectionTestUtils.setField(profileImageService, "profileImagesDefaultDirectory", defaultDir.toString());
+
+        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
     }
 
     @Nested
     class UploadProfileImage {
 
-        @Test
-        void shouldUploadProfileImage() {
-            MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", "image-data".getBytes());
+        private final MockMultipartFile validFile = new MockMultipartFile("file", "avatar.png", "image/png", "image-data".getBytes());
 
-            profileImageService.uploadProfileImage(file, userId, request);
+        @Test
+        void shouldSaveFileOnDiskAndUpdateUserPath() {
+            profileImageService.uploadProfileImage(validFile, USER_ID, request);
 
             assertThat(user.getProfileImagePath()).isNotNull();
             assertThat(Files.exists(Path.of(user.getProfileImagePath()))).isTrue();
-
-            verify(userRepository).save(user);
-
-            verify(accountChangesActivityService).createAccountChangesActivity(user.getId(), AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
         }
 
         @Test
-        void shouldDeleteOldProfileImageBeforeUpload() throws Exception {
-            Path oldFile = Files.createTempFile(tempDirectory, "old-avatar", ".png");
+        void shouldPersistUserAfterUpload() {
+            profileImageService.uploadProfileImage(validFile, USER_ID, request);
 
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void shouldTrackAccountActivityAfterUpload() {
+            profileImageService.uploadProfileImage(validFile, USER_ID, request);
+
+            verify(accountChangesActivityService).createAccountChangesActivity(USER_ID, AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
+        }
+
+        @Test
+        void shouldGenerateUniqueFilenameContainingOriginalName() {
+            profileImageService.uploadProfileImage(validFile, USER_ID, request);
+
+            assertThat(user.getProfileImagePath()).contains("avatar.png");
+        }
+
+        @Test
+        void shouldDeleteOldLocalImageAfterUpload() throws Exception {
+            Path oldFile = Files.createTempFile(uploadDir, "old-avatar", ".png");
             user.setProfileImagePath(oldFile.toString());
 
-            MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", "image-data".getBytes());
-
-            profileImageService.uploadProfileImage(file, userId, request);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request);
 
             assertThat(Files.exists(oldFile)).isFalse();
         }
 
         @Test
-        void shouldNotDeleteExternalImageUrl() {
-            user.setProfileImagePath("https://cdn.test.com/avatar.png");
+        void shouldNotDeleteOldExternalImageAfterUpload() {
+            user.setProfileImagePath("https://cdn.example.com/avatar.png");
 
-            MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", "image-data".getBytes());
-
-            profileImageService.uploadProfileImage(file, userId, request);
-
-            assertThat(user.getProfileImagePath()).doesNotContain("cdn.test.com");
+            profileImageService.uploadProfileImage(validFile, USER_ID, request);
 
             verify(userRepository).save(user);
         }
 
         @Test
-        void shouldThrowExceptionWhenFileIsEmpty() {
-            MockMultipartFile file = new MockMultipartFile("file", "avatar.png", "image/png", new byte[0]);
+        void shouldNotDeleteDefaultProfileImageOnUpload() {
+            user.setProfileImagePath(defaultDir.resolve("UserProf.png").toString());
 
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> profileImageService.uploadProfileImage(file, userId, request));
+            profileImageService.uploadProfileImage(validFile, USER_ID, request);
 
-            assertThat(exception.getMessage()).isEqualTo("File is empty");
+            assertThat(Files.exists(defaultDir.resolve("UserProf.png"))).isTrue();
+        }
 
+        @Test
+        void shouldUploadJpegFile() {
+            MockMultipartFile jpeg = new MockMultipartFile("file", "photo.jpg", "image/jpeg", "jpeg-data".getBytes());
+
+            profileImageService.uploadProfileImage(jpeg, USER_ID, request);
+
+            assertThat(user.getProfileImagePath()).contains("photo.jpg");
+        }
+
+        @Test
+        void shouldAcceptFileExactlyAt5MB() {
+            MockMultipartFile exactFile = new MockMultipartFile("file", "exact.png", "image/png",
+                    new byte[5 * 1024 * 1024]);
+
+            profileImageService.uploadProfileImage(exactFile, USER_ID, request);
+
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void shouldThrowWhenFileIsEmpty() {
+            MockMultipartFile emptyFile = new MockMultipartFile("file", "avatar.png", "image/png", new byte[0]);
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> profileImageService.uploadProfileImage(emptyFile, USER_ID, request));
+
+            assertThat(ex.getMessage()).isEqualTo("File is empty");
             verify(userRepository, never()).save(any());
         }
 
         @Test
-        void shouldThrowExceptionWhenFileIsNotImage() {
-            MockMultipartFile file = new MockMultipartFile("file", "document.pdf", "application/pdf", "data".getBytes());
+        void shouldThrowWhenFileIsNotAnImage() {
+            MockMultipartFile pdf = new MockMultipartFile("file", "document.pdf", "application/pdf", "data".getBytes());
 
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> profileImageService.uploadProfileImage(file, userId, request));
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> profileImageService.uploadProfileImage(pdf, USER_ID, request));
 
-            assertThat(exception.getMessage()).isEqualTo("File is not an image");
-
+            assertThat(ex.getMessage()).isEqualTo("File is not an image");
             verify(userRepository, never()).save(any());
         }
 
         @Test
-        void shouldThrowExceptionWhenFileIsTooLarge() {
-            byte[] largeFile = new byte[6 * 1024 * 1024];
+        void shouldThrowWhenFileHasNullContentType() {
+            MockMultipartFile nullType = new MockMultipartFile("file", "avatar.png", null, "data".getBytes());
 
-            MockMultipartFile file = new MockMultipartFile("file", "large-image.png", "image/png", largeFile);
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> profileImageService.uploadProfileImage(nullType, USER_ID, request));
 
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> profileImageService.uploadProfileImage(file, userId, request));
-
-            assertThat(exception.getMessage()).isEqualTo("File is too large (max 5MB)");
-
+            assertThat(ex.getMessage()).isEqualTo("File is not an image");
             verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldThrowWhenFileSizeExceeds5MB() {
+            MockMultipartFile largeFile = new MockMultipartFile("file", "large.png", "image/png",
+                    new byte[6 * 1024 * 1024]);
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.uploadProfileImage(largeFile, USER_ID, request));
+
+            assertThat(ex.getMessage()).isEqualTo("File is too large (max 5MB)");
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldNotSaveFileWhenValidationFails() {
+            MockMultipartFile badFile = new MockMultipartFile("file", "bad.exe",
+                    "application/octet-stream", "bad".getBytes());
+
+            assertThrows(IllegalArgumentException.class, () -> profileImageService.uploadProfileImage(badFile, USER_ID, request));
+
+            assertThat(uploadDir.toFile().listFiles()).isEmpty();
         }
     }
 
     @Nested
     class DeleteProfileImage {
-
         @Test
-        void shouldDeleteProfileImage(@TempDir Path tempDir) throws Exception {
+        void shouldDeleteLocalFileFromDisk() throws Exception {
+            Path imageFile = Files.createTempFile(uploadDir, "avatar", ".png");
+            user.setProfileImagePath(imageFile.toString());
 
-            Path file = Files.createTempFile(tempDir, "avatar", ".png");
+            profileImageService.deleteProfileImage(USER_ID, request);
 
-            user.setProfileImagePath(file.toString());
-
-            profileImageService.deleteProfileImage(userId, request);
-
-            assertThat(user.getProfileImagePath()).isNull();
-            assertThat(Files.exists(file)).isFalse();
-
-            verify(userRepository).save(user);
-
-            verify(accountChangesActivityService).createAccountChangesActivity(userId, AccountChangesActivityType.PROFILE_IMG_DELETED, request);
+            assertThat(Files.exists(imageFile)).isFalse();
         }
 
         @Test
-        void shouldDeleteOnlyDatabaseReferenceForExternalImage() {
-            user.setProfileImagePath("https://cdn.test.com/avatar.png");
+        void shouldSetUserPathToDefaultImageAfterDelete() throws Exception {
+            Path imageFile = Files.createTempFile(uploadDir, "avatar", ".png");
+            user.setProfileImagePath(imageFile.toString());
 
-            profileImageService.deleteProfileImage(userId, request);
+            profileImageService.deleteProfileImage(USER_ID, request);
 
-            assertThat(user.getProfileImagePath()).isNull();
-
-            verify(userRepository).save(user);
-
-            verify(accountChangesActivityService).createAccountChangesActivity(userId, AccountChangesActivityType.PROFILE_IMG_DELETED, request);
+            assertThat(user.getProfileImagePath()).contains("UserProf.png");
         }
 
         @Test
-        void shouldThrowExceptionWhenNoProfileImage() {
+        void shouldPersistUserAfterDelete() throws Exception {
+            Path imageFile = Files.createTempFile(uploadDir, "avatar", ".png");
+            user.setProfileImagePath(imageFile.toString());
+
+            profileImageService.deleteProfileImage(USER_ID, request);
+
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void shouldTrackAccountActivityAfterDelete() throws Exception {
+            Path imageFile = Files.createTempFile(uploadDir, "avatar", ".png");
+            user.setProfileImagePath(imageFile.toString());
+
+            profileImageService.deleteProfileImage(USER_ID, request);
+
+            verify(accountChangesActivityService).createAccountChangesActivity(USER_ID, AccountChangesActivityType.PROFILE_IMG_DELETED, request);
+        }
+
+        @Test
+        void shouldSetPathToDefaultWhenDeletingExternalImage() {
+            user.setProfileImagePath("https://cdn.example.com/avatar.png");
+
+            profileImageService.deleteProfileImage(USER_ID, request);
+
+            assertThat(user.getProfileImagePath()).contains("UserProf.png");
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void shouldHandleExternalHttpImageWithoutFileDeletion() {
+            user.setProfileImagePath("http://cdn.example.com/avatar.png");
+
+            profileImageService.deleteProfileImage(USER_ID, request);
+
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void shouldNotFailWhenLocalFileMissingOnDisk() {
+            user.setProfileImagePath(uploadDir.resolve("ghost-avatar.png").toString());
+
+            profileImageService.deleteProfileImage(USER_ID, request);
+
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void shouldThrowWhenProfileImagePathIsNull() {
             user.setProfileImagePath(null);
 
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> profileImageService.deleteProfileImage(userId, request));
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.deleteProfileImage(USER_ID, request));
 
-            assertThat(exception.getMessage()).isEqualTo("Profile image does not exist");
+            assertThat(ex.getMessage()).isEqualTo("Profile image does not exist or is already default");
+            verify(userRepository, never()).save(any());
+        }
 
+        @Test
+        void shouldThrowWhenUserAlreadyHasDefaultProfileImage() {
+            user.setProfileImagePath(defaultDir.resolve("UserProf.png").toString());
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.deleteProfileImage(USER_ID, request));
+
+            assertThat(ex.getMessage()).isEqualTo("Profile image does not exist or is already default");
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldThrowWhenPathContainsUserProfPng() {
+            user.setProfileImagePath("/some/path/UserProf.png");
+
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.deleteProfileImage(USER_ID, request));
+
+            assertThat(ex.getMessage()).isEqualTo("Profile image does not exist or is already default");
             verify(userRepository, never()).save(any());
         }
     }
