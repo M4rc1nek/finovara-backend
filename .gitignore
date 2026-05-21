@@ -1,0 +1,52 @@
+# INTELLIJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.crac/
+
+# Wyjątek: współdzielone pliki konfiguracji bazy danych lub stylów kodu (opcjonalnie)
+!.idea/runConfigurations/
+!.idea/codeStyles/
+!.idea/scopes/
+
+# Maven
+target/
+.mvn
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.next
+pom.xml.note
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+*.log
+logs/
+
+#Secrets
+.env
+.env.local
+config/application-local.properties
+config/application-local.yml
+src/main/resources/application-local.properties
+src/main/resources/application-local.yml
+
+#Docker
+.docker/
+docker-compose.override.yml
+
+
+#System files
+.DS_Store
+.DS_Store?
+._*
+.Thumbs.db
+Thumbs.db
+desktop.ini
+.crash
+
