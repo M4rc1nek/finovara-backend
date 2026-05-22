@@ -1,5 +1,5 @@
 .idea
 .mvn
+.mvn/wrapper/maven-wrapper.properties
 finovara-run.sh
-.mvn/
 finovara-frontend/
