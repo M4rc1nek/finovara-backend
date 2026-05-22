@@ -1,4 +1,5 @@
 .idea
 .mvn
 finovara-run.sh
+.mvn/
 finovara-frontend/
