@@ -30,16 +30,18 @@ The application is designed with scalability in mind and is fully containerized 
 ## 🏗️ Architecture Overview
 
 ```
-finovara-backend/                  ← Maven multi-module parent
+finovara/                          ← Maven multi-module parent
 ├── api-gateway/                   ← Spring Cloud Gateway (routing & filters)
 │   ├── src/
+│   ├── Dockerfile
+│   ├── docker.yaml
 │   └── pom.xml
-├── monolith/                      ← Core business logic (Spring Boot)
+├── core-backend/                  ← Core business logic (Spring Boot)
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── java/              # Application source code
 │   │   │   └── resources/         # Configuration & Liquibase changelogs
-│   │   └── test/                  # Unit & integration tests
+│   │   └── test/                  # Unit tests
 │   ├── Dockerfile
 │   ├── docker.yaml
 │   └── pom.xml
@@ -49,7 +51,7 @@ finovara-backend/                  ← Maven multi-module parent
 The project follows a **multi-module Maven structure** with two modules:
 
 - **`api-gateway`** — handles all incoming traffic, routing, and cross-cutting concerns such as logging and rate limiting via Spring Cloud Gateway
-- **`monolith`** — contains the full core business logic, intentionally structured as a modular monolith with future decomposition into microservices in mind
+- **`core-backend`** — contains the full core business logic, intentionally structured as a modular monolith with future decomposition into microservices in mind
 
 Each business domain (transactions, auth, notifications, reports) is treated as an independent module, making a potential split into separate services straightforward. The codebase is lightly inspired by **Domain-Driven Design (DDD)** principles — domain logic is encapsulated within dedicated services and abstractions (e.g. `NotificationCreator`, `ThresholdReachedService`), domain objects carry their own behavior, and bounded contexts are reflected in the package structure.
 
