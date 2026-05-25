@@ -1,0 +1,69 @@
+version: '3.9'
+
+services:
+
+  finovara-activity-db:
+    image: postgres:15
+    container_name: finovara-activity-db
+    restart: always
+    environment:
+      POSTGRES_DB: finovara_activity_db
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 5s
+      retries: 10
+    networks:
+      - finovara-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: finovara-kafka
+    restart: always
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      CLUSTER_ID: "MkU3OEVhNTcwNTJoNGx4dA=="
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      retries: 10
+    networks:
+      - finovara-network
+
+  finovara-activity-app:
+    build: .
+    container_name: finovara-activity-app
+    depends_on:
+      finovara-activity-db:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    restart: always
+    networks:
+      - finovara-network
+
+networks:
+  finovara-network:
+    external: true
+    name: finovara-network
