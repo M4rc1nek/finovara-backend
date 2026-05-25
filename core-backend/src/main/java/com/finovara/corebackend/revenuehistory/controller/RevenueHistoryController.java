@@ -1,10 +1,10 @@
-package com.finovara.finovarabackend.revenuehistory.controller;
+package com.finovara.corebackend.revenuehistory.controller;
 
-import com.finovara.finovarabackend.revenue.dto.RevenueDto;
-import com.finovara.finovarabackend.revenue.model.RevenueCategory;
-import com.finovara.finovarabackend.revenuehistory.service.RevenueHistoryService;
-import com.finovara.finovarabackend.security.SecurityUtils;
-import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.corebackend.revenue.dto.RevenueDto;
+import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.corebackend.revenuehistory.service.RevenueHistoryService;
+import com.finovara.corebackend.security.SecurityUtils;
+import com.finovara.activityservice.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
