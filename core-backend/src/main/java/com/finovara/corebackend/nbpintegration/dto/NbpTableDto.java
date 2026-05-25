@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.nbpintegration.dto;
+package com.finovara.corebackend.nbpintegration.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

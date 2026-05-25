@@ -1,8 +1,8 @@
-package com.finovara.finovarabackend.nbpintegration.controller;
+package com.finovara.corebackend.nbpintegration.controller;
 
-import com.finovara.finovarabackend.nbpintegration.dto.NbpTableDto;
-import com.finovara.finovarabackend.nbpintegration.model.NbpConversionType;
-import com.finovara.finovarabackend.nbpintegration.service.NbpService;
+import com.finovara.corebackend.nbpintegration.dto.NbpTableDto;
+import com.finovara.corebackend.nbpintegration.model.NbpConversionType;
+import com.finovara.corebackend.nbpintegration.service.NbpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
