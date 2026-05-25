@@ -5,19 +5,28 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>pl.finovara</groupId>
+        <groupId>com.finovara</groupId>
         <artifactId>finovara</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>pl.finovara</groupId>
+    <groupId>com.finovara</groupId>
     <artifactId>core-backend</artifactId>
     <version>0.49.37-SNAPSHOT</version>
     <name>core-backend</name>
     <description>Backend REST API for Finovara – a personal finance management application</description>
 
     <dependencies>
+        <dependency>
+            <groupId>com.finovara</groupId>
+            <artifactId>contracts-backend</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
