@@ -1,8 +1,8 @@
-package com.finovara.finovarabackend.ratelimit.filter;
+package com.finovara.corebackend.ratelimit.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.finovara.finovarabackend.exception.ErrorResponseDto;
-import com.finovara.finovarabackend.ratelimit.RateLimitMessage;
+import com.finovara.corebackend.exception.ErrorResponseDto;
+import com.finovara.corebackend.ratelimit.RateLimitMessage;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

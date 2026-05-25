@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.ratelimit.filter;
+package com.finovara.corebackend.ratelimit.filter;
 
 import lombok.Getter;
 import lombok.Setter;

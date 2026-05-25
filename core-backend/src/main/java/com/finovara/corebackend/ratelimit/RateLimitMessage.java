@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.ratelimit;
+package com.finovara.corebackend.ratelimit;
 
 import lombok.AllArgsConstructor;
 

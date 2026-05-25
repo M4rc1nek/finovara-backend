@@ -1,10 +1,10 @@
-package com.finovara.finovarabackend.ratelimit.filter;
+package com.finovara.corebackend.ratelimit.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.finovara.finovarabackend.exception.ErrorResponseDto;
-import com.finovara.finovarabackend.exception.serviceunavailable.ServiceUnavailableException;
-import com.finovara.finovarabackend.ratelimit.RateLimitMessage;
-import com.finovara.finovarabackend.util.clientdata.ip.ClientIp;
+import com.finovara.activityservice.contracts.clientdata.ip.ClientIp;
+import com.finovara.corebackend.exception.ErrorResponseDto;
+import com.finovara.corebackend.exception.serviceunavailable.ServiceUnavailableException;
+import com.finovara.corebackend.ratelimit.RateLimitMessage;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.FilterChain;
