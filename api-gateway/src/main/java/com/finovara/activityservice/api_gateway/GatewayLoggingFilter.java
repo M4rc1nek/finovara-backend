@@ -1,4 +1,4 @@
-package com.finovara_backend.api_gateway;
+package com.finovara.activityservice.api_gateway;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GlobalFilter;

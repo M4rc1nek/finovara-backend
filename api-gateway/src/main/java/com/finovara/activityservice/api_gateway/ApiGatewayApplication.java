@@ -1,4 +1,4 @@
-package com.finovara_backend.api_gateway;
+package com.finovara.activityservice.api_gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
