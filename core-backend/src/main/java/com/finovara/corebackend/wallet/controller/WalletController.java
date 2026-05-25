@@ -1,13 +1,13 @@
-package com.finovara.finovarabackend.wallet.controller;
+package com.finovara.corebackend.wallet.controller;
 
-import com.finovara.finovarabackend.wallet.dto.WalletDto;
-import com.finovara.finovarabackend.wallet.service.WalletService;
+import com.finovara.corebackend.wallet.dto.WalletDto;
+import com.finovara.corebackend.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUserId;
+import static com.finovara.corebackend.security.SecurityUtils.getCurrentUserId;
 
 @RestController
 @RequiredArgsConstructor

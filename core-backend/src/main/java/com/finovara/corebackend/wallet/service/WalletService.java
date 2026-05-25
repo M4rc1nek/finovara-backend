@@ -1,11 +1,11 @@
-package com.finovara.finovarabackend.wallet.service;
+package com.finovara.corebackend.wallet.service;
 
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
-import com.finovara.finovarabackend.util.wallet.WalletManagerService;
-import com.finovara.finovarabackend.wallet.dto.WalletDto;
-import com.finovara.finovarabackend.wallet.model.Wallet;
-import com.finovara.finovarabackend.wallet.repository.WalletRepository;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.util.user.service.UserManagerService;
+import com.finovara.corebackend.util.wallet.WalletManagerService;
+import com.finovara.corebackend.wallet.dto.WalletDto;
+import com.finovara.corebackend.wallet.model.Wallet;
+import com.finovara.corebackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

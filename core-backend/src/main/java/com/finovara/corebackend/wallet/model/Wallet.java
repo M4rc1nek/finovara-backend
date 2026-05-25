@@ -1,7 +1,7 @@
-package com.finovara.finovarabackend.wallet.model;
+package com.finovara.corebackend.wallet.model;
 
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.user.model.User;
+import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.corebackend.user.model.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
