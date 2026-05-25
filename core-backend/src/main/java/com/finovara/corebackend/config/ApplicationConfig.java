@@ -1,10 +1,10 @@
-package com.finovara.finovarabackend.config;
+package com.finovara.corebackend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.finovara.finovarabackend.security.CustomUserDetails;
-import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
-import com.finovara.finovarabackend.user.repository.UserRepository;
+import com.finovara.corebackend.security.CustomUserDetails;
+import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.corebackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

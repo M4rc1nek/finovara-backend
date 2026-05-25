@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.exception;
+package com.finovara.corebackend.exception;
 
 public record ErrorResponseDto(
         int status,

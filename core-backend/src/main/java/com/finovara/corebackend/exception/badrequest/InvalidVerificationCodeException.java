@@ -1,6 +1,6 @@
-package com.finovara.finovarabackend.exception.badrequest;
+package com.finovara.corebackend.exception.badrequest;
 
-import com.finovara.finovarabackend.usersetting.account.dto.AttemptsDto;
+import com.finovara.corebackend.usersetting.account.dto.AttemptsDto;
 import lombok.Getter;
 
 @Getter

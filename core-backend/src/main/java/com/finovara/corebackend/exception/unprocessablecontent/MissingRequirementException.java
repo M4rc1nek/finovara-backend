@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.exception.unprocessablecontent;
+package com.finovara.corebackend.exception.unprocessablecontent;
 
 public class MissingRequirementException extends RuntimeException {
     public MissingRequirementException(String message) {

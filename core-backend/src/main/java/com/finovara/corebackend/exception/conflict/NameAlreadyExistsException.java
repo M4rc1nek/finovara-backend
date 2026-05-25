@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.exception.conflict;
+package com.finovara.corebackend.exception.conflict;
 
 public class NameAlreadyExistsException extends RuntimeException {
     public NameAlreadyExistsException(String message) {

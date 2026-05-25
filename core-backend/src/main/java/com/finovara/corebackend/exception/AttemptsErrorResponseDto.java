@@ -1,6 +1,6 @@
-package com.finovara.finovarabackend.exception;
+package com.finovara.corebackend.exception;
 
-import com.finovara.finovarabackend.usersetting.account.dto.AttemptsDto;
+import com.finovara.corebackend.usersetting.account.dto.AttemptsDto;
 
 public record AttemptsErrorResponseDto(
         int status,
