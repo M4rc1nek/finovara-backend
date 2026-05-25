@@ -1,7 +1,7 @@
-package com.finovara.finovarabackend.expense.mapper;
+package com.finovara.corebackend.expense.mapper;
 
-import com.finovara.finovarabackend.expense.dto.ExpenseDto;
-import com.finovara.finovarabackend.expense.model.Expense;
+import com.finovara.corebackend.expense.dto.ExpenseDto;
+import com.finovara.corebackend.expense.model.Expense;
 import org.springframework.stereotype.Component;
 
 @Component

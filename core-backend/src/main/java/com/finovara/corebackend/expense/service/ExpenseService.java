@@ -1,35 +1,37 @@
-package com.finovara.finovarabackend.expense.service;
+package com.finovara.corebackend.expense.service;
 
-import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
-import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.expense.dto.ExpenseDto;
-import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
-import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
-import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
-import com.finovara.finovarabackend.expense.model.Expense;
-import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
-import com.finovara.finovarabackend.limit.exception.unprocessablecontent.LimitExceededException;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
-import com.finovara.finovarabackend.util.model.PeriodType;
-import com.finovara.finovarabackend.limit.repository.LimitRepository;
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
-import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
-import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
-import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
-import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
-import com.finovara.finovarabackend.util.expense.ExpenseManagerService;
-import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
-import com.finovara.finovarabackend.wallet.service.WalletService;
+import com.finovara.activityservice.contracts.event.expense.ExpenseActivityEvent;
+import com.finovara.activityservice.contracts.model.activity.ExpenseActivityType;
+import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.corebackend.expense.dto.ExpenseDto;
+import com.finovara.corebackend.expense.dto.ExpenseRequestDto;
+import com.finovara.corebackend.expense.exception.notfound.ExpenseNotFoundException;
+import com.finovara.corebackend.expense.mapper.ExpenseMapper;
+import com.finovara.corebackend.expense.model.Expense;
+import com.finovara.corebackend.expense.repository.ExpenseRepository;
+import com.finovara.corebackend.limit.exception.unprocessablecontent.LimitExceededException;
+import com.finovara.corebackend.limit.repository.LimitRepository;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
+import com.finovara.corebackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
+import com.finovara.corebackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
+import com.finovara.corebackend.usersetting.finances.expense.smartscan.service.SmartScanService;
+import com.finovara.corebackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
+import com.finovara.corebackend.usersetting.piggybank.roundup.service.RoundUpService;
+import com.finovara.corebackend.util.expense.ExpenseManagerService;
+import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
+import com.finovara.corebackend.util.user.service.UserManagerService;
+import com.finovara.corebackend.wallet.service.WalletService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,10 +39,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ExpenseService {
 
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
     private final ExpenseRepository expenseRepository;
     private final LimitRepository limitRepository;
     private final WalletService walletService;
-    private final ExpenseActivityService expenseActivityService;
     private final RoundUpService roundUpService;
     private final CountQuantityLimitService countQuantityLimitService;
     private final ControlAmountService controlAmountService;
@@ -70,7 +73,9 @@ public class ExpenseService {
         if (expenseRequestDto.expenseDto().amount().compareTo(BigDecimal.ONE) < 0) {
             throw new InvalidInputException("Expense amount must be positive");
         }
-        expenseActivityService.createExpenseActivity(userId, ExpenseActivityType.ADDED_EXPENSE, expense);
+
+        kafkaTemplate.send("activity.expense", new ExpenseActivityEvent(userId, ExpenseActivityType.ADDED_EXPENSE, expense.getAmount(),
+                expense.getCategory(), null, null, LocalDateTime.now()));
 
         smartScanService.handleSmartScan(userId, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.ADD);
 
@@ -106,7 +111,8 @@ public class ExpenseService {
         existingExpense.setCategory(expenseRequestDto.expenseDto().category());
         existingExpense.setDescription(expenseRequestDto.expenseDto().description());
 
-        expenseActivityService.updateExpenseActivity(userId, ExpenseActivityType.EDITED_EXPENSE, existingExpense, oldAmount, oldCategory);
+        kafkaTemplate.send("activity.expense", new ExpenseActivityEvent(userId, ExpenseActivityType.EDITED_EXPENSE, existingExpense.getAmount(),
+                existingExpense.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
 
         smartScanService.handleSmartScan(userId, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.EDIT);
 
@@ -136,7 +142,8 @@ public class ExpenseService {
                 .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
         walletService.addBalanceToWallet(userId, expense.getAmount());
-        expenseActivityService.createExpenseActivity(userId, ExpenseActivityType.DELETED_EXPENSE, expense);
+        kafkaTemplate.send("activity.expense", new ExpenseActivityEvent(userId, ExpenseActivityType.DELETED_EXPENSE,
+                expense.getAmount(), expense.getCategory(), null, null, LocalDateTime.now()));
         expenseRepository.delete(expense);
 
     }

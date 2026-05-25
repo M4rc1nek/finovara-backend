@@ -1,37 +1,39 @@
-package com.finovara.finovarabackend.expense.service;
+package com.finovara.corebackend.expense.service;
 
-import com.finovara.finovarabackend.accountactivity.expense.model.ExpenseActivityType;
-import com.finovara.finovarabackend.accountactivity.expense.service.ExpenseActivityService;
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.expense.dto.ExpenseDto;
-import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
-import com.finovara.finovarabackend.expense.exception.notfound.ExpenseNotFoundException;
-import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
-import com.finovara.finovarabackend.expense.model.Expense;
-import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.expense.repository.ExpenseRepository;
-import com.finovara.finovarabackend.limit.repository.LimitRepository;
-import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
-import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
-import com.finovara.finovarabackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
-import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
-import com.finovara.finovarabackend.usersetting.finances.expense.smartscan.service.SmartScanService;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
-import com.finovara.finovarabackend.usersetting.piggybank.roundup.service.RoundUpService;
-import com.finovara.finovarabackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.finovarabackend.util.expense.ExpenseManagerService;
-import com.finovara.finovarabackend.util.model.PeriodType;
-import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
-import com.finovara.finovarabackend.wallet.service.WalletService;
+import com.finovara.activityservice.contracts.event.expense.ExpenseActivityEvent;
+import com.finovara.activityservice.contracts.model.activity.ExpenseActivityType;
+import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.corebackend.expense.dto.ExpenseDto;
+import com.finovara.corebackend.expense.dto.ExpenseRequestDto;
+import com.finovara.corebackend.expense.exception.notfound.ExpenseNotFoundException;
+import com.finovara.corebackend.expense.mapper.ExpenseMapper;
+import com.finovara.corebackend.expense.model.Expense;
+import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.corebackend.expense.repository.ExpenseRepository;
+import com.finovara.corebackend.limit.repository.LimitRepository;
+import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
+import com.finovara.corebackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
+import com.finovara.corebackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
+import com.finovara.corebackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
+import com.finovara.corebackend.usersetting.finances.expense.smartscan.service.SmartScanService;
+import com.finovara.corebackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
+import com.finovara.corebackend.usersetting.piggybank.roundup.service.RoundUpService;
+import com.finovara.corebackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.corebackend.util.expense.ExpenseManagerService;
+import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
+import com.finovara.corebackend.util.user.service.UserManagerService;
+import com.finovara.corebackend.wallet.service.WalletService;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -54,7 +56,7 @@ class ExpenseServiceTest {
     @Mock
     private WalletService walletService;
     @Mock
-    private ExpenseActivityService expenseActivityService;
+    private KafkaTemplate<String, Object> kafkaTemplate;
     @Mock
     private RoundUpService roundUpService;
     @Mock
@@ -107,7 +109,9 @@ class ExpenseServiceTest {
             Long result = expenseService.addExpense(dto, userId, PeriodType.DAILY);
             assertEquals(1L, result);
             verify(countQuantityLimitService).handleExpenseLimitExceeded(userId, dto.countQuantityLimitDto(), dto.countQuantityLimitDto().periodType(), dto.confirmPasswordDto());
-            verify(expenseActivityService).createExpenseActivity(eq(userId), eq(ExpenseActivityType.ADDED_EXPENSE), any());
+            ArgumentCaptor<ExpenseActivityEvent> eventCaptor = ArgumentCaptor.forClass(ExpenseActivityEvent.class);
+            verify(kafkaTemplate).send(eq("activity.expense"), eventCaptor.capture());
+            assertEquals(ExpenseActivityType.ADDED_EXPENSE, eventCaptor.getValue().type());
             verify(smartScanService).handleSmartScan(userId, dto.confirmPasswordDto(), amount, SmartScanMode.ADD);
             verify(walletService).removeBalanceFromWallet(userId, amount);
             verify(expenseRepository).save(any(Expense.class));

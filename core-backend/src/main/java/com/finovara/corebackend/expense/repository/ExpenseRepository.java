@@ -1,9 +1,9 @@
-package com.finovara.finovarabackend.expense.repository;
+package com.finovara.corebackend.expense.repository;
 
-import com.finovara.finovarabackend.expense.model.Expense;
-import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto;
-import com.finovara.finovarabackend.report.finances.highesttransactions.highestexpense.dto.HighestExpenseDto;
+import com.finovara.corebackend.expense.model.Expense;
+import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.corebackend.report.finances.chart.dto.DailyCashDto;
+import com.finovara.corebackend.report.finances.highesttransactions.highestexpense.dto.HighestExpenseDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -45,7 +45,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     Optional<BigDecimal> avgExpensesByUserAssignedIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("""
-             SELECT NEW com.finovara.finovarabackend.report.finances.highesttransactions.highestexpense.dto.HighestExpenseDto(
+             SELECT NEW com.finovara.corebackend.report.finances.highesttransactions.highestexpense.dto.HighestExpenseDto(
              e.category,
              e.amount
             )
@@ -54,7 +54,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<HighestExpenseDto> findHighestExpensesByUserAssignedIdAndPeriod(@Param("userId") Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
-                SELECT new com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto(
+                SELECT new com.finovara.corebackend.report.finances.chart.dto.DailyCashDto(
                     e.createdAt,
                     SUM(e.amount)
                 )
@@ -65,7 +65,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<DailyCashDto> sumExpensesGroupedByDate(Long userId);
 
     @Query("""
-                SELECT new com.finovara.finovarabackend.report.finances.chart.dto.DailyCashDto(
+                SELECT new com.finovara.corebackend.report.finances.chart.dto.DailyCashDto(
                     e.createdAt,
                     CAST(AVG(e.amount) AS big_decimal)
                 )

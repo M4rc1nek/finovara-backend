@@ -1,6 +1,6 @@
-package com.finovara.finovarabackend.expense.dto;
+package com.finovara.corebackend.expense.dto;
 
-import com.finovara.finovarabackend.expense.model.ExpenseCategory;
+import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 

@@ -1,9 +1,9 @@
-package com.finovara.finovarabackend.expense.controller;
+package com.finovara.corebackend.expense.controller;
 
-import com.finovara.finovarabackend.expense.dto.ExpenseDto;
-import com.finovara.finovarabackend.expense.dto.ExpenseRequestDto;
-import com.finovara.finovarabackend.expense.service.ExpenseService;
-import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.corebackend.expense.dto.ExpenseDto;
+import com.finovara.corebackend.expense.dto.ExpenseRequestDto;
+import com.finovara.corebackend.expense.service.ExpenseService;
+import com.finovara.activityservice.contracts.model.PeriodType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUserId;
+import static com.finovara.corebackend.security.SecurityUtils.getCurrentUserId;
 
 @RestController
 @RequiredArgsConstructor
