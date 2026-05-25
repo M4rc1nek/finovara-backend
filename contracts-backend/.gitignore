@@ -1,0 +1,4 @@
+.mvn
+.mvn/wrapper/maven-wrapper.properties
+.idea
+contracts-backend.iml
