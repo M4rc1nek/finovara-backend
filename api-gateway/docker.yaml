@@ -7,7 +7,8 @@ services:
     ports:
       - "443:8888"
     environment:
-      MONOLIT_URL: https://finovara-app:8443
+      CORE_BACKEND_URL: https://finovara-app:8443
+      ACTIVITY_LOG_URL: https://finovara-activity-app:8082
       SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
     restart: always
     networks:
