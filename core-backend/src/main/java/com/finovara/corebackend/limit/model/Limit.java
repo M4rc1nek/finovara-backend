@@ -1,7 +1,7 @@
-package com.finovara.finovarabackend.limit.model;
+package com.finovara.corebackend.limit.model;
 
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.activityservice.contracts.model.PeriodType;
 import jakarta.persistence.*;
 import lombok.*;
 

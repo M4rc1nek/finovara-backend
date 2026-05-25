@@ -1,13 +1,13 @@
-package com.finovara.finovarabackend.limit.service;
+package com.finovara.corebackend.limit.service;
 
-import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
-import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
-import com.finovara.finovarabackend.limit.mapper.LimitMapper;
-import com.finovara.finovarabackend.limit.model.Limit;
-import com.finovara.finovarabackend.limit.model.LimitStatus;
-import com.finovara.finovarabackend.limit.repository.LimitRepository;
-import com.finovara.finovarabackend.util.percentage.CalculatePercentage;
-import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
+import com.finovara.corebackend.limit.dto.LimitStatsDto;
+import com.finovara.corebackend.limit.exception.notfound.ActiveLimitNotFoundException;
+import com.finovara.corebackend.limit.mapper.LimitMapper;
+import com.finovara.corebackend.limit.model.Limit;
+import com.finovara.corebackend.limit.model.LimitStatus;
+import com.finovara.corebackend.limit.repository.LimitRepository;
+import com.finovara.corebackend.util.percentage.CalculatePercentage;
+import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

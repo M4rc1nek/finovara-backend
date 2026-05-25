@@ -1,8 +1,8 @@
-package com.finovara.finovarabackend.limit.mapper;
+package com.finovara.corebackend.limit.mapper;
 
-import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
-import com.finovara.finovarabackend.limit.model.Limit;
-import com.finovara.finovarabackend.limit.model.LimitStatus;
+import com.finovara.corebackend.limit.dto.LimitStatsDto;
+import com.finovara.corebackend.limit.model.Limit;
+import com.finovara.corebackend.limit.model.LimitStatus;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

@@ -1,7 +1,7 @@
-package com.finovara.finovarabackend.limit.dto;
+package com.finovara.corebackend.limit.dto;
 
-import com.finovara.finovarabackend.limit.model.LimitStatus;
-import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.corebackend.limit.model.LimitStatus;
+import com.finovara.activityservice.contracts.model.PeriodType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

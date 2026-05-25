@@ -1,9 +1,9 @@
-package com.finovara.finovarabackend.limit.controller;
+package com.finovara.corebackend.limit.controller;
 
-import com.finovara.finovarabackend.limit.dto.LimitDto;
-import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
-import com.finovara.finovarabackend.limit.service.LimitManagementService;
-import com.finovara.finovarabackend.security.SecurityUtils;
+import com.finovara.corebackend.limit.dto.LimitDto;
+import com.finovara.corebackend.limit.dto.LimitStatsDto;
+import com.finovara.corebackend.limit.service.LimitManagementService;
+import com.finovara.corebackend.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

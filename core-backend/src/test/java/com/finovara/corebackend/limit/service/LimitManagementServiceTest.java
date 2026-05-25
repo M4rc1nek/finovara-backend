@@ -1,23 +1,25 @@
-package com.finovara.finovarabackend.limit.service;
+package com.finovara.corebackend.limit.service;
 
-import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivityType;
-import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityService;
-import com.finovara.finovarabackend.limit.dto.LimitDto;
-import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
-import com.finovara.finovarabackend.limit.exception.conflict.LimitAlreadyExistsException;
-import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
-import com.finovara.finovarabackend.limit.model.Limit;
-import com.finovara.finovarabackend.limit.repository.LimitRepository;
-import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.model.PeriodType;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
+import com.finovara.activityservice.contracts.event.limit.LimitActivityEvent;
+import com.finovara.activityservice.contracts.model.activity.LimitActivityType;
+import com.finovara.corebackend.limit.dto.LimitDto;
+import com.finovara.corebackend.limit.dto.LimitStatsDto;
+import com.finovara.corebackend.limit.exception.conflict.LimitAlreadyExistsException;
+import com.finovara.corebackend.limit.exception.notfound.ActiveLimitNotFoundException;
+import com.finovara.corebackend.limit.model.Limit;
+import com.finovara.corebackend.limit.repository.LimitRepository;
+import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.corebackend.util.user.service.UserManagerService;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -41,7 +43,7 @@ class LimitManagementServiceTest {
     @Mock
     private UserManagerService userManagerService;
     @Mock
-    private LimitActivityService limitActivityService;
+    private KafkaTemplate<String, Object> kafkaTemplate;
     @Mock
     private LimitCalculateService limitCalculateService;
 
@@ -77,7 +79,9 @@ class LimitManagementServiceTest {
             Long result = limitManagementService.createLimit(dto, userId);
 
             assertEquals(10L, result);
-            verify(limitActivityService).createLimitActivity(eq(userId), eq(LimitActivityType.ADDED_LIMIT), any());
+            ArgumentCaptor<LimitActivityEvent> eventCaptor = ArgumentCaptor.forClass(LimitActivityEvent.class);
+            verify(kafkaTemplate).send(eq("activity.limit"), eventCaptor.capture());
+            assertEquals(LimitActivityType.ADDED_LIMIT, eventCaptor.getValue().type());
         }
 
         @Test
@@ -89,7 +93,7 @@ class LimitManagementServiceTest {
 
             assertThrows(LimitAlreadyExistsException.class, () -> limitManagementService.createLimit(dto, userId));
 
-            verifyNoInteractions(limitActivityService);
+            verifyNoInteractions(kafkaTemplate);
         }
 
         @Test
@@ -124,7 +128,9 @@ class LimitManagementServiceTest {
 
             verify(userManagerService).getUserByIdOrThrow(userId);
             verify(limitRepository).findByIdAndUserAssignedId(userId, limitId);
-            verify(limitActivityService).updateLimitActivity(userId, LimitActivityType.EDITED_LIMIT, limit, new BigDecimal("100"));
+            ArgumentCaptor<LimitActivityEvent> eventCaptor = ArgumentCaptor.forClass(LimitActivityEvent.class);
+            verify(kafkaTemplate).send(eq("activity.limit"), eventCaptor.capture());
+            assertEquals(LimitActivityType.EDITED_LIMIT, eventCaptor.getValue().type());
             verify(limitRepository).save(limit);
         }
 
@@ -194,7 +200,9 @@ class LimitManagementServiceTest {
             limitManagementService.deleteLimit(userId, limitId);
 
             verify(limitRepository).delete(limit);
-            verify(limitActivityService).createLimitActivity(userId, LimitActivityType.DELETED_LIMIT, limit);
+            ArgumentCaptor<LimitActivityEvent> eventCaptor = ArgumentCaptor.forClass(LimitActivityEvent.class);
+            verify(kafkaTemplate).send(eq("activity.limit"), eventCaptor.capture());
+            assertEquals(LimitActivityType.DELETED_LIMIT, eventCaptor.getValue().type());
         }
 
         @Test
@@ -204,7 +212,7 @@ class LimitManagementServiceTest {
 
             assertThrows(ActiveLimitNotFoundException.class, () -> limitManagementService.deleteLimit(userId, 10L));
 
-            verifyNoInteractions(limitActivityService);
+            verifyNoInteractions(kafkaTemplate);
         }
 
         @Test

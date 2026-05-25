@@ -1,21 +1,23 @@
-package com.finovara.finovarabackend.limit.service;
+package com.finovara.corebackend.limit.service;
 
-import com.finovara.finovarabackend.accountactivity.limit.model.LimitActivityType;
-import com.finovara.finovarabackend.accountactivity.limit.service.LimitActivityService;
-import com.finovara.finovarabackend.limit.dto.LimitDto;
-import com.finovara.finovarabackend.limit.dto.LimitStatsDto;
-import com.finovara.finovarabackend.limit.exception.conflict.LimitAlreadyExistsException;
-import com.finovara.finovarabackend.limit.exception.notfound.ActiveLimitNotFoundException;
-import com.finovara.finovarabackend.limit.model.Limit;
-import com.finovara.finovarabackend.limit.repository.LimitRepository;
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
+import com.finovara.activityservice.contracts.event.limit.LimitActivityEvent;
+import com.finovara.activityservice.contracts.model.activity.LimitActivityType;
+import com.finovara.corebackend.limit.dto.LimitDto;
+import com.finovara.corebackend.limit.dto.LimitStatsDto;
+import com.finovara.corebackend.limit.exception.conflict.LimitAlreadyExistsException;
+import com.finovara.corebackend.limit.exception.notfound.ActiveLimitNotFoundException;
+import com.finovara.corebackend.limit.model.Limit;
+import com.finovara.corebackend.limit.repository.LimitRepository;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.util.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,7 +26,7 @@ public class LimitManagementService {
     private final LimitRepository limitRepository;
     private final UserManagerService userManagerService;
     private final LimitCalculateService limitCalculateService;
-    private final LimitActivityService limitActivityService;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
     public Long createLimit(LimitDto limitDto, Long userId) {
@@ -41,8 +43,8 @@ public class LimitManagementService {
                 .isActive(true)
                 .userAssigned(user)
                 .build();
-        limitActivityService.createLimitActivity(userId, LimitActivityType.ADDED_LIMIT, limit);
-
+        kafkaTemplate.send("activity.limit", new LimitActivityEvent(userId,
+                LimitActivityType.ADDED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
         Limit savedLimit = limitRepository.save(limit);
 
         return savedLimit.getId();
@@ -64,7 +66,7 @@ public class LimitManagementService {
         limit.setPeriodType(limitDto.periodType());
         limit.setAmount(limitDto.amount());
 
-        limitActivityService.updateLimitActivity(userId, LimitActivityType.EDITED_LIMIT, limit, oldLimitAmount);
+        kafkaTemplate.send("activity.limit", new LimitActivityEvent(userId, LimitActivityType.EDITED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), oldLimitAmount, LocalDateTime.now()));
 
         limitRepository.save(limit);
         return limitId;
@@ -86,7 +88,7 @@ public class LimitManagementService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         Limit limit = limitRepository.findByIdAndUserAssignedId(user.getId(), limitId)
                 .orElseThrow(() -> new ActiveLimitNotFoundException("Active limit not found"));
-        limitActivityService.createLimitActivity(userId, LimitActivityType.DELETED_LIMIT, limit);
+        kafkaTemplate.send("activity.limit", new LimitActivityEvent(userId, LimitActivityType.DELETED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
         limitRepository.delete(limit);
     }
 
