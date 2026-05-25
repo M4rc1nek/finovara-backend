@@ -1,28 +1,30 @@
-package com.finovara.finovarabackend.revenue.service;
+package com.finovara.corebackend.revenue.service;
 
-import com.finovara.finovarabackend.accountactivity.revenue.model.RevenueActivityType;
-import com.finovara.finovarabackend.accountactivity.revenue.service.RevenueActivityService;
-import com.finovara.finovarabackend.exception.notfound.WalletNotFoundException;
-import com.finovara.finovarabackend.revenue.dto.RevenueDto;
-import com.finovara.finovarabackend.revenue.exception.notfound.RevenueNotFoundException;
-import com.finovara.finovarabackend.revenue.mapper.RevenueMapper;
-import com.finovara.finovarabackend.revenue.model.Revenue;
-import com.finovara.finovarabackend.revenue.model.RevenueCategory;
-import com.finovara.finovarabackend.revenue.repository.RevenueRepository;
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
-import com.finovara.finovarabackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
-import com.finovara.finovarabackend.util.revenue.RevenueManagerService;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
-import com.finovara.finovarabackend.wallet.model.Wallet;
-import com.finovara.finovarabackend.wallet.repository.WalletRepository;
-import com.finovara.finovarabackend.wallet.service.WalletService;
+import com.finovara.activityservice.contracts.event.revenue.RevenueActivityEvent;
+import com.finovara.activityservice.contracts.model.activity.RevenueActivityType;
+import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.corebackend.exception.notfound.WalletNotFoundException;
+import com.finovara.corebackend.revenue.dto.RevenueDto;
+import com.finovara.corebackend.revenue.exception.notfound.RevenueNotFoundException;
+import com.finovara.corebackend.revenue.mapper.RevenueMapper;
+import com.finovara.corebackend.revenue.model.Revenue;
+import com.finovara.corebackend.revenue.repository.RevenueRepository;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
+import com.finovara.corebackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
+import com.finovara.corebackend.util.revenue.RevenueManagerService;
+import com.finovara.corebackend.util.user.service.UserManagerService;
+import com.finovara.corebackend.wallet.model.Wallet;
+import com.finovara.corebackend.wallet.repository.WalletRepository;
+import com.finovara.corebackend.wallet.service.WalletService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -36,7 +38,7 @@ public class RevenueService {
     private final RevenueManagerService revenueManagerService;
     private final RevenueMapper revenueMapper;
     private final AutoPaymentsService autoPaymentsService;
-    private final RevenueActivityService revenueActivityService;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
     public Long addRevenue(RevenueDto revenueDto, Long userId) {
@@ -50,8 +52,7 @@ public class RevenueService {
                 .userAssigned(user)
                 .build();
         walletService.addBalanceToWallet(userId, revenue.getAmount());
-        revenueActivityService.createRevenueActivity(userId, RevenueActivityType.ADDED_REVENUE, revenue);
-        //wallet jest zapisywany w repo klasie WalletService
+        kafkaTemplate.send("activity.revenue", new RevenueActivityEvent(userId, RevenueActivityType.ADDED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
         revenueRepository.save(revenue);
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.APPLY);
 
@@ -83,7 +84,7 @@ public class RevenueService {
         existingRevenue.setCategory(revenueDto.category());
         existingRevenue.setDescription(revenueDto.description());
 
-        revenueActivityService.updateRevenueActivity(userId, RevenueActivityType.EDITED_REVENUE, existingRevenue, oldAmount, oldCategory);
+        kafkaTemplate.send("activity.revenue", new RevenueActivityEvent(userId, RevenueActivityType.EDITED_REVENUE, existingRevenue.getAmount(), existingRevenue.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, newAmount, PiggyBankAutomationMode.APPLY);
 
         walletRepository.save(wallet);
@@ -108,7 +109,7 @@ public class RevenueService {
                 .orElseThrow(() -> new RevenueNotFoundException("Revenue not found"));
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
         walletService.removeBalanceFromWallet(userId, revenue.getAmount());
-        revenueActivityService.createRevenueActivity(userId, RevenueActivityType.DELETED_REVENUE, revenue);
+        kafkaTemplate.send("activity.revenue", new RevenueActivityEvent(userId, RevenueActivityType.DELETED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
         revenueRepository.delete(revenue);
     }
 }

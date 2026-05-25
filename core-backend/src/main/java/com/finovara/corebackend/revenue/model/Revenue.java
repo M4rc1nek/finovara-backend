@@ -1,6 +1,7 @@
-package com.finovara.finovarabackend.revenue.model;
+package com.finovara.corebackend.revenue.model;
 
-import com.finovara.finovarabackend.user.model.User;
+import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.corebackend.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 

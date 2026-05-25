@@ -1,7 +1,7 @@
-package com.finovara.finovarabackend.revenue.mapper;
+package com.finovara.corebackend.revenue.mapper;
 
-import com.finovara.finovarabackend.revenue.dto.RevenueDto;
-import com.finovara.finovarabackend.revenue.model.Revenue;
+import com.finovara.corebackend.revenue.dto.RevenueDto;
+import com.finovara.corebackend.revenue.model.Revenue;
 import org.springframework.stereotype.Component;
 
 @Component
