@@ -1,0 +1,77 @@
+package com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.service;
+
+import com.finovara.activityservice.activity_log.accountactivity.secure.core.SecurityActivityCore;
+import com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.model.LoginActivity;
+import com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.repository.LoginActivityRepository;
+import com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.model.LoginActivityArchive;
+import com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
+import com.finovara.activityservice.contracts.event.secure.login.activity.LoginActivityEvent;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class LoginActivityService extends SecurityActivityCore<LoginActivity, LoginActivityArchive> {
+
+    private final LoginActivityRepository loginActivityRepository;
+    private final LoginActivityArchiveService archiveService;
+
+    @Value("${user-activity.login.page-size}")
+    private int pageSize;
+
+    @Transactional
+    public void handleEvent(LoginActivityEvent event) {
+        LoginActivity activity = LoginActivity.builder()
+                .userId(event.userId())
+                .type("Login")
+                .status(event.status())
+                .browser(event.browser())
+                .ipAddress(event.ipAddress())
+                .location(event.location())
+                .createdAt(event.occurredAt())
+                .build();
+
+        saveActivity(activity);
+        moveToArchive(event.userId(), pageSize);
+    }
+
+    public List<LoginActivityDto> getLoginActivity(Long userId) {
+        return loginActivityRepository.findByUserIdOrderByDesc(userId);
+    }
+
+    @Override
+    protected void saveActivity(LoginActivity a) {
+        loginActivityRepository.save(a);
+    }
+
+    @Override
+    protected long countActivities(Long userId) {
+        return loginActivityRepository.countActivityLoginByUserId(userId);
+    }
+
+    @Override
+    protected List<LoginActivity> findActivitiesToArchive(Long userId, int pageSize) {
+        return loginActivityRepository.findOldestByUserId(userId, PageRequest.of(0, pageSize));
+    }
+
+    @Override
+    protected LoginActivityArchive mapToArchive(LoginActivity a) {
+        return archiveService.mapToArchive(a);
+    }
+
+    @Override
+    protected void archive(List<LoginActivityArchive> a) {
+        archiveService.archive(a);
+    }
+
+    @Override
+    protected void deleteActivities(List<LoginActivity> a) {
+        loginActivityRepository.deleteAll(a);
+    }
+}
