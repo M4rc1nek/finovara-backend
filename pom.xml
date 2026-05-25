@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>pl.finovara</groupId>
+    <groupId>com.finovara</groupId>
     <artifactId>finovara</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -29,10 +29,17 @@
     <modules>
         <module>api-gateway</module>
         <module>core-backend</module>
+        <module>contracts-backend</module>
+        <module>activity-log-backend</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.finovara</groupId>
+                <artifactId>contracts-backend</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
