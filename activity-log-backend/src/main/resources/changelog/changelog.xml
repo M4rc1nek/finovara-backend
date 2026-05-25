@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
+
+    <changeSet id="create-expense-activity" author="Marcin Parśniak">
+        <createTable tableName="expense_activity">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="amount" type="DECIMAL(19,2)"/>
+            <column name="previous_amount" type="DECIMAL(19,2)"/>
+            <column name="category" type="VARCHAR(255)"/>
+            <column name="previous_category" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-revenue-activity" author="Marcin Parśniak">
+        <createTable tableName="revenue_activity">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="amount" type="DECIMAL(19,2)"/>
+            <column name="previous_amount" type="DECIMAL(19,2)"/>
+            <column name="category" type="VARCHAR(255)"/>
+            <column name="previous_category" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-limit-activity" author="Marcin Parśniak">
+        <createTable tableName="limit_activity">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="limit_activity_type" type="VARCHAR(255)"/>
+            <column name="period_type" type="VARCHAR(255)"/>
+            <column name="amount" type="DECIMAL(19,2)"/>
+            <column name="previous_amount" type="DECIMAL(19,2)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-piggy-bank-activity" author="Marcin Parśniak">
+        <createTable tableName="piggy_bank_activity">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="piggy_bank_name" type="VARCHAR(255)"/>
+            <column name="previous_piggy_bank_name" type="VARCHAR(255)"/>
+            <column name="activity_type" type="VARCHAR(255)"/>
+            <column name="goal_type" type="VARCHAR(255)"/>
+            <column name="previous_goal_type" type="VARCHAR(255)"/>
+            <column name="goal_amount" type="DECIMAL(19,2)"/>
+            <column name="previous_goal_amount" type="DECIMAL(19,2)"/>
+            <column name="amount_paid" type="DECIMAL(19,2)"/>
+            <column name="amount_paid_out" type="DECIMAL(19,2)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-login-activity" author="Marcin Parśniak">
+        <createTable tableName="login_activity">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="browser" type="VARCHAR(255)"/>
+            <column name="ip_address" type="VARCHAR(255)"/>
+            <column name="location" type="VARCHAR(255)"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-login-activity-archive" author="Marcin Parśniak">
+        <createTable tableName="login_activity_archive">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="move_to_archive_date" type="TIMESTAMP"/>
+            <column name="activity_login_date" type="TIMESTAMP"/>
+            <column name="browser" type="VARCHAR(255)"/>
+            <column name="ip_address" type="VARCHAR(255)"/>
+            <column name="location" type="VARCHAR(255)"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-account-changes-activity" author="Marcin Parśniak">
+        <createTable tableName="account_changes_activity">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="browser" type="VARCHAR(255)"/>
+            <column name="ip_address" type="VARCHAR(255)"/>
+            <column name="location" type="VARCHAR(255)"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-account-change-archive" author="Marcin Parśniak">
+        <createTable tableName="account_change_archive">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="move_to_archive_date" type="TIMESTAMP"/>
+            <column name="activity_account_changes_date" type="TIMESTAMP"/>
+            <column name="browser" type="VARCHAR(255)"/>
+            <column name="ip_address" type="VARCHAR(255)"/>
+            <column name="location" type="VARCHAR(255)"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-settings-activity" author="Marcin Parśniak">
+        <createTable tableName="settings_activity">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="setting_type" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-shedlock-table" author="Marcin Parśniak">
+        <createTable tableName="shedlock">
+            <column name="name" type="varchar(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="lock_until" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_at" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_by" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

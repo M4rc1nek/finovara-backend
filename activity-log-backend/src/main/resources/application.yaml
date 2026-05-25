@@ -1,0 +1,78 @@
+server:
+  port: 8082
+  forward-headers-strategy: framework
+  ssl:
+    enabled: true
+    key-store: classpath:localhost.p12
+    key-store-type: PKCS12
+    key-store-password: ${SSL_KEY_STORE_PASSWORD}
+    key-alias: 1
+
+spring:
+  application:
+    name: finovara-activity-service
+
+  datasource:
+    url: jdbc:postgresql://finovara-activity-db:5432/finovara_activity_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  liquibase:
+    change-log: classpath:changelog/changelog.xml
+    enabled: true
+
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: activity-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.finovara.contracts.*"
+        spring.json.use.type.headers: false
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+
+scheduler:
+  user-activity:
+    login:
+      archive-cron: "0 0 0 1 1/6 ?"
+    account-changes:
+      archive-cron: "0 0 0 1 1/6 ?"
+    expense:
+      delete-cron: "0 0 0 1 * ?"
+    revenue:
+      delete-cron: "0 0 0 1 * ?"
+    limit:
+      delete-cron: "0 0 0 1 * ?"
+    piggy-bank:
+      delete-cron: "0 0 0 1 * ?"
+    settings:
+      delete-cron: "0 0 0 1 * ?"
+
+user-activity:
+  login:
+    page-size: 30
+  account-changes:
+    page-size: 30
+  expense:
+    page-size: 100
+  revenue:
+    page-size: 100
+  limit:
+    page-size: 100
+  piggy-bank:
+    page-size: 100
+  settings:
+    page-size: 100
