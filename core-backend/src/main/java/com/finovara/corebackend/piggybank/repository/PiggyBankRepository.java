@@ -1,6 +1,6 @@
-package com.finovara.finovarabackend.piggybank.repository;
+package com.finovara.corebackend.piggybank.repository;
 
-import com.finovara.finovarabackend.piggybank.model.PiggyBank;
+import com.finovara.corebackend.piggybank.model.PiggyBank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

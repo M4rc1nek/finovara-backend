@@ -1,24 +1,26 @@
-package com.finovara.finovarabackend.piggybank.service;
+package com.finovara.corebackend.piggybank.service;
 
-import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
-import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.finovarabackend.piggybank.model.PiggyBank;
-import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
-import com.finovara.finovarabackend.util.piggybank.PiggyBankCheckGoalCompletion;
-import com.finovara.finovarabackend.util.piggybank.PiggyBankValidator;
-import com.finovara.finovarabackend.util.piggybank.PiggyBankCalculator;
-import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
-import com.finovara.finovarabackend.util.wallet.WalletManagerService;
-import com.finovara.finovarabackend.wallet.model.Wallet;
-import com.finovara.finovarabackend.wallet.repository.WalletRepository;
+import com.finovara.activityservice.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.activityservice.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.corebackend.piggybank.model.PiggyBank;
+import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.usersetting.piggybank.completion.service.GoalCompletionService;
+import com.finovara.corebackend.util.piggybank.PiggyBankCalculator;
+import com.finovara.corebackend.util.piggybank.PiggyBankCheckGoalCompletion;
+import com.finovara.corebackend.util.piggybank.PiggyBankValidator;
+import com.finovara.corebackend.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.corebackend.util.user.service.UserManagerService;
+import com.finovara.corebackend.util.wallet.WalletManagerService;
+import com.finovara.corebackend.wallet.model.Wallet;
+import com.finovara.corebackend.wallet.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +30,7 @@ public class PiggyBankTransactionService {
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
     private final PiggyBankManagerService piggyBankManagerService;
-    private final PiggyBankActivityService piggyBankActivityService;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final GoalCompletionService goalCompletionService;
 
     @Transactional
@@ -40,8 +42,7 @@ public class PiggyBankTransactionService {
         userContext.wallet.withdraw(amount);
         userContext.piggyBank.setAmount(userContext.piggyBank.getAmount().add(amount));
 
-        piggyBankActivityService.createPaymentPiggyBankActivity(userId, userContext.piggyBank,
-                piggyBankActivityType, amount);
+        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, piggyBankActivityType, userContext.piggyBank.getName(), userContext.piggyBank.getGoalType(), userContext.piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
         PiggyBankCalculator.calculateProgress(userContext.piggyBank);
         boolean completed = PiggyBankCheckGoalCompletion.isGoalCompleted((userContext.piggyBank));
 
@@ -67,7 +68,7 @@ public class PiggyBankTransactionService {
         PiggyBankCalculator.calculateProgress(userContext.piggyBank);
         PiggyBankCheckGoalCompletion.isGoalCompleted((userContext.piggyBank));
 
-        piggyBankActivityService.createPaymentPiggyBankActivity(userId, userContext.piggyBank, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, amount);
+        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, userContext.piggyBank.getName(), userContext.piggyBank.getGoalType(), userContext.piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
 
         walletRepository.save(userContext.wallet);
         piggyBankRepository.save(userContext.piggyBank);

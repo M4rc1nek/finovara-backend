@@ -1,8 +1,8 @@
-package com.finovara.finovarabackend.piggybank.mapper;
+package com.finovara.corebackend.piggybank.mapper;
 
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
-import com.finovara.finovarabackend.piggybank.model.PiggyBank;
-import com.finovara.finovarabackend.user.model.User;
+import com.finovara.corebackend.piggybank.dto.PiggyBankDto;
+import com.finovara.corebackend.piggybank.model.PiggyBank;
+import com.finovara.corebackend.user.model.User;
 import org.springframework.stereotype.Component;
 
 @Component

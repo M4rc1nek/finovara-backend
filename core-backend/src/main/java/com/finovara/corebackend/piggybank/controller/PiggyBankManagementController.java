@@ -1,10 +1,10 @@
-package com.finovara.finovarabackend.piggybank.controller;
+package com.finovara.corebackend.piggybank.controller;
 
-import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
-import com.finovara.finovarabackend.piggybank.service.PiggyBankManagementService;
-import com.finovara.finovarabackend.piggybank.service.PiggyBankTransactionService;
-import com.finovara.finovarabackend.security.SecurityUtils;
+import com.finovara.activityservice.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.corebackend.piggybank.dto.PiggyBankDto;
+import com.finovara.corebackend.piggybank.service.PiggyBankManagementService;
+import com.finovara.corebackend.piggybank.service.PiggyBankTransactionService;
+import com.finovara.corebackend.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static com.finovara.finovarabackend.security.SecurityUtils.getCurrentUserId;
+import static com.finovara.corebackend.security.SecurityUtils.getCurrentUserId;
 
 @RestController
 @RequestMapping("/api/piggy-banks")

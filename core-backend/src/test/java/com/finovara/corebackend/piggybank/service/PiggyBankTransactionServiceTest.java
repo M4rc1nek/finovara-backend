@@ -1,24 +1,26 @@
-package com.finovara.finovarabackend.piggybank.service;
+package com.finovara.corebackend.piggybank.service;
 
-import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
-import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.piggybank.model.PiggyBank;
-import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.piggybank.completion.service.GoalCompletionService;
-import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
-import com.finovara.finovarabackend.util.wallet.WalletManagerService;
-import com.finovara.finovarabackend.wallet.model.Wallet;
-import com.finovara.finovarabackend.wallet.repository.WalletRepository;
+import com.finovara.activityservice.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.activityservice.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.corebackend.piggybank.model.PiggyBank;
+import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
+import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.usersetting.piggybank.completion.service.GoalCompletionService;
+import com.finovara.corebackend.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.corebackend.util.user.service.UserManagerService;
+import com.finovara.corebackend.util.wallet.WalletManagerService;
+import com.finovara.corebackend.wallet.model.Wallet;
+import com.finovara.corebackend.wallet.repository.WalletRepository;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -40,7 +42,7 @@ class PiggyBankTransactionServiceTest {
     @Mock
     private PiggyBankRepository piggyBankRepository;
     @Mock
-    private PiggyBankActivityService piggyBankActivityService;
+    private KafkaTemplate<String, Object> kafkaTemplate;
     @Mock
     private GoalCompletionService goalCompletionService;
     @Mock
@@ -85,8 +87,9 @@ class PiggyBankTransactionServiceTest {
 
             verify(walletRepository).save(wallet);
             verify(piggyBankRepository).save(piggyBank);
-            verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(userId), eq(piggyBank),
-                    eq(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY), eq(new BigDecimal("100")));
+            ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
+            verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+            assertEquals(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, eventCaptor.getValue().type());
         }
 
         @Test
@@ -152,8 +155,9 @@ class PiggyBankTransactionServiceTest {
 
             verify(walletRepository).save(wallet);
             verify(piggyBankRepository).save(piggyBank);
-            verify(piggyBankActivityService).createPaymentPiggyBankActivity(eq(userId), eq(piggyBank),
-                    eq(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK), eq(new BigDecimal("100")));
+            ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
+            verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+            assertEquals(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, eventCaptor.getValue().type());
         }
 
         @Test

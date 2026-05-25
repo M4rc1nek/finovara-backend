@@ -1,29 +1,31 @@
-package com.finovara.finovarabackend.piggybank.service;
+package com.finovara.corebackend.piggybank.service;
 
-import com.finovara.finovarabackend.accountactivity.piggybank.model.PiggyBankActivityType;
-import com.finovara.finovarabackend.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
-import com.finovara.finovarabackend.piggybank.dto.PiggyBankDto;
-import com.finovara.finovarabackend.piggybank.mapper.PiggyBankMapper;
-import com.finovara.finovarabackend.piggybank.model.PiggyBank;
-import com.finovara.finovarabackend.piggybank.model.PiggyBankGoalType;
-import com.finovara.finovarabackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.finovarabackend.user.exception.notfound.UserNotFoundException;
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
-import com.finovara.finovarabackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.finovarabackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
-import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
-import com.finovara.finovarabackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
-import com.finovara.finovarabackend.util.piggybank.manager.PiggyBankManagerService;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
+import com.finovara.activityservice.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.activityservice.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.corebackend.exception.conflict.NameAlreadyExistsException;
+import com.finovara.corebackend.piggybank.dto.PiggyBankDto;
+import com.finovara.corebackend.piggybank.mapper.PiggyBankMapper;
+import com.finovara.corebackend.piggybank.model.PiggyBank;
+import com.finovara.activityservice.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
+import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.usersetting.factory.SettingsFactory;
+import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
+import com.finovara.corebackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
+import com.finovara.corebackend.usersetting.piggybank.model.PiggyBankSettings;
+import com.finovara.corebackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
+import com.finovara.corebackend.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.corebackend.util.user.service.UserManagerService;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -48,7 +50,7 @@ class PiggyBankManagementServiceTest {
     @Mock
     private PiggyBankManagerService piggyBankManagerService;
     @Mock
-    private PiggyBankActivityService piggyBankActivityService;
+    private KafkaTemplate<String, Object> kafkaTemplate;
     @Mock
     private PiggyBankSettingsRepository piggyBankSettingsRepository;
     @Mock
@@ -100,8 +102,9 @@ class PiggyBankManagementServiceTest {
             assertEquals(piggyBankId, result);
 
             verify(piggyBankRepository).save(any());
-            verify(piggyBankActivityService)
-                    .createSimplePiggyBankActivity(eq(userId), any(), eq(PiggyBankActivityType.ADDED_PIGGY_BANK));
+            ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
+            verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+            assertEquals(PiggyBankActivityType.ADDED_PIGGY_BANK, eventCaptor.getValue().type());
             verify(piggyBankSettingsRepository).save(any());
         }
 
@@ -157,10 +160,9 @@ class PiggyBankManagementServiceTest {
             assertEquals(piggyBankId, result);
             assertEquals("Piggy", defaultDto.name());
 
-            verify(piggyBankActivityService)
-                    .createEditPiggyBankActivity(eq(userId), eq(piggyBank),
-                            eq(PiggyBankActivityType.EDITED_PIGGY_BANK),
-                            any(), any(), eq("Old"));
+            ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
+            verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+            assertEquals(PiggyBankActivityType.EDITED_PIGGY_BANK, eventCaptor.getValue().type());
         }
 
         @Test
@@ -223,7 +225,9 @@ class PiggyBankManagementServiceTest {
             piggyBankManagementService.deletePiggyBank(userId, piggyBankId);
 
             verify(piggyBankRepository).delete(piggyBank);
-            verify(piggyBankActivityService).createSimplePiggyBankActivity(userId, piggyBank, PiggyBankActivityType.DELETED_PIGGY_BANK);
+            ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
+            verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+            assertEquals(PiggyBankActivityType.DELETED_PIGGY_BANK, eventCaptor.getValue().type());
         }
 
         @Test

@@ -1,7 +1,8 @@
-package com.finovara.finovarabackend.piggybank.model;
+package com.finovara.corebackend.piggybank.model;
 
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.usersetting.piggybank.model.PiggyBankSettings;
+import com.finovara.activityservice.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.usersetting.piggybank.model.PiggyBankSettings;
 import jakarta.persistence.*;
 import lombok.*;
 
