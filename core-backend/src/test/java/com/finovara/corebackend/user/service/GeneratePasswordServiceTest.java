@@ -1,6 +1,6 @@
-package com.finovara.finovarabackend.user.service;
+package com.finovara.corebackend.user.service;
 
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
+import com.finovara.corebackend.exception.badrequest.InvalidInputException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

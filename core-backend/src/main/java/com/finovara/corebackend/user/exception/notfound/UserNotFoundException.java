@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.user.exception.notfound;
+package com.finovara.corebackend.user.exception.notfound;
 
 public class UserNotFoundException extends RuntimeException {
     public UserNotFoundException(String message) {

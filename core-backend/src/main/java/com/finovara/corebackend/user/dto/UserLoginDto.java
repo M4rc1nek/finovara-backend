@@ -1,4 +1,4 @@
-package com.finovara.finovarabackend.user.dto;
+package com.finovara.corebackend.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

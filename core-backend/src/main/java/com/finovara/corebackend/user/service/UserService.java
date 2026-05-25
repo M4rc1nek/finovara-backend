@@ -1,23 +1,31 @@
-package com.finovara.finovarabackend.user.service;
+package com.finovara.corebackend.user.service;
 
-import com.finovara.finovarabackend.accountactivity.secure.login.activity.model.LoginActivityStatus;
-import com.finovara.finovarabackend.accountactivity.secure.login.activity.service.LoginActivityService;
-import com.finovara.finovarabackend.exception.conflict.NameAlreadyExistsException;
-import com.finovara.finovarabackend.exception.conflict.StateConflictException;
-import com.finovara.finovarabackend.exception.unauthorized.WrongPasswordException;
-import com.finovara.finovarabackend.security.jwt.JwtService;
-import com.finovara.finovarabackend.user.dto.UserLoginDto;
-import com.finovara.finovarabackend.user.dto.UserRegisterDto;
-import com.finovara.finovarabackend.user.exception.conflict.EmailAlreadyExistsException;
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.user.repository.UserRepository;
-import com.finovara.finovarabackend.usersetting.factory.SettingsFactory;
-import com.finovara.finovarabackend.util.email.EmailDomainValidator;
-import com.finovara.finovarabackend.util.profile.ProfileImageUrlBuilder;
+import com.finovara.activityservice.contracts.clientdata.browser.UserBrowser;
+import com.finovara.activityservice.contracts.clientdata.ip.ClientIp;
+import com.finovara.activityservice.contracts.clientdata.location.UserLocation;
+import com.finovara.activityservice.contracts.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.activityservice.contracts.model.activity.LoginActivityStatus;
+
+import static com.finovara.activityservice.contracts.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.activityservice.contracts.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.activityservice.contracts.clientdata.location.UserLocation.getLocationFromIp;
+import com.finovara.corebackend.exception.conflict.NameAlreadyExistsException;
+import com.finovara.corebackend.exception.conflict.StateConflictException;
+import com.finovara.corebackend.exception.unauthorized.WrongPasswordException;
+import com.finovara.corebackend.security.jwt.JwtService;
+import com.finovara.corebackend.user.dto.UserLoginDto;
+import com.finovara.corebackend.user.dto.UserRegisterDto;
+import com.finovara.corebackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.user.repository.UserRepository;
+import com.finovara.corebackend.usersetting.factory.SettingsFactory;
+import com.finovara.corebackend.util.email.EmailDomainValidator;
+import com.finovara.corebackend.util.profile.ProfileImageUrlBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -38,7 +46,7 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
 
     private final SettingsFactory settingsFactory;
-    private final LoginActivityService loginActivityService;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final EmailDomainValidator emailDomainValidator;
 
     @Value("${application.upload.profile-images-default-directory}")
@@ -57,14 +65,7 @@ public class UserService {
 
         String defaultImagePath = Paths.get(profileImagesDefaultDirectory).resolve("UserProf.png").toString();
 
-        User user = User.builder()
-                .username(dto.username())
-                .email(dto.email())
-                .password(passwordEncoder.encode(dto.password()))
-                .passwordSet(true)
-                .profileImagePath(defaultImagePath)
-                .createdAt(LocalDateTime.now())
-                .build();
+        User user = User.builder().username(dto.username()).email(dto.email()).password(passwordEncoder.encode(dto.password())).passwordSet(true).profileImagePath(defaultImagePath).createdAt(LocalDateTime.now()).build();
 
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         user.setRecurringSettings(settingsFactory.createDefaultRecurringSettings(user));
@@ -77,21 +78,14 @@ public class UserService {
 
         String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(savedUser.getProfileImagePath());
 
-        return new UserRegisterDto(
-                savedUser.getId(),
-                savedUser.getUsername(),
-                null,
-                userProfileImage,
-                savedUser.getEmail(),
-                jwtToken
-        );
+        return new UserRegisterDto(savedUser.getId(), savedUser.getUsername(), null, userProfileImage, savedUser.getEmail(), jwtToken);
     }
 
     public UserLoginDto loginUser(String email, String rawPassword, HttpServletRequest request) {
         User userByEmail = userRepository.findByEmail(email).orElse(null);
 
         if (userByEmail != null && !userByEmail.isPasswordSet()) {
-            loginActivityService.createLoginActivity(userByEmail.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
+            publishLoginActivity(userByEmail.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
             throw new StateConflictException("Local password is not set for this account. Use Google login or set a local password first.");
         }
 
@@ -102,24 +96,22 @@ public class UserService {
                 throw new WrongPasswordException("Incorrect email or password");
             }
 
-            loginActivityService.createLoginActivity(userByEmail.getId(), LoginActivityStatus.SUCCESSFUL, request);
+            publishLoginActivity(userByEmail.getId(), LoginActivityStatus.SUCCESSFUL, request);
             String jwtToken = jwtService.generateToken(userByEmail);
             String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(userByEmail.getProfileImagePath());
 
-            return new UserLoginDto(
-                    userByEmail.getId(),
-                    userByEmail.getUsername(),
-                    userByEmail.getEmail(),
-                    null,
-                    userProfileImage,
-                    jwtToken
-            );
+            return new UserLoginDto(userByEmail.getId(), userByEmail.getUsername(), userByEmail.getEmail(), null, userProfileImage, jwtToken);
 
         } catch (AuthenticationException e) {
             if (userByEmail != null) {
-                loginActivityService.createLoginActivity(userByEmail.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
+                publishLoginActivity(userByEmail.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
             }
             throw new WrongPasswordException("Incorrect email or password");
         }
+    }
+
+    private void publishLoginActivity(Long userId, LoginActivityStatus status, HttpServletRequest request) {
+        String ipAddress = getClientIpAddress(request);
+        kafkaTemplate.send("activity.login", new LoginActivityEvent(userId, status, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
     }
 }

@@ -1,10 +1,10 @@
-package com.finovara.finovarabackend.user.controller;
+package com.finovara.corebackend.user.controller;
 
-import com.finovara.finovarabackend.security.jwt.logout.LogoutService;
-import com.finovara.finovarabackend.user.dto.UserLoginDto;
-import com.finovara.finovarabackend.user.dto.UserRegisterDto;
-import com.finovara.finovarabackend.user.service.GeneratePasswordService;
-import com.finovara.finovarabackend.user.service.UserService;
+import com.finovara.corebackend.security.jwt.logout.LogoutService;
+import com.finovara.corebackend.user.dto.UserLoginDto;
+import com.finovara.corebackend.user.dto.UserRegisterDto;
+import com.finovara.corebackend.user.service.GeneratePasswordService;
+import com.finovara.corebackend.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;

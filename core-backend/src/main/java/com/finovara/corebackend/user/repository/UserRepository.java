@@ -1,7 +1,7 @@
-package com.finovara.finovarabackend.user.repository;
+package com.finovara.corebackend.user.repository;
 
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.user.model.OAuthProvider;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.user.model.OAuthProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
