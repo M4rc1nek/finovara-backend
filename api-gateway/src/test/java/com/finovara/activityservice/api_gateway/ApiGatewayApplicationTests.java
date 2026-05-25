@@ -1,10 +1,11 @@
-package com.finovara_backend.api_gateway;
+package com.finovara.activityservice.api_gateway;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(properties = {
-		"MONOLIT_URL=https://localhost:8443",
+		"CORE_BACKEND_URL=https://localhost:8443",
+        "ACTIVITY_LOG_URL=https://finovara-activity:8082",
 		"SSL_KEY_STORE_PASSWORD=test"
 })
 class ApiGatewayApplicationTests {
