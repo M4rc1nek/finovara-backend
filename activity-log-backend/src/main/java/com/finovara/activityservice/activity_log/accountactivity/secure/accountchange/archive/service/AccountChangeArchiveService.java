@@ -1,0 +1,41 @@
+package com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.archive.service;
+
+import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
+import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.archive.dto.AccountChangeArchiveDto;
+import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
+import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.archive.repository.AccountChangeArchiveRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class AccountChangeArchiveService {
+
+    private final AccountChangeArchiveRepository accountChangeArchiveRepository;
+
+    public AccountChangeArchive mapToArchive(AccountChangesActivity accountChangesActivity) {
+
+        return AccountChangeArchive.builder()
+                .userId(accountChangesActivity.getUserId())
+                .type(accountChangesActivity.getType())
+                .moveToArchiveDate(LocalDateTime.now())
+                .activityAccountChangesDate(accountChangesActivity.getCreatedAt())
+                .browser(accountChangesActivity.getBrowser())
+                .ipAddress(accountChangesActivity.getIpAddress())
+                .location(accountChangesActivity.getLocation())
+                .build();
+    }
+
+    @Transactional
+    public void archive(List<AccountChangeArchive> archiveAccountChangesActivities) {
+        accountChangeArchiveRepository.saveAll(archiveAccountChangesActivities);
+    }
+
+    public List<AccountChangeArchiveDto> getAccountChangeArchive(Long userId) {
+        return accountChangeArchiveRepository.findAllByUserIdOrderByIdDesc(userId);
+    }
+}
