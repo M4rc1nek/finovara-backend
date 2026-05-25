@@ -1,0 +1,44 @@
+package com.finovara.corebackend.usersetting.finances.recurring.service.support;
+
+import com.finovara.activityservice.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.activityservice.contracts.model.activity.SettingActivityStatus;
+import com.finovara.activityservice.contracts.model.activity.SettingType;
+import com.finovara.corebackend.usersetting.finances.recurring.dto.RecurringCommonFields;
+import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
+import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringType;
+import com.finovara.corebackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
+
+@Component
+@RequiredArgsConstructor
+public class RecurringSettingsSupport {
+
+    private final RecurringSettingsRepository recurringSettingsRepository;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    public RecurringSettings getSettings(Long userId, RecurringType type) {
+        return recurringSettingsRepository.findByUserAssignedIdAndType(userId, type).orElseThrow(() -> new EntityNotFoundException("RecurringSettings not found for userId=" + userId + ", type=" + type));
+    }
+
+    public void applyCommonFields(Long userId, RecurringSettings settings, RecurringCommonFields fields, SettingType settingType) {
+        boolean enabled = Boolean.TRUE.equals(fields.enable());
+        settings.setEnable(enabled);
+        settings.setAmount(fields.amount());
+        settings.setPeriodType(fields.periodType());
+
+        if (enabled) {
+            settings.setStartDate(fields.startDate());
+            settings.setNextExecutionDate(fields.startDate());
+            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, settingType, SettingActivityStatus.ENABLED, LocalDateTime.now()));
+        } else {
+            settings.setNextExecutionDate(null);
+            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, settingType, SettingActivityStatus.DISABLED, LocalDateTime.now()));
+        }
+    }
+}
+
