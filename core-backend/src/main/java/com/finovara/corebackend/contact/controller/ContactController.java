@@ -1,7 +1,7 @@
-package com.finovara.finovarabackend.contact.controller;
+package com.finovara.corebackend.contact.controller;
 
-import com.finovara.finovarabackend.contact.dto.ContactDto;
-import com.finovara.finovarabackend.contact.service.ContactService;
+import com.finovara.corebackend.contact.dto.ContactDto;
+import com.finovara.corebackend.contact.service.ContactService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

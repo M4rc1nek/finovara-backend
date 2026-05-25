@@ -1,6 +1,6 @@
-package com.finovara.finovarabackend.contact.service;
+package com.finovara.corebackend.contact.service;
 
-import com.finovara.finovarabackend.contact.dto.ContactDto;
+import com.finovara.corebackend.contact.dto.ContactDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

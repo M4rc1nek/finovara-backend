@@ -1,8 +1,8 @@
-package com.finovara.finovarabackend.contact.service;
+package com.finovara.corebackend.contact.service;
 
-import com.finovara.finovarabackend.contact.dto.ContactDto;
-import com.finovara.finovarabackend.exception.badrequest.InvalidInputException;
-import com.finovara.finovarabackend.util.email.EmailDomainValidator;
+import com.finovara.corebackend.contact.dto.ContactDto;
+import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.corebackend.util.email.EmailDomainValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

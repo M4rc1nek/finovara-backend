@@ -1,7 +1,7 @@
-package com.finovara.finovarabackend.contact.service;
+package com.finovara.corebackend.contact.service;
 
-import com.finovara.finovarabackend.contact.dto.ContactDto;
-import com.finovara.finovarabackend.util.email.EmailDomainValidator;
+import com.finovara.corebackend.contact.dto.ContactDto;
+import com.finovara.corebackend.util.email.EmailDomainValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

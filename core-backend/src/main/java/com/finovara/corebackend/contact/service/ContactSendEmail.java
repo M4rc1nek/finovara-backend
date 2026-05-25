@@ -1,6 +1,6 @@
-package com.finovara.finovarabackend.contact.service;
+package com.finovara.corebackend.contact.service;
 
-import com.finovara.finovarabackend.contact.dto.ContactDto;
+import com.finovara.corebackend.contact.dto.ContactDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
