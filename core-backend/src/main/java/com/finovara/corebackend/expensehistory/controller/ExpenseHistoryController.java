@@ -1,10 +1,10 @@
-package com.finovara.finovarabackend.expensehistory.controller;
+package com.finovara.corebackend.expensehistory.controller;
 
-import com.finovara.finovarabackend.expense.dto.ExpenseDto;
-import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.expensehistory.service.ExpenseHistoryService;
-import com.finovara.finovarabackend.security.SecurityUtils;
-import com.finovara.finovarabackend.util.model.PeriodType;
+import com.finovara.corebackend.expense.dto.ExpenseDto;
+import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.corebackend.expensehistory.service.ExpenseHistoryService;
+import com.finovara.corebackend.security.SecurityUtils;
+import com.finovara.activityservice.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

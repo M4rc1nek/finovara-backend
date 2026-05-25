@@ -1,13 +1,13 @@
-package com.finovara.finovarabackend.expensehistory.service;
+package com.finovara.corebackend.expensehistory.service;
 
-import com.finovara.finovarabackend.expense.dto.ExpenseDto;
-import com.finovara.finovarabackend.expense.mapper.ExpenseMapper;
-import com.finovara.finovarabackend.expense.model.Expense;
-import com.finovara.finovarabackend.expense.model.ExpenseCategory;
-import com.finovara.finovarabackend.user.model.User;
-import com.finovara.finovarabackend.util.model.PeriodType;
-import com.finovara.finovarabackend.util.periodbalance.FinancialPeriodService;
-import com.finovara.finovarabackend.util.user.service.UserManagerService;
+import com.finovara.corebackend.expense.dto.ExpenseDto;
+import com.finovara.corebackend.expense.mapper.ExpenseMapper;
+import com.finovara.corebackend.expense.model.Expense;
+import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.corebackend.user.model.User;
+import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
+import com.finovara.corebackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
