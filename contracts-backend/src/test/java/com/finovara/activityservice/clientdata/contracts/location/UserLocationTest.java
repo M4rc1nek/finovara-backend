@@ -1,6 +1,6 @@
 package com.finovara.activityservice.clientdata.contracts.location;
 
-import com.finovara.activityservice.contracts.clientdata.location.UserLocation;
+import com.finovara.contracts.clientdata.location.UserLocation;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
