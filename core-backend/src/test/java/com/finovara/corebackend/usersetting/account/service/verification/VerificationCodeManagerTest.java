@@ -1,6 +1,6 @@
 package com.finovara.corebackend.usersetting.account.service.verification;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.exception.tomanyrequest.VerificationAttemptsExceededException;
 import com.finovara.corebackend.usersetting.account.dto.AttemptsDto;
 import com.finovara.corebackend.usersetting.account.model.AccountSettings;
