@@ -1,6 +1,6 @@
 package com.finovara.corebackend.revenue.dto;
 
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 
