@@ -1,7 +1,7 @@
 package com.finovara.corebackend.piggybank.service;
 
-import com.finovara.activityservice.contracts.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
 import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.corebackend.user.model.User;
