@@ -29,20 +29,15 @@ spring:
     enabled: true
 
   kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
-    consumer:
-      group-id: activity-service
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.finovara.contracts.*"
-        spring.json.use.type.headers: false
+    bootstrap-servers: 9092
 
 application:
   security:
     jwt:
       secret-key: ${JWT_SECRET_KEY}
+
+core-backend:
+  url: ${CORE_BACKEND_URL:https://finovara-app:8443}
 
 scheduler:
   user-activity:
