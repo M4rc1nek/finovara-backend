@@ -1,7 +1,7 @@
 package com.finovara.corebackend.limit.dto;
 
 import com.finovara.corebackend.limit.model.LimitStatus;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
