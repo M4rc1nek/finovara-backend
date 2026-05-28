@@ -1,6 +1,6 @@
 package com.finovara.corebackend.piggybank.controller;
 
-import com.finovara.activityservice.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.corebackend.piggybank.dto.PiggyBankDto;
 import com.finovara.corebackend.piggybank.service.PiggyBankManagementService;
 import com.finovara.corebackend.piggybank.service.PiggyBankTransactionService;
