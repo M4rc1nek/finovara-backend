@@ -1,15 +1,15 @@
 package com.finovara.corebackend.revenue.service;
 
-import com.finovara.activityservice.contracts.event.revenue.RevenueActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.RevenueActivityType;
-import com.finovara.corebackend.exception.notfound.WalletNotFoundException;
+import com.finovara.contracts.event.revenue.RevenueActivityEvent;
+import com.finovara.contracts.model.activity.RevenueActivityType;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.revenue.dto.RevenueDto;
-import com.finovara.corebackend.revenue.exception.notfound.RevenueNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.revenue.mapper.RevenueMapper;
 import com.finovara.corebackend.revenue.model.Revenue;
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.corebackend.revenue.repository.RevenueRepository;
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.corebackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
@@ -94,9 +94,9 @@ class RevenueServiceTest {
         void shouldThrowWhenUserNotFound() {
             RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.SALARY, null, "test");
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
+            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("User not found"));
 
-            assertThrows(UserNotFoundException.class, () -> revenueService.addRevenue(dto, userId));
+            assertThrows(RequestedEntityNotFoundException.class, () -> revenueService.addRevenue(dto, userId));
 
             verify(revenueRepository, never()).save(any());
         }
@@ -145,7 +145,7 @@ class RevenueServiceTest {
             when(revenueManagerService.getRevenueOrThrow(10L)).thenReturn(revenue);
             when(walletRepository.findByUserAssignedId(userId)).thenReturn(Optional.empty());
 
-            assertThrows(WalletNotFoundException.class, () -> revenueService.editRevenue(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x"), 10L, userId));
+            assertThrows(RequestedEntityNotFoundException.class, () -> revenueService.editRevenue(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x"), 10L, userId));
 
             verify(revenueRepository, never()).save(any());
         }
@@ -162,7 +162,7 @@ class RevenueServiceTest {
             when(revenueManagerService.getRevenueOrThrow(10L)).thenReturn(revenue);
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
-            assertThrows(RevenueNotFoundException.class, () -> revenueService.editRevenue(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x"), 10L, userId));
+            assertThrows(RequestedEntityNotFoundException.class, () -> revenueService.editRevenue(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x"), 10L, userId));
 
             verify(revenueRepository, never()).save(any());
         }
@@ -201,9 +201,9 @@ class RevenueServiceTest {
         @Test
         void shouldThrowWhenUserNotFound() {
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("x"));
+            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("x"));
 
-            assertThrows(UserNotFoundException.class, () -> revenueService.getRevenue(userId));
+            assertThrows(RequestedEntityNotFoundException.class, () -> revenueService.getRevenue(userId));
 
             verifyNoInteractions(revenueRepository);
         }
@@ -240,7 +240,7 @@ class RevenueServiceTest {
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(revenueRepository.findByIdAndUserAssignedId(1L, userId)).thenReturn(Optional.empty());
 
-            assertThrows(RevenueNotFoundException.class, () -> revenueService.deleteRevenue(1L, userId));
+            assertThrows(RequestedEntityNotFoundException.class, () -> revenueService.deleteRevenue(1L, userId));
 
             verify(revenueRepository, never()).delete(any());
         }
