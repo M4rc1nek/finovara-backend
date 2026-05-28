@@ -1,10 +1,7 @@
 package com.finovara.corebackend.usersetting.account.service.emailpolicy;
 
-import com.finovara.activityservice.contracts.clientdata.browser.UserBrowser;
-import com.finovara.activityservice.contracts.clientdata.ip.ClientIp;
-import com.finovara.activityservice.contracts.clientdata.location.UserLocation;
-import com.finovara.activityservice.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.clientdata.location.UserLocation;
+import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.notificationemail.action.emailchange.service.NotifyEmailChangeService;
