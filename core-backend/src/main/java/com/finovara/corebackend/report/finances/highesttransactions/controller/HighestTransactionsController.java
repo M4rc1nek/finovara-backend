@@ -4,7 +4,7 @@ import com.finovara.corebackend.report.finances.highesttransactions.highestexpen
 import com.finovara.corebackend.report.finances.highesttransactions.highestexpense.service.HighestExpenseService;
 import com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.dto.HighestRevenueDto;
 import com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.service.HighestRevenueService;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
