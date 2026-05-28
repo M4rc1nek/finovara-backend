@@ -6,7 +6,7 @@ import com.finovara.corebackend.pdfexport.report.service.ReportPdfHandler;
 import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
 import com.finovara.corebackend.report.dto.ReportDto;
 import com.finovara.corebackend.report.finances.sum.service.ReportSummaryService;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
