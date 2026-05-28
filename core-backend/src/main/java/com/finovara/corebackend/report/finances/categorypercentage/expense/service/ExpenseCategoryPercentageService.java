@@ -1,10 +1,10 @@
 package com.finovara.corebackend.report.finances.categorypercentage.expense.service;
 
 import com.finovara.corebackend.expense.model.Expense;
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.corebackend.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
 import com.finovara.corebackend.user.model.User;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.corebackend.util.percentage.CalculatePercentage;
 import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
 import com.finovara.corebackend.util.user.service.UserManagerService;
