@@ -1,21 +1,18 @@
 package com.finovara.corebackend.user.service;
 
-import com.finovara.activityservice.contracts.clientdata.browser.UserBrowser;
-import com.finovara.activityservice.contracts.clientdata.ip.ClientIp;
-import com.finovara.activityservice.contracts.clientdata.location.UserLocation;
-import com.finovara.activityservice.contracts.event.secure.login.activity.LoginActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
 
-import static com.finovara.activityservice.contracts.clientdata.browser.UserBrowser.getBrowser;
-import static com.finovara.activityservice.contracts.clientdata.ip.ClientIp.getClientIpAddress;
-import static com.finovara.activityservice.contracts.clientdata.location.UserLocation.getLocationFromIp;
-import com.finovara.corebackend.exception.conflict.NameAlreadyExistsException;
-import com.finovara.corebackend.exception.conflict.StateConflictException;
-import com.finovara.corebackend.exception.unauthorized.WrongPasswordException;
+import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.exception.conflict.StateConflictException;
+import com.finovara.contracts.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.corebackend.security.jwt.JwtService;
 import com.finovara.corebackend.user.dto.UserLoginDto;
 import com.finovara.corebackend.user.dto.UserRegisterDto;
-import com.finovara.corebackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.factory.SettingsFactory;
@@ -54,11 +51,11 @@ public class UserService {
 
     public UserRegisterDto registerUser(UserRegisterDto dto) {
         if (userRepository.existsByUsername(dto.username())) {
-            throw new NameAlreadyExistsException("Username is already taken");
+            throw new EntityAlreadyExistsException("Username is already taken");
         }
 
         if (userRepository.existsByEmail(dto.email())) {
-            throw new EmailAlreadyExistsException("Email is already taken");
+            throw new EntityAlreadyExistsException("Email is already taken");
         }
 
         emailDomainValidator.validateDomainHasMxRecord(dto.email());
@@ -93,7 +90,7 @@ public class UserService {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, rawPassword));
 
             if (userByEmail == null) {
-                throw new WrongPasswordException("Incorrect email or password");
+                throw new InvalidCredentialsException("Incorrect email or password");
             }
 
             publishLoginActivity(userByEmail.getId(), LoginActivityStatus.SUCCESSFUL, request);
@@ -106,7 +103,7 @@ public class UserService {
             if (userByEmail != null) {
                 publishLoginActivity(userByEmail.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
             }
-            throw new WrongPasswordException("Incorrect email or password");
+            throw new InvalidCredentialsException("Incorrect email or password");
         }
     }
 
