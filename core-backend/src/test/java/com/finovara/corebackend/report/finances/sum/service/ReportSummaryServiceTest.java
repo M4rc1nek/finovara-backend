@@ -1,7 +1,7 @@
 package com.finovara.corebackend.report.finances.sum.service;
 
 import com.finovara.corebackend.report.dto.ReportDto;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.Nested;
