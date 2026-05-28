@@ -1,6 +1,12 @@
 package com.finovara.corebackend.user.exception.notfound;
 
-public class UserNotFoundException extends RuntimeException {
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+
+/**
+ * Deprecated: use {@link com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException} instead.
+ */
+@Deprecated
+public class UserNotFoundException extends RequestedEntityNotFoundException {
     public UserNotFoundException(String message) {
         super(message);
     }
