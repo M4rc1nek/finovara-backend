@@ -1,12 +1,12 @@
 package com.finovara.corebackend.pdfexport.report.service.strategy.percentage;
 
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
 import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
 import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
 import com.finovara.corebackend.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
 import com.finovara.corebackend.report.finances.categorypercentage.expense.service.ExpenseCategoryPercentageService;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
