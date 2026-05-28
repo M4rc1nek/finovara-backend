@@ -3,7 +3,7 @@ package com.finovara.corebackend.notification.dto.limit;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.finovara.corebackend.notification.dto.NotificationResponse;
 import com.finovara.corebackend.notification.model.NotificationType;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
