@@ -1,8 +1,8 @@
 package com.finovara.corebackend.usersetting.account.service.passwordpolicy;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.exception.badrequest.InvalidVerificationCodeException;
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.account.dto.AttemptsDto;
 import com.finovara.corebackend.usersetting.account.dto.passwordpolicy.PasswordResetConfirmDto;
@@ -80,9 +80,9 @@ class PasswordResetServiceTest {
         void shouldThrowWhenUserNotFound() {
             PasswordResetRequestDto dto = new PasswordResetRequestDto(email);
 
-            when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+            when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new RequestedEntityNotFoundException("User not found"));
 
-            assertThrows(UserNotFoundException.class, () -> passwordResetService.requestPasswordReset(dto));
+            assertThrows(RequestedEntityNotFoundException.class, () -> passwordResetService.requestPasswordReset(dto));
 
             verifyNoInteractions(verificationCodeManager);
             verifyNoInteractions(verificationCodeEmailService);
@@ -140,9 +140,9 @@ class PasswordResetServiceTest {
         void shouldThrowWhenUserNotFound() {
             PasswordResetConfirmDto dto = new PasswordResetConfirmDto(email, "newPass", "newPass", code);
 
-            when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new UserNotFoundException("User not found"));
+            when(userManagerService.getUserByEmailOrThrow(email)).thenThrow(new RequestedEntityNotFoundException("User not found"));
 
-            assertThrows(UserNotFoundException.class, () -> passwordResetService.confirmPasswordReset(dto, request));
+            assertThrows(RequestedEntityNotFoundException.class, () -> passwordResetService.confirmPasswordReset(dto, request));
 
             verifyNoInteractions(credentialValidationService);
             verifyNoInteractions(verificationCodeManager);
