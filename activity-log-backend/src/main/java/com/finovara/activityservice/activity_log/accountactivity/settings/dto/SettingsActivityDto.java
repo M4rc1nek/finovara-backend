@@ -1,7 +1,7 @@
 package com.finovara.activityservice.activity_log.accountactivity.settings.dto;
 
-import com.finovara.activityservice.contracts.model.activity.SettingActivityStatus;
-import com.finovara.activityservice.contracts.model.activity.SettingType;
+import com.finovara.contracts.model.activity.SettingActivityStatus;
+import com.finovara.contracts.model.activity.SettingType;
 
 import java.time.LocalDateTime;
 
