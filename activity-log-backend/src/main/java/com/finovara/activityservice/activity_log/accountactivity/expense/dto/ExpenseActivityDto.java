@@ -1,7 +1,7 @@
 package com.finovara.activityservice.activity_log.accountactivity.expense.dto;
 
-import com.finovara.activityservice.contracts.model.activity.ExpenseActivityType;
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.activity.ExpenseActivityType;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
