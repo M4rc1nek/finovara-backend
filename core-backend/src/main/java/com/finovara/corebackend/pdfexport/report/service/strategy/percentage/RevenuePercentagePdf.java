@@ -6,8 +6,8 @@ import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
 import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
 import com.finovara.corebackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
 import com.finovara.corebackend.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
