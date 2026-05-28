@@ -1,4 +1,4 @@
-package com.finovara.corebackend.exception.conflict;
+package com.finovara.contracts.exception.conflict;
 
 public class StateConflictException extends RuntimeException {
     public  StateConflictException(String message) {
