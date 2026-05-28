@@ -16,9 +16,7 @@ import java.util.TimeZone;
 @EnableScheduling
 @EnableFeignClients
 @EnableConfigurationProperties(SecurityProperties.class)
-@SpringBootApplication(scanBasePackages = {
-        "com.finovara.contracts-backend"
-})
+@SpringBootApplication
 public class FinovaraBackendApplication {
 
     public static void main(String[] args) {
