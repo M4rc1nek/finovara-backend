@@ -1,6 +1,6 @@
 package com.finovara.activityservice.clientdata.contracts.ip;
 
-import com.finovara.activityservice.contracts.clientdata.ip.ClientIp;
+import com.finovara.contracts.clientdata.ip.ClientIp;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
