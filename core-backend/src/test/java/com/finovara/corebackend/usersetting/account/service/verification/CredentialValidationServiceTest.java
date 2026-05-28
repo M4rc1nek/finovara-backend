@@ -1,8 +1,8 @@
 package com.finovara.corebackend.usersetting.account.service.verification;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
-import com.finovara.corebackend.exception.unprocessablecontent.MissingRequirementException;
-import com.finovara.corebackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +71,7 @@ class CredentialValidationServiceTest {
         void shouldThrowWhenEmailAlreadyExists() {
             when(userRepository.existsByEmail("new@mail.com")).thenReturn(true);
 
-            EmailAlreadyExistsException exception = assertThrows(EmailAlreadyExistsException.class, () ->
+            EntityAlreadyExistsException exception = assertThrows(EntityAlreadyExistsException.class, () ->
                     credentialValidationService.validateEmailChange(user, "new@mail.com"));
 
             assertEquals("Email already in use", exception.getMessage());
