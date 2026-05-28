@@ -1,6 +1,6 @@
 package com.finovara.corebackend.wallet.service;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import com.finovara.corebackend.util.wallet.WalletManagerService;
