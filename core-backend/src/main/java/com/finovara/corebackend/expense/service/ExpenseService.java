@@ -1,16 +1,16 @@
 package com.finovara.corebackend.expense.service;
 
-import com.finovara.activityservice.contracts.event.expense.ExpenseActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.ExpenseActivityType;
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.event.expense.ExpenseActivityEvent;
+import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
+import com.finovara.contracts.model.activity.ExpenseActivityType;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.expense.dto.ExpenseDto;
 import com.finovara.corebackend.expense.dto.ExpenseRequestDto;
-import com.finovara.corebackend.expense.exception.notfound.ExpenseNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.expense.mapper.ExpenseMapper;
 import com.finovara.corebackend.expense.model.Expense;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
-import com.finovara.corebackend.limit.exception.unprocessablecontent.LimitExceededException;
 import com.finovara.corebackend.limit.repository.LimitRepository;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
@@ -20,7 +20,7 @@ import com.finovara.corebackend.usersetting.finances.expense.smartscan.service.S
 import com.finovara.corebackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.corebackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.corebackend.util.expense.ExpenseManagerService;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import com.finovara.corebackend.wallet.service.WalletService;
@@ -95,7 +95,7 @@ public class ExpenseService {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         if (!existingExpense.getUserAssigned().getId().equals(user.getId())) {
-            throw new ExpenseNotFoundException("Expense not found for this user");
+            throw new RequestedEntityNotFoundException("Expense not found for this user");
         }
 
         validateLimitOrThrow(user.getId(), periodType, existingExpense.getAmount(), expenseRequestDto.expenseDto().amount());
@@ -139,7 +139,7 @@ public class ExpenseService {
     public void deleteExpense(Long expenseId, Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
         Expense expense = expenseRepository.findByIdAndUserAssignedId(expenseId, user.getId())
-                .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
         walletService.addBalanceToWallet(userId, expense.getAmount());
         kafkaTemplate.send("activity.expense", new ExpenseActivityEvent(userId, ExpenseActivityType.DELETED_EXPENSE,
@@ -160,7 +160,7 @@ public class ExpenseService {
         BigDecimal totalAmount = spent.subtract(existingAmount).add(newAmount);
 
         if (limitAmount.isPresent() && totalAmount.compareTo(limitAmount.get()) > 0) {
-            throw new LimitExceededException("Limit Exceeded");
+            throw new MissingRequirementException("Limit Exceeded");
         }
     }
 
