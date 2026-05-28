@@ -1,12 +1,12 @@
 package com.finovara.corebackend.util.periodbalance;
 
 import com.finovara.corebackend.expense.model.Expense;
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
 import com.finovara.corebackend.revenue.model.Revenue;
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.corebackend.revenue.repository.RevenueRepository;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

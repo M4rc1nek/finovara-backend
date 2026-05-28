@@ -1,6 +1,6 @@
 package com.finovara.corebackend.usersetting.finances.recurring.service.transaction;
 
-import com.finovara.activityservice.contracts.model.activity.SettingType;
+import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.corebackend.usersetting.finances.recurring.dto.RecurringSavingsDto;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringType;

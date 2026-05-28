@@ -1,8 +1,8 @@
 package com.finovara.corebackend.util.piggybank.manager;
 
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
 import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.corebackend.util.piggybank.exception.notfound.PiggyBankNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +13,11 @@ public class PiggyBankManagerService {
 
     public PiggyBank getPiggyBankByUserId(Long piggyBankId, Long userId) {
         return piggyBankRepository.findByIdAndUserAssignedId(piggyBankId, userId)
-                .orElseThrow(() -> new PiggyBankNotFoundException("Piggy Bank not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Piggy Bank not found"));
     }
 
     public PiggyBank getPiggyBankByUserEmail(Long piggyBankId, String email) {
         return piggyBankRepository.findByIdAndUserAssignedEmail(piggyBankId, email)
-                .orElseThrow(() -> new PiggyBankNotFoundException("Piggy Bank not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Piggy Bank not found"));
     }
 }

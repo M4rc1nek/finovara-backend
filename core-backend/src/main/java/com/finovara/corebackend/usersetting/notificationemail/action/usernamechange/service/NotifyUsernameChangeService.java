@@ -1,8 +1,8 @@
 package com.finovara.corebackend.usersetting.notificationemail.action.usernamechange.service;
 
-import com.finovara.activityservice.contracts.event.settings.SettingsActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.SettingActivityStatus;
-import com.finovara.activityservice.contracts.model.activity.SettingType;
+import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.model.activity.SettingActivityStatus;
+import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.notificationemail.core.AbstractNotificationEmailService;
 import com.finovara.corebackend.usersetting.notificationemail.dto.NotificationEmailDto;

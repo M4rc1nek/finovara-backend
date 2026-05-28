@@ -1,9 +1,9 @@
 package com.finovara.corebackend.usersetting.piggybank.roundup.service;
 
-import com.finovara.activityservice.contracts.event.settings.SettingsActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.SettingActivityStatus;
-import com.finovara.activityservice.contracts.model.activity.SettingType;
-import com.finovara.corebackend.exception.notfound.WalletNotFoundException;
+import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.model.activity.SettingActivityStatus;
+import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.expense.model.Expense;
 import com.finovara.corebackend.piggybank.dto.PiggyBankDto;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
@@ -80,7 +80,7 @@ public class RoundUpService {
 
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserAssignedId(userId);
 
-        Wallet wallet = walletRepository.findByUserAssignedId(userId).orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
+        Wallet wallet = walletRepository.findByUserAssignedId(userId).orElseThrow(() -> new RequestedEntityNotFoundException("Wallet not found"));
 
         if (piggyBanks == null || piggyBanks.isEmpty()) return;
 

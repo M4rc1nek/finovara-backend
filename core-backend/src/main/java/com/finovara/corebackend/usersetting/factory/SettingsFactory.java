@@ -9,7 +9,7 @@ import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringTy
 import com.finovara.corebackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.corebackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.corebackend.usersetting.piggybank.model.PiggyBankSettings;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

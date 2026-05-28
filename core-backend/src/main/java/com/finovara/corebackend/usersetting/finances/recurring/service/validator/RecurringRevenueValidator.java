@@ -1,6 +1,6 @@
 package com.finovara.corebackend.usersetting.finances.recurring.service.validator;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.util.RecurringBasicValidator;
 import lombok.RequiredArgsConstructor;

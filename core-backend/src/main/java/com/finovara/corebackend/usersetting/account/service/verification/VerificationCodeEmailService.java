@@ -1,6 +1,6 @@
 package com.finovara.corebackend.usersetting.account.service.verification;
 
-import com.finovara.corebackend.exception.serviceunavailable.ServiceUnavailableException;
+import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.corebackend.user.model.User;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

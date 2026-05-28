@@ -1,6 +1,6 @@
 package com.finovara.corebackend.util.wallet;
 
-import com.finovara.corebackend.exception.notfound.WalletNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.wallet.model.Wallet;
 import com.finovara.corebackend.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +13,6 @@ public class WalletManagerService {
 
     public Wallet getWalletByUserIdOrThrow(Long userId) {
         return walletRepository.findByUserAssignedId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found for this user"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Wallet not found for this user"));
     }
 }

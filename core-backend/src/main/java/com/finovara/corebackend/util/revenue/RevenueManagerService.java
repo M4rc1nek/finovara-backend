@@ -1,6 +1,6 @@
 package com.finovara.corebackend.util.revenue;
 
-import com.finovara.corebackend.revenue.exception.notfound.RevenueNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.revenue.model.Revenue;
 import com.finovara.corebackend.revenue.repository.RevenueRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ public class RevenueManagerService {
 
     public Revenue getRevenueOrThrow(Long revenueId) {
         return revenueRepository.findById(revenueId)
-                .orElseThrow(() -> new RevenueNotFoundException("Revenue not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
     }
 
 }

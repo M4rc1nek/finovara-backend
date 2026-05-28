@@ -1,6 +1,6 @@
 package com.finovara.corebackend.usersetting.finances.recurring.service.validator;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.corebackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.corebackend.usersetting.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;

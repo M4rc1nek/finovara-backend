@@ -1,6 +1,6 @@
 package com.finovara.corebackend.util.email;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

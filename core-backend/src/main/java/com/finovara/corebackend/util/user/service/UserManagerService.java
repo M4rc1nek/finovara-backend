@@ -1,6 +1,6 @@
 package com.finovara.corebackend.util.user.service;
 
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +14,11 @@ public class UserManagerService {
 
     public User getUserByIdOrThrow(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
     }
 
     public  User getUserByEmailOrThrow(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
     }
 }

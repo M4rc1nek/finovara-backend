@@ -1,9 +1,9 @@
 package com.finovara.corebackend.usersetting.finances.recurring.model;
 
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.corebackend.user.model.User;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,9 +1,9 @@
 package com.finovara.corebackend.usersetting.finances.expense.controlamount.service;
 
-import com.finovara.activityservice.contracts.event.settings.SettingsActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.SettingActivityStatus;
-import com.finovara.activityservice.contracts.model.activity.SettingType;
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.model.activity.SettingActivityStatus;
+import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;

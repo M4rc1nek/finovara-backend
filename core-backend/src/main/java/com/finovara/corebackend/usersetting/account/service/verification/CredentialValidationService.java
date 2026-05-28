@@ -1,8 +1,8 @@
 package com.finovara.corebackend.usersetting.account.service.verification;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
-import com.finovara.corebackend.exception.unprocessablecontent.MissingRequirementException;
-import com.finovara.corebackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ public class CredentialValidationService {
         }
 
         if (userRepository.existsByEmail(newEmail)) {
-            throw new EmailAlreadyExistsException("Email already in use");
+            throw new EntityAlreadyExistsException("Email already in use");
         }
     }
 }

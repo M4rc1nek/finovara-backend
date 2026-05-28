@@ -4,7 +4,7 @@ import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettin
 import com.finovara.corebackend.usersetting.finances.recurring.dto.RecurringExpenseDto;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringType;
-import com.finovara.activityservice.contracts.model.activity.SettingType;
+import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.corebackend.usersetting.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.corebackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;

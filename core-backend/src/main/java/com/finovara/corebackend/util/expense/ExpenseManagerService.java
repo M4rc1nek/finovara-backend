@@ -1,6 +1,6 @@
 package com.finovara.corebackend.util.expense;
 
-import com.finovara.corebackend.expense.exception.notfound.ExpenseNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.expense.model.Expense;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +13,12 @@ public class ExpenseManagerService {
 
     public Expense getExpenseByUserIdOrThrow(Long expenseId, Long userId) {
         return expenseRepository.findByIdAndUserAssignedId(expenseId, userId)
-                .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
     }
 
     public Expense getExpenseByIdOrThrow(Long expenseId) {
         return expenseRepository.findById(expenseId)
-                .orElseThrow(() -> new ExpenseNotFoundException("Expense not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
 
     }
 }

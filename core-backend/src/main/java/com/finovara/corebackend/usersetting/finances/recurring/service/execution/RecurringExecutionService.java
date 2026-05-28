@@ -1,6 +1,7 @@
 package com.finovara.corebackend.usersetting.finances.recurring.service.execution;
 
-import com.finovara.activityservice.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.corebackend.expense.dto.ExpenseDto;
 import com.finovara.corebackend.expense.dto.ExpenseRequestDto;
 import com.finovara.corebackend.expense.service.ExpenseService;
@@ -14,9 +15,8 @@ import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSe
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringSavingsValidator;
-import com.finovara.corebackend.util.confirmationpassword.dto.ConfirmPasswordDto;
-import com.finovara.activityservice.contracts.model.PeriodType;
-import com.finovara.corebackend.util.piggybank.exception.notfound.PiggyBankNotFoundException;
+import com.finovara.contracts.dto.ConfirmPasswordDto;
+import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -84,7 +84,7 @@ public class RecurringExecutionService {
         try {
             piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserAssigned().getId(), settings.getPiggyBankId(), settings.getAmount(),
                     PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
-        } catch (PiggyBankNotFoundException e) {
+        } catch (RequestedEntityNotFoundException e) {
             log.warn("PiggyBank not found for recurring settings id={}, disabling", settings.getId());
             settings.setEnable(false);
             settings.setNextExecutionDate(null);
