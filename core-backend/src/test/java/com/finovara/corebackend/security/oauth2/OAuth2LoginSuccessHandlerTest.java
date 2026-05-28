@@ -1,11 +1,10 @@
 package com.finovara.corebackend.security.oauth2;
 
-import com.finovara.activityservice.contracts.event.secure.login.activity.LoginActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.LoginActivityStatus;
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
-import com.finovara.corebackend.exception.conflict.NameAlreadyExistsException;
+import com.finovara.contracts.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.security.jwt.JwtService;
-import com.finovara.corebackend.user.exception.conflict.EmailAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -319,7 +318,7 @@ class OAuth2LoginSuccessHandlerTest {
             OAuth2User oauth2User = mock(OAuth2User.class);
             when(authentication.getPrincipal()).thenReturn(oauth2User);
             when(googleOAuth2UserService.synchronize(any()))
-                    .thenThrow(new EmailAlreadyExistsException("email_already_exists"));
+                    .thenThrow(new EntityAlreadyExistsException("email_already_exists"));
 
             oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
 
@@ -355,7 +354,7 @@ class OAuth2LoginSuccessHandlerTest {
         void shouldRedirectWithMessageOnEmailAlreadyExistsException() throws Exception {
             OAuth2User oauth2User = mock(OAuth2User.class);
             when(authentication.getPrincipal()).thenReturn(oauth2User);
-            EmailAlreadyExistsException ex = new EmailAlreadyExistsException("email_already_exists");
+            EntityAlreadyExistsException ex = new EntityAlreadyExistsException("email_already_exists");
             when(googleOAuth2UserService.synchronize(any())).thenThrow(ex);
 
             oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
@@ -369,7 +368,7 @@ class OAuth2LoginSuccessHandlerTest {
         void shouldRedirectWithMessageOnNameAlreadyExistsException() throws Exception {
             OAuth2User oauth2User = mock(OAuth2User.class);
             when(authentication.getPrincipal()).thenReturn(oauth2User);
-            NameAlreadyExistsException ex = new NameAlreadyExistsException("name_already_exists");
+            EntityAlreadyExistsException ex = new EntityAlreadyExistsException("name_already_exists");
             when(googleOAuth2UserService.synchronize(any())).thenThrow(ex);
 
             oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
@@ -397,7 +396,7 @@ class OAuth2LoginSuccessHandlerTest {
         void shouldRedirectToAuthPageOnBusinessException() throws Exception {
             OAuth2User oauth2User = mock(OAuth2User.class);
             when(authentication.getPrincipal()).thenReturn(oauth2User);
-            when(googleOAuth2UserService.synchronize(any())).thenThrow(new EmailAlreadyExistsException("err"));
+            when(googleOAuth2UserService.synchronize(any())).thenThrow(new EntityAlreadyExistsException("err"));
 
             oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
 
