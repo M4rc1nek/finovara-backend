@@ -3,7 +3,7 @@ package com.finovara.activityservice.activity_log.accountactivity.settings.contr
 import com.finovara.activityservice.activity_log.accountactivity.settings.dto.SettingsActivityDto;
 import com.finovara.activityservice.activity_log.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.activityservice.security.SecurityUtils;
-import com.finovara.activityservice.contracts.model.SortType;
+import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
