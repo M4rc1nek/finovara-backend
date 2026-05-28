@@ -1,6 +1,6 @@
 package com.finovara.corebackend.util.user;
 
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.util.user.service.UserManagerService;
@@ -41,7 +41,7 @@ class UserManagerTest {
     void shouldThrowUserNotFoundExceptionWhenIdDoesNotExist() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class,
+        assertThrows(RequestedEntityNotFoundException.class,
                 () -> userManagerService.getUserByIdOrThrow(1L));
     }
 }
