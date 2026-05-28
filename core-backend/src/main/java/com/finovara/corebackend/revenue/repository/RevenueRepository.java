@@ -3,7 +3,7 @@ package com.finovara.corebackend.revenue.repository;
 import com.finovara.corebackend.report.finances.chart.dto.DailyCashDto;
 import com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.dto.HighestRevenueDto;
 import com.finovara.corebackend.revenue.model.Revenue;
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
