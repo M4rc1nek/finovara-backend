@@ -3,7 +3,7 @@ package com.finovara.corebackend.notification.dto.piggybank;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.finovara.corebackend.notification.dto.NotificationResponse;
 import com.finovara.corebackend.notification.model.NotificationType;
-import com.finovara.activityservice.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
