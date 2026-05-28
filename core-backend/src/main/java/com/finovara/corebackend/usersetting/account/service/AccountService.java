@@ -1,21 +1,18 @@
 package com.finovara.corebackend.usersetting.account.service;
 
-import com.finovara.activityservice.contracts.clientdata.browser.UserBrowser;
-import com.finovara.activityservice.contracts.clientdata.ip.ClientIp;
-import com.finovara.activityservice.contracts.clientdata.location.UserLocation;
-import com.finovara.activityservice.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.model.activity.AccountChangesActivityType;
 
-import static com.finovara.activityservice.contracts.clientdata.browser.UserBrowser.getBrowser;
-import static com.finovara.activityservice.contracts.clientdata.ip.ClientIp.getClientIpAddress;
-import static com.finovara.activityservice.contracts.clientdata.location.UserLocation.getLocationFromIp;
-import com.finovara.corebackend.exception.conflict.NameAlreadyExistsException;
+import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.account.dto.AccountSettingsDto;
 import com.finovara.corebackend.usersetting.notificationemail.action.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.corebackend.usersetting.notificationemail.action.usernamechange.service.NotifyUsernameChangeService;
-import com.finovara.corebackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.contracts.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.corebackend.util.profile.ProfileImageUrlBuilder;
 import com.finovara.corebackend.util.user.service.UserManagerService;
@@ -44,7 +41,7 @@ public class AccountService {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         if (userRepository.existsByUsername(accountSettingsDto.username())) {
-            throw new NameAlreadyExistsException("Username is already taken");
+            throw new EntityAlreadyExistsException("Username is already taken");
         }
 
         user.setUsername(accountSettingsDto.username());
