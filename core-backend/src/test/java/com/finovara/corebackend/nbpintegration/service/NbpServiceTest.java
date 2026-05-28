@@ -1,7 +1,7 @@
 package com.finovara.corebackend.nbpintegration.service;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
-import com.finovara.corebackend.exception.serviceunavailable.ServiceUnavailableException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.corebackend.nbpintegration.client.NbpApiClient;
 import com.finovara.corebackend.nbpintegration.dto.NbpTableDto;
 import com.finovara.corebackend.nbpintegration.model.NbpConversionType;
