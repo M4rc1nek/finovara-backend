@@ -1,9 +1,9 @@
 package com.finovara.corebackend.report.finances.highesttransactions.highestexpense.service;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
 import com.finovara.corebackend.report.finances.highesttransactions.highestexpense.dto.HighestExpenseDto;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
