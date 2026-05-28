@@ -1,6 +1,6 @@
 package com.finovara.corebackend.util.wallet;
 
-import com.finovara.corebackend.exception.notfound.WalletNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.wallet.model.Wallet;
 import com.finovara.corebackend.wallet.repository.WalletRepository;
@@ -46,7 +46,7 @@ class WalletManagerServiceTest {
 
         when(walletRepository.findByUserAssignedId(userId)).thenReturn(Optional.empty());
 
-        assertThrows(WalletNotFoundException.class, () -> walletManagerService.getWalletByUserIdOrThrow(userId));
+        assertThrows(RequestedEntityNotFoundException.class, () -> walletManagerService.getWalletByUserIdOrThrow(userId));
 
         verify(walletRepository).findByUserAssignedId(userId);
     }
