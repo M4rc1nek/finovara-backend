@@ -1,7 +1,7 @@
 package com.finovara.corebackend.limit.service;
 
 import com.finovara.corebackend.limit.dto.LimitStatsDto;
-import com.finovara.corebackend.limit.exception.notfound.ActiveLimitNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.limit.mapper.LimitMapper;
 import com.finovara.corebackend.limit.model.Limit;
 import com.finovara.corebackend.limit.model.LimitStatus;
@@ -37,7 +37,7 @@ public class LimitCalculateService {
 
     public LimitStatsDto calculateLimitStats(Long userId, Long limitId, LocalDate date) {
         Limit limit = limitRepository.findByIdAndUserAssignedId(userId, limitId)
-                .orElseThrow(() -> new ActiveLimitNotFoundException("Active Limit not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Active Limit not found"));
 
         return calculateLimitStats(limit, userId, date);
     }
