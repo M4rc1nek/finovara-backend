@@ -1,13 +1,13 @@
 package com.finovara.corebackend.usersetting.finances.recurring.service.validator;
 
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.corebackend.usersetting.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
 import com.finovara.corebackend.usersetting.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.util.RecurringBasicValidator;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
