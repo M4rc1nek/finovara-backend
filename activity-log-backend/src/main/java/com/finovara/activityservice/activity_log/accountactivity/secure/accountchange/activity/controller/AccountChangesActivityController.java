@@ -3,11 +3,10 @@ package com.finovara.activityservice.activity_log.accountactivity.secure.account
 import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto;
 import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
 import com.finovara.activityservice.security.SecurityUtils;
+import com.finovara.contracts.dto.ConfirmPasswordDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,4 +21,11 @@ public class AccountChangesActivityController {
     public ResponseEntity<List<AccountChangesActivityDto>> getAccountChangesActivity() {
         return ResponseEntity.ok(accountChangesActivityService.getAccountChangesActivity(SecurityUtils.getCurrentUserId()));
     }
+
+    @PostMapping("/confirm-password")
+    public ResponseEntity<Void> confirmPassword(@RequestBody ConfirmPasswordDto dto) {
+        accountChangesActivityService.confirmPassword(SecurityUtils.getCurrentUserId(), dto);
+        return ResponseEntity.noContent().build();
+    }
+
 }
