@@ -1,7 +1,7 @@
 package com.finovara.corebackend.usersetting.account.service.passwordpolicy.change;
 
-import com.finovara.activityservice.contracts.clientdata.location.UserLocation;
-import com.finovara.activityservice.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.clientdata.location.UserLocation;
+import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.notificationemail.action.passwordchange.service.NotifyPasswordChangeService;
