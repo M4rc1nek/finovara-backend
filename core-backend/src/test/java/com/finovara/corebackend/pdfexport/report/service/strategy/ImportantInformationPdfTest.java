@@ -1,6 +1,6 @@
 package com.finovara.corebackend.pdfexport.report.service.strategy;
 
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
 import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
 import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
@@ -11,9 +11,9 @@ import com.finovara.corebackend.report.finances.categorypercentage.expense.servi
 import com.finovara.corebackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
 import com.finovara.corebackend.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
 import com.finovara.corebackend.report.finances.sum.service.ReportSummaryService;
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.corebackend.revenue.repository.RevenueRepository;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.corebackend.wallet.dto.WalletDto;
 import com.finovara.corebackend.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
