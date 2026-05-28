@@ -1,36 +1,26 @@
-package com.finovara.corebackend.exception;
+package com.finovara.contracts.exception;
 
-import com.finovara.contracts.exception.ErrorResponseDto;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.corebackend.exception.badrequest.InvalidVerificationCodeException;
-import com.finovara.contracts.exception.conflict.NameAlreadyExistsException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.conflict.StateConflictException;
 import com.finovara.contracts.exception.forbidden.NotAuthorizedException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.contracts.exception.tomanyrequest.TooManyRequests;
-import com.finovara.corebackend.exception.tomanyrequest.VerificationAttemptsExceededException;
 import com.finovara.contracts.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
-import com.finovara.corebackend.expense.exception.notfound.ExpenseNotFoundException;
-import com.finovara.corebackend.limit.exception.conflict.LimitAlreadyExistsException;
-import com.finovara.corebackend.limit.exception.notfound.ActiveLimitNotFoundException;
-import com.finovara.corebackend.limit.exception.unprocessablecontent.LimitExceededException;
-import com.finovara.corebackend.revenue.exception.notfound.RevenueNotFoundException;
-import com.finovara.corebackend.user.exception.conflict.EmailAlreadyExistsException;
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
-import com.finovara.corebackend.usersetting.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
-import com.finovara.corebackend.util.piggybank.exception.notfound.PiggyBankNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
+import javax.naming.LimitExceededException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({EmailAlreadyExistsException.class, NameAlreadyExistsException.class, LimitAlreadyExistsException.class, SmartScanConfirmationRequiredException.class, StateConflictException.class})
+    @ExceptionHandler({EntityAlreadyExistsException.class, StateConflictException.class})
     public ResponseEntity<ErrorResponseDto> handleConflictExceptions(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.CONFLICT.value(),
@@ -41,8 +31,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 
-    @ExceptionHandler({UserNotFoundException.class, ExpenseNotFoundException.class, RevenueNotFoundException.class,
-            RequestedEntityNotFoundException.class, PiggyBankNotFoundException.class, ActiveLimitNotFoundException.class})
+    @ExceptionHandler({RequestedEntityNotFoundException.class})
     public ResponseEntity<ErrorResponseDto> handleNotFoundException(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.NOT_FOUND.value(),
@@ -86,18 +75,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(InvalidVerificationCodeException.class)
-    public ResponseEntity<AttemptsErrorResponseDto> handleInvalidVerificationCode(InvalidVerificationCodeException exception, WebRequest webRequest) {
-        AttemptsErrorResponseDto body = new AttemptsErrorResponseDto(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                exception.getMessage(),
-                webRequest.getDescription(false).replace("uri=", ""),
-                exception.getAttempts()
-        );
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
-    }
-
     @ExceptionHandler(NotAuthorizedException.class)
     public ResponseEntity<ErrorResponseDto> handleForbidden(NotAuthorizedException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
@@ -107,18 +84,6 @@ public class GlobalExceptionHandler {
                 webRequest.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler(VerificationAttemptsExceededException.class)
-    public ResponseEntity<AttemptsErrorResponseDto> handleToManyVerificationAttempts(VerificationAttemptsExceededException exception, WebRequest webRequest) {
-        AttemptsErrorResponseDto body = new AttemptsErrorResponseDto(
-                HttpStatus.TOO_MANY_REQUESTS.value(),
-                HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(),
-                exception.getMessage(),
-                webRequest.getDescription(false).replace("uri=", ""),
-                exception.getAttempts()
-        );
-        return new ResponseEntity<>(body, HttpStatus.TOO_MANY_REQUESTS);
     }
 
     @ExceptionHandler(TooManyRequests.class)
