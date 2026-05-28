@@ -1,7 +1,7 @@
 package com.finovara.activityservice.activity_log.accountactivity.limit.model;
 
-import com.finovara.activityservice.contracts.model.activity.LimitActivityType;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.activity.LimitActivityType;
+import com.finovara.contracts.model.PeriodType;
 import jakarta.persistence.*;
 import lombok.*;
 
