@@ -1,7 +1,7 @@
 package com.finovara.corebackend.report.finances.sum.service;
 
 import com.finovara.corebackend.report.dto.ReportDto;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
