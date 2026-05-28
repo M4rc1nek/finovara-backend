@@ -42,12 +42,12 @@ spring:
               - email
               - profile
   kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
       properties:
-        spring.jackson.add.type.headers: falseó
+        spring.json.add.type.headers: false
 
 server:
   port: 8443
@@ -133,6 +133,7 @@ security:
     - /api/contact
     - /oauth2/**
     - /login/oauth2/**
+    - /internal/**
   cors:
     allowed-origins:
       - https://localhost:5173
