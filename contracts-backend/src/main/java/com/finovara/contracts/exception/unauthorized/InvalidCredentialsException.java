@@ -1,7 +1,7 @@
-package com.finovara.corebackend.exception.unauthorized;
+package com.finovara.contracts.exception.unauthorized;
 
-public class WrongPasswordException extends RuntimeException {
-    public WrongPasswordException(String message) {
+public class InvalidCredentialsException extends RuntimeException {
+    public InvalidCredentialsException(String message) {
         super(message);
     }
 }
