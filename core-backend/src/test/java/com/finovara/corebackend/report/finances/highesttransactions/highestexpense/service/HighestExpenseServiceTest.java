@@ -1,9 +1,9 @@
 package com.finovara.corebackend.report.finances.highesttransactions.highestexpense.service;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
 import com.finovara.corebackend.report.finances.highesttransactions.highestexpense.dto.HighestExpenseDto;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
