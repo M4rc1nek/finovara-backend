@@ -1,9 +1,9 @@
 package com.finovara.corebackend.usersetting.piggybank.completion.service;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
 import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.piggybank.completion.dto.GoalCompletionDto;
 import com.finovara.corebackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
@@ -103,11 +103,11 @@ class GoalCompletionServiceTest {
 
         @Test
         void shouldThrowWhenUserNotFound() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
+            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new RequestedEntityNotFoundException("User not found"));
 
             GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_DELETE);
 
-            assertThrows(UserNotFoundException.class, () -> goalCompletionService.saveGoalCompletion(USER_ID, 1L, dto));
+            assertThrows(RequestedEntityNotFoundException.class, () -> goalCompletionService.saveGoalCompletion(USER_ID, 1L, dto));
         }
 
     }
@@ -205,11 +205,11 @@ class GoalCompletionServiceTest {
 
         @Test
         void shouldThrowWhenUserNotFound() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new UserNotFoundException("User not found"));
+            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new RequestedEntityNotFoundException("User not found"));
 
             GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_DELETE);
 
-            assertThrows(UserNotFoundException.class, () -> goalCompletionService.saveGoalCompletion(USER_ID, 1L, dto));
+            assertThrows(RequestedEntityNotFoundException.class, () -> goalCompletionService.saveGoalCompletion(USER_ID, 1L, dto));
         }
 
     }
