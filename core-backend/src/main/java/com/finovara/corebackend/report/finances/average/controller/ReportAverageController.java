@@ -2,7 +2,7 @@ package com.finovara.corebackend.report.finances.average.controller;
 
 import com.finovara.corebackend.report.dto.ReportDto;
 import com.finovara.corebackend.report.finances.average.service.ReportAverageService;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
