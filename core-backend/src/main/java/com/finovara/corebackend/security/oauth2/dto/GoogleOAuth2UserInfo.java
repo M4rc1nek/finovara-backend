@@ -1,6 +1,6 @@
 package com.finovara.corebackend.security.oauth2.dto;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import org.springframework.util.StringUtils;
 
 import java.util.Map;
