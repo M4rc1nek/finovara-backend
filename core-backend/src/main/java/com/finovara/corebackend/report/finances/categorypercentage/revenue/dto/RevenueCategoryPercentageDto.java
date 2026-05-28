@@ -1,6 +1,6 @@
 package com.finovara.corebackend.report.finances.categorypercentage.revenue.dto;
 
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
 
 import java.math.BigDecimal;
 
