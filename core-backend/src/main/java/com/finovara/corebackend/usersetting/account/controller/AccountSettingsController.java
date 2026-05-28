@@ -5,7 +5,7 @@ import com.finovara.corebackend.usersetting.account.dto.AccountSettingsDto;
 import com.finovara.corebackend.usersetting.account.dto.passwordpolicy.ChangePasswordDto;
 import com.finovara.corebackend.usersetting.account.service.AccountService;
 import com.finovara.corebackend.usersetting.account.service.passwordpolicy.change.ChangePasswordService;
-import com.finovara.corebackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.contracts.dto.ConfirmPasswordDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
