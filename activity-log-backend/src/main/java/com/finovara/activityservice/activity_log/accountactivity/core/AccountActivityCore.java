@@ -1,6 +1,6 @@
 package com.finovara.activityservice.activity_log.accountactivity.core;
 
-import com.finovara.activityservice.contracts.model.SortType;
+import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 
