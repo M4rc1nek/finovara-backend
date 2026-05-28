@@ -3,7 +3,7 @@ package com.finovara.activityservice.activity_log.accountactivity.piggybank.cont
 import com.finovara.activityservice.activity_log.accountactivity.piggybank.dto.PiggyBankActivityDto;
 import com.finovara.activityservice.activity_log.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.activityservice.security.SecurityUtils;
-import com.finovara.activityservice.contracts.model.SortType;
+import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
