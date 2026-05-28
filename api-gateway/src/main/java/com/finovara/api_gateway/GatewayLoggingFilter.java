@@ -1,4 +1,4 @@
-package com.finovara.activityservice.api_gateway;
+package com.finovara.api_gateway;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -25,7 +25,7 @@ public class GatewayLoggingFilter {
                 Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
                 String routeId = route != null ? route.getId() : "unknown";
 
-                log.info("#{} Api-gateway redirected to: {} {} → [{}]", COUNTER.incrementAndGet(), method, path, routeId);
+                log.info("#{} Api-gateway redirected to: {} {} -> [{}]", COUNTER.incrementAndGet(), method, path, routeId);
             });
         };
     }
