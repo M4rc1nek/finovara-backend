@@ -1,6 +1,6 @@
 package com.finovara.corebackend.util.revenue;
 
-import com.finovara.corebackend.revenue.exception.notfound.RevenueNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.revenue.model.Revenue;
 import com.finovara.corebackend.revenue.repository.RevenueRepository;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ class RevenueManagerServiceTest {
 
         when(revenueRepository.findById(revenueId)).thenReturn(Optional.empty());
 
-        assertThrows(RevenueNotFoundException.class, () -> revenueManagerService.getRevenueOrThrow(revenueId));
+        assertThrows(RequestedEntityNotFoundException.class, () -> revenueManagerService.getRevenueOrThrow(revenueId));
 
         verify(revenueRepository).findById(revenueId);
     }
