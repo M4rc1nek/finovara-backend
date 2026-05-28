@@ -1,8 +1,8 @@
 package com.finovara.corebackend.security.oauth2;
 
-import com.finovara.corebackend.exception.conflict.NameAlreadyExistsException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.security.oauth2.dto.GoogleOAuth2UserInfo;
-import com.finovara.corebackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.OAuthProvider;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
@@ -36,7 +36,7 @@ public class GoogleOAuth2UserService {
 
     private User createGoogleUser(GoogleOAuth2UserInfo userInfo) {
         if (userRepository.existsByEmail(userInfo.email())) {
-            throw new EmailAlreadyExistsException("User already exists");
+            throw new EntityAlreadyExistsException("User already exists");
         }
 
         User user = User.builder()
@@ -60,7 +60,7 @@ public class GoogleOAuth2UserService {
 
     private User synchronizeExistingGoogleUser(User user, GoogleOAuth2UserInfo userInfo) {
         if (userRepository.existsByEmailAndIdNot(userInfo.email(), user.getId())) {
-            throw new EmailAlreadyExistsException("User already exists");
+            throw new EntityAlreadyExistsException("User already exists");
         }
 
         user.setEmail(userInfo.email());
@@ -94,7 +94,7 @@ public class GoogleOAuth2UserService {
         }
 
         if (userRepository.existsByUsernameAndIdNot(googleName, user.getId())) {
-            throw new NameAlreadyExistsException("Username is already taken");
+            throw new EntityAlreadyExistsException("Username is already taken");
         }
 
         user.setUsername(googleName);
