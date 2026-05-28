@@ -1,11 +1,11 @@
 package com.finovara.corebackend.limit.service;
 
 import com.finovara.corebackend.limit.dto.LimitStatsDto;
-import com.finovara.corebackend.limit.exception.notfound.ActiveLimitNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.limit.mapper.LimitMapper;
 import com.finovara.corebackend.limit.model.Limit;
 import com.finovara.corebackend.limit.model.LimitStatus;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.corebackend.limit.repository.LimitRepository;
 import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
@@ -73,7 +73,7 @@ class LimitCalculateTest {
 
         when(limitRepository.findByIdAndUserAssignedId(userId, limitId)).thenReturn(Optional.empty());
 
-        assertThrows(ActiveLimitNotFoundException.class, () -> limitService.calculateLimitStats(userId, limitId, date));
+        assertThrows(RequestedEntityNotFoundException.class, () -> limitService.calculateLimitStats(userId, limitId, date));
 
         verify(limitRepository).findByIdAndUserAssignedId(userId, limitId);
         verifyNoInteractions(financialPeriodService, limitMapper);
