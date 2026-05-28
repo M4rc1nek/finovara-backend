@@ -1,6 +1,12 @@
 package com.finovara.corebackend.revenue.exception.notfound;
 
-public class RevenueNotFoundException extends RuntimeException {
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+
+/**
+ * Deprecated: use {@link com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException} instead.
+ */
+@Deprecated
+public class RevenueNotFoundException extends RequestedEntityNotFoundException {
     public RevenueNotFoundException(String message) {
         super(message);
     }
