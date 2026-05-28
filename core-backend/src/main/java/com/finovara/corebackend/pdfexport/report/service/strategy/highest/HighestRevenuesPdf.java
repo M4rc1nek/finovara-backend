@@ -6,7 +6,7 @@ import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
 import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
 import com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.dto.HighestRevenueDto;
 import com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.service.HighestRevenueService;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
