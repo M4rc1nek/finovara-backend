@@ -1,10 +1,12 @@
 package com.finovara.corebackend.usersetting.finances.recurring.service.execution;
 
-import com.finovara.activityservice.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.corebackend.expense.service.ExpenseService;
 import com.finovara.corebackend.piggybank.service.PiggyBankTransactionService;
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
 import com.finovara.corebackend.revenue.service.RevenueService;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;
@@ -13,8 +15,6 @@ import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringTy
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringSavingsValidator;
-import com.finovara.activityservice.contracts.model.PeriodType;
-import com.finovara.corebackend.util.piggybank.exception.notfound.PiggyBankNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -192,7 +192,7 @@ class RecurringExecutionServiceTest {
 
         @Test
         void shouldDisableWhenPiggyBankNotFound() {
-            doThrow(new PiggyBankNotFoundException("Piggy bank not found"))
+            doThrow(new RequestedEntityNotFoundException("Piggy bank not found"))
                     .when(piggyBankTransactionService)
                     .addBalanceToPiggyBank(any(), any(), any(), any());
 
