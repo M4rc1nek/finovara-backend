@@ -1,7 +1,7 @@
 package com.finovara.corebackend.contact.service;
 
 import com.finovara.corebackend.contact.dto.ContactDto;
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.util.email.EmailDomainValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
