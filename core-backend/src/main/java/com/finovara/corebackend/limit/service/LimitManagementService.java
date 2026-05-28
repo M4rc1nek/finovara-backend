@@ -1,11 +1,12 @@
 package com.finovara.corebackend.limit.service;
 
-import com.finovara.activityservice.contracts.event.limit.LimitActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.LimitActivityType;
+import com.finovara.contracts.event.limit.LimitActivityEvent;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.model.activity.LimitActivityType;
 import com.finovara.corebackend.limit.dto.LimitDto;
 import com.finovara.corebackend.limit.dto.LimitStatsDto;
-import com.finovara.corebackend.limit.exception.conflict.LimitAlreadyExistsException;
-import com.finovara.corebackend.limit.exception.notfound.ActiveLimitNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.limit.model.Limit;
 import com.finovara.corebackend.limit.repository.LimitRepository;
 import com.finovara.corebackend.user.model.User;
@@ -34,7 +35,7 @@ public class LimitManagementService {
         List<Limit> existingLimit = limitRepository.findByUserAssignedIdAndType(user.getId(), limitDto.periodType());
 
         if (!existingLimit.isEmpty()) {
-            throw new LimitAlreadyExistsException("Limit already existing");
+            throw new EntityAlreadyExistsException("Limit already existing");
         }
 
         Limit limit = Limit.builder()
@@ -55,10 +56,10 @@ public class LimitManagementService {
     public Long editLimit(LimitDto limitDto, Long limitId, Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
         Limit limit = limitRepository.findByIdAndUserAssignedId(user.getId(), limitId)
-                .orElseThrow(() -> new ActiveLimitNotFoundException("Active limit not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Active limit not found"));
 
         if (limit.getUserAssigned() == null || !limit.getUserAssigned().getId().equals(user.getId())) {
-            throw new ActiveLimitNotFoundException("Active Limit not found for this user");
+            throw new RequestedEntityNotFoundException("Active Limit not found for this user");
         }
 
         BigDecimal oldLimitAmount = limit.getAmount();
@@ -87,7 +88,7 @@ public class LimitManagementService {
     public void deleteLimit(Long userId, Long limitId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
         Limit limit = limitRepository.findByIdAndUserAssignedId(user.getId(), limitId)
-                .orElseThrow(() -> new ActiveLimitNotFoundException("Active limit not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Active limit not found"));
         kafkaTemplate.send("activity.limit", new LimitActivityEvent(userId, LimitActivityType.DELETED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
         limitRepository.delete(limit);
     }
