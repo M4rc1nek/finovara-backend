@@ -6,7 +6,9 @@ import com.finovara.activityservice.activity_log.accountactivity.secure.accountc
 import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
 import com.finovara.activityservice.activity_log.accountactivity.secure.core.SecurityActivityCore;
-import com.finovara.activityservice.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.activityservice.feignclient.CoreBackendClient;
+import com.finovara.contracts.dto.ConfirmPasswordDto;
+import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +23,7 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
 
     private final AccountChangesActivityRepository accountChangesActivityRepository;
     private final AccountChangeArchiveService accountChangeArchiveService;
+    private final CoreBackendClient coreBackendClient;
 
     @Value("${user-activity.account-changes.page-size}")
     private int pageSize;
@@ -42,6 +45,10 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
 
     public List<AccountChangesActivityDto> getAccountChangesActivity(Long userId) {
         return accountChangesActivityRepository.findByUserIdOrderByIdDesc(userId);
+    }
+
+    public void confirmPassword(Long userId, ConfirmPasswordDto dto) {
+        coreBackendClient.verifyPassword(userId, dto);
     }
 
     @Override
