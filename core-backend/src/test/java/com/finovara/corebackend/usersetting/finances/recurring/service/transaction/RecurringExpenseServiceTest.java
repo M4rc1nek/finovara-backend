@@ -1,6 +1,6 @@
 package com.finovara.corebackend.usersetting.finances.recurring.service.transaction;
 
-import com.finovara.activityservice.contracts.model.activity.SettingType;
+import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.corebackend.usersetting.finances.recurring.dto.RecurringExpenseDto;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
@@ -10,7 +10,7 @@ import com.finovara.corebackend.usersetting.finances.recurring.service.support.R
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.wallet.model.Wallet;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
