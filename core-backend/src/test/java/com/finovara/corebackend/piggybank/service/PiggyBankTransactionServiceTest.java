@@ -1,11 +1,11 @@
 package com.finovara.corebackend.piggybank.service;
 
-import com.finovara.activityservice.contracts.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
 import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.corebackend.util.piggybank.manager.PiggyBankManagerService;
@@ -128,9 +128,9 @@ class PiggyBankTransactionServiceTest {
 
         @Test
         void shouldThrowWhenUserNotFound() {
-            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("x"));
+            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("x"));
 
-            assertThrows(UserNotFoundException.class, () -> piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+            assertThrows(RequestedEntityNotFoundException.class, () -> piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
                             PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY));
 
             verifyNoInteractions(walletRepository, piggyBankRepository);
@@ -178,9 +178,9 @@ class PiggyBankTransactionServiceTest {
 
         @Test
         void shouldThrowWhenUserNotFoundRemove() {
-            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("x"));
+            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("x"));
 
-            assertThrows(UserNotFoundException.class, ()
+            assertThrows(RequestedEntityNotFoundException.class, ()
                     -> piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100")));
 
             verifyNoInteractions(walletRepository, piggyBankRepository);
