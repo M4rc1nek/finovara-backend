@@ -1,15 +1,15 @@
 package com.finovara.corebackend.piggybank.service;
 
-import com.finovara.activityservice.contracts.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
-import com.finovara.corebackend.exception.conflict.NameAlreadyExistsException;
+import com.finovara.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.piggybank.dto.PiggyBankDto;
 import com.finovara.corebackend.piggybank.mapper.PiggyBankMapper;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
-import com.finovara.activityservice.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.factory.SettingsFactory;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
@@ -126,15 +126,15 @@ class PiggyBankManagementServiceTest {
             when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
             when(piggyBankRepository.existsByNameIgnoreCase(eq(userId), any())).thenReturn(true);
 
-            assertThrows(NameAlreadyExistsException.class, () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
+            assertThrows(EntityAlreadyExistsException.class, () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
         }
 
         @Test
         void shouldThrowExceptionWhenUserNotFound() {
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("x"));
+            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("x"));
 
-            assertThrows(UserNotFoundException.class, () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
+            assertThrows(RequestedEntityNotFoundException.class, () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
         }
     }
 
@@ -175,7 +175,7 @@ class PiggyBankManagementServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(true);
 
-            assertThrows(NameAlreadyExistsException.class, () -> piggyBankManagementService.editPiggyBank(userId, defaultDto, piggyBankId));
+            assertThrows(EntityAlreadyExistsException.class, () -> piggyBankManagementService.editPiggyBank(userId, defaultDto, piggyBankId));
         }
     }
 
