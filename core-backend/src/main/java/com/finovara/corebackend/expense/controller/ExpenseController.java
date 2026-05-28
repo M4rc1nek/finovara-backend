@@ -3,7 +3,7 @@ package com.finovara.corebackend.expense.controller;
 import com.finovara.corebackend.expense.dto.ExpenseDto;
 import com.finovara.corebackend.expense.dto.ExpenseRequestDto;
 import com.finovara.corebackend.expense.service.ExpenseService;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
