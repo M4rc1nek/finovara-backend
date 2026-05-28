@@ -1,18 +1,15 @@
 package com.finovara.corebackend.security.oauth2;
 
-import com.finovara.activityservice.contracts.clientdata.browser.UserBrowser;
-import com.finovara.activityservice.contracts.clientdata.ip.ClientIp;
-import com.finovara.activityservice.contracts.clientdata.location.UserLocation;
-import com.finovara.activityservice.contracts.event.secure.login.activity.LoginActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
 
-import static com.finovara.activityservice.contracts.clientdata.browser.UserBrowser.getBrowser;
-import static com.finovara.activityservice.contracts.clientdata.ip.ClientIp.getClientIpAddress;
-import static com.finovara.activityservice.contracts.clientdata.location.UserLocation.getLocationFromIp;
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
-import com.finovara.corebackend.exception.conflict.NameAlreadyExistsException;
+import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.security.jwt.JwtService;
-import com.finovara.corebackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.util.profile.ProfileImageUrlBuilder;
 import jakarta.servlet.ServletException;
@@ -58,14 +55,24 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             User user = googleOAuth2UserService.synchronize(oauth2User);
             String token = jwtService.generateToken(user);
+            String ipAddress = getClientIpAddress(request);
 
             String profileImageUrl = ProfileImageUrlBuilder.buildProfileImageUrl(user.getProfileImagePath());
-            String ipAddress = getClientIpAddress(request);
-            kafkaTemplate.send("activity.login", new LoginActivityEvent(user.getId(), LoginActivityStatus.SUCCESSFUL, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
+            kafkaTemplate.send("activity.login", new LoginActivityEvent(user.getId(), LoginActivityStatus.SUCCESSFUL, getBrowser(request), ipAddress , getLocationFromIp(ipAddress), LocalDateTime.now()));
+
 
             OAuth2AccessTokenCookie.add(response, token, request.isSecure());
 
-            String redirectUrl = UriComponentsBuilder.fromUriString("https://localhost:5173/oauth2/success").queryParam("id", user.getId()).queryParam("username", user.getUsername()).queryParam("email", user.getEmail()).queryParam("profileImageUrl", profileImageUrl != null ? profileImageUrl : "").queryParam("passwordSet", user.isPasswordSet()).encode().build().toUriString();
+            String redirectUrl = UriComponentsBuilder
+                    .fromUriString("https://localhost:5173/oauth2/success")
+                    .queryParam("id", user.getId())
+                    .queryParam("username", user.getUsername())
+                    .queryParam("email", user.getEmail())
+                    .queryParam("profileImageUrl", profileImageUrl != null ? profileImageUrl : "")
+                    .queryParam("passwordSet", user.isPasswordSet())
+                    .encode()
+                    .build()
+                    .toUriString();
 
             authorizationRequestRepository.removeAuthorizationRequest(request, response);
             SecurityContextHolder.clearContext();
@@ -77,7 +84,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             response.sendRedirect(redirectUrl);
 
-        } catch (EmailAlreadyExistsException | NameAlreadyExistsException | InvalidInputException exception) {
+        } catch (EntityAlreadyExistsException | InvalidInputException exception) {
             log.error("OAuth2 business validation failed", exception);
             response.sendRedirect("https://localhost:5173/auth?error=" + exception.getMessage());
 
