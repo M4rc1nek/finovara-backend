@@ -1,6 +1,6 @@
 package com.finovara.corebackend.usersetting.account.service.passwordpolicy.change;
 
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.account.dto.passwordpolicy.ChangePasswordDto;
 import com.finovara.corebackend.usersetting.account.service.verification.CredentialValidationService;
@@ -63,9 +63,9 @@ class ChangePasswordServiceTest {
 
     @Test
     void shouldThrowExceptionWhenUserNotFound() {
-        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
+        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("User not found"));
 
-        assertThrows(UserNotFoundException.class, () -> changePasswordService.changePassword(userId, dto, request));
+        assertThrows(RequestedEntityNotFoundException.class, () -> changePasswordService.changePassword(userId, dto, request));
 
         verifyNoInteractions(credentialValidationService);
         verifyNoInteractions(passwordUpdateService);
