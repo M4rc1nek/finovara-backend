@@ -1,6 +1,6 @@
 package com.finovara.corebackend.util.piggybank;
 
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.piggybank.dto.PiggyBankDto;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
