@@ -1,9 +1,9 @@
 package com.finovara.corebackend.piggybank.service;
 
-import com.finovara.activityservice.contracts.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
-import com.finovara.corebackend.exception.conflict.NameAlreadyExistsException;
+import com.finovara.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.piggybank.dto.PiggyBankDto;
 import com.finovara.corebackend.piggybank.mapper.PiggyBankMapper;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
@@ -55,7 +55,7 @@ public class PiggyBankManagementService {
         }
 
         if (piggyBankRepository.existsByNameIgnoreCase(user.getId(), piggyBankDto.name())) {
-            throw new NameAlreadyExistsException("This piggy bank name already exists");
+            throw new EntityAlreadyExistsException("This piggy bank name already exists");
         }
 
         PiggyBankValidator.validateGoalAmount(piggyBankDto);
@@ -84,7 +84,7 @@ public class PiggyBankManagementService {
 
         if (piggyBankRepository.existsByNameIgnoreCase(user.getId(), piggyBankDto.name())
                 && !piggyBank.getName().equalsIgnoreCase(piggyBankDto.name())) {
-            throw new NameAlreadyExistsException("This piggy bank name already exists");
+            throw new EntityAlreadyExistsException("This piggy bank name already exists");
         }
 
         PiggyBankValidator.validateGoalAmount(piggyBankDto);
