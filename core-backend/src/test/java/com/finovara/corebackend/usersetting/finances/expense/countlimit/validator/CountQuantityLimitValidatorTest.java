@@ -1,9 +1,9 @@
 package com.finovara.corebackend.usersetting.finances.expense.countlimit.validator;
 
-import com.finovara.corebackend.exception.conflict.StateConflictException;
-import com.finovara.corebackend.exception.unprocessablecontent.MissingRequirementException;
+import com.finovara.contracts.exception.conflict.StateConflictException;
+import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;
-import com.finovara.corebackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.contracts.dto.ConfirmPasswordDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
