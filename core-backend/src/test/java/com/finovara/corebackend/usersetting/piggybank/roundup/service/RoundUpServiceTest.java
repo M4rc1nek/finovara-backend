@@ -1,15 +1,15 @@
 package com.finovara.corebackend.usersetting.piggybank.roundup.service;
 
-import com.finovara.activityservice.contracts.model.activity.SettingActivityStatus;
-import com.finovara.activityservice.contracts.event.settings.SettingsActivityEvent;
-import com.finovara.corebackend.exception.notfound.WalletNotFoundException;
+import com.finovara.contracts.model.activity.SettingActivityStatus;
+import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.expense.model.Expense;
 import com.finovara.corebackend.piggybank.dto.PiggyBankDto;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
-import com.finovara.activityservice.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.corebackend.piggybank.service.PiggyBankManagementService;
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.corebackend.usersetting.piggybank.completion.service.GoalCompletionService;
@@ -172,7 +172,7 @@ class RoundUpServiceTest {
 
             when(walletRepository.findByUserAssignedId(userId)).thenReturn(Optional.empty());
 
-            assertThrows(WalletNotFoundException.class, () -> roundUpService.handleExpenseForRoundUp(userId, 1L, PiggyBankAutomationMode.APPLY));
+            assertThrows(RequestedEntityNotFoundException.class, () -> roundUpService.handleExpenseForRoundUp(userId, 1L, PiggyBankAutomationMode.APPLY));
 
             verifyNoInteractions(roundUpCore);
         }
@@ -209,9 +209,9 @@ class RoundUpServiceTest {
         void shouldThrowExceptionWhenUserDoesNotExist() {
             PiggyBankDto dto = new PiggyBankDto(12L, null, "My piggy bank", new BigDecimal("50"), null, PiggyBankGoalType.GIFTS, new BigDecimal("100"), null, false);
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new UserNotFoundException("User not found"));
+            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("User not found"));
 
-            assertThrows(UserNotFoundException.class, () -> roundUpService.addDefaultPiggyBank(dto, userId));
+            assertThrows(RequestedEntityNotFoundException.class, () -> roundUpService.addDefaultPiggyBank(dto, userId));
         }
     }
 }
