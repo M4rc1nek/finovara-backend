@@ -1,14 +1,14 @@
 package com.finovara.corebackend.usersetting.finances.recurring.service.transaction;
 
-import com.finovara.activityservice.contracts.model.activity.SettingType;
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.corebackend.usersetting.finances.recurring.dto.RecurringRevenueDto;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringType;
 import com.finovara.corebackend.usersetting.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.corebackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
