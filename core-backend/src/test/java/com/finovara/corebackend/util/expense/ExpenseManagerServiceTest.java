@@ -1,6 +1,6 @@
 package com.finovara.corebackend.util.expense;
 
-import com.finovara.corebackend.expense.exception.notfound.ExpenseNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.expense.model.Expense;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
 import org.junit.jupiter.api.Test;
@@ -42,7 +42,7 @@ class ExpenseManagerServiceTest {
     void shouldThrowWhenExpenseByUserIdNotFound() {
         when(expenseRepository.findByIdAndUserAssignedId(EXPENSE_ID, USER_ID)).thenReturn(Optional.empty());
 
-        assertThrows(ExpenseNotFoundException.class, () -> expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID));
+        assertThrows(RequestedEntityNotFoundException.class, () -> expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID));
 
         verify(expenseRepository).findByIdAndUserAssignedId(EXPENSE_ID, USER_ID);
     }
@@ -62,7 +62,7 @@ class ExpenseManagerServiceTest {
     void shouldThrowWhenExpenseByIdNotFound() {
         when(expenseRepository.findById(EXPENSE_ID)).thenReturn(Optional.empty());
 
-        assertThrows(ExpenseNotFoundException.class, () -> expenseManagerService.getExpenseByIdOrThrow(EXPENSE_ID));
+        assertThrows(RequestedEntityNotFoundException.class, () -> expenseManagerService.getExpenseByIdOrThrow(EXPENSE_ID));
 
         verify(expenseRepository).findById(EXPENSE_ID);
     }
