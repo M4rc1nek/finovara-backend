@@ -1,8 +1,8 @@
 package com.finovara.corebackend.util.piggybank.manager;
 
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
 import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.corebackend.util.piggybank.exception.notfound.PiggyBankNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -41,6 +41,6 @@ class PiggyBankManagerTest {
         when(piggyBankRepository.findByIdAndUserAssignedEmail(1L, "test@example.com"))
                 .thenReturn(Optional.empty());
 
-        assertThrows(PiggyBankNotFoundException.class, () -> piggyBankManagerService.getPiggyBankByUserEmail(1L, "test@example.com"));
+        assertThrows(RequestedEntityNotFoundException.class, () -> piggyBankManagerService.getPiggyBankByUserEmail(1L, "test@example.com"));
     }
 }
