@@ -1,6 +1,6 @@
 package com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.activity.dto;
 
-import com.finovara.activityservice.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.model.activity.AccountChangesActivityType;
 
 import java.time.LocalDateTime;
 
