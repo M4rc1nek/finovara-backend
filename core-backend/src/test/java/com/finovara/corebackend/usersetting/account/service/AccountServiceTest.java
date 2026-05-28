@@ -1,15 +1,15 @@
 package com.finovara.corebackend.usersetting.account.service;
 
-import com.finovara.activityservice.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.AccountChangesActivityType;
-import com.finovara.corebackend.exception.conflict.NameAlreadyExistsException;
+import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.account.dto.AccountSettingsDto;
 import com.finovara.corebackend.usersetting.notificationemail.action.accountdeleted.service.NotifyOnAccountDeletedService;
 import com.finovara.corebackend.usersetting.notificationemail.action.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.corebackend.usersetting.notificationemail.model.NotificationEmailSettings;
-import com.finovara.corebackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.contracts.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -97,7 +97,7 @@ class AccountServiceTest {
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(userRepository.existsByUsername(dto.username())).thenReturn(true);
 
-            assertThatThrownBy(() -> accountService.updateUsername(dto, userId, request)).isInstanceOf(NameAlreadyExistsException.class);
+            assertThatThrownBy(() -> accountService.updateUsername(dto, userId, request)).isInstanceOf(EntityAlreadyExistsException.class);
 
             verify(userRepository, never()).save(any());
         }
