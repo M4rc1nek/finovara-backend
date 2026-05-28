@@ -2,12 +2,12 @@ package com.finovara.corebackend.notification.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.notification.dto.NotificationResponse;
 import com.finovara.corebackend.notification.model.Notification;
 import com.finovara.corebackend.notification.repository.NotificationRepository;
 import com.finovara.corebackend.user.model.User;
-import com.finovara.activityservice.contracts.model.SortType;
+import com.finovara.contracts.model.SortType;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
