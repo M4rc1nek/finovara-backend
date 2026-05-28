@@ -1,6 +1,6 @@
 package com.finovara.corebackend.expense.model;
 
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.corebackend.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
