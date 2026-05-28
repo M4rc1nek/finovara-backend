@@ -1,16 +1,16 @@
 package com.finovara.corebackend.usersetting.finances.expense.countlimit.service;
 
-import com.finovara.activityservice.contracts.model.activity.SettingActivityStatus;
-import com.finovara.activityservice.contracts.event.settings.SettingsActivityEvent;
-import com.finovara.corebackend.exception.conflict.StateConflictException;
+import com.finovara.contracts.model.activity.SettingActivityStatus;
+import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.exception.conflict.StateConflictException;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import com.finovara.corebackend.usersetting.finances.expense.countlimit.validator.CountQuantityLimitValidator;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;
-import com.finovara.corebackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.contracts.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.confirmationpassword.service.PasswordValidator;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
