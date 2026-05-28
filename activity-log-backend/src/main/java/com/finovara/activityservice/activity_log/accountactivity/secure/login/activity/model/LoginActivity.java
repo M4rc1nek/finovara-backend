@@ -1,6 +1,6 @@
 package com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.model;
 
-import com.finovara.activityservice.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
