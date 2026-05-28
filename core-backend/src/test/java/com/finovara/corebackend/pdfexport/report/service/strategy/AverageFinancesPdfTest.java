@@ -5,7 +5,7 @@ import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
 import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
 import com.finovara.corebackend.report.dto.ReportDto;
 import com.finovara.corebackend.report.finances.average.service.ReportAverageService;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
