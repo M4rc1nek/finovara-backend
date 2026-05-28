@@ -8,11 +8,11 @@ import io.jsonwebtoken.security.Keys;
 import java.security.Key;
 import java.util.Date;
 
-final class JwtTestTokenFactory {
+final class JwtTokenFactoryTest {
 
     static final String SECRET = "MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=";
 
-    private JwtTestTokenFactory() {
+    private JwtTokenFactoryTest() {
     }
 
     static String token(Long userId, Date issuedAt, Date expiration) {

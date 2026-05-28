@@ -16,7 +16,7 @@ class JwtServiceTest {
     @BeforeEach
     void setUp() {
         jwtService = new JwtService();
-        ReflectionTestUtils.setField(jwtService, "secretKey", JwtTestTokenFactory.SECRET);
+        ReflectionTestUtils.setField(jwtService, "secretKey", JwtTokenFactoryTest.SECRET);
     }
 
     @Test
@@ -35,7 +35,7 @@ class JwtServiceTest {
 
     @Test
     void shouldDetectExpiredToken() {
-        String expiredToken = JwtTestTokenFactory.token(
+        String expiredToken = JwtTokenFactoryTest.token(
                 42L,
                 Date.from(Instant.now().minusSeconds(120)),
                 Date.from(Instant.now().minusSeconds(60))
@@ -46,7 +46,7 @@ class JwtServiceTest {
     }
 
     private String validToken(Long userId) {
-        return JwtTestTokenFactory.token(
+        return JwtTokenFactoryTest.token(
                 userId,
                 Date.from(Instant.now().minusSeconds(60)),
                 Date.from(Instant.now().plusSeconds(3600))
