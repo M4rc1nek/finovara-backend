@@ -1,7 +1,7 @@
 package com.finovara.corebackend.usersetting.finances.expense.smartscan.service;
 
-import com.finovara.activityservice.contracts.model.activity.SettingActivityStatus;
-import com.finovara.activityservice.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.model.activity.SettingActivityStatus;
+import com.finovara.contracts.event.settings.SettingsActivityEvent;
 import com.finovara.corebackend.expense.model.Expense;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
 import com.finovara.corebackend.user.model.User;
@@ -9,7 +9,7 @@ import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettin
 import com.finovara.corebackend.usersetting.finances.expense.smartscan.dto.SmartScanDto;
 import com.finovara.corebackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.corebackend.usersetting.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
-import com.finovara.corebackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.contracts.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import org.springframework.kafka.core.KafkaTemplate;
