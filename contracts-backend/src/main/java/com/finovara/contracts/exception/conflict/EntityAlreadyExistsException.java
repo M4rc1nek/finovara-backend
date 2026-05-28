@@ -1,7 +1,7 @@
 package com.finovara.contracts.exception.conflict;
 
-public class NameAlreadyExistsException extends RuntimeException {
-    public NameAlreadyExistsException(String message) {
+public class EntityAlreadyExistsException extends RuntimeException {
+    public EntityAlreadyExistsException(String message) {
         super(message);
     }
 }
