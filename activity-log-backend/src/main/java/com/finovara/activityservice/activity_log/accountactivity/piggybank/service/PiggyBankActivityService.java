@@ -5,8 +5,8 @@ import com.finovara.activityservice.activity_log.accountactivity.piggybank.dto.P
 import com.finovara.activityservice.activity_log.accountactivity.piggybank.mapper.PiggyBankActivityMapper;
 import com.finovara.activityservice.activity_log.accountactivity.piggybank.model.PiggyBankActivity;
 import com.finovara.activityservice.activity_log.accountactivity.piggybank.repository.PiggyBankActivityRepository;
-import com.finovara.activityservice.contracts.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.activityservice.contracts.model.SortType;
+import com.finovara.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
