@@ -1,7 +1,7 @@
 package com.finovara.corebackend.security.oauth2;
 
-import com.finovara.corebackend.exception.conflict.NameAlreadyExistsException;
-import com.finovara.corebackend.user.exception.conflict.EmailAlreadyExistsException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.OAuthProvider;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
@@ -125,7 +125,7 @@ class GoogleOAuth2UserServiceTest {
             when(userRepository.existsByEmail(EMAIL)).thenReturn(true);
 
             assertThatThrownBy(() -> googleOAuth2UserService.synchronize(oauth2User))
-                    .isInstanceOf(EmailAlreadyExistsException.class);
+                    .isInstanceOf(EntityAlreadyExistsException.class);
 
             verify(userRepository, never()).save(any());
         }
@@ -250,7 +250,7 @@ class GoogleOAuth2UserServiceTest {
             when(userRepository.existsByEmailAndIdNot(EMAIL, 1L)).thenReturn(true);
 
             assertThatThrownBy(() -> googleOAuth2UserService.synchronize(oauth2User))
-                    .isInstanceOf(EmailAlreadyExistsException.class);
+                    .isInstanceOf(EntityAlreadyExistsException.class);
 
             verify(userRepository, never()).save(any());
         }
@@ -287,7 +287,7 @@ class GoogleOAuth2UserServiceTest {
             when(userRepository.existsByUsernameAndIdNot(newName, 1L)).thenReturn(true);
 
             assertThatThrownBy(() -> googleOAuth2UserService.synchronize(oauth2User))
-                    .isInstanceOf(NameAlreadyExistsException.class);
+                    .isInstanceOf(EntityAlreadyExistsException.class);
 
             verify(userRepository, never()).save(any());
         }
