@@ -1,11 +1,11 @@
 package com.finovara.corebackend.revenue.service;
 
-import com.finovara.activityservice.contracts.event.revenue.RevenueActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.RevenueActivityType;
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
-import com.finovara.corebackend.exception.notfound.WalletNotFoundException;
+import com.finovara.contracts.event.revenue.RevenueActivityEvent;
+import com.finovara.contracts.model.activity.RevenueActivityType;
+import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.revenue.dto.RevenueDto;
-import com.finovara.corebackend.revenue.exception.notfound.RevenueNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.revenue.mapper.RevenueMapper;
 import com.finovara.corebackend.revenue.model.Revenue;
 import com.finovara.corebackend.revenue.repository.RevenueRepository;
@@ -65,11 +65,11 @@ public class RevenueService {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         if (!existingRevenue.getUserAssigned().getId().equals(user.getId())) {
-            throw new RevenueNotFoundException("Revenue not found for this user");
+            throw new RequestedEntityNotFoundException("Revenue not found for this user");
         }
 
         Wallet wallet = walletRepository.findByUserAssignedId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Wallet not found"));
 
         BigDecimal oldAmount = existingRevenue.getAmount();
         BigDecimal newAmount = revenueDto.amount();
@@ -106,7 +106,7 @@ public class RevenueService {
     public void deleteRevenue(Long revenueId, Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
         Revenue revenue = revenueRepository.findByIdAndUserAssignedId(revenueId, user.getId())
-                .orElseThrow(() -> new RevenueNotFoundException("Revenue not found"));
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
         walletService.removeBalanceFromWallet(userId, revenue.getAmount());
         kafkaTemplate.send("activity.revenue", new RevenueActivityEvent(userId, RevenueActivityType.DELETED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
