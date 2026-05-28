@@ -1,6 +1,6 @@
 package com.finovara.corebackend.util.user.service;
 
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ class UserManagerServiceTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> userManagerService.getUserByIdOrThrow(userId));
+        assertThrows(RequestedEntityNotFoundException.class, () -> userManagerService.getUserByIdOrThrow(userId));
 
         verify(userRepository).findById(userId);
     }
@@ -70,7 +70,7 @@ class UserManagerServiceTest {
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> userManagerService.getUserByEmailOrThrow(email));
+        assertThrows(RequestedEntityNotFoundException.class, () -> userManagerService.getUserByEmailOrThrow(email));
 
         verify(userRepository).findByEmail(email);
     }
