@@ -1,4 +1,4 @@
-package com.finovara.corebackend.exception;
+package com.finovara.contracts.exception;
 
 public record ErrorResponseDto(
         int status,
