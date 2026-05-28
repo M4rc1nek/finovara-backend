@@ -5,8 +5,8 @@ import com.finovara.activityservice.activity_log.accountactivity.secure.accountc
 import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.activity.repository.AccountChangesActivityRepository;
 import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
-import com.finovara.activityservice.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
