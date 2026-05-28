@@ -1,8 +1,8 @@
 package com.finovara.corebackend.pdfexport.report.service.strategy.label;
 
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.PeriodType;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
