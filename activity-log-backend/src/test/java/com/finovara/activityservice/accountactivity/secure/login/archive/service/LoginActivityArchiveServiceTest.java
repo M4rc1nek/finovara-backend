@@ -4,7 +4,7 @@ import com.finovara.activityservice.activity_log.accountactivity.secure.login.ac
 import com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.dto.LoginActivityArchiveDto;
 import com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.repository.LoginActivityArchiveRepository;
-import com.finovara.activityservice.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
