@@ -1,7 +1,7 @@
 package com.finovara.activityservice.activity_log.accountactivity.revenue.model;
 
-import com.finovara.activityservice.contracts.model.activity.RevenueActivityType;
-import com.finovara.activityservice.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.activity.RevenueActivityType;
+import com.finovara.contracts.model.transaction.RevenueCategory;
 import jakarta.persistence.*;
 import lombok.*;
 
