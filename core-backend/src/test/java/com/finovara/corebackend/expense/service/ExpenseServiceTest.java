@@ -1,17 +1,16 @@
 package com.finovara.corebackend.expense.service;
 
-import com.finovara.activityservice.contracts.event.expense.ExpenseActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.ExpenseActivityType;
-import com.finovara.corebackend.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.event.expense.ExpenseActivityEvent;
+import com.finovara.contracts.model.activity.ExpenseActivityType;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.corebackend.expense.dto.ExpenseDto;
 import com.finovara.corebackend.expense.dto.ExpenseRequestDto;
-import com.finovara.corebackend.expense.exception.notfound.ExpenseNotFoundException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.expense.mapper.ExpenseMapper;
 import com.finovara.corebackend.expense.model.Expense;
-import com.finovara.activityservice.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
 import com.finovara.corebackend.limit.repository.LimitRepository;
-import com.finovara.corebackend.user.exception.notfound.UserNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
 import com.finovara.corebackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
@@ -20,9 +19,9 @@ import com.finovara.corebackend.usersetting.finances.expense.smartscan.dto.Smart
 import com.finovara.corebackend.usersetting.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.corebackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.corebackend.usersetting.piggybank.roundup.service.RoundUpService;
-import com.finovara.corebackend.util.confirmationpassword.dto.ConfirmPasswordDto;
+import com.finovara.contracts.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.expense.ExpenseManagerService;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import com.finovara.corebackend.wallet.service.WalletService;
@@ -135,9 +134,9 @@ class ExpenseServiceTest {
 
     @Test
     void shouldThrowWhenUserNotFound() {
-        when(userManagerService.getUserByIdOrThrow(anyLong())).thenThrow(new UserNotFoundException("x"));
+        when(userManagerService.getUserByIdOrThrow(anyLong())).thenThrow(new RequestedEntityNotFoundException("x"));
 
-        assertThrows(UserNotFoundException.class, () -> expenseService.addExpense(null, 1L, null));
+        assertThrows(RequestedEntityNotFoundException.class, () -> expenseService.addExpense(null, 1L, null));
     }
 
     @Nested
@@ -165,16 +164,16 @@ class ExpenseServiceTest {
 
         @Test
         void shouldThrowWhenExpenseNotFoundOnEdit() {
-            when(expenseManagerService.getExpenseByIdOrThrow(anyLong())).thenThrow(new ExpenseNotFoundException("x"));
+            when(expenseManagerService.getExpenseByIdOrThrow(anyLong())).thenThrow(new RequestedEntityNotFoundException("x"));
 
-            assertThrows(ExpenseNotFoundException.class, () -> expenseService.editExpense(null, 1L, 1L, null));
+            assertThrows(RequestedEntityNotFoundException.class, () -> expenseService.editExpense(null, 1L, 1L, null));
         }
 
         @Test
         void shouldThrowWhenUserNotFoundOnEdit() {
-            when(userManagerService.getUserByIdOrThrow(anyLong())).thenThrow(new UserNotFoundException("x"));
+            when(userManagerService.getUserByIdOrThrow(anyLong())).thenThrow(new RequestedEntityNotFoundException("x"));
 
-            assertThrows(UserNotFoundException.class, () -> expenseService.editExpense(null, 1L, 1L, null));
+            assertThrows(RequestedEntityNotFoundException.class, () -> expenseService.editExpense(null, 1L, 1L, null));
         }
     }
 
@@ -230,7 +229,7 @@ class ExpenseServiceTest {
             when(userManagerService.getUserByIdOrThrow(1L)).thenReturn(user);
             when(expenseRepository.findByIdAndUserAssignedId(anyLong(), anyLong())).thenReturn(Optional.empty());
 
-            assertThrows(ExpenseNotFoundException.class, () -> expenseService.deleteExpense(1L, 1L));
+            assertThrows(RequestedEntityNotFoundException.class, () -> expenseService.deleteExpense(1L, 1L));
         }
 
     }
