@@ -1,7 +1,7 @@
 package com.finovara.corebackend.limit.repository;
 
 import com.finovara.corebackend.limit.model.Limit;
-import com.finovara.activityservice.contracts.model.PeriodType;
+import com.finovara.contracts.model.PeriodType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
