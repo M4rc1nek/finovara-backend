@@ -6,7 +6,10 @@ import com.finovara.activityservice.activity_log.accountactivity.secure.login.ac
 import com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.repository.LoginActivityRepository;
 import com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
-import com.finovara.activityservice.contracts.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.activityservice.feignclient.CoreBackendClient;
+import com.finovara.activityservice.security.SecurityUtils;
+import com.finovara.contracts.dto.ConfirmPasswordDto;
+import com.finovara.contracts.event.secure.login.activity.LoginActivityEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +24,7 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
 
     private final LoginActivityRepository loginActivityRepository;
     private final LoginActivityArchiveService archiveService;
+    private final CoreBackendClient coreBackendClient;
 
     @Value("${user-activity.login.page-size}")
     private int pageSize;
@@ -43,6 +47,11 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
 
     public List<LoginActivityDto> getLoginActivity(Long userId) {
         return loginActivityRepository.findByUserIdOrderByDesc(userId);
+    }
+
+
+    public void confirmPassword(Long userId, ConfirmPasswordDto dto) {
+        coreBackendClient.verifyPassword(userId, dto);
     }
 
     @Override
