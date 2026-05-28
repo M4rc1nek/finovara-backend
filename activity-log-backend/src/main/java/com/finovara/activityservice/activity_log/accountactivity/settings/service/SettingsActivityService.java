@@ -5,8 +5,8 @@ import com.finovara.activityservice.activity_log.accountactivity.settings.dto.Se
 import com.finovara.activityservice.activity_log.accountactivity.settings.mapper.SettingsActivityMapper;
 import com.finovara.activityservice.activity_log.accountactivity.settings.model.SettingsActivity;
 import com.finovara.activityservice.activity_log.accountactivity.settings.repository.SettingsActivityRepository;
-import com.finovara.activityservice.contracts.event.settings.SettingsActivityEvent;
-import com.finovara.activityservice.contracts.model.SortType;
+import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
