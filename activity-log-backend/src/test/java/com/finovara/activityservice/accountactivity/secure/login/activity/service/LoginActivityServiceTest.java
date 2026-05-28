@@ -5,8 +5,8 @@ import com.finovara.activityservice.activity_log.accountactivity.secure.login.ac
 import com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.repository.LoginActivityRepository;
 import com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
-import com.finovara.activityservice.contracts.event.secure.login.activity.LoginActivityEvent;
-import com.finovara.activityservice.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
