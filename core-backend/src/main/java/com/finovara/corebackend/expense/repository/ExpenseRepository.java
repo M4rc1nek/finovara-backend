@@ -23,11 +23,11 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Expense> findAllByUserAssignedId(Long userId);
 
     @Query("SELECT e From Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :startDate AND :endDate AND e.category = :category")
-    List<Expense> findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(@Param("userId") Long userId, @Param("startDate") LocalDate from,
-                                                                        @Param("endDate") LocalDate to, @Param("category") ExpenseCategory category);
+    List<Expense> findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(Long userId, @Param("startDate") LocalDate from,
+                                                                        @Param("endDate") LocalDate to, ExpenseCategory category);
 
     @Query("SELECT e FROM Expense e WHERE e.userAssigned.id = :userId ORDER BY e.id DESC")
-    List<Expense> findFiveLastByUserAssignedId(@Param("userId") Long userId, Pageable pageable);
+    List<Expense> findFiveLastByUserAssignedId(Long userId, Pageable pageable);
 
     @Query("SELECT COUNT(e) FROM Expense e WHERE e.userAssigned.id = :userId")
     long countExpensesByUserAssignedId(Long userId);
@@ -39,7 +39,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     BigDecimal sumAllExpensesByUserAssignedId(Long userId);
 
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt >= :startDate AND e.createdAt <= :endDate")
-    Optional<BigDecimal> sumExpensesByUserAndDateRange(@Param("userId") Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    Optional<BigDecimal> sumExpensesByUserAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
 
     @Query("SELECT CAST(AVG(e.amount) AS big_decimal) FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
     Optional<BigDecimal> avgExpensesByUserAssignedIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
@@ -51,7 +51,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             )
             FROM Expense e WHERE e.userAssigned.id = :userId AND e.createdAt BETWEEN :from AND :to ORDER BY e.amount DESC
             """)
-    List<HighestExpenseDto> findHighestExpensesByUserAssignedIdAndPeriod(@Param("userId") Long userId, LocalDate from, LocalDate to, Pageable pageable);
+    List<HighestExpenseDto> findHighestExpensesByUserAssignedIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
                 SELECT new com.finovara.corebackend.report.finances.chart.dto.DailyCashDto(

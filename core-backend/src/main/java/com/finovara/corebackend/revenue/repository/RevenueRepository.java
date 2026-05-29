@@ -23,8 +23,8 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<Revenue> findAllByUserAssignedId(Long userId);
 
     @Query("SELECT r From Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt BETWEEN :startDate AND :endDate AND r.category = :category")
-    List<Revenue> findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(@Param("userId") Long userId, @Param("startDate") LocalDate from,
-                                                                        @Param("endDate") LocalDate to, @Param("category") RevenueCategory category);
+    List<Revenue> findAllByUserAssignedIdAndCreatedAtBetweenAndCategory(Long userId, @Param("startDate") LocalDate from,
+                                                                        @Param("endDate") LocalDate to, RevenueCategory category);
 
     @Query("SELECT coalesce(sum(r.amount),0) FROM Revenue r WHERE r.userAssigned.id = :userId")
     BigDecimal sumAllRevenuesByUserAssignedId(Long userId);
@@ -42,7 +42,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
             )
             FROM Revenue r WHERE r.userAssigned.id = :userId AND r.createdAt BETWEEN :from AND :to ORDER BY r.amount DESC
             """)
-    List<HighestRevenueDto> findHighestRevenuesByUserAssignedIdAndPeriod(@Param("userId") Long userId, LocalDate from, LocalDate to, Pageable pageable);
+    List<HighestRevenueDto> findHighestRevenuesByUserAssignedIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
                 SELECT new com.finovara.corebackend.report.finances.chart.dto.DailyCashDto(

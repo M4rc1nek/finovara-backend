@@ -12,16 +12,16 @@ import java.util.Optional;
 @Repository
 public interface PiggyBankRepository extends JpaRepository<PiggyBank, Long> {
     @Query("SELECT pb FROM PiggyBank pb  WHERE pb.id = :piggyBankId AND pb.userAssigned.id = :userId")
-    Optional<PiggyBank> findByIdAndUserAssignedId(@Param("piggyBankId") Long piggyBankId, @Param("userId") Long userId);
+    Optional<PiggyBank> findByIdAndUserAssignedId(Long piggyBankId, Long userId);
 
     @Query("SELECT pb FROM PiggyBank pb  WHERE pb.id = :piggyBankId AND pb.userAssigned.email = :email")
-    Optional<PiggyBank> findByIdAndUserAssignedEmail(@Param("piggyBankId") Long piggyBankId, @Param("email") String email);
+    Optional<PiggyBank> findByIdAndUserAssignedEmail(Long piggyBankId, String email);
 
     @Query("SELECT pb FROM PiggyBank pb WHERE pb.userAssigned.id = :userId")
-    List<PiggyBank> findAllByUserAssignedId(@Param("userId") Long userId);
+    List<PiggyBank> findAllByUserAssignedId(Long userId);
 
     @Query("SELECT COUNT(pb) FROM PiggyBank pb WHERE pb.userAssigned.id = :userId")
-    long countPiggyBanksByUserId(@Param("userId") Long userId);
+    long countPiggyBanksByUserId(Long userId);
 
     @Query("""
                 SELECT COUNT(p) > 0 
@@ -29,5 +29,5 @@ public interface PiggyBankRepository extends JpaRepository<PiggyBank, Long> {
                 WHERE LOWER(p.name) = LOWER(:name) 
                   AND p.userAssigned.id = :userId
             """)
-    boolean existsByNameIgnoreCase(@Param("userId") Long userId, @Param("name") String name);
+    boolean existsByNameIgnoreCase(Long userId, String name);
 }

@@ -16,7 +16,7 @@ public interface AccountRepository extends JpaRepository<AccountSettings, Long> 
                 SET a.emailChangeAttempts = a.emailChangeAttempts + 1
                 WHERE a.userAssigned.id = :userId AND a.emailChangeAttempts < :maxAttempts
             """)
-    int incrementEmailChangeAttempts(@Param("userId") Long userId, @Param("maxAttempts") int maxAttempts);
+    int incrementEmailChangeAttempts(Long userId, int maxAttempts);
 
     @Modifying
     @Query("""
@@ -24,11 +24,11 @@ public interface AccountRepository extends JpaRepository<AccountSettings, Long> 
                 SET a.passwordResetAttempts = a.passwordResetAttempts + 1
                 WHERE a.userAssigned.email = :email AND a.passwordResetAttempts < :maxAttempts
             """)
-    int incrementPasswordResetAttempts(@Param("email") String email, @Param("maxAttempts") int maxAttempts);
+    int incrementPasswordResetAttempts(String email, int maxAttempts);
 
     @Query("SELECT a.emailChangeAttempts FROM AccountSettings a WHERE a.userAssigned.id = :userId")
-    int getEmailChangeAttemptsByUserId(@Param("userId") Long userId);
+    int getEmailChangeAttemptsByUserId(Long userId);
 
     @Query("SELECT a.passwordResetAttempts FROM AccountSettings a WHERE a.userAssigned.email = :email")
-    int getPasswordResetAttemptsByUserEmail(@Param("email") String email);
+    int getPasswordResetAttemptsByUserEmail(String email);
 }

@@ -19,5 +19,5 @@ public interface AccountChangeArchiveRepository extends JpaRepository<AccountCha
             WHERE a.userId = :userId
             ORDER BY a.id DESC
             """)
-    List<AccountChangeArchiveDto> findAllByUserIdOrderByIdDesc(@Param("userId") Long userId);
+     List<AccountChangeArchiveDto> findAllByUserIdOrderByIdDesc(Long userId);
 }

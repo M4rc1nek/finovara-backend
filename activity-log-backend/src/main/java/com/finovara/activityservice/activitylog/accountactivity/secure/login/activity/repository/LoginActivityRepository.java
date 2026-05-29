@@ -20,12 +20,12 @@ public interface LoginActivityRepository extends JpaRepository<LoginActivity, Lo
             WHERE l.userId = :userId
             ORDER BY l.id DESC
             """)
-    List<LoginActivityDto> findByUserIdOrderByDesc(@Param("userId") Long userId);
+     List<LoginActivityDto> findByUserIdOrderByDesc(Long userId);
 
     @Query("SELECT u FROM LoginActivity u WHERE u.userId = :userId ORDER BY u.id ASC")
-    List<LoginActivity> findOldestByUserId(@Param("userId") Long userId, Pageable pageable);
+     List<LoginActivity> findOldestByUserId(Long userId, Pageable pageable);
 
     @Query("SELECT COUNT(u) FROM LoginActivity u WHERE u.userId = :userId")
-    long countActivityLoginByUserId(@Param("userId") Long userId);
+     long countActivityLoginByUserId(Long userId);
 
 }

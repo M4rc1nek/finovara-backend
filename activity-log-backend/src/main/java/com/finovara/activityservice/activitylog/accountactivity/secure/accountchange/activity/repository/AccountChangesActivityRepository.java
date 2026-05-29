@@ -20,11 +20,11 @@ public interface AccountChangesActivityRepository extends JpaRepository<AccountC
             WHERE a.userId = :userId
             ORDER BY a.id DESC
             """)
-    List<AccountChangesActivityDto> findByUserIdOrderByIdDesc(@Param("userId") Long userId);
+     List<AccountChangesActivityDto> findByUserIdOrderByIdDesc(Long userId);
 
     @Query("SELECT COUNT(u) FROM AccountChangesActivity u WHERE u.userId = :userId")
-    long countAccountChangesByUserId(@Param("userId") Long userId);
+    long countAccountChangesByUserId(Long userId);
 
     @Query("SELECT u FROM AccountChangesActivity u WHERE u.userId = :userId ORDER BY u.id")
-    List<AccountChangesActivity> findFewByUserId(@Param("userId") Long userId, Pageable pageable);
+     List<AccountChangesActivity> findFewByUserId(Long userId, Pageable pageable);
 }

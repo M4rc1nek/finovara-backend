@@ -19,6 +19,6 @@ public interface LoginActivityArchiveRepository extends JpaRepository<LoginActiv
            WHERE l.userId = :userId
            ORDER BY l.id DESC
             """)
-    List<LoginActivityArchiveDto> findAllByUserIdOrderByIdDesc(@Param("userId") Long userId);
+     List<LoginActivityArchiveDto> findAllByUserIdOrderByIdDesc(Long userId);
 
 }

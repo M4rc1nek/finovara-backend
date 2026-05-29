@@ -23,10 +23,10 @@ public interface RecurringSettingsRepository extends JpaRepository<RecurringSett
                   AND rs.nextExecutionDate IS NOT NULL
                   AND rs.nextExecutionDate <= :today
             """)
-    List<RecurringSettings> findDueRecurring(@Param("today") LocalDate today);
+     List<RecurringSettings> findDueRecurring(LocalDate today);
 
     @Query("SELECT rs FROM RecurringSettings rs WHERE rs.userAssigned.id = :userId AND rs.type = :type")
-    Optional<RecurringSettings> findByUserAssignedIdAndType(@Param("userId") Long userId, @Param("type") RecurringType type);
+    Optional<RecurringSettings> findByUserAssignedIdAndType(Long userId, RecurringType type);
 
     @Query("SELECT rs FROM RecurringSettings rs WHERE rs.userAssigned.id = :userId AND rs.piggyBankId = :piggyBankId")
     Optional<RecurringSettings> findByUserAssignedIdAndPiggyBankId(Long userId, Long piggyBankId);
