@@ -1,10 +1,11 @@
 package com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.service;
 
-import com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.dto.LoginActivityDto;
-import com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.model.LoginActivity;
-import com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.repository.LoginActivityRepository;
-import com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.model.LoginActivityArchive;
-import com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
+import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.model.LoginActivity;
+import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
+import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.service.LoginActivityService;
+import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.model.LoginActivityArchive;
+import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
 import com.finovara.contracts.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
 import org.junit.jupiter.api.BeforeEach;

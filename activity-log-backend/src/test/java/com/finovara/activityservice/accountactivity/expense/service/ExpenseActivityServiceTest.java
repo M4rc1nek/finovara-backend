@@ -1,9 +1,10 @@
 package com.finovara.activityservice.activity_log.accountactivity.expense.service;
 
-import com.finovara.activityservice.activity_log.accountactivity.expense.dto.ExpenseActivityDto;
-import com.finovara.activityservice.activity_log.accountactivity.expense.mapper.ExpenseActivityMapper;
-import com.finovara.activityservice.activity_log.accountactivity.expense.model.ExpenseActivity;
-import com.finovara.activityservice.activity_log.accountactivity.expense.repository.ExpenseActivityRepository;
+import com.finovara.activityservice.activitylog.accountactivity.expense.dto.ExpenseActivityDto;
+import com.finovara.activityservice.activitylog.accountactivity.expense.mapper.ExpenseActivityMapper;
+import com.finovara.activityservice.activitylog.accountactivity.expense.model.ExpenseActivity;
+import com.finovara.activityservice.activitylog.accountactivity.expense.repository.ExpenseActivityRepository;
+import com.finovara.activityservice.activitylog.accountactivity.expense.service.ExpenseActivityService;
 import com.finovara.contracts.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.ExpenseActivityType;

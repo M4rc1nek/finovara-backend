@@ -1,6 +1,6 @@
 package com.finovara.activityservice.kafka;
 
-import com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
+import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
 import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;

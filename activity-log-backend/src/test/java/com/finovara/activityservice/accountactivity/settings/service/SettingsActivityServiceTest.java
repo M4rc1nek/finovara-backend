@@ -1,9 +1,10 @@
 package com.finovara.activityservice.activity_log.accountactivity.settings.service;
 
-import com.finovara.activityservice.activity_log.accountactivity.settings.dto.SettingsActivityDto;
-import com.finovara.activityservice.activity_log.accountactivity.settings.mapper.SettingsActivityMapper;
-import com.finovara.activityservice.activity_log.accountactivity.settings.model.SettingsActivity;
-import com.finovara.activityservice.activity_log.accountactivity.settings.repository.SettingsActivityRepository;
+import com.finovara.activityservice.activitylog.accountactivity.settings.dto.SettingsActivityDto;
+import com.finovara.activityservice.activitylog.accountactivity.settings.mapper.SettingsActivityMapper;
+import com.finovara.activityservice.activitylog.accountactivity.settings.model.SettingsActivity;
+import com.finovara.activityservice.activitylog.accountactivity.settings.repository.SettingsActivityRepository;
+import com.finovara.activityservice.activitylog.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.contracts.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
