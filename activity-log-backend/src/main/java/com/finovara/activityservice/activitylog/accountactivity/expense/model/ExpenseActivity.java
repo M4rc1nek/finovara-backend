@@ -33,7 +33,7 @@ public class ExpenseActivity {
 
     private LocalDateTime createdAt;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(nullable = false)
     private Long userId;
 
 }

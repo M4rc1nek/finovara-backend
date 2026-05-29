@@ -28,7 +28,7 @@ public class SettingsActivity {
 
     private LocalDateTime createdAt;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(nullable = false)
     private Long userId;
 
 }

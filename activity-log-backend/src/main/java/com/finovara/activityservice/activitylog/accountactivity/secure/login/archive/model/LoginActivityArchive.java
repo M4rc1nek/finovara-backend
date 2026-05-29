@@ -34,7 +34,7 @@ public class LoginActivityArchive {
 
     private String location;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(nullable = false)
     private Long userId;
 }
 

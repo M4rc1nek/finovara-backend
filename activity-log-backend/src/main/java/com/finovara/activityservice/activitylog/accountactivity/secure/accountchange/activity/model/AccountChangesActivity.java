@@ -30,6 +30,6 @@ public class AccountChangesActivity {
 
     private String location;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(nullable = false)
     private Long userId;
 }
