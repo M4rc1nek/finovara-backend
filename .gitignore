@@ -2,4 +2,5 @@
 .mvn
 .mvn/wrapper/maven-wrapper.properties
 finovara-run.sh
+finovara-run-skipTest.sh
 finovara-frontend/

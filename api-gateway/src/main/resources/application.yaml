@@ -31,23 +31,41 @@ spring:
                   - "*"
                 allow-credentials: true
           default-filters:
+            - PreserveHostHeader
             - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+          x-forwarded:
+            enabled: true
+            for-enabled: true
+            host-enabled: true
+            proto-enabled: true
+            port-enabled: true
+            host-append: false
+            proto-append: false
+            port-append: false
           httpclient:
             ssl:
               use-insecure-trust-manager: true
           routes:
-            - id: monolit
-              uri: ${MONOLIT_URL}
+            - id: activity-log-backend
+              uri: ${ACTIVITY_LOG_URL}
+              predicates:
+                - Path=/api/account-activity/**,/api/archive-activities/**
+
+            - id: core-backend
+              uri: ${CORE_BACKEND_URL}
               predicates:
                 - Path=/**
 
 logging:
   level:
     root: WARN
-    com.finovara_backend.api_gateway: INFO
+    com.finovara.api_gateway: INFO
 
 management:
+  endpoint:
+    gateway:
+      access: read_only
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,gateway

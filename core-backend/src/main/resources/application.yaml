@@ -41,6 +41,14 @@ spring:
               - openid
               - email
               - profile
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JacksonJsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
 server:
   port: 8443
   forward-headers-strategy: framework
@@ -66,6 +74,7 @@ logging:
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
+
 mail:
   recipient:
     address: finovaracenter@gmail.com
@@ -82,64 +91,26 @@ expenses:
   highest:
     page-size: 5
 
-
 revenues:
   highest:
     page-size: 5
 
-
-
-user-activity:
-  login:
-    page-size: 30
-  account-changes:
-    page-size: 30
-  expense:
-    page-size: 100
-  revenue:
-    page-size: 100
-  limit:
-    page-size: 100
-  piggy-bank:
-    page-size: 100
-  settings:
-    page-size: 100
-
 notification-persistence:
   page-size: 5
-
-
-scheduler:
-  user-activity:
-    login:
-      archive-cron: "0 0 0 1 1/6 ?"
-    account-changes:
-      archive-cron: "0 0 0 1 1/6 ?"
-    expense:
-      delete-cron: "0 0 0 1 * ?"
-    revenue:
-      delete-cron: "0 0 0 1 * ?"
-    limit:
-      delete-cron: "0 0 0 1 * ?"
-    piggy-bank:
-      delete-cron: "0 0 0 1 * ?"
-    settings:
-      delete-cron: "0 0 0 1 * ?"
-  recurring-settings:
-    frequency: "0 0 0 * * ?"
-  notification:
-    delete-cron: "0 0 0 ? * 1"
-
 
 verification-code-manager:
   code-expiration-minutes: 15
   attempts-expiration-minutes: 15
   max-attempts: 5
 
-
 password-generator:
   length: 8
 
+scheduler:
+  recurring-settings:
+    frequency: "0 0 0 * * ?"
+  notification:
+    delete-cron: "0 2 0 ? * 1"
 
 rate-limit:
   endpoints:
@@ -153,7 +124,6 @@ rate-limit:
       max-requests: 14
       window-hours: 1
 
-
 security:
   whitelist:
     - /api/auth/**
@@ -163,6 +133,7 @@ security:
     - /api/contact
     - /oauth2/**
     - /login/oauth2/**
+    - /internal/**
   cors:
     allowed-origins:
       - https://localhost:5173

@@ -1,9 +1,8 @@
 version: '3.9'
 
 services:
-  # Baza produkcyjna
   finovara-db:
-    image: postgres:15
+    image: postgres:17
     container_name: finovara-db
     restart: always
     environment:
@@ -19,9 +18,8 @@ services:
     networks:
       - finovara-network
 
-  # Baza testowa
   finovara-test:
-    image: postgres:15
+    image: postgres:17
     container_name: finovara-test
     restart: always
     environment:
@@ -37,7 +35,6 @@ services:
     networks:
       - finovara-network
 
-  # Aplikacja Spring Boot
   finovara-app:
     build: .
     container_name: finovara-app
@@ -49,15 +46,14 @@ services:
     ports:
       - "8443:8443"
     environment:
-      # produkcja
       DB_PASSWORD: ${DB_PASSWORD}
-      # testy
       DB_TEST_PASSWORD: ${DB_TEST_PASSWORD}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_PROFILES_ACTIVE: default
     volumes:
       - ./uploads:/app/uploads

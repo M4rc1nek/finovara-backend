@@ -1,0 +1,73 @@
+server:
+  port: 8082
+  forward-headers-strategy: framework
+  ssl:
+    enabled: true
+    key-store: classpath:localhost.p12
+    key-store-type: PKCS12
+    key-store-password: ${SSL_KEY_STORE_PASSWORD}
+    key-alias: 1
+
+spring:
+  application:
+    name: finovara-activity-service
+
+  datasource:
+    url: jdbc:postgresql://finovara-activity-db:5432/finovara_activity_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  liquibase:
+    change-log: classpath:changelog/changelog.xml
+    enabled: true
+
+  kafka:
+    bootstrap-servers: 9092
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+
+core-backend:
+  url: ${CORE_BACKEND_URL:https://finovara-app:8443}
+
+scheduler:
+  user-activity:
+    login:
+      archive-cron: "0 3 0 1 1/6 ?"
+    account-changes:
+      archive-cron: "0 5 0 1 1/6 ?"
+    expense:
+      delete-cron: "0 6 0 1 * ?"
+    revenue:
+      delete-cron: "0 10 0 1 * ?"
+    limit:
+      delete-cron: "0 15 0 1 * ?"
+    piggy-bank:
+      delete-cron: "0 20 0 1 * ?"
+    settings:
+      delete-cron: "0 25 0 1 * ?"
+
+user-activity:
+  login:
+    page-size: 30
+  account-changes:
+    page-size: 30
+  expense:
+    page-size: 100
+  revenue:
+    page-size: 100
+  limit:
+    page-size: 100
+  piggy-bank:
+    page-size: 100
+  settings:
+    page-size: 100
