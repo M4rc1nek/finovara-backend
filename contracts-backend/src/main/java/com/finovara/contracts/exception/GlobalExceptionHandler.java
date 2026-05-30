@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
-import javax.naming.LimitExceededException;
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -53,7 +51,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler({MissingRequirementException.class, LimitExceededException.class}) // NOWY KOD 422
+    @ExceptionHandler({MissingRequirementException.class}) // NEW CODE 422
     public ResponseEntity<ErrorResponseDto> handleUnprocessableEntity(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.UNPROCESSABLE_CONTENT.value(),
