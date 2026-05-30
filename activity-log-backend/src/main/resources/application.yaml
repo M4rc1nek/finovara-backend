@@ -42,19 +42,19 @@ core-backend:
 scheduler:
   user-activity:
     login:
-      archive-cron: "0 0 0 1 1/6 ?"
+      archive-cron: "0 3 0 1 1/6 ?"
     account-changes:
-      archive-cron: "0 0 0 1 1/6 ?"
+      archive-cron: "0 5 0 1 1/6 ?"
     expense:
-      delete-cron: "0 0 0 1 * ?"
+      delete-cron: "0 6 0 1 * ?"
     revenue:
-      delete-cron: "0 0 0 1 * ?"
+      delete-cron: "0 10 0 1 * ?"
     limit:
-      delete-cron: "0 0 0 1 * ?"
+      delete-cron: "0 15 0 1 * ?"
     piggy-bank:
-      delete-cron: "0 0 0 1 * ?"
+      delete-cron: "0 20 0 1 * ?"
     settings:
-      delete-cron: "0 0 0 1 * ?"
+      delete-cron: "0 25 0 1 * ?"
 
 user-activity:
   login:
