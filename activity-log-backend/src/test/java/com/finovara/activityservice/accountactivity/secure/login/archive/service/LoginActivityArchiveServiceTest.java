@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activity_log.accountactivity.secure.login.archive.service;
+package com.finovara.activityservice.accountactivity.secure.login.archive.service;
 
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.model.LoginActivity;
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.dto.LoginActivityArchiveDto;

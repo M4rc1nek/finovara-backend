@@ -14,7 +14,7 @@ import java.util.List;
 public interface LoginActivityRepository extends JpaRepository<LoginActivity, Long> {
 
     @Query("""
-            SELECT new com.finovara.activityservice.activity_log.accountactivity.secure.login.activity.dto.LoginActivityDto(
+            SELECT new com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.dto.LoginActivityDto(
             l.type, l.status, l.createdAt, l.browser, l.ipAddress, l.location)
             FROM LoginActivity l
             WHERE l.userId = :userId

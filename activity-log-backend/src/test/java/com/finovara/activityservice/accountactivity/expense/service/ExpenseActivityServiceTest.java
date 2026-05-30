@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activity_log.accountactivity.expense.service;
+package com.finovara.activityservice.accountactivity.expense.service;
 
 import com.finovara.activityservice.activitylog.accountactivity.expense.dto.ExpenseActivityDto;
 import com.finovara.activityservice.activitylog.accountactivity.expense.mapper.ExpenseActivityMapper;

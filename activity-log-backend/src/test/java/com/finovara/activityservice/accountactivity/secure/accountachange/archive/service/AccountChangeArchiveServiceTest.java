@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activity_log.accountactivity.secure.accountchange.archive.service;
+package com.finovara.activityservice.accountactivity.secure.accountachange.archive.service;
 
 import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
 import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.dto.AccountChangeArchiveDto;
