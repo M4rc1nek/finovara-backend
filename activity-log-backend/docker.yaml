@@ -3,7 +3,7 @@ version: '3.9'
 services:
 
   finovara-activity-db:
-    image: postgres:15
+    image: postgres:17
     container_name: finovara-activity-db
     restart: always
     environment:

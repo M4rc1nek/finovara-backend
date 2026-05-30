@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   finovara-db:
-    image: postgres:15
+    image: postgres:17
     container_name: finovara-db
     restart: always
     environment:
@@ -19,7 +19,7 @@ services:
       - finovara-network
 
   finovara-test:
-    image: postgres:15
+    image: postgres:17
     container_name: finovara-test
     restart: always
     environment:
