@@ -47,6 +47,7 @@ This is not strict DDD, but the influence is visible in how the domains are sepa
 - **Spring Data JPA**
 - **Spring Mail**
 - **Spring Cloud OpenFeign**
+- **Apache Kafka**
 - **Hibernate**
 - **Liquibase**
 - **PostgreSQL**
