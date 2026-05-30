@@ -27,35 +27,13 @@ The application is designed with scalability in mind and is fully containerized 
 
 ---
 
-## 🏗️ Architecture Overview
+## 🏛️ Architecture & Design
 
-```
-finovara/                          ← Maven multi-module parent
-├── api-gateway/                   ← Spring Cloud Gateway (routing & filters)
-│   ├── src/
-│   ├── Dockerfile
-│   ├── docker.yaml
-│   └── pom.xml
-├── core-backend/                  ← Core business logic (Spring Boot)
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/              # Application source code
-│   │   │   └── resources/         # Configuration & Liquibase changelogs
-│   │   └── test/                  # Unit tests
-│   ├── Dockerfile
-│   ├── docker.yaml
-│   └── pom.xml
-└── pom.xml                        ← Parent POM (dependency management)
-```
+Finovara follows a **microservices architecture** — each service is independently deployable, containerized, and communicates through the API Gateway.
 
-The project follows a **multi-module Maven structure** with two modules:
+The codebase is lightly inspired by **Domain-Driven Design (DDD)** principles — domain logic is encapsulated within dedicated services and abstractions (e.g. `NotificationCreator`, `ThresholdReachedService`), domain objects carry their own behavior, and bounded contexts are reflected in the package structure per service.
 
-- **`api-gateway`** — handles all incoming traffic, routing, and cross-cutting concerns such as logging and rate limiting via Spring Cloud Gateway
-- **`core-backend`** — contains the full core business logic, intentionally structured as a modular monolith with future decomposition into microservices in mind
-
-Each business domain (transactions, auth, notifications, reports) is treated as an independent module, making a potential split into separate services straightforward. The codebase is lightly inspired by **Domain-Driven Design (DDD)** principles — domain logic is encapsulated within dedicated services and abstractions (e.g. `NotificationCreator`, `ThresholdReachedService`), domain objects carry their own behavior, and bounded contexts are reflected in the package structure.
-
-This is not strict DDD, but the influence is visible in how the domains are separated and modeled.
+This is not strict DDD, but the influence is visible in how the domains are separated and modeled across services.
 
 ---
 
