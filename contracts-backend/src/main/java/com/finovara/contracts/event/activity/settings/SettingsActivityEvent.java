@@ -1,4 +1,4 @@
-package com.finovara.contracts.event.settings;
+package com.finovara.contracts.event.activity.settings;
 
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
