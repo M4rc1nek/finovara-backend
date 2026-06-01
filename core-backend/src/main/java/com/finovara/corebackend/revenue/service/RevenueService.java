@@ -1,11 +1,10 @@
 package com.finovara.corebackend.revenue.service;
 
-import com.finovara.contracts.event.revenue.RevenueActivityEvent;
+import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.revenue.dto.RevenueDto;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.revenue.mapper.RevenueMapper;
 import com.finovara.corebackend.revenue.model.Revenue;
 import com.finovara.corebackend.revenue.repository.RevenueRepository;
