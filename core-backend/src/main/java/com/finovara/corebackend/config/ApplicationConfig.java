@@ -17,6 +17,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Clock;
+
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
@@ -59,5 +61,10 @@ public class ApplicationConfig {
         return JsonMapper.builder()
                 .findAndAddModules()
                 .build();
+    }
+
+    @Bean
+    public Clock clock(){
+        return Clock.systemDefaultZone();
     }
 }
