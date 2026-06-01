@@ -5,7 +5,7 @@ import com.finovara.activityservice.activitylog.accountactivity.expense.dto.Expe
 import com.finovara.activityservice.activitylog.accountactivity.expense.mapper.ExpenseActivityMapper;
 import com.finovara.activityservice.activitylog.accountactivity.expense.model.ExpenseActivity;
 import com.finovara.activityservice.activitylog.accountactivity.expense.repository.ExpenseActivityRepository;
-import com.finovara.contracts.event.expense.ExpenseActivityEvent;
+import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
