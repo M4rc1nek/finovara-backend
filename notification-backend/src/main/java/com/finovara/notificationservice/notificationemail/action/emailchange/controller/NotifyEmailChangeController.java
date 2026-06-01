@@ -1,8 +1,8 @@
-package com.finovara.corebackend.usersetting.notificationemail.action.emailchange.controller;
+package com.finovara.notificationservice.notificationemail.action.emailchange.controller;
 
-import com.finovara.corebackend.security.SecurityUtils;
-import com.finovara.corebackend.usersetting.notificationemail.dto.NotificationEmailDto;
-import com.finovara.corebackend.usersetting.notificationemail.action.emailchange.service.NotifyEmailChangeService;
+import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
+import com.finovara.notificationservice.notificationemail.action.emailchange.service.NotifyEmailChangeService;
+import com.finovara.notificationservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
