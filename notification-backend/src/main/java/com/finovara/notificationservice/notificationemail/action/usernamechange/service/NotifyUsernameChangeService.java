@@ -1,15 +1,15 @@
-package com.finovara.corebackend.usersetting.notificationemail.action.usernamechange.service;
+package com.finovara.notificationservice.notificationemail.action.usernamechange.service;
 
-import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.corebackend.user.model.User;
-import com.finovara.corebackend.usersetting.notificationemail.core.AbstractNotificationEmailService;
-import com.finovara.corebackend.usersetting.notificationemail.dto.NotificationEmailDto;
-import com.finovara.corebackend.usersetting.notificationemail.model.NotificationEmailSettings;
-import com.finovara.corebackend.usersetting.notificationemail.util.NotificationEmailSender;
-import com.finovara.corebackend.usersetting.notificationemail.util.emailsender.UsernameChangeNotifier;
-import com.finovara.corebackend.util.user.service.UserManagerService;
+import com.finovara.notificationservice.notificationemail.core.AbstractNotificationEmailService;
+import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
+import com.finovara.notificationservice.notificationemail.dto.UserEmailDataDto;
+import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
+import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
+import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
+import com.finovara.notificationservice.notificationemail.util.emailsender.UsernameChangeNotifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +21,8 @@ public class NotifyUsernameChangeService extends AbstractNotificationEmailServic
     private final UsernameChangeNotifier usernameChangeNotifier;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public NotifyUsernameChangeService(UserManagerService userManagerService, NotificationEmailSender notificationEmailSender, UsernameChangeNotifier usernameChangeNotifier, KafkaTemplate<String, Object> kafkaTemplate) {
-        super(userManagerService, notificationEmailSender);
+    public NotifyUsernameChangeService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender, UsernameChangeNotifier usernameChangeNotifier, KafkaTemplate<String, Object> kafkaTemplate) {
+        super(notificationEmailSettingsRepository, notificationEmailSender);
         this.usernameChangeNotifier = usernameChangeNotifier;
         this.kafkaTemplate = kafkaTemplate;
     }
@@ -48,8 +48,8 @@ public class NotifyUsernameChangeService extends AbstractNotificationEmailServic
     }
 
     @Override
-    protected void sendEmailToUser(User user) {
-        usernameChangeNotifier.sendEmail(user);
+    protected void sendEmailToUser(Long userId, UserEmailDataDto userEmailData) {
+        usernameChangeNotifier.sendEmail(userId, userEmailData.username(), userEmailData.email());
     }
 
     @Override
