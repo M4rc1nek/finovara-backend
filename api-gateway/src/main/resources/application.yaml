@@ -51,6 +51,13 @@ spring:
               predicates:
                 - Path=/api/account-activity/**,/api/archive-activities/**
 
+            - id: notification-backend
+              uri: ${NOTIFICATION_BACKEND_URL}
+              predicates:
+                - Path=/api/notification-settings/**
+              filters:
+                - PreserveHostHeader
+
             - id: core-backend
               uri: ${CORE_BACKEND_URL}
               predicates:
