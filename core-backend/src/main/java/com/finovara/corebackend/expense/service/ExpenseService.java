@@ -1,6 +1,6 @@
 package com.finovara.corebackend.expense.service;
 
-import com.finovara.contracts.event.expense.ExpenseActivityEvent;
+import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.contracts.model.activity.ExpenseActivityType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
