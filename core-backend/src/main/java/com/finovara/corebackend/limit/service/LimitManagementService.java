@@ -1,12 +1,11 @@
 package com.finovara.corebackend.limit.service;
 
-import com.finovara.contracts.event.limit.LimitActivityEvent;
+import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.LimitActivityType;
 import com.finovara.corebackend.limit.dto.LimitDto;
 import com.finovara.corebackend.limit.dto.LimitStatsDto;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.limit.model.Limit;
 import com.finovara.corebackend.limit.repository.LimitRepository;
 import com.finovara.corebackend.user.model.User;
