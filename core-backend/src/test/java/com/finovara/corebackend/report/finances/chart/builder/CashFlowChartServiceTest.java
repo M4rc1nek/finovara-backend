@@ -5,90 +5,76 @@ import com.finovara.corebackend.report.finances.chart.dto.DailyCashDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 @ExtendWith(MockitoExtension.class)
 class CashFlowChartServiceTest {
 
-    @InjectMocks
-    private CashFlowChartService cashFlowChartService;
+    private static final ZoneId ZONE = ZoneId.systemDefault();
+    private static final LocalDate FIXED_DATE = LocalDate.of(2024, 3, 15);
 
-    private LocalDate startOfMonth;
-    private LocalDate today;
+    private CashFlowChartService service;
 
     @BeforeEach
     void setUp() {
-        today = LocalDate.now();
-        startOfMonth = today.withDayOfMonth(1);
-        cashFlowChartService = new CashFlowChartService();
+        Clock fixedClock = Clock.fixed(FIXED_DATE.atStartOfDay(ZONE).toInstant(), ZONE);
+        service = new CashFlowChartService(fixedClock);
     }
 
     @Test
     void shouldMapExpensesAndRevenuesCorrectly() {
+        LocalDate from = LocalDate.of(2024, 3, 1);
 
         List<DailyCashDto> expenses = List.of(
-                new DailyCashDto(startOfMonth, BigDecimal.valueOf(100)),
-                new DailyCashDto(startOfMonth.plusDays(1), BigDecimal.valueOf(50)));
+                new DailyCashDto(from, BigDecimal.valueOf(100)),
+                new DailyCashDto(from.plusDays(1), BigDecimal.valueOf(50)));
 
         List<DailyCashDto> revenues = List.of(
-                new DailyCashDto(startOfMonth, BigDecimal.valueOf(200)),
-                new DailyCashDto(startOfMonth.plusDays(1), BigDecimal.valueOf(75)));
+                new DailyCashDto(from, BigDecimal.valueOf(200)),
+                new DailyCashDto(from.plusDays(1), BigDecimal.valueOf(75)));
 
-        List<CashFlowDto> result = cashFlowChartService.getCashFlowChart(expenses, revenues);
+        List<CashFlowDto> result = service.getCashFlowChart(expenses, revenues);
 
-        assertThat(result).hasSize(today.getDayOfMonth());
-
-        assertThat(result.getFirst().date()).isEqualTo(startOfMonth);
+        assertThat(result).hasSize(15);
         assertThat(result.getFirst().expense()).isEqualByComparingTo(BigDecimal.valueOf(100));
         assertThat(result.getFirst().revenue()).isEqualByComparingTo(BigDecimal.valueOf(200));
-
-        assertThat(result.get(1).date()).isEqualTo(startOfMonth.plusDays(1));
         assertThat(result.get(1).expense()).isEqualByComparingTo(BigDecimal.valueOf(50));
         assertThat(result.get(1).revenue()).isEqualByComparingTo(BigDecimal.valueOf(75));
-
-        for (int i = 2; i < result.size(); i++) {
-            assertThat(result.get(i).expense()).isEqualByComparingTo(BigDecimal.ZERO);
-            assertThat(result.get(i).revenue()).isEqualByComparingTo(BigDecimal.ZERO);
-        }
     }
 
     @Test
-    void shouldReturnEmptyListWhenNoExpensesOrRevenues() {
-        List<CashFlowDto> result = cashFlowChartService.getCashFlowChart(List.of(), List.of());
+    void shouldReturnZerosWhenNoData() {
+        List<CashFlowDto> result = service.getCashFlowChart(List.of(), List.of());
 
-        assertThat(result).hasSize(today.getDayOfMonth());
-
+        assertThat(result).hasSize(15);
         result.forEach(dto -> {
-            assertThat(dto.revenue()).isEqualByComparingTo(BigDecimal.ZERO);
             assertThat(dto.expense()).isEqualByComparingTo(BigDecimal.ZERO);
+            assertThat(dto.revenue()).isEqualByComparingTo(BigDecimal.ZERO);
         });
-
-        for (int i = 0; i < result.size(); i++) {
-            assertThat(result.get(i).date()).isEqualTo(startOfMonth.plusDays(i));
-        }
     }
 
     @Test
     void shouldSumMultipleEntriesOnSameDate() {
+        LocalDate day = LocalDate.of(2024, 3, 2);
+
         List<DailyCashDto> expenses = List.of(
-                new DailyCashDto(startOfMonth.plusDays(1), BigDecimal.valueOf(100)),
-                new DailyCashDto(startOfMonth.plusDays(1), BigDecimal.valueOf(50)));
+                new DailyCashDto(day, BigDecimal.valueOf(100)),
+                new DailyCashDto(day, BigDecimal.valueOf(50)));
 
         List<DailyCashDto> revenues = List.of(
-                new DailyCashDto(startOfMonth.plusDays(1), BigDecimal.valueOf(200)),
-                new DailyCashDto(startOfMonth.plusDays(1), BigDecimal.valueOf(25)));
+                new DailyCashDto(day, BigDecimal.valueOf(200)),
+                new DailyCashDto(day, BigDecimal.valueOf(25)));
 
-        List<CashFlowDto> result = cashFlowChartService.getCashFlowChart(expenses, revenues);
+        List<CashFlowDto> result = service.getCashFlowChart(expenses, revenues);
 
-        CashFlowDto secondDay = result.get(1);
-        assertThat(secondDay.expense()).isEqualByComparingTo(BigDecimal.valueOf(150));
-        assertThat(secondDay.revenue()).isEqualByComparingTo(BigDecimal.valueOf(225));
+        assertThat(result.get(1).expense()).isEqualByComparingTo(BigDecimal.valueOf(150));
+        assertThat(result.get(1).revenue()).isEqualByComparingTo(BigDecimal.valueOf(225));
     }
 }
