@@ -1,4 +1,4 @@
-package com.finovara.contracts.event.limit;
+package com.finovara.contracts.event.activity.limit;
 
 import com.finovara.contracts.model.activity.LimitActivityType;
 
