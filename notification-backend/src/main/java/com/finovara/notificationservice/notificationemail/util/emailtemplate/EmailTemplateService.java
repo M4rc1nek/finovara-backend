@@ -1,7 +1,6 @@
-package com.finovara.corebackend.usersetting.notificationemail.util.emailtemplate;
+package com.finovara.notificationservice.notificationemail.util.emailtemplate;
 
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
-import com.finovara.corebackend.user.model.User;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,12 +22,12 @@ public class EmailTemplateService {
     private String senderAddress;
 
     @Async
-    public void sendEmail(User user, String subject, String templatePath, String username, String email) {
+    public void sendEmail(String recipientEmail, String subject, String templatePath, String username, String email) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setTo(user.getEmail());
+            helper.setTo(recipientEmail);
             helper.setFrom("Finovara <" + senderAddress + ">");
             helper.setReplyTo(senderAddress);
             helper.setSubject(subject);
