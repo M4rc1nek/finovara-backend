@@ -1,4 +1,4 @@
-package com.finovara.contracts.event.revenue;
+package com.finovara.contracts.event.activity.revenue;
 
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
