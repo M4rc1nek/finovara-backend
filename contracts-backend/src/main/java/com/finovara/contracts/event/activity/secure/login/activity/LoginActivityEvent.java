@@ -1,4 +1,4 @@
-package com.finovara.contracts.event.secure.login.activity;
+package com.finovara.contracts.event.activity.secure.login.activity;
 
 import com.finovara.contracts.model.activity.LoginActivityStatus;
 
