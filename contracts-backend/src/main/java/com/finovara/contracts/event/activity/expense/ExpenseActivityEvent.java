@@ -1,4 +1,4 @@
-package com.finovara.contracts.event.expense;
+package com.finovara.contracts.event.activity.expense;
 
 
 import com.finovara.contracts.model.activity.ExpenseActivityType;
