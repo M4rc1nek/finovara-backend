@@ -5,7 +5,7 @@ import com.finovara.activityservice.activitylog.accountactivity.settings.mapper.
 import com.finovara.activityservice.activitylog.accountactivity.settings.model.SettingsActivity;
 import com.finovara.activityservice.activitylog.accountactivity.settings.repository.SettingsActivityRepository;
 import com.finovara.activityservice.activitylog.accountactivity.settings.service.SettingsActivityService;
-import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
