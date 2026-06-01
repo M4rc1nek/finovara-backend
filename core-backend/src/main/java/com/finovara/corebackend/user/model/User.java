@@ -8,7 +8,6 @@ import com.finovara.corebackend.revenue.model.Revenue;
 import com.finovara.corebackend.usersetting.account.model.AccountSettings;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.corebackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.corebackend.wallet.model.Wallet;
 import jakarta.persistence.*;
 import lombok.*;
@@ -64,9 +63,6 @@ public class User {
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private AccountSettings accountSettings;
-
-    @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
-    private NotificationEmailSettings notificationEmailSettings;
 
     @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private List<Notification> notifications;

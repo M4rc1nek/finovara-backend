@@ -1,6 +1,6 @@
 package com.finovara.corebackend.user.service;
 
-import com.finovara.contracts.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
@@ -9,10 +9,10 @@ import static com.finovara.contracts.clientdata.location.UserLocation.getLocatio
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.conflict.StateConflictException;
 import com.finovara.contracts.exception.unauthorized.InvalidCredentialsException;
+import com.finovara.corebackend.notification.email.NotificationEmailEventPublisher;
 import com.finovara.corebackend.security.jwt.JwtService;
 import com.finovara.corebackend.user.dto.UserLoginDto;
 import com.finovara.corebackend.user.dto.UserRegisterDto;
-import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.factory.SettingsFactory;
@@ -45,6 +45,7 @@ public class UserService {
     private final SettingsFactory settingsFactory;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final EmailDomainValidator emailDomainValidator;
+    private final NotificationEmailEventPublisher notificationEmailEventPublisher;
 
     @Value("${application.upload.profile-images-default-directory}")
     private String profileImagesDefaultDirectory;
@@ -66,10 +67,10 @@ public class UserService {
 
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         user.setRecurringSettings(settingsFactory.createDefaultRecurringSettings(user));
-        user.setNotificationEmailSettings(settingsFactory.createDefaultNotificationSettings(user));
         user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
 
         User savedUser = userRepository.save(user);
+        notificationEmailEventPublisher.createDefaultSettings(savedUser.getId());
 
         String jwtToken = jwtService.generateToken(savedUser);
 
