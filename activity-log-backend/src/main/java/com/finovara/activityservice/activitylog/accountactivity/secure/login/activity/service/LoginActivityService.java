@@ -8,7 +8,7 @@ import com.finovara.activityservice.activitylog.accountactivity.secure.login.arc
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
 import com.finovara.activityservice.feignclient.CoreBackendClient;
 import com.finovara.contracts.dto.ConfirmPasswordDto;
-import com.finovara.contracts.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
