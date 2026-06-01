@@ -1,0 +1,48 @@
+version: '3.9'
+
+services:
+  notification-db:
+    image: postgres:17
+    container_name: finovara-notification-db
+    restart: always
+    environment:
+      POSTGRES_DB: finovara_notification_db
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5436:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 5s
+      retries: 10
+    networks:
+      - finovara-network
+
+  notification-app:
+    build: .
+    container_name: notification-app
+    depends_on:
+      notification-db:
+        condition: service_healthy
+    ports:
+      - "8086:8086"
+    environment:
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://finovara-notification-db:5432/finovara_notification_db
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8086/actuator/health || exit 1"]
+      interval: 10s
+      retries: 10
+    restart: always
+    networks:
+      - finovara-network
+
+networks:
+  finovara-network:
+    external: true
+    name: finovara-network
