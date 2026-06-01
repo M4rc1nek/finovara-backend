@@ -5,7 +5,7 @@ import com.finovara.activityservice.activitylog.accountactivity.limit.dto.LimitA
 import com.finovara.activityservice.activitylog.accountactivity.limit.mapper.LimitActivityMapper;
 import com.finovara.activityservice.activitylog.accountactivity.limit.model.LimitActivity;
 import com.finovara.activityservice.activitylog.accountactivity.limit.repository.LimitActivityRepository;
-import com.finovara.contracts.event.limit.LimitActivityEvent;
+import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
