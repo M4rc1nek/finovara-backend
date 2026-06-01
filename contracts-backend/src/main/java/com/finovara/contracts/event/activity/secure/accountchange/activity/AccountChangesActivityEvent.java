@@ -1,4 +1,4 @@
-package com.finovara.contracts.event.secure.accountchange.activity;
+package com.finovara.contracts.event.activity.secure.accountchange.activity;
 
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 
