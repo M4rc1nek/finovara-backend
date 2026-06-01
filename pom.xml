@@ -31,6 +31,7 @@
         <module>core-backend</module>
         <module>contracts-backend</module>
         <module>activity-log-backend</module>
+        <module>notification-backend</module>
     </modules>
 
     <dependencyManagement>
