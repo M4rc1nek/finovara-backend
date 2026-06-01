@@ -1,10 +1,10 @@
 package com.finovara.corebackend.usersetting.account.service.passwordpolicy.change;
 
 import com.finovara.contracts.clientdata.location.UserLocation;
-import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.corebackend.notification.email.NotificationEmailEventPublisher;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
-import com.finovara.corebackend.usersetting.notificationemail.action.passwordchange.service.NotifyPasswordChangeService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ class PasswordUpdateServiceTest {
     private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Mock
-    private NotifyPasswordChangeService notifyPasswordChangeService;
+    private NotificationEmailEventPublisher notificationEmailEventPublisher;
 
     @Mock
     private HttpServletRequest request;
@@ -118,7 +118,7 @@ class PasswordUpdateServiceTest {
     void shouldSendPasswordChangeNotification() {
         passwordUpdateService.updatePassword(user, NEW_PASSWORD, request);
 
-        verify(notifyPasswordChangeService).sendEmail(user);
+        verify(notificationEmailEventPublisher).sendPasswordChanged(user);
     }
 
     @Test
@@ -127,7 +127,7 @@ class PasswordUpdateServiceTest {
                 passwordEncoder,
                 userRepository,
                 kafkaTemplate,
-                notifyPasswordChangeService
+                notificationEmailEventPublisher
         );
 
         passwordUpdateService.updatePassword(user, NEW_PASSWORD, request);
@@ -135,7 +135,7 @@ class PasswordUpdateServiceTest {
         inOrder.verify(passwordEncoder).encode(NEW_PASSWORD);
         inOrder.verify(userRepository).save(user);
         inOrder.verify(kafkaTemplate).send(any(), any());
-        inOrder.verify(notifyPasswordChangeService).sendEmail(user);
+        inOrder.verify(notificationEmailEventPublisher).sendPasswordChanged(user);
     }
 
     @Test
