@@ -1,6 +1,6 @@
 package com.finovara.corebackend.piggybank.service;
 
-import com.finovara.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
