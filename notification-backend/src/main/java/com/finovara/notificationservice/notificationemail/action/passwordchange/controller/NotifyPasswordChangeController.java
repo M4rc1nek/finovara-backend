@@ -1,8 +1,8 @@
-package com.finovara.corebackend.usersetting.notificationemail.action.passwordchange.controller;
+package com.finovara.notificationservice.notificationemail.action.passwordchange.controller;
 
-import com.finovara.corebackend.security.SecurityUtils;
-import com.finovara.corebackend.usersetting.notificationemail.dto.NotificationEmailDto;
-import com.finovara.corebackend.usersetting.notificationemail.action.passwordchange.service.NotifyPasswordChangeService;
+import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
+import com.finovara.notificationservice.notificationemail.action.passwordchange.service.NotifyPasswordChangeService;
+import com.finovara.notificationservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
