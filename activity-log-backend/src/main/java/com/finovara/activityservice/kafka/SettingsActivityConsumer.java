@@ -1,7 +1,7 @@
 package com.finovara.activityservice.kafka;
 
 import com.finovara.activityservice.activitylog.accountactivity.settings.service.SettingsActivityService;
-import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;

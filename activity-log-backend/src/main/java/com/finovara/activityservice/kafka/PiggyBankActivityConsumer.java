@@ -1,7 +1,7 @@
 package com.finovara.activityservice.kafka;
 
 import com.finovara.activityservice.activitylog.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
