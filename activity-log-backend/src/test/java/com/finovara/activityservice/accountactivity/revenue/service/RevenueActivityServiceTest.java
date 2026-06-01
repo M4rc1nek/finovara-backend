@@ -5,7 +5,7 @@ import com.finovara.activityservice.activitylog.accountactivity.revenue.mapper.R
 import com.finovara.activityservice.activitylog.accountactivity.revenue.model.RevenueActivity;
 import com.finovara.activityservice.activitylog.accountactivity.revenue.repository.RevenueActivityRepository;
 import com.finovara.activityservice.activitylog.accountactivity.revenue.service.RevenueActivityService;
-import com.finovara.contracts.event.revenue.RevenueActivityEvent;
+import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.model.transaction.RevenueCategory;

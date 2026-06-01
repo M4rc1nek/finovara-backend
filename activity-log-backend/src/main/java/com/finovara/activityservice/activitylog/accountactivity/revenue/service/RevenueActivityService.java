@@ -5,7 +5,7 @@ import com.finovara.activityservice.activitylog.accountactivity.revenue.dto.Reve
 import com.finovara.activityservice.activitylog.accountactivity.revenue.mapper.RevenueActivityMapper;
 import com.finovara.activityservice.activitylog.accountactivity.revenue.model.RevenueActivity;
 import com.finovara.activityservice.activitylog.accountactivity.revenue.repository.RevenueActivityRepository;
-import com.finovara.contracts.event.revenue.RevenueActivityEvent;
+import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
