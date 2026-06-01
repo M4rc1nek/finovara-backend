@@ -5,7 +5,7 @@ import com.finovara.activityservice.activitylog.accountactivity.piggybank.dto.Pi
 import com.finovara.activityservice.activitylog.accountactivity.piggybank.mapper.PiggyBankActivityMapper;
 import com.finovara.activityservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
 import com.finovara.activityservice.activitylog.accountactivity.piggybank.repository.PiggyBankActivityRepository;
-import com.finovara.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
