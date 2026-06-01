@@ -1,10 +1,10 @@
 package com.finovara.corebackend.usersetting.account.service.emailpolicy;
 
 import com.finovara.contracts.clientdata.location.UserLocation;
-import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.corebackend.notification.email.NotificationEmailEventPublisher;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
-import com.finovara.corebackend.usersetting.notificationemail.action.emailchange.service.NotifyEmailChangeService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ class EmailUpdateServiceTest {
     private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Mock
-    private NotifyEmailChangeService notifyEmailChangeService;
+    private NotificationEmailEventPublisher notificationEmailEventPublisher;
 
     @Mock
     private HttpServletRequest request;
@@ -107,18 +107,18 @@ class EmailUpdateServiceTest {
     void shouldSendEmailNotification() {
         emailUpdateService.updateEmail(user, NEW_EMAIL, request);
 
-        verify(notifyEmailChangeService).sendEmail(user);
+        verify(notificationEmailEventPublisher).sendEmailChanged(user);
     }
 
     @Test
     void shouldExecuteOperationsInCorrectOrder() {
-        var inOrder = inOrder(userRepository, kafkaTemplate, notifyEmailChangeService);
+        var inOrder = inOrder(userRepository, kafkaTemplate, notificationEmailEventPublisher);
 
         emailUpdateService.updateEmail(user, NEW_EMAIL, request);
 
         inOrder.verify(userRepository).save(user);
         inOrder.verify(kafkaTemplate).send(any(), any());
-        inOrder.verify(notifyEmailChangeService).sendEmail(user);
+        inOrder.verify(notificationEmailEventPublisher).sendEmailChanged(user);
     }
 
     @Test
