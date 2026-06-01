@@ -141,22 +141,6 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="create-notification-settings" author="Marcin Parśniak">
-        <createTable tableName="notification_settings">
-            <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="notify_on_password_change" type="BOOLEAN"/>
-            <column name="notify_on_username_change" type="BOOLEAN"/>
-            <column name="notify_on_email_change" type="BOOLEAN"/>
-            <column name="notify_on_account_deleted" type="BOOLEAN"/>
-
-            <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_notification_settings_user"
-                             references="users(id)"/>
-            </column>
-        </createTable>
-    </changeSet>
 
     <changeSet id="create-expense-settings" author="Marcin Parśniak">
         <createTable tableName="expense_settings">
