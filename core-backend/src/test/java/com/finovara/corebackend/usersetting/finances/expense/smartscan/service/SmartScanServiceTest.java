@@ -1,7 +1,7 @@
 package com.finovara.corebackend.usersetting.finances.expense.smartscan.service;
 
 import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.corebackend.expense.model.Expense;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
 import com.finovara.corebackend.user.model.User;
