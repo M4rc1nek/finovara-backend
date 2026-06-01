@@ -1,7 +1,7 @@
 package com.finovara.corebackend.usersetting.piggybank.roundup.service;
 
 import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.expense.model.Expense;
 import com.finovara.corebackend.piggybank.dto.PiggyBankDto;
@@ -9,7 +9,6 @@ import com.finovara.corebackend.piggybank.model.PiggyBank;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.corebackend.piggybank.service.PiggyBankManagementService;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.corebackend.usersetting.piggybank.completion.service.GoalCompletionService;
