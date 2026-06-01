@@ -1,7 +1,7 @@
 package com.finovara.corebackend.security.oauth2;
 
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.corebackend.notification.email.NotificationEmailEventPublisher;
 import com.finovara.corebackend.user.model.OAuthProvider;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
@@ -38,6 +38,9 @@ class GoogleOAuth2UserServiceTest {
     @Mock
     private SettingsFactory settingsFactory;
 
+    @Mock
+    private NotificationEmailEventPublisher notificationEmailEventPublisher;
+
     @InjectMocks
     private GoogleOAuth2UserService googleOAuth2UserService;
 
@@ -66,14 +69,20 @@ class GoogleOAuth2UserServiceTest {
     }
 
     private void stubSaveReturnsInput() {
-        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+            User user = inv.getArgument(0);
+            if (user.getId() == null) {
+                user.setId(1L);
+            }
+            return user;
+        });
     }
 
     private void verifyNoSettingsCreated() {
         verify(settingsFactory, never()).createDefaultExpenseSettings(any());
         verify(settingsFactory, never()).createDefaultRecurringSettings(any());
-        verify(settingsFactory, never()).createDefaultNotificationSettings(any());
         verify(settingsFactory, never()).createDefaultAccountSettings(any());
+        verify(notificationEmailEventPublisher, never()).createDefaultSettings(any());
     }
 
     @Nested
@@ -107,7 +116,7 @@ class GoogleOAuth2UserServiceTest {
         }
 
         @Test
-        void shouldInitializeAllSettings() {
+        void shouldInitializeLocalSettingsAndPublishNotificationSettingsCreation() {
             when(userRepository.existsByEmail(EMAIL)).thenReturn(false);
             when(userRepository.existsByUsername(NAME)).thenReturn(false);
             stubSaveReturnsInput();
@@ -116,8 +125,8 @@ class GoogleOAuth2UserServiceTest {
 
             verify(settingsFactory).createDefaultExpenseSettings(any());
             verify(settingsFactory).createDefaultRecurringSettings(any());
-            verify(settingsFactory).createDefaultNotificationSettings(any());
             verify(settingsFactory).createDefaultAccountSettings(any());
+            verify(notificationEmailEventPublisher).createDefaultSettings(1L);
         }
 
         @Test

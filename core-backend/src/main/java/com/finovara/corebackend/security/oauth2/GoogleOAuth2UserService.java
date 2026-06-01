@@ -1,8 +1,8 @@
 package com.finovara.corebackend.security.oauth2;
 
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.corebackend.notification.email.NotificationEmailEventPublisher;
 import com.finovara.corebackend.security.oauth2.dto.GoogleOAuth2UserInfo;
-import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.OAuthProvider;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
@@ -24,6 +24,7 @@ public class GoogleOAuth2UserService {
 
     private final UserRepository userRepository;
     private final SettingsFactory settingsFactory;
+    private final NotificationEmailEventPublisher notificationEmailEventPublisher;
 
     @Transactional
     public User synchronize(OAuth2User oauth2User) {
@@ -52,10 +53,11 @@ public class GoogleOAuth2UserService {
 
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         user.setRecurringSettings(settingsFactory.createDefaultRecurringSettings(user));
-        user.setNotificationEmailSettings(settingsFactory.createDefaultNotificationSettings(user));
         user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        notificationEmailEventPublisher.createDefaultSettings(savedUser.getId());
+        return savedUser;
     }
 
     private User synchronizeExistingGoogleUser(User user, GoogleOAuth2UserInfo userInfo) {
