@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Configuration
 @EnableKafka
-public class KafkaConsumerConfig {
+public class KafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
@@ -29,6 +29,7 @@ public class KafkaConsumerConfig {
 
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "activity-log-service");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializer);
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
