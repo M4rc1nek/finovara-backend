@@ -1,12 +1,12 @@
 package com.finovara.corebackend.usersetting.account.service.emailpolicy;
 
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
 import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
 import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
-import com.finovara.corebackend.notification.email.NotificationEmailEventPublisher;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 public class EmailUpdateService {
     private final UserRepository userRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
-    private final NotificationEmailEventPublisher notificationEmailEventPublisher;
 
     @Transactional
     public void updateEmail(User user, String email, HttpServletRequest request) {
@@ -30,7 +29,7 @@ public class EmailUpdateService {
         userRepository.save(user);
 
         createActivity(user, request);
-        notificationEmailEventPublisher.sendEmailChanged(user);
+        kafkaTemplate.send("notification.email.send", new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Zmiana adresu e-mail", "email/email-changed.html"));
     }
 
     private void createActivity(User user, HttpServletRequest request) {
