@@ -5,12 +5,14 @@ import com.finovara.activityservice.activitylog.accountactivity.secure.accountch
 import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.repository.AccountChangeArchiveRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AccountChangeArchiveService {
@@ -19,6 +21,7 @@ public class AccountChangeArchiveService {
 
     public AccountChangeArchive mapToArchive(AccountChangesActivity accountChangesActivity) {
 
+        log.info("Archiving account change activity. type: {}, userId: {}", accountChangesActivity.getType(), accountChangesActivity.getUserId());
         return AccountChangeArchive.builder()
                 .userId(accountChangesActivity.getUserId())
                 .type(accountChangesActivity.getType())
