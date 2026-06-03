@@ -8,6 +8,7 @@ import com.finovara.activityservice.activitylog.accountactivity.expense.reposito
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity, ExpenseActivityDto> {
@@ -38,6 +40,8 @@ public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity,
                 .build();
 
         expenseActivityRepository.save(expenseActivity);
+        log.info("Created activity type: {}, userId: {}", event.type(), event.userId());
+
     }
 
     public List<ExpenseActivityDto> getExpenseActivity(Long userId, SortType sort) {
