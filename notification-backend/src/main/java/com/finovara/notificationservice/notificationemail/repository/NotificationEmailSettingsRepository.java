@@ -9,9 +9,5 @@ import java.util.Optional;
 @Repository
 public interface NotificationEmailSettingsRepository extends JpaRepository<NotificationEmailSettings, Long> {
     Optional<NotificationEmailSettings> findByUserId(Long userId);
-
-    boolean existsByUserId(Long userId);
-
-    void deleteByUserId(Long userId);
 }
 

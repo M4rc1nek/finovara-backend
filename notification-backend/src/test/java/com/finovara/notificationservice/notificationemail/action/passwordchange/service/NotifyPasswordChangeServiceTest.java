@@ -5,10 +5,11 @@ import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.notificationemail.dto.UserEmailDataDto;
+import com.finovara.notificationservice.notificationemail.model.EmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
-import com.finovara.notificationservice.notificationemail.util.emailsender.PasswordChangeNotifier;
+import com.finovara.notificationservice.notificationemail.util.emailsender.EmailNotifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -29,7 +30,7 @@ class NotifyPasswordChangeServiceTest {
     @Mock
     private NotificationEmailSender notificationEmailSender;
     @Mock
-    private PasswordChangeNotifier passwordChangeNotifier;
+    private EmailNotifier emailNotifier;
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -82,7 +83,7 @@ class NotifyPasswordChangeServiceTest {
 
         notifyPasswordChangeService.sendEmailToUser(USER_ID, data);
 
-        verify(passwordChangeNotifier).sendEmail(USER_ID, "john", "john@example.com");
+        verify(emailNotifier).send(EmailNotificationType.PASSWORD_CHANGED, USER_ID, "john", "john@example.com");
     }
 
     @Test

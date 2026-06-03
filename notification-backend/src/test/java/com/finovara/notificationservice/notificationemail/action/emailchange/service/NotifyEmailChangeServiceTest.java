@@ -5,9 +5,9 @@ import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.notificationemail.dto.UserEmailDataDto;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
+import com.finovara.notificationservice.notificationemail.util.emailsender.EmailNotifier;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
-import com.finovara.notificationservice.notificationemail.util.emailsender.EmailChangeNotifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,7 +36,7 @@ class NotifyEmailChangeServiceTest {
     @Mock
     private NotificationEmailSender notificationEmailSender;
     @Mock
-    private EmailChangeNotifier emailChangeNotifier;
+    private EmailNotifier emailNotifier;
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
 

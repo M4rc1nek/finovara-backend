@@ -6,10 +6,11 @@ import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.notificationservice.notificationemail.core.AbstractNotificationEmailService;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.notificationemail.dto.UserEmailDataDto;
+import com.finovara.notificationservice.notificationemail.model.EmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
-import com.finovara.notificationservice.notificationemail.util.emailsender.PasswordChangeNotifier;
+import com.finovara.notificationservice.notificationemail.util.emailsender.EmailNotifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -18,12 +19,12 @@ import java.time.LocalDateTime;
 @Service
 public class NotifyPasswordChangeService extends AbstractNotificationEmailService {
 
-    private final PasswordChangeNotifier passwordChangeNotifier;
+    private final EmailNotifier emailNotifier;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public NotifyPasswordChangeService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender, PasswordChangeNotifier passwordChangeNotifier, KafkaTemplate<String, Object> kafkaTemplate) {
+    public NotifyPasswordChangeService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender, EmailNotifier emailNotifier, KafkaTemplate<String, Object> kafkaTemplate) {
         super(notificationEmailSettingsRepository, notificationEmailSender);
-        this.passwordChangeNotifier = passwordChangeNotifier;
+        this.emailNotifier = emailNotifier;
         this.kafkaTemplate = kafkaTemplate;
     }
 
@@ -49,7 +50,7 @@ public class NotifyPasswordChangeService extends AbstractNotificationEmailServic
 
     @Override
     protected void sendEmailToUser(Long userId, UserEmailDataDto userEmailData) {
-        passwordChangeNotifier.sendEmail(userId, userEmailData.username(), userEmailData.email());
+        emailNotifier.send(EmailNotificationType.PASSWORD_CHANGED, userId, userEmailData.username(), userEmailData.email());
     }
 
     @Override

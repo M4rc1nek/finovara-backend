@@ -6,10 +6,11 @@ import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.notificationservice.notificationemail.core.AbstractNotificationEmailService;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.notificationemail.dto.UserEmailDataDto;
+import com.finovara.notificationservice.notificationemail.model.EmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
-import com.finovara.notificationservice.notificationemail.util.emailsender.AccountDeletedNotifier;
+import com.finovara.notificationservice.notificationemail.util.emailsender.EmailNotifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +18,13 @@ import java.time.LocalDateTime;
 
 @Service
 public class NotifyOnAccountDeletedService extends AbstractNotificationEmailService {
-    private final AccountDeletedNotifier accountDeletedNotifier;
+    private final EmailNotifier emailNotifier;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public NotifyOnAccountDeletedService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender, KafkaTemplate<String, Object> kafkaTemplate, AccountDeletedNotifier accountDeletedNotifier) {
+    public NotifyOnAccountDeletedService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender,
+                                         KafkaTemplate<String, Object> kafkaTemplate, EmailNotifier emailNotifier) {
         super(notificationEmailSettingsRepository, notificationEmailSender);
-        this.accountDeletedNotifier = accountDeletedNotifier;
+        this.emailNotifier = emailNotifier;
         this.kafkaTemplate = kafkaTemplate;
     }
 
@@ -48,7 +50,7 @@ public class NotifyOnAccountDeletedService extends AbstractNotificationEmailServ
 
     @Override
     protected void sendEmailToUser(Long userId, UserEmailDataDto userEmailData) {
-        accountDeletedNotifier.sendEmail(userId, userEmailData.username(), userEmailData.email());
+        emailNotifier.send(EmailNotificationType.ACCOUNT_DELETED, userId, userEmailData.username(), userEmailData.email());
     }
 
     @Override

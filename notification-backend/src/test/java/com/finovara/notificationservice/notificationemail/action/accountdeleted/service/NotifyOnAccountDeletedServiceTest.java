@@ -5,10 +5,11 @@ import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.notificationemail.dto.UserEmailDataDto;
+import com.finovara.notificationservice.notificationemail.model.EmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
-import com.finovara.notificationservice.notificationemail.util.emailsender.AccountDeletedNotifier;
+import com.finovara.notificationservice.notificationemail.util.emailsender.EmailNotifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -31,7 +32,7 @@ class NotifyOnAccountDeletedServiceTest {
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
     @Mock
-    private AccountDeletedNotifier accountDeletedNotifier;
+    private EmailNotifier emailNotifier;
 
     @InjectMocks
     private NotifyOnAccountDeletedService notifyOnAccountDeletedService;
@@ -82,7 +83,7 @@ class NotifyOnAccountDeletedServiceTest {
 
         notifyOnAccountDeletedService.sendEmailToUser(USER_ID, data);
 
-        verify(accountDeletedNotifier).sendEmail(USER_ID, "john", "john@example.com");
+        verify(emailNotifier).send(EmailNotificationType.ACCOUNT_DELETED, USER_ID, "john", "john@example.com");
     }
 
     @Test

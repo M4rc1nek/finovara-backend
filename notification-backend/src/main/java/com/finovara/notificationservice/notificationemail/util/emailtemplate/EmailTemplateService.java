@@ -16,13 +16,14 @@ import java.nio.charset.StandardCharsets;
 @Service
 @RequiredArgsConstructor
 public class EmailTemplateService {
+
     private final JavaMailSender javaMailSender;
 
     @Value("${mail.recipient.address}")
     private String senderAddress;
 
     @Async
-    public void sendEmail(String recipientEmail, String subject, String templatePath, String username, String email) {
+    public void sendEmail(String recipientEmail, String subject, String templatePath, String username, String templateEmailValue) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -32,7 +33,7 @@ public class EmailTemplateService {
             helper.setReplyTo(senderAddress);
             helper.setSubject(subject);
 
-            String html = loadTemplate(templatePath, username, email);
+            String html = loadTemplate(templatePath, username, templateEmailValue);
             helper.setText(html, true);
 
             javaMailSender.send(message);
@@ -42,23 +43,24 @@ public class EmailTemplateService {
         }
     }
 
-    private String loadTemplate(String templatePath, String username, String email) {
+    private String loadTemplate(String templatePath, String username, String templateEmailValue) {
         try {
             ClassPathResource resource = new ClassPathResource(templatePath);
+
             try (InputStream inputStream = resource.getInputStream()) {
                 String html = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
                 if (username != null) {
                     html = html.replace("{{username}}", username);
                 }
-                if (email != null) {
-                    html = html.replace("{{email}}", email);
+                if (templateEmailValue != null) {
+                    html = html.replace("{{email}}", templateEmailValue);
                 }
                 return html;
             }
+
         } catch (Exception exception) {
             throw new ServiceUnavailableException("Failed to load email template", exception);
         }
     }
 }
-

@@ -1,5 +1,6 @@
 package com.finovara.notificationservice.notificationemail.util.emailsender;
 
+import com.finovara.notificationservice.notificationemail.model.EmailNotificationType;
 import com.finovara.notificationservice.notificationemail.util.emailtemplate.EmailTemplateService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,11 +19,11 @@ class EmailChangeNotifierTest {
     private EmailTemplateService emailTemplateService;
 
     @InjectMocks
-    private EmailChangeNotifier emailChangeNotifier;
+    private EmailNotifier emailNotifier;
 
     @Test
     void shouldCallSendEmailWithCorrectParameters() {
-        emailChangeNotifier.sendEmail(1L, "john_doe", "john@example.com");
+        emailNotifier.send(EmailNotificationType.EMAIL_CHANGED, 1L, "john_doe", "john@example.com");
 
         verify(emailTemplateService).sendEmail(
                 eq("john@example.com"),

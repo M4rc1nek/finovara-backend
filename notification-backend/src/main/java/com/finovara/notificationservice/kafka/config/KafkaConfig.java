@@ -36,11 +36,6 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, Object> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
-    }
-
-    @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
         JacksonJsonDeserializer<Object> deserializer = new JacksonJsonDeserializer<>();
         deserializer.addTrustedPackages("com.finovara.contracts.*");
@@ -62,4 +57,10 @@ public class KafkaConfig {
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }
+
+    @Bean
+    public KafkaTemplate<String, Object> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
+    }
+
 }

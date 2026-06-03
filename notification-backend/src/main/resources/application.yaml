@@ -32,7 +32,8 @@ spring:
             enable: true
             trust: smtp.gmail.com
   kafka:
-    bootstrap-servers: :finovara-kafka:9092
+    bootstrap-servers: localhost:9092
+
 server:
   port: 8086
   forward-headers-strategy: framework

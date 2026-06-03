@@ -1,5 +1,6 @@
 package com.finovara.notificationservice.notificationemail.util.emailsender;
 
+import com.finovara.notificationservice.notificationemail.model.EmailNotificationType;
 import com.finovara.notificationservice.notificationemail.util.emailtemplate.EmailTemplateService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,11 +19,11 @@ class AccountDeletedEmailTest {
     private EmailTemplateService emailTemplateService;
 
     @InjectMocks
-    private AccountDeletedNotifier accountDeletedNotifier;
+    private EmailNotifier emailNotifier;
 
     @Test
     void shouldCallSendEmailWithCorrectParameters() {
-        accountDeletedNotifier.sendEmail(1L, "john_doe", "john@example.com");
+        emailNotifier.send(EmailNotificationType.ACCOUNT_DELETED, 1L, "john_doe", "john@example.com");
 
         verify(emailTemplateService).sendEmail(
                 eq("john@example.com"),
