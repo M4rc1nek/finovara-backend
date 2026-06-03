@@ -2,7 +2,7 @@ package com.finovara.corebackend.usersetting.account.service.passwordpolicy.chan
 
 import com.finovara.contracts.clientdata.location.UserLocation;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.corebackend.notification.email.NotificationEmailEventPublisher;
+import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,9 +31,6 @@ class PasswordUpdateServiceTest {
 
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
-
-    @Mock
-    private NotificationEmailEventPublisher notificationEmailEventPublisher;
 
     @Mock
     private HttpServletRequest request;
@@ -118,7 +115,7 @@ class PasswordUpdateServiceTest {
     void shouldSendPasswordChangeNotification() {
         passwordUpdateService.updatePassword(user, NEW_PASSWORD, request);
 
-        verify(notificationEmailEventPublisher).sendPasswordChanged(user);
+        verify(kafkaTemplate).send(eq("notification.email.send"), any(SendEmailEvent.class));
     }
 
     @Test
@@ -126,16 +123,15 @@ class PasswordUpdateServiceTest {
         var inOrder = inOrder(
                 passwordEncoder,
                 userRepository,
-                kafkaTemplate,
-                notificationEmailEventPublisher
+                kafkaTemplate
         );
 
         passwordUpdateService.updatePassword(user, NEW_PASSWORD, request);
 
         inOrder.verify(passwordEncoder).encode(NEW_PASSWORD);
         inOrder.verify(userRepository).save(user);
-        inOrder.verify(kafkaTemplate).send(any(), any());
-        inOrder.verify(notificationEmailEventPublisher).sendPasswordChanged(user);
+        inOrder.verify(kafkaTemplate).send(eq("activity.account-changes"), any(AccountChangesActivityEvent.class));
+        inOrder.verify(kafkaTemplate).send(eq("notification.email.send"), any(SendEmailEvent.class));
     }
 
     @Test
