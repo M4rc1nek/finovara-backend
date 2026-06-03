@@ -1,4 +1,8 @@
 package com.finovara.notificationservice.notificationemail.model;
 
-public class EmailNotificationType {
+public enum EmailNotificationType {
+    ACCOUNT_DELETED,
+    EMAIL_CHANGED,
+    USERNAME_CHANGED,
+    PASSWORD_CHANGED
 }
