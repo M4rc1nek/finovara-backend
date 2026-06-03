@@ -9,6 +9,7 @@ import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LimitActivityService extends AccountActivityCore<LimitActivity, LimitActivityDto> {
@@ -38,6 +40,7 @@ public class LimitActivityService extends AccountActivityCore<LimitActivity, Lim
                 .build();
 
         limitActivityRepository.save(limitActivity);
+        log.info("Created activity type: {}, userId: {}", event.type(), event.userId());
     }
 
     public List<LimitActivityDto> getLimitActivity(Long userId, SortType sort) {
