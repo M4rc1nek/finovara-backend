@@ -1,12 +1,12 @@
 package com.finovara.corebackend.usersetting.account.service.passwordpolicy.change;
 
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
 import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
 import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
-import com.finovara.corebackend.notification.email.NotificationEmailEventPublisher;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +24,6 @@ public class PasswordUpdateService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final KafkaTemplate<String, Object> kafkaTemplate;
-    private final NotificationEmailEventPublisher notificationEmailEventPublisher;
 
     @Transactional
     public void updatePassword(User user, String newPassword, HttpServletRequest request) {
@@ -33,7 +32,7 @@ public class PasswordUpdateService {
 
         createActivity(user, request);
 
-        notificationEmailEventPublisher.sendPasswordChanged(user);
+        kafkaTemplate.send("notification.email.send", new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Zmiana hasla", "email/password-changed.html"));
     }
 
     private void createActivity(User user, HttpServletRequest request) {
