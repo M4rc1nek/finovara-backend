@@ -1,7 +1,7 @@
 package com.finovara.corebackend.security.oauth2;
 
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.corebackend.notification.email.NotificationEmailEventPublisher;
+import com.finovara.contracts.event.notification.CreateDefaultNotificationEmailSettingsEvent;
 import com.finovara.corebackend.user.model.OAuthProvider;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
@@ -17,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.HashMap;
@@ -39,7 +40,7 @@ class GoogleOAuth2UserServiceTest {
     private SettingsFactory settingsFactory;
 
     @Mock
-    private NotificationEmailEventPublisher notificationEmailEventPublisher;
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     @InjectMocks
     private GoogleOAuth2UserService googleOAuth2UserService;
@@ -82,7 +83,7 @@ class GoogleOAuth2UserServiceTest {
         verify(settingsFactory, never()).createDefaultExpenseSettings(any());
         verify(settingsFactory, never()).createDefaultRecurringSettings(any());
         verify(settingsFactory, never()).createDefaultAccountSettings(any());
-        verify(notificationEmailEventPublisher, never()).createDefaultSettings(any());
+        verify(kafkaTemplate, never()).send(eq("notification.email-settings.create-default"), any());
     }
 
     @Nested
@@ -126,7 +127,10 @@ class GoogleOAuth2UserServiceTest {
             verify(settingsFactory).createDefaultExpenseSettings(any());
             verify(settingsFactory).createDefaultRecurringSettings(any());
             verify(settingsFactory).createDefaultAccountSettings(any());
-            verify(notificationEmailEventPublisher).createDefaultSettings(1L);
+            ArgumentCaptor<CreateDefaultNotificationEmailSettingsEvent> eventCaptor =
+                    ArgumentCaptor.forClass(CreateDefaultNotificationEmailSettingsEvent.class);
+            verify(kafkaTemplate).send(eq("notification.email-settings.create-default"), eventCaptor.capture());
+            assertThat(eventCaptor.getValue().userId()).isEqualTo(1L);
         }
 
         @Test
