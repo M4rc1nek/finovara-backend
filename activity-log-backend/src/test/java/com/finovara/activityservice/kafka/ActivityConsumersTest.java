@@ -15,147 +15,111 @@ import com.finovara.contracts.event.activity.secure.accountchange.activity.Accou
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
-import com.finovara.contracts.model.activity.ExpenseActivityType;
-import com.finovara.contracts.model.activity.LimitActivityType;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
-import com.finovara.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.contracts.model.activity.RevenueActivityType;
-import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.model.activity.*;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class ActivityConsumersTest {
 
     private static final Long USER_ID = 1L;
     private static final LocalDateTime OCCURRED_AT = LocalDateTime.of(2026, 5, 25, 17, 0);
 
+    @Mock
+    private SettingsActivityService settingsActivityService;
+
+    @Mock
+    private RevenueActivityService revenueActivityService;
+
+    @Mock
+    private PiggyBankActivityService piggyBankActivityService;
+
+    @Mock
+    private LoginActivityService loginActivityService;
+
+    @Mock
+    private LimitActivityService limitActivityService;
+
+    @Mock
+    private ExpenseActivityService expenseActivityService;
+
+    @Mock
+    private AccountChangesActivityService accountChangesActivityService;
+
+    @InjectMocks
+    private ActivityConsumers consumer;
+
     @Test
-    void expenseConsumerShouldDelegateEventToService() {
-        ExpenseActivityService service = mock(ExpenseActivityService.class);
-        ExpenseActivityEvent event = new ExpenseActivityEvent(
-                USER_ID,
-                ExpenseActivityType.ADDED_EXPENSE,
-                new BigDecimal("10.00"),
-                ExpenseCategory.FOOD,
-                null,
-                null,
-                OCCURRED_AT
-        );
+    void handleExpenseShouldDelegateEventToService() {
+        ExpenseActivityEvent event = new ExpenseActivityEvent(USER_ID, ExpenseActivityType.ADDED_EXPENSE, new BigDecimal("10.00"), ExpenseCategory.FOOD, null, null, OCCURRED_AT);
 
-        new ExpenseActivityConsumer(service).handle(event);
+        consumer.handleExpense(event);
 
-        verify(service).handleEvent(event);
+        verify(expenseActivityService).handleEvent(event);
     }
 
     @Test
-    void revenueConsumerShouldDelegateEventToService() {
-        RevenueActivityService service = mock(RevenueActivityService.class);
-        RevenueActivityEvent event = new RevenueActivityEvent(
-                USER_ID,
-                RevenueActivityType.ADDED_REVENUE,
-                new BigDecimal("10.00"),
-                RevenueCategory.SALARY,
-                null,
-                null,
-                OCCURRED_AT
-        );
+    void handleRevenueShouldDelegateEventToService() {
+        RevenueActivityEvent event = new RevenueActivityEvent(USER_ID, RevenueActivityType.ADDED_REVENUE, new BigDecimal("10.00"), RevenueCategory.SALARY, null, null, OCCURRED_AT);
 
-        new RevenueActivityConsumer(service).handle(event);
+        consumer.handleRevenue(event);
 
-        verify(service).handleEvent(event);
+        verify(revenueActivityService).handleEvent(event);
     }
 
     @Test
-    void limitConsumerShouldDelegateEventToService() {
-        LimitActivityService service = mock(LimitActivityService.class);
-        LimitActivityEvent event = new LimitActivityEvent(
-                USER_ID,
-                LimitActivityType.ADDED_LIMIT,
-                PeriodType.DAILY.name(),
-                new BigDecimal("10.00"),
-                null,
-                OCCURRED_AT
-        );
+    void handleLimitShouldDelegateEventToService() {
+        LimitActivityEvent event = new LimitActivityEvent(USER_ID, LimitActivityType.ADDED_LIMIT, PeriodType.DAILY.name(), new BigDecimal("10.00"), null, OCCURRED_AT);
 
-        new LimitActivityConsumer(service).handle(event);
+        consumer.handleLimit(event);
 
-        verify(service).handleEvent(event);
+        verify(limitActivityService).handleEvent(event);
     }
 
     @Test
-    void piggyBankConsumerShouldDelegateEventToService() {
-        PiggyBankActivityService service = mock(PiggyBankActivityService.class);
-        PiggyBankActivityEvent event = new PiggyBankActivityEvent(
-                USER_ID,
-                PiggyBankActivityType.ADDED_PIGGY_BANK,
-                "Gift fund",
-                PiggyBankGoalType.GIFTS,
-                new BigDecimal("100.00"),
-                null,
-                OCCURRED_AT
-        );
+    void handlePiggyBankShouldDelegateEventToService() {
+        PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID, PiggyBankActivityType.ADDED_PIGGY_BANK, "Gift fund", PiggyBankGoalType.GIFTS, new BigDecimal("100.00"), null, OCCURRED_AT);
 
-        new PiggyBankActivityConsumer(service).handle(event);
+        consumer.handlePiggyBank(event);
 
-        verify(service).handleEvent(event);
+        verify(piggyBankActivityService).handleEvent(event);
     }
 
     @Test
-    void settingsConsumerShouldDelegateEventToService() {
-        SettingsActivityService service = mock(SettingsActivityService.class);
-        SettingsActivityEvent event = new SettingsActivityEvent(
-                USER_ID,
-                SettingType.PIGGY_BANK_ROUND_UP,
-                SettingActivityStatus.ENABLED,
-                OCCURRED_AT
-        );
+    void handleSettingsShouldDelegateEventToService() {
+        SettingsActivityEvent event = new SettingsActivityEvent(USER_ID, SettingType.PIGGY_BANK_ROUND_UP, SettingActivityStatus.ENABLED, OCCURRED_AT);
 
-        new SettingsActivityConsumer(service).handle(event);
+        consumer.handleSettings(event);
 
-        verify(service).handleEvent(event);
+        verify(settingsActivityService).handleEvent(event);
     }
 
     @Test
-    void loginConsumerShouldDelegateEventToService() {
-        LoginActivityService service = mock(LoginActivityService.class);
-        LoginActivityEvent event = new LoginActivityEvent(
-                USER_ID,
-                LoginActivityStatus.SUCCESSFUL,
-                "Firefox",
-                "127.0.0.1",
-                "Localhost",
-                OCCURRED_AT
-        );
+    void handleLoginShouldDelegateEventToService() {
+        LoginActivityEvent event = new LoginActivityEvent(USER_ID, LoginActivityStatus.SUCCESSFUL, "Firefox", "127.0.0.1", "Localhost", OCCURRED_AT);
 
-        new LoginActivityConsumer(service).handle(event);
+        consumer.handleLogin(event);
 
-        verify(service).handleEvent(event);
+        verify(loginActivityService).handleEvent(event);
     }
 
     @Test
-    void accountChangesConsumerShouldDelegateEventToService() {
-        AccountChangesActivityService service = mock(AccountChangesActivityService.class);
-        AccountChangesActivityEvent event = new AccountChangesActivityEvent(
-                USER_ID,
-                AccountChangesActivityType.PASSWORD_CHANGED,
-                "Firefox",
-                "127.0.0.1",
-                "Localhost",
-                OCCURRED_AT
-        );
+    void handleAccountChangesShouldDelegateEventToService() {
+        AccountChangesActivityEvent event = new AccountChangesActivityEvent(USER_ID, AccountChangesActivityType.PASSWORD_CHANGED, "Firefox", "127.0.0.1", "Localhost", OCCURRED_AT);
 
-        new AccountChangesActivityConsumer(service).handle(event);
+        consumer.handleAccountChanges(event);
 
-        verify(service).handleEvent(event);
+        verify(accountChangesActivityService).handleEvent(event);
     }
 }
