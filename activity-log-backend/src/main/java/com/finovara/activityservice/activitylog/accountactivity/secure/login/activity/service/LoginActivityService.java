@@ -10,6 +10,7 @@ import com.finovara.activityservice.feignclient.CoreBackendClient;
 import com.finovara.contracts.dto.ConfirmPasswordDto;
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LoginActivityService extends SecurityActivityCore<LoginActivity, LoginActivityArchive> {
@@ -41,13 +43,13 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
                 .build();
 
         saveActivity(activity);
+        log.info("Created activity type: {}, userId: {}", activity.getType(), event.userId());
         moveToArchive(event.userId(), pageSize);
     }
 
     public List<LoginActivityDto> getLoginActivity(Long userId) {
         return loginActivityRepository.findByUserIdOrderByDesc(userId);
     }
-
 
     public void confirmPassword(Long userId, ConfirmPasswordDto dto) {
         coreBackendClient.verifyPassword(userId, dto);
