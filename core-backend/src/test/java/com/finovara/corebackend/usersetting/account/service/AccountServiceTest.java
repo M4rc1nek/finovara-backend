@@ -1,9 +1,9 @@
 package com.finovara.corebackend.usersetting.account.service;
 
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.corebackend.notification.email.NotificationEmailEventPublisher;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.account.dto.AccountSettingsDto;
@@ -35,8 +35,6 @@ class AccountServiceTest {
     private UserRepository userRepository;
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
-    @Mock
-    private NotificationEmailEventPublisher notificationEmailEventPublisher;
     @Mock
     private PasswordValidator passwordValidator;
     @Mock
@@ -73,7 +71,7 @@ class AccountServiceTest {
             ArgumentCaptor<AccountChangesActivityEvent> eventCaptor = ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
             verify(kafkaTemplate).send(eq("activity.account-changes"), eventCaptor.capture());
             assertThat(eventCaptor.getValue().type()).isEqualTo(AccountChangesActivityType.USERNAME_CHANGED);
-            verify(notificationEmailEventPublisher).sendUsernameChanged(user);
+            verify(kafkaTemplate).send(eq("notification.email.send"), any(SendEmailEvent.class));
         }
 
         @Test
@@ -152,7 +150,7 @@ class AccountServiceTest {
 
             verify(passwordValidator).validatePassword(userId, dto);
             verify(userRepository).delete(user);
-            verify(notificationEmailEventPublisher).sendAccountDeleted(user);
+            verify(kafkaTemplate).send(eq("notification.email.send"), any(SendEmailEvent.class));
         }
 
         @Test
@@ -170,7 +168,7 @@ class AccountServiceTest {
             accountService.deleteAccount(dto, userId);
 
             verify(userRepository).delete(user);
-            verify(notificationEmailEventPublisher).sendAccountDeleted(user);
+            verify(kafkaTemplate).send(eq("notification.email.send"), any(SendEmailEvent.class));
         }
 
         @Test
