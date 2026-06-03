@@ -1,19 +1,15 @@
 package com.finovara.corebackend.user.service;
 
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
-
-import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
-import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
-import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.conflict.StateConflictException;
 import com.finovara.contracts.exception.unauthorized.InvalidCredentialsException;
-import com.finovara.corebackend.notification.email.NotificationEmailEventPublisher;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
 import com.finovara.corebackend.security.jwt.JwtService;
 import com.finovara.corebackend.user.dto.UserLoginDto;
 import com.finovara.corebackend.user.dto.UserRegisterDto;
 import com.finovara.corebackend.user.model.User;
+import com.finovara.corebackend.user.model.UserCreatedEvent;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.factory.SettingsFactory;
 import com.finovara.corebackend.util.email.EmailDomainValidator;
@@ -32,6 +28,10 @@ import org.springframework.stereotype.Service;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 
+import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -45,7 +45,6 @@ public class UserService {
     private final SettingsFactory settingsFactory;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final EmailDomainValidator emailDomainValidator;
-    private final NotificationEmailEventPublisher notificationEmailEventPublisher;
 
     @Value("${application.upload.profile-images-default-directory}")
     private String profileImagesDefaultDirectory;
@@ -70,11 +69,9 @@ public class UserService {
         user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
 
         User savedUser = userRepository.save(user);
-        notificationEmailEventPublisher.createDefaultSettings(savedUser.getId());
-
         String jwtToken = jwtService.generateToken(savedUser);
-
         String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(savedUser.getProfileImagePath());
+        kafkaTemplate.send("user.created", new UserCreatedEvent(savedUser.getId(), savedUser.getUsername(), userProfileImage, savedUser.getEmail()));
 
         return new UserRegisterDto(savedUser.getId(), savedUser.getUsername(), null, userProfileImage, savedUser.getEmail(), jwtToken);
     }
