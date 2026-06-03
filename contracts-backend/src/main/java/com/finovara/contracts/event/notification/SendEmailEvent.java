@@ -1,7 +1,7 @@
 package com.finovara.contracts.event.notification;
 
 public record SendEmailEvent(
-        String to,
+        Long userId,
         String username,
         String email,
         String subject,
