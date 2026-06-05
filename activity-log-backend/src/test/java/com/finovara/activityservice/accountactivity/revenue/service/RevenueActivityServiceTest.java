@@ -10,6 +10,7 @@ import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -50,62 +51,81 @@ class RevenueActivityServiceTest {
         ReflectionTestUtils.setField(revenueActivityService, "pageSize", 10);
     }
 
-    @Test
-    void shouldSaveActivityFromEvent() {
-        RevenueActivityEvent event = new RevenueActivityEvent(
-                USER_ID,
-                RevenueActivityType.EDITED_REVENUE,
-                new BigDecimal("2000.00"),
-                RevenueCategory.BONUS,
-                new BigDecimal("1500.00"),
-                RevenueCategory.SALARY,
-                OCCURRED_AT
-        );
+    @Nested
+    class DeleteByUserId {
 
-        revenueActivityService.handleEvent(event);
+        @Test
+        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+            revenueActivityService.deleteByUserId(USER_ID);
 
-        ArgumentCaptor<RevenueActivity> captor = ArgumentCaptor.forClass(RevenueActivity.class);
-        verify(revenueActivityRepository).save(captor.capture());
-
-        RevenueActivity activity = captor.getValue();
-        assertThat(activity.getUserId()).isEqualTo(USER_ID);
-        assertThat(activity.getType()).isEqualTo(event.type());
-        assertThat(activity.getAmount()).isEqualByComparingTo(event.amount());
-        assertThat(activity.getCategory()).isEqualTo(event.category());
-        assertThat(activity.getPreviousAmount()).isEqualByComparingTo(event.previousAmount());
-        assertThat(activity.getPreviousCategory()).isEqualTo(event.previousCategory());
-        assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+            verify(revenueActivityRepository).deleteByUserId(USER_ID);
+        }
     }
 
-    @Test
-    void shouldReturnMappedActivities() {
-        RevenueActivity activity = RevenueActivity.builder().userId(USER_ID).build();
-        RevenueActivityDto dto = new RevenueActivityDto(
-                RevenueActivityType.ADDED_REVENUE,
-                new BigDecimal("100.00"),
-                null,
-                RevenueCategory.SALARY,
-                null,
-                OCCURRED_AT
-        );
+    @Nested
+    class HandleEvent {
 
-        when(revenueActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
-        when(revenueActivityMapper.mapToRevenueActivity(activity)).thenReturn(dto);
+        @Test
+        void shouldBuildEntityAndSaveViaRepository() {
+            RevenueActivityEvent event = new RevenueActivityEvent(
+                    USER_ID,
+                    RevenueActivityType.EDITED_REVENUE,
+                    new BigDecimal("2000.00"),
+                    RevenueCategory.BONUS,
+                    new BigDecimal("1500.00"),
+                    RevenueCategory.SALARY,
+                    OCCURRED_AT
+            );
 
-        List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(USER_ID, SortType.NEWEST);
+            revenueActivityService.handleEvent(event);
 
-        assertThat(result).containsExactly(dto);
-        verify(revenueActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
-        verify(revenueActivityMapper).mapToRevenueActivity(activity);
+            ArgumentCaptor<RevenueActivity> captor = ArgumentCaptor.forClass(RevenueActivity.class);
+            verify(revenueActivityRepository).save(captor.capture());
+
+            RevenueActivity activity = captor.getValue();
+            assertThat(activity.getUserId()).isEqualTo(USER_ID);
+            assertThat(activity.getType()).isEqualTo(event.type());
+            assertThat(activity.getAmount()).isEqualByComparingTo(event.amount());
+            assertThat(activity.getCategory()).isEqualTo(event.category());
+            assertThat(activity.getPreviousAmount()).isEqualByComparingTo(event.previousAmount());
+            assertThat(activity.getPreviousCategory()).isEqualTo(event.previousCategory());
+            assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+        }
     }
 
-    @Test
-    void shouldReturnEmptyListWhenUserHasNoActivities() {
-        when(revenueActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+    @Nested
+    class GetRevenueActivity {
 
-        List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(USER_ID, SortType.OLDEST);
+        @Test
+        void shouldReturnMappedActivities() {
+            RevenueActivity activity = RevenueActivity.builder().userId(USER_ID).build();
+            RevenueActivityDto dto = new RevenueActivityDto(
+                    RevenueActivityType.ADDED_REVENUE,
+                    new BigDecimal("100.00"),
+                    null,
+                    RevenueCategory.SALARY,
+                    null,
+                    OCCURRED_AT
+            );
 
-        assertThat(result).isEmpty();
-        verifyNoInteractions(revenueActivityMapper);
+            when(revenueActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
+            when(revenueActivityMapper.mapToRevenueActivity(activity)).thenReturn(dto);
+
+            List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(USER_ID, SortType.NEWEST);
+
+            assertThat(result).containsExactly(dto);
+            verify(revenueActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
+            verify(revenueActivityMapper).mapToRevenueActivity(activity);
+        }
+
+        @Test
+        void shouldReturnEmptyListWhenUserHasNoActivities() {
+            when(revenueActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+
+            List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(USER_ID, SortType.OLDEST);
+
+            assertThat(result).isEmpty();
+            verifyNoInteractions(revenueActivityMapper);
+        }
     }
 }
