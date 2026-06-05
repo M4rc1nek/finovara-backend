@@ -29,7 +29,7 @@ spring:
     enabled: true
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: finovara-kafka:9092
 
 application:
   security:
