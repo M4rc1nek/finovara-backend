@@ -1,10 +1,11 @@
-package com.finovara.notificationservice.notificationemail.service;
+package com.finovara.notificationservice.kafka;
 
+import com.finovara.contracts.event.notification.CreateDefaultNotificationEmailSettingsEvent;
 import com.finovara.contracts.event.notification.SendEmailEvent;
-import com.finovara.contracts.event.user.UserCreatedEvent;
-import com.finovara.notificationservice.kafka.NotificationEmailSettingsService;
+import com.finovara.contracts.event.user.UserAccountDeletedEvent;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
+import com.finovara.notificationservice.notificationemail.service.NotificationEmailSettingsService;
 import com.finovara.notificationservice.notificationemail.util.emailtemplate.EmailTemplateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class NotificationEmailConsumer {
     private final EmailTemplateService emailTemplateService;
 
     @KafkaListener(topics = "user.created")
-    public void handleUserCreated(UserCreatedEvent event) {
+    public void handleUserCreated(CreateDefaultNotificationEmailSettingsEvent event) {
         notificationEmailSettingsService.createSettingsIfNotExist(event.userId());
     }
 
@@ -35,6 +36,12 @@ public class NotificationEmailConsumer {
         notificationEmailSettingsRepository.findByUserId(event.userId())
                 .filter(settings -> isEnabled(settings, event.templateName()))
                 .ifPresent(settings -> processEmail(event));
+    }
+
+    @KafkaListener(topics = "user-account.deleted")
+    public void deleteSettings(UserAccountDeletedEvent event) {
+        notificationEmailSettingsRepository.findByUserId(event.userId())
+                .ifPresent(notificationEmailSettingsService::deleteSettings);
     }
 
     private boolean isEnabled(NotificationEmailSettings settings, String templateName) {
