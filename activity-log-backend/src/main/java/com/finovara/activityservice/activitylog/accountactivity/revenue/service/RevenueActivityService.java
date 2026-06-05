@@ -5,6 +5,7 @@ import com.finovara.activityservice.activitylog.accountactivity.revenue.dto.Reve
 import com.finovara.activityservice.activitylog.accountactivity.revenue.mapper.RevenueActivityMapper;
 import com.finovara.activityservice.activitylog.accountactivity.revenue.model.RevenueActivity;
 import com.finovara.activityservice.activitylog.accountactivity.revenue.repository.RevenueActivityRepository;
+import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RevenueActivityService extends AccountActivityCore<RevenueActivity, RevenueActivityDto> {
+public class RevenueActivityService extends AccountActivityCore<RevenueActivity, RevenueActivityDto> implements UserDataDeletable {
 
     @Value("${user-activity.revenue.page-size}")
     private int pageSize;
@@ -55,5 +56,12 @@ public class RevenueActivityService extends AccountActivityCore<RevenueActivity,
     @Override
     protected RevenueActivityDto mapToDto(RevenueActivity entity) {
         return revenueActivityMapper.mapToRevenueActivity(entity);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        revenueActivityRepository.deleteByUserId(userId);
+        log.info("Deleted revenue activity for userId={}", userId);
     }
 }
