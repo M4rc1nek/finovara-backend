@@ -8,7 +8,7 @@ import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.corebackend.util.user.service.UserManagerService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
