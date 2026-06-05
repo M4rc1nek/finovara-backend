@@ -32,7 +32,7 @@ spring:
             enable: true
             trust: smtp.gmail.com
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: finovara-kafka:9092
 
 server:
   port: 8086
@@ -63,3 +63,5 @@ logging:
   level:
     root: INFO
     org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
