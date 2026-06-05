@@ -10,6 +10,7 @@ import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -50,66 +51,85 @@ class PiggyBankActivityServiceTest {
         ReflectionTestUtils.setField(piggyBankActivityService, "pageSize", 10);
     }
 
-    @Test
-    void shouldSaveActivityFromEvent() {
-        PiggyBankActivityEvent event = new PiggyBankActivityEvent(
-                USER_ID,
-                PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY,
-                "Vacation Fund",
-                PiggyBankGoalType.VACATION,
-                new BigDecimal("2000.00"),
-                new BigDecimal("250.00"),
-                OCCURRED_AT
-        );
+    @Nested
+    class DeleteByUserId {
 
-        piggyBankActivityService.handleEvent(event);
+        @Test
+        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+            piggyBankActivityService.deleteByUserId(USER_ID);
 
-        ArgumentCaptor<PiggyBankActivity> captor = ArgumentCaptor.forClass(PiggyBankActivity.class);
-        verify(piggyBankActivityRepository).save(captor.capture());
-
-        PiggyBankActivity activity = captor.getValue();
-        assertThat(activity.getUserId()).isEqualTo(USER_ID);
-        assertThat(activity.getActivityType()).isEqualTo(event.type());
-        assertThat(activity.getPiggyBankName()).isEqualTo(event.name());
-        assertThat(activity.getGoalType()).isEqualTo(event.goalType());
-        assertThat(activity.getGoalAmount()).isEqualByComparingTo(event.goalAmount());
-        assertThat(activity.getAmountPaid()).isEqualByComparingTo(event.amountPaid());
-        assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+            verify(piggyBankActivityRepository).deleteByUserId(USER_ID);
+        }
     }
 
-    @Test
-    void shouldReturnMappedActivities() {
-        PiggyBankActivity activity = PiggyBankActivity.builder().userId(USER_ID).build();
-        PiggyBankActivityDto dto = new PiggyBankActivityDto(
-                "Piggy",
-                null,
-                PiggyBankActivityType.ADDED_PIGGY_BANK,
-                PiggyBankGoalType.GIFTS,
-                null,
-                new BigDecimal("100.00"),
-                null,
-                null,
-                null,
-                OCCURRED_AT
-        );
+    @Nested
+    class HandleEvent {
 
-        when(piggyBankActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
-        when(piggyBankActivityMapper.mapToPiggyBankActivity(activity)).thenReturn(dto);
+        @Test
+        void shouldBuildEntityAndSaveViaRepository() {
+            PiggyBankActivityEvent event = new PiggyBankActivityEvent(
+                    USER_ID,
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY,
+                    "Vacation Fund",
+                    PiggyBankGoalType.VACATION,
+                    new BigDecimal("2000.00"),
+                    new BigDecimal("250.00"),
+                    OCCURRED_AT
+            );
 
-        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(USER_ID, SortType.NEWEST);
+            piggyBankActivityService.handleEvent(event);
 
-        assertThat(result).containsExactly(dto);
-        verify(piggyBankActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
-        verify(piggyBankActivityMapper).mapToPiggyBankActivity(activity);
+            ArgumentCaptor<PiggyBankActivity> captor = ArgumentCaptor.forClass(PiggyBankActivity.class);
+            verify(piggyBankActivityRepository).save(captor.capture());
+
+            PiggyBankActivity activity = captor.getValue();
+            assertThat(activity.getUserId()).isEqualTo(USER_ID);
+            assertThat(activity.getActivityType()).isEqualTo(event.type());
+            assertThat(activity.getPiggyBankName()).isEqualTo(event.name());
+            assertThat(activity.getGoalType()).isEqualTo(event.goalType());
+            assertThat(activity.getGoalAmount()).isEqualByComparingTo(event.goalAmount());
+            assertThat(activity.getAmountPaid()).isEqualByComparingTo(event.amountPaid());
+            assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+        }
     }
 
-    @Test
-    void shouldReturnEmptyListWhenUserHasNoActivities() {
-        when(piggyBankActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+    @Nested
+    class GetPiggyBankActivities {
 
-        List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(USER_ID, SortType.OLDEST);
+        @Test
+        void shouldReturnMappedActivities() {
+            PiggyBankActivity activity = PiggyBankActivity.builder().userId(USER_ID).build();
+            PiggyBankActivityDto dto = new PiggyBankActivityDto(
+                    "Piggy",
+                    null,
+                    PiggyBankActivityType.ADDED_PIGGY_BANK,
+                    PiggyBankGoalType.GIFTS,
+                    null,
+                    new BigDecimal("100.00"),
+                    null,
+                    null,
+                    null,
+                    OCCURRED_AT
+            );
 
-        assertThat(result).isEmpty();
-        verifyNoInteractions(piggyBankActivityMapper);
+            when(piggyBankActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
+            when(piggyBankActivityMapper.mapToPiggyBankActivity(activity)).thenReturn(dto);
+
+            List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(USER_ID, SortType.NEWEST);
+
+            assertThat(result).containsExactly(dto);
+            verify(piggyBankActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
+            verify(piggyBankActivityMapper).mapToPiggyBankActivity(activity);
+        }
+
+        @Test
+        void shouldReturnEmptyListWhenUserHasNoActivities() {
+            when(piggyBankActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+
+            List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(USER_ID, SortType.OLDEST);
+
+            assertThat(result).isEmpty();
+            verifyNoInteractions(piggyBankActivityMapper);
+        }
     }
 }
