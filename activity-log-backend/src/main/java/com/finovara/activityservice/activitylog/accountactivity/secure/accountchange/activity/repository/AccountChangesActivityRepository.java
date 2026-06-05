@@ -26,4 +26,6 @@ public interface AccountChangesActivityRepository extends JpaRepository<AccountC
 
     @Query("SELECT u FROM AccountChangesActivity u WHERE u.userId = :userId ORDER BY u.id")
      List<AccountChangesActivity> findFewByUserId(Long userId, Pageable pageable);
+
+    void deleteByUserId(Long userId);
 }
