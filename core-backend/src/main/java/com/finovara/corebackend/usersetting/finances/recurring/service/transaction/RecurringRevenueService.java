@@ -7,7 +7,7 @@ import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringTy
 import com.finovara.corebackend.usersetting.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.corebackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
