@@ -13,7 +13,7 @@ import com.finovara.corebackend.usersetting.finances.expense.smartscan.exception
 import com.finovara.contracts.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.corebackend.util.user.service.UserManagerService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
