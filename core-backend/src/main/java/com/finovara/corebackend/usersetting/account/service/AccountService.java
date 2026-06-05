@@ -2,6 +2,7 @@ package com.finovara.corebackend.usersetting.account.service;
 
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.event.notification.SendEmailEvent;
+import com.finovara.contracts.event.user.UserAccountDeletedEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
@@ -16,7 +17,7 @@ import com.finovara.corebackend.util.confirmationpassword.service.PasswordValida
 import com.finovara.corebackend.util.profile.ProfileImageUrlBuilder;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -55,6 +56,7 @@ public class AccountService {
 
         passwordValidator.validatePassword(userId, confirmPasswordDto);
         kafkaTemplate.send("notification.email.send", new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Usuniecie konta", "email/account-deleted.html"));
+        kafkaTemplate.send("user-account.deleted", new UserAccountDeletedEvent(user.getId()));
         userRepository.delete(user);
         log.info("User account has been deleted. User email: {}", user.getEmail());
     }
