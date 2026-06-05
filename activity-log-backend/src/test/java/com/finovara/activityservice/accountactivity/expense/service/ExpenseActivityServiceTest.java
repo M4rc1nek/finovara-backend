@@ -10,6 +10,7 @@ import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.ExpenseActivityType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -50,62 +51,81 @@ class ExpenseActivityServiceTest {
         ReflectionTestUtils.setField(expenseActivityService, "pageSize", 10);
     }
 
-    @Test
-    void shouldSaveActivityFromEvent() {
-        ExpenseActivityEvent event = new ExpenseActivityEvent(
-                USER_ID,
-                ExpenseActivityType.EDITED_EXPENSE,
-                new BigDecimal("200.00"),
-                ExpenseCategory.FOOD,
-                new BigDecimal("150.00"),
-                ExpenseCategory.TRANSPORT,
-                OCCURRED_AT
-        );
+    @Nested
+    class DeleteByUserId {
 
-        expenseActivityService.handleEvent(event);
+        @Test
+        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+            expenseActivityService.deleteByUserId(USER_ID);
 
-        ArgumentCaptor<ExpenseActivity> captor = ArgumentCaptor.forClass(ExpenseActivity.class);
-        verify(expenseActivityRepository).save(captor.capture());
-
-        ExpenseActivity activity = captor.getValue();
-        assertThat(activity.getUserId()).isEqualTo(USER_ID);
-        assertThat(activity.getType()).isEqualTo(event.type());
-        assertThat(activity.getAmount()).isEqualByComparingTo(event.amount());
-        assertThat(activity.getCategory()).isEqualTo(event.category());
-        assertThat(activity.getPreviousAmount()).isEqualByComparingTo(event.previousAmount());
-        assertThat(activity.getPreviousCategory()).isEqualTo(event.previousCategory());
-        assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+            verify(expenseActivityRepository).deleteByUserId(USER_ID);
+        }
     }
 
-    @Test
-    void shouldReturnMappedActivities() {
-        ExpenseActivity activity = ExpenseActivity.builder().userId(USER_ID).build();
-        ExpenseActivityDto dto = new ExpenseActivityDto(
-                ExpenseActivityType.ADDED_EXPENSE,
-                new BigDecimal("100.00"),
-                null,
-                ExpenseCategory.FOOD,
-                null,
-                OCCURRED_AT
-        );
+    @Nested
+    class HandleEvent {
 
-        when(expenseActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
-        when(expenseActivityMapper.mapToExpenseActivity(activity)).thenReturn(dto);
+        @Test
+        void shouldBuildEntityAndSaveViaRepository() {
+            ExpenseActivityEvent event = new ExpenseActivityEvent(
+                    USER_ID,
+                    ExpenseActivityType.EDITED_EXPENSE,
+                    new BigDecimal("200.00"),
+                    ExpenseCategory.FOOD,
+                    new BigDecimal("150.00"),
+                    ExpenseCategory.TRANSPORT,
+                    OCCURRED_AT
+            );
 
-        List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(USER_ID, SortType.NEWEST);
+            expenseActivityService.handleEvent(event);
 
-        assertThat(result).containsExactly(dto);
-        verify(expenseActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
-        verify(expenseActivityMapper).mapToExpenseActivity(activity);
+            ArgumentCaptor<ExpenseActivity> captor = ArgumentCaptor.forClass(ExpenseActivity.class);
+            verify(expenseActivityRepository).save(captor.capture());
+
+            ExpenseActivity activity = captor.getValue();
+            assertThat(activity.getUserId()).isEqualTo(USER_ID);
+            assertThat(activity.getType()).isEqualTo(event.type());
+            assertThat(activity.getAmount()).isEqualByComparingTo(event.amount());
+            assertThat(activity.getCategory()).isEqualTo(event.category());
+            assertThat(activity.getPreviousAmount()).isEqualByComparingTo(event.previousAmount());
+            assertThat(activity.getPreviousCategory()).isEqualTo(event.previousCategory());
+            assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+        }
     }
 
-    @Test
-    void shouldReturnEmptyListWhenUserHasNoActivities() {
-        when(expenseActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+    @Nested
+    class GetExpenseActivity {
 
-        List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(USER_ID, SortType.OLDEST);
+        @Test
+        void shouldReturnMappedActivities() {
+            ExpenseActivity activity = ExpenseActivity.builder().userId(USER_ID).build();
+            ExpenseActivityDto dto = new ExpenseActivityDto(
+                    ExpenseActivityType.ADDED_EXPENSE,
+                    new BigDecimal("100.00"),
+                    null,
+                    ExpenseCategory.FOOD,
+                    null,
+                    OCCURRED_AT
+            );
 
-        assertThat(result).isEmpty();
-        verifyNoInteractions(expenseActivityMapper);
+            when(expenseActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
+            when(expenseActivityMapper.mapToExpenseActivity(activity)).thenReturn(dto);
+
+            List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(USER_ID, SortType.NEWEST);
+
+            assertThat(result).containsExactly(dto);
+            verify(expenseActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
+            verify(expenseActivityMapper).mapToExpenseActivity(activity);
+        }
+
+        @Test
+        void shouldReturnEmptyListWhenUserHasNoActivities() {
+            when(expenseActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+
+            List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(USER_ID, SortType.OLDEST);
+
+            assertThat(result).isEmpty();
+            verifyNoInteractions(expenseActivityMapper);
+        }
     }
 }
