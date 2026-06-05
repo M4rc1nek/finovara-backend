@@ -10,7 +10,7 @@ import com.finovara.corebackend.limit.model.Limit;
 import com.finovara.corebackend.limit.repository.LimitRepository;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.util.user.service.UserManagerService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
