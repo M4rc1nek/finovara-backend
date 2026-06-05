@@ -4,7 +4,7 @@ import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitEmergencyModeDto;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.corebackend.util.user.service.UserManagerService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
