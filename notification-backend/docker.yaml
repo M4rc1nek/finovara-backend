@@ -35,7 +35,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
       SPRING_DATASOURCE_URL: jdbc:postgresql://finovara-notification-db:5432/finovara_notification_db
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8086/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f https://localhost:8086/actuator/health || exit 1"]
       interval: 10s
       retries: 10
     restart: always
