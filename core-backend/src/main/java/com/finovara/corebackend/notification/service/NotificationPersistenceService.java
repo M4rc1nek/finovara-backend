@@ -9,7 +9,7 @@ import com.finovara.corebackend.notification.repository.NotificationRepository;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.contracts.model.SortType;
 import com.finovara.corebackend.util.user.service.UserManagerService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
