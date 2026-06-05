@@ -5,6 +5,7 @@ import com.finovara.activityservice.activitylog.accountactivity.expense.dto.Expe
 import com.finovara.activityservice.activitylog.accountactivity.expense.mapper.ExpenseActivityMapper;
 import com.finovara.activityservice.activitylog.accountactivity.expense.model.ExpenseActivity;
 import com.finovara.activityservice.activitylog.accountactivity.expense.repository.ExpenseActivityRepository;
+import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity, ExpenseActivityDto> {
+public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity, ExpenseActivityDto> implements UserDataDeletable {
 
     @Value("${user-activity.expense.page-size}")
     private int pageSize;
@@ -56,5 +57,12 @@ public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity,
     @Override
     protected ExpenseActivityDto mapToDto(ExpenseActivity entity) {
         return expenseActivityMapper.mapToExpenseActivity(entity);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        expenseActivityRepository.deleteByUserId(userId);
+        log.info("Deleted expense activity for userId={}", userId);
     }
 }
