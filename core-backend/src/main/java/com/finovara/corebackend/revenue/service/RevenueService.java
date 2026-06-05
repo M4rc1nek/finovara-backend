@@ -16,7 +16,7 @@ import com.finovara.corebackend.util.user.service.UserManagerService;
 import com.finovara.corebackend.wallet.model.Wallet;
 import com.finovara.corebackend.wallet.repository.WalletRepository;
 import com.finovara.corebackend.wallet.service.WalletService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
