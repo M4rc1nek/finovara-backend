@@ -1,4 +1,5 @@
 package com.finovara.activityservice.activitylog.datadeletable;
 
-public record UserDataDeletable() {
+public interface UserDataDeletable {
+    void deleteByUserId(Long userId);
 }
