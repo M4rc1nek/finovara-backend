@@ -18,7 +18,7 @@ import com.finovara.corebackend.util.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.corebackend.util.piggybank.PiggyBankValidator;
 import com.finovara.corebackend.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.corebackend.util.user.service.UserManagerService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
