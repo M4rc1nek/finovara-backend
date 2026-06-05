@@ -28,4 +28,6 @@ public interface LoginActivityRepository extends JpaRepository<LoginActivity, Lo
     @Query("SELECT COUNT(u) FROM LoginActivity u WHERE u.userId = :userId")
      long countActivityLoginByUserId(Long userId);
 
+    void deleteByUserId(Long userId);
+
 }
