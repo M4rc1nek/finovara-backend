@@ -10,6 +10,7 @@ import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.LimitActivityType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -50,59 +51,78 @@ class LimitActivityServiceTest {
         ReflectionTestUtils.setField(limitActivityService, "pageSize", 10);
     }
 
-    @Test
-    void shouldSaveActivityFromEvent() {
-        LimitActivityEvent event = new LimitActivityEvent(
-                USER_ID,
-                LimitActivityType.EDITED_LIMIT,
-                PeriodType.MONTHLY.name(),
-                new BigDecimal("1000.00"),
-                new BigDecimal("800.00"),
-                OCCURRED_AT
-        );
+    @Nested
+    class DeleteByUserId {
 
-        limitActivityService.handleEvent(event);
+        @Test
+        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+            limitActivityService.deleteByUserId(USER_ID);
 
-        ArgumentCaptor<LimitActivity> captor = ArgumentCaptor.forClass(LimitActivity.class);
-        verify(limitActivityRepository).save(captor.capture());
-
-        LimitActivity activity = captor.getValue();
-        assertThat(activity.getUserId()).isEqualTo(USER_ID);
-        assertThat(activity.getLimitActivityType()).isEqualTo(event.type());
-        assertThat(activity.getPeriodType()).isEqualTo(PeriodType.MONTHLY);
-        assertThat(activity.getAmount()).isEqualByComparingTo(event.amount());
-        assertThat(activity.getPreviousAmount()).isEqualByComparingTo(event.previousAmount());
-        assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+            verify(limitActivityRepository).deleteByUserId(USER_ID);
+        }
     }
 
-    @Test
-    void shouldReturnMappedActivities() {
-        LimitActivity activity = LimitActivity.builder().userId(USER_ID).build();
-        LimitActivityDto dto = new LimitActivityDto(
-                LimitActivityType.ADDED_LIMIT,
-                PeriodType.WEEKLY,
-                new BigDecimal("500.00"),
-                null,
-                OCCURRED_AT
-        );
+    @Nested
+    class HandleEvent {
 
-        when(limitActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
-        when(limitActivityMapper.mapToLimitActivity(activity)).thenReturn(dto);
+        @Test
+        void shouldBuildEntityAndSaveViaRepository() {
+            LimitActivityEvent event = new LimitActivityEvent(
+                    USER_ID,
+                    LimitActivityType.EDITED_LIMIT,
+                    PeriodType.MONTHLY.name(),
+                    new BigDecimal("1000.00"),
+                    new BigDecimal("800.00"),
+                    OCCURRED_AT
+            );
 
-        List<LimitActivityDto> result = limitActivityService.getLimitActivity(USER_ID, SortType.NEWEST);
+            limitActivityService.handleEvent(event);
 
-        assertThat(result).containsExactly(dto);
-        verify(limitActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
-        verify(limitActivityMapper).mapToLimitActivity(activity);
+            ArgumentCaptor<LimitActivity> captor = ArgumentCaptor.forClass(LimitActivity.class);
+            verify(limitActivityRepository).save(captor.capture());
+
+            LimitActivity activity = captor.getValue();
+            assertThat(activity.getUserId()).isEqualTo(USER_ID);
+            assertThat(activity.getLimitActivityType()).isEqualTo(event.type());
+            assertThat(activity.getPeriodType()).isEqualTo(PeriodType.MONTHLY);
+            assertThat(activity.getAmount()).isEqualByComparingTo(event.amount());
+            assertThat(activity.getPreviousAmount()).isEqualByComparingTo(event.previousAmount());
+            assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+        }
     }
 
-    @Test
-    void shouldReturnEmptyListWhenUserHasNoActivities() {
-        when(limitActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+    @Nested
+    class GetLimitActivity {
 
-        List<LimitActivityDto> result = limitActivityService.getLimitActivity(USER_ID, SortType.OLDEST);
+        @Test
+        void shouldReturnMappedActivities() {
+            LimitActivity activity = LimitActivity.builder().userId(USER_ID).build();
+            LimitActivityDto dto = new LimitActivityDto(
+                    LimitActivityType.ADDED_LIMIT,
+                    PeriodType.WEEKLY,
+                    new BigDecimal("500.00"),
+                    null,
+                    OCCURRED_AT
+            );
 
-        assertThat(result).isEmpty();
-        verifyNoInteractions(limitActivityMapper);
+            when(limitActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
+            when(limitActivityMapper.mapToLimitActivity(activity)).thenReturn(dto);
+
+            List<LimitActivityDto> result = limitActivityService.getLimitActivity(USER_ID, SortType.NEWEST);
+
+            assertThat(result).containsExactly(dto);
+            verify(limitActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
+            verify(limitActivityMapper).mapToLimitActivity(activity);
+        }
+
+        @Test
+        void shouldReturnEmptyListWhenUserHasNoActivities() {
+            when(limitActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+
+            List<LimitActivityDto> result = limitActivityService.getLimitActivity(USER_ID, SortType.OLDEST);
+
+            assertThat(result).isEmpty();
+            verifyNoInteractions(limitActivityMapper);
+        }
     }
 }
