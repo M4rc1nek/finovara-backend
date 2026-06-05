@@ -7,6 +7,7 @@ import com.finovara.activityservice.activitylog.accountactivity.revenue.service.
 import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.service.LoginActivityService;
 import com.finovara.activityservice.activitylog.accountactivity.settings.service.SettingsActivityService;
+import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
@@ -14,9 +15,12 @@ import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
+import com.finovara.contracts.event.user.UserAccountDeletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -29,6 +33,8 @@ public class ActivityConsumers {
     private final LimitActivityService limitActivityService;
     private final ExpenseActivityService expenseActivityService;
     private final AccountChangesActivityService accountChangesActivityService;
+
+    private final List<UserDataDeletable> deletableServices;
 
     @KafkaListener(topics = "activity.settings")
     public void handleSettings(SettingsActivityEvent event) {
@@ -63,5 +69,10 @@ public class ActivityConsumers {
     @KafkaListener(topics = "activity.account-changes")
     public void handleAccountChanges(AccountChangesActivityEvent event) {
         accountChangesActivityService.handleEvent(event);
+    }
+
+    @KafkaListener(topics = "user-account.deleted")
+    public void handleAccountDeleted(UserAccountDeletedEvent event) {
+        deletableServices.forEach(service -> service.deleteByUserId(event.userId()));
     }
 }
