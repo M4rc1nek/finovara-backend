@@ -10,6 +10,7 @@ import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -49,53 +50,72 @@ class SettingsActivityServiceTest {
         ReflectionTestUtils.setField(settingsActivityService, "pageSize", 10);
     }
 
-    @Test
-    void shouldSaveActivityFromEvent() {
-        SettingsActivityEvent event = new SettingsActivityEvent(
-                USER_ID,
-                SettingType.NOTIFICATION_PASSWORD_CHANGED,
-                SettingActivityStatus.ENABLED,
-                OCCURRED_AT
-        );
+    @Nested
+    class DeleteByUserId {
 
-        settingsActivityService.handleEvent(event);
+        @Test
+        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+            settingsActivityService.deleteByUserId(USER_ID);
 
-        ArgumentCaptor<SettingsActivity> captor = ArgumentCaptor.forClass(SettingsActivity.class);
-        verify(settingsActivityRepository).save(captor.capture());
-
-        SettingsActivity activity = captor.getValue();
-        assertThat(activity.getUserId()).isEqualTo(USER_ID);
-        assertThat(activity.getSettingType()).isEqualTo(event.settingType());
-        assertThat(activity.getStatus()).isEqualTo(event.status());
-        assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+            verify(settingsActivityRepository).deleteByUserId(USER_ID);
+        }
     }
 
-    @Test
-    void shouldReturnMappedActivities() {
-        SettingsActivity activity = SettingsActivity.builder().userId(USER_ID).build();
-        SettingsActivityDto dto = new SettingsActivityDto(
-                SettingActivityStatus.DISABLED,
-                SettingType.PIGGY_BANK_ROUND_UP,
-                OCCURRED_AT
-        );
+    @Nested
+    class HandleEvent {
 
-        when(settingsActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
-        when(settingsActivityMapper.mapToSettingActivity(activity)).thenReturn(dto);
+        @Test
+        void shouldBuildEntityAndSaveViaRepository() {
+            SettingsActivityEvent event = new SettingsActivityEvent(
+                    USER_ID,
+                    SettingType.NOTIFICATION_PASSWORD_CHANGED,
+                    SettingActivityStatus.ENABLED,
+                    OCCURRED_AT
+            );
 
-        List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(USER_ID, SortType.NEWEST);
+            settingsActivityService.handleEvent(event);
 
-        assertThat(result).containsExactly(dto);
-        verify(settingsActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
-        verify(settingsActivityMapper).mapToSettingActivity(activity);
+            ArgumentCaptor<SettingsActivity> captor = ArgumentCaptor.forClass(SettingsActivity.class);
+            verify(settingsActivityRepository).save(captor.capture());
+
+            SettingsActivity activity = captor.getValue();
+            assertThat(activity.getUserId()).isEqualTo(USER_ID);
+            assertThat(activity.getSettingType()).isEqualTo(event.settingType());
+            assertThat(activity.getStatus()).isEqualTo(event.status());
+            assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+        }
     }
 
-    @Test
-    void shouldReturnEmptyListWhenUserHasNoActivities() {
-        when(settingsActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+    @Nested
+    class GetSettingsActivities {
 
-        List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(USER_ID, SortType.OLDEST);
+        @Test
+        void shouldReturnMappedActivities() {
+            SettingsActivity activity = SettingsActivity.builder().userId(USER_ID).build();
+            SettingsActivityDto dto = new SettingsActivityDto(
+                    SettingActivityStatus.DISABLED,
+                    SettingType.PIGGY_BANK_ROUND_UP,
+                    OCCURRED_AT
+            );
 
-        assertThat(result).isEmpty();
-        verifyNoInteractions(settingsActivityMapper);
+            when(settingsActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
+            when(settingsActivityMapper.mapToSettingActivity(activity)).thenReturn(dto);
+
+            List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(USER_ID, SortType.NEWEST);
+
+            assertThat(result).containsExactly(dto);
+            verify(settingsActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
+            verify(settingsActivityMapper).mapToSettingActivity(activity);
+        }
+
+        @Test
+        void shouldReturnEmptyListWhenUserHasNoActivities() {
+            when(settingsActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
+
+            List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(USER_ID, SortType.OLDEST);
+
+            assertThat(result).isEmpty();
+            verifyNoInteractions(settingsActivityMapper);
+        }
     }
 }
