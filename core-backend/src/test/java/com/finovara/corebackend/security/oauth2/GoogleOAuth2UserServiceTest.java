@@ -83,7 +83,7 @@ class GoogleOAuth2UserServiceTest {
         verify(settingsFactory, never()).createDefaultExpenseSettings(any());
         verify(settingsFactory, never()).createDefaultRecurringSettings(any());
         verify(settingsFactory, never()).createDefaultAccountSettings(any());
-        verify(kafkaTemplate, never()).send(eq("notification.email-settings.create-default"), any());
+        verify(kafkaTemplate, never()).send(eq("user.created"), any());
     }
 
     @Nested
@@ -129,7 +129,7 @@ class GoogleOAuth2UserServiceTest {
             verify(settingsFactory).createDefaultAccountSettings(any());
             ArgumentCaptor<CreateDefaultNotificationEmailSettingsEvent> eventCaptor =
                     ArgumentCaptor.forClass(CreateDefaultNotificationEmailSettingsEvent.class);
-            verify(kafkaTemplate).send(eq("notification.email-settings.create-default"), eventCaptor.capture());
+            verify(kafkaTemplate).send(eq("user.created"), eventCaptor.capture());
             assertThat(eventCaptor.getValue().userId()).isEqualTo(1L);
         }
 
