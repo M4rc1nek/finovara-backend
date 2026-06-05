@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.kafka;
+package com.finovara.notificationservice.notificationemail.service;
 
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
