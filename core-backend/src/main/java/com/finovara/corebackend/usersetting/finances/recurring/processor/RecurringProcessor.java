@@ -3,7 +3,7 @@ package com.finovara.corebackend.usersetting.finances.recurring.processor;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.corebackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.corebackend.usersetting.finances.recurring.service.execution.RecurringExecutionService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
