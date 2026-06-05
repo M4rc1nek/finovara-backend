@@ -42,7 +42,7 @@ spring:
               - email
               - profile
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: finovara-kafka:9092
 
 server:
   port: 8443
