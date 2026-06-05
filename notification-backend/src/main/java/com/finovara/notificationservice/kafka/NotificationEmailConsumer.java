@@ -1,15 +1,17 @@
-package com.finovara.notificationservice.kafka;
+package com.finovara.notificationservice.notificationemail.service;
 
-import com.finovara.contracts.event.notification.CreateDefaultNotificationEmailSettingsEvent;
 import com.finovara.contracts.event.notification.SendEmailEvent;
+import com.finovara.contracts.event.user.UserCreatedEvent;
+import com.finovara.notificationservice.kafka.NotificationEmailSettingsService;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.emailtemplate.EmailTemplateService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class NotificationEmailConsumer {
@@ -20,35 +22,19 @@ public class NotificationEmailConsumer {
     private static final String ACCOUNT_DELETED_TEMPLATE = "email/account-deleted.html";
 
     private final NotificationEmailSettingsRepository notificationEmailSettingsRepository;
+    private final NotificationEmailSettingsService notificationEmailSettingsService;
     private final EmailTemplateService emailTemplateService;
 
-    @Transactional
-    @KafkaListener(topics = "notification.email-settings.create-default")
-    public void createDefaultNotificationEmailSettings(CreateDefaultNotificationEmailSettingsEvent event) {
-        if (notificationEmailSettingsRepository.findByUserId(event.userId()).isPresent()) {
-            return;
-        }
-
-        notificationEmailSettingsRepository.save(NotificationEmailSettings.builder()
-                .userId(event.userId())
-                .notifyOnPasswordChange(false)
-                .notifyOnUsernameChange(false)
-                .notifyOnEmailChange(false)
-                .notifyOnAccountDeleted(false)
-                .build());
+    @KafkaListener(topics = "user.created")
+    public void handleUserCreated(UserCreatedEvent event) {
+        notificationEmailSettingsService.createSettingsIfNotExist(event.userId());
     }
 
-    @Transactional
     @KafkaListener(topics = "notification.email.send")
     public void sendEmail(SendEmailEvent event) {
         notificationEmailSettingsRepository.findByUserId(event.userId())
                 .filter(settings -> isEnabled(settings, event.templateName()))
-                .ifPresent(settings -> {
-                    emailTemplateService.sendEmail(event.email(), event.subject(), event.templateName(), event.username(), event.email());
-                    if (ACCOUNT_DELETED_TEMPLATE.equals(event.templateName())) {
-                        notificationEmailSettingsRepository.delete(settings);
-                    }
-                });
+                .ifPresent(settings -> processEmail(event));
     }
 
     private boolean isEnabled(NotificationEmailSettings settings, String templateName) {
@@ -59,5 +45,14 @@ public class NotificationEmailConsumer {
             case ACCOUNT_DELETED_TEMPLATE -> settings.isNotifyOnAccountDeleted();
             default -> true;
         };
+    }
+
+    private void processEmail(SendEmailEvent event) {
+        emailTemplateService.sendEmail(
+                event.email(),
+                event.subject(),
+                event.templateName(),
+                event.username(),
+                event.email());
     }
 }
