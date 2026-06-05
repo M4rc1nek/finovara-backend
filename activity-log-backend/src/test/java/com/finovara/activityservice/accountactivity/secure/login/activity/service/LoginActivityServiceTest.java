@@ -9,6 +9,7 @@ import com.finovara.activityservice.activitylog.accountactivity.secure.login.arc
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -48,53 +49,72 @@ class LoginActivityServiceTest {
         ReflectionTestUtils.setField(loginActivityService, "pageSize", 10);
     }
 
-    @Test
-    void shouldSaveActivityFromEventAndNotArchiveWhenBelowThreshold() {
-        LoginActivityEvent event = event();
-        when(loginActivityRepository.countActivityLoginByUserId(USER_ID)).thenReturn(9L);
+    @Nested
+    class DeleteByUserId {
 
-        loginActivityService.handleEvent(event);
+        @Test
+        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+            loginActivityService.deleteByUserId(USER_ID);
 
-        ArgumentCaptor<LoginActivity> captor = ArgumentCaptor.forClass(LoginActivity.class);
-        verify(loginActivityRepository).save(captor.capture());
-        verify(archiveService, never()).archive(any());
-
-        LoginActivity activity = captor.getValue();
-        assertThat(activity.getUserId()).isEqualTo(USER_ID);
-        assertThat(activity.getType()).isEqualTo("Login");
-        assertThat(activity.getStatus()).isEqualTo(event.status());
-        assertThat(activity.getBrowser()).isEqualTo(event.browser());
-        assertThat(activity.getIpAddress()).isEqualTo(event.ipAddress());
-        assertThat(activity.getLocation()).isEqualTo(event.location());
-        assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+            verify(loginActivityRepository).deleteByUserId(USER_ID);
+        }
     }
 
-    @Test
-    void shouldArchiveOldestActivitiesWhenThresholdExceeded() {
-        LoginActivityEvent event = event();
-        LoginActivity oldest = LoginActivity.builder().id(1L).userId(USER_ID).build();
-        LoginActivityArchive archive = LoginActivityArchive.builder().userId(USER_ID).build();
+    @Nested
+    class HandleEvent {
 
-        when(loginActivityRepository.countActivityLoginByUserId(USER_ID)).thenReturn(11L);
-        when(loginActivityRepository.findOldestByUserId(eq(USER_ID), any(PageRequest.class))).thenReturn(List.of(oldest));
-        when(archiveService.mapToArchive(oldest)).thenReturn(archive);
+        @Test
+        void shouldBuildEntityAndSaveViaRepositoryWhenBelowArchiveThreshold() {
+            LoginActivityEvent event = event();
+            when(loginActivityRepository.countActivityLoginByUserId(USER_ID)).thenReturn(9L);
 
-        loginActivityService.handleEvent(event);
+            loginActivityService.handleEvent(event);
 
-        verify(loginActivityRepository).save(any(LoginActivity.class));
-        verify(archiveService).archive(List.of(archive));
-        verify(loginActivityRepository).deleteAll(List.of(oldest));
+            ArgumentCaptor<LoginActivity> captor = ArgumentCaptor.forClass(LoginActivity.class);
+            verify(loginActivityRepository).save(captor.capture());
+            verify(archiveService, never()).archive(any());
+
+            LoginActivity activity = captor.getValue();
+            assertThat(activity.getUserId()).isEqualTo(USER_ID);
+            assertThat(activity.getType()).isEqualTo("Login");
+            assertThat(activity.getStatus()).isEqualTo(event.status());
+            assertThat(activity.getBrowser()).isEqualTo(event.browser());
+            assertThat(activity.getIpAddress()).isEqualTo(event.ipAddress());
+            assertThat(activity.getLocation()).isEqualTo(event.location());
+            assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+        }
+
+        @Test
+        void shouldArchiveOldestActivitiesWhenThresholdExceeded() {
+            LoginActivityEvent event = event();
+            LoginActivity oldest = LoginActivity.builder().id(1L).userId(USER_ID).build();
+            LoginActivityArchive archive = LoginActivityArchive.builder().userId(USER_ID).build();
+
+            when(loginActivityRepository.countActivityLoginByUserId(USER_ID)).thenReturn(11L);
+            when(loginActivityRepository.findOldestByUserId(eq(USER_ID), any(PageRequest.class))).thenReturn(List.of(oldest));
+            when(archiveService.mapToArchive(oldest)).thenReturn(archive);
+
+            loginActivityService.handleEvent(event);
+
+            verify(loginActivityRepository).save(any(LoginActivity.class));
+            verify(archiveService).archive(List.of(archive));
+            verify(loginActivityRepository).deleteAll(List.of(oldest));
+        }
     }
 
-    @Test
-    void shouldReturnLoginActivityDtos() {
-        LoginActivityDto dto = new LoginActivityDto("Login", LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Firefox", "127.0.0.1", "Localhost");
-        when(loginActivityRepository.findByUserIdOrderByDesc(USER_ID)).thenReturn(List.of(dto));
+    @Nested
+    class GetLoginActivity {
 
-        List<LoginActivityDto> result = loginActivityService.getLoginActivity(USER_ID);
+        @Test
+        void shouldReturnLoginActivityDtos() {
+            LoginActivityDto dto = new LoginActivityDto("Login", LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Firefox", "127.0.0.1", "Localhost");
+            when(loginActivityRepository.findByUserIdOrderByDesc(USER_ID)).thenReturn(List.of(dto));
 
-        assertThat(result).containsExactly(dto);
-        verify(loginActivityRepository).findByUserIdOrderByDesc(USER_ID);
+            List<LoginActivityDto> result = loginActivityService.getLoginActivity(USER_ID);
+
+            assertThat(result).containsExactly(dto);
+            verify(loginActivityRepository).findByUserIdOrderByDesc(USER_ID);
+        }
     }
 
     private LoginActivityEvent event() {
