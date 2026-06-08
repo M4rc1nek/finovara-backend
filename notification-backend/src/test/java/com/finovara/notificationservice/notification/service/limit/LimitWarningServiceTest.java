@@ -1,108 +1,86 @@
 package com.finovara.notificationservice.notification.service.limit;
 
-import org.junit.jupiter.api.BeforeEach;
+import com.finovara.contracts.event.notification.limit.LimitStatsEvent;
+import com.finovara.contracts.model.NotificationType;
+import com.finovara.contracts.model.PeriodType;
+import com.finovara.notificationservice.notification.dto.limit.LimitWarningDto;
+import com.finovara.notificationservice.notification.service.NotificationPersistenceService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class LimitWarningTest {
-    @Mock
-    private LimitRepository limitRepository;
+class LimitWarningServiceTest {
 
     @Mock
-    private LimitCalculateService limitCalculateService;
+    private NotificationPersistenceService notificationPersistenceService;
 
     @InjectMocks
-    private LimitWarningService service;
+    private LimitWarningService limitWarningService;
 
-    private Long userId;
-    private Limit limit;
+    @Test
+    void shouldSaveNotificationWhenPercentageIsExactly75() {
+        LimitStatsEvent event = new LimitStatsEvent(1L, 10L, BigDecimal.valueOf(75), PeriodType.WEEKLY);
 
-    @BeforeEach
-    void setUp() {
-        userId = 1L;
+        limitWarningService.handle(event);
 
-        limit = new Limit();
-        limit.setId(10L);
+        ArgumentCaptor<LimitWarningDto> captor = ArgumentCaptor.forClass(LimitWarningDto.class);
+        verify(notificationPersistenceService).save(eq(1L), captor.capture());
 
-        when(limitRepository.findAllByUserAssignedId(userId)).thenReturn(List.of(limit));
+        LimitWarningDto dto = captor.getValue();
+        assertThat(dto.type()).isEqualTo(NotificationType.LIMIT_EXCEEDED_WARNING);
+        assertThat(dto.limitId()).isEqualTo(10L);
+        assertThat(dto.period()).isEqualTo(PeriodType.WEEKLY);
+        assertThat(dto.limitPercentage()).isEqualByComparingTo(BigDecimal.valueOf(75));
+        assertThat(dto.threshold()).isEqualByComparingTo(BigDecimal.valueOf(75));
     }
 
     @Test
-    void shouldReturnNotificationWhenThresholdReached() {
-        LimitStatsDto stats = mock(LimitStatsDto.class);
-        when(stats.percentage()).thenReturn(BigDecimal.valueOf(80));
-        when(stats.periodType()).thenReturn(null);
-        when(stats.limitId()).thenReturn(10L);
+    void shouldSaveNotificationWhenPercentageIsBetween75And100() {
+        LimitStatsEvent event = new LimitStatsEvent(1L, 10L, BigDecimal.valueOf(90), PeriodType.MONTHLY);
 
-        when(limitCalculateService.calculateLimitStats(userId, 10L, LocalDate.now())).thenReturn(stats);
+        limitWarningService.handle(event);
 
-        List<NotificationResponse> result = service.getNotifications(userId);
-
-        assertEquals(1, result.size());
+        ArgumentCaptor<LimitWarningDto> captor = ArgumentCaptor.forClass(LimitWarningDto.class);
+        verify(notificationPersistenceService).save(eq(1L), captor.capture());
+        assertThat(captor.getValue().type()).isEqualTo(NotificationType.LIMIT_EXCEEDED_WARNING);
     }
 
     @Test
-    void shouldReturnNotificationWhenExactly75() {
-        LimitStatsDto stats = mock(LimitStatsDto.class);
-        when(stats.percentage()).thenReturn(BigDecimal.valueOf(75));
-        when(stats.limitId()).thenReturn(10L);
+    void shouldNotSaveWhenPercentageIsBelow75() {
+        LimitStatsEvent event = new LimitStatsEvent(1L, 10L, BigDecimal.valueOf(74.99), PeriodType.WEEKLY);
 
-        when(limitCalculateService.calculateLimitStats(userId, 10L, LocalDate.now())).thenReturn(stats);
+        limitWarningService.handle(event);
 
-        List<NotificationResponse> result = service.getNotifications(userId);
-
-        assertEquals(1, result.size());
+        verify(notificationPersistenceService, never()).save(any(), any());
     }
 
     @Test
-    void shouldNotReturnNotificationWhenAbove100() {
-        LimitStatsDto stats = mock(LimitStatsDto.class);
-        when(stats.percentage()).thenReturn(BigDecimal.valueOf(120));
+    void shouldNotSaveWhenPercentageIsExactly100() {
+        LimitStatsEvent event = new LimitStatsEvent(1L, 10L, BigDecimal.valueOf(100), PeriodType.WEEKLY);
 
-        when(limitCalculateService.calculateLimitStats(userId, 10L, LocalDate.now())).thenReturn(stats);
+        limitWarningService.handle(event);
 
-        List<NotificationResponse> result = service.getNotifications(userId);
-
-        assertTrue(result.isEmpty());
+        verify(notificationPersistenceService, never()).save(any(), any());
     }
 
     @Test
-    void shouldReturnOnlyWarningsInRange() {
-        Limit limit1 = new Limit();
-        limit1.setId(10L);
+    void shouldNotSaveWhenPercentageIsAbove100() {
+        LimitStatsEvent event = new LimitStatsEvent(1L, 10L, BigDecimal.valueOf(120), PeriodType.WEEKLY);
 
-        Limit limit2 = new Limit();
-        limit2.setId(20L);
+        limitWarningService.handle(event);
 
-        when(limitRepository.findAllByUserAssignedId(userId)).thenReturn(List.of(limit1, limit2));
-
-        LimitStatsDto stats1 = mock(LimitStatsDto.class);
-        when(stats1.percentage()).thenReturn(BigDecimal.valueOf(80));
-        when(stats1.limitId()).thenReturn(10L);
-
-        LimitStatsDto stats2 = mock(LimitStatsDto.class);
-        when(stats2.percentage()).thenReturn(BigDecimal.valueOf(120));
-
-        when(limitCalculateService.calculateLimitStats(userId, 10L, LocalDate.now())).thenReturn(stats1);
-
-        when(limitCalculateService.calculateLimitStats(userId, 20L, LocalDate.now())).thenReturn(stats2);
-
-        List<NotificationResponse> result = service.getNotifications(userId);
-
-        assertEquals(1, result.size());
+        verify(notificationPersistenceService, never()).save(any(), any());
     }
-
 }
