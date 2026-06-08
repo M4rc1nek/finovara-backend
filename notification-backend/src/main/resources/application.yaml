@@ -59,9 +59,21 @@ management:
       exposure:
         include: health
 
+
+
+notification-persistence:
+  page-size: 5
+
+
+
+scheduler:
+  notification:
+    delete-cron: "0 2 0 ? * 1"
+
 logging:
   level:
     root: INFO
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
+    org.springframework.security: DEBUG
