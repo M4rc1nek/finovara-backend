@@ -189,7 +189,7 @@ class PiggyBankManagementServiceTest {
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankRepository.findAllByUserAssignedId(userId)).thenReturn(List.of(piggyBank));
-            when(piggyBankMapper.mapToPiggyBankDto(any(), any(), anyDouble(), anyBoolean()))
+            when(piggyBankMapper.mapToPiggyBankDto(any(), any(), any(), anyBoolean()))
                     .thenReturn(defaultDto);
 
             List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(userId);
