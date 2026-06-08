@@ -20,7 +20,7 @@ services:
 
   notification-app:
     build: .
-    container_name: notification-app
+    container_name: finovara-notification-app
     depends_on:
       notification-db:
         condition: service_healthy
