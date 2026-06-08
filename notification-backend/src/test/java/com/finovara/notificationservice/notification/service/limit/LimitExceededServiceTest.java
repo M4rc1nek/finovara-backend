@@ -15,9 +15,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
 class LimitExceededServiceTest {
@@ -35,17 +36,13 @@ class LimitExceededServiceTest {
         limitExceededService.handle(event);
 
         ArgumentCaptor<LimitExceededDto> captor = ArgumentCaptor.forClass(LimitExceededDto.class);
-        verify(notificationPersistenceService).save(captor.capture() == null ? null : 1L, captor.capture());
+        verify(notificationPersistenceService).save(eq(1L), captor.capture());
 
-        // prostszy sposób
-        verify(notificationPersistenceService).save(eq(1L), assertArg(dto -> {
-            assertThat(dto).isInstanceOf(LimitExceededDto.class);
-            LimitExceededDto exceeded = (LimitExceededDto) dto;
-            assertThat(exceeded.type()).isEqualTo(NotificationType.LIMIT_EXCEEDED);
-            assertThat(exceeded.limitId()).isEqualTo(10L);
-            assertThat(exceeded.period()).isEqualTo(PeriodType.WEEKLY);
-            assertThat(exceeded.threshold()).isEqualByComparingTo(BigDecimal.valueOf(100));
-        }));
+        LimitExceededDto dto = captor.getValue();
+        assertThat(dto.type()).isEqualTo(NotificationType.LIMIT_EXCEEDED);
+        assertThat(dto.limitId()).isEqualTo(10L);
+        assertThat(dto.period()).isEqualTo(PeriodType.WEEKLY);
+        assertThat(dto.threshold()).isEqualByComparingTo(BigDecimal.valueOf(100));
     }
 
     @Test
@@ -54,9 +51,9 @@ class LimitExceededServiceTest {
 
         limitExceededService.handle(event);
 
-        verify(notificationPersistenceService).save(eq(1L), assertArg(dto ->
-                assertThat(dto).isInstanceOf(LimitExceededDto.class)
-        ));
+        ArgumentCaptor<LimitExceededDto> captor = ArgumentCaptor.forClass(LimitExceededDto.class);
+        verify(notificationPersistenceService).save(eq(1L), captor.capture());
+        assertThat(captor.getValue().type()).isEqualTo(NotificationType.LIMIT_EXCEEDED);
     }
 
     @Test
