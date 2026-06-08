@@ -77,6 +77,11 @@ public class NotificationPersistenceService {
         return result;
     }
 
+    @Transactional
+    public void deleteAllNotifications(Long userId){
+        notificationRepository.deleteByUserId(userId);
+    }
+
     private String toJson(NotificationResponse dto) {
         try {
             return objectMapper.writeValueAsString(dto);

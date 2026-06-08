@@ -1,7 +1,7 @@
 package com.finovara.notificationservice.kafka;
 
 import com.finovara.contracts.event.user.UserAccountDeletedEvent;
-import com.finovara.notificationservice.notification.repository.NotificationRepository;
+import com.finovara.notificationservice.notification.service.NotificationPersistenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -12,10 +12,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class NotificationConsumer {
 
-    private final NotificationRepository notificationRepository;
+    private final NotificationPersistenceService notificationPersistenceService;
 
-    @KafkaListener(topics = "user-account.deleted")
+    @KafkaListener(topics = "user-account.deleted", groupId = "notification-service")
     public void deleteAllNotifications(UserAccountDeletedEvent event) {
-        notificationRepository.deleteByUserId(event.userId());
+        notificationPersistenceService.deleteAllNotifications(event.userId());
     }
 }

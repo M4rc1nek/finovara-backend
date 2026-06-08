@@ -38,7 +38,7 @@ public class NotificationEmailConsumer {
                 .ifPresent(settings -> processEmail(event));
     }
 
-    @KafkaListener(topics = "user-account.deleted")
+    @KafkaListener(topics = "user-account.deleted", groupId = "notification-email-service")
     public void deleteSettings(UserAccountDeletedEvent event) {
         notificationEmailSettingsRepository.findByUserId(event.userId())
                 .ifPresent(notificationEmailSettingsService::deleteSettings);
