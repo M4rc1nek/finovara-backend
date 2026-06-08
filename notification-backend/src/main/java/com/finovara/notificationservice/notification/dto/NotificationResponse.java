@@ -1,10 +1,10 @@
-package com.finovara.corebackend.notification.dto;
+package com.finovara.notificationservice.notification.dto;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.finovara.corebackend.notification.dto.limit.LimitExceededDto;
-import com.finovara.corebackend.notification.dto.limit.LimitWarningDto;
-import com.finovara.corebackend.notification.dto.piggybank.PiggyBankWarningDto;
+import com.finovara.notificationservice.notification.dto.limit.LimitExceededDto;
+import com.finovara.notificationservice.notification.dto.limit.LimitWarningDto;
+import com.finovara.notificationservice.notification.dto.piggybank.PiggyBankWarningDto;
 import com.finovara.contracts.model.NotificationType;
 
 import java.time.LocalDateTime;
