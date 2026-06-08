@@ -1,7 +1,7 @@
-package com.finovara.corebackend.notification.dto.limit;
+package com.finovara.notificationservice.notification.dto.limit;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.finovara.corebackend.notification.dto.NotificationResponse;
+import com.finovara.notificationservice.notification.dto.NotificationResponse;
 import com.finovara.contracts.model.NotificationType;
 import com.finovara.contracts.model.PeriodType;
 
