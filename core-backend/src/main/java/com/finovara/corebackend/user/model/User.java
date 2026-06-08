@@ -2,7 +2,6 @@ package com.finovara.corebackend.user.model;
 
 import com.finovara.corebackend.expense.model.Expense;
 import com.finovara.corebackend.limit.model.Limit;
-import com.finovara.corebackend.notification.model.Notification;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
 import com.finovara.corebackend.revenue.model.Revenue;
 import com.finovara.corebackend.usersetting.account.model.AccountSettings;
@@ -63,8 +62,4 @@ public class User {
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private AccountSettings accountSettings;
-
-    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
-    private List<Notification> notifications;
-
 }
