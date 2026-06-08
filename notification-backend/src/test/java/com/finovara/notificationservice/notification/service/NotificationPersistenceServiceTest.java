@@ -1,17 +1,14 @@
-/*
-package com.finovara.corebackend.notification.service;
+package com.finovara.notificationservice.notification.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.corebackend.notification.dto.NotificationResponse;
-import com.finovara.corebackend.notification.dto.limit.LimitWarningDto;
-import com.finovara.corebackend.notification.model.Notification;
 import com.finovara.contracts.model.NotificationType;
-import com.finovara.corebackend.notification.repository.NotificationRepository;
-import com.finovara.corebackend.user.model.User;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.SortType;
-import com.finovara.corebackend.util.user.service.UserManagerService;
+import com.finovara.notificationservice.notification.dto.NotificationResponse;
+import com.finovara.notificationservice.notification.dto.limit.LimitWarningDto;
+import com.finovara.notificationservice.notification.model.Notification;
+import com.finovara.notificationservice.notification.repository.NotificationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -40,30 +37,23 @@ class NotificationPersistenceServiceTest {
     @Mock
     private NotificationRepository notificationRepository;
 
-    @Mock
-    private UserManagerService userManagerService;
-
     private NotificationPersistenceService notificationPersistenceService;
 
     private ArgumentCaptor<List<Notification>> captor;
 
-    private Long userId;
+    private final Long userId = 1L;
 
     @BeforeEach
     void setUp() {
         ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-
-        userId = 1L;
-
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
-
-        notificationPersistenceService = new NotificationPersistenceService(notificationRepository, userManagerService, objectMapper);
-
+        notificationPersistenceService = new NotificationPersistenceService(notificationRepository, objectMapper);
+        ReflectionTestUtils.setField(notificationPersistenceService, "pageSize", 5);
         captor = ArgumentCaptor.forClass(List.class);
     }
 
     @Nested
-    class SaveAllNotification {
+    class SaveAll {
+
         @Test
         void shouldSaveAllWhenNoDuplicates() {
             when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId)).thenReturn(Set.of());
@@ -74,13 +64,15 @@ class NotificationPersistenceServiceTest {
             notificationPersistenceService.saveAll(userId, List.of(dto1, dto2));
 
             verify(notificationRepository).saveAll(captor.capture());
-
             List<Notification> saved = captor.getValue();
 
             assertThat(saved).hasSize(2);
-            assertThat(saved).extracting(Notification::getDeduplicationKey).containsExactlyInAnyOrder(dto1.deduplicationKey(), dto2.deduplicationKey());
-
-            assertThat(saved).extracting(Notification::getType).containsOnly(NotificationType.LIMIT_EXCEEDED_WARNING);
+            assertThat(saved).extracting(Notification::getDeduplicationKey)
+                    .containsExactlyInAnyOrder(dto1.deduplicationKey(), dto2.deduplicationKey());
+            assertThat(saved).extracting(Notification::getType)
+                    .containsOnly(NotificationType.LIMIT_EXCEEDED_WARNING);
+            assertThat(saved).extracting(Notification::getUserId)
+                    .containsOnly(userId);
         }
 
         @Test
@@ -88,12 +80,12 @@ class NotificationPersistenceServiceTest {
             NotificationResponse dto1 = createDto(1L);
             NotificationResponse dto2 = createDto(2L);
 
-            when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId)).thenReturn(Set.of(dto1.deduplicationKey()));
+            when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId))
+                    .thenReturn(Set.of(dto1.deduplicationKey()));
 
             notificationPersistenceService.saveAll(userId, List.of(dto1, dto2));
 
             verify(notificationRepository).saveAll(captor.capture());
-
             List<Notification> saved = captor.getValue();
 
             assertThat(saved).hasSize(1);
@@ -110,9 +102,7 @@ class NotificationPersistenceServiceTest {
             notificationPersistenceService.saveAll(userId, List.of(dto1, dto2));
 
             verify(notificationRepository).saveAll(captor.capture());
-
-            List<Notification> saved = captor.getValue();
-            assertThat(saved).hasSize(1);
+            assertThat(captor.getValue()).hasSize(1);
         }
 
         @Test
@@ -122,26 +112,48 @@ class NotificationPersistenceServiceTest {
             notificationPersistenceService.saveAll(userId, List.of());
 
             verify(notificationRepository).saveAll(captor.capture());
+            assertThat(captor.getValue()).isEmpty();
+        }
+    }
 
+    @Nested
+    class Save {
+
+        @Test
+        void shouldSaveSingleNotification() {
+            when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId)).thenReturn(Set.of());
+
+            NotificationResponse dto = createDto(1L);
+            notificationPersistenceService.save(userId, dto);
+
+            verify(notificationRepository).saveAll(captor.capture());
+            assertThat(captor.getValue()).hasSize(1);
+            assertThat(captor.getValue().getFirst().getDeduplicationKey()).isEqualTo(dto.deduplicationKey());
+        }
+
+        @Test
+        void shouldSkipIfAlreadyExists() {
+            NotificationResponse dto = createDto(1L);
+            when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId))
+                    .thenReturn(Set.of(dto.deduplicationKey()));
+
+            notificationPersistenceService.save(userId, dto);
+
+            verify(notificationRepository).saveAll(captor.capture());
             assertThat(captor.getValue()).isEmpty();
         }
     }
 
     @Nested
     class GetUserNotifications {
-        @BeforeEach
-        void setUpPageSize() {
-            ReflectionTestUtils.setField(notificationPersistenceService, "pageSize", 5);
-        }
 
         @Test
-        void shouldGetUserNotificationCorrectly() {
-            Notification n1 = createNotification(1L, validJson());
-            Notification n2 = createNotification(2L, validJson());
+        void shouldReturnNotificationsCorrectly() {
+            Notification notification = createNotification(1L, validJson());
+            Notification notification2 = createNotification(2L, validJson());
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
             when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
-                    .thenReturn(List.of(n1, n2));
+                    .thenReturn(List.of(notification, notification2));
 
             List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.NEWEST);
 
@@ -151,13 +163,12 @@ class NotificationPersistenceServiceTest {
 
         @Test
         void shouldSkipNullAndBlankPayloads() {
-            Notification n1 = createNotification(1L, validJson());
-            Notification n2 = createNotification(2L, null);
-            Notification n3 = createNotification(3L, "");
+            Notification notification = createNotification(1L, validJson());
+            Notification notification2 = createNotification(2L, null);
+            Notification notification3 = createNotification(3L, "");
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
             when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
-                    .thenReturn(List.of(n1, n2, n3));
+                    .thenReturn(List.of(notification, notification2, notification3));
 
             List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.NEWEST);
 
@@ -167,12 +178,11 @@ class NotificationPersistenceServiceTest {
 
         @Test
         void shouldReturnEmptyWhenAllPayloadsInvalid() {
-            Notification n1 = createNotification(1L, null);
-            Notification n2 = createNotification(2L, "");
+            Notification notification = createNotification(1L, null);
+            Notification notification2 = createNotification(2L, "");
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
             when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
-                    .thenReturn(List.of(n1, n2));
+                    .thenReturn(List.of(notification, notification2));
 
             List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.NEWEST);
 
@@ -181,7 +191,6 @@ class NotificationPersistenceServiceTest {
 
         @Test
         void shouldReturnEmptyWhenNoNotifications() {
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
             when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
                     .thenReturn(List.of());
 
@@ -190,36 +199,42 @@ class NotificationPersistenceServiceTest {
             assertThat(result).isEmpty();
         }
 
-        @ParameterizedTest
-        @EnumSource(value = SortType.class, names = {"AMOUNT_ASC", "AMOUNT_DESC"})
-        void shouldThrowExceptionWhenSortTypeIsUnsupported(SortType sortType) {
-            assertThrows(InvalidInputException.class, () -> notificationPersistenceService.getUserNotifications(userId, sortType));
-        }
-
         @Test
         void shouldSupportOldestSortType() {
-            Notification n1 = createNotification(1L, validJson());
+            Notification notification = createNotification(1L, validJson());
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(new User());
             when(notificationRepository.findAllByUserAssignedId(userId, SortType.OLDEST.getPageable(5)))
-                    .thenReturn(List.of(n1));
+                    .thenReturn(List.of(notification));
 
             List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.OLDEST);
 
             assertThat(result).hasSize(1);
         }
+
+        @ParameterizedTest
+        @EnumSource(value = SortType.class, names = {"AMOUNT_ASC", "AMOUNT_DESC"})
+        void shouldThrowExceptionWhenSortTypeIsUnsupported(SortType sortType) {
+            assertThrows(InvalidInputException.class,
+                    () -> notificationPersistenceService.getUserNotifications(userId, sortType));
+        }
     }
 
     private NotificationResponse createDto(Long limitId) {
-        return new LimitWarningDto(NotificationType.LIMIT_EXCEEDED_WARNING, LocalDateTime.now(),
-                BigDecimal.valueOf(50), PeriodType.WEEKLY, limitId, BigDecimal.valueOf(100));
+        return new LimitWarningDto(
+                NotificationType.LIMIT_EXCEEDED_WARNING,
+                LocalDateTime.now(),
+                BigDecimal.valueOf(50),
+                PeriodType.WEEKLY,
+                limitId,
+                BigDecimal.valueOf(75)
+        );
     }
 
     private Notification createNotification(Long id, String payload) {
-        Notification n = new Notification();
-        n.setId(id);
-        n.setPayload(payload);
-        return n;
+        Notification notification = new Notification();
+        notification.setId(id);
+        notification.setPayload(payload);
+        return notification;
     }
 
     private String validJson() {
@@ -227,8 +242,11 @@ class NotificationPersistenceServiceTest {
                 {
                   "type": "LIMIT_EXCEEDED_WARNING",
                   "createdAt": "2026-01-01T00:00:00",
-                  "limitId": 1
+                  "limitPercentage": 50,
+                  "period": "WEEKLY",
+                  "limitId": 1,
+                  "threshold": 75
                 }
                 """;
     }
-}*/
+}
