@@ -30,4 +30,26 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="create-notifications-table" author="Marcin Parśniak">
+        <createTable tableName="notifications">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deduplication_key" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload" type="TEXT"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addUniqueConstraint tableName="notifications" columnNames="user_id, deduplication_key"
+                             constraintName="uk_notifications_user_dedup"/>
+    </changeSet>
 </databaseChangeLog>
