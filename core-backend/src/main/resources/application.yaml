@@ -90,9 +90,6 @@ revenues:
   highest:
     page-size: 5
 
-notification-persistence:
-  page-size: 5
-
 verification-code-manager:
   code-expiration-minutes: 15
   attempts-expiration-minutes: 15
@@ -104,8 +101,6 @@ password-generator:
 scheduler:
   recurring-settings:
     frequency: "0 0 0 * * ?"
-  notification:
-    delete-cron: "0 2 0 ? * 1"
 
 rate-limit:
   endpoints:
