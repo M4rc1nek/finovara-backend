@@ -1,6 +1,6 @@
-package com.finovara.corebackend.notification.repository;
+package com.finovara.notificationservice.notification.repository;
 
-import com.finovara.corebackend.notification.model.Notification;
+import com.finovara.notificationservice.notification.model.Notification;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +10,11 @@ import java.util.List;
 import java.util.Set;
 
 @Repository
-public interface NotificationRepository extends JpaRepository<Notification, Long> {
+public interface
+NotificationRepository extends JpaRepository<Notification, Long> {
+
+    void deleteByUserId(Long userId);
+
     @Query("SELECT n FROM Notification n WHERE n.userId = :userId")
     List<Notification> findAllByUserAssignedId(Long userId, Pageable pageable);
 
