@@ -1,6 +1,6 @@
-package com.finovara.corebackend.notification.processor;
+package com.finovara.notificationservice.notification.processor;
 
-import com.finovara.corebackend.notification.repository.NotificationRepository;
+import com.finovara.notificationservice.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
