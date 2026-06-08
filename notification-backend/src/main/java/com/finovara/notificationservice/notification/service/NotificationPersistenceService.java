@@ -1,14 +1,12 @@
-package com.finovara.corebackend.notification.service;
+package com.finovara.notificationservice.notification.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.corebackend.notification.dto.NotificationResponse;
-import com.finovara.corebackend.notification.model.Notification;
-import com.finovara.corebackend.notification.repository.NotificationRepository;
-import com.finovara.corebackend.user.model.User;
+import com.finovara.notificationservice.notification.dto.NotificationResponse;
+import com.finovara.notificationservice.notification.model.Notification;
+import com.finovara.notificationservice.notification.repository.NotificationRepository;
 import com.finovara.contracts.model.SortType;
-import com.finovara.corebackend.util.user.service.UserManagerService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
