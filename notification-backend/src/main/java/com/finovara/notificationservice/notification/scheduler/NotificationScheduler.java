@@ -1,6 +1,6 @@
-package com.finovara.corebackend.notification.scheduler;
+package com.finovara.notificationservice.notification.scheduler;
 
-import com.finovara.corebackend.notification.processor.NotificationProcessor;
+import com.finovara.notificationservice.notification.processor.NotificationProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
