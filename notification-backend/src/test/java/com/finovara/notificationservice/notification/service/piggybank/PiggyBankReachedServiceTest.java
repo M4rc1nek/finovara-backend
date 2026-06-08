@@ -1,101 +1,77 @@
 package com.finovara.notificationservice.notification.service.piggybank;
 
-import com.finovara.corebackend.notification.dto.NotificationResponse;
-import com.finovara.corebackend.piggybank.model.PiggyBank;
-import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEvent;
+import com.finovara.contracts.model.NotificationType;
+import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.notificationservice.notification.dto.piggybank.PiggyBankReachedDto;
+import com.finovara.notificationservice.notification.service.NotificationPersistenceService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class PiggyBankReachedTest {
+class PiggyBankReachedServiceTest {
 
     @Mock
-    private PiggyBankRepository piggyBankRepository;
+    private NotificationPersistenceService notificationPersistenceService;
 
     @InjectMocks
     private PiggyBankReachedService piggyBankReachedService;
 
-    private Long userId;
-    private PiggyBank piggyBank;
+    @Test
+    void shouldSaveNotificationWhenPercentageIsExactly100() {
+        PiggyBankProgressEvent event = new PiggyBankProgressEvent(1L, 5L, BigDecimal.valueOf(100), PiggyBankGoalType.VACATION, "Wakacje");
 
-    @BeforeEach
-    void setUp() {
-        userId = 1L;
+        piggyBankReachedService.handle(event);
 
-        piggyBank = new PiggyBank();
-        piggyBank.setId(10L);
-        piggyBank.setName("Test PiggyBank");
+        ArgumentCaptor<PiggyBankReachedDto> captor = ArgumentCaptor.forClass(PiggyBankReachedDto.class);
+        verify(notificationPersistenceService).save(eq(1L), captor.capture());
 
-        when(piggyBankRepository.findAllByUserAssignedId(userId)).thenReturn(List.of(piggyBank));
+        PiggyBankReachedDto dto = captor.getValue();
+        assertThat(dto.type()).isEqualTo(NotificationType.PIGGY_BANK_GOAL_REACHED);
+        assertThat(dto.piggyBankId()).isEqualTo(5L);
+        assertThat(dto.piggyBankName()).isEqualTo("Wakacje");
+        assertThat(dto.goalType()).isEqualTo(PiggyBankGoalType.VACATION);
+        assertThat(dto.threshold()).isEqualByComparingTo(BigDecimal.valueOf(100));
     }
 
     @Test
-    void shouldReturnNotificationWhenGoalReached() {
-        piggyBank.setAmount(BigDecimal.valueOf(100));
-        piggyBank.setGoalAmount(BigDecimal.valueOf(100));
+    void shouldSaveNotificationWhenPercentageIsAbove100() {
+        PiggyBankProgressEvent event = new PiggyBankProgressEvent(1L, 5L, BigDecimal.valueOf(110), PiggyBankGoalType.VACATION, "Wakacje");
 
-        List<NotificationResponse> result = piggyBankReachedService.getNotifications(userId);
+        piggyBankReachedService.handle(event);
 
-        assertEquals(1, result.size());
+        ArgumentCaptor<PiggyBankReachedDto> captor = ArgumentCaptor.forClass(PiggyBankReachedDto.class);
+        verify(notificationPersistenceService).save(eq(1L), captor.capture());
+        assertThat(captor.getValue().type()).isEqualTo(NotificationType.PIGGY_BANK_GOAL_REACHED);
     }
 
     @Test
-    void shouldNotReturnNotificationWenBelowGoal() {
-        piggyBank.setAmount(BigDecimal.valueOf(50));
-        piggyBank.setGoalAmount(BigDecimal.valueOf(100));
+    void shouldNotSaveWhenPercentageIsBelow100() {
+        PiggyBankProgressEvent event = new PiggyBankProgressEvent(1L, 5L, BigDecimal.valueOf(99.99), PiggyBankGoalType.VACATION, "Wakacje");
 
-        List<NotificationResponse> result = piggyBankReachedService.getNotifications(userId);
+        piggyBankReachedService.handle(event);
 
-        assertTrue(result.isEmpty());
+        verify(notificationPersistenceService, never()).save(any(), any());
     }
 
     @Test
-    void shouldReturnNotificationWhenAboveGoal() {
-        piggyBank.setAmount(BigDecimal.valueOf(120));
-        piggyBank.setGoalAmount(BigDecimal.valueOf(100));
+    void shouldNotSaveWhenPercentageIsZero() {
+        PiggyBankProgressEvent event = new PiggyBankProgressEvent(1L, 5L, BigDecimal.ZERO, PiggyBankGoalType.VACATION, "Wakacje");
 
-        List<NotificationResponse> result = piggyBankReachedService.getNotifications(userId);
+        piggyBankReachedService.handle(event);
 
-        assertEquals(1, result.size());
-    }
-
-    @Test
-    void shouldReturnOnlyReachedPiggyBanksWhenMultipleExist() {
-        piggyBank.setId(10L);
-        piggyBank.setName("PiggyBank A");
-        piggyBank.setAmount(BigDecimal.valueOf(100));
-        piggyBank.setGoalAmount(BigDecimal.valueOf(100));
-
-        PiggyBank piggyBank2 = new PiggyBank();
-        piggyBank2.setId(20L);
-        piggyBank2.setName("PiggyBank B");
-        piggyBank2.setAmount(BigDecimal.valueOf(50));
-        piggyBank2.setGoalAmount(BigDecimal.valueOf(100));
-
-        when(piggyBankRepository.findAllByUserAssignedId(userId)).thenReturn(List.of(piggyBank, piggyBank2));
-
-        List<NotificationResponse> result = piggyBankReachedService.getNotifications(userId);
-
-        assertEquals(1, result.size());
-    }
-
-    @Test
-    void shouldReturnEmptyListWhenNoPiggyBanks() {
-        when(piggyBankRepository.findAllByUserAssignedId(userId)).thenReturn(List.of());
-
-        List<NotificationResponse> result = piggyBankReachedService.getNotifications(userId);
-
-        assertTrue(result.isEmpty());
+        verify(notificationPersistenceService, never()).save(any(), any());
     }
 }
