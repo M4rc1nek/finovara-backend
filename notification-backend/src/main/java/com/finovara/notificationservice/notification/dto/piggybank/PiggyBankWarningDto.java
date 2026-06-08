@@ -1,7 +1,7 @@
-package com.finovara.corebackend.notification.dto.piggybank;
+package com.finovara.notificationservice.notification.dto.piggybank;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.finovara.corebackend.notification.dto.NotificationResponse;
+import com.finovara.notificationservice.notification.dto.NotificationResponse;
 import com.finovara.contracts.model.NotificationType;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 
