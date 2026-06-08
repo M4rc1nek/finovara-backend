@@ -1,7 +1,7 @@
 package com.finovara.corebackend.usersetting.piggybank.autopayments.service;
 
 import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.piggybank.autopayments.dto.AutoPaymentsDto;

@@ -1,0 +1,79 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: finovara-notification-service
+  datasource:
+    url: jdbc:postgresql://finovara-notification-db:5432/finovara_notification_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  liquibase:
+    change-log: classpath:changelog/changelog.xml
+    enabled: true
+  mail:
+    host: smtp.gmail.com
+    port: 465
+    username: finovaracenter@gmail.com
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: false
+          ssl:
+            enable: true
+            trust: smtp.gmail.com
+  kafka:
+    bootstrap-servers: finovara-kafka:9092
+
+server:
+  port: 8086
+  forward-headers-strategy: framework
+  ssl:
+    enabled: true
+    key-store: classpath:localhost.p12
+    key-store-type: PKCS12
+    key-store-password: ${SSL_KEY_STORE_PASSWORD}
+    key-alias: 1
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+
+mail:
+  recipient:
+    address: ${MAIL_FROM_ADDRESS:finovaracenter@gmail.com}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+
+
+notification-persistence:
+  page-size: 5
+
+
+
+scheduler:
+  notification:
+    delete-cron: "0 2 0 ? * 1"
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
+    org.springframework.security: DEBUG

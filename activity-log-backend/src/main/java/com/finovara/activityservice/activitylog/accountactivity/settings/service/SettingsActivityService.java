@@ -5,9 +5,11 @@ import com.finovara.activityservice.activitylog.accountactivity.settings.dto.Set
 import com.finovara.activityservice.activitylog.accountactivity.settings.mapper.SettingsActivityMapper;
 import com.finovara.activityservice.activitylog.accountactivity.settings.model.SettingsActivity;
 import com.finovara.activityservice.activitylog.accountactivity.settings.repository.SettingsActivityRepository;
-import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
+import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,9 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class SettingsActivityService extends AccountActivityCore<SettingsActivity, SettingsActivityDto> {
+public class SettingsActivityService extends AccountActivityCore<SettingsActivity, SettingsActivityDto> implements UserDataDeletable {
 
     @Value("${user-activity.settings.page-size}")
     private int pageSize;
@@ -49,5 +52,12 @@ public class SettingsActivityService extends AccountActivityCore<SettingsActivit
     @Override
     protected SettingsActivityDto mapToDto(SettingsActivity entity) {
         return settingsActivityMapper.mapToSettingActivity(entity);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        settingsActivityRepository.deleteByUserId(userId);
+        log.info("Deleted settings activity for userId={}", userId);
     }
 }

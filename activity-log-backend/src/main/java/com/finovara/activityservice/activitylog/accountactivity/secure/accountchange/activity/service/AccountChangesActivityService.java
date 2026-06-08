@@ -6,10 +6,12 @@ import com.finovara.activityservice.activitylog.accountactivity.secure.accountch
 import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
 import com.finovara.activityservice.activitylog.accountactivity.secure.core.SecurityActivityCore;
+import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
 import com.finovara.activityservice.feignclient.CoreBackendClient;
 import com.finovara.contracts.dto.ConfirmPasswordDto;
-import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -17,9 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class AccountChangesActivityService extends SecurityActivityCore<AccountChangesActivity, AccountChangeArchive> {
+public class AccountChangesActivityService extends SecurityActivityCore<AccountChangesActivity, AccountChangeArchive> implements UserDataDeletable {
 
     private final AccountChangesActivityRepository accountChangesActivityRepository;
     private final AccountChangeArchiveService accountChangeArchiveService;
@@ -40,6 +43,7 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
                 .build();
 
         saveActivity(activity);
+        log.info("Created activity type: {}, userId: {}", event.type(), event.userId());
         moveToArchive(event.userId(), pageSize);
     }
 
@@ -79,5 +83,12 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
     @Override
     protected void deleteActivities(List<AccountChangesActivity> activities) {
         accountChangesActivityRepository.deleteAll(activities);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        accountChangesActivityRepository.deleteByUserId(userId);
+        log.info("Deleted account changes activity for userId={}", userId);
     }
 }

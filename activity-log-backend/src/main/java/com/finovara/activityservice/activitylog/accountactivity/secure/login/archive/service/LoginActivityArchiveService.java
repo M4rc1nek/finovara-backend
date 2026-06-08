@@ -4,21 +4,25 @@ import com.finovara.activityservice.activitylog.accountactivity.secure.login.act
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.dto.LoginActivityArchiveDto;
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.repository.LoginActivityArchiveRepository;
+import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class LoginActivityArchiveService {
+public class LoginActivityArchiveService implements UserDataDeletable {
 
     private final LoginActivityArchiveRepository loginActivityArchiveRepository;
 
     public LoginActivityArchive mapToArchive(LoginActivity loginActivity) {
 
+        log.info("Archiving login activity. type: {}, userId: {}", loginActivity.getType(), loginActivity.getUserId());
         return LoginActivityArchive.builder()
                 .userId(loginActivity.getUserId())
                 .type("Login")
@@ -38,5 +42,12 @@ public class LoginActivityArchiveService {
 
     public List<LoginActivityArchiveDto> getLoginActivityArchive(Long userId) {
         return loginActivityArchiveRepository.findAllByUserIdOrderByIdDesc(userId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        loginActivityArchiveRepository.deleteByUserId(userId);
+        log.info("Deleted login activity from archive for userId={}", userId);
     }
 }

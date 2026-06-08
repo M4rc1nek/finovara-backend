@@ -5,10 +5,12 @@ import com.finovara.activityservice.activitylog.accountactivity.limit.dto.LimitA
 import com.finovara.activityservice.activitylog.accountactivity.limit.mapper.LimitActivityMapper;
 import com.finovara.activityservice.activitylog.accountactivity.limit.model.LimitActivity;
 import com.finovara.activityservice.activitylog.accountactivity.limit.repository.LimitActivityRepository;
-import com.finovara.contracts.event.limit.LimitActivityEvent;
+import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
+import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,9 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class LimitActivityService extends AccountActivityCore<LimitActivity, LimitActivityDto> {
+public class LimitActivityService extends AccountActivityCore<LimitActivity, LimitActivityDto> implements UserDataDeletable {
 
     @Value("${user-activity.limit.page-size}")
     private int pageSize;
@@ -38,6 +41,7 @@ public class LimitActivityService extends AccountActivityCore<LimitActivity, Lim
                 .build();
 
         limitActivityRepository.save(limitActivity);
+        log.info("Created activity type: {}, userId: {}", event.type(), event.userId());
     }
 
     public List<LimitActivityDto> getLimitActivity(Long userId, SortType sort) {
@@ -56,5 +60,12 @@ public class LimitActivityService extends AccountActivityCore<LimitActivity, Lim
 
     private PeriodType mapPeriodType(String periodType) {
         return periodType == null ? null : PeriodType.valueOf(periodType);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        limitActivityRepository.deleteByUserId(userId);
+        log.info("Deleted limit activity for userId={}", userId);
     }
 }

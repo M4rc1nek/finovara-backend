@@ -29,6 +29,8 @@ spring:
                   - PATCH
                 allowed-headers:
                   - "*"
+                exposed-headers:
+                  - Authorization
                 allow-credentials: true
           default-filters:
             - PreserveHostHeader
@@ -50,6 +52,11 @@ spring:
               uri: ${ACTIVITY_LOG_URL}
               predicates:
                 - Path=/api/account-activity/**,/api/archive-activities/**
+
+            - id: notification-backend
+              uri: ${NOTIFICATION_BACKEND_URL}
+              predicates:
+                - Path=/api/notification-settings/**,/api/notifications/**
 
             - id: core-backend
               uri: ${CORE_BACKEND_URL}

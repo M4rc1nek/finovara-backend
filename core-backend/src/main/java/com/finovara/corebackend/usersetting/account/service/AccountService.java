@@ -1,6 +1,8 @@
 package com.finovara.corebackend.usersetting.account.service;
 
-import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.notification.SendEmailEvent;
+import com.finovara.contracts.event.user.UserAccountDeletedEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
@@ -10,14 +12,12 @@ import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.account.dto.AccountSettingsDto;
-import com.finovara.corebackend.usersetting.notificationemail.action.accountdeleted.service.NotifyOnAccountDeletedService;
-import com.finovara.corebackend.usersetting.notificationemail.action.usernamechange.service.NotifyUsernameChangeService;
 import com.finovara.contracts.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.corebackend.util.profile.ProfileImageUrlBuilder;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -33,8 +33,6 @@ public class AccountService {
     private final UserManagerService userManagerService;
     private final PasswordValidator passwordValidator;
     private final KafkaTemplate<String, Object> kafkaTemplate;
-    private final NotifyUsernameChangeService notifyUsernameChangeService;
-    private final NotifyOnAccountDeletedService notifyOnAccountDeletedService;
 
     @Transactional
     public AccountSettingsDto updateUsername(AccountSettingsDto accountSettingsDto, Long userId, HttpServletRequest request) {
@@ -48,7 +46,7 @@ public class AccountService {
         userRepository.save(user);
         String ipAddress = getClientIpAddress(request);
         kafkaTemplate.send("activity.account-changes", new AccountChangesActivityEvent(userId, AccountChangesActivityType.USERNAME_CHANGED, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
-        notifyUsernameChangeService.sendEmail(user);
+        kafkaTemplate.send("notification.email.send", new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Zmiana nazwy uzytkownika", "email/username-changed.html"));
         return accountSettingsDto;
     }
 
@@ -57,9 +55,10 @@ public class AccountService {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         passwordValidator.validatePassword(userId, confirmPasswordDto);
+        kafkaTemplate.send("notification.email.send", new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Usuniecie konta", "email/account-deleted.html"));
+        kafkaTemplate.send("user-account.deleted", new UserAccountDeletedEvent(user.getId()));
         userRepository.delete(user);
         log.info("User account has been deleted. User email: {}", user.getEmail());
-        notifyOnAccountDeletedService.sendEmail(user);
     }
 
     @Transactional

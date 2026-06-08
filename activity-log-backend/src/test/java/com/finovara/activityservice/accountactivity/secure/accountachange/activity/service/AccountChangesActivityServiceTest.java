@@ -6,9 +6,10 @@ import com.finovara.activityservice.activitylog.accountactivity.secure.accountch
 import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
 import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
-import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -48,58 +49,77 @@ class AccountChangesActivityServiceTest {
         ReflectionTestUtils.setField(accountChangesActivityService, "pageSize", 10);
     }
 
-    @Test
-    void shouldSaveActivityFromEventAndNotArchiveWhenBelowThreshold() {
-        AccountChangesActivityEvent event = event();
-        when(accountChangesActivityRepository.countAccountChangesByUserId(USER_ID)).thenReturn(9L);
+    @Nested
+    class DeleteByUserId {
 
-        accountChangesActivityService.handleEvent(event);
+        @Test
+        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+            accountChangesActivityService.deleteByUserId(USER_ID);
 
-        ArgumentCaptor<AccountChangesActivity> captor = ArgumentCaptor.forClass(AccountChangesActivity.class);
-        verify(accountChangesActivityRepository).save(captor.capture());
-        verify(archiveService, never()).archive(any());
-
-        AccountChangesActivity activity = captor.getValue();
-        assertThat(activity.getUserId()).isEqualTo(USER_ID);
-        assertThat(activity.getType()).isEqualTo(event.type());
-        assertThat(activity.getBrowser()).isEqualTo(event.browser());
-        assertThat(activity.getIpAddress()).isEqualTo(event.ipAddress());
-        assertThat(activity.getLocation()).isEqualTo(event.location());
-        assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+            verify(accountChangesActivityRepository).deleteByUserId(USER_ID);
+        }
     }
 
-    @Test
-    void shouldArchiveOldestActivitiesWhenThresholdExceeded() {
-        AccountChangesActivityEvent event = event();
-        AccountChangesActivity oldest = AccountChangesActivity.builder().id(1L).userId(USER_ID).build();
-        AccountChangeArchive archive = AccountChangeArchive.builder().userId(USER_ID).build();
+    @Nested
+    class HandleEvent {
 
-        when(accountChangesActivityRepository.countAccountChangesByUserId(USER_ID)).thenReturn(11L);
-        when(accountChangesActivityRepository.findFewByUserId(eq(USER_ID), any(PageRequest.class))).thenReturn(List.of(oldest));
-        when(archiveService.mapToArchive(oldest)).thenReturn(archive);
+        @Test
+        void shouldBuildEntityAndSaveViaRepositoryWhenBelowArchiveThreshold() {
+            AccountChangesActivityEvent event = event();
+            when(accountChangesActivityRepository.countAccountChangesByUserId(USER_ID)).thenReturn(9L);
 
-        accountChangesActivityService.handleEvent(event);
+            accountChangesActivityService.handleEvent(event);
 
-        verify(accountChangesActivityRepository).save(any(AccountChangesActivity.class));
-        verify(archiveService).archive(List.of(archive));
-        verify(accountChangesActivityRepository).deleteAll(List.of(oldest));
+            ArgumentCaptor<AccountChangesActivity> captor = ArgumentCaptor.forClass(AccountChangesActivity.class);
+            verify(accountChangesActivityRepository).save(captor.capture());
+            verify(archiveService, never()).archive(any());
+
+            AccountChangesActivity activity = captor.getValue();
+            assertThat(activity.getUserId()).isEqualTo(USER_ID);
+            assertThat(activity.getType()).isEqualTo(event.type());
+            assertThat(activity.getBrowser()).isEqualTo(event.browser());
+            assertThat(activity.getIpAddress()).isEqualTo(event.ipAddress());
+            assertThat(activity.getLocation()).isEqualTo(event.location());
+            assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+        }
+
+        @Test
+        void shouldArchiveOldestActivitiesWhenThresholdExceeded() {
+            AccountChangesActivityEvent event = event();
+            AccountChangesActivity oldest = AccountChangesActivity.builder().id(1L).userId(USER_ID).build();
+            AccountChangeArchive archive = AccountChangeArchive.builder().userId(USER_ID).build();
+
+            when(accountChangesActivityRepository.countAccountChangesByUserId(USER_ID)).thenReturn(11L);
+            when(accountChangesActivityRepository.findFewByUserId(eq(USER_ID), any(PageRequest.class))).thenReturn(List.of(oldest));
+            when(archiveService.mapToArchive(oldest)).thenReturn(archive);
+
+            accountChangesActivityService.handleEvent(event);
+
+            verify(accountChangesActivityRepository).save(any(AccountChangesActivity.class));
+            verify(archiveService).archive(List.of(archive));
+            verify(accountChangesActivityRepository).deleteAll(List.of(oldest));
+        }
     }
 
-    @Test
-    void shouldReturnAccountChangeDtos() {
-        AccountChangesActivityDto dto = new AccountChangesActivityDto(
-                AccountChangesActivityType.PASSWORD_CHANGED,
-                OCCURRED_AT,
-                "Chrome",
-                "127.0.0.1",
-                "Localhost"
-        );
-        when(accountChangesActivityRepository.findByUserIdOrderByIdDesc(USER_ID)).thenReturn(List.of(dto));
+    @Nested
+    class GetAccountChangesActivity {
 
-        List<AccountChangesActivityDto> result = accountChangesActivityService.getAccountChangesActivity(USER_ID);
+        @Test
+        void shouldReturnAccountChangeDtos() {
+            AccountChangesActivityDto dto = new AccountChangesActivityDto(
+                    AccountChangesActivityType.PASSWORD_CHANGED,
+                    OCCURRED_AT,
+                    "Chrome",
+                    "127.0.0.1",
+                    "Localhost"
+            );
+            when(accountChangesActivityRepository.findByUserIdOrderByIdDesc(USER_ID)).thenReturn(List.of(dto));
 
-        assertThat(result).containsExactly(dto);
-        verify(accountChangesActivityRepository).findByUserIdOrderByIdDesc(USER_ID);
+            List<AccountChangesActivityDto> result = accountChangesActivityService.getAccountChangesActivity(USER_ID);
+
+            assertThat(result).containsExactly(dto);
+            verify(accountChangesActivityRepository).findByUserIdOrderByIdDesc(USER_ID);
+        }
     }
 
     private AccountChangesActivityEvent event() {

@@ -6,6 +6,7 @@ import com.finovara.activityservice.activitylog.accountactivity.secure.login.arc
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.repository.LoginActivityArchiveRepository;
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,56 +31,79 @@ class LoginActivityArchiveServiceTest {
     @InjectMocks
     private LoginActivityArchiveService loginActivityArchiveService;
 
-    @Test
-    void shouldMapLoginActivityToArchive() {
-        LocalDateTime before = LocalDateTime.now();
-        LocalDateTime activityDate = LocalDateTime.of(2026, 3, 10, 9, 30);
-        LoginActivity loginActivity = LoginActivity.builder()
-                .userId(USER_ID)
-                .status(LoginActivityStatus.SUCCESSFUL)
-                .createdAt(activityDate)
-                .browser("Firefox")
-                .ipAddress("192.168.1.100")
-                .location("Berlin")
-                .build();
+    @Nested
+    class DeleteByUserId {
 
-        LoginActivityArchive archive = loginActivityArchiveService.mapToArchive(loginActivity);
+        @Test
+        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+            loginActivityArchiveService.deleteByUserId(USER_ID);
 
-        assertThat(archive.getUserId()).isEqualTo(USER_ID);
-        assertThat(archive.getType()).isEqualTo("Login");
-        assertThat(archive.getStatus()).isEqualTo(LoginActivityStatus.SUCCESSFUL);
-        assertThat(archive.getActivityLoginDate()).isEqualTo(activityDate);
-        assertThat(archive.getBrowser()).isEqualTo("Firefox");
-        assertThat(archive.getIpAddress()).isEqualTo("192.168.1.100");
-        assertThat(archive.getLocation()).isEqualTo("Berlin");
-        assertThat(archive.getMoveToArchiveDate()).isBetween(before, LocalDateTime.now());
+            verify(loginActivityArchiveRepository).deleteByUserId(USER_ID);
+        }
     }
 
-    @Test
-    void shouldReturnLoginActivityArchiveForUserId() {
-        LoginActivityArchiveDto dto = new LoginActivityArchiveDto(
-                "Login",
-                LoginActivityStatus.SUCCESSFUL,
-                LocalDateTime.now(),
-                LocalDateTime.of(2026, 3, 10, 14, 30),
-                "Chrome",
-                "192.168.1.100",
-                "Warsaw, Poland"
-        );
-        when(loginActivityArchiveRepository.findAllByUserIdOrderByIdDesc(USER_ID)).thenReturn(List.of(dto));
+    @Nested
+    class MapToArchive {
 
-        List<LoginActivityArchiveDto> result = loginActivityArchiveService.getLoginActivityArchive(USER_ID);
+        @Test
+        void shouldMapLoginActivityToArchive() {
+            LocalDateTime before = LocalDateTime.now();
+            LocalDateTime activityDate = LocalDateTime.of(2026, 3, 10, 9, 30);
+            LoginActivity loginActivity = LoginActivity.builder()
+                    .userId(USER_ID)
+                    .status(LoginActivityStatus.SUCCESSFUL)
+                    .createdAt(activityDate)
+                    .browser("Firefox")
+                    .ipAddress("192.168.1.100")
+                    .location("Berlin")
+                    .build();
 
-        assertThat(result).containsExactly(dto);
-        verify(loginActivityArchiveRepository).findAllByUserIdOrderByIdDesc(USER_ID);
+            LoginActivityArchive archive = loginActivityArchiveService.mapToArchive(loginActivity);
+
+            assertThat(archive.getUserId()).isEqualTo(USER_ID);
+            assertThat(archive.getType()).isEqualTo("Login");
+            assertThat(archive.getStatus()).isEqualTo(LoginActivityStatus.SUCCESSFUL);
+            assertThat(archive.getActivityLoginDate()).isEqualTo(activityDate);
+            assertThat(archive.getBrowser()).isEqualTo("Firefox");
+            assertThat(archive.getIpAddress()).isEqualTo("192.168.1.100");
+            assertThat(archive.getLocation()).isEqualTo("Berlin");
+            assertThat(archive.getMoveToArchiveDate()).isBetween(before, LocalDateTime.now());
+        }
     }
 
-    @Test
-    void shouldArchiveActivities() {
-        List<LoginActivityArchive> archives = List.of(LoginActivityArchive.builder().build());
+    @Nested
+    class GetLoginActivityArchive {
 
-        loginActivityArchiveService.archive(archives);
+        @Test
+        void shouldReturnLoginActivityArchiveForUserId() {
+            LoginActivityArchiveDto dto = new LoginActivityArchiveDto(
+                    "Login",
+                    LoginActivityStatus.SUCCESSFUL,
+                    LocalDateTime.now(),
+                    LocalDateTime.of(2026, 3, 10, 14, 30),
+                    "Chrome",
+                    "192.168.1.100",
+                    "Warsaw, Poland"
+            );
+            when(loginActivityArchiveRepository.findAllByUserIdOrderByIdDesc(USER_ID)).thenReturn(List.of(dto));
 
-        verify(loginActivityArchiveRepository).saveAll(archives);
+            List<LoginActivityArchiveDto> result = loginActivityArchiveService.getLoginActivityArchive(USER_ID);
+
+            assertThat(result).containsExactly(dto);
+            verify(loginActivityArchiveRepository).findAllByUserIdOrderByIdDesc(USER_ID);
+        }
+    }
+
+    @Nested
+    class Archive {
+
+        @Test
+        void shouldSaveAllArchivesViaRepository() {
+            List<LoginActivityArchive> archives = List.of(LoginActivityArchive.builder().build());
+
+            loginActivityArchiveService.archive(archives);
+
+            verify(loginActivityArchiveRepository).saveAll(archives);
+        }
     }
 }

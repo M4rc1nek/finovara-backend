@@ -2,13 +2,11 @@ package com.finovara.corebackend.user.model;
 
 import com.finovara.corebackend.expense.model.Expense;
 import com.finovara.corebackend.limit.model.Limit;
-import com.finovara.corebackend.notification.model.Notification;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
 import com.finovara.corebackend.revenue.model.Revenue;
 import com.finovara.corebackend.usersetting.account.model.AccountSettings;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.corebackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.corebackend.wallet.model.Wallet;
 import jakarta.persistence.*;
 import lombok.*;
@@ -64,11 +62,4 @@ public class User {
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private AccountSettings accountSettings;
-
-    @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
-    private NotificationEmailSettings notificationEmailSettings;
-
-    @OneToMany(mappedBy = "userAssigned", cascade = CascadeType.ALL)
-    private List<Notification> notifications;
-
 }

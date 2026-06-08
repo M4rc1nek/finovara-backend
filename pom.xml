@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -15,7 +16,10 @@
     <artifactId>finovara</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+    <name>finovara</name>
+    <description>Finovara – personal finance management platform (root)</description>
 
+    <!-- ===== PROPERTIES ===== -->
     <properties>
         <java.version>25</java.version>
         <spring-cloud.version>2025.1.1</spring-cloud.version>
@@ -24,22 +28,32 @@
         <shedlock.version>5.13.0</shedlock.version>
         <jacoco.version>0.8.14</jacoco.version>
         <uap-java.version>1.5.4</uap-java.version>
+        <bucket4j.version>8.18.0</bucket4j.version>
+        <pdfbox.version>3.0.2</pdfbox.version>
+        <springdoc.version>2.8.8</springdoc.version>
     </properties>
 
+    <!-- ===== MODULES ===== -->
     <modules>
         <module>api-gateway</module>
         <module>core-backend</module>
         <module>contracts-backend</module>
         <module>activity-log-backend</module>
+        <module>notification-backend</module>
     </modules>
 
+    <!-- ===== DEPENDENCY MANAGEMENT ===== -->
     <dependencyManagement>
         <dependencies>
+
+            <!-- INTERNAL -->
             <dependency>
                 <groupId>com.finovara</groupId>
                 <artifactId>contracts-backend</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!-- SPRING CLOUD -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -47,6 +61,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 

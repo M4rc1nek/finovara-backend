@@ -6,10 +6,12 @@ import com.finovara.activityservice.activitylog.accountactivity.secure.login.act
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
+import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
 import com.finovara.activityservice.feignclient.CoreBackendClient;
 import com.finovara.contracts.dto.ConfirmPasswordDto;
-import com.finovara.contracts.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -17,9 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class LoginActivityService extends SecurityActivityCore<LoginActivity, LoginActivityArchive> {
+public class LoginActivityService extends SecurityActivityCore<LoginActivity, LoginActivityArchive>  implements UserDataDeletable {
 
     private final LoginActivityRepository loginActivityRepository;
     private final LoginActivityArchiveService archiveService;
@@ -41,13 +44,13 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
                 .build();
 
         saveActivity(activity);
+        log.info("Created activity type: {}, userId: {}", activity.getType(), event.userId());
         moveToArchive(event.userId(), pageSize);
     }
 
     public List<LoginActivityDto> getLoginActivity(Long userId) {
         return loginActivityRepository.findByUserIdOrderByDesc(userId);
     }
-
 
     public void confirmPassword(Long userId, ConfirmPasswordDto dto) {
         coreBackendClient.verifyPassword(userId, dto);
@@ -81,5 +84,12 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
     @Override
     protected void deleteActivities(List<LoginActivity> a) {
         loginActivityRepository.deleteAll(a);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        loginActivityRepository.deleteByUserId(userId);
+        log.info("Deleted login activity for userId={}", userId);
     }
 }

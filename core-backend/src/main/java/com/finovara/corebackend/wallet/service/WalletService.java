@@ -6,7 +6,7 @@ import com.finovara.corebackend.util.wallet.WalletManagerService;
 import com.finovara.corebackend.wallet.dto.WalletDto;
 import com.finovara.corebackend.wallet.model.Wallet;
 import com.finovara.corebackend.wallet.repository.WalletRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

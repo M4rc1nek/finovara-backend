@@ -26,7 +26,8 @@
             <column name="oauth_provider" type="VARCHAR(50)"/>
             <column name="provider_user_id" type="VARCHAR(255)"/>
         </createTable>
-        <addUniqueConstraint tableName="users" columnNames="oauth_provider, provider_user_id" constraintName="uk_users_oauth_provider_user_id"/>
+        <addUniqueConstraint tableName="users" columnNames="oauth_provider, provider_user_id"
+                             constraintName="uk_users_oauth_provider_user_id"/>
     </changeSet>
 
     <changeSet id="create-wallets" author="Marcin Parśniak">
@@ -141,22 +142,6 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="create-notification-settings" author="Marcin Parśniak">
-        <createTable tableName="notification_settings">
-            <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="notify_on_password_change" type="BOOLEAN"/>
-            <column name="notify_on_username_change" type="BOOLEAN"/>
-            <column name="notify_on_email_change" type="BOOLEAN"/>
-            <column name="notify_on_account_deleted" type="BOOLEAN"/>
-
-            <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_notification_settings_user"
-                             references="users(id)"/>
-            </column>
-        </createTable>
-    </changeSet>
 
     <changeSet id="create-expense-settings" author="Marcin Parśniak">
         <createTable tableName="expense_settings">
@@ -232,28 +217,6 @@
                              references="piggy_banks(id)"/>
             </column>
         </createTable>
-    </changeSet>
-    <changeSet id="create-notifications-table" author="Marcin Parśniak">
-        <createTable tableName="notifications">
-            <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="type" type="VARCHAR(50)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="created_at" type="TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="deduplication_key" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="payload" type="TEXT"/>
-            <column name="user_id" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_notifications_user" references="users(id)"/>
-            </column>
-        </createTable>
-        <addUniqueConstraint tableName="notifications" columnNames="user_id, deduplication_key"
-                             constraintName="uk_notifications_user_dedup"/>
     </changeSet>
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">

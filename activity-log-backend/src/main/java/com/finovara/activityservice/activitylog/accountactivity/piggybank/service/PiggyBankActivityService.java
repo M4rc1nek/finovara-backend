@@ -5,9 +5,11 @@ import com.finovara.activityservice.activitylog.accountactivity.piggybank.dto.Pi
 import com.finovara.activityservice.activitylog.accountactivity.piggybank.mapper.PiggyBankActivityMapper;
 import com.finovara.activityservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
 import com.finovara.activityservice.activitylog.accountactivity.piggybank.repository.PiggyBankActivityRepository;
-import com.finovara.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,9 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActivity, PiggyBankActivityDto> {
+public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActivity, PiggyBankActivityDto> implements UserDataDeletable {
 
     @Value("${user-activity.piggy-bank.page-size}")
     private int pageSize;
@@ -38,6 +41,7 @@ public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActiv
                 .build();
 
         piggyBankActivityRepository.save(piggyBankActivity);
+        log.info("Created activity type: {}, userId: {}", event.type(), event.userId());
     }
 
     public List<PiggyBankActivityDto> getPiggyBankActivities(Long userId, SortType sort) {
@@ -52,5 +56,12 @@ public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActiv
     @Override
     protected PiggyBankActivityDto mapToDto(PiggyBankActivity entity) {
         return piggyBankActivityMapper.mapToPiggyBankActivity(entity);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        piggyBankActivityRepository.deleteByUserId(userId);
+        log.info("Deleted piggy bank activity for userId={}", userId);
     }
 }

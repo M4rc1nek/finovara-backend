@@ -1,6 +1,6 @@
 package com.finovara.corebackend.piggybank.service;
 
-import com.finovara.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
@@ -189,7 +189,7 @@ class PiggyBankManagementServiceTest {
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankRepository.findAllByUserAssignedId(userId)).thenReturn(List.of(piggyBank));
-            when(piggyBankMapper.mapToPiggyBankDto(any(), any(), anyDouble(), anyBoolean()))
+            when(piggyBankMapper.mapToPiggyBankDto(any(), any(), any(), anyBoolean()))
                     .thenReturn(defaultDto);
 
             List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(userId);

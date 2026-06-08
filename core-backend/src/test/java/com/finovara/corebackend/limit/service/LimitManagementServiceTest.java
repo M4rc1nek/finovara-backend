@@ -1,6 +1,6 @@
 package com.finovara.corebackend.limit.service;
 
-import com.finovara.contracts.event.limit.LimitActivityEvent;
+import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.model.activity.LimitActivityType;
 import com.finovara.corebackend.limit.dto.LimitDto;

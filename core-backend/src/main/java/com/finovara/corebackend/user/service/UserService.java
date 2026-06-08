@@ -1,18 +1,14 @@
 package com.finovara.corebackend.user.service;
 
-import com.finovara.contracts.event.secure.login.activity.LoginActivityEvent;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
-
-import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
-import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
-import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.event.notification.CreateDefaultNotificationEmailSettingsEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.conflict.StateConflictException;
 import com.finovara.contracts.exception.unauthorized.InvalidCredentialsException;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
 import com.finovara.corebackend.security.jwt.JwtService;
 import com.finovara.corebackend.user.dto.UserLoginDto;
 import com.finovara.corebackend.user.dto.UserRegisterDto;
-import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.factory.SettingsFactory;
@@ -31,6 +27,10 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+
+import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
 
 @Slf4j
 @Service
@@ -66,42 +66,40 @@ public class UserService {
 
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         user.setRecurringSettings(settingsFactory.createDefaultRecurringSettings(user));
-        user.setNotificationEmailSettings(settingsFactory.createDefaultNotificationSettings(user));
         user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
 
         User savedUser = userRepository.save(user);
-
         String jwtToken = jwtService.generateToken(savedUser);
-
         String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(savedUser.getProfileImagePath());
+        kafkaTemplate.send("user.created", new CreateDefaultNotificationEmailSettingsEvent(savedUser.getId()));
 
         return new UserRegisterDto(savedUser.getId(), savedUser.getUsername(), null, userProfileImage, savedUser.getEmail(), jwtToken);
     }
 
     public UserLoginDto loginUser(String email, String rawPassword, HttpServletRequest request) {
-        User userByEmail = userRepository.findByEmail(email).orElse(null);
+        User user = userRepository.findByEmail(email).orElse(null);
 
-        if (userByEmail != null && !userByEmail.isPasswordSet()) {
-            publishLoginActivity(userByEmail.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
+        if (user != null && !user.isPasswordSet()) {
+            publishLoginActivity(user.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
             throw new StateConflictException("Local password is not set for this account. Use Google login or set a local password first.");
         }
 
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, rawPassword));
 
-            if (userByEmail == null) {
+            if (user == null) {
                 throw new InvalidCredentialsException("Incorrect email or password");
             }
 
-            publishLoginActivity(userByEmail.getId(), LoginActivityStatus.SUCCESSFUL, request);
-            String jwtToken = jwtService.generateToken(userByEmail);
-            String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(userByEmail.getProfileImagePath());
+            publishLoginActivity(user.getId(), LoginActivityStatus.SUCCESSFUL, request);
+            String jwtToken = jwtService.generateToken(user);
+            String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(user.getProfileImagePath());
 
-            return new UserLoginDto(userByEmail.getId(), userByEmail.getUsername(), userByEmail.getEmail(), null, userProfileImage, jwtToken);
+            return new UserLoginDto(user.getId(), user.getUsername(), user.getEmail(), null, userProfileImage, jwtToken);
 
-        } catch (AuthenticationException e) {
-            if (userByEmail != null) {
-                publishLoginActivity(userByEmail.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
+        } catch (AuthenticationException exception) {
+            if (user != null) {
+                publishLoginActivity(user.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
             }
             throw new InvalidCredentialsException("Incorrect email or password");
         }

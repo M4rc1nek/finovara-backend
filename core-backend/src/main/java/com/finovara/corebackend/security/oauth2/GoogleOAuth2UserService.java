@@ -1,14 +1,15 @@
 package com.finovara.corebackend.security.oauth2;
 
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.event.notification.CreateDefaultNotificationEmailSettingsEvent;
 import com.finovara.corebackend.security.oauth2.dto.GoogleOAuth2UserInfo;
-import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.OAuthProvider;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.factory.SettingsFactory;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -24,6 +25,7 @@ public class GoogleOAuth2UserService {
 
     private final UserRepository userRepository;
     private final SettingsFactory settingsFactory;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
     public User synchronize(OAuth2User oauth2User) {
@@ -52,10 +54,11 @@ public class GoogleOAuth2UserService {
 
         user.setExpenseSettings(settingsFactory.createDefaultExpenseSettings(user));
         user.setRecurringSettings(settingsFactory.createDefaultRecurringSettings(user));
-        user.setNotificationEmailSettings(settingsFactory.createDefaultNotificationSettings(user));
         user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        kafkaTemplate.send("user.created", new CreateDefaultNotificationEmailSettingsEvent(savedUser.getId()));
+        return savedUser;
     }
 
     private User synchronizeExistingGoogleUser(User user, GoogleOAuth2UserInfo userInfo) {

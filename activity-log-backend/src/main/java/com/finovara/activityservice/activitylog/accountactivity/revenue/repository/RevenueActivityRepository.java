@@ -11,4 +11,6 @@ import java.util.List;
 public interface RevenueActivityRepository extends JpaRepository<RevenueActivity, Long> {
 
     List<RevenueActivity> findByUserId(Long userId, Pageable pageable);
+
+    void deleteByUserId(Long userId);
 }

@@ -21,4 +21,6 @@ public interface LoginActivityArchiveRepository extends JpaRepository<LoginActiv
             """)
      List<LoginActivityArchiveDto> findAllByUserIdOrderByIdDesc(Long userId);
 
+    void deleteByUserId(Long userId);
+
 }
