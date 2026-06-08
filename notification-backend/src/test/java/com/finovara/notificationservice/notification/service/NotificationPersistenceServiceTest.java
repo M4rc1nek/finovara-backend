@@ -28,8 +28,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationPersistenceServiceTest {
@@ -216,6 +215,24 @@ class NotificationPersistenceServiceTest {
         void shouldThrowExceptionWhenSortTypeIsUnsupported(SortType sortType) {
             assertThrows(InvalidInputException.class,
                     () -> notificationPersistenceService.getUserNotifications(userId, sortType));
+        }
+    }
+
+    @Nested
+    class DeleteNotifications{
+        @Test
+        void shouldCallRepositoryToDeleteNotifications() {
+            notificationPersistenceService.deleteAllNotifications(userId);
+            verify(notificationRepository, times(1)).deleteByUserId(userId);
+        }
+
+        @Test
+        void shouldPropagateExceptionWhenRepositoryFails() {
+            RuntimeException databaseException = new RuntimeException("Database connection timeout");
+            doThrow(databaseException).when(notificationRepository).deleteByUserId(userId);
+
+            assertThrows(RuntimeException.class, () -> {notificationPersistenceService.deleteAllNotifications(userId);});
+            verify(notificationRepository, times(1)).deleteByUserId(userId);
         }
     }
 
