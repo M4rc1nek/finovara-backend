@@ -1,4 +1,4 @@
-package com.finovara.corebackend.config;
+package com.finovara.activityservice.config;
 
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
