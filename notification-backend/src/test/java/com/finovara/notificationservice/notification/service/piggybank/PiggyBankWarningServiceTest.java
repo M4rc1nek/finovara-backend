@@ -1,104 +1,86 @@
 package com.finovara.notificationservice.notification.service.piggybank;
 
-import com.finovara.corebackend.notification.dto.NotificationResponse;
-import com.finovara.corebackend.piggybank.model.PiggyBank;
-import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEvent;
+import com.finovara.contracts.model.NotificationType;
+import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.notificationservice.notification.dto.piggybank.PiggyBankWarningDto;
+import com.finovara.notificationservice.notification.service.NotificationPersistenceService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-class PiggyBankWarningTest {
+class PiggyBankWarningServiceTest {
 
     @Mock
-    private PiggyBankRepository piggyBankRepository;
+    private NotificationPersistenceService notificationPersistenceService;
 
     @InjectMocks
     private PiggyBankWarningService piggyBankWarningService;
 
-    private Long userId;
+    @Test
+    void shouldSaveNotificationWhenPercentageIsExactly75() {
+        PiggyBankProgressEvent event = new PiggyBankProgressEvent(1L, 5L, BigDecimal.valueOf(75), PiggyBankGoalType.VACATION, "Wakacje");
 
-    private PiggyBank piggyBank;
+        piggyBankWarningService.handle(event);
 
-    @BeforeEach
-    void setUp() {
-        userId = 1L;
+        ArgumentCaptor<PiggyBankWarningDto> captor = ArgumentCaptor.forClass(PiggyBankWarningDto.class);
+        verify(notificationPersistenceService).save(eq(1L), captor.capture());
 
-        piggyBank = new PiggyBank();
-        piggyBank.setId(10L);
-        piggyBank.setName("PiggyBank");
-
-        when(piggyBankRepository.findAllByUserAssignedId(userId)).thenReturn(List.of(piggyBank));
+        PiggyBankWarningDto dto = captor.getValue();
+        assertThat(dto.type()).isEqualTo(NotificationType.PIGGY_BANK_GOAL_APPROACHING);
+        assertThat(dto.piggyBankId()).isEqualTo(5L);
+        assertThat(dto.piggyBankName()).isEqualTo("Wakacje");
+        assertThat(dto.goalType()).isEqualTo(PiggyBankGoalType.VACATION);
+        assertThat(dto.threshold()).isEqualByComparingTo(BigDecimal.valueOf(75));
     }
 
     @Test
-    void shouldReturnNotificationWhenThresholdReached() {
-        piggyBank.setAmount(BigDecimal.valueOf(80));
-        piggyBank.setGoalAmount(BigDecimal.valueOf(100));
+    void shouldSaveNotificationWhenPercentageIsBetween75And100() {
+        PiggyBankProgressEvent event = new PiggyBankProgressEvent(1L, 5L, BigDecimal.valueOf(90), PiggyBankGoalType.VACATION, "Wakacje");
 
-        List<NotificationResponse> result = piggyBankWarningService.getNotifications(userId);
+        piggyBankWarningService.handle(event);
 
-        assertEquals(1, result.size());
+        ArgumentCaptor<PiggyBankWarningDto> captor = ArgumentCaptor.forClass(PiggyBankWarningDto.class);
+        verify(notificationPersistenceService).save(eq(1L), captor.capture());
+        assertThat(captor.getValue().type()).isEqualTo(NotificationType.PIGGY_BANK_GOAL_APPROACHING);
     }
 
     @Test
-    void shouldReturnNotificationWhenExactly75() {
-        piggyBank.setAmount(BigDecimal.valueOf(75));
-        piggyBank.setGoalAmount(BigDecimal.valueOf(100));
+    void shouldNotSaveWhenPercentageIsBelow75() {
+        PiggyBankProgressEvent event = new PiggyBankProgressEvent(1L, 5L, BigDecimal.valueOf(74.99), PiggyBankGoalType.VACATION, "Wakacje");
 
-        List<NotificationResponse> result = piggyBankWarningService.getNotifications(userId);
+        piggyBankWarningService.handle(event);
 
-        assertEquals(1, result.size());
+        verify(notificationPersistenceService, never()).save(any(), any());
     }
 
     @Test
-    void shouldNotReturnNotificationWhenBelow75() {
-        piggyBank.setAmount(BigDecimal.valueOf(50));
-        piggyBank.setGoalAmount(BigDecimal.valueOf(100));
+    void shouldNotSaveWhenPercentageIsExactly100() {
+        PiggyBankProgressEvent event = new PiggyBankProgressEvent(1L, 5L, BigDecimal.valueOf(100), PiggyBankGoalType.VACATION, "Wakacje");
 
-        List<NotificationResponse> result = piggyBankWarningService.getNotifications(userId);
+        piggyBankWarningService.handle(event);
 
-        assertTrue(result.isEmpty());
-    }
-
-
-    @Test
-    void shouldReturnEmptyListWhenNoPiggyBanks() {
-        when(piggyBankRepository.findAllByUserAssignedId(userId)).thenReturn(List.of());
-
-        List<NotificationResponse> result = piggyBankWarningService.getNotifications(userId);
-
-        assertTrue(result.isEmpty());
+        verify(notificationPersistenceService, never()).save(any(), any());
     }
 
     @Test
-    void shouldReturnOnlyWarningsWhenMultiplePiggyBanksExist() {
-        PiggyBank piggyBankOne = new PiggyBank();
-        piggyBankOne.setId(10L);
-        piggyBankOne.setName("A");
-        piggyBankOne.setAmount(BigDecimal.valueOf(80));
-        piggyBankOne.setGoalAmount(BigDecimal.valueOf(100));
+    void shouldNotSaveWhenPercentageIsAbove100() {
+        PiggyBankProgressEvent event = new PiggyBankProgressEvent(1L, 5L, BigDecimal.valueOf(120), PiggyBankGoalType.VACATION, "Wakacje");
 
-        PiggyBank piggyBankTwo = new PiggyBank();
-        piggyBankTwo.setId(20L);
-        piggyBankTwo.setName("B");
-        piggyBankTwo.setAmount(BigDecimal.valueOf(120));
-        piggyBankTwo.setGoalAmount(BigDecimal.valueOf(100));
+        piggyBankWarningService.handle(event);
 
-        when(piggyBankRepository.findAllByUserAssignedId(userId)).thenReturn(List.of(piggyBankOne, piggyBankTwo));
-
-        List<NotificationResponse> result = piggyBankWarningService.getNotifications(userId);
-
-        assertEquals(1, result.size());
+        verify(notificationPersistenceService, never()).save(any(), any());
     }
 }
