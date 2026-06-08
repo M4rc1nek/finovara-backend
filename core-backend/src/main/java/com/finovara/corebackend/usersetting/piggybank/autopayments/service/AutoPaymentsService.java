@@ -1,6 +1,6 @@
 package com.finovara.corebackend.usersetting.piggybank.autopayments.service;
 
-import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.corebackend.piggybank.model.PiggyBank;
@@ -14,7 +14,7 @@ import com.finovara.corebackend.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import com.finovara.corebackend.util.wallet.WalletManagerService;
 import com.finovara.corebackend.wallet.model.Wallet;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;

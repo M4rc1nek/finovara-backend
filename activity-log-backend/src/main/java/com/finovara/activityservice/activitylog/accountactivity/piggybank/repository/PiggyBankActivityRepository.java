@@ -11,4 +11,6 @@ import java.util.List;
 public interface PiggyBankActivityRepository extends JpaRepository<PiggyBankActivity, Long> {
 
     List<PiggyBankActivity> findByUserId(Long userId, Pageable pageable);
+
+    void deleteByUserId(Long userId);
 }

@@ -1,11 +1,10 @@
 package com.finovara.corebackend.revenue.service;
 
-import com.finovara.contracts.event.revenue.RevenueActivityEvent;
+import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.revenue.dto.RevenueDto;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.corebackend.revenue.mapper.RevenueMapper;
 import com.finovara.corebackend.revenue.model.Revenue;
 import com.finovara.corebackend.revenue.repository.RevenueRepository;
@@ -17,7 +16,7 @@ import com.finovara.corebackend.util.user.service.UserManagerService;
 import com.finovara.corebackend.wallet.model.Wallet;
 import com.finovara.corebackend.wallet.repository.WalletRepository;
 import com.finovara.corebackend.wallet.service.WalletService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;

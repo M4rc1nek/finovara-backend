@@ -1,6 +1,6 @@
 package com.finovara.corebackend.usersetting.account.service.profileimage;
 
-import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
@@ -11,7 +11,7 @@ import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;

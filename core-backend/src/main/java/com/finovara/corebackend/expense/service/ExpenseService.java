@@ -1,6 +1,7 @@
 package com.finovara.corebackend.expense.service;
 
-import com.finovara.contracts.event.expense.ExpenseActivityEvent;
+import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
+import com.finovara.contracts.event.notification.limit.LimitStatsEvent;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.contracts.model.activity.ExpenseActivityType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
@@ -11,7 +12,9 @@ import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundExceptio
 import com.finovara.corebackend.expense.mapper.ExpenseMapper;
 import com.finovara.corebackend.expense.model.Expense;
 import com.finovara.corebackend.expense.repository.ExpenseRepository;
+import com.finovara.corebackend.limit.dto.LimitStatsDto;
 import com.finovara.corebackend.limit.repository.LimitRepository;
+import com.finovara.corebackend.limit.service.LimitCalculateService;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
 import com.finovara.corebackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
@@ -24,7 +27,7 @@ import com.finovara.contracts.model.PeriodType;
 import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import com.finovara.corebackend.wallet.service.WalletService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -40,9 +43,9 @@ import java.util.Optional;
 public class ExpenseService {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
-
     private final ExpenseRepository expenseRepository;
     private final LimitRepository limitRepository;
+    private final LimitCalculateService limitCalculateService;
     private final WalletService walletService;
     private final RoundUpService roundUpService;
     private final CountQuantityLimitService countQuantityLimitService;
@@ -83,8 +86,9 @@ public class ExpenseService {
         expenseRepository.save(expense);
 
         roundUpService.handleExpenseForRoundUp(userId, expense.getId(), PiggyBankAutomationMode.APPLY);
-
         controlAmountService.handleExpenseAmountControl(userId, expense.getAmount());
+
+        publishLimitStatsEvents(userId);
 
         return expense.getId();
     }
@@ -119,11 +123,11 @@ public class ExpenseService {
         expenseRepository.save(existingExpense);
 
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.APPLY);
-
         controlAmountService.handleExpenseAmountControl(userId, expenseRequestDto.expenseDto().amount());
 
-        return expenseId;
+        publishLimitStatsEvents(userId);
 
+        return expenseId;
     }
 
     public List<ExpenseDto> getExpense(Long userId) {
@@ -146,6 +150,15 @@ public class ExpenseService {
                 expense.getAmount(), expense.getCategory(), null, null, LocalDateTime.now()));
         expenseRepository.delete(expense);
 
+        publishLimitStatsEvents(userId);
+    }
+
+    private void publishLimitStatsEvents(Long userId) {
+        limitRepository.findAllByUserAssignedId(userId).forEach(limit -> {
+            LimitStatsDto stats = limitCalculateService.calculateLimitStats(limit, userId, LocalDate.now());
+            kafkaTemplate.send("limit.calculate-stats", new LimitStatsEvent(
+                    userId, stats.limitId(), stats.percentage(), stats.periodType()));
+        });
     }
 
     private BigDecimal checkSpentInPeriod(PeriodType periodType, Long userId) {
@@ -163,5 +176,4 @@ public class ExpenseService {
             throw new MissingRequirementException("Limit Exceeded");
         }
     }
-
 }

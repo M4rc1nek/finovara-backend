@@ -1,7 +1,7 @@
 package com.finovara.corebackend.security.oauth2;
 
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.event.notification.CreateDefaultNotificationEmailSettingsEvent;
 import com.finovara.corebackend.user.model.OAuthProvider;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
@@ -17,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.HashMap;
@@ -37,6 +38,9 @@ class GoogleOAuth2UserServiceTest {
 
     @Mock
     private SettingsFactory settingsFactory;
+
+    @Mock
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     @InjectMocks
     private GoogleOAuth2UserService googleOAuth2UserService;
@@ -66,14 +70,20 @@ class GoogleOAuth2UserServiceTest {
     }
 
     private void stubSaveReturnsInput() {
-        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> {
+            User user = inv.getArgument(0);
+            if (user.getId() == null) {
+                user.setId(1L);
+            }
+            return user;
+        });
     }
 
     private void verifyNoSettingsCreated() {
         verify(settingsFactory, never()).createDefaultExpenseSettings(any());
         verify(settingsFactory, never()).createDefaultRecurringSettings(any());
-        verify(settingsFactory, never()).createDefaultNotificationSettings(any());
         verify(settingsFactory, never()).createDefaultAccountSettings(any());
+        verify(kafkaTemplate, never()).send(eq("user.created"), any());
     }
 
     @Nested
@@ -107,7 +117,7 @@ class GoogleOAuth2UserServiceTest {
         }
 
         @Test
-        void shouldInitializeAllSettings() {
+        void shouldInitializeLocalSettingsAndPublishNotificationSettingsCreation() {
             when(userRepository.existsByEmail(EMAIL)).thenReturn(false);
             when(userRepository.existsByUsername(NAME)).thenReturn(false);
             stubSaveReturnsInput();
@@ -116,8 +126,11 @@ class GoogleOAuth2UserServiceTest {
 
             verify(settingsFactory).createDefaultExpenseSettings(any());
             verify(settingsFactory).createDefaultRecurringSettings(any());
-            verify(settingsFactory).createDefaultNotificationSettings(any());
             verify(settingsFactory).createDefaultAccountSettings(any());
+            ArgumentCaptor<CreateDefaultNotificationEmailSettingsEvent> eventCaptor =
+                    ArgumentCaptor.forClass(CreateDefaultNotificationEmailSettingsEvent.class);
+            verify(kafkaTemplate).send(eq("user.created"), eventCaptor.capture());
+            assertThat(eventCaptor.getValue().userId()).isEqualTo(1L);
         }
 
         @Test

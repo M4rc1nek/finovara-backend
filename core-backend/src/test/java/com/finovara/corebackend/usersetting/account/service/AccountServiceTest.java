@@ -1,14 +1,12 @@
 package com.finovara.corebackend.usersetting.account.service;
 
-import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.account.dto.AccountSettingsDto;
-import com.finovara.corebackend.usersetting.notificationemail.action.accountdeleted.service.NotifyOnAccountDeletedService;
-import com.finovara.corebackend.usersetting.notificationemail.action.usernamechange.service.NotifyUsernameChangeService;
-import com.finovara.corebackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.contracts.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.corebackend.util.user.service.UserManagerService;
@@ -38,10 +36,6 @@ class AccountServiceTest {
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
     @Mock
-    private NotifyUsernameChangeService notifyUsernameChangeService;
-    @Mock
-    private NotifyOnAccountDeletedService notifyOnAccountDeletedService;
-    @Mock
     private PasswordValidator passwordValidator;
     @Mock
     private HttpServletRequest request;
@@ -56,13 +50,9 @@ class AccountServiceTest {
         void shouldUpdateUsernameSuccessfully() {
             Long userId = 1L;
 
-            NotificationEmailSettings notificationEmailSettings = new NotificationEmailSettings();
-            notificationEmailSettings.setNotifyOnUsernameChange(true);
-
             User user = new User();
             user.setId(userId);
             user.setEmail("test@test.com");
-            user.setNotificationEmailSettings(notificationEmailSettings);
 
             AccountSettingsDto dto = new AccountSettingsDto("newUsername", user.getEmail(), null, null);
 
@@ -81,7 +71,7 @@ class AccountServiceTest {
             ArgumentCaptor<AccountChangesActivityEvent> eventCaptor = ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
             verify(kafkaTemplate).send(eq("activity.account-changes"), eventCaptor.capture());
             assertThat(eventCaptor.getValue().type()).isEqualTo(AccountChangesActivityType.USERNAME_CHANGED);
-            verify(notifyUsernameChangeService).sendEmail(user);
+            verify(kafkaTemplate).send(eq("notification.email.send"), any(SendEmailEvent.class));
         }
 
         @Test
@@ -150,13 +140,9 @@ class AccountServiceTest {
 
             ConfirmPasswordDto dto = new ConfirmPasswordDto("password");
 
-            NotificationEmailSettings settings = new NotificationEmailSettings();
-            settings.setNotifyOnAccountDeleted(false);
-
             User user = new User();
             user.setId(userId);
             user.setEmail("test@test.com");
-            user.setNotificationEmailSettings(settings);
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
@@ -164,7 +150,7 @@ class AccountServiceTest {
 
             verify(passwordValidator).validatePassword(userId, dto);
             verify(userRepository).delete(user);
-            verify(notifyOnAccountDeletedService).sendEmail(user);
+            verify(kafkaTemplate).send(eq("notification.email.send"), any(SendEmailEvent.class));
         }
 
         @Test
@@ -173,20 +159,16 @@ class AccountServiceTest {
 
             ConfirmPasswordDto dto = new ConfirmPasswordDto("password");
 
-            NotificationEmailSettings settings = new NotificationEmailSettings();
-            settings.setNotifyOnAccountDeleted(true);
-
             User user = new User();
             user.setId(userId);
             user.setEmail("test@test.com");
-            user.setNotificationEmailSettings(settings);
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
             accountService.deleteAccount(dto, userId);
 
             verify(userRepository).delete(user);
-            verify(notifyOnAccountDeletedService).sendEmail(user);
+            verify(kafkaTemplate).send(eq("notification.email.send"), any(SendEmailEvent.class));
         }
 
         @Test
@@ -195,13 +177,9 @@ class AccountServiceTest {
 
             ConfirmPasswordDto dto = new ConfirmPasswordDto("password");
 
-            NotificationEmailSettings settings = new NotificationEmailSettings();
-            settings.setNotifyOnAccountDeleted(false);
-
             User user = new User();
             user.setId(userId);
             user.setEmail("test@test.com");
-            user.setNotificationEmailSettings(settings);
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 

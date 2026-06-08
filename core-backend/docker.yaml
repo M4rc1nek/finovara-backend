@@ -7,12 +7,12 @@ services:
     restart: always
     environment:
       POSTGRES_DB: finovara_db
-      POSTGRES_USER: postgres
+      POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5434:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
       interval: 5s
       retries: 10
     networks:
@@ -24,12 +24,12 @@ services:
     restart: always
     environment:
       POSTGRES_DB: finovara_test
-      POSTGRES_USER: postgres
+      POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_TEST_PASSWORD}
     ports:
       - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
       interval: 5s
       retries: 10
     networks:
@@ -41,11 +41,10 @@ services:
     depends_on:
       finovara-db:
         condition: service_healthy
-      finovara-test:
-        condition: service_healthy
     ports:
       - "8443:8443"
     environment:
+      DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_TEST_PASSWORD: ${DB_TEST_PASSWORD}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
@@ -53,7 +52,7 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
       SPRING_PROFILES_ACTIVE: default
     volumes:
       - ./uploads:/app/uploads

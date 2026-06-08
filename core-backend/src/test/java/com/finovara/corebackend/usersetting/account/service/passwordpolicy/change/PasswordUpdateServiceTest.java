@@ -1,10 +1,10 @@
 package com.finovara.corebackend.usersetting.account.service.passwordpolicy.change;
 
 import com.finovara.contracts.clientdata.location.UserLocation;
-import com.finovara.contracts.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
-import com.finovara.corebackend.usersetting.notificationemail.action.passwordchange.service.NotifyPasswordChangeService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,9 +31,6 @@ class PasswordUpdateServiceTest {
 
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
-
-    @Mock
-    private NotifyPasswordChangeService notifyPasswordChangeService;
 
     @Mock
     private HttpServletRequest request;
@@ -118,7 +115,7 @@ class PasswordUpdateServiceTest {
     void shouldSendPasswordChangeNotification() {
         passwordUpdateService.updatePassword(user, NEW_PASSWORD, request);
 
-        verify(notifyPasswordChangeService).sendEmail(user);
+        verify(kafkaTemplate).send(eq("notification.email.send"), any(SendEmailEvent.class));
     }
 
     @Test
@@ -126,16 +123,15 @@ class PasswordUpdateServiceTest {
         var inOrder = inOrder(
                 passwordEncoder,
                 userRepository,
-                kafkaTemplate,
-                notifyPasswordChangeService
+                kafkaTemplate
         );
 
         passwordUpdateService.updatePassword(user, NEW_PASSWORD, request);
 
         inOrder.verify(passwordEncoder).encode(NEW_PASSWORD);
         inOrder.verify(userRepository).save(user);
-        inOrder.verify(kafkaTemplate).send(any(), any());
-        inOrder.verify(notifyPasswordChangeService).sendEmail(user);
+        inOrder.verify(kafkaTemplate).send(eq("activity.account-changes"), any(AccountChangesActivityEvent.class));
+        inOrder.verify(kafkaTemplate).send(eq("notification.email.send"), any(SendEmailEvent.class));
     }
 
     @Test

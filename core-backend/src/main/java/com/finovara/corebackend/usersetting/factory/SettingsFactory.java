@@ -6,7 +6,6 @@ import com.finovara.corebackend.usersetting.account.model.AccountSettings;
 import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettings;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringType;
-import com.finovara.corebackend.usersetting.notificationemail.model.NotificationEmailSettings;
 import com.finovara.corebackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.corebackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.contracts.model.PeriodType;
@@ -61,15 +60,6 @@ public class SettingsFactory {
                 .automationPercentage(BigDecimal.ZERO)
                 .roundUpActive(false)
                 .goalCompletionStrategy(GoalCompletionStrategy.NONE)
-                .build();
-    }
-
-    public NotificationEmailSettings createDefaultNotificationSettings(User user) {
-        return NotificationEmailSettings.builder()
-                .userAssigned(user)
-                .notifyOnPasswordChange(false)
-                .notifyOnUsernameChange(false)
-                .notifyOnAccountDeleted(false)
                 .build();
     }
 

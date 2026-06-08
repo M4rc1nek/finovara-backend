@@ -1,6 +1,6 @@
 package com.finovara.corebackend.piggybank.service;
 
-import com.finovara.contracts.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
@@ -18,7 +18,7 @@ import com.finovara.corebackend.util.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.corebackend.util.piggybank.PiggyBankValidator;
 import com.finovara.corebackend.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.corebackend.util.user.service.UserManagerService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;

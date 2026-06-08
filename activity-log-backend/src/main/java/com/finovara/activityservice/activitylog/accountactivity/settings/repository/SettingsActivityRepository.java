@@ -11,4 +11,6 @@ import java.util.List;
 public interface SettingsActivityRepository extends JpaRepository<SettingsActivity, Long> {
 
     List<SettingsActivity> findByUserId(Long userId, Pageable pageable);
+
+    void deleteByUserId(Long userId);
 }

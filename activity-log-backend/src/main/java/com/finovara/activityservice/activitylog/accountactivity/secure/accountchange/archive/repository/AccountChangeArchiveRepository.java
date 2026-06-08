@@ -19,4 +19,8 @@ public interface AccountChangeArchiveRepository extends JpaRepository<AccountCha
             ORDER BY a.id DESC
             """)
      List<AccountChangeArchiveDto> findAllByUserIdOrderByIdDesc(Long userId);
+
+    void deleteByUserId(Long userId);
+
+
 }

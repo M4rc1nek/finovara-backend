@@ -9,7 +9,7 @@ import com.finovara.corebackend.usersetting.finances.recurring.dto.RecurringComm
 import com.finovara.corebackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
 import com.finovara.corebackend.wallet.model.Wallet;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

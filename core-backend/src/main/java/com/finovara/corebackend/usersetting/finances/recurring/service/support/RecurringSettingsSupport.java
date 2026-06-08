@@ -1,6 +1,6 @@
 package com.finovara.corebackend.usersetting.finances.recurring.service.support;
 
-import com.finovara.contracts.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.corebackend.usersetting.finances.recurring.dto.RecurringCommonFields;
