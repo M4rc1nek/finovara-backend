@@ -29,6 +29,8 @@ spring:
                   - PATCH
                 allowed-headers:
                   - "*"
+                exposed-headers:
+                  - Authorization
                 allow-credentials: true
           default-filters:
             - PreserveHostHeader
@@ -54,9 +56,7 @@ spring:
             - id: notification-backend
               uri: ${NOTIFICATION_BACKEND_URL}
               predicates:
-                - Path=/api/notification-settings/**
-              filters:
-                - PreserveHostHeader
+                - Path=/api/notification-settings/**,/api/notifications/**
 
             - id: core-backend
               uri: ${CORE_BACKEND_URL}
