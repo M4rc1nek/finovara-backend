@@ -1,4 +1,4 @@
-package com.finovara.corebackend.notification.model;
+package com.finovara.notificationservice.notification.model;
 
 import com.finovara.contracts.model.NotificationType;
 import jakarta.persistence.*;
