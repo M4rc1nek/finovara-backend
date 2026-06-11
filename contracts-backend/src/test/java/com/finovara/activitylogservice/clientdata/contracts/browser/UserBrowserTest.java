@@ -1,4 +1,4 @@
-package com.finovara.activityservice.clientdata.contracts.browser;
+package com.finovara.activitylogservice.clientdata.contracts.browser;
 
 import com.finovara.contracts.clientdata.browser.UserBrowser;
 import jakarta.servlet.http.HttpServletRequest;
