@@ -1,9 +1,9 @@
-package com.finovara.corebackend.report.finances.highesttransactions.controller;
+package com.finovara.reportservice.report.finances.highesttransactions.controller;
 
 import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
-import com.finovara.corebackend.report.finances.highesttransactions.highestexpense.service.HighestExpenseService;
+import com.finovara.reportservice.report.finances.highesttransactions.highestexpense.service.HighestExpenseService;
 import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
-import com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.service.HighestRevenueService;
+import com.finovara.reportservice.report.finances.highesttransactions.highestrevenue.service.HighestRevenueService;
 import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
