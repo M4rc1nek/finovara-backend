@@ -1,7 +1,7 @@
-package com.finovara.corebackend.report.smartreport.service;
+package com.finovara.reportservice.report.smartreport.service;
 
-import com.finovara.corebackend.report.smartreport.model.SmartReportType;
-import com.finovara.corebackend.report.smartreport.service.loader.SmartReportQuestionService;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.service.loader.SmartReportQuestionService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
