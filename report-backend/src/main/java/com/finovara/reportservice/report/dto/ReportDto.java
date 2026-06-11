@@ -1,4 +1,4 @@
-package com.finovara.corebackend.report.dto;
+package com.finovara.reportservice.report.dto;
 
 import com.finovara.contracts.model.PeriodType;
 
