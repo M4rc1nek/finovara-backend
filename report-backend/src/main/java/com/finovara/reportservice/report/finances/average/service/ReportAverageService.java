@@ -1,27 +1,31 @@
-package com.finovara.corebackend.report.finances.average.service;
+package com.finovara.reportservice.report.finances.average.service;
 
-import com.finovara.corebackend.report.dto.ReportDto;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.report.dto.ReportDto;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
 public class ReportAverageService {
 
-    private final FinancialPeriodService financialPeriodService;
+    private final CoreBackendReportClient reportClient;
 
     public ReportDto calculateAverageExpense(Long userId, PeriodType periodType) {
-        BigDecimal amount = financialPeriodService.getAverageExpense(userId, periodType);
+        LocalDate to = LocalDate.now();
+        LocalDate from = periodType.getStartDate(to);
+        BigDecimal amount = reportClient.avgExpenses(userId, from, to);
         return new ReportDto(periodType, amount);
     }
 
     public ReportDto calculateAverageRevenue(Long userId, PeriodType periodType) {
-        BigDecimal amount = financialPeriodService.getAverageRevenue(userId, periodType);
+        LocalDate to = LocalDate.now();
+        LocalDate from = periodType.getStartDate(to);
+        BigDecimal amount = reportClient.avgRevenues(userId, from, to);
         return new ReportDto(periodType, amount);
     }
-
 }
