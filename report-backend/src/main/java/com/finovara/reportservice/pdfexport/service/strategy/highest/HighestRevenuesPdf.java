@@ -1,12 +1,12 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy.highest;
+package com.finovara.reportservice.pdfexport.service.strategy.highest;
 
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.pdfexport.report.service.ReportPdfHandler;
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
-import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
-import com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.service.HighestRevenueService;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
+import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
+import com.finovara.reportservice.report.finances.highesttransactions.highestrevenue.service.HighestRevenueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +16,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class HighestRevenuesPdf implements ReportPdfHandler {
+
     private final HighestRevenueService highestRevenueService;
 
     @Override
@@ -42,7 +43,7 @@ public class HighestRevenuesPdf implements ReportPdfHandler {
         document.addBarChart(
                 "Największe przychody według kategorii",
                 revenues.stream()
-                        .map(revenue -> PdfReportText.revenueCategoryLabel(revenue.category()))
+                        .map(r -> PdfReportText.revenueCategoryLabel(r.category()))
                         .toList(),
                 revenues.stream()
                         .map(HighestRevenueDto::amount)
@@ -52,9 +53,9 @@ public class HighestRevenuesPdf implements ReportPdfHandler {
         document.addTable(
                 new String[]{"Kategoria", "Kwota"},
                 revenues.stream()
-                        .map(revenue -> new String[]{
-                                PdfReportText.revenueCategoryLabel(revenue.category()),
-                                document.formatMoney(revenue.amount())
+                        .map(r -> new String[]{
+                                PdfReportText.revenueCategoryLabel(r.category()),
+                                document.formatMoney(r.amount())
                         })
                         .toList()
         );
