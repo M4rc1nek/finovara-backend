@@ -1,4 +1,4 @@
-package com.finovara.activityservice.clientdata.contracts.location;
+package com.finovara.activitylogservice.clientdata.contracts.location;
 
 import com.finovara.contracts.clientdata.location.UserLocation;
 import org.junit.jupiter.api.Test;
