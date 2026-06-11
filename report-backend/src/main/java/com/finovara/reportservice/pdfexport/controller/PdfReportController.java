@@ -1,7 +1,7 @@
-package com.finovara.corebackend.pdfexport.report.controller;
+package com.finovara.reportservice.pdfexport.controller;
 
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.pdfexport.report.service.PdfExecutionService;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.service.PdfExecutionService;
 import com.finovara.contracts.model.PeriodType;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
