@@ -1,15 +1,18 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy.highest;
+package com.finovara.reportservice.pdfexport.service.strategy.highest;
 
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
-import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
-import com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.service.HighestRevenueService;
-import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
+import com.finovara.reportservice.report.finances.highesttransactions.highestrevenue.service.HighestRevenueService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,10 +21,14 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class HighestRevenuesPdfTest {
+
+    private static final Long USER_ID = 1L;
+    private static final PeriodType PERIOD_TYPE = PeriodType.MONTHLY;
 
     @Mock
     private HighestRevenueService highestRevenueService;
@@ -29,83 +36,82 @@ class HighestRevenuesPdfTest {
     @Mock
     private PdfReportDocument document;
 
-    private HighestRevenuesPdf highestRevenuesPdfStrategy;
+    private HighestRevenuesPdf highestRevenuesPdf;
 
     @BeforeEach
     void setUp() {
-        highestRevenuesPdfStrategy = new HighestRevenuesPdf(highestRevenueService);
+        highestRevenuesPdf = new HighestRevenuesPdf(highestRevenueService);
     }
 
-    @Test
-    void shouldReturnCorrectType() {
-        assertThat(highestRevenuesPdfStrategy.getType()).isEqualTo(PdfReportType.HIGHEST_REVENUES);
+    @Nested
+    class GetType {
+
+        @Test
+        void shouldReturnHighestRevenuesType() {
+            assertThat(highestRevenuesPdf.getType()).isEqualTo(PdfReportType.HIGHEST_REVENUES);
+        }
     }
 
-    @Test
-    void shouldReturnCorrectTitle() {
-        assertThat(highestRevenuesPdfStrategy.getTitle(PeriodType.MONTHLY)).isEqualTo("Największe przychody");
+    @Nested
+    class GetTitle {
+
+        @Test
+        void shouldReturnConstantTitle() {
+            assertThat(highestRevenuesPdf.getTitle(PERIOD_TYPE)).isEqualTo("Największe przychody");
+        }
     }
 
-    @Test
-    void shouldReturnCorrectFileName() {
-        assertThat(highestRevenuesPdfStrategy.getFileName(PeriodType.MONTHLY)).contains("najwieksze-przychody");
+    @Nested
+    class GetFileName {
+
+        @Test
+        void shouldContainBaseName() {
+            assertThat(highestRevenuesPdf.getFileName(PERIOD_TYPE)).contains("najwieksze-przychody");
+        }
     }
 
-    @Test
-    void shouldGenerateHappyPath() throws Exception {
-        HighestRevenueDto dto1 = mock(HighestRevenueDto.class);
-        HighestRevenueDto dto2 = mock(HighestRevenueDto.class);
+    @Nested
+    class Generate {
 
-        when(dto1.category()).thenReturn(RevenueCategory.SALARY);
-        when(dto1.amount()).thenReturn(new BigDecimal("2000"));
+        @ParameterizedTest
+        @EnumSource(PeriodType.class)
+        void shouldBuildReportFromHighestRevenueService(PeriodType periodType) throws Exception {
+            HighestRevenueDto dto = new HighestRevenueDto(RevenueCategory.SALARY, new BigDecimal("2000"));
+            List<HighestRevenueDto> revenues = List.of(dto);
 
-        when(dto2.category()).thenReturn(RevenueCategory.BUSINESS);
-        when(dto2.amount()).thenReturn(new BigDecimal("1500"));
+            when(highestRevenueService.getHighestRevenue(USER_ID, periodType)).thenReturn(revenues);
+            when(document.formatMoney(new BigDecimal("2000"))).thenReturn("2000");
 
-        when(highestRevenueService.getHighestRevenue(1L, PeriodType.MONTHLY)).thenReturn(List.of(dto1, dto2));
+            highestRevenuesPdf.generate(document, USER_ID, periodType);
 
-        highestRevenuesPdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+            verify(highestRevenueService).getHighestRevenue(USER_ID, periodType);
+            verify(document).addSection("Największe przychody");
+            verify(document).addInfo("Okres:", PdfReportText.periodLabel(periodType));
+            verify(document).addBarChart(eq("Największe przychody według kategorii"), any(), any(), eq(true));
+            verify(document).addTable(eq(new String[]{"Kategoria", "Kwota"}), any());
+        }
 
-        verify(document).addSection("Największe przychody");
-        verify(document).addInfo("Okres:", PdfReportText.periodLabel(PeriodType.MONTHLY));
+        @Test
+        void shouldHandleEmptyRevenueList() throws Exception {
+            when(highestRevenueService.getHighestRevenue(USER_ID, PERIOD_TYPE)).thenReturn(List.of());
 
-        verify(document).addBarChart(eq("Największe przychody według kategorii"), any(), any(), eq(true));
+            highestRevenuesPdf.generate(document, USER_ID, PERIOD_TYPE);
 
-        verify(document).addTable(eq(new String[]{"Kategoria", "Kwota"}), any());
-    }
+            verify(document).addSection("Największe przychody");
+            verify(document).addBarChart(any(), any(), any(), eq(true));
+            verify(document).addTable(any(), any());
+        }
 
-    @Test
-    void shouldHandleEmptyList() throws Exception {
-        when(highestRevenueService.getHighestRevenue(1L, PeriodType.MONTHLY)).thenReturn(List.of());
+        @Test
+        void shouldHandleNullAmount() throws Exception {
+            HighestRevenueDto dto = new HighestRevenueDto(RevenueCategory.SALARY, null);
+            when(highestRevenueService.getHighestRevenue(USER_ID, PERIOD_TYPE)).thenReturn(List.of(dto));
+            when(document.formatMoney(null)).thenReturn("0,00 PLN");
 
-        highestRevenuesPdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
+            highestRevenuesPdf.generate(document, USER_ID, PERIOD_TYPE);
 
-        verify(document).addSection("Największe przychody");
-        verify(document).addBarChart(any(), any(), any(), eq(true));
-        verify(document).addTable(any(), any());
-    }
-
-    @Test
-    void shouldHandleNullAmounts() throws Exception {
-        HighestRevenueDto dto = mock(HighestRevenueDto.class);
-
-        when(dto.category()).thenReturn(RevenueCategory.SALARY);
-        when(dto.amount()).thenReturn(null);
-
-        when(highestRevenueService.getHighestRevenue(1L, PeriodType.MONTHLY)).thenReturn(List.of(dto));
-
-        highestRevenuesPdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
-
-        verify(document).addBarChart(any(), any(), any(), eq(true));
-        verify(document).addTable(any(), any());
-    }
-
-    @Test
-    void shouldCallServiceOnce() throws Exception {
-        when(highestRevenueService.getHighestRevenue(anyLong(), any())).thenReturn(List.of());
-
-        highestRevenuesPdfStrategy.generate(document, 1L, PeriodType.MONTHLY);
-
-        verify(highestRevenueService).getHighestRevenue(1L, PeriodType.MONTHLY);
+            verify(document).addBarChart(any(), any(), any(), eq(true));
+            verify(document).addTable(any(), any());
+        }
     }
 }
