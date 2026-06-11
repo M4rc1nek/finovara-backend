@@ -1,9 +1,8 @@
-package com.finovara.corebackend.report.finances.sum.service;
+package com.finovara.reportservice.report.finances.sum.service;
 
-import com.finovara.corebackend.report.dto.ReportDto;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
-import org.assertj.core.api.AssertionsForClassTypes;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.report.dto.ReportDto;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,78 +13,82 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ReportSummaryServiceTest {
 
+    private static final Long USER_ID = 1L;
+
     @Mock
-    private FinancialPeriodService financialPeriodService;
+    private CoreBackendReportClient reportClient;
 
     @InjectMocks
     private ReportSummaryService reportSummaryService;
 
     @Nested
-    class SumRevenue {
+    class SumExpense {
+
         @ParameterizedTest
         @EnumSource(PeriodType.class)
-        void shouldSumRevenueInPeriod(PeriodType periodType) {
-            Long userId = 1L;
-            BigDecimal amount = BigDecimal.valueOf(100);
+        void shouldDelegateToClientAndReturnDto(PeriodType periodType) {
+            LocalDate to = LocalDate.now();
+            LocalDate from = periodType.getStartDate(to);
 
-            when(financialPeriodService.getRevenueSum(userId, periodType)).thenReturn(amount);
+            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
 
-            ReportDto result = reportSummaryService.sumRevenue(userId, periodType);
+            ReportDto result = reportSummaryService.sumExpense(USER_ID, periodType);
 
             assertThat(result.amount()).isEqualByComparingTo("100");
             assertThat(result.periodType()).isEqualTo(periodType);
-            verify(financialPeriodService).getRevenueSum(userId, periodType);
-            verifyNoMoreInteractions(financialPeriodService);
+            verify(reportClient).sumExpenses(USER_ID, from, to);
         }
 
         @Test
-        void shouldReturnZeroWhenNoData() {
-            Long userId = 1L;
+        void shouldReturnZeroAmountWhenClientReturnsZero() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.DAILY.getStartDate(to);
 
-            when(financialPeriodService.getRevenueSum(userId, PeriodType.DAILY)).thenReturn(BigDecimal.ZERO);
+            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.ZERO);
 
-            ReportDto result = reportSummaryService.sumRevenue(userId, PeriodType.DAILY);
+            ReportDto result = reportSummaryService.sumExpense(USER_ID, PeriodType.DAILY);
 
             assertThat(result.amount()).isEqualByComparingTo("0");
-            verifyNoMoreInteractions(financialPeriodService);
         }
     }
 
     @Nested
-    class sumExpense {
+    class SumRevenue {
+
         @ParameterizedTest
         @EnumSource(PeriodType.class)
-        void shouldSumExpenseInPeriod(PeriodType periodType) {
-            Long userId = 1L;
-            BigDecimal amount = BigDecimal.valueOf(100);
+        void shouldDelegateToClientAndReturnDto(PeriodType periodType) {
+            LocalDate to = LocalDate.now();
+            LocalDate from = periodType.getStartDate(to);
 
-            when(financialPeriodService.getExpensesSum(userId, periodType)).thenReturn(amount);
+            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(200));
 
-            ReportDto result = reportSummaryService.sumExpense(userId, periodType);
+            ReportDto result = reportSummaryService.sumRevenue(USER_ID, periodType);
 
-            AssertionsForClassTypes.assertThat(result.amount()).isEqualByComparingTo("100");
-            AssertionsForClassTypes.assertThat(result.periodType()).isEqualTo(periodType);
-            verify(financialPeriodService).getExpensesSum(userId, periodType);
-            verifyNoMoreInteractions(financialPeriodService);
+            assertThat(result.amount()).isEqualByComparingTo("200");
+            assertThat(result.periodType()).isEqualTo(periodType);
+            verify(reportClient).sumRevenues(USER_ID, from, to);
         }
 
         @Test
-        void shouldReturnZeroWhenNoData() {
-            Long userId = 1L;
+        void shouldReturnZeroAmountWhenClientReturnsZero() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.DAILY.getStartDate(to);
 
-            when(financialPeriodService.getExpensesSum(userId, PeriodType.DAILY)).thenReturn(BigDecimal.ZERO);
+            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.ZERO);
 
-            ReportDto result = reportSummaryService.sumExpense(userId, PeriodType.DAILY);
+            ReportDto result = reportSummaryService.sumRevenue(USER_ID, PeriodType.DAILY);
 
-            AssertionsForClassTypes.assertThat(result.amount()).isEqualByComparingTo("0");
-            verifyNoMoreInteractions(financialPeriodService);
+            assertThat(result.amount()).isEqualByComparingTo("0");
         }
     }
 }
