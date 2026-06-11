@@ -1,9 +1,9 @@
-package com.finovara.corebackend.report.smartreport.service.handler;
+package com.finovara.reportservice.report.smartreport.service.handler;
 
-import com.finovara.corebackend.expense.repository.ExpenseRepository;
-import com.finovara.corebackend.report.smartreport.model.SmartReportType;
-import com.finovara.corebackend.report.smartreport.service.SmartReportHandler;
-import com.finovara.corebackend.report.smartreport.service.loader.SmartReportTemplateService;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.service.SmartReportHandler;
+import com.finovara.reportservice.report.smartreport.service.loader.SmartReportTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +14,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class MonthSpendingHandler implements SmartReportHandler {
 
-    private final ExpenseRepository expenseRepository;
+    private final CoreBackendReportClient reportClient;
     private final SmartReportTemplateService templateService;
 
     @Override
@@ -26,10 +26,8 @@ public class MonthSpendingHandler implements SmartReportHandler {
     public String generate(Long userId) {
         LocalDate today = LocalDate.now();
         LocalDate startMonth = today.withDayOfMonth(1);
-
-        BigDecimal sumExpenses = expenseRepository.sumExpensesByUserAndDateRange(userId, startMonth, today).orElse(BigDecimal.ZERO);
-
+        BigDecimal sum = reportClient.sumExpenses(userId, startMonth, today);
         String template = templateService.getRandomResponse(SmartReportType.MONTH_SPENDING);
-        return template.replace("{amount}", sumExpenses.toString());
+        return template.replace("{amount}", sum.toString());
     }
 }
