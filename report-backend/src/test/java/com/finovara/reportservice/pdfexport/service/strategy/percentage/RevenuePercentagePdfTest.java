@@ -1,27 +1,34 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy.percentage;
+package com.finovara.reportservice.pdfexport.service.strategy.percentage;
 
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
-import com.finovara.corebackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
-import com.finovara.corebackend.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
-import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
+import com.finovara.reportservice.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
+import com.finovara.reportservice.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RevenuePercentagePdfTest {
+
+    private static final Long USER_ID = 1L;
+    private static final PeriodType PERIOD_TYPE = PeriodType.MONTHLY;
+    private static final BigDecimal CATEGORY_PERCENTAGE = new BigDecimal("10");
 
     @Mock
     private RevenueCategoryPercentageService revenueCategoryPercentageService;
@@ -36,66 +43,67 @@ class RevenuePercentagePdfTest {
         revenuePercentagePdf = new RevenuePercentagePdf(revenueCategoryPercentageService);
     }
 
-    @Test
-    void shouldReturnCorrectType() {
-        assertThat(revenuePercentagePdf.getType()).isEqualTo(PdfReportType.PERCENTAGE_OF_REVENUES);
+    @Nested
+    class GetType {
+
+        @Test
+        void shouldReturnPercentageOfRevenuesType() {
+            assertThat(revenuePercentagePdf.getType()).isEqualTo(PdfReportType.PERCENTAGE_OF_REVENUES);
+        }
     }
 
-    @Test
-    void shouldReturnCorrectTitle() {
-        assertThat(revenuePercentagePdf.getTitle(PeriodType.MONTHLY)).isEqualTo("Udział procentowy przychodów");
+    @Nested
+    class GetTitle {
+
+        @Test
+        void shouldReturnConstantTitle() {
+            assertThat(revenuePercentagePdf.getTitle(PERIOD_TYPE)).isEqualTo("Udział procentowy przychodów");
+        }
     }
 
-    @Test
-    void shouldReturnCorrectFileName() {
-        assertThat(revenuePercentagePdf.getFileName(PeriodType.MONTHLY)).contains("udzial-procentowy-przychodow");
+    @Nested
+    class GetFileName {
+
+        @Test
+        void shouldContainBaseName() {
+            assertThat(revenuePercentagePdf.getFileName(PERIOD_TYPE)).contains("udzial-procentowy-przychodow");
+        }
     }
 
-    @Test
-    void shouldGenerateHappyPath() throws Exception {
-        when(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(eq(1L), any(RevenueCategory.class), eq(PeriodType.MONTHLY))).thenAnswer(invocation -> {
-            RevenueCategory category = invocation.getArgument(1);
-            return new RevenueCategoryPercentageDto(new BigDecimal("10"), category);
-        });
+    @Nested
+    class Generate {
 
-        revenuePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
+        @ParameterizedTest
+        @EnumSource(PeriodType.class)
+        void shouldBuildReportForEachPeriodType(PeriodType periodType) throws Exception {
+            when(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(
+                    eq(USER_ID), any(RevenueCategory.class), eq(periodType)))
+                    .thenAnswer(invocation -> new RevenueCategoryPercentageDto(
+                            CATEGORY_PERCENTAGE, invocation.getArgument(1)));
 
-        verify(document).addSection("Udział przychodów według kategorii");
-        verify(document).addInfo("Okres:", PdfReportText.periodLabel(PeriodType.MONTHLY));
+            revenuePercentagePdf.generate(document, USER_ID, periodType);
 
-        verify(document).addPieChart(eq("Struktura przychodów"), any(), any());
+            verify(document).addSection("Udział przychodów według kategorii");
+            verify(document).addInfo("Okres:", PdfReportText.periodLabel(periodType));
+            verify(document).addPieChart(eq("Struktura przychodów"), any(), any());
+            verify(document).addTable(eq(new String[]{"Kategoria", "Udział"}), any());
 
-        verify(document).addTable(eq(new String[]{"Kategoria", "Udział"}), any());
-    }
+            for (RevenueCategory category : RevenueCategory.values()) {
+                verify(revenueCategoryPercentageService)
+                        .getRevenuePercentageByCategoryReport(USER_ID, category, periodType);
+            }
+        }
 
-    @Test
-    void shouldHandleZeroPercentages() throws Exception {
-        when(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(eq(1L), any(RevenueCategory.class), eq(PeriodType.MONTHLY))).thenAnswer(invocation -> new RevenueCategoryPercentageDto(BigDecimal.ZERO, invocation.getArgument(1)));
+        @Test
+        void shouldHandleZeroAndNullPercentages() throws Exception {
+            when(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(
+                    anyLong(), any(RevenueCategory.class), eq(PERIOD_TYPE)))
+                    .thenAnswer(invocation -> new RevenueCategoryPercentageDto(null, invocation.getArgument(1)));
 
-        revenuePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
+            revenuePercentagePdf.generate(document, USER_ID, PERIOD_TYPE);
 
-        verify(document).addPieChart(any(), any(), any());
-        verify(document).addTable(any(), any());
-    }
-
-    @Test
-    void shouldHandleNullPercentages() throws Exception {
-        when(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(eq(1L), any(RevenueCategory.class), eq(PeriodType.MONTHLY))).thenAnswer(invocation -> new RevenueCategoryPercentageDto(null, invocation.getArgument(1)));
-
-        revenuePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
-
-        verify(document).addPieChart(any(), any(), any());
-        verify(document).addTable(any(), any());
-    }
-
-    @Test
-    void shouldCallServiceForAllCategories() throws Exception {
-        when(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(anyLong(), any(RevenueCategory.class), any())).thenReturn(new RevenueCategoryPercentageDto(BigDecimal.TEN, RevenueCategory.SALARY));
-
-        revenuePercentagePdf.generate(document, 1L, PeriodType.MONTHLY);
-
-        for (RevenueCategory category : RevenueCategory.values()) {
-            verify(revenueCategoryPercentageService).getRevenuePercentageByCategoryReport(1L, category, PeriodType.MONTHLY);
+            verify(document).addPieChart(any(), any(), any());
+            verify(document).addTable(any(), any());
         }
     }
 }
