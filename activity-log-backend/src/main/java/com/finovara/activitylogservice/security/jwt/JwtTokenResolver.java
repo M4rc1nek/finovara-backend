@@ -1,4 +1,4 @@
-package com.finovara.activityservice.security.jwt;
+package com.finovara.activitylogservice.security.jwt;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Cookie;
