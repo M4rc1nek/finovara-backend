@@ -1,13 +1,13 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy.percentage;
+package com.finovara.reportservice.pdfexport.service.strategy.percentage;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.pdfexport.report.service.ReportPdfHandler;
-import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
-import com.finovara.corebackend.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
-import com.finovara.corebackend.report.finances.categorypercentage.expense.service.ExpenseCategoryPercentageService;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
+import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
+import com.finovara.reportservice.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
+import com.finovara.reportservice.report.finances.categorypercentage.expense.service.ExpenseCategoryPercentageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +18,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class ExpensePercentagePdf implements ReportPdfHandler {
+
     private final ExpenseCategoryPercentageService expenseCategoryPercentageService;
 
     @Override
@@ -38,7 +39,8 @@ public class ExpensePercentagePdf implements ReportPdfHandler {
     @Override
     public void generate(PdfReportDocument document, Long userId, PeriodType periodType) throws IOException {
         List<ExpenseCategoryPercentageDto> percentages = Arrays.stream(ExpenseCategory.values())
-                .map(category -> expenseCategoryPercentageService.getExpensePercentageByCategoryReport(userId, category, periodType))
+                .map(cat -> expenseCategoryPercentageService
+                        .getExpensePercentageByCategoryReport(userId, cat, periodType))
                 .toList();
 
         document.addSection("Udział wydatków według kategorii");
@@ -52,7 +54,8 @@ public class ExpensePercentagePdf implements ReportPdfHandler {
                         .map(ExpenseCategoryPercentageDto::percentage)
                         .toList()
         );
-        document.addTable(new String[]{"Kategoria", "Udział"},
+        document.addTable(
+                new String[]{"Kategoria", "Udział"},
                 percentages.stream()
                         .map(dto -> new String[]{
                                 PdfReportText.expenseCategoryLabel(dto.category()),
