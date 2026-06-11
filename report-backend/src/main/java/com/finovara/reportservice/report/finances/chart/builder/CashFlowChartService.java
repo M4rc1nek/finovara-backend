@@ -1,7 +1,7 @@
-package com.finovara.corebackend.report.finances.chart.builder;
+package com.finovara.reportservice.report.finances.chart.builder;
 
-import com.finovara.corebackend.report.finances.chart.dto.CashFlowDto;
-import com.finovara.corebackend.report.finances.chart.dto.DailyCashDto;
+import com.finovara.reportservice.report.finances.chart.dto.CashFlowDto;
+import com.finovara.contracts.transaction.report.dto.DailyCashDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
