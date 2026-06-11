@@ -1,10 +1,10 @@
-package com.finovara.corebackend.pdfexport.report.service;
+package com.finovara.reportservice.pdfexport.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocumentFactory;
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocumentFactory;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,13 +16,18 @@ import java.io.IOException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PdfExecutionServiceTest {
+
+    private static final Long USER_ID = 1L;
+    private static final PeriodType PERIOD_TYPE = PeriodType.MONTHLY;
+    private static final String TITLE = "title";
+    private static final byte[] PDF_BYTES = {1, 2, 3};
 
     @Mock
     private PdfReportDocumentFactory factory;
@@ -45,42 +50,46 @@ class PdfExecutionServiceTest {
     class Execute {
 
         @Test
-        void shouldReturnPdfBytes() throws Exception {
-            when(strategy.getTitle(PeriodType.MONTHLY)).thenReturn("title");
-            when(factory.create("title")).thenReturn(document);
-            when(document.toByteArray()).thenReturn(new byte[]{1, 2, 3});
+        void shouldReturnPdfBytesFromDocument() throws Exception {
+            when(strategy.getTitle(PERIOD_TYPE)).thenReturn(TITLE);
+            when(factory.create(TITLE)).thenReturn(document);
+            when(document.toByteArray()).thenReturn(PDF_BYTES);
 
-            byte[] result = service.execute(PdfReportType.SUM_FINANCES, PeriodType.MONTHLY, 1L);
+            byte[] result = service.execute(PdfReportType.SUM_FINANCES, PERIOD_TYPE, USER_ID);
 
-            assertThat(result).isEqualTo(new byte[]{1, 2, 3});
-            verify(strategy).generate(document, 1L, PeriodType.MONTHLY);
+            assertThat(result).isEqualTo(PDF_BYTES);
+            verify(strategy).generate(document, USER_ID, PERIOD_TYPE);
             verify(document).close();
         }
 
         @Test
         void shouldThrowWhenPeriodTypeIsNull() {
-            assertThatThrownBy(() -> service.execute(PdfReportType.SUM_FINANCES, null, 1L)).isInstanceOf(InvalidInputException.class);
+            assertThrows(InvalidInputException.class,
+                    () -> service.execute(PdfReportType.SUM_FINANCES, null, USER_ID));
         }
 
         @Test
-        void shouldThrowWhenTypeIsNull() {
-            assertThatThrownBy(() -> service.execute(null, PeriodType.MONTHLY, 1L)).isInstanceOf(InvalidInputException.class);
+        void shouldThrowWhenReportTypeIsNull() {
+            assertThrows(InvalidInputException.class,
+                    () -> service.execute(null, PERIOD_TYPE, USER_ID));
         }
 
         @Test
-        void shouldThrowWhenStrategyMissing() {
-            PdfExecutionService local = new PdfExecutionService(factory, List.of(strategy));
+        void shouldThrowWhenStrategyIsMissing() {
+            PdfExecutionService localService = new PdfExecutionService(factory, List.of(strategy));
 
-            assertThatThrownBy(() -> local.execute(PdfReportType.AVERAGE_FINANCES, PeriodType.MONTHLY, 1L)).isInstanceOf(InvalidInputException.class);
+            assertThrows(InvalidInputException.class,
+                    () -> localService.execute(PdfReportType.AVERAGE_FINANCES, PERIOD_TYPE, USER_ID));
         }
 
         @Test
-        void shouldWrapIOException() throws Exception {
-            when(strategy.getTitle(any())).thenReturn("title");
+        void shouldWrapIOExceptionInIllegalStateException() throws Exception {
+            when(strategy.getTitle(any())).thenReturn(TITLE);
             when(factory.create(any())).thenReturn(document);
             when(document.toByteArray()).thenThrow(new IOException());
 
-            assertThatThrownBy(() -> service.execute(PdfReportType.SUM_FINANCES, PeriodType.MONTHLY, 1L)).isInstanceOf(IllegalStateException.class);
+            assertThrows(IllegalStateException.class,
+                    () -> service.execute(PdfReportType.SUM_FINANCES, PERIOD_TYPE, USER_ID));
         }
     }
 
@@ -88,7 +97,7 @@ class PdfExecutionServiceTest {
     class GetFileName {
 
         @Test
-        void shouldReturnFileName() {
+        void shouldDelegateToStrategy() {
             when(strategy.getFileName(PeriodType.DAILY)).thenReturn("file.pdf");
 
             String result = service.getFileName(PdfReportType.SUM_FINANCES, PeriodType.DAILY);
@@ -97,13 +106,15 @@ class PdfExecutionServiceTest {
         }
 
         @Test
-        void shouldThrowWhenTypeIsNull() {
-            assertThatThrownBy(() -> service.getFileName(null, PeriodType.DAILY)).isInstanceOf(InvalidInputException.class);
+        void shouldThrowWhenReportTypeIsNull() {
+            assertThrows(InvalidInputException.class,
+                    () -> service.getFileName(null, PeriodType.DAILY));
         }
 
         @Test
-        void shouldThrowWhenPeriodIsNull() {
-            assertThatThrownBy(() -> service.getFileName(PdfReportType.SUM_FINANCES, null)).isInstanceOf(InvalidInputException.class);
+        void shouldThrowWhenPeriodTypeIsNull() {
+            assertThrows(InvalidInputException.class,
+                    () -> service.getFileName(PdfReportType.SUM_FINANCES, null));
         }
     }
 }
