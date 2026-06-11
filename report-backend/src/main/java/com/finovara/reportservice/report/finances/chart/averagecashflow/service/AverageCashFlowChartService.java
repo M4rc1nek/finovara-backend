@@ -1,10 +1,9 @@
-package com.finovara.corebackend.report.finances.chart.averagecashflow.service;
+package com.finovara.reportservice.report.finances.chart.averagecashflow.service;
 
-import com.finovara.corebackend.expense.repository.ExpenseRepository;
-import com.finovara.corebackend.report.finances.chart.dto.CashFlowDto;
-import com.finovara.corebackend.report.finances.chart.dto.DailyCashDto;
-import com.finovara.corebackend.report.finances.chart.builder.CashFlowChartService;
-import com.finovara.corebackend.revenue.repository.RevenueRepository;
+import com.finovara.contracts.transaction.report.dto.DailyCashDto;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.report.finances.chart.builder.CashFlowChartService;
+import com.finovara.reportservice.report.finances.chart.dto.CashFlowDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,14 +12,13 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AverageCashFlowChartService {
-    private final RevenueRepository revenueRepository;
-    private final ExpenseRepository expenseRepository;
+
+    private final CoreBackendReportClient reportClient;
     private final CashFlowChartService cashFlowChartService;
 
     public List<CashFlowDto> getAverageCashFlowChart(Long userId) {
-        List<DailyCashDto> averageExpenses = expenseRepository.avgExpensesGroupedByDate(userId);
-        List<DailyCashDto> averageRevenues = revenueRepository.avgRevenuesGroupedByDate(userId);
-        return  cashFlowChartService.getCashFlowChart(averageExpenses, averageRevenues);
+        List<DailyCashDto> expenses = reportClient.expensesAvgGroupedByDate(userId);
+        List<DailyCashDto> revenues = reportClient.revenuesAvgGroupedByDate(userId);
+        return cashFlowChartService.getCashFlowChart(expenses, revenues);
     }
-
 }
