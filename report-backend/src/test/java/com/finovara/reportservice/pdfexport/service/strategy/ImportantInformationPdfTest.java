@@ -1,27 +1,25 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy;
+package com.finovara.reportservice.pdfexport.service.strategy;
 
-import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.corebackend.expense.repository.ExpenseRepository;
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.report.dto.ReportDto;
-import com.finovara.corebackend.report.finances.average.service.ReportAverageService;
-import com.finovara.corebackend.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
-import com.finovara.corebackend.report.finances.categorypercentage.expense.service.ExpenseCategoryPercentageService;
-import com.finovara.corebackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
-import com.finovara.corebackend.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
-import com.finovara.corebackend.report.finances.sum.service.ReportSummaryService;
-import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.corebackend.revenue.repository.RevenueRepository;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.corebackend.wallet.dto.WalletDto;
-import com.finovara.corebackend.wallet.service.WalletService;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.report.dto.ReportDto;
+import com.finovara.reportservice.report.finances.average.service.ReportAverageService;
+import com.finovara.reportservice.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
+import com.finovara.reportservice.report.finances.categorypercentage.expense.service.ExpenseCategoryPercentageService;
+import com.finovara.reportservice.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
+import com.finovara.reportservice.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
+import com.finovara.reportservice.report.finances.sum.service.ReportSummaryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InOrder;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -29,14 +27,27 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ImportantInformationPdfTest {
+
+    private static final Long USER_ID = 1L;
+    private static final PeriodType PERIOD_TYPE = PeriodType.DAILY;
+    private static final BigDecimal WALLET_BALANCE = BigDecimal.valueOf(5000);
+    private static final BigDecimal MONTHLY_REVENUE = BigDecimal.valueOf(3000);
+    private static final BigDecimal MONTHLY_EXPENSE = BigDecimal.valueOf(1500);
+    private static final BigDecimal WEEKLY_REVENUE = BigDecimal.valueOf(750);
+    private static final BigDecimal WEEKLY_EXPENSE = BigDecimal.valueOf(300);
+    private static final BigDecimal DAILY_AVG_REVENUE = BigDecimal.valueOf(100);
+    private static final BigDecimal DAILY_AVG_EXPENSE = BigDecimal.valueOf(50);
+    private static final BigDecimal ALL_REVENUES = BigDecimal.valueOf(20000);
+    private static final BigDecimal ALL_EXPENSES = BigDecimal.valueOf(10000);
+
     @Mock
-    private WalletService walletService;
+    private CoreBackendReportClient reportClient;
     @Mock
     private ReportSummaryService reportSummaryService;
     @Mock
@@ -46,155 +57,151 @@ class ImportantInformationPdfTest {
     @Mock
     private RevenueCategoryPercentageService revenueCategoryPercentageService;
     @Mock
-    private ExpenseRepository expenseRepository;
-    @Mock
-    private RevenueRepository revenueRepository;
+    private PdfReportDocument document;
 
-    @InjectMocks
     private ImportantInformationPdf importantInformationPdf;
 
-    private static final Long USER_ID = 1L;
+    @BeforeEach
+    void setUp() {
+        importantInformationPdf = new ImportantInformationPdf(
+                reportClient,
+                reportSummaryService,
+                reportAverageService,
+                expenseCategoryPercentageService,
+                revenueCategoryPercentageService
+        );
+    }
 
     @Nested
-    class MetadataTests {
+    class GetType {
 
         @Test
-        void GetTypeReturnsImportantInformation() {
+        void shouldReturnImportantInformationType() {
             assertThat(importantInformationPdf.getType()).isEqualTo(PdfReportType.IMPORTANT_INFORMATION);
-        }
-
-        @Test
-        void GetTitleReturnsSameValueRegardlessOfPeriodType() {
-            assertThat(importantInformationPdf.getTitle(PeriodType.DAILY)).isEqualTo("Najważniejsze informacje");
-            assertThat(importantInformationPdf.getTitle(PeriodType.WEEKLY)).isEqualTo("Najważniejsze informacje");
-            assertThat(importantInformationPdf.getTitle(PeriodType.MONTHLY)).isEqualTo("Najważniejsze informacje");
-        }
-
-        @Test
-        void GetFileNameReturnsSameValueRegardlessOfPeriodType() {
-            assertThat(importantInformationPdf.getFileName(PeriodType.DAILY)).isEqualTo("najwazniejsze-informacje.pdf");
-            assertThat(importantInformationPdf.getFileName(PeriodType.WEEKLY)).isEqualTo("najwazniejsze-informacje.pdf");
-            assertThat(importantInformationPdf.getFileName(PeriodType.MONTHLY)).isEqualTo("najwazniejsze-informacje.pdf");
         }
     }
 
     @Nested
-    class GenerateTests {
+    class GetTitle {
 
-        @Mock
-        private PdfReportDocument document;
+        @ParameterizedTest
+        @EnumSource(PeriodType.class)
+        void shouldReturnConstantTitleRegardlessOfPeriod(PeriodType periodType) {
+            assertThat(importantInformationPdf.getTitle(periodType)).isEqualTo("Najważniejsze informacje");
+        }
+    }
+
+    @Nested
+    class GetFileName {
+
+        @ParameterizedTest
+        @EnumSource(PeriodType.class)
+        void shouldReturnConstantFileNameRegardlessOfPeriod(PeriodType periodType) {
+            assertThat(importantInformationPdf.getFileName(periodType)).isEqualTo("najwazniejsze-informacje.pdf");
+        }
+    }
+
+    @Nested
+    class Generate {
 
         @BeforeEach
-        void SetupDefaultMocks() {
-            when(walletService.getWalletForUser(USER_ID)).thenReturn(new WalletDto(1L, USER_ID, BigDecimal.valueOf(5000)));
+        void stubDefaultDependencies() {
+            when(reportClient.walletBalance(USER_ID)).thenReturn(WALLET_BALANCE);
+            when(reportClient.sumAllExpenses(USER_ID)).thenReturn(ALL_EXPENSES);
+            when(reportClient.sumAllRevenues(USER_ID)).thenReturn(ALL_REVENUES);
 
-            when(reportSummaryService.sumRevenue(USER_ID, PeriodType.MONTHLY)).thenReturn(new ReportDto(PeriodType.MONTHLY, BigDecimal.valueOf(3000)));
-            when(reportSummaryService.sumExpense(USER_ID, PeriodType.MONTHLY)).thenReturn(new ReportDto(PeriodType.MONTHLY, BigDecimal.valueOf(1500)));
-            when(reportSummaryService.sumRevenue(USER_ID, PeriodType.WEEKLY)).thenReturn(new ReportDto(PeriodType.WEEKLY, BigDecimal.valueOf(750)));
-            when(reportSummaryService.sumExpense(USER_ID, PeriodType.WEEKLY)).thenReturn(new ReportDto(PeriodType.WEEKLY, BigDecimal.valueOf(300)));
+            when(reportSummaryService.sumRevenue(USER_ID, PeriodType.MONTHLY))
+                    .thenReturn(new ReportDto(PeriodType.MONTHLY, MONTHLY_REVENUE));
+            when(reportSummaryService.sumExpense(USER_ID, PeriodType.MONTHLY))
+                    .thenReturn(new ReportDto(PeriodType.MONTHLY, MONTHLY_EXPENSE));
+            when(reportSummaryService.sumRevenue(USER_ID, PeriodType.WEEKLY))
+                    .thenReturn(new ReportDto(PeriodType.WEEKLY, WEEKLY_REVENUE));
+            when(reportSummaryService.sumExpense(USER_ID, PeriodType.WEEKLY))
+                    .thenReturn(new ReportDto(PeriodType.WEEKLY, WEEKLY_EXPENSE));
 
-            when(reportAverageService.calculateAverageRevenue(USER_ID, PeriodType.DAILY)).thenReturn(new ReportDto(PeriodType.DAILY,
-                    BigDecimal.valueOf(100)));
-            when(reportAverageService.calculateAverageExpense(USER_ID, PeriodType.DAILY)).thenReturn(new ReportDto(PeriodType.DAILY,
-                    BigDecimal.valueOf(50)));
+            when(reportAverageService.calculateAverageRevenue(USER_ID, PeriodType.DAILY))
+                    .thenReturn(new ReportDto(PeriodType.DAILY, DAILY_AVG_REVENUE));
+            when(reportAverageService.calculateAverageExpense(USER_ID, PeriodType.DAILY))
+                    .thenReturn(new ReportDto(PeriodType.DAILY, DAILY_AVG_EXPENSE));
 
-            when(expenseCategoryPercentageService.getExpensePercentageByCategoryReport(eq(USER_ID), any(ExpenseCategory.class),
-                    eq(PeriodType.MONTHLY))).thenReturn(new ExpenseCategoryPercentageDto(BigDecimal.valueOf(10), ExpenseCategory.FOOD));
+            when(expenseCategoryPercentageService.getExpensePercentageByCategoryReport(
+                    eq(USER_ID), any(ExpenseCategory.class), eq(PeriodType.MONTHLY)))
+                    .thenReturn(new ExpenseCategoryPercentageDto(BigDecimal.valueOf(10), ExpenseCategory.FOOD));
 
-            when(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(eq(USER_ID), any(RevenueCategory.class),
-                    eq(PeriodType.MONTHLY))).thenReturn(new RevenueCategoryPercentageDto(BigDecimal.valueOf(10), RevenueCategory.SALARY));
-
-            when(expenseRepository.sumAllExpensesByUserAssignedId(USER_ID)).thenReturn(BigDecimal.valueOf(10000));
-            when(revenueRepository.sumAllRevenuesByUserAssignedId(USER_ID)).thenReturn(BigDecimal.valueOf(20000));
+            when(revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(
+                    eq(USER_ID), any(RevenueCategory.class), eq(PeriodType.MONTHLY)))
+                    .thenReturn(new RevenueCategoryPercentageDto(BigDecimal.valueOf(10), RevenueCategory.SALARY));
 
             when(document.formatMoney(any())).thenAnswer(invocation -> invocation.getArgument(0) + " PLN");
             when(document.formatPercent(any())).thenAnswer(invocation -> invocation.getArgument(0) + "%");
         }
 
-        @Nested
-        class DocumentStructureTests {
-            @Test
-            void GenerateAddsBothSectionsInCorrectOrder() throws IOException {
-                importantInformationPdf.generate(document, USER_ID, PeriodType.DAILY);
+        @Test
+        void shouldAddSectionsInOrder() throws IOException {
+            importantInformationPdf.generate(document, USER_ID, PERIOD_TYPE);
 
-                InOrder inOrder = inOrder(document);
-                inOrder.verify(document).addSection("Podstawowe informacje");
-                inOrder.verify(document).addSection("Szczegółowe informacje");
-            }
-
-            @Test
-            void GenerateAddsBarChartWithMonthlyAndWeeklyData() throws IOException {
-                importantInformationPdf.generate(document, USER_ID, PeriodType.DAILY);
-
-                verify(document).addBarChart(
-                        eq("Przychody i wydatki w aktualnym okresie"),
-                        eq(List.of("Mies. przychody", "Mies. wydatki", "Tyg. przychody", "Tyg. wydatki")),
-                        eq(List.of(
-                                BigDecimal.valueOf(3000),
-                                BigDecimal.valueOf(1500),
-                                BigDecimal.valueOf(750),
-                                BigDecimal.valueOf(300)
-                        )),
-                        eq(true));
-            }
-
-            @Test
-            void GenerateAddsPieChartForMonthlyExpenseStructure() throws IOException {
-                importantInformationPdf.generate(document, USER_ID, PeriodType.DAILY);
-
-                verify(document).addPieChart(eq("Struktura wydatków w tym miesiącu"), any(), any());
-            }
-
-            @Test
-            void GenerateAddsTwoTables() throws IOException {
-                importantInformationPdf.generate(document, USER_ID, PeriodType.DAILY);
-
-                verify(document, times(2)).addTable(any(), any());
-            }
+            InOrder inOrder = inOrder(document);
+            inOrder.verify(document).addSection("Podstawowe informacje");
+            inOrder.verify(document).addSection("Szczegółowe informacje");
         }
 
-        @Nested
-        class PercentageCalculationTests {
-            @Test
-            void GenerateFormatsSpentAndSavedPercentageSymmetrically() throws IOException {
-                importantInformationPdf.generate(document, USER_ID, PeriodType.DAILY);
+        @Test
+        void shouldAddBarChartWithMonthlyAndWeeklyTotals() throws IOException {
+            importantInformationPdf.generate(document, USER_ID, PERIOD_TYPE);
 
-                verify(document, times(2)).formatPercent(new BigDecimal("50.00"));
-            }
-
-            @Test
-            void GenerateWhenRevenuesAreZeroSpentPercentageIsZero() throws IOException {
-                when(revenueRepository.sumAllRevenuesByUserAssignedId(USER_ID)).thenReturn(BigDecimal.ZERO);
-
-                importantInformationPdf.generate(document, USER_ID, PeriodType.DAILY);
-
-                verify(document).formatPercent(BigDecimal.ZERO);
-            }
-
-            @Test
-            void GenerateWhenExpensesExceedRevenuesSavedPercentageIsClampedToZero() throws IOException {
-                when(expenseRepository.sumAllExpensesByUserAssignedId(USER_ID)).thenReturn(BigDecimal.valueOf(30000));
-                when(revenueRepository.sumAllRevenuesByUserAssignedId(USER_ID)).thenReturn(BigDecimal.valueOf(10000));
-
-                importantInformationPdf.generate(document, USER_ID, PeriodType.DAILY);
-
-                verify(document).formatPercent(BigDecimal.ZERO);
-            }
+            verify(document).addBarChart(
+                    eq("Przychody i wydatki w aktualnym okresie"),
+                    eq(List.of("Mies. przychody", "Mies. wydatki", "Tyg. przychody", "Tyg. wydatki")),
+                    eq(List.of(MONTHLY_REVENUE, MONTHLY_EXPENSE, WEEKLY_REVENUE, WEEKLY_EXPENSE)),
+                    eq(true)
+            );
         }
 
-        @Nested
-        class PeriodTypeIgnoredTests {
-            @Test
-            void GenerateProducesIdenticalDocumentStructureForAnyPeriodType() throws IOException {
-                importantInformationPdf.generate(document, USER_ID, PeriodType.DAILY);
-                importantInformationPdf.generate(document, USER_ID, PeriodType.WEEKLY);
-                importantInformationPdf.generate(document, USER_ID, PeriodType.MONTHLY);
+        @Test
+        void shouldAddPieChartAndTwoTables() throws IOException {
+            importantInformationPdf.generate(document, USER_ID, PERIOD_TYPE);
 
-                verify(document, times(3)).addSection("Podstawowe informacje");
-                verify(document, times(3)).addSection("Szczegółowe informacje");
-                verify(document, times(3)).addBarChart(any(), any(), any(), anyBoolean());
-                verify(document, times(6)).addTable(any(), any());
-            }
+            verify(document).addPieChart(eq("Struktura wydatków w tym miesiącu"), any(), any());
+            verify(document, times(2)).addTable(any(), any());
+        }
+
+        @Test
+        void shouldFormatSpentAndSavedPercentagesSymmetrically() throws IOException {
+            importantInformationPdf.generate(document, USER_ID, PERIOD_TYPE);
+
+            verify(document, times(2)).formatPercent(new BigDecimal("50.00"));
+        }
+
+        @Test
+        void shouldReturnZeroSpentPercentageWhenAllRevenuesAreZero() throws IOException {
+            when(reportClient.sumAllRevenues(USER_ID)).thenReturn(BigDecimal.ZERO);
+
+            importantInformationPdf.generate(document, USER_ID, PERIOD_TYPE);
+
+            verify(document).formatPercent(BigDecimal.ZERO);
+        }
+
+        @Test
+        void shouldClampSavedPercentageToZeroWhenExpensesExceedRevenues() throws IOException {
+            when(reportClient.sumAllExpenses(USER_ID)).thenReturn(BigDecimal.valueOf(30000));
+            when(reportClient.sumAllRevenues(USER_ID)).thenReturn(BigDecimal.valueOf(10000));
+
+            importantInformationPdf.generate(document, USER_ID, PERIOD_TYPE);
+
+            verify(document).formatPercent(BigDecimal.ZERO);
+        }
+
+        @ParameterizedTest
+        @EnumSource(PeriodType.class)
+        void shouldIgnoreRequestedPeriodType(PeriodType periodType) throws IOException {
+            importantInformationPdf.generate(document, USER_ID, periodType);
+
+            verify(reportSummaryService).sumRevenue(USER_ID, PeriodType.MONTHLY);
+            verify(reportSummaryService).sumExpense(USER_ID, PeriodType.MONTHLY);
+            verify(reportSummaryService).sumRevenue(USER_ID, PeriodType.WEEKLY);
+            verify(reportSummaryService).sumExpense(USER_ID, PeriodType.WEEKLY);
+            verify(reportAverageService).calculateAverageRevenue(USER_ID, PeriodType.DAILY);
+            verify(reportAverageService).calculateAverageExpense(USER_ID, PeriodType.DAILY);
         }
     }
 }
