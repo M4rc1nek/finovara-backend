@@ -1,4 +1,4 @@
-package com.finovara.activityservice.security.jwt;
+package com.finovara.activitylogservice.security.jwt;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
