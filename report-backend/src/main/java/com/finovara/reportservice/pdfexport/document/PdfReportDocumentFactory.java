@@ -1,4 +1,4 @@
-package com.finovara.corebackend.pdfexport.report.document;
+package com.finovara.reportservice.pdfexport.document;
 
 import org.springframework.stereotype.Component;
 
