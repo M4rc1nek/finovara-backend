@@ -1,4 +1,4 @@
-package com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.dto;
+package com.finovara.contracts.transaction.report.dto;
 
 import com.finovara.contracts.model.transaction.RevenueCategory;
 
