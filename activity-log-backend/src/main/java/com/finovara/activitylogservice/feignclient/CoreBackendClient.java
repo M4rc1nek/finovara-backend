@@ -1,4 +1,4 @@
-package com.finovara.activityservice.feignclient;
+package com.finovara.activitylogservice.feignclient;
 
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import org.springframework.cloud.openfeign.FeignClient;
