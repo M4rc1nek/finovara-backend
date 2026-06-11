@@ -1,9 +1,10 @@
-package com.finovara.corebackend.report.smartreport.service.handler;
+package com.finovara.reportservice.report.smartreport.service.handler;
 
-import com.finovara.corebackend.expense.repository.ExpenseRepository;
-import com.finovara.corebackend.report.smartreport.model.SmartReportType;
-import com.finovara.corebackend.report.smartreport.service.loader.SmartReportTemplateService;
-import com.finovara.corebackend.revenue.repository.RevenueRepository;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.service.loader.SmartReportTemplateService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,66 +13,61 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ExpenseRateHandlerTest {
 
+    private static final Long USER_ID = 1L;
+    private static final String TEMPLATE = "Your expense rate is {amount}%";
+
     @Mock
-    private ExpenseRepository expenseRepository;
-    @Mock
-    private RevenueRepository revenueRepository;
+    private CoreBackendReportClient reportClient;
     @Mock
     private SmartReportTemplateService templateService;
+
     @InjectMocks
     private ExpenseRateHandler expenseRateHandler;
 
-    @Test
-    void shouldReturnSmartReportType() {
-        SmartReportType result = expenseRateHandler.getType();
+    @Nested
+    class GetType {
 
-        assertEquals(SmartReportType.EXPENSE_RATE, result);
+        @Test
+        void shouldReturnExpenseRateType() {
+            assertThat(expenseRateHandler.getType()).isEqualTo(SmartReportType.EXPENSE_RATE);
+        }
     }
 
-    @Test
-    void shouldGenerateExpenseRateSuccessfully() {
-        Long userId = 1L;
+    @Nested
+    class Generate {
 
-        when(expenseRepository.sumAllExpensesByUserAssignedId(anyLong())).thenReturn(BigDecimal.valueOf(50));
+        @BeforeEach
+        void setUp() {
+            when(templateService.getRandomResponse(SmartReportType.EXPENSE_RATE)).thenReturn(TEMPLATE);
+        }
 
-        when(revenueRepository.sumAllRevenuesByUserAssignedId(anyLong())).thenReturn(BigDecimal.valueOf(100));
+        @Test
+        void shouldCalculateExpenseRateAsPercentageOfRevenue() {
+            when(reportClient.sumAllExpenses(USER_ID)).thenReturn(BigDecimal.valueOf(50));
+            when(reportClient.sumAllRevenues(USER_ID)).thenReturn(BigDecimal.valueOf(100));
 
-        when(templateService.getRandomResponse(SmartReportType.EXPENSE_RATE)).thenReturn("{amount}");
+            String result = expenseRateHandler.generate(USER_ID);
 
-        String result = expenseRateHandler.generate(userId);
+            assertThat(result).isEqualTo(TEMPLATE.replace("{amount}", "50.00"));
+            verify(reportClient).sumAllExpenses(USER_ID);
+            verify(reportClient).sumAllRevenues(USER_ID);
+        }
 
-        assertEquals(new BigDecimal("50.00"), new BigDecimal(result));
+        @Test
+        void shouldTreatNullAmountsAndZeroRevenueAsZeroRate() {
+            when(reportClient.sumAllExpenses(USER_ID)).thenReturn(null);
+            when(reportClient.sumAllRevenues(USER_ID)).thenReturn(null);
 
-        verify(expenseRepository).sumAllExpensesByUserAssignedId(userId);
-        verify(revenueRepository).sumAllRevenuesByUserAssignedId(userId);
-        verify(templateService).getRandomResponse(SmartReportType.EXPENSE_RATE);
+            String result = expenseRateHandler.generate(USER_ID);
+
+            assertThat(result).isEqualTo(TEMPLATE.replace("{amount}", "0.00"));
+        }
     }
-
-    @Test
-    void shouldReturnZeroWhenRevenueIsZero() {
-        Long userId = 1L;
-
-        when(expenseRepository.sumAllExpensesByUserAssignedId(anyLong()))
-                .thenReturn(BigDecimal.valueOf(50));
-
-        when(revenueRepository.sumAllRevenuesByUserAssignedId(anyLong()))
-                .thenReturn(BigDecimal.ZERO);
-
-        when(templateService.getRandomResponse(SmartReportType.EXPENSE_RATE))
-                .thenReturn("{amount}");
-
-        String result = expenseRateHandler.generate(userId);
-
-        assertEquals(new BigDecimal("0.00"), new BigDecimal(result));
-    }
-
 }
-
