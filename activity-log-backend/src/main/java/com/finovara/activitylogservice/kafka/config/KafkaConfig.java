@@ -1,4 +1,4 @@
-package com.finovara.activityservice.kafka.config;
+package com.finovara.activitylogservice.kafka.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
