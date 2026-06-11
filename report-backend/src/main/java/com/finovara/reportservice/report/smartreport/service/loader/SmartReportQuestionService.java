@@ -1,7 +1,7 @@
-package com.finovara.corebackend.report.smartreport.service.loader;
+package com.finovara.reportservice.report.smartreport.service.loader;
 
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
-import com.finovara.corebackend.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
