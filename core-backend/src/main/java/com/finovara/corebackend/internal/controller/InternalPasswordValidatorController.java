@@ -1,6 +1,6 @@
-package com.finovara.corebackend.internalcontroller;
+package com.finovara.corebackend.internal.controller;
 
-import com.finovara.contracts.dto.ConfirmPasswordDto;
+import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.confirmationpassword.service.PasswordValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
