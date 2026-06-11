@@ -1,7 +1,7 @@
-package com.finovara.corebackend.report.smartreport.controller;
+package com.finovara.reportservice.report.smartreport.controller;
 
-import com.finovara.corebackend.report.smartreport.service.SmartReportService;
-import com.finovara.corebackend.security.SecurityUtils;
+import com.finovara.reportservice.report.smartreport.service.SmartReportService;
+import com.finovara.reportservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
