@@ -1,4 +1,4 @@
-package com.finovara.corebackend.util.percentage;
+package com.finovara.contracts.percentage;
 
 import lombok.experimental.UtilityClass;
 
