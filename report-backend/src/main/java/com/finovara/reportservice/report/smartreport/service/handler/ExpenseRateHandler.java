@@ -1,11 +1,10 @@
-package com.finovara.corebackend.report.smartreport.service.handler;
+package com.finovara.reportservice.report.smartreport.service.handler;
 
-import com.finovara.corebackend.expense.repository.ExpenseRepository;
-import com.finovara.corebackend.report.smartreport.model.SmartReportType;
-import com.finovara.corebackend.report.smartreport.service.SmartReportHandler;
-import com.finovara.corebackend.report.smartreport.service.loader.SmartReportTemplateService;
-import com.finovara.corebackend.revenue.repository.RevenueRepository;
-import com.finovara.corebackend.util.percentage.CalculatePercentage;
+import com.finovara.contracts.percentage.CalculatePercentage;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.service.SmartReportHandler;
+import com.finovara.reportservice.report.smartreport.service.loader.SmartReportTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,9 +16,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ExpenseRateHandler implements SmartReportHandler {
 
-    private final ExpenseRepository expenseRepository;
-    private final RevenueRepository revenueRepository;
-
+    private final CoreBackendReportClient reportClient;
     private final SmartReportTemplateService templateService;
 
     @Override
@@ -29,14 +26,13 @@ public class ExpenseRateHandler implements SmartReportHandler {
 
     @Override
     public String generate(Long userId) {
-        BigDecimal sumExpenses = Optional.ofNullable(expenseRepository.sumAllExpensesByUserAssignedId(userId)).orElse(BigDecimal.ZERO);
-        BigDecimal sumRevenue = Optional.ofNullable(revenueRepository.sumAllRevenuesByUserAssignedId(userId)).orElse(BigDecimal.ZERO);
+        BigDecimal expenses = Optional.ofNullable(reportClient.sumAllExpenses(userId))
+                .orElse(BigDecimal.ZERO);
+        BigDecimal revenues = Optional.ofNullable(reportClient.sumAllRevenues(userId))
+                .orElse(BigDecimal.ZERO);
 
-        BigDecimal total = CalculatePercentage.calculatePercentage(sumExpenses, sumRevenue);
-
+        BigDecimal rate = CalculatePercentage.calculatePercentage(expenses, revenues);
         String template = templateService.getRandomResponse(SmartReportType.EXPENSE_RATE);
-        return template.replace("{amount}", total.setScale(2, RoundingMode.HALF_UP).toString());
-
+        return template.replace("{amount}", rate.setScale(2, RoundingMode.HALF_UP).toString());
     }
-
 }
