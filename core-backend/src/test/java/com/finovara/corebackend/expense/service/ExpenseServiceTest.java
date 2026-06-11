@@ -1,6 +1,6 @@
 package com.finovara.corebackend.expense.service;
 
-import com.finovara.contracts.dto.ConfirmPasswordDto;
+import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.event.notification.limit.LimitStatsEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;

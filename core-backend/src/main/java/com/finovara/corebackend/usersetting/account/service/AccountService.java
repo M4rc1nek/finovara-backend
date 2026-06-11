@@ -12,7 +12,7 @@ import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.corebackend.user.model.User;
 import com.finovara.corebackend.user.repository.UserRepository;
 import com.finovara.corebackend.usersetting.account.dto.AccountSettingsDto;
-import com.finovara.contracts.dto.ConfirmPasswordDto;
+import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.corebackend.util.profile.ProfileImageUrlBuilder;
 import com.finovara.corebackend.util.user.service.UserManagerService;

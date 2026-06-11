@@ -10,7 +10,7 @@ import com.finovara.corebackend.usersetting.account.model.AccountSettings;
 import com.finovara.corebackend.usersetting.account.service.verification.CredentialValidationService;
 import com.finovara.corebackend.usersetting.account.service.verification.VerificationCodeManager;
 import com.finovara.corebackend.usersetting.account.service.verification.VerificationCodeEmailService;
-import com.finovara.contracts.dto.ConfirmPasswordDto;
+import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.corebackend.util.email.EmailDomainValidator;
 import com.finovara.corebackend.util.user.service.UserManagerService;

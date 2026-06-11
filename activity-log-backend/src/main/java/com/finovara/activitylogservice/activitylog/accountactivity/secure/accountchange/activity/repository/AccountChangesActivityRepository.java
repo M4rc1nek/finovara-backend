@@ -13,7 +13,7 @@ import java.util.List;
 public interface AccountChangesActivityRepository extends JpaRepository<AccountChangesActivity, Long> {
 
     @Query("""
-            SELECT new com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto(
+            SELECT new com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto(
             a.type, a.createdAt, a.browser, a.ipAddress, a.location) 
             FROM AccountChangesActivity a 
             WHERE a.userId = :userId

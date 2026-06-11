@@ -3,7 +3,7 @@ spring:
     import: optional:file:.env[.properties]
   datasource:
     url: jdbc:postgresql://finovara-db:5432/finovara_db
-    username: postgres
+    username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
@@ -81,14 +81,6 @@ nbp:
     url: https://api.nbp.pl/api
   properties:
     scale: 4
-
-expenses:
-  highest:
-    page-size: 5
-
-revenues:
-  highest:
-    page-size: 5
 
 verification-code-manager:
   code-expiration-minutes: 15

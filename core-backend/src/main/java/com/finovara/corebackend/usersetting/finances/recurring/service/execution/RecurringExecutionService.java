@@ -15,7 +15,7 @@ import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSe
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.corebackend.usersetting.finances.recurring.service.validator.RecurringSavingsValidator;
-import com.finovara.contracts.dto.ConfirmPasswordDto;
+import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
