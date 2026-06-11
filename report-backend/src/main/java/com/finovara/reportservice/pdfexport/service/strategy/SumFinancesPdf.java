@@ -1,12 +1,12 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy;
+package com.finovara.reportservice.pdfexport.service.strategy;
 
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.pdfexport.report.service.ReportPdfHandler;
-import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
-import com.finovara.corebackend.report.dto.ReportDto;
-import com.finovara.corebackend.report.finances.sum.service.ReportSummaryService;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
+import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
+import com.finovara.reportservice.report.dto.ReportDto;
+import com.finovara.reportservice.report.finances.sum.service.ReportSummaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +17,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class SumFinancesPdf implements ReportPdfHandler {
+
     private final ReportSummaryService reportSummaryService;
 
     @Override
@@ -42,7 +43,12 @@ public class SumFinancesPdf implements ReportPdfHandler {
 
         document.addSection("Podsumowanie");
         document.addInfo("Okres:", PdfReportText.periodLabel(periodType));
-        document.addLineChart("Porównanie przepływu", List.of("Przychody", "Wydatki", "Bilans"), List.of(revenue.amount(), expense.amount(), balance), true);
+        document.addLineChart(
+                "Porównanie przepływu",
+                List.of("Przychody", "Wydatki", "Bilans"),
+                List.of(revenue.amount(), expense.amount(), balance),
+                true
+        );
         document.addTable(
                 new String[]{"Typ", "Wartość"},
                 List.of(
