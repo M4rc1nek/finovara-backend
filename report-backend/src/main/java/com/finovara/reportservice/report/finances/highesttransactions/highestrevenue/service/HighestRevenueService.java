@@ -1,12 +1,11 @@
-package com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.service;
+package com.finovara.reportservice.report.finances.highesttransactions.highestrevenue.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
-import com.finovara.corebackend.revenue.repository.RevenueRepository;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HighestRevenueService {
 
-    private final RevenueRepository revenueRepository;
+    private final CoreBackendReportClient reportClient;
 
     @Value("${revenues.highest.page-size}")
     private int pageSize;
@@ -25,10 +24,8 @@ public class HighestRevenueService {
         if (periodType == null) {
             throw new InvalidInputException("Unsupported report period type.");
         }
-        LocalDate today = LocalDate.now();
-        LocalDate from = periodType.getStartDate(today);
-
-        return revenueRepository.findHighestRevenuesByUserAssignedIdAndPeriod(userId, from, today, PageRequest.of(0, pageSize));
-
+        LocalDate to = LocalDate.now();
+        LocalDate from = periodType.getStartDate(to);
+        return reportClient.highestRevenues(userId, from, to, pageSize);
     }
 }
