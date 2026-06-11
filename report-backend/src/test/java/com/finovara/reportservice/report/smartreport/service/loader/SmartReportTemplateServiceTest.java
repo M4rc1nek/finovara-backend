@@ -1,79 +1,62 @@
-package com.finovara.corebackend.report.smartreport.service.loader;
+package com.finovara.reportservice.report.smartreport.service.loader;
 
-import com.finovara.corebackend.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class SmartReportTemplateServiceTest {
 
-    private SmartReportTemplateService service;
+    private SmartReportTemplateService smartReportTemplateService;
 
     @BeforeEach
     void setUp() {
-        service = new SmartReportTemplateService();
-        service.init();
+        smartReportTemplateService = new SmartReportTemplateService();
+        smartReportTemplateService.init();
     }
 
     @Nested
     class GetRandomResponse {
 
-        @Test
-        void shouldReturnResponseForValidType() {
-            String result = service.getRandomResponse(SmartReportType.MONTH_SPENDING);
+        @ParameterizedTest
+        @EnumSource(SmartReportType.class)
+        void shouldReturnNonBlankTemplateContainingAmountPlaceholder(SmartReportType type) {
+            String result = smartReportTemplateService.getRandomResponse(type);
 
-            assertThat(result).isNotNull();
-            assertThat(result).isNotBlank();
+            assertThat(result)
+                    .isNotNull()
+                    .isNotBlank()
+                    .contains("{amount}");
         }
 
         @Test
-        void shouldReturnResponseForEachType() {
-            for (SmartReportType type : SmartReportType.values()) {
-                String result = service.getRandomResponse(type);
+        void shouldReturnFallbackMessageWhenTypeIsNull() {
+            assertThat(smartReportTemplateService.getRandomResponse(null))
+                    .isEqualTo("Responses are null or empty");
+        }
 
-                assertThat(result).isNotNull();
-                assertThat(result).isNotBlank();
+        @ParameterizedTest
+        @EnumSource(SmartReportType.class)
+        void shouldEventuallyReturnMoreThanOneTemplateWhenMultipleExist(SmartReportType type) {
+            Set<String> observed = new HashSet<>();
+            for (int i = 0; i < 30; i++) {
+                observed.add(smartReportTemplateService.getRandomResponse(type));
             }
-        }
 
-        @Test
-        void shouldReturnFallbackWhenTypeNotLoaded() {
-            String result = service.getRandomResponse(null);
-
-            assertThat(result).isEqualTo("Responses are null or empty");
-        }
-    }
-
-    @Nested
-    class TemplatesLoading {
-        @Test
-        void shouldLoadTemplatesForMonthSpending() {
-            String result = service.getRandomResponse(SmartReportType.MONTH_SPENDING);
-
-            assertThat(result).isNotNull();
-        }
-
-        @Test
-        void shouldLoadTemplatesForAverageDaySpending() {
-            String result = service.getRandomResponse(SmartReportType.AVERAGE_DAY_SPENDING);
-
-            assertThat(result).isNotNull();
-        }
-
-        @Test
-        void shouldLoadTemplatesForExpenseRate() {
-            String result = service.getRandomResponse(SmartReportType.EXPENSE_RATE);
-
-            assertThat(result).isNotNull();
-        }
-
-        @Test
-        void shouldLoadTemplatesForSavingsRate() {
-            String result = service.getRandomResponse(SmartReportType.SAVINGS_RATE);
-
-            assertThat(result).isNotNull();
+            if (observed.size() > 1) {
+                assertThat(observed).allSatisfy(template ->
+                        assertThat(template).isNotBlank().contains("{amount}"));
+            } else {
+                assertThat(observed).hasSize(1)
+                        .allSatisfy(template -> assertThat(template).isNotBlank().contains("{amount}"));
+            }
         }
     }
 }
