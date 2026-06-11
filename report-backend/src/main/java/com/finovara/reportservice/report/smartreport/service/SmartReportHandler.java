@@ -1,6 +1,6 @@
-package com.finovara.corebackend.report.smartreport.service;
+package com.finovara.reportservice.report.smartreport.service;
 
-import com.finovara.corebackend.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
 
 public interface SmartReportHandler {
     SmartReportType getType();
