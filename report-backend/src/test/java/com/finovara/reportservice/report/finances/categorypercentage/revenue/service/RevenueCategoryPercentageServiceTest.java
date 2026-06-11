@@ -1,14 +1,10 @@
-package com.finovara.corebackend.report.finances.categorypercentage.revenue.service;
+package com.finovara.reportservice.report.finances.categorypercentage.revenue.service;
 
-import com.finovara.corebackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
-import com.finovara.corebackend.revenue.model.Revenue;
-import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.corebackend.user.model.User;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
-import com.finovara.corebackend.util.user.service.UserManagerService;
-import org.junit.jupiter.api.BeforeEach;
+import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,81 +14,71 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RevenueCategoryPercentageServiceTest {
 
-    @Mock
-    private UserManagerService userManagerService;
+    private static final Long USER_ID = 1L;
+    private static final RevenueCategory CATEGORY = RevenueCategory.SALARY;
 
     @Mock
-    private FinancialPeriodService financialPeriodService;
+    private CoreBackendReportClient reportClient;
 
     @InjectMocks
     private RevenueCategoryPercentageService revenueCategoryPercentageService;
 
-    private Long userId;
+    @Nested
+    class GetRevenuePercentageByCategoryReport {
 
-    @BeforeEach
-    void setUp() {
-        userId = 1L;
-    }
+        @ParameterizedTest
+        @EnumSource(PeriodType.class)
+        void shouldDelegateToClientAndReturnPercentage(PeriodType periodType) {
+            LocalDate to = LocalDate.now();
+            LocalDate from = periodType.getStartDate(to);
 
-    @ParameterizedTest
-    @EnumSource(PeriodType.class)
-    void shouldGetCategoryEarnedReport(PeriodType periodType) {
-        User user = new User();
-        user.setId(1L);
+            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
+            when(reportClient.revenuesByCategory(USER_ID, from, to, CATEGORY)).thenReturn(BigDecimal.valueOf(50));
 
-        BigDecimal summedRevenue = BigDecimal.valueOf(100);
+            RevenueCategoryPercentageDto result = revenueCategoryPercentageService
+                    .getRevenuePercentageByCategoryReport(USER_ID, CATEGORY, periodType);
 
-        Revenue revenue1 = new Revenue();
-        revenue1.setAmount(BigDecimal.valueOf(20));
+            assertThat(result.percentage()).isEqualByComparingTo("50");
+            assertThat(result.category()).isEqualTo(CATEGORY);
+            verify(reportClient).sumRevenues(USER_ID, from, to);
+            verify(reportClient).revenuesByCategory(USER_ID, from, to, CATEGORY);
+        }
 
-        Revenue revenue2 = new Revenue();
-        revenue2.setAmount(BigDecimal.valueOf(30));
+        @Test
+        void shouldReturnZeroPercentageWhenTotalOrCategoryAmountIsZero() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.MONTHLY.getStartDate(to);
 
-        List<Revenue> revenueCategory = List.of(revenue1, revenue2);
+            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
+            when(reportClient.revenuesByCategory(USER_ID, from, to, CATEGORY)).thenReturn(BigDecimal.ZERO);
 
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-        when(financialPeriodService.getRevenueSum(user.getId(), periodType)).thenReturn(summedRevenue);
-        when(financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, RevenueCategory.SALARY))
-                .thenReturn(revenueCategory);
+            RevenueCategoryPercentageDto result = revenueCategoryPercentageService
+                    .getRevenuePercentageByCategoryReport(USER_ID, CATEGORY, PeriodType.MONTHLY);
 
-        RevenueCategoryPercentageDto result = revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(userId, RevenueCategory.SALARY, periodType);
+            assertThat(result.percentage()).isEqualByComparingTo("0");
+        }
 
-        assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.valueOf(50));
-        assertThat(result.category()).isEqualTo(RevenueCategory.SALARY);
-    }
+        @Test
+        void shouldReturnOneHundredPercentWhenAllRevenuesAreInCategory() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.MONTHLY.getStartDate(to);
 
-    @ParameterizedTest
-    @EnumSource(PeriodType.class)
-    void shouldReturnZeroPercentageWhenRevenueIsZero(PeriodType periodType) {
-        User user = new User();
-        user.setId(1L);
+            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
+            when(reportClient.revenuesByCategory(USER_ID, from, to, CATEGORY)).thenReturn(BigDecimal.valueOf(100));
 
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-        when(financialPeriodService.getRevenueSum(user.getId(), periodType)).thenReturn(BigDecimal.ZERO);
+            RevenueCategoryPercentageDto result = revenueCategoryPercentageService
+                    .getRevenuePercentageByCategoryReport(USER_ID, CATEGORY, PeriodType.MONTHLY);
 
-        when(financialPeriodService.getRevenuesInPeriodByCategory(user.getId(), periodType, RevenueCategory.SALARY))
-                .thenReturn(List.of());
-
-        RevenueCategoryPercentageDto result = revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(userId, RevenueCategory.SALARY, periodType);
-
-        assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.ZERO);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenUserDoesNotExist() {
-
-        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("User not found"));
-
-        assertThrows(RequestedEntityNotFoundException.class, () ->
-                revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(userId, RevenueCategory.BONUS, PeriodType.WEEKLY));
+            assertThat(result.percentage()).isEqualByComparingTo("100");
+        }
     }
 }
