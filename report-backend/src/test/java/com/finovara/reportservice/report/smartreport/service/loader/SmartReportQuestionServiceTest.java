@@ -1,9 +1,11 @@
-package com.finovara.corebackend.report.smartreport.service.loader;
+package com.finovara.reportservice.report.smartreport.service.loader;
 
-import com.finovara.corebackend.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,53 +22,35 @@ class SmartReportQuestionServiceTest {
     @Nested
     class GetTypeFromQuestion {
 
-        @Test
-        void shouldReturnTypeForExactQuestion() {
-            String question = "ile wydalem w tym miesiacu";
-
-            SmartReportType result = smartReportQuestionService.getTypeFromQuestion(question);
-
-            assertThat(result).isNotNull();
+        @ParameterizedTest
+        @CsvSource({
+                "ile wydałem w tym miesiącu, MONTH_SPENDING",
+                "ile wydaję średnio dziennie, AVERAGE_DAY_SPENDING",
+                "ile procent wydaje, EXPENSE_RATE",
+                "ile procent oszczedzam, SAVINGS_RATE"
+        })
+        void shouldReturnMatchingTypeForKnownQuestion(String question, SmartReportType expectedType) {
+            assertThat(smartReportQuestionService.getTypeFromQuestion(question)).isEqualTo(expectedType);
         }
 
         @Test
-        void shouldIgnoreCaseAndSpecialCharacters() {
-            String question = "ILE WYDAŁEM W TYM MIESIĄCU?";
-
-            SmartReportType result = smartReportQuestionService.getTypeFromQuestion(question);
-
-            assertThat(result).isNotNull();
+        void shouldReturnNullForUnknownQuestion() {
+            assertThat(smartReportQuestionService.getTypeFromQuestion("to jest jakieś losowe pytanie")).isNull();
         }
 
-        @Test
-        void shouldNormalizePolishCharacters() {
-            String question = "ile wydalem w tym miesiacu";
+        @ParameterizedTest
+        @CsvSource({
+                "ile wydałem w tym miesiącu, ILE WYDAŁEM W TYM MIESIĄCU",
+                "ile wydałem w tym miesiącu, ile wydalem w tym miesiacu",
+                "ile wydałem w tym miesiącu, ile wydałem w tym miesiącu?",
+                "ile wydałem w tym miesiącu,   ile wydałem w tym miesiącu  ",
+                "ile wydałem w tym miesiącu, ILE WYDALEM W TYM MIESIACU?"
+        })
+        void shouldNormalizeInputBeforeMatching(String canonicalQuestion, String variantQuestion) {
+            SmartReportType canonical = smartReportQuestionService.getTypeFromQuestion(canonicalQuestion);
+            SmartReportType variant = smartReportQuestionService.getTypeFromQuestion(variantQuestion);
 
-            SmartReportType result = smartReportQuestionService.getTypeFromQuestion(question);
-
-            assertThat(result).isNotNull();
-        }
-
-        @Test
-        void shouldReturnNullWhenQuestionNotFound() {
-            String question = "to jest jakies losowe pytanie";
-
-            SmartReportType result = smartReportQuestionService.getTypeFromQuestion(question);
-
-            assertThat(result).isNull();
-        }
-    }
-
-    @Nested
-    class Normalization {
-
-        @Test
-        void shouldNormalizePolishCharactersAndTrim() {
-            String input = "  Zażółć GĘŚLĄ jaźń? ";
-
-            SmartReportType result = smartReportQuestionService.getTypeFromQuestion(input);
-
-            assertThat(result).isNull();
+            assertThat(variant).isNotNull().isEqualTo(canonical);
         }
     }
 }
