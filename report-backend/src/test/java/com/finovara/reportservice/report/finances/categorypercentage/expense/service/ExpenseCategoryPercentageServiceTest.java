@@ -1,14 +1,10 @@
-package com.finovara.corebackend.report.finances.categorypercentage.expense.service;
+package com.finovara.reportservice.report.finances.categorypercentage.expense.service;
 
-import com.finovara.corebackend.expense.model.Expense;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.corebackend.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.corebackend.user.model.User;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
-import com.finovara.corebackend.util.user.service.UserManagerService;
-import org.junit.jupiter.api.BeforeEach;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,82 +14,71 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ExpenseCategoryPercentageServiceTest {
 
-    @Mock
-    private UserManagerService userManagerService;
+    private static final Long USER_ID = 1L;
+    private static final ExpenseCategory CATEGORY = ExpenseCategory.CLOTHING;
 
     @Mock
-    private FinancialPeriodService financialPeriodService;
+    private CoreBackendReportClient reportClient;
 
     @InjectMocks
     private ExpenseCategoryPercentageService expenseCategoryPercentageService;
 
-    private Long userId;
+    @Nested
+    class GetExpensePercentageByCategoryReport {
 
-    @BeforeEach
-    void setUp() {
-        userId = 1L;
+        @ParameterizedTest
+        @EnumSource(PeriodType.class)
+        void shouldDelegateToClientAndReturnPercentage(PeriodType periodType) {
+            LocalDate to = LocalDate.now();
+            LocalDate from = periodType.getStartDate(to);
+
+            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
+            when(reportClient.expensesByCategory(USER_ID, from, to, CATEGORY)).thenReturn(BigDecimal.valueOf(50));
+
+            ExpenseCategoryPercentageDto result = expenseCategoryPercentageService
+                    .getExpensePercentageByCategoryReport(USER_ID, CATEGORY, periodType);
+
+            assertThat(result.percentage()).isEqualByComparingTo("50");
+            assertThat(result.category()).isEqualTo(CATEGORY);
+            verify(reportClient).sumExpenses(USER_ID, from, to);
+            verify(reportClient).expensesByCategory(USER_ID, from, to, CATEGORY);
+        }
+
+        @Test
+        void shouldReturnZeroPercentageWhenTotalOrCategoryAmountIsZero() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.MONTHLY.getStartDate(to);
+
+            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
+            when(reportClient.expensesByCategory(USER_ID, from, to, CATEGORY)).thenReturn(BigDecimal.ZERO);
+
+            ExpenseCategoryPercentageDto result = expenseCategoryPercentageService
+                    .getExpensePercentageByCategoryReport(USER_ID, CATEGORY, PeriodType.MONTHLY);
+
+            assertThat(result.percentage()).isEqualByComparingTo("0");
+        }
+
+        @Test
+        void shouldReturnOneHundredPercentWhenAllExpensesAreInCategory() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.MONTHLY.getStartDate(to);
+
+            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
+            when(reportClient.expensesByCategory(USER_ID, from, to, CATEGORY)).thenReturn(BigDecimal.valueOf(100));
+
+            ExpenseCategoryPercentageDto result = expenseCategoryPercentageService
+                    .getExpensePercentageByCategoryReport(USER_ID, CATEGORY, PeriodType.MONTHLY);
+
+            assertThat(result.percentage()).isEqualByComparingTo("100");
+        }
     }
-
-    @ParameterizedTest
-    @EnumSource(PeriodType.class)
-    void shouldGetCategorySpendingReport(PeriodType periodType) {
-        User user = new User();
-        user.setId(1L);
-
-        BigDecimal summedExpenses = BigDecimal.valueOf(100);
-
-        Expense expense = new Expense();
-        expense.setAmount(BigDecimal.valueOf(20));
-
-        Expense expense2 = new Expense();
-        expense2.setAmount(BigDecimal.valueOf(30));
-
-        List<Expense> expenseCategory = List.of(expense, expense2);
-
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-        when(financialPeriodService.getExpensesSum(user.getId(), periodType)).thenReturn(summedExpenses);
-        when(financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, ExpenseCategory.CLOTHING))
-                .thenReturn(expenseCategory);
-
-        ExpenseCategoryPercentageDto result = expenseCategoryPercentageService.getExpensePercentageByCategoryReport(userId, ExpenseCategory.CLOTHING, periodType);
-
-        assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.valueOf(50));
-        assertThat(result.category()).isEqualTo(ExpenseCategory.CLOTHING);
-    }
-
-    @ParameterizedTest
-    @EnumSource(PeriodType.class)
-    void shouldReturnZeroPercentageWhenExpensesIsZero(PeriodType periodType) {
-        User user = new User();
-        user.setId(1L);
-
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-        when(financialPeriodService.getExpensesSum(user.getId(), periodType)).thenReturn(BigDecimal.ZERO);
-
-        when(financialPeriodService.getExpensesInPeriodByCategory(user.getId(), periodType, ExpenseCategory.CLOTHING))
-                .thenReturn(List.of());
-
-        ExpenseCategoryPercentageDto result = expenseCategoryPercentageService.getExpensePercentageByCategoryReport(userId, ExpenseCategory.CLOTHING, periodType);
-
-        assertThat(result.percentage()).isEqualByComparingTo(BigDecimal.ZERO);
-    }
-
-    @Test
-    void shouldThrowExceptionWhenUserDoesNotExist() {
-
-        when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("User not found"));
-
-        assertThrows(RequestedEntityNotFoundException.class, () ->
-                expenseCategoryPercentageService.getExpensePercentageByCategoryReport(userId, ExpenseCategory.FOOD, PeriodType.MONTHLY));
-    }
-
 }
