@@ -1,15 +1,18 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy.highest;
+package com.finovara.reportservice.pdfexport.service.strategy.highest;
 
-import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
-import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
-import com.finovara.corebackend.report.finances.highesttransactions.highestexpense.service.HighestExpenseService;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
+import com.finovara.reportservice.report.finances.highesttransactions.highestexpense.service.HighestExpenseService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,10 +21,14 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class HighestExpensesPdfTest {
+
+    private static final Long USER_ID = 1L;
+    private static final PeriodType PERIOD_TYPE = PeriodType.MONTHLY;
 
     @Mock
     private HighestExpenseService highestExpenseService;
@@ -36,76 +43,75 @@ class HighestExpensesPdfTest {
         highestExpensesPdf = new HighestExpensesPdf(highestExpenseService);
     }
 
-    @Test
-    void shouldReturnCorrectType() {
-        assertThat(highestExpensesPdf.getType()).isEqualTo(PdfReportType.HIGHEST_EXPENSES);
+    @Nested
+    class GetType {
+
+        @Test
+        void shouldReturnHighestExpensesType() {
+            assertThat(highestExpensesPdf.getType()).isEqualTo(PdfReportType.HIGHEST_EXPENSES);
+        }
     }
 
-    @Test
-    void shouldReturnCorrectTitle() {
-        assertThat(highestExpensesPdf.getTitle(PeriodType.MONTHLY)).isEqualTo("Największe wydatki");
+    @Nested
+    class GetTitle {
+
+        @Test
+        void shouldReturnConstantTitle() {
+            assertThat(highestExpensesPdf.getTitle(PERIOD_TYPE)).isEqualTo("Największe wydatki");
+        }
     }
 
-    @Test
-    void shouldReturnCorrectFileName() {
-        assertThat(highestExpensesPdf.getFileName(PeriodType.MONTHLY)).contains("najwieksze-wydatki");
+    @Nested
+    class GetFileName {
+
+        @Test
+        void shouldContainBaseName() {
+            assertThat(highestExpensesPdf.getFileName(PERIOD_TYPE)).contains("najwieksze-wydatki");
+        }
     }
 
-    @Test
-    void shouldGenerateHappyPath() throws Exception {
-        HighestExpenseDto dto1 = mock(HighestExpenseDto.class);
-        HighestExpenseDto dto2 = mock(HighestExpenseDto.class);
+    @Nested
+    class Generate {
 
-        when(dto1.expenseCategory()).thenReturn(ExpenseCategory.FOOD);
-        when(dto1.amount()).thenReturn(new BigDecimal("1000"));
+        @ParameterizedTest
+        @EnumSource(PeriodType.class)
+        void shouldBuildReportFromHighestExpenseService(PeriodType periodType) throws Exception {
+            HighestExpenseDto dto = new HighestExpenseDto(ExpenseCategory.FOOD, new BigDecimal("1000"));
+            List<HighestExpenseDto> expenses = List.of(dto);
 
-        when(dto2.expenseCategory()).thenReturn(ExpenseCategory.TRANSPORT);
-        when(dto2.amount()).thenReturn(new BigDecimal("500"));
+            when(highestExpenseService.getHighestExpense(USER_ID, periodType)).thenReturn(expenses);
+            when(document.formatMoney(new BigDecimal("1000"))).thenReturn("1000");
 
-        when(highestExpenseService.getHighestExpense(1L, PeriodType.MONTHLY)).thenReturn(List.of(dto1, dto2));
+            highestExpensesPdf.generate(document, USER_ID, periodType);
 
-        highestExpensesPdf.generate(document, 1L, PeriodType.MONTHLY);
+            verify(highestExpenseService).getHighestExpense(USER_ID, periodType);
+            verify(document).addSection("Największe wydatki");
+            verify(document).addInfo("Okres:", PdfReportText.periodLabel(periodType));
+            verify(document).addBarChart(eq("Największe wydatki według kategorii"), any(), any(), eq(true));
+            verify(document).addTable(eq(new String[]{"Kategoria", "Kwota"}), any());
+        }
 
-        verify(document).addSection("Największe wydatki");
-        verify(document).addInfo("Okres:", PdfReportText.periodLabel(PeriodType.MONTHLY));
+        @Test
+        void shouldHandleEmptyExpenseList() throws Exception {
+            when(highestExpenseService.getHighestExpense(USER_ID, PERIOD_TYPE)).thenReturn(List.of());
 
-        verify(document).addBarChart(eq("Największe wydatki według kategorii"), any(), any(), eq(true));
+            highestExpensesPdf.generate(document, USER_ID, PERIOD_TYPE);
 
-        verify(document).addTable(eq(new String[]{"Kategoria", "Kwota"}), any());
-    }
+            verify(document).addSection("Największe wydatki");
+            verify(document).addBarChart(any(), any(), any(), eq(true));
+            verify(document).addTable(any(), any());
+        }
 
-    @Test
-    void shouldHandleEmptyList() throws Exception {
-        when(highestExpenseService.getHighestExpense(1L, PeriodType.MONTHLY)).thenReturn(List.of());
+        @Test
+        void shouldHandleNullAmount() throws Exception {
+            HighestExpenseDto dto = new HighestExpenseDto(ExpenseCategory.FOOD, null);
+            when(highestExpenseService.getHighestExpense(USER_ID, PERIOD_TYPE)).thenReturn(List.of(dto));
+            when(document.formatMoney(null)).thenReturn("0,00 PLN");
 
-        highestExpensesPdf.generate(document, 1L, PeriodType.MONTHLY);
+            highestExpensesPdf.generate(document, USER_ID, PERIOD_TYPE);
 
-        verify(document).addSection("Największe wydatki");
-        verify(document).addBarChart(any(), any(), any(), eq(true));
-        verify(document).addTable(any(), any());
-    }
-
-    @Test
-    void shouldHandleNullAmountGracefully() throws Exception {
-        HighestExpenseDto dto = mock(HighestExpenseDto.class);
-
-        when(dto.expenseCategory()).thenReturn(ExpenseCategory.FOOD);
-        when(dto.amount()).thenReturn(null);
-
-        when(highestExpenseService.getHighestExpense(1L, PeriodType.MONTHLY)).thenReturn(List.of(dto));
-
-        highestExpensesPdf.generate(document, 1L, PeriodType.MONTHLY);
-
-        verify(document).addBarChart(any(), any(), any(), eq(true));
-        verify(document).addTable(any(), any());
-    }
-
-    @Test
-    void shouldCallServiceOnce() throws Exception {
-        when(highestExpenseService.getHighestExpense(anyLong(), any())).thenReturn(List.of());
-
-        highestExpensesPdf.generate(document, 1L, PeriodType.MONTHLY);
-
-        verify(highestExpenseService).getHighestExpense(1L, PeriodType.MONTHLY);
+            verify(document).addBarChart(any(), any(), any(), eq(true));
+            verify(document).addTable(any(), any());
+        }
     }
 }
