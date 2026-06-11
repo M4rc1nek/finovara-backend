@@ -1,6 +1,6 @@
-package com.finovara.activityservice.security.jwt;
+package com.finovara.activitylogservice.security.jwt;
 
-import com.finovara.activityservice.security.CustomUserDetails;
+import com.finovara.activitylogservice.security.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.AfterEach;
