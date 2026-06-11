@@ -1,4 +1,4 @@
-package com.finovara.activityservice.clientdata.contracts.ip;
+package com.finovara.activitylogservice.clientdata.contracts.ip;
 
 import com.finovara.contracts.clientdata.ip.ClientIp;
 import jakarta.servlet.http.HttpServletRequest;
