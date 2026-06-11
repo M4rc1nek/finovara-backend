@@ -1,7 +1,7 @@
-package com.finovara.corebackend.pdfexport.report.service;
+package com.finovara.reportservice.pdfexport.service;
 
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import com.finovara.contracts.model.PeriodType;
 
 import java.io.IOException;
