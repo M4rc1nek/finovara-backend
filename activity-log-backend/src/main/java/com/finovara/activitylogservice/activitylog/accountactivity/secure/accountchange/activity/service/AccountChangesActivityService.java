@@ -1,13 +1,13 @@
-package com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.activity.service;
+package com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.service;
 
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto;
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.activity.repository.AccountChangesActivityRepository;
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
-import com.finovara.activityservice.activitylog.accountactivity.secure.core.SecurityActivityCore;
-import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
-import com.finovara.activityservice.feignclient.CoreBackendClient;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.repository.AccountChangesActivityRepository;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.core.SecurityActivityCore;
+import com.finovara.activitylogservice.activitylog.datadeletable.UserDataDeletable;
+import com.finovara.activitylogservice.feignclient.CoreBackendClient;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import lombok.RequiredArgsConstructor;

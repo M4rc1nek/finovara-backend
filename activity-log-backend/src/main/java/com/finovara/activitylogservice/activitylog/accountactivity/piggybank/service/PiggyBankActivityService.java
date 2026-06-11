@@ -1,11 +1,11 @@
-package com.finovara.activityservice.activitylog.accountactivity.piggybank.service;
+package com.finovara.activitylogservice.activitylog.accountactivity.piggybank.service;
 
-import com.finovara.activityservice.activitylog.accountactivity.core.AccountActivityCore;
-import com.finovara.activityservice.activitylog.accountactivity.piggybank.dto.PiggyBankActivityDto;
-import com.finovara.activityservice.activitylog.accountactivity.piggybank.mapper.PiggyBankActivityMapper;
-import com.finovara.activityservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
-import com.finovara.activityservice.activitylog.accountactivity.piggybank.repository.PiggyBankActivityRepository;
-import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
+import com.finovara.activitylogservice.activitylog.accountactivity.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.dto.PiggyBankActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.mapper.PiggyBankActivityMapper;
+import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
+import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.repository.PiggyBankActivityRepository;
+import com.finovara.activitylogservice.activitylog.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;

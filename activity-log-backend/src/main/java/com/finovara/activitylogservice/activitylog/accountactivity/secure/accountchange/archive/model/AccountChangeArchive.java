@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.model;
+package com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.model;
 
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import jakarta.persistence.*;

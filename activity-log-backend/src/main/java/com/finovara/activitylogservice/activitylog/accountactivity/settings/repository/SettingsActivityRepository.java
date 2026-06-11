@@ -1,6 +1,6 @@
-package com.finovara.activityservice.activitylog.accountactivity.settings.repository;
+package com.finovara.activitylogservice.activitylog.accountactivity.settings.repository;
 
-import com.finovara.activityservice.activitylog.accountactivity.settings.model.SettingsActivity;
+import com.finovara.activitylogservice.activitylog.accountactivity.settings.model.SettingsActivity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

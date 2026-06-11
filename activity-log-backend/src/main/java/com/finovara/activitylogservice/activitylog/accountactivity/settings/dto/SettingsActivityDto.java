@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activitylog.accountactivity.settings.dto;
+package com.finovara.activitylogservice.activitylog.accountactivity.settings.dto;
 
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;

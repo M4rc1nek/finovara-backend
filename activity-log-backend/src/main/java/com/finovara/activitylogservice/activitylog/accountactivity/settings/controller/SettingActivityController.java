@@ -1,8 +1,8 @@
-package com.finovara.activityservice.activitylog.accountactivity.settings.controller;
+package com.finovara.activitylogservice.activitylog.accountactivity.settings.controller;
 
-import com.finovara.activityservice.activitylog.accountactivity.settings.dto.SettingsActivityDto;
-import com.finovara.activityservice.activitylog.accountactivity.settings.service.SettingsActivityService;
-import com.finovara.activityservice.security.SecurityUtils;
+import com.finovara.activitylogservice.activitylog.accountactivity.settings.dto.SettingsActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.settings.service.SettingsActivityService;
+import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

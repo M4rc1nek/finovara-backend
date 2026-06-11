@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activitylog.accountactivity.revenue.model;
+package com.finovara.activitylogservice.activitylog.accountactivity.revenue.model;
 
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.model.transaction.RevenueCategory;

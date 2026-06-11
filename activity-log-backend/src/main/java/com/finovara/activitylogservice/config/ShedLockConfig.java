@@ -1,4 +1,4 @@
-package com.finovara.activityservice.config;
+package com.finovara.activitylogservice.config;
 
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;

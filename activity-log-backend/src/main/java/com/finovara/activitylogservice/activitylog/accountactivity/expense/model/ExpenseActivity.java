@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activitylog.accountactivity.expense.model;
+package com.finovara.activitylogservice.activitylog.accountactivity.expense.model;
 
 import com.finovara.contracts.model.activity.ExpenseActivityType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;

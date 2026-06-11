@@ -1,6 +1,6 @@
-package com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.processor;
+package com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.processor;
 
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.repository.AccountChangeArchiveRepository;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.repository.AccountChangeArchiveRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -1,8 +1,8 @@
-package com.finovara.activityservice.activitylog.accountactivity.piggybank.controller;
+package com.finovara.activitylogservice.activitylog.accountactivity.piggybank.controller;
 
-import com.finovara.activityservice.activitylog.accountactivity.piggybank.dto.PiggyBankActivityDto;
-import com.finovara.activityservice.activitylog.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.activityservice.security.SecurityUtils;
+import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.dto.PiggyBankActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.service.PiggyBankActivityService;
+import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

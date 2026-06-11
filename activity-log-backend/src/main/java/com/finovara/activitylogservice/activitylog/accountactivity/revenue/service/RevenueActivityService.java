@@ -1,11 +1,11 @@
-package com.finovara.activityservice.activitylog.accountactivity.revenue.service;
+package com.finovara.activitylogservice.activitylog.accountactivity.revenue.service;
 
-import com.finovara.activityservice.activitylog.accountactivity.core.AccountActivityCore;
-import com.finovara.activityservice.activitylog.accountactivity.revenue.dto.RevenueActivityDto;
-import com.finovara.activityservice.activitylog.accountactivity.revenue.mapper.RevenueActivityMapper;
-import com.finovara.activityservice.activitylog.accountactivity.revenue.model.RevenueActivity;
-import com.finovara.activityservice.activitylog.accountactivity.revenue.repository.RevenueActivityRepository;
-import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
+import com.finovara.activitylogservice.activitylog.accountactivity.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.accountactivity.revenue.dto.RevenueActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.revenue.mapper.RevenueActivityMapper;
+import com.finovara.activitylogservice.activitylog.accountactivity.revenue.model.RevenueActivity;
+import com.finovara.activitylogservice.activitylog.accountactivity.revenue.repository.RevenueActivityRepository;
+import com.finovara.activitylogservice.activitylog.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;

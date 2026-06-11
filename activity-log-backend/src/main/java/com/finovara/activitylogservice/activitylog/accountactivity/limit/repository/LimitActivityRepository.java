@@ -1,6 +1,6 @@
-package com.finovara.activityservice.activitylog.accountactivity.limit.repository;
+package com.finovara.activitylogservice.activitylog.accountactivity.limit.repository;
 
-import com.finovara.activityservice.activitylog.accountactivity.limit.model.LimitActivity;
+import com.finovara.activitylogservice.activitylog.accountactivity.limit.model.LimitActivity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

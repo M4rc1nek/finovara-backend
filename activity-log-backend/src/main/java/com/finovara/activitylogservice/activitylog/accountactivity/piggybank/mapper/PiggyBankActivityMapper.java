@@ -1,7 +1,7 @@
-package com.finovara.activityservice.activitylog.accountactivity.piggybank.mapper;
+package com.finovara.activitylogservice.activitylog.accountactivity.piggybank.mapper;
 
-import com.finovara.activityservice.activitylog.accountactivity.piggybank.dto.PiggyBankActivityDto;
-import com.finovara.activityservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
+import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.dto.PiggyBankActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
 import org.springframework.stereotype.Component;
 
 @Component

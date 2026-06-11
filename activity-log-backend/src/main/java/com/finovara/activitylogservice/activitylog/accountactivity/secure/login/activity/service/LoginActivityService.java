@@ -1,13 +1,13 @@
-package com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.service;
+package com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.service;
 
-import com.finovara.activityservice.activitylog.accountactivity.secure.core.SecurityActivityCore;
-import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.dto.LoginActivityDto;
-import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.model.LoginActivity;
-import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
-import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.model.LoginActivityArchive;
-import com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
-import com.finovara.activityservice.activitylog.datadeletable.UserDataDeletable;
-import com.finovara.activityservice.feignclient.CoreBackendClient;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.core.SecurityActivityCore;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.model.LoginActivity;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.archive.model.LoginActivityArchive;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
+import com.finovara.activitylogservice.activitylog.datadeletable.UserDataDeletable;
+import com.finovara.activitylogservice.feignclient.CoreBackendClient;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import lombok.RequiredArgsConstructor;

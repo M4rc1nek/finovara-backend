@@ -1,7 +1,7 @@
-package com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.repository;
+package com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.repository;
 
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.dto.AccountChangeArchiveDto;
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.dto.AccountChangeArchiveDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

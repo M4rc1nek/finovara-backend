@@ -1,4 +1,4 @@
-package com.finovara.activityservice;
+package com.finovara.activitylogservice;
 
 import com.finovara.contracts.exception.GlobalExceptionHandler;
 import org.springframework.boot.SpringApplication;

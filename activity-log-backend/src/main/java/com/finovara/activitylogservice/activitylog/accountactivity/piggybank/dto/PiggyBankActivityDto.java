@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activitylog.accountactivity.piggybank.dto;
+package com.finovara.activitylogservice.activitylog.accountactivity.piggybank.dto;
 
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;

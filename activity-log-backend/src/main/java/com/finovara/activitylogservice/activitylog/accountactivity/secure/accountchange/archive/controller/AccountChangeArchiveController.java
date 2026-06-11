@@ -1,8 +1,8 @@
-package com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.controller;
+package com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.controller;
 
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.dto.AccountChangeArchiveDto;
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
-import com.finovara.activityservice.security.SecurityUtils;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.dto.AccountChangeArchiveDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
+import com.finovara.activitylogservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

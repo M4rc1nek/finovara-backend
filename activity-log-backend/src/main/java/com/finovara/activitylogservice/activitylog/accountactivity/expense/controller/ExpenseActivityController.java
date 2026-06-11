@@ -1,8 +1,8 @@
-package com.finovara.activityservice.activitylog.accountactivity.expense.controller;
+package com.finovara.activitylogservice.activitylog.accountactivity.expense.controller;
 
-import com.finovara.activityservice.activitylog.accountactivity.expense.dto.ExpenseActivityDto;
-import com.finovara.activityservice.activitylog.accountactivity.expense.service.ExpenseActivityService;
-import com.finovara.activityservice.security.SecurityUtils;
+import com.finovara.activitylogservice.activitylog.accountactivity.expense.dto.ExpenseActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.expense.service.ExpenseActivityService;
+import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

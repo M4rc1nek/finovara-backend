@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activitylog.accountactivity.core;
+package com.finovara.activitylogservice.activitylog.accountactivity.core;
 
 import com.finovara.contracts.model.SortType;
 import org.springframework.data.domain.Pageable;

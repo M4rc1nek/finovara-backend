@@ -1,6 +1,6 @@
-package com.finovara.activityservice.activitylog.accountactivity.limit.processor;
+package com.finovara.activitylogservice.activitylog.accountactivity.limit.processor;
 
-import com.finovara.activityservice.activitylog.accountactivity.limit.repository.LimitActivityRepository;
+import com.finovara.activitylogservice.activitylog.accountactivity.limit.repository.LimitActivityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

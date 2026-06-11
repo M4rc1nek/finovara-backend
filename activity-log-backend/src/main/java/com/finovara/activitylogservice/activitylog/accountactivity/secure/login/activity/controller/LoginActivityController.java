@@ -1,8 +1,8 @@
-package com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.controller;
+package com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.controller;
 
-import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.dto.LoginActivityDto;
-import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.service.LoginActivityService;
-import com.finovara.activityservice.security.SecurityUtils;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.service.LoginActivityService;
+import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

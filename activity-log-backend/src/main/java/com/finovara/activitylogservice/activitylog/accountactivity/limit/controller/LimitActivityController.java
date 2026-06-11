@@ -1,8 +1,8 @@
-package com.finovara.activityservice.activitylog.accountactivity.limit.controller;
+package com.finovara.activitylogservice.activitylog.accountactivity.limit.controller;
 
-import com.finovara.activityservice.activitylog.accountactivity.limit.dto.LimitActivityDto;
-import com.finovara.activityservice.activitylog.accountactivity.limit.service.LimitActivityService;
-import com.finovara.activityservice.security.SecurityUtils;
+import com.finovara.activitylogservice.activitylog.accountactivity.limit.dto.LimitActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.limit.service.LimitActivityService;
+import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

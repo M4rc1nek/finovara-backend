@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activitylog.accountactivity.limit.dto;
+package com.finovara.activitylogservice.activitylog.accountactivity.limit.dto;
 
 import com.finovara.contracts.model.activity.LimitActivityType;
 import com.finovara.contracts.model.PeriodType;

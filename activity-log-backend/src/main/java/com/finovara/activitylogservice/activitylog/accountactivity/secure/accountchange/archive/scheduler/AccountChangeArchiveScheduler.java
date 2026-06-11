@@ -1,6 +1,6 @@
-package com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.scheduler;
+package com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.scheduler;
 
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.archive.processor.AccountChangeArchiveProcessor;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.processor.AccountChangeArchiveProcessor;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;

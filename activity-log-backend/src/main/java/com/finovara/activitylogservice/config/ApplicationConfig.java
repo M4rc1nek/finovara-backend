@@ -1,4 +1,4 @@
-package com.finovara.activityservice.config;
+package com.finovara.activitylogservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

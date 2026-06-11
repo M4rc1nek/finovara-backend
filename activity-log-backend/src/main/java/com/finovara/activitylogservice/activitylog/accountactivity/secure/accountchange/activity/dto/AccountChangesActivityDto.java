@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.activity.dto;
+package com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.dto;
 
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 

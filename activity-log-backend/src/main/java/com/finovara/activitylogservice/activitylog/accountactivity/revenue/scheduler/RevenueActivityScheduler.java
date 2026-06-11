@@ -1,6 +1,6 @@
-package com.finovara.activityservice.activitylog.accountactivity.revenue.scheduler;
+package com.finovara.activitylogservice.activitylog.accountactivity.revenue.scheduler;
 
-import com.finovara.activityservice.activitylog.accountactivity.revenue.processor.RevenueActivityProcessor;
+import com.finovara.activitylogservice.activitylog.accountactivity.revenue.processor.RevenueActivityProcessor;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;

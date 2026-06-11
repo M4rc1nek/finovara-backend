@@ -1,4 +1,4 @@
-package com.finovara.activityservice.activitylog.accountactivity.secure.login.archive.model;
+package com.finovara.activitylogservice.activitylog.accountactivity.secure.login.archive.model;
 
 import com.finovara.contracts.model.activity.LoginActivityStatus;
 import jakarta.persistence.*;

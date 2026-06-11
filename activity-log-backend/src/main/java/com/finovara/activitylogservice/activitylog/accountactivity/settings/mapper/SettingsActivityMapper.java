@@ -1,7 +1,7 @@
-package com.finovara.activityservice.activitylog.accountactivity.settings.mapper;
+package com.finovara.activitylogservice.activitylog.accountactivity.settings.mapper;
 
-import com.finovara.activityservice.activitylog.accountactivity.settings.dto.SettingsActivityDto;
-import com.finovara.activityservice.activitylog.accountactivity.settings.model.SettingsActivity;
+import com.finovara.activitylogservice.activitylog.accountactivity.settings.dto.SettingsActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.settings.model.SettingsActivity;
 import org.springframework.stereotype.Component;
 
 @Component
