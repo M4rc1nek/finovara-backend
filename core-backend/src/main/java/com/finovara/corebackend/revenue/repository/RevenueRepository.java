@@ -1,7 +1,7 @@
 package com.finovara.corebackend.revenue.repository;
 
-import com.finovara.corebackend.report.finances.chart.dto.DailyCashDto;
-import com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.dto.HighestRevenueDto;
+import com.finovara.contracts.transaction.report.dto.DailyCashDto;
+import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
 import com.finovara.corebackend.revenue.model.Revenue;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +36,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     Optional<BigDecimal> avgRevenuesByUserAssignedIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("""
-             SELECT NEW com.finovara.corebackend.report.finances.highesttransactions.highestrevenue.dto.HighestRevenueDto(
+             SELECT NEW com.finovara.contracts.transaction.report.dto.HighestRevenueDto(
              r.category,
              r.amount
             )
@@ -45,7 +45,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<HighestRevenueDto> findHighestRevenuesByUserAssignedIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
-                SELECT new com.finovara.corebackend.report.finances.chart.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.transaction.report.dto.DailyCashDto(
                     r.createdAt,
                     SUM(r.amount)
                 )
@@ -56,7 +56,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<DailyCashDto> sumRevenuesGroupedByDate(Long userId);
 
     @Query("""
-                SELECT new com.finovara.corebackend.report.finances.chart.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.transaction.report.dto.DailyCashDto(
                     r.createdAt,
                     CAST(AVG(r.amount) AS big_decimal)
                 )

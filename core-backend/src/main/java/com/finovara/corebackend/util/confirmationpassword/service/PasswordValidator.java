@@ -1,8 +1,8 @@
 package com.finovara.corebackend.util.confirmationpassword.service;
 
+import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.contracts.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.corebackend.user.model.User;
-import com.finovara.contracts.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

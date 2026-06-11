@@ -1,0 +1,32 @@
+package com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.repository;
+
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.model.LoginActivity;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface LoginActivityRepository extends JpaRepository<LoginActivity, Long> {
+
+    @Query("""
+            SELECT new com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.dto.LoginActivityDto(
+            l.type, l.status, l.createdAt, l.browser, l.ipAddress, l.location)
+            FROM LoginActivity l
+            WHERE l.userId = :userId
+            ORDER BY l.id DESC
+            """)
+     List<LoginActivityDto> findByUserIdOrderByDesc(Long userId);
+
+    @Query("SELECT u FROM LoginActivity u WHERE u.userId = :userId ORDER BY u.id ASC")
+     List<LoginActivity> findOldestByUserId(Long userId, Pageable pageable);
+
+    @Query("SELECT COUNT(u) FROM LoginActivity u WHERE u.userId = :userId")
+     long countActivityLoginByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
+
+}

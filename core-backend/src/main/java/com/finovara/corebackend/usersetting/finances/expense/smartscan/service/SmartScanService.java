@@ -10,7 +10,7 @@ import com.finovara.corebackend.usersetting.finances.expense.model.ExpenseSettin
 import com.finovara.corebackend.usersetting.finances.expense.smartscan.dto.SmartScanDto;
 import com.finovara.corebackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.corebackend.usersetting.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
-import com.finovara.contracts.dto.ConfirmPasswordDto;
+import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.corebackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.corebackend.util.user.service.UserManagerService;
 import org.springframework.transaction.annotation.Transactional;

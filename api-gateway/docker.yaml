@@ -8,8 +8,9 @@ services:
       - "443:8888"
     environment:
       CORE_BACKEND_URL: https://finovara-app:8443
-      ACTIVITY_LOG_URL: https://finovara-activity-app:8082
-      NOTIFICATION_BACKEND_URL: https://notification-app:8086
+      ACTIVITY_LOG_BACKEND_URL: https://finovara-activity-app:8082
+      NOTIFICATION_BACKEND_URL: https://finovara-notification-app:8086
+      REPORT_BACKEND_URL: https://finovara-report-app:8083
       SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
     restart: always
     networks:
