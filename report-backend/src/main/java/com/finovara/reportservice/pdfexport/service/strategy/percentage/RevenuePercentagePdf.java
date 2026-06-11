@@ -1,13 +1,13 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy.percentage;
+package com.finovara.reportservice.pdfexport.service.strategy.percentage;
 
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.pdfexport.report.service.ReportPdfHandler;
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
-import com.finovara.corebackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
-import com.finovara.corebackend.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
-import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
+import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
+import com.finovara.reportservice.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
+import com.finovara.reportservice.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +18,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class RevenuePercentagePdf implements ReportPdfHandler {
+
     private final RevenueCategoryPercentageService revenueCategoryPercentageService;
 
     @Override
@@ -38,7 +39,8 @@ public class RevenuePercentagePdf implements ReportPdfHandler {
     @Override
     public void generate(PdfReportDocument document, Long userId, PeriodType periodType) throws IOException {
         List<RevenueCategoryPercentageDto> percentages = Arrays.stream(RevenueCategory.values())
-                .map(category -> revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(userId, category, periodType))
+                .map(cat -> revenueCategoryPercentageService
+                        .getRevenuePercentageByCategoryReport(userId, cat, periodType))
                 .toList();
 
         document.addSection("Udział przychodów według kategorii");
