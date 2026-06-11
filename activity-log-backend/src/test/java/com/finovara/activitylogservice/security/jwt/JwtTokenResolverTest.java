@@ -1,4 +1,4 @@
-package com.finovara.activityservice.security.jwt;
+package com.finovara.activitylogservice.security.jwt;
 
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
