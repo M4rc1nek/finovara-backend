@@ -1,26 +1,31 @@
-package com.finovara.corebackend.report.finances.sum.service;
+package com.finovara.reportservice.report.finances.sum.service;
 
-import com.finovara.corebackend.report.dto.ReportDto;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.report.dto.ReportDto;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.corebackend.util.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
 public class ReportSummaryService {
 
-    private final FinancialPeriodService financialPeriodService;
+    private final CoreBackendReportClient reportClient;
 
     public ReportDto sumExpense(Long userId, PeriodType periodType) {
-        BigDecimal amount = financialPeriodService.getExpensesSum(userId, periodType);
+        LocalDate to = LocalDate.now();
+        LocalDate from = periodType.getStartDate(to);
+        BigDecimal amount = reportClient.sumExpenses(userId, from, to);
         return new ReportDto(periodType, amount);
     }
 
     public ReportDto sumRevenue(Long userId, PeriodType periodType) {
-        BigDecimal amount = financialPeriodService.getRevenueSum(userId, periodType);
+        LocalDate to = LocalDate.now();
+        LocalDate from = periodType.getStartDate(to);
+        BigDecimal amount = reportClient.sumRevenues(userId, from, to);
         return new ReportDto(periodType, amount);
     }
 }
