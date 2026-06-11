@@ -1,12 +1,12 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy.highest;
+package com.finovara.reportservice.pdfexport.service.strategy.highest;
 
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.pdfexport.report.service.ReportPdfHandler;
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
-import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
-import com.finovara.corebackend.report.finances.highesttransactions.highestexpense.service.HighestExpenseService;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
+import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
+import com.finovara.reportservice.report.finances.highesttransactions.highestexpense.service.HighestExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +16,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class HighestExpensesPdf implements ReportPdfHandler {
+
     private final HighestExpenseService highestExpenseService;
 
     @Override
@@ -42,7 +43,7 @@ public class HighestExpensesPdf implements ReportPdfHandler {
         document.addBarChart(
                 "Największe wydatki według kategorii",
                 expenses.stream()
-                        .map(expense -> PdfReportText.expenseCategoryLabel(expense.expenseCategory()))
+                        .map(e -> PdfReportText.expenseCategoryLabel(e.expenseCategory()))
                         .toList(),
                 expenses.stream()
                         .map(HighestExpenseDto::amount)
@@ -52,9 +53,9 @@ public class HighestExpensesPdf implements ReportPdfHandler {
         document.addTable(
                 new String[]{"Kategoria", "Kwota"},
                 expenses.stream()
-                        .map(expense -> new String[]{
-                                PdfReportText.expenseCategoryLabel(expense.expenseCategory()),
-                                document.formatMoney(expense.amount())
+                        .map(e -> new String[]{
+                                PdfReportText.expenseCategoryLabel(e.expenseCategory()),
+                                document.formatMoney(e.amount())
                         })
                         .toList()
         );
