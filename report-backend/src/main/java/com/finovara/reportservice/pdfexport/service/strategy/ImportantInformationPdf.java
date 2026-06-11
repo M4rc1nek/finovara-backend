@@ -1,26 +1,25 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy;
+package com.finovara.reportservice.pdfexport.service.strategy;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.corebackend.expense.repository.ExpenseRepository;
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.pdfexport.report.service.ReportPdfHandler;
-import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
-import com.finovara.corebackend.report.finances.average.service.ReportAverageService;
-import com.finovara.corebackend.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
-import com.finovara.corebackend.report.finances.categorypercentage.expense.service.ExpenseCategoryPercentageService;
-import com.finovara.corebackend.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
-import com.finovara.corebackend.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
-import com.finovara.corebackend.report.finances.sum.service.ReportSummaryService;
 import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.corebackend.revenue.repository.RevenueRepository;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.corebackend.wallet.service.WalletService;
+import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
+import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
+import com.finovara.reportservice.report.finances.average.service.ReportAverageService;
+import com.finovara.reportservice.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
+import com.finovara.reportservice.report.finances.categorypercentage.expense.service.ExpenseCategoryPercentageService;
+import com.finovara.reportservice.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
+import com.finovara.reportservice.report.finances.categorypercentage.revenue.service.RevenueCategoryPercentageService;
+import com.finovara.reportservice.report.finances.sum.service.ReportSummaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -28,13 +27,12 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class ImportantInformationPdf implements ReportPdfHandler {
-    private final WalletService walletService;
+
+    private final CoreBackendReportClient reportClient;
     private final ReportSummaryService reportSummaryService;
     private final ReportAverageService reportAverageService;
     private final ExpenseCategoryPercentageService expenseCategoryPercentageService;
     private final RevenueCategoryPercentageService revenueCategoryPercentageService;
-    private final ExpenseRepository expenseRepository;
-    private final RevenueRepository revenueRepository;
 
     @Override
     public PdfReportType getType() {
@@ -53,7 +51,7 @@ public class ImportantInformationPdf implements ReportPdfHandler {
 
     @Override
     public void generate(PdfReportDocument document, Long userId, PeriodType periodType) throws IOException {
-        BigDecimal walletBalance = walletService.getWalletForUser(userId).balance();
+        BigDecimal walletBalance = reportClient.walletBalance(userId);
         BigDecimal monthlyRevenue = reportSummaryService.sumRevenue(userId, PeriodType.MONTHLY).amount();
         BigDecimal monthlyExpense = reportSummaryService.sumExpense(userId, PeriodType.MONTHLY).amount();
         BigDecimal weeklyRevenue = reportSummaryService.sumRevenue(userId, PeriodType.WEEKLY).amount();
@@ -61,15 +59,22 @@ public class ImportantInformationPdf implements ReportPdfHandler {
         BigDecimal dailyAverageRevenue = reportAverageService.calculateAverageRevenue(userId, PeriodType.DAILY).amount();
         BigDecimal dailyAverageExpense = reportAverageService.calculateAverageExpense(userId, PeriodType.DAILY).amount();
 
-        List<ExpenseCategoryPercentageDto> expensePercentages = expensePercentages(userId);
-        List<RevenueCategoryPercentageDto> revenuePercentages = revenuePercentages(userId);
+        List<ExpenseCategoryPercentageDto> expensePercentages = Arrays.stream(ExpenseCategory.values())
+                .map(cat -> expenseCategoryPercentageService
+                        .getExpensePercentageByCategoryReport(userId, cat, PeriodType.MONTHLY))
+                .toList();
+
+        List<RevenueCategoryPercentageDto> revenuePercentages = Arrays.stream(RevenueCategory.values())
+                .map(cat -> revenueCategoryPercentageService
+                        .getRevenuePercentageByCategoryReport(userId, cat, PeriodType.MONTHLY))
+                .toList();
 
         ExpenseCategoryPercentageDto highestExpensePercentage = maxExpensePercentage(expensePercentages);
         ExpenseCategoryPercentageDto lowestExpensePercentage = minPositiveExpensePercentage(expensePercentages);
         RevenueCategoryPercentageDto mainRevenueSource = maxRevenuePercentage(revenuePercentages);
 
-        BigDecimal allExpenses = expenseRepository.sumAllExpensesByUserAssignedId(userId);
-        BigDecimal allRevenues = revenueRepository.sumAllRevenuesByUserAssignedId(userId);
+        BigDecimal allExpenses = reportClient.sumAllExpenses(userId);
+        BigDecimal allRevenues = reportClient.sumAllRevenues(userId);
         BigDecimal spentPercentage = percentage(allExpenses, allRevenues);
         BigDecimal savedPercentage = BigDecimal.valueOf(100).subtract(spentPercentage).max(BigDecimal.ZERO);
 
@@ -116,18 +121,6 @@ public class ImportantInformationPdf implements ReportPdfHandler {
         );
     }
 
-    private List<ExpenseCategoryPercentageDto> expensePercentages(Long userId) {
-        return Arrays.stream(ExpenseCategory.values())
-                .map(category -> expenseCategoryPercentageService.getExpensePercentageByCategoryReport(userId, category, PeriodType.MONTHLY))
-                .toList();
-    }
-
-    private List<RevenueCategoryPercentageDto> revenuePercentages(Long userId) {
-        return Arrays.stream(RevenueCategory.values())
-                .map(category -> revenueCategoryPercentageService.getRevenuePercentageByCategoryReport(userId, category, PeriodType.MONTHLY))
-                .toList();
-    }
-
     private ExpenseCategoryPercentageDto maxExpensePercentage(List<ExpenseCategoryPercentageDto> percentages) {
         return percentages.stream()
                 .max(Comparator.comparing(ExpenseCategoryPercentageDto::percentage))
@@ -151,7 +144,8 @@ public class ImportantInformationPdf implements ReportPdfHandler {
         if (total == null || total.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
-        return value.multiply(BigDecimal.valueOf(100)).divide(total, 2, java.math.RoundingMode.HALF_UP);
+        return value.multiply(BigDecimal.valueOf(100))
+                .divide(total, 2, RoundingMode.HALF_UP);
     }
 
     private String expenseLabel(ExpenseCategoryPercentageDto dto) {
