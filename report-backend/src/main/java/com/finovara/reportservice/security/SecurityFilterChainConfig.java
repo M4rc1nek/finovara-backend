@@ -1,6 +1,6 @@
-package com.finovara.activityservice.security;
+package com.finovara.reportservice.security;
 
-import com.finovara.activityservice.security.jwt.JwtAuthenticationFilter;
+import com.finovara.reportservice.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
