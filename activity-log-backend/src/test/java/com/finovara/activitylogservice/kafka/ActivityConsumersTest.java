@@ -1,12 +1,12 @@
-package com.finovara.activityservice.kafka;
+package com.finovara.activitylogservice.kafka;
 
-import com.finovara.activityservice.activitylog.accountactivity.expense.service.ExpenseActivityService;
-import com.finovara.activityservice.activitylog.accountactivity.limit.service.LimitActivityService;
-import com.finovara.activityservice.activitylog.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.activityservice.activitylog.accountactivity.revenue.service.RevenueActivityService;
-import com.finovara.activityservice.activitylog.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
-import com.finovara.activityservice.activitylog.accountactivity.secure.login.activity.service.LoginActivityService;
-import com.finovara.activityservice.activitylog.accountactivity.settings.service.SettingsActivityService;
+import com.finovara.activitylogservice.activitylog.accountactivity.expense.service.ExpenseActivityService;
+import com.finovara.activitylogservice.activitylog.accountactivity.limit.service.LimitActivityService;
+import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.service.PiggyBankActivityService;
+import com.finovara.activitylogservice.activitylog.accountactivity.revenue.service.RevenueActivityService;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.service.LoginActivityService;
+import com.finovara.activitylogservice.activitylog.accountactivity.settings.service.SettingsActivityService;
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
