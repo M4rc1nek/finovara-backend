@@ -1,8 +1,8 @@
-package com.finovara.corebackend.report.finances.chart.controller;
+package com.finovara.reportservice.report.finances.chart.controller;
 
-import com.finovara.corebackend.report.finances.chart.averagecashflow.service.AverageCashFlowChartService;
-import com.finovara.corebackend.report.finances.chart.cashflow.service.TotalCashFlowChartService;
-import com.finovara.corebackend.report.finances.chart.dto.CashFlowDto;
+import com.finovara.reportservice.report.finances.chart.averagecashflow.service.AverageCashFlowChartService;
+import com.finovara.reportservice.report.finances.chart.cashflow.service.TotalCashFlowChartService;
+import com.finovara.reportservice.report.finances.chart.dto.CashFlowDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
