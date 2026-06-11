@@ -1,4 +1,4 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy.label;
+package com.finovara.reportservice.pdfexport.service.strategy.label;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.transaction.RevenueCategory;
