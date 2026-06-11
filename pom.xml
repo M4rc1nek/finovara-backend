@@ -40,6 +40,7 @@
         <module>contracts-backend</module>
         <module>activity-log-backend</module>
         <module>notification-backend</module>
+        <module>report-backend</module>
     </modules>
 
     <!-- ===== DEPENDENCY MANAGEMENT ===== -->
