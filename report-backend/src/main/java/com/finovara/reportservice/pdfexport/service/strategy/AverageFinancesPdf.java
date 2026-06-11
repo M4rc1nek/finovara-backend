@@ -1,12 +1,12 @@
-package com.finovara.corebackend.pdfexport.report.service.strategy;
+package com.finovara.reportservice.pdfexport.service.strategy;
 
-import com.finovara.corebackend.pdfexport.report.model.PdfReportType;
-import com.finovara.corebackend.pdfexport.report.service.ReportPdfHandler;
-import com.finovara.corebackend.pdfexport.report.document.PdfReportDocument;
-import com.finovara.corebackend.pdfexport.report.service.strategy.label.PdfReportText;
-import com.finovara.corebackend.report.dto.ReportDto;
-import com.finovara.corebackend.report.finances.average.service.ReportAverageService;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
+import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
+import com.finovara.reportservice.report.dto.ReportDto;
+import com.finovara.reportservice.report.finances.average.service.ReportAverageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +17,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class AverageFinancesPdf implements ReportPdfHandler {
+
     private final ReportAverageService reportAverageService;
 
     @Override
@@ -42,7 +43,12 @@ public class AverageFinancesPdf implements ReportPdfHandler {
 
         document.addSection("Średnie wartości");
         document.addInfo("Okres:", PdfReportText.periodLabel(periodType));
-        document.addLineChart("Relacja średnich wartości", List.of("Przychody", "Wydatki", "Różnica średnich"), List.of(revenue.amount(), expense.amount(), difference), true);
+        document.addLineChart(
+                "Relacja średnich wartości",
+                List.of("Przychody", "Wydatki", "Różnica średnich"),
+                List.of(revenue.amount(), expense.amount(), difference),
+                true
+        );
         document.addTable(
                 new String[]{"Typ", "Średnia wartość"},
                 List.of(
