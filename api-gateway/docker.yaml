@@ -12,6 +12,7 @@ services:
       NOTIFICATION_BACKEND_URL: https://finovara-notification-app:8086
       REPORT_BACKEND_URL: https://finovara-report-app:8083
       SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     restart: always
     networks:
       - finovara-network
