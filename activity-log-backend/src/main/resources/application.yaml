@@ -31,11 +31,6 @@ spring:
   kafka:
     bootstrap-servers: finovara-kafka:9092
 
-application:
-  security:
-    jwt:
-      secret-key: ${JWT_SECRET_KEY}
-
 core-backend:
   url: ${CORE_BACKEND_URL:https://finovara-app:8443}
 
