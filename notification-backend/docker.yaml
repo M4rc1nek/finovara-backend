@@ -30,7 +30,6 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
-      SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
       SPRING_DATASOURCE_URL: jdbc:postgresql://finovara-notification-db:5432/finovara_notification_db
     healthcheck:
