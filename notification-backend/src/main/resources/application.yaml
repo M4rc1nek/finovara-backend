@@ -44,10 +44,6 @@ server:
     key-store-password: ${SSL_KEY_STORE_PASSWORD}
     key-alias: 1
 
-application:
-  security:
-    jwt:
-      secret-key: ${JWT_SECRET_KEY}
 
 mail:
   recipient:
