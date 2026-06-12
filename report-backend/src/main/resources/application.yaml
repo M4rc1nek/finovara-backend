@@ -12,11 +12,6 @@ spring:
   application:
     name: finovara-report-service
 
-application:
-  security:
-    jwt:
-      secret-key: ${JWT_SECRET_KEY}
-
 core-backend:
   url: ${CORE_BACKEND_URL:https://finovara-app:8443}
 
