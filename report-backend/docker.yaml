@@ -8,6 +8,9 @@ services:
       - "8083:8083"
     environment:
       CORE_BACKEND_URL: https://finovara-app:8443
+      SSL_PASSWORD: ${SSL_PASSWORD}
+    volumes:
+      - ../localhost.p12:/app/localhost.p12
     restart: always
     networks:
       - finovara-network
