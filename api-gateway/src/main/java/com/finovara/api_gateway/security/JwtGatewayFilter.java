@@ -1,7 +1,6 @@
 package com.finovara.api_gateway.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -9,9 +8,9 @@ import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
 
 @Component
 @RequiredArgsConstructor
@@ -19,6 +18,7 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
 
     private final JwtService jwtService;
     private final SecurityProperties securityProperties;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -50,7 +50,8 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isWhitelisted(String path) {
-        return securityProperties.getWhitelist().stream().anyMatch(path::startsWith);
+        return securityProperties.getWhitelist().stream()
+                .anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
     private String resolveToken(ServerHttpRequest request) {
