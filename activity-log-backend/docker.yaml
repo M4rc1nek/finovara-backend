@@ -30,6 +30,9 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
+      SSL_PASSWORD: ${SSL_PASSWORD}
+    volumes:
+      - ../localhost.p12:/app/localhost.p12
     restart: always
     networks:
       - finovara-network
