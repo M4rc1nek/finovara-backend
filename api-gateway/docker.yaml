@@ -12,6 +12,9 @@ services:
       NOTIFICATION_BACKEND_URL: https://finovara-notification-app:8086
       REPORT_BACKEND_URL: https://finovara-report-app:8083
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      SSL_PASSWORD: ${SSL_PASSWORD}
+    volumes:
+      - ../localhost.p12:/app/localhost.p12
     restart: always
     networks:
       - finovara-network
