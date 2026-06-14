@@ -4,14 +4,13 @@ import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.exception.conflict.StateConflictException;
 import com.finovara.authbackend.expense.repository.ExpenseRepository;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import com.finovara.authbackend.usersetting.finances.expense.countlimit.validator.CountQuantityLimitValidator;
 import com.finovara.authbackend.usersetting.finances.expense.model.ExpenseSettings;
+import com.finovara.authbackend.usersetting.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authbackend.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.authbackend.util.user.service.UserManagerService;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -30,7 +29,7 @@ import static org.mockito.Mockito.*;
 class CountQuantityLimitServiceTest {
 
     @Mock
-    private UserManagerService userManagerService;
+    private ExpenseSettingsRepository expenseSettingsRepository;
 
     @Mock
     private CountQuantityLimitValidator countQuantityLimitValidator;
@@ -47,18 +46,14 @@ class CountQuantityLimitServiceTest {
     @InjectMocks
     private CountQuantityLimitService countQuantityLimitService;
 
-    private User user;
     private ExpenseSettings expenseSettings;
 
     private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
-        user = new User();
-        user.setId(USER_ID);
-
         expenseSettings = new ExpenseSettings();
-        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        when(expenseSettingsRepository.findByUserIdOrThrow(USER_ID)).thenReturn(expenseSettings);
     }
 
     @Nested
