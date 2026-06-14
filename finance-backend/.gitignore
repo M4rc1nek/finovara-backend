@@ -6,6 +6,7 @@ target/
 .gitattributes
 mvnw.cmd
 mvnw
+.mvn
 
 
 ### STS ###
