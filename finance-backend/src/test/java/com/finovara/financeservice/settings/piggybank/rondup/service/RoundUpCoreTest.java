@@ -1,12 +1,12 @@
-package com.finovara.authbackend.settings.piggybank.rondup.service;
+package com.finovara.financeservice.settings.piggybank.rondup.service;
 
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authbackend.piggybank.model.PiggyBank;
-import com.finovara.authbackend.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
-import com.finovara.authbackend.settings.piggybank.roundup.service.RoundUpCore;
-import com.finovara.authbackend.wallet.model.Wallet;
+import com.finovara.financeservice.piggybank.model.PiggyBank;
+import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
+import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpCore;
+import com.finovara.financeservice.wallet.model.Wallet;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
