@@ -7,7 +7,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.secure.accoun
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.core.SecurityActivityCore;
 import com.finovara.activitylogservice.activitylog.datadeletable.UserDataDeletable;
-import com.finovara.activitylogservice.feignclient.CoreBackendClient;
+import com.finovara.activitylogservice.feignclient.AuthBackendClient;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
 
     private final AccountChangesActivityRepository accountChangesActivityRepository;
     private final AccountChangeArchiveService accountChangeArchiveService;
-    private final CoreBackendClient coreBackendClient;
+    private final AuthBackendClient authBackendClient;
 
     @Value("${user-activity.account-changes.page-size}")
     private int pageSize;
@@ -52,7 +52,7 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
     }
 
     public void confirmPassword(Long userId, ConfirmPasswordDto dto) {
-        coreBackendClient.verifyPassword(userId, dto);
+        authBackendClient.verifyPassword(userId, dto);
     }
 
     @Override

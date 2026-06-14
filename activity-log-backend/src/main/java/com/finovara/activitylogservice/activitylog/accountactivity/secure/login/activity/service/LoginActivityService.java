@@ -7,7 +7,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
 import com.finovara.activitylogservice.activitylog.datadeletable.UserDataDeletable;
-import com.finovara.activitylogservice.feignclient.CoreBackendClient;
+import com.finovara.activitylogservice.feignclient.AuthBackendClient;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
 
     private final LoginActivityRepository loginActivityRepository;
     private final LoginActivityArchiveService archiveService;
-    private final CoreBackendClient coreBackendClient;
+    private final AuthBackendClient authBackendClient;
 
     @Value("${user-activity.login.page-size}")
     private int pageSize;
@@ -53,7 +53,7 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
     }
 
     public void confirmPassword(Long userId, ConfirmPasswordDto dto) {
-        coreBackendClient.verifyPassword(userId, dto);
+        authBackendClient.verifyPassword(userId, dto);
     }
 
     @Override
