@@ -1,8 +1,8 @@
-package com.finovara.authbackend.settings.finances.recurring.processor;
+package com.finovara.financeservice.settings.finances.recurring.processor;
 
-import com.finovara.authbackend.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.authbackend.settings.finances.recurring.repository.RecurringSettingsRepository;
-import com.finovara.authbackend.settings.finances.recurring.service.execution.RecurringExecutionService;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
+import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
+import com.finovara.financeservice.settings.finances.recurring.service.execution.RecurringExecutionService;
 import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

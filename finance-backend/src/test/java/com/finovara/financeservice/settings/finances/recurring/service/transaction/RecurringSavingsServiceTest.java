@@ -1,14 +1,14 @@
-package com.finovara.authbackend.settings.finances.recurring.service.transaction;
+package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
 import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.authbackend.settings.finances.recurring.dto.RecurringCommonFields;
-import com.finovara.authbackend.settings.finances.recurring.dto.RecurringSavingsDto;
-import com.finovara.authbackend.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.authbackend.settings.finances.recurring.model.RecurringType;
-import com.finovara.authbackend.settings.finances.recurring.service.support.RecurringSettingsSupport;
-import com.finovara.authbackend.settings.finances.recurring.service.validator.RecurringSavingsValidator;
-import com.finovara.authbackend.util.wallet.WalletManagerService;
-import com.finovara.authbackend.wallet.model.Wallet;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringSavingsDto;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
+import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
+import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
+import com.finovara.financeservice.util.wallet.WalletManagerService;
+import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

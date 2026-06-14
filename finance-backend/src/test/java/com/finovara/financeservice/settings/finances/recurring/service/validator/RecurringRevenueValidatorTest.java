@@ -1,9 +1,9 @@
-package com.finovara.authbackend.settings.finances.recurring.service.validator;
+package com.finovara.financeservice.settings.finances.recurring.service.validator;
 
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authbackend.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.authbackend.settings.finances.recurring.service.validator.util.RecurringBasicValidator;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
+import com.finovara.financeservice.settings.finances.recurring.service.validator.util.RecurringBasicValidator;
 import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
