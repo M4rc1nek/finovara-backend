@@ -1,11 +1,11 @@
-package com.finovara.authbackend.revenuehistory.service;
+package com.finovara.financeservice.revenuehistory.service;
 
-import com.finovara.authbackend.revenue.dto.RevenueDto;
-import com.finovara.authbackend.revenue.mapper.RevenueMapper;
-import com.finovara.authbackend.revenue.model.Revenue;
+import com.finovara.financeservice.revenue.dto.RevenueDto;
+import com.finovara.financeservice.revenue.mapper.RevenueMapper;
+import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.authbackend.util.periodbalance.FinancialPeriodService;
+import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
