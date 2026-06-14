@@ -13,8 +13,8 @@
     </parent>
 
     <artifactId>auth-backend</artifactId>
-    <name>core-backend</name>
-    <description>Backend REST API for Finovara – a personal finance management application</description>
+    <name>auth-backend</name>
+    <description>Auth service for Finovara</description>
 
     <!-- ===== DEPENDENCIES ===== -->
     <dependencies>
