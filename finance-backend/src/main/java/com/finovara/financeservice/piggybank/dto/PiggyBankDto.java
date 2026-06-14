@@ -1,4 +1,4 @@
-package com.finovara.authbackend.piggybank.dto;
+package com.finovara.financeservice.piggybank.dto;
 
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import jakarta.validation.constraints.*;

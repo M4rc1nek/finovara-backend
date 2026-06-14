@@ -1,6 +1,6 @@
-package com.finovara.authbackend.piggybank.repository;
+package com.finovara.financeservice.piggybank.repository;
 
-import com.finovara.authbackend.piggybank.model.PiggyBank;
+import com.finovara.financeservice.piggybank.model.PiggyBank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

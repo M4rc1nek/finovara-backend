@@ -1,21 +1,19 @@
-package com.finovara.authbackend.piggybank.service;
+package com.finovara.financeservice.piggybank.service;
 
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.authbackend.piggybank.dto.PiggyBankDto;
-import com.finovara.authbackend.piggybank.mapper.PiggyBankMapper;
-import com.finovara.authbackend.piggybank.model.PiggyBank;
-import com.finovara.authbackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.authbackend.usersetting.factory.SettingsFactory;
-import com.finovara.authbackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
-import com.finovara.authbackend.usersetting.piggybank.model.PiggyBankSettings;
-import com.finovara.authbackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
-import com.finovara.authbackend.util.piggybank.PiggyBankCalculator;
-import com.finovara.authbackend.util.piggybank.PiggyBankCheckGoalCompletion;
-import com.finovara.authbackend.util.piggybank.PiggyBankValidator;
-import com.finovara.authbackend.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
+import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
+import com.finovara.financeservice.piggybank.model.PiggyBank;
+import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
+import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
+import com.finovara.financeservice.settings.piggybank.repository.PiggyBankSettingsRepository;
+import com.finovara.financeservice.util.piggybank.PiggyBankCalculator;
+import com.finovara.financeservice.util.piggybank.PiggyBankCheckGoalCompletion;
+import com.finovara.financeservice.util.piggybank.PiggyBankValidator;
+import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +35,6 @@ public class PiggyBankManagementService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final PiggyBankSettingsRepository piggyBankSettingsRepository;
     private final RecurringSettingsRepository recurringSettingsRepository;
-    private final SettingsFactory settingsFactory;
     private final PiggyBankMapper piggyBankMapper;
 
     @Transactional
@@ -66,7 +63,7 @@ public class PiggyBankManagementService {
 
         PiggyBank saved = piggyBankRepository.save(piggyBank);
         kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.ADDED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
-        PiggyBankSettings settings = settingsFactory.createDefaultPiggyBankSettings(saved);
+        PiggyBankSettings settings = settingsFactory.createDefaultPiggyBankSettings(saved); // kafka
         piggyBankSettingsRepository.save(settings);
 
         return saved.getId();

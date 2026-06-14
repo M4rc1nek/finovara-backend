@@ -1,10 +1,9 @@
-package com.finovara.authbackend.piggybank.controller;
+package com.finovara.financeservice.piggybank.controller;
 
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.authbackend.piggybank.dto.PiggyBankDto;
-import com.finovara.authbackend.piggybank.service.PiggyBankManagementService;
-import com.finovara.authbackend.piggybank.service.PiggyBankTransactionService;
-import com.finovara.authbackend.security.SecurityUtils;
+import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
+import com.finovara.financeservice.piggybank.service.PiggyBankManagementService;
+import com.finovara.financeservice.piggybank.service.PiggyBankTransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static com.finovara.authbackend.security.SecurityUtils.getCurrentUserId;
+import static com.finovara.financeservice.security.SecurityUtils.getCurrentUserId;
 
 @RestController
 @RequestMapping("/api/piggy-banks")
@@ -29,7 +28,7 @@ public class PiggyBankManagementController {
 
     @PatchMapping("/{piggyBankId}")
     public ResponseEntity<Long> editPiggyBank(@RequestBody @Valid PiggyBankDto piggyBankDto, @PathVariable Long piggyBankId) {
-        return ResponseEntity.ok(piggyBankManagementService.editPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankDto, piggyBankId));
+        return ResponseEntity.ok(piggyBankManagementService.editPiggyBank(getCurrentUserId(), piggyBankDto, piggyBankId));
     }
 
     @GetMapping
