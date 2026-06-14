@@ -1,9 +1,8 @@
 package com.finovara.authbackend.usersetting.finances.expense.countlimit.service;
 
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitEmergencyModeDto;
 import com.finovara.authbackend.usersetting.finances.expense.model.ExpenseSettings;
-import com.finovara.authbackend.util.user.service.UserManagerService;
+import com.finovara.authbackend.usersetting.finances.expense.repository.ExpenseSettingsRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,21 +18,20 @@ import static org.mockito.Mockito.when;
 class CountQuantityLimitEmergencyModeTest {
 
     @Mock
-    private UserManagerService userManagerService;
+    private ExpenseSettingsRepository expenseSettingsRepository;
 
     @InjectMocks
     private CountQuantityLimitEmergencyModeService emergencyModeService;
 
-    private User user;
     private ExpenseSettings expenseSettings;
 
     private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setup() {
-        user = new User();
         expenseSettings = new ExpenseSettings();
-        }
+        when(expenseSettingsRepository.findByUserIdOrThrow(USER_ID)).thenReturn(expenseSettings);
+    }
 
     @ParameterizedTest
     @CsvSource({
@@ -41,8 +39,6 @@ class CountQuantityLimitEmergencyModeTest {
             "false"
     })
     void shouldSetEmergencyModeBasedOnDto(boolean enabled) {
-        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-
         CountQuantityLimitEmergencyModeDto dto =
                 new CountQuantityLimitEmergencyModeDto(enabled);
 
