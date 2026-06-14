@@ -1,6 +1,5 @@
 package com.finovara.authbackend.usersetting.finances.recurring.processor;
 
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.authbackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.authbackend.usersetting.finances.recurring.service.execution.RecurringExecutionService;
@@ -45,7 +44,7 @@ class RecurringProcessorTest {
         settings.setEnable(true);
         settings.setNextExecutionDate(nextExecutionDate);
         settings.setAmount(BigDecimal.valueOf(100));
-        settings.setUserId(new User());
+        settings.setUserId(1L);
 
         settings.setPeriodType(PeriodType.DAILY);
 
