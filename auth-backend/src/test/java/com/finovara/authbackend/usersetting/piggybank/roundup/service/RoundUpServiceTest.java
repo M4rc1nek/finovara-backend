@@ -9,14 +9,12 @@ import com.finovara.authbackend.piggybank.model.PiggyBank;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import com.finovara.authbackend.piggybank.repository.PiggyBankRepository;
 import com.finovara.authbackend.piggybank.service.PiggyBankManagementService;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.authbackend.usersetting.piggybank.completion.service.GoalCompletionService;
 import com.finovara.authbackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.authbackend.usersetting.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.authbackend.util.expense.ExpenseManagerService;
 import com.finovara.authbackend.util.piggybank.manager.PiggyBankManagerService;
-import com.finovara.authbackend.util.user.service.UserManagerService;
 import com.finovara.authbackend.wallet.model.Wallet;
 import com.finovara.authbackend.wallet.repository.WalletRepository;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -42,9 +40,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RoundUpServiceTest {
-
-    @Mock
-    private UserManagerService userManagerService;
     @Mock
     private PiggyBankManagerService piggyBankManagerService;
     @Mock
@@ -71,13 +66,8 @@ class RoundUpServiceTest {
     private PiggyBank piggyBank;
     private Wallet wallet;
     private Expense expense;
-    private User user;
-
     @BeforeEach
     void setup() {
-        user = new User();
-        user.setId(userId);
-
         wallet = Wallet.create(userId);
         wallet.deposit(BigDecimal.valueOf(500));
 
@@ -87,8 +77,6 @@ class RoundUpServiceTest {
         piggyBank = new PiggyBank();
         piggyBank.setAmount(BigDecimal.valueOf(200));
         piggyBank.setSettings(new PiggyBankSettings());
-
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
     }
 
     @Nested
@@ -204,13 +192,5 @@ class RoundUpServiceTest {
             verify(piggyBankManagementService).addPiggyBank(dto, userId);
         }
 
-        @Test
-        void shouldThrowExceptionWhenUserDoesNotExist() {
-            PiggyBankDto dto = new PiggyBankDto(12L, null, "My piggy bank", new BigDecimal("50"), null, PiggyBankGoalType.GIFTS, new BigDecimal("100"), null, false);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("User not found"));
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> roundUpService.addDefaultPiggyBank(dto, userId));
-        }
     }
 }
