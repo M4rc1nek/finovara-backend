@@ -8,9 +8,7 @@ import com.finovara.authbackend.limit.dto.LimitStatsDto;
 import com.finovara.authbackend.limit.model.Limit;
 import com.finovara.authbackend.limit.repository.LimitRepository;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.authbackend.util.user.service.UserManagerService;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -40,8 +38,6 @@ class LimitManagementServiceTest {
     @Mock
     private LimitRepository limitRepository;
     @Mock
-    private UserManagerService userManagerService;
-    @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
     @Mock
     private LimitCalculateService limitCalculateService;
@@ -50,15 +46,12 @@ class LimitManagementServiceTest {
     private LimitManagementService limitManagementService;
 
     private Long userId;
-    private User user;
     private Long limitId;
 
     @BeforeEach
     void setUp() {
         userId = 1L;
         limitId = 1L;
-        user = new User();
-        user.setId(userId);
     }
 
     @Nested
@@ -66,8 +59,6 @@ class LimitManagementServiceTest {
         @Test
         void shouldCreateLimitSuccessfully() {
             LimitDto dto = new LimitDto(userId, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.findByUserIdAndType(userId, dto.periodType())).thenReturn(List.of());
 
             Limit saved = new Limit();
@@ -86,8 +77,6 @@ class LimitManagementServiceTest {
         @Test
         void shouldThrowWhenLimitAlreadyExists() {
             LimitDto dto = new LimitDto(userId, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.findByUserIdAndType(userId, dto.periodType())).thenReturn(List.of(new Limit()));
 
             assertThrows(EntityAlreadyExistsException.class, () -> limitManagementService.createLimit(dto, userId));
@@ -95,14 +84,6 @@ class LimitManagementServiceTest {
             verifyNoInteractions(kafkaTemplate);
         }
 
-        @Test
-        void shouldThrowWhenUserNotFound() {
-            LimitDto dto = new LimitDto(null, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("User not found"));
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> limitManagementService.createLimit(dto, userId));
-        }
     }
 
     @Nested
@@ -114,8 +95,6 @@ class LimitManagementServiceTest {
             limit.setId(limitId);
             limit.setUserId(userId);
             limit.setAmount(new BigDecimal("100"));
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.findByIdAndUserId(userId, limitId)).thenReturn(Optional.of(limit));
             when(limitRepository.save(any(Limit.class))).thenReturn(limit);
 
@@ -124,8 +103,6 @@ class LimitManagementServiceTest {
             assertEquals(limitId, result);
             assertEquals(dto.amount(), limit.getAmount());
             assertEquals(dto.periodType(), limit.getPeriodType());
-
-            verify(userManagerService).getUserByIdOrThrow(userId);
             verify(limitRepository).findByIdAndUserId(userId, limitId);
             ArgumentCaptor<LimitActivityEvent> eventCaptor = ArgumentCaptor.forClass(LimitActivityEvent.class);
             verify(kafkaTemplate).send(eq("activity.limit"), eventCaptor.capture());
@@ -135,7 +112,6 @@ class LimitManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenLimitMissing() {
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.findByIdAndUserId(userId, 1L)).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class, () ->
@@ -151,8 +127,6 @@ class LimitManagementServiceTest {
         void shouldReturnStats() {
             Limit limit = new Limit();
             limit.setId(10L);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit));
 
             LimitStatsDto dto = new LimitStatsDto(10L, null, BigDecimal.valueOf(100), BigDecimal.valueOf(30),
@@ -167,7 +141,6 @@ class LimitManagementServiceTest {
 
         @Test
         void shouldReturnEmptyList() {
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
             List<LimitStatsDto> result = limitManagementService.getLimitStats(userId);
@@ -175,12 +148,6 @@ class LimitManagementServiceTest {
             assertThat(result, is(empty()));
         }
 
-        @Test
-        void shouldThrowUserNotFound() {
-            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("User not found"));
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> limitManagementService.getLimitStats(userId));
-        }
     }
 
     @Nested
@@ -192,8 +159,6 @@ class LimitManagementServiceTest {
 
             Limit limit = new Limit();
             limit.setId(limitId);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.findByIdAndUserId(userId, limitId)).thenReturn(Optional.of(limit));
 
             limitManagementService.deleteLimit(userId, limitId);
@@ -206,19 +171,11 @@ class LimitManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenLimitNotFound() {
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.findByIdAndUserId(userId, 10L)).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class, () -> limitManagementService.deleteLimit(userId, 10L));
 
             verifyNoInteractions(kafkaTemplate);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenUserNotFound() {
-            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("User not found"));
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> limitManagementService.deleteLimit(userId, 10L));
         }
 
     }
