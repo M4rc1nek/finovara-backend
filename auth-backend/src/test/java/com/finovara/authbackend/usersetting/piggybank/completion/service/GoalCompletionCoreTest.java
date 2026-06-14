@@ -1,13 +1,13 @@
-package com.finovara.corebackend.usersetting.piggybank.completion.service;
+package com.finovara.authbackend.usersetting.piggybank.completion.service;
 
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.corebackend.piggybank.model.PiggyBank;
-import com.finovara.corebackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.corebackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.corebackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
-import com.finovara.corebackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
-import com.finovara.corebackend.wallet.model.Wallet;
+import com.finovara.authbackend.piggybank.model.PiggyBank;
+import com.finovara.authbackend.piggybank.repository.PiggyBankRepository;
+import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
+import com.finovara.authbackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
+import com.finovara.authbackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
+import com.finovara.authbackend.wallet.model.Wallet;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
