@@ -1,6 +1,6 @@
-package com.finovara.authbackend.util.piggybank;
+package com.finovara.financeservice.util.piggybank;
 
-import com.finovara.authbackend.piggybank.model.PiggyBank;
+import com.finovara.financeservice.piggybank.model.PiggyBank;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass

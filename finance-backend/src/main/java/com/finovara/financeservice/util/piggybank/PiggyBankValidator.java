@@ -1,7 +1,7 @@
-package com.finovara.authbackend.util.piggybank;
+package com.finovara.financeservice.util.piggybank;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authbackend.piggybank.dto.PiggyBankDto;
+import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import lombok.experimental.UtilityClass;
 
 import java.math.BigDecimal;

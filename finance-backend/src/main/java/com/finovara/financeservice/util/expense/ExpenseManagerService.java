@@ -1,8 +1,8 @@
-package com.finovara.authbackend.util.expense;
+package com.finovara.financeservice.util.expense;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.authbackend.expense.model.Expense;
-import com.finovara.authbackend.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.expense.model.Expense;
+import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
