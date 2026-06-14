@@ -11,7 +11,6 @@ import com.finovara.authbackend.user.dto.UserLoginDto;
 import com.finovara.authbackend.user.dto.UserRegisterDto;
 import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.user.repository.UserRepository;
-import com.finovara.authbackend.usersetting.factory.FinanceUserBootstrap;
 import com.finovara.authbackend.usersetting.factory.SettingsFactory;
 import com.finovara.authbackend.util.email.EmailDomainValidator;
 import com.finovara.authbackend.util.profile.ProfileImageUrlBuilder;
@@ -44,7 +43,6 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
 
     private final SettingsFactory settingsFactory;
-    private final FinanceUserBootstrap financeUserBootstrap;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final EmailDomainValidator emailDomainValidator;
 
@@ -69,7 +67,6 @@ public class UserService {
         user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
 
         User savedUser = userRepository.save(user);
-        financeUserBootstrap.createDefaultFinanceEntities(savedUser);
         String jwtToken = jwtService.generateToken(savedUser);
         String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(savedUser.getProfileImagePath());
         kafkaTemplate.send("user.created", new CreateDefaultNotificationEmailSettingsEvent(savedUser.getId()));
