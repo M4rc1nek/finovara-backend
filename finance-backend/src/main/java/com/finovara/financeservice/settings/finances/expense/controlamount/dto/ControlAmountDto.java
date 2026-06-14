@@ -1,4 +1,4 @@
-package com.finovara.authbackend.usersetting.finances.expense.controlamount.dto;
+package com.finovara.financeservice.settings.finances.expense.controlamount.dto;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;

@@ -1,7 +1,7 @@
-package com.finovara.authbackend.usersetting.finances.expense.repository;
+package com.finovara.financeservice.settings.finances.expense.repository;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.authbackend.usersetting.finances.expense.model.ExpenseSettings;
+import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

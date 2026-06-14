@@ -1,8 +1,8 @@
-package com.finovara.authbackend.usersetting.finances.expense.controlamount.controller;
+package com.finovara.financeservice.settings.finances.expense.controlamount.controller;
 
-import com.finovara.authbackend.security.SecurityUtils;
-import com.finovara.authbackend.usersetting.finances.expense.controlamount.dto.ControlAmountDto;
-import com.finovara.authbackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
+import com.finovara.financeservice.security.SecurityUtils;
+import com.finovara.financeservice.settings.finances.expense.controlamount.dto.ControlAmountDto;
+import com.finovara.financeservice.settings.finances.expense.controlamount.service.ControlAmountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

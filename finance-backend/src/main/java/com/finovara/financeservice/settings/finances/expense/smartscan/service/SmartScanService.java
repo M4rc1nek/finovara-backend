@@ -1,17 +1,17 @@
-package com.finovara.authbackend.usersetting.finances.expense.smartscan.service;
+package com.finovara.financeservice.settings.finances.expense.smartscan.service;
 
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.authbackend.expense.model.Expense;
-import com.finovara.authbackend.expense.repository.ExpenseRepository;
-import com.finovara.authbackend.usersetting.finances.expense.model.ExpenseSettings;
-import com.finovara.authbackend.usersetting.finances.expense.repository.ExpenseSettingsRepository;
-import com.finovara.authbackend.usersetting.finances.expense.smartscan.dto.SmartScanDto;
-import com.finovara.authbackend.usersetting.finances.expense.smartscan.dto.SmartScanMode;
-import com.finovara.authbackend.usersetting.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
+import com.finovara.financeservice.expense.model.Expense;
+import com.finovara.financeservice.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
+import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
+import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanDto;
+import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
+import com.finovara.financeservice.settings.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
-import com.finovara.authbackend.util.confirmationpassword.service.PasswordValidator;
+import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

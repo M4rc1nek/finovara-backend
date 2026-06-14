@@ -1,8 +1,8 @@
-package com.finovara.authbackend.usersetting.finances.expense.smartscan.controller;
+package com.finovara.financeservice.settings.finances.expense.smartscan.controller;
 
-import com.finovara.authbackend.security.SecurityUtils;
-import com.finovara.authbackend.usersetting.finances.expense.smartscan.dto.SmartScanDto;
-import com.finovara.authbackend.usersetting.finances.expense.smartscan.service.SmartScanService;
+import com.finovara.financeservice.security.SecurityUtils;
+import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanDto;
+import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

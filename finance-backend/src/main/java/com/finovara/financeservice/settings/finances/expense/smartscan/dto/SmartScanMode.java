@@ -1,4 +1,4 @@
-package com.finovara.authbackend.usersetting.finances.expense.smartscan.dto;
+package com.finovara.financeservice.settings.finances.expense.smartscan.dto;
 
 public enum SmartScanMode {
     ADD,

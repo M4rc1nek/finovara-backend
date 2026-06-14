@@ -1,4 +1,4 @@
-package com.finovara.authbackend.usersetting.finances.expense.model;
+package com.finovara.financeservice.settings.finances.expense.model;
 
 import com.finovara.contracts.model.PeriodType;
 import jakarta.persistence.*;

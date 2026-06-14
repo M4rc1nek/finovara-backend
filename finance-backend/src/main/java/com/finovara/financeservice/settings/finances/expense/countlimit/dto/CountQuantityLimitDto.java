@@ -1,4 +1,4 @@
-package com.finovara.authbackend.usersetting.finances.expense.countlimit.dto;
+package com.finovara.financeservice.settings.finances.expense.countlimit.dto;
 
 import com.finovara.contracts.model.PeriodType;
 import jakarta.validation.constraints.Max;
