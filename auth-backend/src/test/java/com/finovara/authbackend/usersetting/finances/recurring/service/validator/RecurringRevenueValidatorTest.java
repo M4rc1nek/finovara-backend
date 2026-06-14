@@ -2,7 +2,6 @@ package com.finovara.authbackend.usersetting.finances.recurring.service.validato
 
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.authbackend.usersetting.finances.recurring.service.validator.util.RecurringBasicValidator;
 import com.finovara.contracts.model.PeriodType;
@@ -39,7 +38,7 @@ class RecurringRevenueValidatorTest {
         recurringSettings.setPeriodType(PeriodType.MONTHLY);
         recurringSettings.setRevenueCategory(RevenueCategory.SALARY);
 
-        recurringSettings.setUserId(new User());
+        recurringSettings.setUserId(1L);
     }
 
     @Test
