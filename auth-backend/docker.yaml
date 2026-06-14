@@ -1,12 +1,12 @@
 version: '3.9'
 
 services:
-  finovara-db:
+  auth-db:
     image: postgres:17
-    container_name: finovara-db
+    container_name: finovara-auth-db
     restart: always
     environment:
-      POSTGRES_DB: finovara_db
+      POSTGRES_DB: finovara_auth_db
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
@@ -18,26 +18,9 @@ services:
     networks:
       - finovara-network
 
-  finovara-test:
-    image: postgres:17
-    container_name: finovara-test
-    restart: always
-    environment:
-      POSTGRES_DB: finovara_test
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_TEST_PASSWORD}
-    ports:
-      - "5433:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
-      interval: 5s
-      retries: 10
-    networks:
-      - finovara-network
-
-  finovara-app:
+  auth-app:
     build: .
-    container_name: finovara-app
+    container_name: finovara-auth-app
     depends_on:
       finovara-db:
         condition: service_healthy
@@ -57,11 +40,15 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ../localhost.p12:/app/localhost.p12
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f https://localhost:8086/actuator/health || exit 1" ]
+      interval: 10s
+      retries: 10
     restart: always
     networks:
       - finovara-network
 
 networks:
-  finovara-network:
-    external: true
-    name: finovara-network
+    finovara-network:
+      external: true
+      name: finovara-network
