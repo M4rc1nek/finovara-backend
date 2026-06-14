@@ -1,6 +1,6 @@
 package com.finovara.reportservice.report.finances.chart.cashflow.service;
 
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.finances.chart.builder.CashFlowChartService;
 import com.finovara.reportservice.report.finances.chart.dto.CashFlowDto;
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
@@ -13,7 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TotalCashFlowChartService {
 
-    private final CoreBackendReportClient reportClient;
+    private final FinanceBackendReportClient reportClient;
     private final CashFlowChartService cashFlowChartService;
 
     public List<CashFlowDto> getCashFlowChart(Long userId) {

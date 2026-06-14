@@ -1,7 +1,7 @@
 package com.finovara.reportservice.report.smartreport.service.handler;
 
 import com.finovara.contracts.percentage.CalculatePercentage;
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.smartreport.model.SmartReportType;
 import com.finovara.reportservice.report.smartreport.service.SmartReportHandler;
 import com.finovara.reportservice.report.smartreport.service.loader.SmartReportTemplateService;
@@ -15,7 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SavingsRateHandler implements SmartReportHandler {
 
-    private final CoreBackendReportClient reportClient;
+    private final FinanceBackendReportClient reportClient;
     private final SmartReportTemplateService templateService;
 
     @Override

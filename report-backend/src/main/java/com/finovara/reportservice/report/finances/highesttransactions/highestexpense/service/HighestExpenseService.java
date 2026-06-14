@@ -3,7 +3,7 @@ package com.finovara.reportservice.report.finances.highesttransactions.highestex
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HighestExpenseService {
 
-    private final CoreBackendReportClient reportClient;
+    private final FinanceBackendReportClient reportClient;
 
     @Value("${expenses.highest.page-size}")
     private int pageSize;

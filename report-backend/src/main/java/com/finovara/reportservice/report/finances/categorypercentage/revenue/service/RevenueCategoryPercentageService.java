@@ -1,7 +1,7 @@
 package com.finovara.reportservice.report.finances.categorypercentage.revenue.service;
 
 import com.finovara.contracts.percentage.CalculatePercentage;
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.model.PeriodType;
@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class RevenueCategoryPercentageService {
 
-    private final CoreBackendReportClient reportClient;
+    private final FinanceBackendReportClient reportClient;
 
     public RevenueCategoryPercentageDto getRevenuePercentageByCategoryReport(
             Long userId, RevenueCategory category, PeriodType periodType) {
