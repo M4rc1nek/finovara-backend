@@ -1,13 +1,13 @@
-package com.finovara.authbackend.limit.service;
+package com.finovara.financeservice.limit.service;
 
-import com.finovara.authbackend.limit.dto.LimitStatsDto;
+import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.authbackend.limit.mapper.LimitMapper;
-import com.finovara.authbackend.limit.model.Limit;
-import com.finovara.authbackend.limit.model.LimitStatus;
+import com.finovara.financeservice.limit.mapper.LimitMapper;
+import com.finovara.financeservice.limit.model.Limit;
+import com.finovara.financeservice.limit.model.LimitStatus;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.authbackend.limit.repository.LimitRepository;
-import com.finovara.authbackend.util.periodbalance.FinancialPeriodService;
+import com.finovara.financeservice.limit.repository.LimitRepository;
+import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
