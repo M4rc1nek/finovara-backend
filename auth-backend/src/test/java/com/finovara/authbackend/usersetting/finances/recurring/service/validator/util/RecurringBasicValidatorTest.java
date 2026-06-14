@@ -1,7 +1,6 @@
 package com.finovara.authbackend.usersetting.finances.recurring.service.validator.util;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +32,7 @@ class RecurringBasicValidatorTest {
 
         @Test
         void shouldPassValidationWhenAllFieldsAreValid() {
-            recurringSettings.setUserId(new User());
+            recurringSettings.setUserId(1L);
 
             assertDoesNotThrow(() -> recurringBasicValidator.validateBasics(recurringSettings, "CATEGORY"));
         }
@@ -50,7 +49,7 @@ class RecurringBasicValidatorTest {
 
         @Test
         void shouldThrowExceptionWhenStartDateIsNull() {
-            recurringSettings.setUserId(new User());
+            recurringSettings.setUserId(1L);
             recurringSettings.setStartDate(null);
 
             InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
@@ -61,7 +60,7 @@ class RecurringBasicValidatorTest {
 
         @Test
         void shouldThrowExceptionWhenCategoryIsNull() {
-            recurringSettings.setUserId(new User());
+            recurringSettings.setUserId(1L);
 
             InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
                     () -> recurringBasicValidator.validateBasics(recurringSettings, null));
@@ -71,7 +70,7 @@ class RecurringBasicValidatorTest {
 
         @Test
         void shouldThrowExceptionWhenPeriodTypeIsNull() {
-            recurringSettings.setUserId(new User());
+            recurringSettings.setUserId(1L);
             recurringSettings.setPeriodType(null);
 
             InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
@@ -82,7 +81,7 @@ class RecurringBasicValidatorTest {
 
         @Test
         void shouldThrowExceptionWhenAmountIsNull() {
-            recurringSettings.setUserId(new User());
+            recurringSettings.setUserId(1L);
             recurringSettings.setAmount(null);
 
             InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
@@ -97,7 +96,7 @@ class RecurringBasicValidatorTest {
 
         @Test
         void shouldPassValidationWhenAllFieldsAreValid() {
-            recurringSettings.setUserId(new User());
+            recurringSettings.setUserId(1L);
 
             assertDoesNotThrow(() -> recurringBasicValidator.validateBasicsWithoutCategory(recurringSettings));
         }
@@ -114,7 +113,7 @@ class RecurringBasicValidatorTest {
 
         @Test
         void shouldThrowExceptionWhenStartDateIsNull() {
-            recurringSettings.setUserId(new User());
+            recurringSettings.setUserId(1L);
             recurringSettings.setStartDate(null);
 
             InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
@@ -125,7 +124,7 @@ class RecurringBasicValidatorTest {
 
         @Test
         void shouldThrowExceptionWhenPeriodTypeIsNull() {
-            recurringSettings.setUserId(new User());
+            recurringSettings.setUserId(1L);
             recurringSettings.setPeriodType(null);
 
             InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
@@ -136,7 +135,7 @@ class RecurringBasicValidatorTest {
 
         @Test
         void shouldThrowExceptionWhenAmountIsNull() {
-            recurringSettings.setUserId(new User());
+            recurringSettings.setUserId(1L);
             recurringSettings.setAmount(null);
 
             InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
