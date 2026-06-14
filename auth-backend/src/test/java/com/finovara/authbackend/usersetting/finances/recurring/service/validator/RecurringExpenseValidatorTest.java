@@ -8,7 +8,6 @@ import com.finovara.authbackend.usersetting.finances.expense.smartscan.service.S
 import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.authbackend.usersetting.finances.recurring.service.validator.util.RecurringBasicValidator;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -51,7 +50,6 @@ class RecurringExpenseValidatorTest {
         expenseSettings = new ExpenseSettings();
         wallet = Wallet.create(1L);
 
-        recurringSettings.setUserId(new User());
         recurringSettings.setUserId(1L);
     }
 
