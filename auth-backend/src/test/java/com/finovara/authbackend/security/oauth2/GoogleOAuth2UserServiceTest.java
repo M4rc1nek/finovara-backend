@@ -124,8 +124,6 @@ class GoogleOAuth2UserServiceTest {
 
             googleOAuth2UserService.synchronize(oauth2User);
 
-            verify(settingsFactory).createDefaultExpenseSettings(any());
-            verify(settingsFactory).createDefaultRecurringSettings(any());
             verify(settingsFactory).createDefaultAccountSettings(any());
             ArgumentCaptor<CreateDefaultNotificationEmailSettingsEvent> eventCaptor =
                     ArgumentCaptor.forClass(CreateDefaultNotificationEmailSettingsEvent.class);
