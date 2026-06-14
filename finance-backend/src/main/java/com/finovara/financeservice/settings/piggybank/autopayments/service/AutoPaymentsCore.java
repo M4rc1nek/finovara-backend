@@ -1,10 +1,10 @@
-package com.finovara.authbackend.usersetting.piggybank.autopayments.service;
+package com.finovara.financeservice.settings.piggybank.autopayments.service;
 
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.authbackend.piggybank.model.PiggyBank;
-import com.finovara.authbackend.usersetting.piggybank.autopayments.model.PiggyBankAutomationMode;
-import com.finovara.authbackend.wallet.model.Wallet;
+import com.finovara.financeservice.piggybank.model.PiggyBank;
+import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
+import com.finovara.financeservice.wallet.model.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;

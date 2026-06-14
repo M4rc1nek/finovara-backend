@@ -1,8 +1,8 @@
-package com.finovara.authbackend.usersetting.piggybank.autopayments.controller;
+package com.finovara.financeservice.settings.piggybank.autopayments.controller;
 
-import com.finovara.authbackend.security.SecurityUtils;
-import com.finovara.authbackend.usersetting.piggybank.autopayments.dto.AutoPaymentsDto;
-import com.finovara.authbackend.usersetting.piggybank.autopayments.service.AutoPaymentsService;
+import com.finovara.financeservice.security.SecurityUtils;
+import com.finovara.financeservice.settings.piggybank.autopayments.dto.AutoPaymentsDto;
+import com.finovara.financeservice.settings.piggybank.autopayments.service.AutoPaymentsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

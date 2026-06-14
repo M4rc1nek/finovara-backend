@@ -1,16 +1,16 @@
-package com.finovara.authbackend.usersetting.piggybank.completion.service;
+package com.finovara.financeservice.settings.piggybank.completion.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authbackend.piggybank.model.PiggyBank;
-import com.finovara.authbackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.authbackend.usersetting.piggybank.completion.dto.GoalCompletionDto;
-import com.finovara.authbackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
-import com.finovara.authbackend.usersetting.piggybank.model.PiggyBankSettings;
-import com.finovara.authbackend.util.piggybank.PiggyBankCheckGoalCompletion;
-import com.finovara.authbackend.util.piggybank.manager.PiggyBankManagerService;
-import com.finovara.authbackend.util.wallet.WalletManagerService;
-import com.finovara.authbackend.wallet.model.Wallet;
-import com.finovara.authbackend.wallet.repository.WalletRepository;
+import com.finovara.financeservice.piggybank.model.PiggyBank;
+import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
+import com.finovara.financeservice.settings.piggybank.completion.dto.GoalCompletionDto;
+import com.finovara.financeservice.settings.piggybank.completion.model.GoalCompletionStrategy;
+import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
+import com.finovara.financeservice.util.piggybank.PiggyBankCheckGoalCompletion;
+import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.util.wallet.WalletManagerService;
+import com.finovara.financeservice.wallet.model.Wallet;
+import com.finovara.financeservice.wallet.repository.WalletRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package com.finovara.authbackend.usersetting.piggybank.autopayments.model;
+package com.finovara.financeservice.settings.piggybank.autopayments.model;
 
 public enum PiggyBankAutomationMode {
     APPLY,

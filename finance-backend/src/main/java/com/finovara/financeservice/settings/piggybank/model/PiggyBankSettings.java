@@ -1,7 +1,7 @@
-package com.finovara.authbackend.usersetting.piggybank.model;
+package com.finovara.financeservice.settings.piggybank.model;
 
-import com.finovara.authbackend.piggybank.model.PiggyBank;
-import com.finovara.authbackend.usersetting.piggybank.completion.model.GoalCompletionStrategy;
+import com.finovara.financeservice.piggybank.model.PiggyBank;
+import com.finovara.financeservice.settings.piggybank.completion.model.GoalCompletionStrategy;
 import jakarta.persistence.*;
 import lombok.*;
 

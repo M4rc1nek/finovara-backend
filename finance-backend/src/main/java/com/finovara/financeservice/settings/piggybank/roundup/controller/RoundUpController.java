@@ -1,9 +1,9 @@
-package com.finovara.authbackend.usersetting.piggybank.roundup.controller;
+package com.finovara.financeservice.settings.piggybank.roundup.controller;
 
-import com.finovara.authbackend.piggybank.dto.PiggyBankDto;
-import com.finovara.authbackend.security.SecurityUtils;
-import com.finovara.authbackend.usersetting.piggybank.roundup.dto.RoundUpDto;
-import com.finovara.authbackend.usersetting.piggybank.roundup.service.RoundUpService;
+import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
+import com.finovara.financeservice.security.SecurityUtils;
+import com.finovara.financeservice.settings.piggybank.roundup.dto.RoundUpDto;
+import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

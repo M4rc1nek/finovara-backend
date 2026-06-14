@@ -1,4 +1,4 @@
-package com.finovara.authbackend.usersetting.piggybank.autopayments.dto;
+package com.finovara.financeservice.settings.piggybank.autopayments.dto;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;

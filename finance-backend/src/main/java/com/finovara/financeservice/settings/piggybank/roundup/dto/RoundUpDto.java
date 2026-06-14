@@ -1,4 +1,4 @@
-package com.finovara.authbackend.usersetting.piggybank.roundup.dto;
+package com.finovara.financeservice.settings.piggybank.roundup.dto;
 
 public record RoundUpDto(
         Boolean roundUpActive

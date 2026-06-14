@@ -1,4 +1,4 @@
-package com.finovara.authbackend.usersetting.piggybank.roundup.model;
+package com.finovara.financeservice.settings.piggybank.roundup.model;
 
 public enum PiggyBankRoundUpMode {
     APPLY,

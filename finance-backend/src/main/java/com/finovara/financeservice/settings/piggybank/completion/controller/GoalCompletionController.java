@@ -1,8 +1,8 @@
-package com.finovara.authbackend.usersetting.piggybank.completion.controller;
+package com.finovara.financeservice.settings.piggybank.completion.controller;
 
-import com.finovara.authbackend.security.SecurityUtils;
-import com.finovara.authbackend.usersetting.piggybank.completion.dto.GoalCompletionDto;
-import com.finovara.authbackend.usersetting.piggybank.completion.service.GoalCompletionService;
+import com.finovara.financeservice.security.SecurityUtils;
+import com.finovara.financeservice.settings.piggybank.completion.dto.GoalCompletionDto;
+import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
