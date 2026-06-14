@@ -3,9 +3,9 @@ server:
   forward-headers-strategy: framework
   ssl:
     enabled: true
-    key-store: classpath:localhost.p12
+    key-store: file:/app/localhost.p12
     key-store-type: PKCS12
-    key-store-password: ${SSL_KEY_STORE_PASSWORD}
+    key-store-password: ${SSL_PASSWORD}
     key-alias: 1
 
 spring:
@@ -30,11 +30,6 @@ spring:
 
   kafka:
     bootstrap-servers: finovara-kafka:9092
-
-application:
-  security:
-    jwt:
-      secret-key: ${JWT_SECRET_KEY}
 
 core-backend:
   url: ${CORE_BACKEND_URL:https://finovara-app:8443}

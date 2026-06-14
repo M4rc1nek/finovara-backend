@@ -7,9 +7,10 @@ services:
     ports:
       - "8083:8083"
     environment:
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
       CORE_BACKEND_URL: https://finovara-app:8443
+      SSL_PASSWORD: ${SSL_PASSWORD}
+    volumes:
+      - ../localhost.p12:/app/localhost.p12
     restart: always
     networks:
       - finovara-network

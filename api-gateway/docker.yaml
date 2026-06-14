@@ -11,7 +11,10 @@ services:
       ACTIVITY_LOG_BACKEND_URL: https://finovara-activity-app:8082
       NOTIFICATION_BACKEND_URL: https://finovara-notification-app:8086
       REPORT_BACKEND_URL: https://finovara-report-app:8083
-      SSL_KEY_STORE_PASSWORD: ${SSL_KEY_STORE_PASSWORD}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      SSL_PASSWORD: ${SSL_PASSWORD}
+    volumes:
+      - ../localhost.p12:/app/localhost.p12
     restart: always
     networks:
       - finovara-network

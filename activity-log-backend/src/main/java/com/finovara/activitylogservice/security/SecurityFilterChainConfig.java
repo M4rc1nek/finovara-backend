@@ -1,6 +1,5 @@
 package com.finovara.activitylogservice.security;
 
-import com.finovara.activitylogservice.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityFilterChainConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final UserIdAuthenticationFilter userIdAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -29,7 +28,7 @@ public class SecurityFilterChainConfig {
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(userIdAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
