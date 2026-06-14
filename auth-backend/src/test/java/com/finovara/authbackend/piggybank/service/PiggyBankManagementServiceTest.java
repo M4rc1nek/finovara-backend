@@ -9,15 +9,12 @@ import com.finovara.authbackend.piggybank.mapper.PiggyBankMapper;
 import com.finovara.authbackend.piggybank.model.PiggyBank;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import com.finovara.authbackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.usersetting.factory.SettingsFactory;
 import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.authbackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.authbackend.usersetting.piggybank.model.PiggyBankSettings;
 import com.finovara.authbackend.usersetting.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.authbackend.util.piggybank.manager.PiggyBankManagerService;
-import com.finovara.authbackend.util.user.service.UserManagerService;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -44,8 +41,6 @@ class PiggyBankManagementServiceTest {
     private PiggyBankManagementService piggyBankManagementService;
 
     @Mock
-    private UserManagerService userManagerService;
-    @Mock
     private PiggyBankRepository piggyBankRepository;
     @Mock
     private PiggyBankManagerService piggyBankManagerService;
@@ -60,7 +55,6 @@ class PiggyBankManagementServiceTest {
     @Mock
     private RecurringSettingsRepository recurringSettingsRepository;
 
-    private User user;
     private Long userId;
     private Long piggyBankId;
     private PiggyBankDto defaultDto;
@@ -69,9 +63,6 @@ class PiggyBankManagementServiceTest {
     void setUp() {
         userId = 1L;
         piggyBankId = 1L;
-
-        user = new User();
-        user.setId(userId);
 
         defaultDto = new PiggyBankDto(
                 null, null, "Piggy",
@@ -91,7 +82,6 @@ class PiggyBankManagementServiceTest {
             saved.setId(piggyBankId);
             saved.setUserId(userId);
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
             when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(false);
             when(piggyBankRepository.save(any())).thenReturn(saved);
@@ -111,7 +101,6 @@ class PiggyBankManagementServiceTest {
         @Test
         void shouldThrowExceptionWhenMaxReached() {
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(5L);
 
             assertThrows(InvalidInputException.class, () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
@@ -122,19 +111,10 @@ class PiggyBankManagementServiceTest {
         @Test
         void shouldThrowExceptionWhenNameExists() {
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
             when(piggyBankRepository.existsByNameIgnoreCase(eq(userId), any())).thenReturn(true);
 
             assertThrows(EntityAlreadyExistsException.class, () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenUserNotFound() {
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("x"));
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
         }
     }
 
@@ -150,7 +130,6 @@ class PiggyBankManagementServiceTest {
             piggyBank.setGoalAmount(BigDecimal.TEN);
             piggyBank.setGoalType(PiggyBankGoalType.GIFTS);
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(false);
             when(piggyBankRepository.save(any())).thenAnswer(i -> i.getArgument(0));
@@ -171,7 +150,6 @@ class PiggyBankManagementServiceTest {
             PiggyBank piggyBank = new PiggyBank();
             piggyBank.setName("Old");
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(true);
 
@@ -187,9 +165,8 @@ class PiggyBankManagementServiceTest {
 
             PiggyBank piggyBank = new PiggyBank();
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of(piggyBank));
-            when(piggyBankMapper.mapToPiggyBankDto(any(), any(), any(), anyBoolean()))
+            when(piggyBankMapper.mapToPiggyBankDto(any(), any(), anyBoolean()))
                     .thenReturn(defaultDto);
 
             List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(userId);
@@ -200,7 +177,6 @@ class PiggyBankManagementServiceTest {
         @Test
         void shouldReturnEmpty() {
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of());
 
             List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(userId);
