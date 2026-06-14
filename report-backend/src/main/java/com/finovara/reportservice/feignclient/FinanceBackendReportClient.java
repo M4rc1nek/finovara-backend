@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @FeignClient(name = "finance-backend", url = "${finance-backend.url}")
-public interface CoreBackendReportClient {
+public interface FinanceBackendReportClient {
 
     @GetMapping("/internal/reports/expenses/sum")
     BigDecimal sumExpenses(@RequestParam Long userId, @RequestParam LocalDate from, @RequestParam LocalDate to);
