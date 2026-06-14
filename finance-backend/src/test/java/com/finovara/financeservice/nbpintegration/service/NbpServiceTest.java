@@ -1,10 +1,10 @@
-package com.finovara.authbackend.nbpintegration.service;
+package com.finovara.financeservice.nbpintegration.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
-import com.finovara.authbackend.nbpintegration.client.NbpApiClient;
-import com.finovara.authbackend.nbpintegration.dto.NbpTableDto;
-import com.finovara.authbackend.nbpintegration.model.NbpConversionType;
+import com.finovara.financeservice.nbpintegration.client.NbpApiClient;
+import com.finovara.financeservice.nbpintegration.dto.NbpTableDto;
+import com.finovara.financeservice.nbpintegration.model.NbpConversionType;
 import feign.FeignException;
 import feign.Request;
 import org.junit.jupiter.api.BeforeEach;
