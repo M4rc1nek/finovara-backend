@@ -4,7 +4,6 @@ import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.authbackend.usersetting.finances.recurring.service.validator.util.RecurringBasicValidator;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +38,7 @@ class RecurringSavingsValidatorTest {
         recurringSettings.setStartDate(LocalDate.of(2025, 1, 1));
         recurringSettings.setPeriodType(PeriodType.MONTHLY);
 
-        recurringSettings.setUserId(new User());
+        recurringSettings.setUserId(1L);
 
         wallet = Wallet.create(1L);
         wallet.deposit(BigDecimal.valueOf(1000));
