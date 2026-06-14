@@ -31,8 +31,8 @@ spring:
   kafka:
     bootstrap-servers: finovara-kafka:9092
 
-core-backend:
-  url: ${CORE_BACKEND_URL:https://finovara-app:8443}
+auth-backend:
+  url: ${AUTH_BACKEND_URL:https://finovara-auth-app:8443}
 
 scheduler:
   user-activity:
