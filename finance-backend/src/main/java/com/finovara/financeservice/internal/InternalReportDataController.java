@@ -1,11 +1,10 @@
-package com.finovara.authbackend.internal.controller;
+package com.finovara.financeservice.internal;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
 import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
 import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
-import com.finovara.authbackend.internal.service.InternalReportDataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

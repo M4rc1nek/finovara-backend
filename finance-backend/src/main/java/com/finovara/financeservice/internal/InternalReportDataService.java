@@ -1,16 +1,16 @@
-package com.finovara.authbackend.internal.service;
+package com.finovara.financeservice.internal;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
 import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
 import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
-import com.finovara.authbackend.expense.model.Expense;
-import com.finovara.authbackend.expense.repository.ExpenseRepository;
-import com.finovara.authbackend.revenue.model.Revenue;
-import com.finovara.authbackend.revenue.repository.RevenueRepository;
-import com.finovara.authbackend.wallet.model.Wallet;
-import com.finovara.authbackend.wallet.repository.WalletRepository;
+import com.finovara.financeservice.expense.model.Expense;
+import com.finovara.financeservice.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.revenue.model.Revenue;
+import com.finovara.financeservice.revenue.repository.RevenueRepository;
+import com.finovara.financeservice.wallet.model.Wallet;
+import com.finovara.financeservice.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InternalReportDataService {
 
-    //Move this service to transaction-service
 
     private final ExpenseRepository expenseRepository;
     private final RevenueRepository revenueRepository;
