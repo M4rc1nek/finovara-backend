@@ -8,13 +8,15 @@ import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.authbackend.expense.service.ExpenseService;
 import com.finovara.authbackend.piggybank.service.PiggyBankTransactionService;
 import com.finovara.authbackend.revenue.service.RevenueService;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.usersetting.finances.expense.model.ExpenseSettings;
+import com.finovara.authbackend.usersetting.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringType;
 import com.finovara.authbackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
 import com.finovara.authbackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.authbackend.usersetting.finances.recurring.service.validator.RecurringSavingsValidator;
+import com.finovara.authbackend.util.wallet.WalletManagerService;
+import com.finovara.authbackend.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,32 +45,33 @@ class RecurringExecutionServiceTest {
     private ExpenseService expenseService;
     @Mock
     private PiggyBankTransactionService piggyBankTransactionService;
-
     @Mock
     private RecurringExpenseValidator recurringExpenseValidator;
     @Mock
     private RecurringRevenueValidator recurringRevenueValidator;
     @Mock
     private RecurringSavingsValidator recurringSavingsValidator;
+    @Mock
+    private ExpenseSettingsRepository expenseSettingsRepository;
+    @Mock
+    private WalletManagerService walletManagerService;
 
     @InjectMocks
     private RecurringExecutionService recurringExecutionService;
 
+    private static final Long USER_ID = 1L;
+
     private LocalDate date;
     private RecurringSettings settings;
-    private User user;
 
     @BeforeEach
     void setUp() {
         date = LocalDate.of(2025, 1, 1);
 
-        user = new User();
-        user.setId(1L);
-
         settings = new RecurringSettings();
         settings.setEnable(true);
         settings.setAmount(BigDecimal.valueOf(100));
-        settings.setUserId(userId);
+        settings.setUserId(USER_ID);
         settings.setPeriodType(PeriodType.DAILY);
     }
 
@@ -111,12 +114,13 @@ class RecurringExecutionServiceTest {
             recurringExecutionService.execute(settings, date);
 
             verify(recurringRevenueValidator).validate(settings);
-            verify(revenueService).addRevenue(any(), anyLong());
+            verify(revenueService).addRevenue(any(), eq(USER_ID));
         }
 
         @Test
-        void shouldSkipWhenRevenueSettingsIsNull() {
-            // removed user navigation(null);
+        void shouldSkipWhenRevenueCategoryIsNull() {
+            settings.setType(RecurringType.REVENUE);
+            settings.setRevenueCategory(null);
 
             recurringExecutionService.execute(settings, date);
 
@@ -128,6 +132,7 @@ class RecurringExecutionServiceTest {
     class RecurringExpense {
 
         private ExpenseSettings expenseSettings;
+        private Wallet wallet;
 
         @BeforeEach
         void setUpExpense() {
@@ -136,14 +141,15 @@ class RecurringExecutionServiceTest {
             expenseSettings.setCountQuantityLimitEnabled(true);
             expenseSettings.setNumberOfQuantityLimit(5);
 
+            wallet = Wallet.create(USER_ID);
+
             settings.setType(RecurringType.EXPENSE);
             settings.setExpenseCategory(ExpenseCategory.FOOD);
-            // removed user navigation(expenseSettings);
         }
 
         @Test
         void shouldSkipWhenExpenseSettingsIsNull() {
-            // removed user navigation(null);
+            when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(null);
 
             recurringExecutionService.execute(settings, date);
 
@@ -152,10 +158,13 @@ class RecurringExecutionServiceTest {
 
         @Test
         void shouldCreateExpense() {
+            when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(expenseSettings);
+            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
+
             recurringExecutionService.execute(settings, date);
 
-            verify(recurringExpenseValidator).validate(eq(settings), eq(expenseSettings), any());
-            verify(expenseService).addExpense(any(), eq(1L), eq(PeriodType.MONTHLY));
+            verify(recurringExpenseValidator).validate(eq(settings), eq(expenseSettings), eq(wallet));
+            verify(expenseService).addExpense(any(), eq(USER_ID), eq(PeriodType.MONTHLY));
         }
     }
 
@@ -179,11 +188,13 @@ class RecurringExecutionServiceTest {
 
         @Test
         void shouldCreateSavings() {
+            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(Wallet.create(USER_ID));
+
             recurringExecutionService.execute(settings, date);
 
             verify(recurringSavingsValidator).validate(eq(settings), any());
             verify(piggyBankTransactionService).addBalanceToPiggyBank(
-                    eq(1L),
+                    eq(USER_ID),
                     eq(10L),
                     any(),
                     eq(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING)
@@ -192,6 +203,7 @@ class RecurringExecutionServiceTest {
 
         @Test
         void shouldDisableWhenPiggyBankNotFound() {
+            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(Wallet.create(USER_ID));
             doThrow(new RequestedEntityNotFoundException("Piggy bank not found"))
                     .when(piggyBankTransactionService)
                     .addBalanceToPiggyBank(any(), any(), any(), any());
