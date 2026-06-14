@@ -2,7 +2,7 @@ spring:
   config:
     import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:postgresql://finovara-db:5432/finovara_db
+    url: jdbc:postgresql://finovara-auth-db:5432/finovara_auth_db
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
   jpa:
@@ -76,11 +76,6 @@ mail:
   from:
     address: support@finovara.pl
 
-nbp:
-  api:
-    url: https://api.nbp.pl/api
-  properties:
-    scale: 4
 
 verification-code-manager:
   code-expiration-minutes: 15
@@ -90,9 +85,6 @@ verification-code-manager:
 password-generator:
   length: 8
 
-scheduler:
-  recurring-settings:
-    frequency: "0 0 0 * * ?"
 
 rate-limit:
   endpoints:
