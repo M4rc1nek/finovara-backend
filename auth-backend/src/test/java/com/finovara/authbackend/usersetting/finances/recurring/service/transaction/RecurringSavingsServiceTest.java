@@ -1,15 +1,15 @@
 package com.finovara.authbackend.usersetting.finances.recurring.service.transaction;
 
 import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.usersetting.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.authbackend.usersetting.finances.recurring.dto.RecurringSavingsDto;
 import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
 import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringType;
 import com.finovara.authbackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.authbackend.usersetting.finances.recurring.service.validator.RecurringSavingsValidator;
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.authbackend.util.wallet.WalletManagerService;
 import com.finovara.authbackend.wallet.model.Wallet;
+import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,20 +34,22 @@ class RecurringSavingsServiceTest {
     @Mock
     private RecurringSavingsValidator recurringSavingsValidator;
 
+    @Mock
+    private WalletManagerService walletManagerService;
+
     @InjectMocks
     private RecurringSavingsService recurringSavingsService;
 
     private Long userId;
     private RecurringSettings settings;
+    private Wallet wallet;
 
     @BeforeEach
     void setUp() {
         userId = 1L;
         settings = new RecurringSettings();
-
-        User user = new User();
-        Wallet wallet = Wallet.create(userId);
         settings.setUserId(userId);
+        wallet = Wallet.create(userId);
     }
 
     @Nested
@@ -67,6 +69,7 @@ class RecurringSavingsServiceTest {
             settings.setEnable(true);
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.SAVINGS)).thenReturn(settings);
+            when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
             recurringSavingsService.saveSavingsSettings(userId, dto);
 
