@@ -1,3 +1,52 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
-    name: financeservice
+    name: finovara-finance-service
+  datasource:
+    url: jdbc:postgresql://finovara-finance-db:5432/finovara_finance_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  liquibase:
+    change-log: classpath:changelog/changelog.xml
+    enabled: true
+  kafka:
+    bootstrap-servers: finovara-kafka:9092
+
+server:
+  port: 8087
+  forward-headers-strategy: framework
+  ssl:
+    enabled: true
+    key-store: file:/app/localhost.p12
+    key-store-type: PKCS12
+    key-store-password: ${SSL_PASSWORD}
+    key-alias: 1
+
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
+
+
+
+scheduler:
+  recurring-settings:
+    frequency: "0 0 0 * * ?"
+
+
+nbp:
+  api:
+    url: https://api.nbp.pl/api
+  properties:
+    scale: 4
