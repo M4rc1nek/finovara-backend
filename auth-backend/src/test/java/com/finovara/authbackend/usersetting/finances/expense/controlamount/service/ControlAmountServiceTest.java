@@ -3,10 +3,10 @@ package com.finovara.authbackend.usersetting.finances.expense.controlamount.serv
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authbackend.user.model.User;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.authbackend.usersetting.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.authbackend.usersetting.finances.expense.model.ExpenseSettings;
-import com.finovara.authbackend.util.user.service.UserManagerService;
+import com.finovara.authbackend.usersetting.finances.expense.repository.ExpenseSettingsRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 class ControlAmountServiceTest {
 
     @Mock
-    private UserManagerService userManagerService;
+    private ExpenseSettingsRepository expenseSettingsRepository;
 
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -36,24 +36,21 @@ class ControlAmountServiceTest {
     @InjectMocks
     private ControlAmountService controlAmountService;
 
-    private User user;
     private ExpenseSettings expenseSettings;
 
     private static final Long USER_ID = 1L;
 
     @BeforeEach
     void setUp() {
-        user = new User();
         expenseSettings = new ExpenseSettings();
-        }
+        when(expenseSettingsRepository.findByUserIdOrThrow(USER_ID)).thenReturn(expenseSettings);
+    }
 
     @Nested
     class GetExpenseControlAmount {
 
         @Test
         void shouldReturnCorrectDtoWhenEnabled() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-
             expenseSettings.setAmountThresholdEnabled(true);
             expenseSettings.setBlockedAmount(BigDecimal.valueOf(200));
 
@@ -65,8 +62,6 @@ class ControlAmountServiceTest {
 
         @Test
         void shouldReturnCorrectDtoWhenDisabled() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-
             expenseSettings.setAmountThresholdEnabled(false);
             expenseSettings.setBlockedAmount(BigDecimal.valueOf(50));
 
@@ -77,10 +72,12 @@ class ControlAmountServiceTest {
         }
 
         @Test
-        void shouldThrowWhenUserNotFound() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new InvalidInputException("User not found"));
+        void shouldThrowWhenSettingsNotFound() {
+            when(expenseSettingsRepository.findByUserIdOrThrow(USER_ID))
+                    .thenThrow(new RequestedEntityNotFoundException("Expense settings not found"));
 
-            assertThrows(InvalidInputException.class, () -> controlAmountService.getExpenseAmountControl(USER_ID));
+            assertThrows(RequestedEntityNotFoundException.class,
+                    () -> controlAmountService.getExpenseAmountControl(USER_ID));
         }
     }
 
@@ -89,18 +86,15 @@ class ControlAmountServiceTest {
 
         @Test
         void shouldThrowWhenAmountExceedsLimit() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-
             expenseSettings.setAmountThresholdEnabled(true);
             expenseSettings.setBlockedAmount(BigDecimal.valueOf(100));
 
-            assertThrows(InvalidInputException.class, () -> controlAmountService.handleExpenseAmountControl(USER_ID, BigDecimal.valueOf(150)));
+            assertThrows(InvalidInputException.class,
+                    () -> controlAmountService.handleExpenseAmountControl(USER_ID, BigDecimal.valueOf(150)));
         }
 
         @Test
         void shouldAllowEqualAmount() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-
             expenseSettings.setAmountThresholdEnabled(true);
             expenseSettings.setBlockedAmount(BigDecimal.valueOf(100));
 
@@ -109,8 +103,6 @@ class ControlAmountServiceTest {
 
         @Test
         void shouldAllowWhenDisabled() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-
             expenseSettings.setAmountThresholdEnabled(false);
             expenseSettings.setBlockedAmount(BigDecimal.valueOf(50));
 
@@ -119,12 +111,11 @@ class ControlAmountServiceTest {
 
         @Test
         void shouldTreatNullBlockedAmountAsZero() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-
             expenseSettings.setAmountThresholdEnabled(true);
             expenseSettings.setBlockedAmount(null);
 
-            assertThrows(InvalidInputException.class, () -> controlAmountService.handleExpenseAmountControl(USER_ID, BigDecimal.valueOf(10)));
+            assertThrows(InvalidInputException.class,
+                    () -> controlAmountService.handleExpenseAmountControl(USER_ID, BigDecimal.valueOf(10)));
         }
     }
 
@@ -132,8 +123,6 @@ class ControlAmountServiceTest {
     class SaveExpenseControlAmount {
         @Test
         void shouldEnableControl() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-
             ControlAmountDto dto = new ControlAmountDto(true, BigDecimal.valueOf(100));
 
             controlAmountService.saveExpenseAmountControl(USER_ID, dto);
@@ -148,8 +137,6 @@ class ControlAmountServiceTest {
 
         @Test
         void shouldDisableControl() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-
             ControlAmountDto dto = new ControlAmountDto(false, BigDecimal.valueOf(50));
 
             controlAmountService.saveExpenseAmountControl(USER_ID, dto);
@@ -164,8 +151,6 @@ class ControlAmountServiceTest {
 
         @Test
         void shouldSetZeroWhenNullAmount() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-
             ControlAmountDto dto = new ControlAmountDto(true, null);
 
             controlAmountService.saveExpenseAmountControl(USER_ID, dto);
@@ -174,12 +159,14 @@ class ControlAmountServiceTest {
         }
 
         @Test
-        void shouldThrowWhenUserNotFound() {
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new InvalidInputException("User not found"));
+        void shouldThrowWhenSettingsNotFound() {
+            when(expenseSettingsRepository.findByUserIdOrThrow(USER_ID))
+                    .thenThrow(new RequestedEntityNotFoundException("Expense settings not found"));
 
             ControlAmountDto dto = new ControlAmountDto(true, BigDecimal.valueOf(10));
 
-            assertThrows(InvalidInputException.class, () -> controlAmountService.saveExpenseAmountControl(USER_ID, dto));
+            assertThrows(RequestedEntityNotFoundException.class,
+                    () -> controlAmountService.saveExpenseAmountControl(USER_ID, dto));
         }
     }
 }
