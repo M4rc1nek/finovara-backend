@@ -5,7 +5,6 @@ target/
 !**/src/test/**/target/
 .gitattributes
 mvnw.cmd
-mvnw
 .mvn
 
 
