@@ -1,4 +1,4 @@
-package com.finovara.authbackend.util.percentage;
+package com.finovara.financeservice.util.percentage;
 
 import com.finovara.contracts.percentage.CalculatePercentage;
 import org.junit.jupiter.api.Nested;

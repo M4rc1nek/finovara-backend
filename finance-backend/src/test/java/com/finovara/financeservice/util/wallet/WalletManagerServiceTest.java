@@ -1,8 +1,8 @@
-package com.finovara.authbackend.util.wallet;
+package com.finovara.financeservice.util.wallet;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.authbackend.wallet.model.Wallet;
-import com.finovara.authbackend.wallet.repository.WalletRepository;
+import com.finovara.financeservice.wallet.model.Wallet;
+import com.finovara.financeservice.wallet.repository.WalletRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

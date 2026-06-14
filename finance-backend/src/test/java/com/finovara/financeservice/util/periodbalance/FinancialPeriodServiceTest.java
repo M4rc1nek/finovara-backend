@@ -1,9 +1,9 @@
-package com.finovara.authbackend.util.periodbalance;
+package com.finovara.financeservice.util.periodbalance;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.authbackend.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.authbackend.revenue.repository.RevenueRepository;
+import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

@@ -1,8 +1,8 @@
-package com.finovara.authbackend.util.revenue;
+package com.finovara.financeservice.util.revenue;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.authbackend.revenue.model.Revenue;
-import com.finovara.authbackend.revenue.repository.RevenueRepository;
+import com.finovara.financeservice.revenue.model.Revenue;
+import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
