@@ -1,4 +1,4 @@
-package com.finovara.authbackend.limit.model;
+package com.finovara.financeservice.limit.model;
 
 public enum LimitStatus {
     NONE,    // Brak wydatków

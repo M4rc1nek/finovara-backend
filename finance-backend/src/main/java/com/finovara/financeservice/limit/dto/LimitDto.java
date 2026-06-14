@@ -1,6 +1,6 @@
-package com.finovara.authbackend.limit.dto;
+package com.finovara.financeservice.limit.dto;
 
-import com.finovara.authbackend.limit.model.LimitStatus;
+import com.finovara.financeservice.limit.model.LimitStatus;
 import com.finovara.contracts.model.PeriodType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;

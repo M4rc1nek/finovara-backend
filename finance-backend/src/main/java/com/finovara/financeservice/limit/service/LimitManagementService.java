@@ -1,13 +1,13 @@
-package com.finovara.authbackend.limit.service;
+package com.finovara.financeservice.limit.service;
 
 import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.LimitActivityType;
-import com.finovara.authbackend.limit.dto.LimitDto;
-import com.finovara.authbackend.limit.dto.LimitStatsDto;
-import com.finovara.authbackend.limit.model.Limit;
-import com.finovara.authbackend.limit.repository.LimitRepository;
+import com.finovara.financeservice.limit.dto.LimitDto;
+import com.finovara.financeservice.limit.dto.LimitStatsDto;
+import com.finovara.financeservice.limit.model.Limit;
+import com.finovara.financeservice.limit.repository.LimitRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;

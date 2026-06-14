@@ -1,9 +1,9 @@
-package com.finovara.authbackend.limit.controller;
+package com.finovara.financeservice.limit.controller;
 
-import com.finovara.authbackend.limit.dto.LimitDto;
-import com.finovara.authbackend.limit.dto.LimitStatsDto;
-import com.finovara.authbackend.limit.service.LimitManagementService;
-import com.finovara.authbackend.security.SecurityUtils;
+import com.finovara.financeservice.limit.dto.LimitDto;
+import com.finovara.financeservice.limit.dto.LimitStatsDto;
+import com.finovara.financeservice.limit.service.LimitManagementService;
+import com.finovara.financeservice.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

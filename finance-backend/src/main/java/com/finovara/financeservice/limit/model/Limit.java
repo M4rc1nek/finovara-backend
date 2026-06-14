@@ -1,4 +1,4 @@
-package com.finovara.authbackend.limit.model;
+package com.finovara.financeservice.limit.model;
 
 import com.finovara.contracts.model.PeriodType;
 import jakarta.persistence.*;

@@ -1,6 +1,6 @@
-package com.finovara.authbackend.limit.repository;
+package com.finovara.financeservice.limit.repository;
 
-import com.finovara.authbackend.limit.model.Limit;
+import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.contracts.model.PeriodType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
