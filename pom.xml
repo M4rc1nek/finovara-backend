@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.6</version>
+        <version>4.0.7</version>
         <relativePath/>
     </parent>
 
@@ -36,11 +36,12 @@
     <!-- ===== MODULES ===== -->
     <modules>
         <module>api-gateway</module>
-        <module>core-backend</module>
+        <module>auth-backend</module>
         <module>contracts-backend</module>
         <module>activity-log-backend</module>
         <module>notification-backend</module>
         <module>report-backend</module>
+        <module>finance-backend</module>
     </modules>
 
     <!-- ===== DEPENDENCY MANAGEMENT ===== -->
