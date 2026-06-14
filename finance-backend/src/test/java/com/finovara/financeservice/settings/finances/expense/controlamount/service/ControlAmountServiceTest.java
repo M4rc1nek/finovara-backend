@@ -1,12 +1,12 @@
-package com.finovara.authbackend.settings.finances.expense.controlamount.service;
+package com.finovara.financeservice.settings.finances.expense.controlamount.service;
 
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.authbackend.settings.finances.expense.controlamount.dto.ControlAmountDto;
-import com.finovara.authbackend.settings.finances.expense.model.ExpenseSettings;
-import com.finovara.authbackend.settings.finances.expense.repository.ExpenseSettingsRepository;
+import com.finovara.financeservice.settings.finances.expense.controlamount.dto.ControlAmountDto;
+import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
+import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

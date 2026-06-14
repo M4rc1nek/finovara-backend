@@ -1,8 +1,8 @@
-package com.finovara.authbackend.settings.finances.expense.countlimit.service;
+package com.finovara.financeservice.settings.finances.expense.countlimit.service;
 
-import com.finovara.authbackend.settings.finances.expense.countlimit.dto.CountQuantityLimitEmergencyModeDto;
-import com.finovara.authbackend.settings.finances.expense.model.ExpenseSettings;
-import com.finovara.authbackend.settings.finances.expense.repository.ExpenseSettingsRepository;
+import com.finovara.financeservice.settings.finances.expense.countlimit.dto.CountQuantityLimitEmergencyModeDto;
+import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
+import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
