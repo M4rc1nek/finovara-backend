@@ -1,11 +1,11 @@
-package com.finovara.authbackend.expensehistory.service;
+package com.finovara.financeservice.expensehistory.service;
 
-import com.finovara.authbackend.expense.dto.ExpenseDto;
-import com.finovara.authbackend.expense.mapper.ExpenseMapper;
-import com.finovara.authbackend.expense.model.Expense;
+import com.finovara.financeservice.expense.dto.ExpenseDto;
+import com.finovara.financeservice.expense.mapper.ExpenseMapper;
+import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.authbackend.util.periodbalance.FinancialPeriodService;
+import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
