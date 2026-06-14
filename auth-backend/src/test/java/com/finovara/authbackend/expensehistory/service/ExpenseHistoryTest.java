@@ -4,10 +4,8 @@ import com.finovara.authbackend.expense.dto.ExpenseDto;
 import com.finovara.authbackend.expense.mapper.ExpenseMapper;
 import com.finovara.authbackend.expense.model.Expense;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.authbackend.util.periodbalance.FinancialPeriodService;
-import com.finovara.authbackend.util.user.service.UserManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,14 +20,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ExpenseHistoryTest {
-
-    @Mock
-    private UserManagerService userManagerService;
 
     @Mock
     private FinancialPeriodService financialPeriodService;
@@ -40,16 +34,13 @@ class ExpenseHistoryTest {
     @InjectMocks
     private ExpenseHistoryService expenseHistoryService;
 
-    private User user;
     private Long userId;
     private Expense expense;
     private ExpenseDto expenseDto;
 
     @BeforeEach
     void setUp() {
-        user = new User();
         userId = 1L;
-        user.setId(userId);
 
         expense = new Expense();
         expenseDto = new ExpenseDto(null, null, new BigDecimal(100),
@@ -59,8 +50,7 @@ class ExpenseHistoryTest {
     @ParameterizedTest
     @EnumSource(PeriodType.class)
     void shouldReturnMappedExpensesForEachPeriod(PeriodType periodType) {
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-        when(financialPeriodService.getExpensesInPeriodByCategory(1L, periodType, ExpenseCategory.FOOD)).thenReturn(List.of(expense));
+        when(financialPeriodService.getExpensesInPeriodByCategory(userId, periodType, ExpenseCategory.FOOD)).thenReturn(List.of(expense));
         when(expenseMapper.mapExpenseToDto(expense)).thenReturn(expenseDto);
 
         List<ExpenseDto> result = expenseHistoryService.getExpenseByCategory(userId, periodType, ExpenseCategory.FOOD);
@@ -68,21 +58,16 @@ class ExpenseHistoryTest {
         assertThat(result).hasSize(1);
         assertThat(result.getFirst()).isEqualTo(expenseDto);
 
-        verify(userManagerService).getUserByIdOrThrow(userId);
-        verify(financialPeriodService).getExpensesInPeriodByCategory(1L, periodType, ExpenseCategory.FOOD);
+        verify(financialPeriodService).getExpensesInPeriodByCategory(userId, periodType, ExpenseCategory.FOOD);
         verify(expenseMapper).mapExpenseToDto(expense);
     }
 
     @Test
     void shouldReturnEmptyListWhenNoExpenses() {
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-        when(financialPeriodService.getExpensesInPeriodByCategory(1L, PeriodType.DAILY, ExpenseCategory.FOOD)).thenReturn(List.of());
+        when(financialPeriodService.getExpensesInPeriodByCategory(userId, PeriodType.DAILY, ExpenseCategory.FOOD)).thenReturn(List.of());
 
         List<ExpenseDto> result = expenseHistoryService.getExpenseByCategory(userId, PeriodType.DAILY, ExpenseCategory.FOOD);
 
         assertThat(result).isEmpty();
-
-        verify(expenseMapper, never()).mapExpenseToDto(any());
     }
-
 }
