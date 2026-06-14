@@ -1,4 +1,4 @@
-package com.finovara.authbackend.usersetting.finances.recurring.model;
+package com.finovara.financeservice.settings.finances.recurring.model;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.transaction.RevenueCategory;

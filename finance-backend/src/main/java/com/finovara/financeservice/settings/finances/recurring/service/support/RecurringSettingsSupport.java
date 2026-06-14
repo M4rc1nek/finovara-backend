@@ -1,12 +1,12 @@
-package com.finovara.authbackend.usersetting.finances.recurring.service.support;
+package com.finovara.financeservice.settings.finances.recurring.service.support;
 
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.authbackend.usersetting.finances.recurring.dto.RecurringCommonFields;
-import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringType;
-import com.finovara.authbackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
+import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;

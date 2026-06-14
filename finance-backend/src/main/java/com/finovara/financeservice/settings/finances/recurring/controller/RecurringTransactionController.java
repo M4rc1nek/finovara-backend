@@ -1,12 +1,12 @@
-package com.finovara.authbackend.usersetting.finances.recurring.controller;
+package com.finovara.financeservice.settings.finances.recurring.controller;
 
-import com.finovara.authbackend.security.SecurityUtils;
-import com.finovara.authbackend.usersetting.finances.recurring.dto.RecurringExpenseDto;
-import com.finovara.authbackend.usersetting.finances.recurring.dto.RecurringRevenueDto;
-import com.finovara.authbackend.usersetting.finances.recurring.dto.RecurringSavingsDto;
-import com.finovara.authbackend.usersetting.finances.recurring.service.transaction.RecurringExpenseService;
-import com.finovara.authbackend.usersetting.finances.recurring.service.transaction.RecurringRevenueService;
-import com.finovara.authbackend.usersetting.finances.recurring.service.transaction.RecurringSavingsService;
+import com.finovara.financeservice.security.SecurityUtils;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringExpenseDto;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringRevenueDto;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringSavingsDto;
+import com.finovara.financeservice.settings.finances.recurring.service.transaction.RecurringExpenseService;
+import com.finovara.financeservice.settings.finances.recurring.service.transaction.RecurringRevenueService;
+import com.finovara.financeservice.settings.finances.recurring.service.transaction.RecurringSavingsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

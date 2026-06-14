@@ -1,4 +1,4 @@
-package com.finovara.authbackend.usersetting.finances.recurring.dto;
+package com.finovara.financeservice.settings.finances.recurring.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.finovara.contracts.model.transaction.ExpenseCategory;

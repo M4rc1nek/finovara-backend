@@ -1,6 +1,6 @@
-package com.finovara.authbackend.usersetting.finances.recurring.scheduler;
+package com.finovara.financeservice.settings.finances.recurring.scheduler;
 
-import com.finovara.authbackend.usersetting.finances.recurring.processor.RecurringProcessor;
+import com.finovara.financeservice.settings.finances.recurring.processor.RecurringProcessor;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;

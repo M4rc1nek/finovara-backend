@@ -1,16 +1,16 @@
-package com.finovara.authbackend.usersetting.finances.recurring.service.transaction;
+package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
-import com.finovara.authbackend.usersetting.finances.expense.model.ExpenseSettings;
-import com.finovara.authbackend.usersetting.finances.expense.repository.ExpenseSettingsRepository;
-import com.finovara.authbackend.usersetting.finances.recurring.dto.RecurringExpenseDto;
-import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringType;
+import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
+import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringExpenseDto;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
 import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.authbackend.usersetting.finances.recurring.dto.RecurringCommonFields;
-import com.finovara.authbackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
-import com.finovara.authbackend.usersetting.finances.recurring.service.validator.RecurringExpenseValidator;
-import com.finovara.authbackend.util.wallet.WalletManagerService;
-import com.finovara.authbackend.wallet.model.Wallet;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
+import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
+import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringExpenseValidator;
+import com.finovara.financeservice.util.wallet.WalletManagerService;
+import com.finovara.financeservice.wallet.model.Wallet;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

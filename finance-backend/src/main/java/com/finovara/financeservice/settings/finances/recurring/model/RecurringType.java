@@ -1,4 +1,4 @@
-package com.finovara.authbackend.usersetting.finances.recurring.model;
+package com.finovara.financeservice.settings.finances.recurring.model;
 
 public enum RecurringType {
     REVENUE,

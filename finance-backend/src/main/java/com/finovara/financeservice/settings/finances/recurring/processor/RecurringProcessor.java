@@ -1,8 +1,8 @@
-package com.finovara.authbackend.usersetting.finances.recurring.processor;
+package com.finovara.financeservice.settings.finances.recurring.processor;
 
-import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.authbackend.usersetting.finances.recurring.repository.RecurringSettingsRepository;
-import com.finovara.authbackend.usersetting.finances.recurring.service.execution.RecurringExecutionService;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
+import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
+import com.finovara.financeservice.settings.finances.recurring.service.execution.RecurringExecutionService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

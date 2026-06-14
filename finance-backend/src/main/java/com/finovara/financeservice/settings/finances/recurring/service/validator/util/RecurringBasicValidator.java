@@ -1,7 +1,7 @@
-package com.finovara.authbackend.usersetting.finances.recurring.service.validator.util;
+package com.finovara.financeservice.settings.finances.recurring.service.validator.util;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -1,9 +1,9 @@
-package com.finovara.authbackend.usersetting.finances.recurring.service.validator;
+package com.finovara.financeservice.settings.finances.recurring.service.validator;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.authbackend.usersetting.finances.recurring.service.validator.util.RecurringBasicValidator;
-import com.finovara.authbackend.wallet.model.Wallet;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
+import com.finovara.financeservice.settings.finances.recurring.service.validator.util.RecurringBasicValidator;
+import com.finovara.financeservice.wallet.model.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

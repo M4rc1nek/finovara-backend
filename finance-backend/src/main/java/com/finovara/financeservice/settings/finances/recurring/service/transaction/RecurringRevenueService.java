@@ -1,12 +1,12 @@
-package com.finovara.authbackend.usersetting.finances.recurring.service.transaction;
+package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
 import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.authbackend.usersetting.finances.recurring.dto.RecurringRevenueDto;
-import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringSettings;
-import com.finovara.authbackend.usersetting.finances.recurring.model.RecurringType;
-import com.finovara.authbackend.usersetting.finances.recurring.dto.RecurringCommonFields;
-import com.finovara.authbackend.usersetting.finances.recurring.service.support.RecurringSettingsSupport;
-import com.finovara.authbackend.usersetting.finances.recurring.service.validator.RecurringRevenueValidator;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringRevenueDto;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
+import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
+import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringRevenueValidator;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
