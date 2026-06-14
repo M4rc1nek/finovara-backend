@@ -19,7 +19,6 @@ import com.finovara.authbackend.limit.model.Limit;
 import com.finovara.authbackend.limit.model.LimitStatus;
 import com.finovara.authbackend.limit.repository.LimitRepository;
 import com.finovara.authbackend.limit.service.LimitCalculateService;
-import com.finovara.authbackend.user.model.User;
 import com.finovara.authbackend.usersetting.finances.expense.controlamount.service.ControlAmountService;
 import com.finovara.authbackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import com.finovara.authbackend.usersetting.finances.expense.countlimit.service.CountQuantityLimitService;
@@ -29,7 +28,6 @@ import com.finovara.authbackend.usersetting.piggybank.autopayments.model.PiggyBa
 import com.finovara.authbackend.usersetting.piggybank.roundup.service.RoundUpService;
 import com.finovara.authbackend.util.expense.ExpenseManagerService;
 import com.finovara.authbackend.util.periodbalance.FinancialPeriodService;
-import com.finovara.authbackend.util.user.service.UserManagerService;
 import com.finovara.authbackend.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -76,21 +74,15 @@ class ExpenseServiceTest {
     @Mock
     private ExpenseManagerService expenseManagerService;
     @Mock
-    private UserManagerService userManagerService;
-    @Mock
     private ExpenseMapper expenseMapper;
     @Mock
     private FinancialPeriodService financialPeriodService;
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
-
-    private User user;
     private final Long userId = 1L;
 
     @BeforeEach
     void setUp() {
-        user = new User();
-        user.setId(userId);
     }
 
     private LimitStatsDto buildLimitStats(Long limitId, double percentage, PeriodType periodType) {
@@ -108,7 +100,6 @@ class ExpenseServiceTest {
     }
 
     private void stubSuccessfulAdd(BigDecimal amount) {
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
         when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
         when(expenseRepository.save(any())).thenAnswer(inv -> {
@@ -121,7 +112,6 @@ class ExpenseServiceTest {
 
     private void stubSuccessfulEdit(Expense existing) {
         when(expenseManagerService.getExpenseByIdOrThrow(existing.getId())).thenReturn(existing);
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
         when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
         when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
@@ -155,8 +145,6 @@ class ExpenseServiceTest {
         void shouldThrowAmountLessThanOne() {
 
             ExpenseRequestDto request = buildAddRequest(new BigDecimal("0.50"), ExpenseCategory.FOOD, "test");
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
             when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
 
@@ -168,24 +156,8 @@ class ExpenseServiceTest {
         }
 
         @Test
-        void shouldThrowUserNotFound() {
-
-            when(userManagerService.getUserByIdOrThrow(anyLong()))
-                    .thenThrow(new RequestedEntityNotFoundException("User not found"));
-
-            ExpenseRequestDto request = buildAddRequest(new BigDecimal("100"), ExpenseCategory.FOOD, "test");
-
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> expenseService.addExpense(request, userId, PeriodType.DAILY));
-
-            verifyNoInteractions(expenseRepository, walletService, smartScanService);
-        }
-
-        @Test
         void shouldThrowLimitExceeded() {
             ExpenseRequestDto request = buildAddRequest(new BigDecimal("200"), ExpenseCategory.FOOD, "test");
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any()))
                     .thenReturn(Optional.of(new BigDecimal("100")));
             when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(new BigDecimal("50"));
@@ -202,8 +174,6 @@ class ExpenseServiceTest {
             ExpenseRequestDto request = buildAddRequest(new BigDecimal("100"), ExpenseCategory.FOOD, "test");
             Limit limit1 = mock(Limit.class);
             Limit limit2 = mock(Limit.class);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
             when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
             when(expenseRepository.save(any())).thenAnswer(inv -> {
@@ -227,8 +197,6 @@ class ExpenseServiceTest {
 
             ExpenseRequestDto request = buildAddRequest(new BigDecimal("100"), ExpenseCategory.FOOD, "test");
             Limit limit = mock(Limit.class);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
             when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
             when(expenseRepository.save(any())).thenAnswer(inv -> {
@@ -302,32 +270,12 @@ class ExpenseServiceTest {
         }
 
         @Test
-        void shouldThrowUserNotFound() {
-
-            Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-            when(expenseManagerService.getExpenseByIdOrThrow(1L)).thenReturn(existing);
-            when(userManagerService.getUserByIdOrThrow(anyLong()))
-                    .thenThrow(new RequestedEntityNotFoundException("User not found"));
-
-            ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.FOOD, "x");
-
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> expenseService.editExpense(request, userId, 1L, PeriodType.DAILY));
-
-            verifyNoInteractions(walletService, expenseRepository);
-        }
-
-        @Test
         void shouldThrowExpenseBelongsToAnotherUser() {
 
-            User otherUser = new User();
-            otherUser.setId(99L);
             Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             existing.setUserId(99L);
 
             when(expenseManagerService.getExpenseByIdOrThrow(1L)).thenReturn(existing);
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-
             ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.FOOD, "x");
 
             assertThrows(RequestedEntityNotFoundException.class,
@@ -346,7 +294,6 @@ class ExpenseServiceTest {
             Limit limit2 = mock(Limit.class);
 
             when(expenseManagerService.getExpenseByIdOrThrow(1L)).thenReturn(existing);
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
             when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit1, limit2));
@@ -368,7 +315,6 @@ class ExpenseServiceTest {
             Limit limit = mock(Limit.class);
 
             when(expenseManagerService.getExpenseByIdOrThrow(1L)).thenReturn(existing);
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
             when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit));
@@ -404,8 +350,6 @@ class ExpenseServiceTest {
 
     @Test
     void shouldReturnMappedExpenses() {
-
-        when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(expenseRepository.findAllByUserId(userId)).thenReturn(List.of(new Expense(), new Expense()));
         when(expenseMapper.mapExpenseToDto(any()))
                 .thenReturn(new ExpenseDto(null, null, BigDecimal.TEN, ExpenseCategory.FOOD, null, "x"));
@@ -422,8 +366,6 @@ class ExpenseServiceTest {
         void shouldDeleteExpenseSuccessfully() {
 
             Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(expenseRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
@@ -440,8 +382,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldThrowExpenseNotFound() {
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(expenseRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class,
@@ -457,8 +397,6 @@ class ExpenseServiceTest {
             Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             Limit limit1 = mock(Limit.class);
             Limit limit2 = mock(Limit.class);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(expenseRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit1, limit2));
             when(limitCalculateService.calculateLimitStats(eq(limit1), eq(userId), any(LocalDate.class)))
@@ -476,8 +414,6 @@ class ExpenseServiceTest {
 
             Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             Limit limit = mock(Limit.class);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(expenseRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit));
             when(limitCalculateService.calculateLimitStats(eq(limit), eq(userId), any(LocalDate.class)))
@@ -496,8 +432,6 @@ class ExpenseServiceTest {
         void shouldNotPublishLimitStatsNoLimitsExistOnDelete() {
 
             Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(expenseRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
