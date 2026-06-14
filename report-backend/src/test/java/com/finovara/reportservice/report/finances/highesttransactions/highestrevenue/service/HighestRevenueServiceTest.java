@@ -3,7 +3,7 @@ package com.finovara.reportservice.report.finances.highesttransactions.highestre
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class HighestRevenueServiceTest {
     private static final int PAGE_SIZE = 5;
 
     @Mock
-    private CoreBackendReportClient reportClient;
+    private FinanceBackendReportClient reportClient;
 
     @InjectMocks
     private HighestRevenueService highestRevenueService;

@@ -1,6 +1,6 @@
 package com.finovara.reportservice.report.finances.chart.averagecashflow.service;
 
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.finances.chart.builder.CashFlowChartService;
 import com.finovara.reportservice.report.finances.chart.dto.CashFlowDto;
 import org.junit.jupiter.api.Nested;
@@ -22,7 +22,7 @@ class AverageCashFlowChartServiceTest {
     private static final Long USER_ID = 1L;
 
     @Mock
-    private CoreBackendReportClient reportClient;
+    private FinanceBackendReportClient reportClient;
 
     @Mock
     private CashFlowChartService cashFlowChartService;

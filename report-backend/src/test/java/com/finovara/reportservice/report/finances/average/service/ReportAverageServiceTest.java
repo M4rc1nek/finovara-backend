@@ -1,7 +1,7 @@
 package com.finovara.reportservice.report.finances.average.service;
 
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.dto.ReportDto;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ class ReportAverageServiceTest {
     private static final Long USER_ID = 1L;
 
     @Mock
-    private CoreBackendReportClient reportClient;
+    private FinanceBackendReportClient reportClient;
 
     @InjectMocks
     private ReportAverageService reportAverageService;

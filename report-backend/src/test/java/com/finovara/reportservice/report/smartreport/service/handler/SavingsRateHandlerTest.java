@@ -1,6 +1,6 @@
 package com.finovara.reportservice.report.smartreport.service.handler;
 
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.smartreport.model.SmartReportType;
 import com.finovara.reportservice.report.smartreport.service.loader.SmartReportTemplateService;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +24,7 @@ class SavingsRateHandlerTest {
     private static final String TEMPLATE = "Your savings rate is {amount}%";
 
     @Mock
-    private CoreBackendReportClient reportClient;
+    private FinanceBackendReportClient reportClient;
     @Mock
     private SmartReportTemplateService templateService;
 
