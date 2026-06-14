@@ -1,4 +1,4 @@
-package com.finovara.authbackend.revenue.model;
+package com.finovara.financeservice.revenue.model;
 
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import jakarta.persistence.*;

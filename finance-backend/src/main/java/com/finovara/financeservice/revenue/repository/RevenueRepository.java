@@ -1,8 +1,8 @@
-package com.finovara.authbackend.revenue.repository;
+package com.finovara.financeservice.revenue.repository;
 
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
 import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
-import com.finovara.authbackend.revenue.model.Revenue;
+import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

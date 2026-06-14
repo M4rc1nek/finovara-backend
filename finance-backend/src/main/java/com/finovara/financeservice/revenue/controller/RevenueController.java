@@ -1,7 +1,7 @@
-package com.finovara.authbackend.revenue.controller;
+package com.finovara.financeservice.revenue.controller;
 
-import com.finovara.authbackend.revenue.dto.RevenueDto;
-import com.finovara.authbackend.revenue.service.RevenueService;
+import com.finovara.financeservice.revenue.dto.RevenueDto;
+import com.finovara.financeservice.revenue.service.RevenueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.finovara.authbackend.security.SecurityUtils.getCurrentUserId;
+import static com.finovara.financeservice.security.SecurityUtils.getCurrentUserId;
 
 @RestController
 @RequiredArgsConstructor

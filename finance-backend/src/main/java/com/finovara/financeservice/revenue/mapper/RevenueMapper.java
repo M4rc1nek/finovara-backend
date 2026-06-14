@@ -1,7 +1,7 @@
-package com.finovara.authbackend.revenue.mapper;
+package com.finovara.financeservice.revenue.mapper;
 
-import com.finovara.authbackend.revenue.dto.RevenueDto;
-import com.finovara.authbackend.revenue.model.Revenue;
+import com.finovara.financeservice.revenue.dto.RevenueDto;
+import com.finovara.financeservice.revenue.model.Revenue;
 import org.springframework.stereotype.Component;
 
 @Component
