@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.security;
+package com.finovara.financeservice.security;
 
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

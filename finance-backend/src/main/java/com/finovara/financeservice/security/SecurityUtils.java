@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.security;
+package com.finovara.financeservice.security;
 
 import lombok.experimental.UtilityClass;
 import org.springframework.security.core.Authentication;
