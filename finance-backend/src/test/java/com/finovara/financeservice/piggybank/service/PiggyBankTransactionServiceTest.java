@@ -1,16 +1,16 @@
-package com.finovara.authbackend.piggybank.service;
+package com.finovara.financeservice.piggybank.service;
 
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.authbackend.piggybank.model.PiggyBank;
-import com.finovara.authbackend.piggybank.repository.PiggyBankRepository;
-import com.finovara.authbackend.settings.piggybank.completion.service.GoalCompletionService;
-import com.finovara.authbackend.util.piggybank.manager.PiggyBankManagerService;
-import com.finovara.authbackend.util.wallet.WalletManagerService;
-import com.finovara.authbackend.wallet.model.Wallet;
-import com.finovara.authbackend.wallet.repository.WalletRepository;
+import com.finovara.financeservice.piggybank.model.PiggyBank;
+import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
+import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
+import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.util.wallet.WalletManagerService;
+import com.finovara.financeservice.wallet.model.Wallet;
+import com.finovara.financeservice.wallet.repository.WalletRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
