@@ -1,0 +1,69 @@
+package com.finovara.authbackend.util.expense;
+
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.authbackend.expense.model.Expense;
+import com.finovara.authbackend.expense.repository.ExpenseRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class ExpenseManagerServiceTest {
+
+    @Mock
+    private ExpenseRepository expenseRepository;
+
+    @InjectMocks
+    private ExpenseManagerService expenseManagerService;
+
+    private final Long EXPENSE_ID = 1L;
+    private final Long USER_ID = 2L;
+
+    @Test
+    void shouldReturnExpenseByUserIdAndExpenseId() {
+        Expense expense = new Expense();
+
+        when(expenseRepository.findByIdAndUserId(EXPENSE_ID, USER_ID)).thenReturn(Optional.of(expense));
+
+        expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID);
+
+        verify(expenseRepository).findByIdAndUserId(EXPENSE_ID, USER_ID);
+    }
+
+    @Test
+    void shouldThrowWhenExpenseByUserIdNotFound() {
+        when(expenseRepository.findByIdAndUserId(EXPENSE_ID, USER_ID)).thenReturn(Optional.empty());
+
+        assertThrows(RequestedEntityNotFoundException.class, () -> expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID));
+
+        verify(expenseRepository).findByIdAndUserId(EXPENSE_ID, USER_ID);
+    }
+
+    @Test
+    void shouldReturnExpenseById() {
+        Expense expense = new Expense();
+
+        when(expenseRepository.findById(EXPENSE_ID)).thenReturn(Optional.of(expense));
+
+        expenseManagerService.getExpenseByIdOrThrow(EXPENSE_ID);
+
+        verify(expenseRepository).findById(EXPENSE_ID);
+    }
+
+    @Test
+    void shouldThrowWhenExpenseByIdNotFound() {
+        when(expenseRepository.findById(EXPENSE_ID)).thenReturn(Optional.empty());
+
+        assertThrows(RequestedEntityNotFoundException.class, () -> expenseManagerService.getExpenseByIdOrThrow(EXPENSE_ID));
+
+        verify(expenseRepository).findById(EXPENSE_ID);
+    }
+}
