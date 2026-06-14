@@ -1,7 +1,7 @@
-package com.finovara.authbackend.expense.dto;
+package com.finovara.financeservice.expense.dto;
 
-import com.finovara.authbackend.usersetting.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.financeservice.settings.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import jakarta.validation.Valid;
 
 public record ExpenseRequestDto(

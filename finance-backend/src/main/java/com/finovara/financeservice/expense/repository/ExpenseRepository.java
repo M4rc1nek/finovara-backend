@@ -1,7 +1,7 @@
-package com.finovara.authbackend.expense.repository;
+package com.finovara.financeservice.expense.repository;
 
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
-import com.finovara.authbackend.expense.model.Expense;
+import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
 import org.springframework.data.domain.Pageable;
