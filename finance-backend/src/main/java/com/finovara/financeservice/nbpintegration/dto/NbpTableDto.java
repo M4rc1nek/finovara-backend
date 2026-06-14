@@ -1,4 +1,4 @@
-package com.finovara.authbackend.nbpintegration.dto;
+package com.finovara.financeservice.nbpintegration.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -1,4 +1,4 @@
-package com.finovara.authbackend.nbpintegration.model;
+package com.finovara.financeservice.nbpintegration.model;
 
 public enum NbpConversionType {
     FROM_PLN,

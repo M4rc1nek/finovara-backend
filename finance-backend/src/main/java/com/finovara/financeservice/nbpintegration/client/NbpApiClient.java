@@ -1,6 +1,6 @@
-package com.finovara.authbackend.nbpintegration.client;
+package com.finovara.financeservice.nbpintegration.client;
 
-import com.finovara.authbackend.nbpintegration.dto.NbpTableDto;
+import com.finovara.financeservice.nbpintegration.dto.NbpTableDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

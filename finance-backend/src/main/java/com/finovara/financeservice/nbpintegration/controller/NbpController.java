@@ -1,8 +1,8 @@
-package com.finovara.authbackend.nbpintegration.controller;
+package com.finovara.financeservice.nbpintegration.controller;
 
-import com.finovara.authbackend.nbpintegration.dto.NbpTableDto;
-import com.finovara.authbackend.nbpintegration.model.NbpConversionType;
-import com.finovara.authbackend.nbpintegration.service.NbpService;
+import com.finovara.financeservice.nbpintegration.dto.NbpTableDto;
+import com.finovara.financeservice.nbpintegration.model.NbpConversionType;
+import com.finovara.financeservice.nbpintegration.service.NbpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
