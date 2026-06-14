@@ -1,6 +1,6 @@
-package com.finovara.authbackend.wallet.repository;
+package com.finovara.financeservice.wallet.repository;
 
-import com.finovara.authbackend.wallet.model.Wallet;
+import com.finovara.financeservice.wallet.model.Wallet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

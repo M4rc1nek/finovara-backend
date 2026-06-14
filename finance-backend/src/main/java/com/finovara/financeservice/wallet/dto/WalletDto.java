@@ -1,4 +1,4 @@
-package com.finovara.authbackend.wallet.dto;
+package com.finovara.financeservice.wallet.dto;
 
 import java.math.BigDecimal;
 

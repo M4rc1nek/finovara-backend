@@ -1,9 +1,9 @@
-package com.finovara.authbackend.wallet.service;
+package com.finovara.financeservice.wallet.service;
 
-import com.finovara.authbackend.util.wallet.WalletManagerService;
-import com.finovara.authbackend.wallet.dto.WalletDto;
-import com.finovara.authbackend.wallet.model.Wallet;
-import com.finovara.authbackend.wallet.repository.WalletRepository;
+import com.finovara.financeservice.util.wallet.WalletManagerService;
+import com.finovara.financeservice.wallet.dto.WalletDto;
+import com.finovara.financeservice.wallet.model.Wallet;
+import com.finovara.financeservice.wallet.repository.WalletRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

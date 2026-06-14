@@ -1,4 +1,4 @@
-package com.finovara.authbackend.wallet.model;
+package com.finovara.financeservice.wallet.model;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import jakarta.persistence.*;
