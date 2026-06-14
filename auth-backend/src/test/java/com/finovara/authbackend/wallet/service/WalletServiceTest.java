@@ -1,8 +1,6 @@
 package com.finovara.authbackend.wallet.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authbackend.user.model.User;
-import com.finovara.authbackend.util.user.service.UserManagerService;
 import com.finovara.authbackend.util.wallet.WalletManagerService;
 import com.finovara.authbackend.wallet.dto.WalletDto;
 import com.finovara.authbackend.wallet.model.Wallet;
@@ -28,22 +26,16 @@ class WalletServiceTest {
     private WalletRepository walletRepository;
 
     @Mock
-    private UserManagerService userManagerService;
-
-    @Mock
     private WalletManagerService walletManagerService;
 
     @InjectMocks
     private WalletService walletService;
 
     private Long userId;
-    private User user;
 
     @BeforeEach
     void setUp() {
         userId = 1L;
-        user = new User();
-        user.setId(userId);
     }
 
     @Nested
@@ -53,7 +45,6 @@ class WalletServiceTest {
             Wallet wallet = Wallet.create(userId);
             wallet.deposit(new BigDecimal("100"));
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(walletRepository.findByUserId(userId)).thenReturn(Optional.of(wallet));
 
             WalletDto result = walletService.getWalletForUser(userId);
@@ -69,7 +60,6 @@ class WalletServiceTest {
         void shouldCreateWalletWhenNotExist() {
             Wallet newWallet = Wallet.create(userId);
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(walletRepository.findByUserId(userId)).thenReturn(Optional.empty());
             when(walletRepository.save(any(Wallet.class))).thenReturn(newWallet);
 
@@ -90,7 +80,6 @@ class WalletServiceTest {
             Wallet wallet = Wallet.create(userId);
             wallet.deposit(new BigDecimal("100"));
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
             WalletDto result = walletService.addBalanceToWallet(userId, new BigDecimal("50"));
@@ -102,7 +91,6 @@ class WalletServiceTest {
         void shouldThrowExceptionWhenAmountIsNegative() {
             Wallet wallet = Wallet.create(userId);
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
             assertThrows(InvalidInputException.class, () -> walletService.addBalanceToWallet(userId, new BigDecimal("-10")));
@@ -119,7 +107,6 @@ class WalletServiceTest {
             Wallet wallet = Wallet.create(userId);
             wallet.deposit(new BigDecimal("100"));
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
             WalletDto result = walletService.removeBalanceFromWallet(userId, new BigDecimal("50"));
@@ -132,7 +119,6 @@ class WalletServiceTest {
             Wallet wallet = Wallet.create(userId);
             wallet.deposit(new BigDecimal("30"));
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
             assertThrows(InvalidInputException.class, () -> walletService.removeBalanceFromWallet(userId, new BigDecimal("50")));
@@ -144,8 +130,6 @@ class WalletServiceTest {
         void shouldThrowExceptionWhenAmountIsNegative() {
             Wallet wallet = Wallet.create(userId);
             wallet.deposit(new BigDecimal("100"));
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
 
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
