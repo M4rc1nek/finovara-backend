@@ -21,8 +21,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class InternalReportDataController {
 
-    //Move this controller to transaction-service
-
     private final InternalReportDataService internalReportDataService;
 
     @GetMapping("/expenses/sum")
