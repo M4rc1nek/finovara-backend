@@ -7,7 +7,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.revenue.servi
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.service.LoginActivityService;
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.service.SettingsActivityService;
-import com.finovara.activitylogservice.activitylog.datadeletable.UserDataDeletable;
+import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
