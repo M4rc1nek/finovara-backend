@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.config;
+package com.finovara.financeservice.config;
 
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
