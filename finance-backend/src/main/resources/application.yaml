@@ -30,6 +30,8 @@ server:
     key-store-password: ${SSL_PASSWORD}
     key-alias: 1
 
+auth-backend:
+  url: ${AUTH_BACKEND_URL}
 
 logging:
   level:
@@ -39,11 +41,9 @@ logging:
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
 
 
-
 scheduler:
   recurring-settings:
     frequency: "0 0 0 * * ?"
-
 
 nbp:
   api:
