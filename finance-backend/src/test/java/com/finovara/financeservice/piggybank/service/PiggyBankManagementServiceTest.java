@@ -48,7 +48,7 @@ class PiggyBankManagementServiceTest {
     @Mock
     private PiggyBankSettingsRepository piggyBankSettingsRepository;
     @Mock
-    private SettingsFactory settingsFactory;
+    private PiggyBankSettingsFactory piggyBankSettingsFactory;
     @Mock
     private PiggyBankMapper piggyBankMapper;
     @Mock
@@ -84,7 +84,7 @@ class PiggyBankManagementServiceTest {
             when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
             when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(false);
             when(piggyBankRepository.save(any())).thenReturn(saved);
-            when(settingsFactory.createDefaultPiggyBankSettings(any())).thenReturn(new PiggyBankSettings());
+            when(piggyBankSettingsFactory.createDefaultPiggyBankSettings(any())).thenReturn(new PiggyBankSettings());
 
             Long result = piggyBankManagementService.addPiggyBank(defaultDto, userId);
 
