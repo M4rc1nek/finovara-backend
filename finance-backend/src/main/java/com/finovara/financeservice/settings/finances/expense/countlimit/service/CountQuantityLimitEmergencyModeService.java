@@ -15,7 +15,7 @@ public class CountQuantityLimitEmergencyModeService {
 
     @Transactional
     public void saveEmergencyMode(Long userId, CountQuantityLimitEmergencyModeDto dto) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserIdOrThrow(userId);
+        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
         expenseSettings.setQuantityLimitEmergencyModeEnabled(dto.expenseQuantityLimitEmergencyModeEnabled());
     }
