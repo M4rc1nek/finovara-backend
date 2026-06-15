@@ -1,7 +1,7 @@
 package com.finovara.authservice.user.service;
 
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
-import com.finovara.contracts.event.notification.CreateDefaultNotificationEmailSettingsEvent;
+import com.finovara.contracts.event.user.UserCreatedEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.conflict.StateConflictException;
 import com.finovara.contracts.exception.unauthorized.InvalidCredentialsException;
@@ -69,7 +69,7 @@ public class UserService {
         User savedUser = userRepository.save(user);
         String jwtToken = jwtService.generateToken(savedUser);
         String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(savedUser.getProfileImagePath());
-        kafkaTemplate.send("user.created", new CreateDefaultNotificationEmailSettingsEvent(savedUser.getId()));
+        kafkaTemplate.send("user.created", new UserCreatedEvent(savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getCreatedAt()));
 
         return new UserRegisterDto(savedUser.getId(), savedUser.getUsername(), null, userProfileImage, savedUser.getEmail(), jwtToken);
     }
