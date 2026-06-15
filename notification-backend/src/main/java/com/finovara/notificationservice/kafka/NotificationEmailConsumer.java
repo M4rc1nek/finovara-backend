@@ -1,8 +1,8 @@
 package com.finovara.notificationservice.kafka;
 
-import com.finovara.contracts.event.notification.CreateDefaultNotificationEmailSettingsEvent;
 import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.contracts.event.user.UserAccountDeletedEvent;
+import com.finovara.contracts.event.user.UserCreatedEvent;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.service.NotificationEmailSettingsService;
@@ -27,7 +27,7 @@ public class NotificationEmailConsumer {
     private final EmailTemplateService emailTemplateService;
 
     @KafkaListener(topics = "user.created")
-    public void handleUserCreated(CreateDefaultNotificationEmailSettingsEvent event) {
+    public void handleUserCreated(UserCreatedEvent event) {
         notificationEmailSettingsService.createSettingsIfNotExist(event.userId());
     }
 
