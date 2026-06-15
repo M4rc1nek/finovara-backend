@@ -4,6 +4,7 @@ import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanDto;
@@ -38,7 +39,7 @@ class SmartScanServiceTest {
     private ExpenseRepository expenseRepository;
 
     @Mock
-    private PasswordValidator passwordValidator;
+    private AuthBackendClient authBackendClient;
 
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -53,7 +54,7 @@ class SmartScanServiceTest {
     @BeforeEach
     void setup() {
         expenseSettings = new ExpenseSettings();
-        when(expenseSettingsRepository.findByUserIdOrThrow(USER_ID)).thenReturn(expenseSettings);
+        when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(expenseSettings);
     }
 
     @Nested
@@ -114,7 +115,7 @@ class SmartScanServiceTest {
 
             smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(100), SmartScanMode.ADD);
 
-            verifyNoInteractions(passwordValidator, expenseRepository);
+            verifyNoInteractions(authBackendClient, expenseRepository);
         }
 
         @Test
@@ -125,7 +126,7 @@ class SmartScanServiceTest {
 
             smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(100), SmartScanMode.ADD);
 
-            verifyNoInteractions(passwordValidator);
+            verifyNoInteractions(authBackendClient);
         }
 
         @Test
@@ -146,7 +147,7 @@ class SmartScanServiceTest {
 
             assertThrows(SmartScanConfirmationRequiredException.class, () -> smartScanService.handleSmartScan(USER_ID, null, newExpense, SmartScanMode.ADD));
 
-            verifyNoInteractions(passwordValidator);
+            verifyNoInteractions(authBackendClient);
         }
 
         @Test
@@ -168,7 +169,7 @@ class SmartScanServiceTest {
 
             smartScanService.handleSmartScan(USER_ID, passwordDto, newExpense, SmartScanMode.ADD);
 
-            verify(passwordValidator).validatePassword(USER_ID, passwordDto);
+            verify(authBackendClient).verifyPassword(USER_ID, passwordDto);
         }
     }
 }
