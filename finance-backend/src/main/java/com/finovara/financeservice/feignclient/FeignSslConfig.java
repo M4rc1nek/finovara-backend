@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.feignclient;
+package com.finovara.financeservice.feignclient;
 
 import feign.Client;
 import org.springframework.context.annotation.Bean;
