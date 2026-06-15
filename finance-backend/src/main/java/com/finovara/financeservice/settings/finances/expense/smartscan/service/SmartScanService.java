@@ -5,13 +5,13 @@ import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanDto;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.financeservice.settings.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
-import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,12 +34,12 @@ public class SmartScanService {
 
     private final ExpenseSettingsRepository expenseSettingsRepository;
     private final ExpenseRepository expenseRepository;
-    private final PasswordValidator passwordValidator;
+    private final AuthBackendClient authBackendClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
     public void saveSmartScan(Long userId, SmartScanDto settings) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserIdOrThrow(userId);
+        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
         expenseSettings.setSmartScanEnabled(settings.smartScanEnabled());
         if (expenseSettings.isSmartScanEnabled()) {
@@ -51,14 +51,14 @@ public class SmartScanService {
 
     @Transactional
     public SmartScanDto getSmartScan(Long userId) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserIdOrThrow(userId);
+        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
         return new SmartScanDto(expenseSettings.isSmartScanEnabled());
     }
 
     @Transactional
     public void handleSmartScan(Long userId, ConfirmPasswordDto confirmPasswordDto, BigDecimal newExpenseAmount, SmartScanMode mode) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserIdOrThrow(userId);
+        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
         if (!expenseSettings.isSmartScanEnabled()) return;
 
@@ -95,7 +95,7 @@ public class SmartScanService {
             throw new SmartScanConfirmationRequiredException("Unusual expense detected. Password confirmation required.");
         }
 
-        passwordValidator.validatePassword(userId, confirmPasswordDto);
+        authBackendClient.verifyPassword(userId, confirmPasswordDto);
     }
 
 }
