@@ -1,5 +1,6 @@
 package com.finovara.financeservice.piggybank.service;
 
+import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
@@ -9,6 +10,7 @@ import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
+import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
 import com.finovara.financeservice.settings.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.financeservice.util.piggybank.PiggyBankCalculator;
 import com.finovara.financeservice.util.piggybank.PiggyBankCheckGoalCompletion;
@@ -28,7 +30,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PiggyBankManagementService {
+public class PiggyBankManagementService implements UserDataDeletable {
 
     private final PiggyBankRepository piggyBankRepository;
     private final PiggyBankManagerService piggyBankManagerService;
@@ -36,6 +38,7 @@ public class PiggyBankManagementService {
     private final PiggyBankSettingsRepository piggyBankSettingsRepository;
     private final RecurringSettingsRepository recurringSettingsRepository;
     private final PiggyBankMapper piggyBankMapper;
+    private final PiggyBankSettingsFactory piggyBankSettingsFactory;
 
     @Transactional
     public Long addPiggyBank(PiggyBankDto piggyBankDto, Long userId) {
@@ -63,7 +66,7 @@ public class PiggyBankManagementService {
 
         PiggyBank saved = piggyBankRepository.save(piggyBank);
         kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.ADDED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
-        PiggyBankSettings settings = settingsFactory.createDefaultPiggyBankSettings(saved); // kafka
+        PiggyBankSettings settings = piggyBankSettingsFactory.createDefaultPiggyBankSettings(saved);
         piggyBankSettingsRepository.save(settings);
 
         return saved.getId();
@@ -115,5 +118,13 @@ public class PiggyBankManagementService {
 
         kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
         piggyBankRepository.delete(piggyBank);
+    }
+
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        piggyBankRepository.deleteByUserId(userId);
+        log.info("Deleted piggyBank for userId={}", userId);
     }
 }
