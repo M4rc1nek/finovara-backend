@@ -52,20 +52,4 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet id="create-shedlock-table" author="Marcin Parśniak">
-        <createTable tableName="shedlock">
-            <column name="name" type="varchar(64)">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="lock_until" type="timestamp(3)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="locked_at" type="timestamp(3)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="locked_by" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-    </changeSet>
 </databaseChangeLog>
