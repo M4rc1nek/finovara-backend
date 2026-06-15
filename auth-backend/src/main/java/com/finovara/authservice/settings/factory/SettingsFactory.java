@@ -63,16 +63,6 @@ public class SettingsFactory {
                 .build();
     }
 
-    public AccountSettings createDefaultAccountSettings(User user) {
-        return AccountSettings.builder()
-                .userAssigned(user)
-                .emailChangeCode(null)
-                .pendingEmail(null)
-                .resetPasswordCode(null)
-                .resetPasswordCodeExpiresAt(null)
-                .attemptsEmailExpiresAt(null)
-                .attemptsPasswordExpiresAt(null)
-                .build();
-    }
+
 
 }

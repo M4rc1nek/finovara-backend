@@ -20,10 +20,10 @@ import java.util.TimeZone;
 @EnableConfigurationProperties(SecurityProperties.class)
 @Import(GlobalExceptionHandler.class)
 @SpringBootApplication
-public class FinovaraBackendApplication {
+public class FinovaraAuthBackendApplication {
 
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        SpringApplication.run(FinovaraBackendApplication.class, args);
+        SpringApplication.run(FinovaraAuthApplication.class, args);
     }
 }
