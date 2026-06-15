@@ -43,7 +43,7 @@ class ControlAmountServiceTest {
     @BeforeEach
     void setUp() {
         expenseSettings = new ExpenseSettings();
-        when(expenseSettingsRepository.findByUserIdOrThrow(USER_ID)).thenReturn(expenseSettings);
+        when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(expenseSettings);
     }
 
     @Nested
@@ -73,7 +73,7 @@ class ControlAmountServiceTest {
 
         @Test
         void shouldThrowWhenSettingsNotFound() {
-            when(expenseSettingsRepository.findByUserIdOrThrow(USER_ID))
+            when(expenseSettingsRepository.findByUserId(USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("Expense settings not found"));
 
             assertThrows(RequestedEntityNotFoundException.class,
@@ -160,7 +160,7 @@ class ControlAmountServiceTest {
 
         @Test
         void shouldThrowWhenSettingsNotFound() {
-            when(expenseSettingsRepository.findByUserIdOrThrow(USER_ID))
+            when(expenseSettingsRepository.findByUserId(USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("Expense settings not found"));
 
             ControlAmountDto dto = new ControlAmountDto(true, BigDecimal.valueOf(10));
