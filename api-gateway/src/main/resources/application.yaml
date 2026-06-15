@@ -67,16 +67,15 @@ spring:
               predicates:
                 - Path=/api/reports/**,/api/pdf/**
 
+            - id: auth_backend
+              uri: ${AUTH_BACKEND_URL}
+              predicates:
+                - Path=/api/auth/**,/api/profile-image/**,/profile-images/**,/api/password-reset/**,/api/contact,/oauth2/**,/login/oauth2/**,/api/account-settings/**,/api/email-change/**
+
             - id: finance_backend
               uri: ${FINANCE_BACKEND_URL}
               predicates:
                 - Path=/**
-
-            - id: auth_backend
-              uri: ${AUTH_BACKEND_URL}
-              predicates:
-                - Path=/**
-
 logging:
   level:
     root: WARN
