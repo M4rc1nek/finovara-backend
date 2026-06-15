@@ -4,12 +4,12 @@ import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.exception.conflict.StateConflictException;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import com.finovara.financeservice.settings.finances.expense.countlimit.validator.CountQuantityLimitValidator;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
-import com.finovara.financeservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.contracts.model.PeriodType;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +38,7 @@ class CountQuantityLimitServiceTest {
     private ExpenseRepository expenseRepository;
 
     @Mock
-    private PasswordValidator passwordValidator;
+    private AuthBackendClient authBackendClient;
 
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -53,7 +53,7 @@ class CountQuantityLimitServiceTest {
     @BeforeEach
     void setup() {
         expenseSettings = new ExpenseSettings();
-        when(expenseSettingsRepository.findByUserIdOrThrow(USER_ID)).thenReturn(expenseSettings);
+        when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(expenseSettings);
     }
 
     @Nested
@@ -109,7 +109,7 @@ class CountQuantityLimitServiceTest {
             countQuantityLimitService.handleExpenseLimitExceeded(USER_ID, new CountQuantityLimitDto(true,
                     PeriodType.DAILY, 5), PeriodType.DAILY, null);
 
-            verifyNoInteractions(passwordValidator);
+            verifyNoInteractions(authBackendClient);
         }
 
         @Test
@@ -124,7 +124,7 @@ class CountQuantityLimitServiceTest {
 
             countQuantityLimitService.handleExpenseLimitExceeded(USER_ID, dto, PeriodType.DAILY, confirmPasswordDto);
 
-            verify(passwordValidator).validatePassword(USER_ID, confirmPasswordDto);
+            verify(authBackendClient).verifyPassword(USER_ID, confirmPasswordDto);
 
             assertFalse(expenseSettings.isQuantityLimitEmergencyModeEnabled());
             assertTrue(expenseSettings.isQuantityLimitEmergencyModeUsed());
