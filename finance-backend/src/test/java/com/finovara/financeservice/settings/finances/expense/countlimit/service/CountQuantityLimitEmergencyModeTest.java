@@ -30,7 +30,7 @@ class CountQuantityLimitEmergencyModeTest {
     @BeforeEach
     void setup() {
         expenseSettings = new ExpenseSettings();
-        when(expenseSettingsRepository.findByUserIdOrThrow(USER_ID)).thenReturn(expenseSettings);
+        when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(expenseSettings);
     }
 
     @ParameterizedTest
