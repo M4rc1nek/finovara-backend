@@ -27,7 +27,7 @@ public class ControlAmountService {
 
     @Transactional
     public void saveExpenseAmountControl(Long userId, ControlAmountDto controlAmountDto) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserIdOrThrow(userId);
+        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
         BigDecimal blockedAmount = Optional.ofNullable(controlAmountDto.blockedAmount()).orElse(BigDecimal.ZERO);
 
@@ -42,13 +42,13 @@ public class ControlAmountService {
 
     @Transactional
     public ControlAmountDto getExpenseAmountControl(Long userId) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserIdOrThrow(userId);
+        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
         return new ControlAmountDto(expenseSettings.isAmountThresholdEnabled(), expenseSettings.getBlockedAmount());
     }
 
     public void handleExpenseAmountControl(Long userId, BigDecimal newAmount) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserIdOrThrow(userId);
+        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
         BigDecimal blockedAmount = Optional.ofNullable(expenseSettings.getBlockedAmount()).orElse(BigDecimal.ZERO);
 
