@@ -1,5 +1,6 @@
 package com.finovara.financeservice.expense.service;
 
+import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.event.notification.limit.LimitStatsEvent;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
@@ -25,6 +26,7 @@ import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpSer
 import com.finovara.financeservice.util.expense.ExpenseManagerService;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import com.finovara.financeservice.wallet.service.WalletService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +38,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class ExpenseService {
+public class ExpenseService implements UserDataDeletable {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ExpenseRepository expenseRepository;
@@ -167,5 +170,12 @@ public class ExpenseService {
         if (limitAmount.isPresent() && totalAmount.compareTo(limitAmount.get()) > 0) {
             throw new MissingRequirementException("Limit Exceeded");
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        expenseRepository.deleteByUserId(userId);
+        log.info("Deleted expenses for userId={}", userId);
     }
 }
