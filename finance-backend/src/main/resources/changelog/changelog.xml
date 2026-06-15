@@ -5,6 +5,7 @@
         xsi:schemaLocation="
         http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
+
     <changeSet id="create-wallets" author="Marcin Parśniak">
         <createTable tableName="wallets">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -17,7 +18,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_wallet_user" references="users(id)"/>
+                <constraints nullable="false" unique="true"/>
             </column>
         </createTable>
     </changeSet>
@@ -37,7 +38,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_limit_user" references="users(id)"/>
+                <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
@@ -52,10 +53,11 @@
             <column name="created_at" type="DATE"/>
             <column name="description" type="VARCHAR(500)"/>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_expense_user" references="users(id)"/>
+                <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
+
     <changeSet id="create-revenues" author="Marcin Parśniak">
         <createTable tableName="revenues">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -66,10 +68,11 @@
             <column name="created_at" type="DATE"/>
             <column name="description" type="VARCHAR(500)"/>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_revenue_user" references="users(id)"/>
+                <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
+
     <changeSet id="create-piggy_banks" author="Marcin Parśniak">
         <createTable tableName="piggy_banks">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -85,7 +88,7 @@
             </column>
             <column name="goal_amount" type="DECIMAL(19,2)"/>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_piggybank_user" references="users(id)"/>
+                <constraints nullable="false"/>
             </column>
         </createTable>
 
@@ -117,11 +120,11 @@
             <column name="quantity_limit_emergency_mode_enabled" type="BOOLEAN"/>
             <column name="quantity_limit_emergency_mode_used" type="BOOLEAN"/>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_expense_settings_user"
-                             references="users(id)"/>
+                <constraints nullable="false" unique="true"/>
             </column>
         </createTable>
     </changeSet>
+
     <changeSet id="create-recurring-settings" author="Marcin Parśniak">
         <createTable tableName="recurring_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -142,7 +145,7 @@
             </column>
             <column name="piggy_bank_id" type="BIGINT"/>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="true" foreignKeyName="fk_recurring_settings_user" references="users(id)"/>
+                <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>
@@ -170,4 +173,21 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="create-shedlock-table" author="Marcin Parśniak">
+        <createTable tableName="shedlock">
+            <column name="name" type="varchar(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="lock_until" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_at" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_by" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
 </databaseChangeLog>
