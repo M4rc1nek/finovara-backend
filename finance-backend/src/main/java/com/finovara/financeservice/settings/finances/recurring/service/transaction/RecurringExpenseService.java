@@ -40,7 +40,7 @@ public class RecurringExpenseService {
         );
 
         if (settings.isEnable()) {
-            ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserIdOrThrow(userId);
+            ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
             Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
 
             recurringExpenseValidator.validate(settings, expenseSettings, wallet);
