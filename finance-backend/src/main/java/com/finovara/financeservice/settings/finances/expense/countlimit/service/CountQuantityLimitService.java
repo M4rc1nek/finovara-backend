@@ -1,11 +1,11 @@
 package com.finovara.financeservice.settings.finances.expense.countlimit.service;
 
-import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.contracts.exception.conflict.StateConflictException;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.expense.countlimit.dto.CountQuantityLimitDto;
 import com.finovara.financeservice.settings.finances.expense.countlimit.validator.CountQuantityLimitValidator;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
@@ -26,13 +26,13 @@ public class CountQuantityLimitService {
 
     private final ExpenseSettingsRepository expenseSettingsRepository;
     private final ExpenseRepository expenseRepository;
-    private final PasswordValidator passwordValidator;
+    private final AuthBackendClient authBackendClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final CountQuantityLimitValidator countQuantityLimitValidator;
 
     @Transactional
     public void saveCountQuantityLimit(Long userId, CountQuantityLimitDto dto) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserIdOrThrow(userId);
+        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
         expenseSettings.setCountQuantityLimitEnabled(dto.expenseCountLimitEnabled());
 
@@ -58,7 +58,7 @@ public class CountQuantityLimitService {
 
     @Transactional
     public void handleExpenseLimitExceeded(Long userId, CountQuantityLimitDto dto, PeriodType periodType, ConfirmPasswordDto confirmPasswordDto) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserIdOrThrow(userId);
+        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
         if (!expenseSettings.isCountQuantityLimitEnabled()) return;
 
@@ -67,7 +67,7 @@ public class CountQuantityLimitService {
 
             countQuantityLimitValidator.validateEmergencyMode(countedExpenses, confirmPasswordDto, expenseSettings);
 
-            passwordValidator.validatePassword(userId, confirmPasswordDto);
+            authBackendClient.verifyPassword(userId, confirmPasswordDto);
             expenseSettings.setQuantityLimitEmergencyModeEnabled(false);
             expenseSettings.setQuantityLimitEmergencyModeUsed(true);
         }
@@ -75,7 +75,7 @@ public class CountQuantityLimitService {
 
     @Transactional
     public CountQuantityLimitDto getCountQuantityLimit(Long userId) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserIdOrThrow(userId);
+        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
         return new CountQuantityLimitDto(expenseSettings.isCountQuantityLimitEnabled(), expenseSettings.getPeriodType(), expenseSettings.getNumberOfQuantityLimit());
     }
