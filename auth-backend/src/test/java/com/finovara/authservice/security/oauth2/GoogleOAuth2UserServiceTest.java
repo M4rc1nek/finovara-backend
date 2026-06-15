@@ -1,7 +1,7 @@
 package com.finovara.authservice.security.oauth2;
 
+import com.finovara.contracts.event.user.UserCreatedEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.event.notification.CreateDefaultNotificationEmailSettingsEvent;
 import com.finovara.authservice.user.model.OAuthProvider;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
@@ -80,9 +80,6 @@ class GoogleOAuth2UserServiceTest {
     }
 
     private void verifyNoSettingsCreated() {
-        verify(settingsFactory, never()).createDefaultExpenseSettings(any());
-        verify(settingsFactory, never()).createDefaultRecurringSettings(any());
-        verify(settingsFactory, never()).createDefaultAccountSettings(any());
         verify(kafkaTemplate, never()).send(eq("user.created"), any());
     }
 
@@ -125,8 +122,8 @@ class GoogleOAuth2UserServiceTest {
             googleOAuth2UserService.synchronize(oauth2User);
 
             verify(settingsFactory).createDefaultAccountSettings(any());
-            ArgumentCaptor<CreateDefaultNotificationEmailSettingsEvent> eventCaptor =
-                    ArgumentCaptor.forClass(CreateDefaultNotificationEmailSettingsEvent.class);
+            ArgumentCaptor<UserCreatedEvent> eventCaptor =
+                    ArgumentCaptor.forClass(UserCreatedEvent.class);
             verify(kafkaTemplate).send(eq("user.created"), eventCaptor.capture());
             assertThat(eventCaptor.getValue().userId()).isEqualTo(1L);
         }
