@@ -1,5 +1,6 @@
 package com.finovara.financeservice.wallet.service;
 
+import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.dto.WalletDto;
 import com.finovara.financeservice.wallet.model.Wallet;
@@ -14,7 +15,7 @@ import java.math.BigDecimal;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WalletService {
+public class WalletService implements UserDataDeletable {
     private final WalletRepository walletRepository;
     private final WalletManagerService walletManagerService;
 
@@ -51,6 +52,13 @@ public class WalletService {
                 wallet.getId(),
                 userId,
                 wallet.getBalance());
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        walletRepository.deleteByUserId(userId);
+        log.info("Deleted wallet for userId={}", userId);
     }
 
 }
