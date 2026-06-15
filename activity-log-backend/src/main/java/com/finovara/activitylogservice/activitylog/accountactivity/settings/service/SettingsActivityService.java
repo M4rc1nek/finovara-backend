@@ -5,7 +5,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.settings.dto.
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.mapper.SettingsActivityMapper;
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.model.SettingsActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.repository.SettingsActivityRepository;
-import com.finovara.activitylogservice.activitylog.datadeletable.UserDataDeletable;
+import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
