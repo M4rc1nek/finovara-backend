@@ -1,9 +1,10 @@
 package com.finovara.financeservice.revenue.service;
 
+import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.mapper.RevenueMapper;
 import com.finovara.financeservice.revenue.model.Revenue;
@@ -14,19 +15,21 @@ import com.finovara.financeservice.util.revenue.RevenueManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
 import com.finovara.financeservice.wallet.service.WalletService;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class RevenueService {
+public class RevenueService implements UserDataDeletable {
 
     private final RevenueRepository revenueRepository;
     private final WalletRepository walletRepository;
@@ -102,5 +105,12 @@ public class RevenueService {
         walletService.removeBalanceFromWallet(userId, revenue.getAmount());
         kafkaTemplate.send("activity.revenue", new RevenueActivityEvent(userId, RevenueActivityType.DELETED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
         revenueRepository.delete(revenue);
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        revenueRepository.deleteByUserId(userId);
+        log.info("Deleted revenue for userId={}", userId);
     }
 }
