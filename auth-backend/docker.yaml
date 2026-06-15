@@ -22,7 +22,7 @@ services:
     build: .
     container_name: finovara-auth-app
     depends_on:
-      finovara-db:
+      auth-db:
         condition: service_healthy
     ports:
       - "8443:8443"
