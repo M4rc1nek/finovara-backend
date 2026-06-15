@@ -73,7 +73,7 @@ class RecurringExpenseServiceTest {
             Wallet wallet = Wallet.create(userId);
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
-            when(expenseSettingsRepository.findByUserIdOrThrow(userId)).thenReturn(expenseSettings);
+            when(expenseSettingsRepository.findByUserId(userId)).thenReturn(expenseSettings);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
             recurringExpenseService.saveExpenseSettings(userId, dto);
