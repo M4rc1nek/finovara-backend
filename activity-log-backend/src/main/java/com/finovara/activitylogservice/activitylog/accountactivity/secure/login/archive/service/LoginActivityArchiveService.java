@@ -4,7 +4,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.archive.dto.LoginActivityArchiveDto;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.archive.repository.LoginActivityArchiveRepository;
-import com.finovara.activitylogservice.activitylog.datadeletable.UserDataDeletable;
+import com.finovara.contracts.datadeletable.UserDataDeletable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
