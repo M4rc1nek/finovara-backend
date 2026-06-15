@@ -1,4 +1,4 @@
-package com.finovara.authservice.settings.account.service.passwordpolicy;
+package com.finovara.authservice.internal;
 
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
