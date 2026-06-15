@@ -5,7 +5,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.limit.dto.Lim
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.mapper.LimitActivityMapper;
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.model.LimitActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.repository.LimitActivityRepository;
-import com.finovara.activitylogservice.activitylog.datadeletable.UserDataDeletable;
+import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.SortType;
