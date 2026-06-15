@@ -13,6 +13,11 @@ import java.util.Optional;
 @Repository
 public interface RecurringSettingsRepository extends JpaRepository<RecurringSettings, Long> {
 
+
+    @Query("SELECT rs FROM RecurringSettings rs WHERE rs.userId = :userId")
+    Optional<RecurringSettings> findByUserId(Long userId);
+
+
     @Query("""
                 SELECT rs FROM RecurringSettings rs
                 WHERE rs.enable = true
@@ -24,4 +29,6 @@ public interface RecurringSettingsRepository extends JpaRepository<RecurringSett
     Optional<RecurringSettings> findByUserIdAndType(Long userId, RecurringType type);
 
     Optional<RecurringSettings> findByUserIdAndPiggyBankId(Long userId, Long piggyBankId);
+
+    void deleteAllByUserId(Long userId);
 }
