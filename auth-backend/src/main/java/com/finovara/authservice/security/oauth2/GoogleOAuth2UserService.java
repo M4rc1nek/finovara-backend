@@ -1,7 +1,7 @@
 package com.finovara.authservice.security.oauth2;
 
+import com.finovara.contracts.event.user.UserCreatedEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.event.notification.CreateDefaultNotificationEmailSettingsEvent;
 import com.finovara.authservice.security.oauth2.dto.GoogleOAuth2UserInfo;
 import com.finovara.authservice.user.model.OAuthProvider;
 import com.finovara.authservice.user.model.User;
@@ -55,7 +55,7 @@ public class GoogleOAuth2UserService {
         user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
 
         User savedUser = userRepository.save(user);
-        kafkaTemplate.send("user.created", new CreateDefaultNotificationEmailSettingsEvent(savedUser.getId()));
+        kafkaTemplate.send("user.created", new UserCreatedEvent(savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getCreatedAt()));
         return savedUser;
     }
 
