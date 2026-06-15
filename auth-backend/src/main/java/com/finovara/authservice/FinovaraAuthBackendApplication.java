@@ -9,13 +9,11 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Import;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.TimeZone;
 
 @EnableAsync
 @EnableKafka
-@EnableScheduling
 @EnableFeignClients
 @EnableConfigurationProperties(SecurityProperties.class)
 @Import(GlobalExceptionHandler.class)
@@ -24,6 +22,6 @@ public class FinovaraAuthBackendApplication {
 
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-        SpringApplication.run(FinovaraAuthApplication.class, args);
+        SpringApplication.run(FinovaraAuthBackendApplication.class, args);
     }
 }
