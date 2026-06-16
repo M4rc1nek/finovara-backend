@@ -86,18 +86,6 @@ password-generator:
   length: 8
 
 
-rate-limit:
-  endpoints:
-    - path: /api/contact
-      max-requests: 3
-      window-hours: 1
-    - path: /api/currencies/convert
-      max-requests: 8
-      window-hours: 1
-    - path: /api/pdf/reports/**
-      max-requests: 14
-      window-hours: 1
-
 security:
   whitelist:
     - /api/auth/**
