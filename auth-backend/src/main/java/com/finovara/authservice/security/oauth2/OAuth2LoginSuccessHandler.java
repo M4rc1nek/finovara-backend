@@ -1,0 +1,96 @@
+package com.finovara.authservice.security.oauth2;
+
+import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
+
+import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.authservice.security.jwt.JwtService;
+import com.finovara.authservice.user.model.User;
+import com.finovara.authservice.util.profile.ProfileImageUrlBuilder;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
+
+    private final GoogleOAuth2UserService googleOAuth2UserService;
+    private final JwtService jwtService;
+    private final OAuth2AuthorizationRequestCookieStore authorizationRequestRepository;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+        try {
+            OAuth2User oauth2User;
+
+            if (authentication.getPrincipal() instanceof DefaultOidcUser) {
+                oauth2User = (DefaultOidcUser) authentication.getPrincipal();
+            } else if (authentication.getPrincipal() instanceof OAuth2User) {
+                oauth2User = (OAuth2User) authentication.getPrincipal();
+            } else {
+                throw new IllegalStateException("Unsupported principal type");
+            }
+
+            User user = googleOAuth2UserService.synchronize(oauth2User);
+            String token = jwtService.generateToken(user);
+            String ipAddress = getClientIpAddress(request);
+
+            String profileImageUrl = ProfileImageUrlBuilder.buildProfileImageUrl(user.getProfileImagePath());
+            kafkaTemplate.send("activity.login", new LoginActivityEvent(user.getId(), LoginActivityStatus.SUCCESSFUL, getBrowser(request), ipAddress , getLocationFromIp(ipAddress), LocalDateTime.now()));
+
+
+            OAuth2AccessTokenCookie.add(response, token, request.isSecure());
+
+            String redirectUrl = UriComponentsBuilder
+                    .fromUriString("https://localhost:5173/oauth2/success")
+                    .queryParam("id", user.getId())
+                    .queryParam("username", user.getUsername())
+                    .queryParam("email", user.getEmail())
+                    .queryParam("profileImageUrl", profileImageUrl != null ? profileImageUrl : "")
+                    .queryParam("passwordSet", user.isPasswordSet())
+                    .encode()
+                    .build()
+                    .toUriString();
+
+            authorizationRequestRepository.removeAuthorizationRequest(request, response);
+            SecurityContextHolder.clearContext();
+
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
+
+            response.sendRedirect(redirectUrl);
+
+        } catch (EntityAlreadyExistsException | InvalidInputException exception) {
+            log.error("OAuth2 business validation failed", exception);
+            response.sendRedirect("https://localhost:5173/auth?error=" + exception.getMessage());
+
+        } catch (RuntimeException exception) {
+            log.error("OAuth2 authentication failed", exception);
+            response.sendRedirect("https://localhost:5173/auth?error=oauth2_authentication_failed");
+        }
+    }
+
+}

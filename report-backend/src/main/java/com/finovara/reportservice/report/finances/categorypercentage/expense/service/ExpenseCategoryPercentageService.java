@@ -3,7 +3,7 @@ package com.finovara.reportservice.report.finances.categorypercentage.expense.se
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.percentage.CalculatePercentage;
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class ExpenseCategoryPercentageService {
 
-    private final CoreBackendReportClient reportClient;
+    private final FinanceBackendReportClient reportClient;
 
     public ExpenseCategoryPercentageDto getExpensePercentageByCategoryReport(
             Long userId, ExpenseCategory category, PeriodType periodType) {

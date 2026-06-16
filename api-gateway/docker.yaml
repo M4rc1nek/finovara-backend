@@ -7,7 +7,8 @@ services:
     ports:
       - "443:8888"
     environment:
-      CORE_BACKEND_URL: https://finovara-app:8443
+      FINANCE_BACKEND_URL: https://finovara-finance-app:8087
+      AUTH_BACKEND_URL: https://finovara-auth-app:8443
       ACTIVITY_LOG_BACKEND_URL: https://finovara-activity-app:8082
       NOTIFICATION_BACKEND_URL: https://finovara-notification-app:8086
       REPORT_BACKEND_URL: https://finovara-report-app:8083

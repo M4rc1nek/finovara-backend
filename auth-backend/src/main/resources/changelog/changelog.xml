@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
+
+    <changeSet id="create-users" author="Marcin Parśniak">
+        <createTable tableName="users">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="VARCHAR(255)"/>
+            <column name="password_set" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="profile_image_path" type="VARCHAR(500)"/>
+            <column name="oauth_provider" type="VARCHAR(50)"/>
+            <column name="provider_user_id" type="VARCHAR(255)"/>
+        </createTable>
+        <addUniqueConstraint tableName="users" columnNames="oauth_provider, provider_user_id"
+                             constraintName="uk_users_oauth_provider_user_id"/>
+    </changeSet>
+
+    <changeSet id="create-account-settings" author="Marcin Parśniak">
+        <createTable tableName="account_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reset_password_code" type="INT"/>
+            <column name="reset_password_code_expires_at" type="TIMESTAMP"/>
+            <column name="password_reset_attempts" type="INT"/>
+            <column name="attempts_password_expires_at" type="TIMESTAMP"/>
+
+            <column name="email_change_code" type="INT"/>
+            <column name="pending_email" type="VARCHAR(255)"/>
+            <column name="email_change_code_expires_at" type="TIMESTAMP"/>
+            <column name="email_change_attempts" type="INT"/>
+            <column name="attempts_email_expires_at" type="TIMESTAMP"/>
+
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true" foreignKeyName="fk_account_settings_user"
+                             references="users(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

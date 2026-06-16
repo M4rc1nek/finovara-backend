@@ -3,7 +3,7 @@ package com.finovara.reportservice.pdfexport.service.strategy;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
@@ -28,7 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ImportantInformationPdf implements ReportPdfHandler {
 
-    private final CoreBackendReportClient reportClient;
+    private final FinanceBackendReportClient reportClient;
     private final ReportSummaryService reportSummaryService;
     private final ReportAverageService reportAverageService;
     private final ExpenseCategoryPercentageService expenseCategoryPercentageService;

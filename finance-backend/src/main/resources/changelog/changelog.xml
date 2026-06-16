@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
+
+    <changeSet id="create-wallets" author="Marcin Parśniak">
+        <createTable tableName="wallets">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="balance" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-limits" author="Marcin Parśniak">
+        <createTable tableName="limits">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="period_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-expenses" author="Marcin Parśniak">
+        <createTable tableName="expenses">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL(19,2)"/>
+            <column name="category" type="VARCHAR(255)"/>
+            <column name="created_at" type="DATE"/>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-revenues" author="Marcin Parśniak">
+        <createTable tableName="revenues">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL(19,2)"/>
+            <column name="category" type="VARCHAR(255)"/>
+            <column name="created_at" type="DATE"/>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-piggy_banks" author="Marcin Parśniak">
+        <createTable tableName="piggy_banks">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="amount" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE"/>
+            <column name="goal_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="goal_amount" type="DECIMAL(19,2)"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <sql>
+            CREATE UNIQUE INDEX unique_piggy_bank_user_name
+            ON piggy_banks (user_id, LOWER(name));
+        </sql>
+    </changeSet>
+
+    <changeSet id="create-expense-settings" author="Marcin Parśniak">
+        <createTable tableName="expense_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="amount_threshold_enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="blocked_amount" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="smart_scan_enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="count_quantity_limit_enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="number_of_quantity_limit" type="INT"/>
+            <column name="count_quantity_limit_period" type="VARCHAR(255)"/>
+            <column name="quantity_limit_emergency_mode_enabled" type="BOOLEAN"/>
+            <column name="quantity_limit_emergency_mode_used" type="BOOLEAN"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-recurring-settings" author="Marcin Parśniak">
+        <createTable tableName="recurring_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="enable" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL(19,2)"/>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="revenue_category" type="VARCHAR(255)"/>
+            <column name="expense_category" type="VARCHAR(255)"/>
+            <column name="recurring_period" type="VARCHAR(255)"/>
+            <column name="start_date" type="DATE"/>
+            <column name="next_execution_date" type="DATE"/>
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="piggy_bank_id" type="BIGINT"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-piggy-bank-settings" author="Marcin Parśniak">
+        <createTable tableName="piggy_bank_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="automation_active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="automation_percentage" type="DECIMAL(5,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="round_up_active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="goal_completion_strategy" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="piggy_bank_id" type="BIGINT">
+                <constraints nullable="false" unique="true" foreignKeyName="fk_piggy_bank_settings_pb"
+                             references="piggy_banks(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-shedlock-table" author="Marcin Parśniak">
+        <createTable tableName="shedlock">
+            <column name="name" type="varchar(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="lock_until" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_at" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_by" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

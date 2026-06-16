@@ -1,6 +1,6 @@
 package com.finovara.reportservice.report.smartreport.service.handler;
 
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.smartreport.model.SmartReportType;
 import com.finovara.reportservice.report.smartreport.service.SmartReportHandler;
 import com.finovara.reportservice.report.smartreport.service.loader.SmartReportTemplateService;
@@ -16,7 +16,7 @@ import java.time.temporal.ChronoUnit;
 @RequiredArgsConstructor
 public class AverageDaySpendingHandler implements SmartReportHandler {
 
-    private final CoreBackendReportClient reportClient;
+    private final FinanceBackendReportClient reportClient;
     private final SmartReportTemplateService templateService;
 
     @Override

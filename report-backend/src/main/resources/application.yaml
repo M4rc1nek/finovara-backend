@@ -12,8 +12,8 @@ spring:
   application:
     name: finovara-report-service
 
-core-backend:
-  url: ${CORE_BACKEND_URL:https://finovara-app:8443}
+finance-backend:
+  url: ${FINANCE_BACKEND_URL:https://finovara-finance-app:8087}
 
 expenses:
   highest:

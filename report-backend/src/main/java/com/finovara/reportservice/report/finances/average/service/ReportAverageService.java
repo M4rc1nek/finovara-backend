@@ -1,6 +1,6 @@
 package com.finovara.reportservice.report.finances.average.service;
 
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.dto.ReportDto;
 import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class ReportAverageService {
 
-    private final CoreBackendReportClient reportClient;
+    private final FinanceBackendReportClient reportClient;
 
     public ReportDto calculateAverageExpense(Long userId, PeriodType periodType) {
         LocalDate to = LocalDate.now();

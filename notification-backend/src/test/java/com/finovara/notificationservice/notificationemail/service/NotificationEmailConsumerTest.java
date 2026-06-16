@@ -1,8 +1,8 @@
 package com.finovara.notificationservice.notificationemail.service;
 
-import com.finovara.contracts.event.notification.CreateDefaultNotificationEmailSettingsEvent;
 import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.contracts.event.user.UserAccountDeletedEvent;
+import com.finovara.contracts.event.user.UserCreatedEvent;
 import com.finovara.notificationservice.kafka.NotificationEmailConsumer;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
@@ -65,7 +65,7 @@ class NotificationEmailConsumerTest {
 
         @Test
         void shouldCallCreateSettingsWithCorrectUserIdWhenUserCreated() {
-            CreateDefaultNotificationEmailSettingsEvent event = new CreateDefaultNotificationEmailSettingsEvent(USER_ID);
+            UserCreatedEvent event = new UserCreatedEvent(USER_ID, USERNAME, EMAIL, any());
 
             notificationEmailConsumer.handleUserCreated(event);
 

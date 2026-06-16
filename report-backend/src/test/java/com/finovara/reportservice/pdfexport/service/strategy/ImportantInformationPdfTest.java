@@ -3,7 +3,7 @@ package com.finovara.reportservice.pdfexport.service.strategy;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.reportservice.feignclient.CoreBackendReportClient;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import com.finovara.reportservice.report.dto.ReportDto;
@@ -47,7 +47,7 @@ class ImportantInformationPdfTest {
     private static final BigDecimal ALL_EXPENSES = BigDecimal.valueOf(10000);
 
     @Mock
-    private CoreBackendReportClient reportClient;
+    private FinanceBackendReportClient reportClient;
     @Mock
     private ReportSummaryService reportSummaryService;
     @Mock
