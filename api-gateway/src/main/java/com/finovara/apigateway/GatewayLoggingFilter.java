@@ -1,4 +1,4 @@
-package com.finovara.api_gateway;
+package com.finovara.apigateway;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -21,7 +21,7 @@ public class GatewayLoggingFilter {
             String path = exchange.getRequest().getPath().value();
             String method = exchange.getRequest().getMethod().name();
 
-            return chain.filter(exchange).doOnSuccess(v -> {
+            return chain.filter(exchange).doFinally(signalType -> {
                 Route route = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR);
                 String routeId = route != null ? route.getId() : "unknown";
 
