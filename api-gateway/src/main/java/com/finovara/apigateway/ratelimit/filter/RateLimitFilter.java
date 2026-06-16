@@ -1,24 +1,25 @@
-package com.finovara.api_gateway.ratelimit.filter;
+package com.finovara.apigateway.ratelimit.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.finovara.contracts.clientdata.ip.ClientIp;
+import com.finovara.apigateway.ratelimit.RateLimitMessage;
 import com.finovara.contracts.exception.ErrorResponseDto;
-import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
-import com.finovara.api_gateway.ratelimit.RateLimitMessage;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
-import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -26,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @RequiredArgsConstructor
-public class RateLimitFilter extends OncePerRequestFilter {
+public class RateLimitFilter implements GlobalFilter, Ordered {
 
     private static final int TOO_MANY_REQUESTS = 429;
     private final RateLimitProperties rateLimitProperties;
@@ -36,34 +37,45 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Optional<RateLimitProperties.Endpoint> endpoint = findEndpoint(request);
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        String path = exchange.getRequest().getPath().value();
+        Optional<RateLimitProperties.Endpoint> endpoint = findEndpoint(path);
 
         if (endpoint.isEmpty()) {
-            filterChain.doFilter(request, response);
-            return;
+            return chain.filter(exchange);
         }
 
-        String ip = ClientIp.getClientIpAddress(request);
+        String ip = resolveIp(exchange.getRequest());
         RateLimitProperties.Endpoint rateLimitEndpoint = endpoint.get();
         String bucketKey = rateLimitEndpoint.getPath() + ":" + ip;
         Bucket bucket = buckets.computeIfAbsent(bucketKey, k -> createBucket(rateLimitEndpoint));
 
         if (!bucket.tryConsume(1)) {
-            writeTooManyRequestsException(request, response);
-            return;
+            return writeTooManyRequestsResponse(exchange, path);
         }
 
-        filterChain.doFilter(request, response);
+        return chain.filter(exchange);
     }
 
-    private Optional<RateLimitProperties.Endpoint> findEndpoint(HttpServletRequest request) {
-        String requestUri = request.getRequestURI();
+    @Override
+    public int getOrder() {
+        return -2;
+    }
 
+    private Optional<RateLimitProperties.Endpoint> findEndpoint(String path) {
         return rateLimitProperties.getEndpoints().stream()
-                .filter(endpoint -> StringUtils.hasText(endpoint.getPath()))
-                .filter(endpoint -> pathMatcher.match(endpoint.getPath(), requestUri))
+                .filter(e -> StringUtils.hasText(e.getPath()))
+                .filter(e -> pathMatcher.match(e.getPath(), path))
                 .findFirst();
+    }
+
+    private String resolveIp(ServerHttpRequest request) {
+        String forwarded = request.getHeaders().getFirst("X-Forwarded-For");
+        if (StringUtils.hasText(forwarded)) {
+            return forwarded.split(",")[0].trim();
+        }
+        InetSocketAddress remoteAddress = request.getRemoteAddress();
+        return remoteAddress != null ? remoteAddress.getAddress().getHostAddress() : "unknown";
     }
 
     private Bucket createBucket(RateLimitProperties.Endpoint endpoint) {
@@ -75,26 +87,25 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 .build();
     }
 
-    private void writeTooManyRequestsException(HttpServletRequest request, HttpServletResponse response) {
+    private Mono<Void> writeTooManyRequestsResponse(ServerWebExchange exchange, String path) {
         try {
-            response.setStatus(TOO_MANY_REQUESTS);
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.setCharacterEncoding("UTF-8");
-
-            String message = RateLimitMessage.TRY_AGAIN_IN_1HOUR.label();
+            exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+            exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
             ErrorResponseDto errorResponse = new ErrorResponseDto(
                     TOO_MANY_REQUESTS,
                     "Too Many Requests",
-                    message,
-                    request.getRequestURI()
+                    RateLimitMessage.TRY_AGAIN_IN_1HOUR.label(),
+                    path
             );
 
-            response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
-            response.flushBuffer();
+            byte[] bytes = objectMapper.writeValueAsBytes(errorResponse);
+            DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(bytes);
+            return exchange.getResponse().writeWith(Mono.just(buffer));
 
-        } catch (IOException e) {
-            throw new ServiceUnavailableException("Failed to throw Too many Request Exception", e);
+        } catch (Exception e) {
+            exchange.getResponse().setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+            return exchange.getResponse().setComplete();
         }
     }
 }
