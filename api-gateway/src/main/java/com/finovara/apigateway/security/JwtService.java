@@ -1,4 +1,4 @@
-package com.finovara.api_gateway.security;
+package com.finovara.apigateway.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
