@@ -1,4 +1,4 @@
-package com.finovara.api_gateway.ratelimit;
+package com.finovara.apigateway.ratelimit;
 
 import lombok.AllArgsConstructor;
 
