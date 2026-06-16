@@ -1,4 +1,4 @@
-package com.finovara.api_gateway.ratelimit.filter;
+package com.finovara.apigateway.ratelimit.filter;
 
 import lombok.Getter;
 import lombok.Setter;
