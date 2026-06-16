@@ -1,4 +1,4 @@
-package com.finovara.authservice.ratelimit;
+package com.finovara.api_gateway.ratelimit;
 
 import lombok.AllArgsConstructor;
 

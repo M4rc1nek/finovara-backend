@@ -1,10 +1,10 @@
-package com.finovara.authservice.ratelimit.filter;
+package com.finovara.api_gateway.ratelimit.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finovara.contracts.clientdata.ip.ClientIp;
 import com.finovara.contracts.exception.ErrorResponseDto;
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
-import com.finovara.authservice.ratelimit.RateLimitMessage;
+import com.finovara.api_gateway.ratelimit.RateLimitMessage;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.FilterChain;
