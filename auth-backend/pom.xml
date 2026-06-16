@@ -109,20 +109,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- RATE LIMITING -->
-        <dependency>
-            <groupId>com.bucket4j</groupId>
-            <artifactId>bucket4j_jdk17-core</artifactId>
-            <version>${bucket4j.version}</version>
-        </dependency>
-
-        <!-- UA PARSER -->
-        <dependency>
-            <groupId>com.github.ua-parser</groupId>
-            <artifactId>uap-java</artifactId>
-            <version>${uap-java.version}</version>
-        </dependency>
-
         <!-- OPENAPI / SWAGGER -->
         <dependency>
             <groupId>org.springdoc</groupId>
