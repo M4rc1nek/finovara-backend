@@ -76,10 +76,22 @@ spring:
               uri: ${FINANCE_BACKEND_URL}
               predicates:
                 - Path=/**
+
+
+management:
+  endpoint:
+    gateway:
+      access: read_only
+  endpoints:
+    web:
+      exposure:
+        include: health,gateway
+
 logging:
   level:
     root: WARN
-    com.finovara.api_gateway: INFO
+    com.finovara.apigateway: INFO
+
 
 security:
   whitelist:
@@ -92,11 +104,22 @@ security:
     - /login/oauth2/**
     - /internal/**
 
-management:
-  endpoint:
-    gateway:
-      access: read_only
+
+rate-limit:
   endpoints:
-    web:
-      exposure:
-        include: health,gateway
+    - path: /api/contact
+      max-requests: 3
+      window-hours: 1
+    - path: /api/currencies/convert
+      max-requests: 8
+      window-hours: 1
+    - path: /api/pdf/reports/**
+      max-requests: 14
+      window-hours: 1
+    - path: /api/email-change/request
+      max-requests: 1
+      window-hours: 1
+    - path: /api/password-reset/request
+      max-requests: 1
+      window-hours: 1
+
