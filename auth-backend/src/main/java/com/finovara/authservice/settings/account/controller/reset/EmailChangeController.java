@@ -18,7 +18,7 @@ public class EmailChangeController {
 
     private final EmailChangeService emailChangeService;
 
-    @PostMapping
+    @PostMapping("/request")
     public ResponseEntity<Void> requestEmailChange(@RequestBody @Valid EmailChangeRequestDto dto) {
         emailChangeService.requestEmailChange(SecurityUtils.getCurrentUserId(), dto);
         return ResponseEntity.noContent().build();
