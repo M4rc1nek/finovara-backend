@@ -4,6 +4,7 @@ import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.piggybank.service.PiggyBankManagementService;
 import com.finovara.financeservice.piggybank.service.PiggyBankTransactionService;
+import com.finovara.financeservice.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,8 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
-
-import static com.finovara.financeservice.security.SecurityUtils.getCurrentUserId;
 
 @RestController
 @RequestMapping("/api/piggy-banks")
@@ -23,34 +22,34 @@ public class PiggyBankManagementController {
 
     @PostMapping
     public ResponseEntity<Long> createPiggyBank(@RequestBody @Valid PiggyBankDto piggyBankDto) {
-        return ResponseEntity.ok(piggyBankManagementService.addPiggyBank(piggyBankDto, getCurrentUserId()));
+        return ResponseEntity.ok(piggyBankManagementService.addPiggyBank(piggyBankDto, SecurityUtils.getCurrentUserId()));
     }
 
     @PatchMapping("/{piggyBankId}")
     public ResponseEntity<Long> editPiggyBank(@RequestBody @Valid PiggyBankDto piggyBankDto, @PathVariable Long piggyBankId) {
-        return ResponseEntity.ok(piggyBankManagementService.editPiggyBank(getCurrentUserId(), piggyBankDto, piggyBankId));
+        return ResponseEntity.ok(piggyBankManagementService.editPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankDto, piggyBankId));
     }
 
     @GetMapping
     public ResponseEntity<List<PiggyBankDto>> getAllPiggyBanks() {
-        return ResponseEntity.ok(piggyBankManagementService.getAllPiggyBanks(getCurrentUserId()));
+        return ResponseEntity.ok(piggyBankManagementService.getAllPiggyBanks(SecurityUtils.getCurrentUserId()));
     }
 
     @DeleteMapping("/{piggyBankId}")
     public ResponseEntity<Void> deletePiggyBank(@PathVariable Long piggyBankId) {
-        piggyBankManagementService.deletePiggyBank(getCurrentUserId(), piggyBankId);
+        piggyBankManagementService.deletePiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{piggyBankId}/deposit")
     public ResponseEntity<Void> addBalanceToPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
-        piggyBankTransactionService.addBalanceToPiggyBank(getCurrentUserId(), piggyBankId, amount, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
+        piggyBankTransactionService.addBalanceToPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{piggyBankId}/withdraw")
     public ResponseEntity<PiggyBankDto> removeBalanceFromPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
-        piggyBankTransactionService.removeBalanceFromPiggyBank(getCurrentUserId(), piggyBankId, amount);
+        piggyBankTransactionService.removeBalanceFromPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount);
         return ResponseEntity.noContent().build();
     }
 
