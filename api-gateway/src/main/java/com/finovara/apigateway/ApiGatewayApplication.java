@@ -1,6 +1,6 @@
-package com.finovara.api_gateway;
+package com.finovara.apigateway;
 
-import com.finovara.api_gateway.security.SecurityProperties;
+import com.finovara.apigateway.security.SecurityProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
