@@ -10,7 +10,7 @@ import com.finovara.authservice.settings.account.dto.passwordpolicy.PasswordRese
 import com.finovara.authservice.settings.account.model.AccountSettings;
 import com.finovara.authservice.settings.account.service.passwordpolicy.change.PasswordUpdateService;
 import com.finovara.authservice.settings.account.service.verification.CredentialValidationService;
-import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailService;
+import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeManager;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,7 +37,7 @@ class PasswordResetServiceTest {
     @Mock
     private VerificationCodeManager verificationCodeManager;
     @Mock
-    private VerificationCodeEmailService verificationCodeEmailService;
+    private VerificationCodeEmailSender verificationCodeEmailSender;
     @Mock
     private PasswordUpdateService passwordUpdateService;
     @Mock
@@ -73,7 +73,7 @@ class PasswordResetServiceTest {
             passwordResetService.requestPasswordReset(dto);
 
             verify(verificationCodeManager).generatePasswordResetCode(settings);
-            verify(verificationCodeEmailService).sendPasswordResetCode(user, email, 123456);
+            verify(verificationCodeEmailSender).sendPasswordResetCode(user, email, 123456);
         }
 
         @Test
@@ -85,7 +85,7 @@ class PasswordResetServiceTest {
             assertThrows(RequestedEntityNotFoundException.class, () -> passwordResetService.requestPasswordReset(dto));
 
             verifyNoInteractions(verificationCodeManager);
-            verifyNoInteractions(verificationCodeEmailService);
+            verifyNoInteractions(verificationCodeEmailSender);
         }
     }
 

@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class VerificationCodeEmailService {
+public class VerificationCodeEmailSender {
 
     private static final String EMAIL_CHANGE_TEMPLATE_PATH = "email/emailchange/change-email-code.html";
     private static final String PASSWORD_RESET_TEMPLATE_PATH = "email/password/reset-password.html";

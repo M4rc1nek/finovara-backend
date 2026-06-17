@@ -8,7 +8,7 @@ import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeConf
 import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeRequestDto;
 import com.finovara.authservice.settings.account.model.AccountSettings;
 import com.finovara.authservice.settings.account.service.verification.CredentialValidationService;
-import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailService;
+import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeManager;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
@@ -38,7 +38,7 @@ class EmailChangeServiceTest {
     @Mock
     private VerificationCodeManager verificationCodeManager;
     @Mock
-    private VerificationCodeEmailService verificationCodeEmailService;
+    private VerificationCodeEmailSender verificationCodeEmailSender;
     @Mock
     private PasswordValidator passwordValidator;
     @Mock
@@ -82,7 +82,7 @@ class EmailChangeServiceTest {
             verify(emailDomainValidator).validateDomainHasMxRecord(email);
             verify(passwordValidator).validatePassword(userId, new ConfirmPasswordDto(password));
             verify(verificationCodeManager).generateEmailChangeCode(settings, email);
-            verify(verificationCodeEmailService).sendEmailChangeCode(user, email, code);
+            verify(verificationCodeEmailSender).sendEmailChangeCode(user, email, code);
         }
 
         @Test
@@ -99,7 +99,7 @@ class EmailChangeServiceTest {
             verify(emailDomainValidator, never()).validateDomainHasMxRecord(any());
             verify(passwordValidator, never()).validatePassword(anyLong(), any());
             verify(verificationCodeManager, never()).generateEmailChangeCode(any(), any());
-            verify(verificationCodeEmailService, never()).sendEmailChangeCode(any(), any(), anyInt());
+            verify(verificationCodeEmailSender, never()).sendEmailChangeCode(any(), any(), anyInt());
         }
 
         @Test

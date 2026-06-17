@@ -16,19 +16,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class VerificationCodeEmailServiceTest {
+class VerificationCodeEmailSenderTest {
 
     @Mock
     private JavaMailSender javaMailSender;
 
     @InjectMocks
-    private VerificationCodeEmailService verificationCodeEmailService;
+    private VerificationCodeEmailSender verificationCodeEmailSender;
 
     private User user;
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(verificationCodeEmailService, "recipientAddress", "test@finovara.com");
+        ReflectionTestUtils.setField(verificationCodeEmailSender, "recipientAddress", "test@finovara.com");
 
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
@@ -40,14 +40,14 @@ class VerificationCodeEmailServiceTest {
 
     @Test
     void shouldSendEmailChangeCodeCorrectly() {
-        verificationCodeEmailService.sendEmailChangeCode(user, "user@test.com", 123456);
+        verificationCodeEmailSender.sendEmailChangeCode(user, "user@test.com", 123456);
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
 
     @Test
     void shouldSendPasswordResetCodeCorrectly() {
-        verificationCodeEmailService.sendPasswordResetCode(user, "user@test.com", 654321);
+        verificationCodeEmailSender.sendPasswordResetCode(user, "user@test.com", 654321);
 
         verify(javaMailSender, times(1)).send(any(MimeMessage.class));
     }
@@ -56,7 +56,7 @@ class VerificationCodeEmailServiceTest {
     void shouldThrowExceptionWhenCreateMimeMessageFails() {
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException());
 
-        assertThrows(ServiceUnavailableException.class, () -> verificationCodeEmailService.sendEmailChangeCode(user, "fail@test.com", 111111));
+        assertThrows(ServiceUnavailableException.class, () -> verificationCodeEmailSender.sendEmailChangeCode(user, "fail@test.com", 111111));
     }
 
     @Test
@@ -66,6 +66,6 @@ class VerificationCodeEmailServiceTest {
 
         doThrow(new RuntimeException()).when(javaMailSender).send(any(MimeMessage.class));
 
-        assertThrows(ServiceUnavailableException.class, () -> verificationCodeEmailService.sendPasswordResetCode(user, "fail@test.com", 222222));
+        assertThrows(ServiceUnavailableException.class, () -> verificationCodeEmailSender.sendPasswordResetCode(user, "fail@test.com", 222222));
     }
 }

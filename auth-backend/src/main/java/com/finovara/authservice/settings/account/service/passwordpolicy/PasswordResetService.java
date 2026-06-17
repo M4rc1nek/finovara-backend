@@ -10,7 +10,7 @@ import com.finovara.authservice.settings.account.model.AccountSettings;
 import com.finovara.authservice.settings.account.service.passwordpolicy.change.PasswordUpdateService;
 import com.finovara.authservice.settings.account.service.verification.CredentialValidationService;
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeManager;
-import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailService;
+import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class PasswordResetService {
 
     private final CredentialValidationService credentialValidationService;
     private final VerificationCodeManager verificationCodeManager;
-    private final VerificationCodeEmailService verificationCodeEmailService;
+    private final VerificationCodeEmailSender verificationCodeEmailSender;
     private final PasswordUpdateService passwordUpdateService;
     private final UserManagerService userManagerService;
 
@@ -58,7 +58,7 @@ public class PasswordResetService {
 
     private void generateAndSendPasswordResetCode(User user, String email) {
         int code = verificationCodeManager.generatePasswordResetCode(user.getAccountSettings());
-        verificationCodeEmailService.sendPasswordResetCode(user, email, code);
+        verificationCodeEmailSender.sendPasswordResetCode(user, email, code);
     }
 
     private void validatePasswordReset(User user, PasswordResetConfirmDto dto) {

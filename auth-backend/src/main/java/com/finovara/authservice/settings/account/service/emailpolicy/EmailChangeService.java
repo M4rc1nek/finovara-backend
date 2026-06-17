@@ -9,7 +9,7 @@ import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeRequ
 import com.finovara.authservice.settings.account.model.AccountSettings;
 import com.finovara.authservice.settings.account.service.verification.CredentialValidationService;
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeManager;
-import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailService;
+import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.email.EmailDomainValidator;
@@ -26,7 +26,7 @@ public class EmailChangeService {
     private final UserManagerService userManagerService;
     private final CredentialValidationService credentialValidationService;
     private final VerificationCodeManager verificationCodeManager;
-    private final VerificationCodeEmailService verificationCodeEmailService;
+    private final VerificationCodeEmailSender verificationCodeEmailSender;
     private final PasswordValidator passwordValidator;
     private final EmailUpdateService emailUpdateService;
     private final EmailDomainValidator emailDomainValidator;
@@ -70,6 +70,6 @@ public class EmailChangeService {
 
     private void generateAndSendEmailChangeCode(User user, String newEmail) {
         int code = verificationCodeManager.generateEmailChangeCode(user.getAccountSettings(), newEmail);
-        verificationCodeEmailService.sendEmailChangeCode(user, newEmail, code);
+        verificationCodeEmailSender.sendEmailChangeCode(user, newEmail, code);
     }
 }
