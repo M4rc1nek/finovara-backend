@@ -1,4 +1,4 @@
-package com.finovara.financeservice.config.properties;
+package com.finovara.financeservice.config.redis.properties;
 
 import lombok.Getter;
 import lombok.Setter;
