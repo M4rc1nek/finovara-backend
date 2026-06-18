@@ -5,6 +5,7 @@ import com.finovara.reportservice.report.finances.chart.builder.CashFlowChartSer
 import com.finovara.reportservice.report.finances.chart.dto.CashFlowDto;
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +17,7 @@ public class TotalCashFlowChartService {
     private final FinanceBackendReportClient reportClient;
     private final CashFlowChartService cashFlowChartService;
 
+    @Cacheable(value = "report:totalCashFlowChart", key = "#userId")
     public List<CashFlowDto> getCashFlowChart(Long userId) {
         List<DailyCashDto> expenses = reportClient.expensesGroupedByDate(userId);
         List<DailyCashDto> revenues = reportClient.revenuesGroupedByDate(userId);
