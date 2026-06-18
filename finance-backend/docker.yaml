@@ -24,6 +24,8 @@ services:
     depends_on:
       finovara-finance-db:
         condition: service_healthy
+      finovara-finance-redis:
+        condition: service_healthy
     ports:
       - "8087:8087"
     environment:
@@ -32,9 +34,26 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
       SSL_PASSWORD: ${SSL_PASSWORD}
       AUTH_BACKEND_URL: https://finovara-auth-app:8443
+      REDIS_HOST: finovara-finance-redis
+      REDIS_PORT: 6380
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
       - ../localhost.p12:/app/localhost.p12
     restart: always
+    networks:
+      - finovara-network
+
+  finovara-finance-redis:
+    image: redis:7-alpine
+    container_name: finovara-finance-redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD} --port 6380
+    ports:
+      - "6380:6380"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "6380", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 5s
+      retries: 10
     networks:
       - finovara-network
 
