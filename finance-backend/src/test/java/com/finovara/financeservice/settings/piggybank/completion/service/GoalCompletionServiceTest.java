@@ -54,7 +54,7 @@ class GoalCompletionServiceTest {
 
             GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_KEEP);
 
-            assertThrows(InvalidInputException.class, () -> goalCompletionService.addGoalCompletion(1L, USER_ID, dto));
+            assertThrows(InvalidInputException.class, () -> goalCompletionService.saveGoalCompletion(1L, USER_ID, dto));
         }
 
         @Test
@@ -65,7 +65,7 @@ class GoalCompletionServiceTest {
 
             GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_KEEP);
 
-            goalCompletionService.addGoalCompletion(1L, USER_ID, dto);
+            goalCompletionService.saveGoalCompletion(1L, USER_ID, dto);
 
             assertEquals(GoalCompletionStrategy.WITHDRAW_AND_KEEP, piggyBank.getSettings().getGoalCompletionStrategy());
 
@@ -75,17 +75,17 @@ class GoalCompletionServiceTest {
     }
 
     @Nested
-    class SaveGoalCompletion {
+    class setGoalCompletion {
 
         @Test
-        void shouldSaveStrategy() {
+        void shouldSetStrategy() {
             PiggyBank piggyBank = createPiggyBank(null, null, null);
 
             when(piggyBankManagerService.getPiggyBankByUserId(1L, USER_ID)).thenReturn(piggyBank);
 
             GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_DELETE);
 
-            goalCompletionService.saveGoalCompletion(USER_ID, 1L, dto);
+            goalCompletionService.setGoalCompletion(USER_ID, 1L, dto);
 
             assertEquals(GoalCompletionStrategy.WITHDRAW_AND_DELETE, piggyBank.getSettings().getGoalCompletionStrategy());
         }
