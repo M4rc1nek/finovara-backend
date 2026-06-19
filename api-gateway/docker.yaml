@@ -14,9 +14,30 @@ services:
       REPORT_BACKEND_URL: https://finovara-report-app:8083
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       SSL_PASSWORD: ${SSL_PASSWORD}
+      REDIS_HOST: finovara-gateway-redis
+      REDIS_PORT: 6381
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
       - ../localhost.p12:/app/localhost.p12
     restart: always
+    networks:
+      - finovara-network
+    depends_on:
+      finovara-gateway-redis:
+        condition: service_healthy
+
+
+  finovara-gateway-redis:
+    image: redis:7-alpine
+    container_name: finovara-gateway-redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD} --port 6381
+    ports:
+      - "6381:6381"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "6381", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 5s
+      retries: 10
     networks:
       - finovara-network
 
