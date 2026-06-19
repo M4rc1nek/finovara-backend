@@ -66,3 +66,4 @@ cache:
     "[wallet:user]": 1
     "[expense:historyByCategory]": 10
     "[revenue:historyByCategory]": 10
+    "[nbpRates]": 60
