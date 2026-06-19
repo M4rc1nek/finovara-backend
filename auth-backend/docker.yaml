@@ -21,9 +21,6 @@ services:
   auth-app:
     build: .
     container_name: finovara-auth-app
-    depends_on:
-      auth-db:
-        condition: service_healthy
     ports:
       - "8443:8443"
     environment:
@@ -37,18 +34,41 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
       SPRING_PROFILES_ACTIVE: default
       SSL_PASSWORD: ${SSL_PASSWORD}
+      REDIS_HOST: finovara-auth-redis
+      REDIS_PORT: 6382
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
       - ./uploads:/app/uploads
       - ../localhost.p12:/app/localhost.p12
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f https://localhost:8086/actuator/health || exit 1" ]
+      test: [ "CMD-SHELL", "curl -f https://localhost:8443/actuator/health || exit 1" ]
       interval: 10s
       retries: 10
     restart: always
     networks:
       - finovara-network
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      finovara-auth-redis:
+        condition: service_healthy
+
+
+  finovara-auth-redis:
+    image: redis:7-alpine
+    container_name: finovara-auth-redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD} --port 6382
+    ports:
+      - "6382:6382"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "6382", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 5s
+      retries: 10
+    networks:
+      - finovara-network
 
 networks:
-    finovara-network:
-      external: true
-      name: finovara-network
+  finovara-network:
+    external: true
+    name: finovara-network
