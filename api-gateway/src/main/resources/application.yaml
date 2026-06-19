@@ -14,6 +14,13 @@ application:
       secret-key: ${JWT_SECRET_KEY}
 
 spring:
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+    cache:
+      type: redis
   cloud:
     gateway:
       server:
