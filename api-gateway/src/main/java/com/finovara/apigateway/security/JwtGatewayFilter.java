@@ -29,19 +29,25 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
         }
 
         String token = resolveToken(exchange.getRequest());
-
-        if (token == null || !jwtService.isTokenValid(token)) {
+        if (token == null) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
 
-        Long userId = jwtService.extractUserId(token);
+        return jwtService.isTokenValid(token)
+                .flatMap(valid -> {
+                    if (!valid) {
+                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                        return exchange.getResponse().setComplete();
+                    }
 
-        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                .header("X-User-Id", userId.toString())
-                .build();
+                    Long userId = jwtService.extractUserId(token);
+                    ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                            .header("X-User-Id", userId.toString())
+                            .build();
 
-        return chain.filter(exchange.mutate().request(mutatedRequest).build());
+                    return chain.filter(exchange.mutate().request(mutatedRequest).build());
+                });
     }
 
     @Override
