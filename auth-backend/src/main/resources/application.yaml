@@ -15,6 +15,13 @@ spring:
   liquibase:
     change-log: classpath:changelog/changelog.xml
     enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+    cache:
+      type: redis
   mail:
     host: smtp.gmail.com
     port: 465
