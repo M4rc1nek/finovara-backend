@@ -6,6 +6,7 @@ import com.finovara.contracts.model.PeriodType;
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ public class HighestExpenseService {
     @Value("${expenses.highest.page-size}")
     private int pageSize;
 
+    @Cacheable(value = "report:highestExpense", key = "#userId + ':' + #periodType")
     public List<HighestExpenseDto> getHighestExpense(Long userId, PeriodType periodType) {
         if (periodType == null) {
             throw new InvalidInputException("Unsupported report period type.");
@@ -29,4 +31,3 @@ public class HighestExpenseService {
         return reportClient.highestExpenses(userId, from, to, pageSize);
     }
 }
-

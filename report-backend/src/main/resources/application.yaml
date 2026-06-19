@@ -11,6 +11,16 @@ server:
 spring:
   application:
     name: finovara-report-service
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 180000  # 3 minutes
+      cache-null-values: false
 
 finance-backend:
   url: ${FINANCE_BACKEND_URL:https://finovara-finance-app:8087}

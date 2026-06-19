@@ -6,6 +6,7 @@ import com.finovara.reportservice.report.finances.categorypercentage.revenue.dto
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,8 +18,8 @@ public class RevenueCategoryPercentageService {
 
     private final FinanceBackendReportClient reportClient;
 
-    public RevenueCategoryPercentageDto getRevenuePercentageByCategoryReport(
-            Long userId, RevenueCategory category, PeriodType periodType) {
+    @Cacheable(value = "report:revenuePercentageByCategory", key = "#userId + ':' + #category + ':' + #periodType")
+    public RevenueCategoryPercentageDto getRevenuePercentageByCategoryReport(Long userId, RevenueCategory category, PeriodType periodType) {
 
         LocalDate to = LocalDate.now();
         LocalDate from = periodType.getStartDate(to);

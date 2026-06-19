@@ -3,6 +3,15 @@ spring:
     import: optional:file:.env[.properties]
   application:
     name: finovara-finance-service
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+  cache:
+    type: redis
+    redis:
+      cache-null-values: false
   datasource:
     url: jdbc:postgresql://finovara-finance-db:5432/finovara_finance_db
     username: ${DB_USERNAME}
@@ -39,7 +48,8 @@ logging:
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
-
+    org.springframework.cache: TRACE
+    org.springframework.data.redis: DEBUG
 
 scheduler:
   recurring-settings:
@@ -50,3 +60,10 @@ nbp:
     url: https://api.nbp.pl/api
   properties:
     scale: 4
+
+cache:
+  ttl-minutes:
+    "[wallet:user]": 1
+    "[expense:historyByCategory]": 10
+    "[revenue:historyByCategory]": 10
+    "[nbpRates]": 60

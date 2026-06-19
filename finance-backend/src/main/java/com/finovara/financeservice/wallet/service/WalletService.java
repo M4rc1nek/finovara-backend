@@ -5,6 +5,8 @@ import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.dto.WalletDto;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ public class WalletService implements UserDataDeletable {
     private final WalletManagerService walletManagerService;
 
     @Transactional
+    @CacheEvict(value = "wallet:user", key = "#userId")
     public WalletDto addBalanceToWallet(Long userId, BigDecimal amount) {
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
 
@@ -30,6 +33,7 @@ public class WalletService implements UserDataDeletable {
     }
 
     @Transactional
+    @CacheEvict(value = "wallet:user", key = "#userId")
     public WalletDto removeBalanceFromWallet(Long userId, BigDecimal amount) {
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
 
@@ -40,6 +44,7 @@ public class WalletService implements UserDataDeletable {
     }
 
     @Transactional
+    @Cacheable(value = "wallet:user", key = "#userId")
     public WalletDto getWalletForUser(Long userId) {
         Wallet wallet = walletRepository.findByUserId(userId)
                 .orElseGet(() -> walletRepository.save(Wallet.create(userId)));
@@ -56,6 +61,7 @@ public class WalletService implements UserDataDeletable {
 
     @Override
     @Transactional
+    @CacheEvict(value = "wallet:user", key = "#userId")
     public void deleteByUserId(Long userId) {
         walletRepository.deleteByUserId(userId);
         log.info("Deleted wallet for userId={}", userId);

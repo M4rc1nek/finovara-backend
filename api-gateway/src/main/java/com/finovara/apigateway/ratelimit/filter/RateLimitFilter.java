@@ -3,13 +3,12 @@ package com.finovara.apigateway.ratelimit.filter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finovara.apigateway.ratelimit.RateLimitMessage;
 import com.finovara.contracts.exception.ErrorResponseDto;
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -21,40 +20,49 @@ import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
 import java.time.Duration;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @RequiredArgsConstructor
 public class RateLimitFilter implements GlobalFilter, Ordered {
 
     private static final int TOO_MANY_REQUESTS = 429;
+    private static final String RATE_LIMIT_PREFIX = "rate-limit:";
+
     private final RateLimitProperties rateLimitProperties;
     private final ObjectMapper objectMapper;
-
+    private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
-    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getPath().value();
-        Optional<RateLimitProperties.Endpoint> endpoint = findEndpoint(path);
+        Optional<RateLimitProperties.Endpoint> endpointOpt = findEndpoint(path);
 
-        if (endpoint.isEmpty()) {
+        if (endpointOpt.isEmpty()) {
             return chain.filter(exchange);
         }
 
         String ip = resolveIp(exchange.getRequest());
-        RateLimitProperties.Endpoint rateLimitEndpoint = endpoint.get();
-        String bucketKey = rateLimitEndpoint.getPath() + ":" + ip;
-        Bucket bucket = buckets.computeIfAbsent(bucketKey, k -> createBucket(rateLimitEndpoint));
+        RateLimitProperties.Endpoint endpoint = endpointOpt.get();
+        String key = RATE_LIMIT_PREFIX + endpoint.getPath() + ":" + ip;
+        Duration window = Duration.ofHours(endpoint.getWindowHours());
 
-        if (!bucket.tryConsume(1)) {
-            return writeTooManyRequestsResponse(exchange, path);
-        }
-
-        return chain.filter(exchange);
+        return reactiveRedisTemplate.opsForValue()
+                .increment(key)
+                .flatMap(count -> {
+                    if (count == 1) {
+                        return reactiveRedisTemplate.expire(key, window)
+                                .thenReturn(count);
+                    }
+                    return Mono.just(count);
+                })
+                .flatMap(count -> {
+                    if (count > endpoint.getMaxRequests()) {
+                        return writeTooManyRequestsResponse(exchange, path);
+                    }
+                    return chain.filter(exchange);
+                });
     }
 
     @Override
@@ -76,15 +84,6 @@ public class RateLimitFilter implements GlobalFilter, Ordered {
         }
         InetSocketAddress remoteAddress = request.getRemoteAddress();
         return remoteAddress != null ? remoteAddress.getAddress().getHostAddress() : "unknown";
-    }
-
-    private Bucket createBucket(RateLimitProperties.Endpoint endpoint) {
-        return Bucket.builder()
-                .addLimit(Bandwidth.builder()
-                        .capacity(endpoint.getMaxRequests())
-                        .refillGreedy(endpoint.getMaxRequests(), Duration.ofHours(endpoint.getWindowHours()))
-                        .build())
-                .build();
     }
 
     private Mono<Void> writeTooManyRequestsResponse(ServerWebExchange exchange, String path) {

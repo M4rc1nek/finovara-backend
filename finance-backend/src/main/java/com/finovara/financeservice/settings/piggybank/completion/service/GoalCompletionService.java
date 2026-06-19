@@ -11,6 +11,8 @@ import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerServic
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +30,15 @@ public class GoalCompletionService {
     private final WalletRepository walletRepository;
 
     @Transactional
-    public void addGoalCompletion(Long piggyBankId, Long userId, GoalCompletionDto goalCompletionDto) {
+    public void setGoalCompletion(Long userId, Long piggyBankId, GoalCompletionDto goalCompletionDto) {
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
+
+        piggyBankSettings.setGoalCompletionStrategy(goalCompletionDto.strategy());
+    }
+    @Transactional
+    @CacheEvict(value = "settings:piggybank:goalCompletion", key = "#userId + ':' + #piggyBankId")
+    public void saveGoalCompletion(Long userId, Long piggyBankId, GoalCompletionDto goalCompletionDto) {
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
@@ -42,14 +52,7 @@ public class GoalCompletionService {
     }
 
     @Transactional
-    public void saveGoalCompletion(Long userId, Long piggyBankId, GoalCompletionDto settings) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
-        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
-
-        piggyBankSettings.setGoalCompletionStrategy(settings.strategy());
-    }
-
-    @Transactional
+    @Cacheable(value = "settings:piggybank:goalCompletion", key = "#userId + ':' + #piggyBankId")
     public GoalCompletionDto getCompletionDto(Long userId, Long piggyBankId) {
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();

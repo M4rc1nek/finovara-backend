@@ -52,4 +52,5 @@ This is not strict DDD, but the influence is visible in how the domains are sepa
 - **Liquibase**
 - **PostgreSQL**
 - **Docker / Docker Compose**
+- **Redis**
 - **Maven**

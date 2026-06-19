@@ -6,6 +6,7 @@ import com.finovara.contracts.percentage.CalculatePercentage;
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -17,8 +18,9 @@ public class ExpenseCategoryPercentageService {
 
     private final FinanceBackendReportClient reportClient;
 
-    public ExpenseCategoryPercentageDto getExpensePercentageByCategoryReport(
-            Long userId, ExpenseCategory category, PeriodType periodType) {
+
+    @Cacheable(value = "report:expensePercentageByCategory", key = "#userId + ':' + #category + ':' + #periodType")
+    public ExpenseCategoryPercentageDto getExpensePercentageByCategoryReport(Long userId, ExpenseCategory category, PeriodType periodType) {
 
         LocalDate to = LocalDate.now();
         LocalDate from = periodType.getStartDate(to);

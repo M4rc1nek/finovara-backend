@@ -47,7 +47,6 @@ public class GoalCompletionCore {
         transferFunds(piggyBank, wallet);
 
         kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amountToTransfer, java.time.LocalDateTime.now()));
-        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
 
         recurringSettingsRepository.findByUserIdAndPiggyBankId(userId, piggyBank.getId()).ifPresent(settings -> {
             settings.setEnable(false);
@@ -56,6 +55,7 @@ public class GoalCompletionCore {
         });
 
         piggyBankRepository.delete(piggyBank);
+        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
     }
 
     private void transferFunds(PiggyBank piggyBank, Wallet wallet) {

@@ -9,9 +9,30 @@ services:
     environment:
       FINANCE_BACKEND_URL: https://finovara-finance-app:8087
       SSL_PASSWORD: ${SSL_PASSWORD}
+      REDIS_HOST: finovara-report-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
       - ../localhost.p12:/app/localhost.p12
     restart: always
+    networks:
+      - finovara-network
+    depends_on:
+      finovara-report-redis:
+        condition: service_healthy
+
+
+  finovara-report-redis:
+    image: redis:7-alpine
+    container_name: finovara-report-redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD} --port 6379
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "6379", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 5s
+      retries: 10
     networks:
       - finovara-network
 
