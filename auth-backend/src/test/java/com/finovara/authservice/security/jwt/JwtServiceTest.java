@@ -5,22 +5,27 @@ import com.finovara.authservice.user.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class JwtServiceTest {
 
+    @Mock
     private JwtBlacklistService jwtBlacklistService;
+
     private JwtService jwtService;
 
     @BeforeEach
     void setUp() {
-        jwtBlacklistService = new JwtBlacklistService();
         jwtService = new JwtService(jwtBlacklistService);
         ReflectionTestUtils.setField(jwtService, "secretKey", base64Secret());
         ReflectionTestUtils.setField(jwtService, "jwtExpiration", 60_000L);
@@ -32,6 +37,7 @@ class JwtServiceTest {
         @Test
         void shouldValidateGeneratedToken() {
             String token = jwtService.generateToken(user());
+            when(jwtBlacklistService.isBlacklisted(token)).thenReturn(false);
 
             assertThat(jwtService.isTokenValid(token)).isTrue();
         }
@@ -39,8 +45,7 @@ class JwtServiceTest {
         @Test
         void shouldRejectBlacklistedToken() {
             String token = jwtService.generateToken(user());
-
-            jwtBlacklistService.blacklist(token, Instant.now().plusSeconds(60));
+            when(jwtBlacklistService.isBlacklisted(token)).thenReturn(true);
 
             assertThat(jwtService.isTokenValid(token)).isFalse();
         }
