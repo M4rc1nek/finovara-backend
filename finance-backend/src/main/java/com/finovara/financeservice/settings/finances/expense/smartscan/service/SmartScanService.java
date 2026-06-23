@@ -10,7 +10,7 @@ import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettin
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanDto;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
-import com.finovara.financeservice.settings.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
+import com.finovara.financeservice.exception.conflict.SmartScanConfirmationRequiredException;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -95,7 +95,7 @@ public class SmartScanService {
             throw new SmartScanConfirmationRequiredException("Unusual expense detected. Password confirmation required.");
         }
 
-        authBackendClient.verifyPassword(userId, confirmPasswordDto);
+            authBackendClient.verifyPassword(userId, confirmPasswordDto);
     }
 
 }
