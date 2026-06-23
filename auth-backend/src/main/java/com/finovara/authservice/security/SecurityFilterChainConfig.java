@@ -41,6 +41,7 @@ public class SecurityFilterChainConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/internal/**").permitAll()
                         .requestMatchers(whitelist).permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception
