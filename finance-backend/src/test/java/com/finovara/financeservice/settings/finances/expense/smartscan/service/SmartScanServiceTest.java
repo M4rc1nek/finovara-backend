@@ -9,7 +9,7 @@ import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettin
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanDto;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
-import com.finovara.financeservice.settings.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
+import com.finovara.financeservice.exception.conflict.SmartScanConfirmationRequiredException;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
