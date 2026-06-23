@@ -129,4 +129,11 @@ rate-limit:
     - path: /api/password-reset/request
       max-requests: 1
       window-hours: 1
+    - path: /api/auth/register
+      max-requests: 3
+      window-hours: 1
+    - path: /api/auth/login
+      max-requests: 5
+      window-hours: 1
+
 
