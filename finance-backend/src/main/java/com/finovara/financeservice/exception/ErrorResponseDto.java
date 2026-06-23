@@ -1,4 +1,4 @@
-package com.finovara.contracts.exception;
+package com.finovara.financeservice.exception;
 
 public record ErrorResponseDto(
         int status,
