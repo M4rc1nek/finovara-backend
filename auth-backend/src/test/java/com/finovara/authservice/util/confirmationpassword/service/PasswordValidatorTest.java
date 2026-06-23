@@ -1,9 +1,9 @@
 package com.finovara.authservice.util.confirmationpassword.service;
 
-import com.finovara.contracts.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.authservice.user.model.User;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.contracts.exception.forbidden.InvalidPasswordException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,6 +52,6 @@ class PasswordValidatorTest {
         when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
         when(passwordEncoder.matches("wrongPassword", "encodedPassword")).thenReturn(false);
 
-        assertThrows(InvalidCredentialsException.class, () -> passwordValidator.validatePassword(userId, dto));
+        assertThrows(InvalidPasswordException.class, () -> passwordValidator.validatePassword(userId, dto));
     }
 }
