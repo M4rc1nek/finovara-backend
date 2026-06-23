@@ -1,10 +1,10 @@
 package com.finovara.authservice.user.service;
 
+import com.finovara.authservice.exception.conflict.LocalPasswordNotSetException;
+import com.finovara.authservice.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.event.user.UserCreatedEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.exception.conflict.StateConflictException;
-import com.finovara.contracts.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
 import com.finovara.authservice.security.jwt.JwtService;
 import com.finovara.authservice.user.dto.UserLoginDto;
@@ -79,7 +79,7 @@ public class UserService {
 
         if (user != null && !user.isPasswordSet()) {
             publishLoginActivity(user.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
-            throw new StateConflictException("Local password is not set for this account. Use Google login or set a local password first.");
+            throw new LocalPasswordNotSetException("Local password is not set for this account. Use Google login or set a local password first.");
         }
 
         try {
