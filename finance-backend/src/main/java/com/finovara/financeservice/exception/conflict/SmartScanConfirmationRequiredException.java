@@ -1,4 +1,4 @@
-package com.finovara.financeservice.settings.finances.expense.smartscan.exception.conflict;
+package com.finovara.financeservice.exception.conflict;
 
 public class SmartScanConfirmationRequiredException extends RuntimeException {
     public SmartScanConfirmationRequiredException(String message) {
