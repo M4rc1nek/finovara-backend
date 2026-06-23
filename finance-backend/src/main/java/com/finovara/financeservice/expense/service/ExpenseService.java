@@ -18,7 +18,7 @@ import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.limit.service.LimitCalculateService;
 import com.finovara.financeservice.settings.finances.expense.controlamount.service.ControlAmountService;
-import com.finovara.financeservice.settings.finances.expense.countlimit.service.CountQuantityLimitService;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.service.CountQuantityLimitService;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
