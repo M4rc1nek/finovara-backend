@@ -20,8 +20,8 @@ import com.finovara.financeservice.limit.model.LimitStatus;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.limit.service.LimitCalculateService;
 import com.finovara.financeservice.settings.finances.expense.controlamount.service.ControlAmountService;
-import com.finovara.financeservice.settings.finances.expense.countlimit.dto.CountQuantityLimitDto;
-import com.finovara.financeservice.settings.finances.expense.countlimit.service.CountQuantityLimitService;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitDto;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.service.CountQuantityLimitService;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
@@ -142,7 +142,7 @@ class ExpenseServiceTest {
         }
 
         @Test
-        void shouldThrowAmountLessThanOne() {
+        void shouldThrowExceptionWhenAmountLessThanOne() {
 
             ExpenseRequestDto request = buildAddRequest(new BigDecimal("0.50"), ExpenseCategory.FOOD, "test");
             when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
@@ -156,7 +156,7 @@ class ExpenseServiceTest {
         }
 
         @Test
-        void shouldThrowLimitExceeded() {
+        void shouldThrowExceptionWhenLimitExceeded() {
             ExpenseRequestDto request = buildAddRequest(new BigDecimal("200"), ExpenseCategory.FOOD, "test");
             when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any()))
                     .thenReturn(Optional.of(new BigDecimal("100")));
@@ -257,7 +257,7 @@ class ExpenseServiceTest {
         }
 
         @Test
-        void shouldThrowExpenseNotFound() {
+        void shouldThrowExceptionWhenExpenseNotFound() {
             when(expenseManagerService.getExpenseByIdOrThrow(anyLong()))
                     .thenThrow(new RequestedEntityNotFoundException("Expense not found"));
 
@@ -381,7 +381,7 @@ class ExpenseServiceTest {
         }
 
         @Test
-        void shouldThrowExpenseNotFound() {
+        void shouldThrowExceptionWhenExpenseNotFound() {
             when(expenseRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class,
