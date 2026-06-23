@@ -1,7 +1,7 @@
-package com.finovara.financeservice.settings.finances.expense.countlimit.validator;
+package com.finovara.financeservice.settings.finances.expense.quantitylimit.validator;
 
-import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
+import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import org.springframework.stereotype.Component;
