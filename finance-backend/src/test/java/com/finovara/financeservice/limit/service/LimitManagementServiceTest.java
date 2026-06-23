@@ -75,7 +75,7 @@ class LimitManagementServiceTest {
         }
 
         @Test
-        void shouldThrowWhenLimitAlreadyExists() {
+        void shouldThrowExceptionWhenLimitAlreadyExists() {
             LimitDto dto = new LimitDto(userId, null, PeriodType.DAILY, null, new BigDecimal("100"), true);
             when(limitRepository.findByUserIdAndType(userId, dto.periodType())).thenReturn(List.of(new Limit()));
 
