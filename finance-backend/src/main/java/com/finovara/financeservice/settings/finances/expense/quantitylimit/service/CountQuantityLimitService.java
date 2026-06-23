@@ -3,7 +3,7 @@ package com.finovara.financeservice.settings.finances.expense.countlimit.service
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.contracts.exception.conflict.StateConflictException;
+import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.expense.countlimit.dto.CountQuantityLimitDto;
@@ -44,7 +44,7 @@ public class CountQuantityLimitService {
         }
         long countedExpenses = countExpensesInPeriod(userId, dto.periodType());
         if (dto.numberOfQuantityLimit() < countedExpenses) {
-            throw new StateConflictException("You cannot add a limit " + dto.numberOfQuantityLimit() + ", because you have already " + countedExpenses + " expenses in that period");
+            throw new QuantityLimitOperationException("You cannot add a limit " + dto.numberOfQuantityLimit() + ", because you have already " + countedExpenses + " expenses in that period");
         }
 
         if (expenseSettings.getPeriodType() != dto.periodType()) {

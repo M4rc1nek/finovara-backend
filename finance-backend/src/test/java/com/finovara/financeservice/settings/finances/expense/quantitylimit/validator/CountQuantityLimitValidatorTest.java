@@ -1,6 +1,6 @@
 package com.finovara.financeservice.settings.finances.expense.countlimit.validator;
 
-import com.finovara.contracts.exception.conflict.StateConflictException;
+import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
@@ -30,7 +30,7 @@ class CountQuantityLimitValidatorTest {
         expenseSettings.setQuantityLimitEmergencyModeUsed(emergencyModeUsed);
         expenseSettings.setQuantityLimitEmergencyModeEnabled(emergencyModeEnabled);
 
-        assertThrows(StateConflictException.class,
+        assertThrows(QuantityLimitOperationException.class,
                 () -> countQuantityLimitValidator.validateEmergencyMode(5L, new ConfirmPasswordDto("password"), expenseSettings));
     }
 

@@ -2,7 +2,7 @@ package com.finovara.financeservice.settings.finances.expense.countlimit.service
 
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
-import com.finovara.contracts.exception.conflict.StateConflictException;
+import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.expense.countlimit.dto.CountQuantityLimitDto;
@@ -80,7 +80,7 @@ class CountQuantityLimitServiceTest {
 
             CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 3);
 
-            assertThrows(StateConflictException.class, () -> countQuantityLimitService.saveCountQuantityLimit(USER_ID, dto));
+            assertThrows(QuantityLimitOperationException.class, () -> countQuantityLimitService.saveCountQuantityLimit(USER_ID, dto));
         }
 
         @Test

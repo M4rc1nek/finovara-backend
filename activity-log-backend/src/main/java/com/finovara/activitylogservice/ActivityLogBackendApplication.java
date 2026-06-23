@@ -9,7 +9,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
 @EnableFeignClients
-@Import(GlobalExceptionHandler.class)
 @SpringBootApplication
 public class ActivityLogBackendApplication {
 
