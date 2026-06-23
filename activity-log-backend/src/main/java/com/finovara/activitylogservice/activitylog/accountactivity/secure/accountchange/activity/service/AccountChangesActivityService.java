@@ -51,8 +51,8 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
         return accountChangesActivityRepository.findByUserIdOrderByIdDesc(userId);
     }
 
-    public void confirmPassword(Long userId, ConfirmPasswordDto dto) {
-        authBackendClient.verifyPassword(userId, dto);
+    public void confirmPassword(Long userId, ConfirmPasswordDto confirmPasswordDto) {
+            authBackendClient.verifyPassword(userId, confirmPasswordDto);
     }
 
     @Override
