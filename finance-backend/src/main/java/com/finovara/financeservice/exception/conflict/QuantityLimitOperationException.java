@@ -1,4 +1,4 @@
-package com.finovara.contracts.exception.conflict;
+package com.finovara.financeservice.exception.conflict;
 
 public class QuantityLimitOperationException extends RuntimeException {
     public QuantityLimitOperationException(String message) {
