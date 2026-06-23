@@ -1,6 +1,6 @@
-package com.finovara.financeservice.settings.finances.expense.countlimit.service;
+package com.finovara.financeservice.settings.finances.expense.quantitylimit.service;
 
-import com.finovara.financeservice.settings.finances.expense.countlimit.dto.CountQuantityLimitEmergencyModeDto;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitEmergencyModeDto;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import org.springframework.transaction.annotation.Transactional;
