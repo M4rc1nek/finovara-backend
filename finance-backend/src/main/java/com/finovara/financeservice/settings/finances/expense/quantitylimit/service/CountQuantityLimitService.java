@@ -1,4 +1,4 @@
-package com.finovara.financeservice.settings.finances.expense.countlimit.service;
+package com.finovara.financeservice.settings.finances.expense.quantitylimit.service;
 
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
@@ -6,8 +6,8 @@ import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
-import com.finovara.financeservice.settings.finances.expense.countlimit.dto.CountQuantityLimitDto;
-import com.finovara.financeservice.settings.finances.expense.countlimit.validator.CountQuantityLimitValidator;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitDto;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.validator.CountQuantityLimitValidator;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
@@ -68,6 +68,7 @@ public class CountQuantityLimitService {
             countQuantityLimitValidator.validateEmergencyMode(countedExpenses, confirmPasswordDto, expenseSettings);
 
             authBackendClient.verifyPassword(userId, confirmPasswordDto);
+
             expenseSettings.setQuantityLimitEmergencyModeEnabled(false);
             expenseSettings.setQuantityLimitEmergencyModeUsed(true);
         }
