@@ -39,7 +39,7 @@ class ExpenseManagerServiceTest {
     }
 
     @Test
-    void shouldThrowWhenExpenseByUserIdNotFound() {
+    void shouldThrowExceptionWhenExpenseByUserIdNotFound() {
         when(expenseRepository.findByIdAndUserId(EXPENSE_ID, USER_ID)).thenReturn(Optional.empty());
 
         assertThrows(RequestedEntityNotFoundException.class, () -> expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID));
@@ -59,7 +59,7 @@ class ExpenseManagerServiceTest {
     }
 
     @Test
-    void shouldThrowWhenExpenseByIdNotFound() {
+    void shouldThrowExceptionWhenExpenseByIdNotFound() {
         when(expenseRepository.findById(EXPENSE_ID)).thenReturn(Optional.empty());
 
         assertThrows(RequestedEntityNotFoundException.class, () -> expenseManagerService.getExpenseByIdOrThrow(EXPENSE_ID));
