@@ -2,12 +2,9 @@ package com.finovara.contracts.exception;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.exception.conflict.StateConflictException;
-import com.finovara.contracts.exception.forbidden.NotAuthorizedException;
+import com.finovara.contracts.exception.forbidden.InvalidPasswordException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
-import com.finovara.contracts.exception.tomanyrequest.TooManyRequests;
-import com.finovara.contracts.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +16,7 @@ import org.springframework.web.context.request.WebRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({EntityAlreadyExistsException.class, StateConflictException.class})
+    @ExceptionHandler(EntityAlreadyExistsException.class)
     public ResponseEntity<ErrorResponseDto> handleConflictExceptions(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.CONFLICT.value(),
@@ -39,17 +36,6 @@ public class GlobalExceptionHandler {
                 webRequest.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<ErrorResponseDto> handleWrongPassword(InvalidCredentialsException exception, WebRequest webRequest) {
-        ErrorResponseDto body = new ErrorResponseDto(
-                HttpStatus.UNAUTHORIZED.value(),
-                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                exception.getMessage(),
-                webRequest.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler({MissingRequirementException.class}) // NEW CODE 422
@@ -74,28 +60,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(NotAuthorizedException.class)
-    public ResponseEntity<ErrorResponseDto> handleForbidden(NotAuthorizedException exception, WebRequest webRequest) {
-        ErrorResponseDto body = new ErrorResponseDto(
-                HttpStatus.FORBIDDEN.value(),
-                HttpStatus.FORBIDDEN.getReasonPhrase(),
-                exception.getMessage(),
-                webRequest.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler(TooManyRequests.class)
-    public ResponseEntity<ErrorResponseDto> handleTooManyRequests(TooManyRequests exception, WebRequest webRequest) {
-        ErrorResponseDto body = new ErrorResponseDto(
-                HttpStatus.TOO_MANY_REQUESTS.value(),
-                HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(),
-                exception.getMessage(),
-                webRequest.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(body, HttpStatus.TOO_MANY_REQUESTS);
-    }
-
     @ExceptionHandler(ServiceUnavailableException.class)
     public ResponseEntity<ErrorResponseDto> handleServiceUnavailable(ServiceUnavailableException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
@@ -105,6 +69,17 @@ public class GlobalExceptionHandler {
                 webRequest.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<ErrorResponseDto> handleForbidden(InvalidPasswordException exception, WebRequest webRequest) {
+        ErrorResponseDto body = new ErrorResponseDto(
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
