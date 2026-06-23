@@ -1,10 +1,10 @@
-package com.finovara.financeservice.settings.finances.expense.countlimit.controller;
+package com.finovara.financeservice.settings.finances.expense.quantitylimit.controller;
 
 import com.finovara.financeservice.security.SecurityUtils;
-import com.finovara.financeservice.settings.finances.expense.countlimit.dto.CountQuantityLimitDto;
-import com.finovara.financeservice.settings.finances.expense.countlimit.dto.CountQuantityLimitEmergencyModeDto;
-import com.finovara.financeservice.settings.finances.expense.countlimit.service.CountQuantityLimitEmergencyModeService;
-import com.finovara.financeservice.settings.finances.expense.countlimit.service.CountQuantityLimitService;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitDto;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitEmergencyModeDto;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.service.CountQuantityLimitEmergencyModeService;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.service.CountQuantityLimitService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
