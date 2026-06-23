@@ -3,7 +3,7 @@ package com.finovara.financeservice.settings.finances.recurring.service.validato
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
-import com.finovara.financeservice.settings.finances.expense.smartscan.exception.conflict.SmartScanConfirmationRequiredException;
+import com.finovara.financeservice.exception.conflict.SmartScanConfirmationRequiredException;
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.util.RecurringBasicValidator;
