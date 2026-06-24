@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 @Slf4j
 @Component
@@ -44,5 +45,11 @@ public class OutboxEventPublisher {
                 log.error("Outbox: failed to send event {} for {}/{}", event.getEventType(), event.getAggregateType(), event.getAggregateId(), e);
             }
         }
+    }
+
+    @Scheduled(cron = "${scheduler.clean.old-events:0 0 3 * * *}")
+    @Transactional
+    public void cleanOldEvents() {
+        outboxEventRepository.deleteByStatusAndSentAtBefore(OutboxStatus.SENT, LocalDateTime.now().minusDays(7));
     }
 }
