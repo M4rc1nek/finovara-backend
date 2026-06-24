@@ -14,6 +14,7 @@ import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.settings.factory.SettingsFactory;
 import com.finovara.authservice.util.email.EmailDomainValidator;
 import com.finovara.authservice.util.profile.ProfileImageUrlBuilder;
+import com.finovara.contracts.outbox.OutboxService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -44,11 +46,13 @@ public class UserService {
 
     private final SettingsFactory settingsFactory;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OutboxService outboxService;
     private final EmailDomainValidator emailDomainValidator;
 
     @Value("${application.upload.profile-images-default-directory}")
     private String profileImagesDefaultDirectory;
 
+    @Transactional
     public UserRegisterDto registerUser(UserRegisterDto dto) {
         if (userRepository.existsByUsername(dto.username())) {
             throw new EntityAlreadyExistsException("Username is already taken");
@@ -69,7 +73,7 @@ public class UserService {
         User savedUser = userRepository.save(user);
         String jwtToken = jwtService.generateToken(savedUser);
         String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(savedUser.getProfileImagePath());
-        kafkaTemplate.send("user.created", new UserCreatedEvent(savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getCreatedAt()));
+        outboxService.save("User", savedUser.getId().toString(), "user.created", new UserCreatedEvent(savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getCreatedAt()));
 
         return new UserRegisterDto(savedUser.getId(), savedUser.getUsername(), null, userProfileImage, savedUser.getEmail(), jwtToken);
     }
