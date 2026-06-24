@@ -4,6 +4,7 @@ import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
@@ -19,14 +20,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,9 +42,10 @@ class PiggyBankTransactionServiceTest {
     @Mock
     private PiggyBankManagerService piggyBankManagerService;
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private OutboxService outboxService;
     @Mock
     private GoalCompletionService goalCompletionService;
+
     private Wallet wallet;
     private PiggyBank piggyBank;
 
@@ -57,7 +56,6 @@ class PiggyBankTransactionServiceTest {
     void setUp() {
         wallet = Wallet.create(userId);
         piggyBank = new PiggyBank();
-
         piggyBank.setAmount(BigDecimal.ZERO);
         piggyBank.setGoalAmount(new BigDecimal("1000"));
     }
@@ -78,16 +76,44 @@ class PiggyBankTransactionServiceTest {
 
             verify(walletRepository).save(wallet);
             verify(piggyBankRepository).save(piggyBank);
+        }
 
-            ArgumentCaptor<PiggyBankActivityEvent> activityCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
+        @Test
+        void shouldSaveActivityEventToOutbox() {
+            wallet.deposit(new BigDecimal("500"));
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-            verify(kafkaTemplate).send(eq("activity.piggybank"), activityCaptor.capture());
-            assertEquals(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, activityCaptor.getValue().type());
+            service.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
 
-            ArgumentCaptor<PiggyBankProgressEvent> progressCaptor = ArgumentCaptor.forClass(PiggyBankProgressEvent.class);
+            ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
+            verify(outboxService).save(
+                    eq("PiggyBank"),
+                    eq(piggyBankId.toString()),
+                    eq("activity.piggybank"),
+                    payloadCaptor.capture()
+            );
+            PiggyBankActivityEvent event = (PiggyBankActivityEvent) payloadCaptor.getValue();
+            assertEquals(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, event.type());
+        }
 
-            verify(kafkaTemplate).send(eq("piggybank.calculate-progress"), progressCaptor.capture());
-            assertEquals(10L, progressCaptor.getValue().piggyBankId());
+        @Test
+        void shouldSaveProgressEventToOutbox() {
+            wallet.deposit(new BigDecimal("500"));
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
+
+            service.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
+
+            ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
+            verify(outboxService).save(
+                    eq("PiggyBank"),
+                    eq(piggyBankId.toString()),
+                    eq("piggybank.calculate-progress"),
+                    payloadCaptor.capture()
+            );
+            PiggyBankProgressEvent event = (PiggyBankProgressEvent) payloadCaptor.getValue();
+            assertEquals(piggyBankId, event.piggyBankId());
         }
 
         @Test
@@ -109,11 +135,12 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-            assertThrows(InvalidInputException.class, () -> service.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY));
+            assertThrows(InvalidInputException.class, () ->
+                    service.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY));
 
             verifyNoInteractions(piggyBankRepository);
+            verifyNoInteractions(outboxService);
         }
-
     }
 
     @Nested
@@ -133,10 +160,47 @@ class PiggyBankTransactionServiceTest {
 
             verify(walletRepository).save(wallet);
             verify(piggyBankRepository).save(piggyBank);
-
-            verify(kafkaTemplate, times(2)).send(anyString(), any());
-
             verifyNoInteractions(goalCompletionService);
+        }
+
+        @Test
+        void shouldSaveActivityEventToOutbox() {
+            wallet.deposit(new BigDecimal("300"));
+            piggyBank.setAmount(new BigDecimal("200"));
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
+
+            service.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"));
+
+            ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
+            verify(outboxService).save(
+                    eq("PiggyBank"),
+                    eq(piggyBankId.toString()),
+                    eq("activity.piggybank"),
+                    payloadCaptor.capture()
+            );
+            PiggyBankActivityEvent event = (PiggyBankActivityEvent) payloadCaptor.getValue();
+            assertEquals(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, event.type());
+        }
+
+        @Test
+        void shouldSaveProgressEventToOutbox() {
+            wallet.deposit(new BigDecimal("300"));
+            piggyBank.setAmount(new BigDecimal("200"));
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
+
+            service.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"));
+
+            ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
+            verify(outboxService).save(
+                    eq("PiggyBank"),
+                    eq(piggyBankId.toString()),
+                    eq("piggybank.calculate-progress"),
+                    payloadCaptor.capture()
+            );
+            PiggyBankProgressEvent event = (PiggyBankProgressEvent) payloadCaptor.getValue();
+            assertEquals(piggyBankId, event.piggyBankId());
         }
 
         @Test
@@ -146,10 +210,10 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
-            assertThrows(InvalidInputException.class, () -> service.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100")));
+            assertThrows(InvalidInputException.class, () ->
+                    service.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100")));
 
-            verifyNoInteractions(walletRepository, piggyBankRepository);
+            verifyNoInteractions(walletRepository, piggyBankRepository, outboxService);
         }
-
     }
 }
