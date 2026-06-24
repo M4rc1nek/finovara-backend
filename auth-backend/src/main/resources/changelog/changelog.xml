@@ -6,6 +6,8 @@
         http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
 
+    <include file="changelog/outbox-table.xml"/>
+
     <changeSet id="create-users" author="Marcin Parśniak">
         <createTable tableName="users">
             <column name="id" type="BIGINT" autoIncrement="true">
