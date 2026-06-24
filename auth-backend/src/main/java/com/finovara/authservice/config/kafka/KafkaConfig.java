@@ -1,4 +1,4 @@
-package com.finovara.authservice.config;
+package com.finovara.authservice.config.kafka;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
