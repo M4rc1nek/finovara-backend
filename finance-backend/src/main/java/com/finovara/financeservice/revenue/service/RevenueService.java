@@ -5,6 +5,7 @@ import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.mapper.RevenueMapper;
 import com.finovara.financeservice.revenue.model.Revenue;
@@ -17,8 +18,6 @@ import com.finovara.financeservice.wallet.repository.WalletRepository;
 import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,13 +31,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RevenueService implements UserDataDeletable {
 
+    private final OutboxService outboxService;
     private final RevenueRepository revenueRepository;
     private final WalletRepository walletRepository;
     private final WalletService walletService;
     private final RevenueManagerService revenueManagerService;
     private final RevenueMapper revenueMapper;
     private final AutoPaymentsService autoPaymentsService;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
     public Long addRevenue(RevenueDto revenueDto, Long userId) {
@@ -50,10 +49,10 @@ public class RevenueService implements UserDataDeletable {
                 .userId(userId)
                 .build();
         walletService.addBalanceToWallet(userId, revenue.getAmount());
-        kafkaTemplate.send("activity.revenue", new RevenueActivityEvent(userId, RevenueActivityType.ADDED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
         revenueRepository.save(revenue);
+        outboxService.save("Revenue", revenue.getId().toString(), "activity.revenue",
+                new RevenueActivityEvent(userId, RevenueActivityType.ADDED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.APPLY);
-
         return revenue.getId();
     }
 
@@ -81,11 +80,12 @@ public class RevenueService implements UserDataDeletable {
         existingRevenue.setCategory(revenueDto.category());
         existingRevenue.setDescription(revenueDto.description());
 
-        kafkaTemplate.send("activity.revenue", new RevenueActivityEvent(userId, RevenueActivityType.EDITED_REVENUE, existingRevenue.getAmount(), existingRevenue.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
-        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, newAmount, PiggyBankAutomationMode.APPLY);
-
         walletRepository.save(wallet);
         revenueRepository.save(existingRevenue);
+
+        outboxService.save("Revenue", revenueId.toString(), "activity.revenue",
+                new RevenueActivityEvent(userId, RevenueActivityType.EDITED_REVENUE, existingRevenue.getAmount(), existingRevenue.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
+        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, newAmount, PiggyBankAutomationMode.APPLY);
 
         return revenueId;
     }
@@ -104,7 +104,8 @@ public class RevenueService implements UserDataDeletable {
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
         walletService.removeBalanceFromWallet(userId, revenue.getAmount());
-        kafkaTemplate.send("activity.revenue", new RevenueActivityEvent(userId, RevenueActivityType.DELETED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
+        outboxService.save("Revenue", revenueId.toString(), "activity.revenue",
+                new RevenueActivityEvent(userId, RevenueActivityType.DELETED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
         revenueRepository.delete(revenue);
     }
 

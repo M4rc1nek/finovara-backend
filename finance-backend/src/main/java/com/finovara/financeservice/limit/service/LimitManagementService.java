@@ -5,15 +5,15 @@ import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.LimitActivityType;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.limit.dto.LimitDto;
 import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.kafka.core.KafkaTemplate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,10 +23,10 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LimitManagementService  implements UserDataDeletable {
+public class LimitManagementService implements UserDataDeletable {
     private final LimitRepository limitRepository;
     private final LimitCalculateService limitCalculateService;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OutboxService outboxService;
 
     @Transactional
     public Long createLimit(LimitDto limitDto, Long userId) {
@@ -42,12 +42,12 @@ public class LimitManagementService  implements UserDataDeletable {
                 .isActive(true)
                 .userId(userId)
                 .build();
-        kafkaTemplate.send("activity.limit", new LimitActivityEvent(userId,
-                LimitActivityType.ADDED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
+
         Limit savedLimit = limitRepository.save(limit);
+        outboxService.save("Limit", savedLimit.getId().toString(), "activity.limit",
+                new LimitActivityEvent(userId, LimitActivityType.ADDED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
 
         return savedLimit.getId();
-
     }
 
     @Transactional
@@ -64,9 +64,10 @@ public class LimitManagementService  implements UserDataDeletable {
         limit.setPeriodType(limitDto.periodType());
         limit.setAmount(limitDto.amount());
 
-        kafkaTemplate.send("activity.limit", new LimitActivityEvent(userId, LimitActivityType.EDITED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), oldLimitAmount, LocalDateTime.now()));
-
         limitRepository.save(limit);
+        outboxService.save("Limit", limitId.toString(), "activity.limit",
+                new LimitActivityEvent(userId, LimitActivityType.EDITED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), oldLimitAmount, LocalDateTime.now()));
+
         return limitId;
     }
 
@@ -84,7 +85,9 @@ public class LimitManagementService  implements UserDataDeletable {
     public void deleteLimit(Long userId, Long limitId) {
         Limit limit = limitRepository.findByIdAndUserId(userId, limitId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Active limit not found"));
-        kafkaTemplate.send("activity.limit", new LimitActivityEvent(userId, LimitActivityType.DELETED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
+
+        outboxService.save("Limit", limitId.toString(), "activity.limit",
+                new LimitActivityEvent(userId, LimitActivityType.DELETED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
         limitRepository.delete(limit);
     }
 

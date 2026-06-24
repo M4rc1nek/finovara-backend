@@ -4,6 +4,7 @@ import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
@@ -14,7 +15,6 @@ import com.finovara.financeservice.settings.finances.recurring.repository.Recurr
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
 import com.finovara.financeservice.settings.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ class PiggyBankManagementServiceTest {
     @Mock
     private PiggyBankManagerService piggyBankManagerService;
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private OutboxService outboxService;
     @Mock
     private PiggyBankSettingsRepository piggyBankSettingsRepository;
     @Mock
@@ -76,7 +76,6 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldAddPiggyBankSuccessfully() {
-
             PiggyBank saved = new PiggyBank();
             saved.setId(piggyBankId);
             saved.setUserId(userId);
@@ -89,17 +88,17 @@ class PiggyBankManagementServiceTest {
             Long result = piggyBankManagementService.addPiggyBank(defaultDto, userId);
 
             assertEquals(piggyBankId, result);
-
             verify(piggyBankRepository).save(any());
+
             ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank"), eventCaptor.capture());
             assertEquals(PiggyBankActivityType.ADDED_PIGGY_BANK, eventCaptor.getValue().type());
+
             verify(piggyBankSettingsRepository).save(any());
         }
 
         @Test
         void shouldThrowExceptionWhenMaxReached() {
-
             when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(5L);
 
             assertThrows(InvalidInputException.class, () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
@@ -109,7 +108,6 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenNameExists() {
-
             when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
             when(piggyBankRepository.existsByNameIgnoreCase(eq(userId), any())).thenReturn(true);
 
@@ -122,7 +120,6 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldEditSuccessfully() {
-
             PiggyBank piggyBank = new PiggyBank();
             piggyBank.setId(piggyBankId);
             piggyBank.setName("Old");
@@ -136,16 +133,30 @@ class PiggyBankManagementServiceTest {
             Long result = piggyBankManagementService.editPiggyBank(userId, defaultDto, piggyBankId);
 
             assertEquals(piggyBankId, result);
-            assertEquals("Piggy", defaultDto.name());
+            assertEquals("Piggy", piggyBank.getName());
 
             ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank"), eventCaptor.capture());
             assertEquals(PiggyBankActivityType.EDITED_PIGGY_BANK, eventCaptor.getValue().type());
         }
 
         @Test
-        void shouldThrowExceptionWhenNameExists() {
+        void shouldNotThrowWhenEditingWithSameName() {
+            PiggyBank piggyBank = new PiggyBank();
+            piggyBank.setId(piggyBankId);
+            piggyBank.setName("Piggy");
+            piggyBank.setGoalAmount(BigDecimal.TEN);
+            piggyBank.setGoalType(PiggyBankGoalType.GIFTS);
 
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(true);
+            when(piggyBankRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+            assertDoesNotThrow(() -> piggyBankManagementService.editPiggyBank(userId, defaultDto, piggyBankId));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenNameExists() {
             PiggyBank piggyBank = new PiggyBank();
             piggyBank.setName("Old");
 
@@ -161,7 +172,6 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldReturnList() {
-
             PiggyBank piggyBank = new PiggyBank();
 
             when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of(piggyBank));
@@ -175,7 +185,6 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldReturnEmpty() {
-
             when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of());
 
             List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(userId);
@@ -190,7 +199,6 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldDelete() {
-
             PiggyBank piggyBank = new PiggyBank();
             piggyBank.setAmount(BigDecimal.ZERO);
 
@@ -200,14 +208,14 @@ class PiggyBankManagementServiceTest {
             piggyBankManagementService.deletePiggyBank(userId, piggyBankId);
 
             verify(piggyBankRepository).delete(piggyBank);
+
             ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank"), eventCaptor.capture());
             assertEquals(PiggyBankActivityType.DELETED_PIGGY_BANK, eventCaptor.getValue().type());
         }
 
         @Test
         void shouldThrowExceptionWhenBalanceNotZero() {
-
             PiggyBank piggyBank = new PiggyBank();
             piggyBank.setAmount(BigDecimal.TEN);
 
@@ -218,13 +226,13 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldDisableRecurring() {
-
             PiggyBank piggyBank = new PiggyBank();
             piggyBank.setAmount(BigDecimal.ZERO);
 
             RecurringSettings settings = new RecurringSettings();
             settings.setEnable(true);
             settings.setNextExecutionDate(LocalDate.now());
+            settings.setPiggyBankId(piggyBankId);
 
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(recurringSettingsRepository.findByUserIdAndPiggyBankId(userId, piggyBankId)).thenReturn(Optional.of(settings));

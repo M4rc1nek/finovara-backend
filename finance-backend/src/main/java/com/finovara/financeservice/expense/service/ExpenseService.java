@@ -9,6 +9,7 @@ import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementE
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.ExpenseActivityType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.mapper.ExpenseMapper;
@@ -44,6 +45,7 @@ import java.util.Optional;
 public class ExpenseService implements UserDataDeletable {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OutboxService outboxService;
     private final ExpenseRepository expenseRepository;
     private final LimitRepository limitRepository;
     private final LimitCalculateService limitCalculateService;
@@ -75,17 +77,16 @@ public class ExpenseService implements UserDataDeletable {
             throw new InvalidInputException("Expense amount must be positive");
         }
 
-        kafkaTemplate.send("activity.expense", new ExpenseActivityEvent(userId, ExpenseActivityType.ADDED_EXPENSE, expense.getAmount(),
-                expense.getCategory(), null, null, LocalDateTime.now()));
-
         smartScanService.handleSmartScan(userId, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.ADD);
 
         walletService.removeBalanceFromWallet(userId, expense.getAmount());
         expenseRepository.save(expense);
 
+        outboxService.save("Expense", expense.getId().toString(), "activity.expense",
+                new ExpenseActivityEvent(userId, ExpenseActivityType.ADDED_EXPENSE, expense.getAmount(), expense.getCategory(), null, null, LocalDateTime.now()));
+
         roundUpService.handleExpenseForRoundUp(userId, expense.getId(), PiggyBankAutomationMode.APPLY);
         controlAmountService.handleExpenseAmountControl(userId, expense.getAmount());
-
         publishLimitStatsEvents(userId);
 
         return expense.getId();
@@ -112,16 +113,14 @@ public class ExpenseService implements UserDataDeletable {
         existingExpense.setCategory(expenseRequestDto.expenseDto().category());
         existingExpense.setDescription(expenseRequestDto.expenseDto().description());
 
-        kafkaTemplate.send("activity.expense", new ExpenseActivityEvent(userId, ExpenseActivityType.EDITED_EXPENSE, existingExpense.getAmount(),
-                existingExpense.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
-
-        smartScanService.handleSmartScan(userId, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.EDIT);
-
         expenseRepository.save(existingExpense);
 
+        outboxService.save("Expense", expenseId.toString(), "activity.expense",
+                new ExpenseActivityEvent(userId, ExpenseActivityType.EDITED_EXPENSE, existingExpense.getAmount(), existingExpense.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
+
+        smartScanService.handleSmartScan(userId, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.EDIT);
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.APPLY);
         controlAmountService.handleExpenseAmountControl(userId, expenseRequestDto.expenseDto().amount());
-
         publishLimitStatsEvents(userId);
 
         return expenseId;
@@ -141,10 +140,9 @@ public class ExpenseService implements UserDataDeletable {
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
         walletService.addBalanceToWallet(userId, expense.getAmount());
-        kafkaTemplate.send("activity.expense", new ExpenseActivityEvent(userId, ExpenseActivityType.DELETED_EXPENSE,
-                expense.getAmount(), expense.getCategory(), null, null, LocalDateTime.now()));
+        outboxService.save("Expense", expenseId.toString(), "activity.expense",
+                new ExpenseActivityEvent(userId, ExpenseActivityType.DELETED_EXPENSE, expense.getAmount(), expense.getCategory(), null, null, LocalDateTime.now()));
         expenseRepository.delete(expense);
-
         publishLimitStatsEvents(userId);
     }
 

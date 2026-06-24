@@ -6,6 +6,7 @@ import com.finovara.authservice.user.model.OAuthProvider;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.settings.factory.SettingsFactory;
+import com.finovara.contracts.outbox.OutboxService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.HashMap;
@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,7 +41,7 @@ class GoogleOAuth2UserServiceTest {
     private SettingsFactory settingsFactory;
 
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private OutboxService outboxService;
 
     @InjectMocks
     private GoogleOAuth2UserService googleOAuth2UserService;
@@ -79,10 +80,6 @@ class GoogleOAuth2UserServiceTest {
         });
     }
 
-    private void verifyNoSettingsCreated() {
-        verify(kafkaTemplate, never()).send(eq("user.created"), any());
-    }
-
     @Nested
     class WhenUserDoesNotExist {
 
@@ -114,7 +111,7 @@ class GoogleOAuth2UserServiceTest {
         }
 
         @Test
-        void shouldInitializeLocalSettingsAndPublishNotificationSettingsCreation() {
+        void shouldInitializeSettingsAndPublishUserCreatedEvent() {
             when(userRepository.existsByEmail(EMAIL)).thenReturn(false);
             when(userRepository.existsByUsername(NAME)).thenReturn(false);
             stubSaveReturnsInput();
@@ -122,10 +119,16 @@ class GoogleOAuth2UserServiceTest {
             googleOAuth2UserService.synchronize(oauth2User);
 
             verify(settingsFactory).createDefaultAccountSettings(any());
-            ArgumentCaptor<UserCreatedEvent> eventCaptor =
-                    ArgumentCaptor.forClass(UserCreatedEvent.class);
-            verify(kafkaTemplate).send(eq("user.created"), eventCaptor.capture());
-            assertThat(eventCaptor.getValue().userId()).isEqualTo(1L);
+
+            ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
+            verify(outboxService).save(
+                    eq("User"),
+                    eq("1"),
+                    eq("user.created"),
+                    payloadCaptor.capture()
+            );
+            UserCreatedEvent event = (UserCreatedEvent) payloadCaptor.getValue();
+            assertThat(event.userId()).isEqualTo(1L);
         }
 
         @Test
@@ -244,13 +247,14 @@ class GoogleOAuth2UserServiceTest {
         }
 
         @Test
-        void shouldNotCreateNewSettingsForExistingUser() {
+        void shouldNotCreateSettingsOrPublishEventForExistingUser() {
             when(userRepository.existsByEmailAndIdNot(EMAIL, 1L)).thenReturn(false);
             stubSaveReturnsInput();
 
             googleOAuth2UserService.synchronize(oauth2User);
 
-            verifyNoSettingsCreated();
+            verify(settingsFactory, never()).createDefaultAccountSettings(any());
+            verify(outboxService, never()).save(any(), any(), any(), any());
         }
 
         @Test

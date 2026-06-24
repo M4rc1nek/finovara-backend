@@ -7,9 +7,9 @@ import com.finovara.authservice.user.model.OAuthProvider;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.settings.factory.SettingsFactory;
+import com.finovara.contracts.outbox.OutboxService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -25,7 +25,7 @@ public class GoogleOAuth2UserService {
 
     private final UserRepository userRepository;
     private final SettingsFactory settingsFactory;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OutboxService outboxService;
 
     @Transactional
     public User synchronize(OAuth2User oauth2User) {
@@ -55,7 +55,7 @@ public class GoogleOAuth2UserService {
         user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
 
         User savedUser = userRepository.save(user);
-        kafkaTemplate.send("user.created", new UserCreatedEvent(savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getCreatedAt()));
+        outboxService.save("User", savedUser.getId().toString(), "user.created", new UserCreatedEvent(savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getCreatedAt()));
         return savedUser;
     }
 

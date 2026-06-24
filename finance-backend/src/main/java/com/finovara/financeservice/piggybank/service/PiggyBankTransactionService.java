@@ -3,6 +3,7 @@ package com.finovara.financeservice.piggybank.service;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
@@ -14,7 +15,6 @@ import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +29,7 @@ public class PiggyBankTransactionService {
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
     private final PiggyBankManagerService piggyBankManagerService;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OutboxService outboxService;
     private final GoalCompletionService goalCompletionService;
 
     @Transactional
@@ -46,8 +46,10 @@ public class PiggyBankTransactionService {
         walletRepository.save(transactionContext.wallet);
         piggyBankRepository.save(transactionContext.piggyBank);
 
-        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, piggyBankActivityType, transactionContext.piggyBank.getName(), transactionContext.piggyBank.getGoalType(), transactionContext.piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
-        kafkaTemplate.send("piggybank.calculate-progress", new PiggyBankProgressEvent(userId, piggyBankId, percentage, transactionContext.piggyBank.getGoalType(), transactionContext.piggyBank.getName()));
+        outboxService.save("PiggyBank", piggyBankId.toString(), "activity.piggybank",
+                new PiggyBankActivityEvent(userId, piggyBankActivityType, transactionContext.piggyBank.getName(), transactionContext.piggyBank.getGoalType(), transactionContext.piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
+        outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.calculate-progress",
+                new PiggyBankProgressEvent(userId, piggyBankId, percentage, transactionContext.piggyBank.getGoalType(), transactionContext.piggyBank.getName()));
 
         if (completed) {
             goalCompletionService.handleGoalCompletion(userId);
@@ -69,9 +71,10 @@ public class PiggyBankTransactionService {
         walletRepository.save(transactionContext.wallet);
         piggyBankRepository.save(transactionContext.piggyBank);
 
-        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, transactionContext.piggyBank.getName(), transactionContext.piggyBank.getGoalType()
-                , transactionContext.piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
-        kafkaTemplate.send("piggybank.calculate-progress", new PiggyBankProgressEvent(userId, piggyBankId, percentage, transactionContext.piggyBank.getGoalType(), transactionContext.piggyBank.getName()));
+        outboxService.save("PiggyBank", piggyBankId.toString(), "activity.piggybank",
+                new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, transactionContext.piggyBank.getName(), transactionContext.piggyBank.getGoalType(), transactionContext.piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
+        outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.calculate-progress",
+                new PiggyBankProgressEvent(userId, piggyBankId, percentage, transactionContext.piggyBank.getGoalType(), transactionContext.piggyBank.getName()));
     }
 
     private BigDecimal calculatePercentage(PiggyBank piggyBank) {

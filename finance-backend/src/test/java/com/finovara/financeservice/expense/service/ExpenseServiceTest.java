@@ -9,6 +9,7 @@ import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementE
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.ExpenseActivityType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.mapper.ExpenseMapper;
@@ -44,8 +45,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -79,6 +79,9 @@ class ExpenseServiceTest {
     private FinancialPeriodService financialPeriodService;
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
+    @Mock
+    private OutboxService outboxService;
+
     private final Long userId = 1L;
 
     @BeforeEach
@@ -122,7 +125,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldAddExpenseSuccessfully() {
-
             BigDecimal amount = new BigDecimal("100");
             ExpenseRequestDto request = buildAddRequest(amount, ExpenseCategory.FOOD, "test");
             stubSuccessfulAdd(amount);
@@ -137,13 +139,12 @@ class ExpenseServiceTest {
             verify(controlAmountService).handleExpenseAmountControl(userId, amount);
 
             ArgumentCaptor<ExpenseActivityEvent> captor = ArgumentCaptor.forClass(ExpenseActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.expense"), captor.capture());
+            verify(outboxService).save(eq("Expense"), any(), eq("activity.expense"), captor.capture());
             assertEquals(ExpenseActivityType.ADDED_EXPENSE, captor.getValue().type());
         }
 
         @Test
         void shouldThrowExceptionWhenAmountLessThanOne() {
-
             ExpenseRequestDto request = buildAddRequest(new BigDecimal("0.50"), ExpenseCategory.FOOD, "test");
             when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
             when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
@@ -170,7 +171,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldPublishLimitStatsEventForEachLimitOnAdd() {
-
             ExpenseRequestDto request = buildAddRequest(new BigDecimal("100"), ExpenseCategory.FOOD, "test");
             Limit limit1 = mock(Limit.class);
             Limit limit2 = mock(Limit.class);
@@ -194,7 +194,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldPublishCorrectLimitStatsDataOnAdd() {
-
             ExpenseRequestDto request = buildAddRequest(new BigDecimal("100"), ExpenseCategory.FOOD, "test");
             Limit limit = mock(Limit.class);
             when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
@@ -219,7 +218,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldNotPublishLimitStatsNoLimitsExistOnAdd() {
-
             ExpenseRequestDto request = buildAddRequest(new BigDecimal("100"), ExpenseCategory.FOOD, "test");
             stubSuccessfulAdd(new BigDecimal("100"));
 
@@ -240,7 +238,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldEditExpenseSuccessfully() {
-
             Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.SAVINGS, "new");
             stubSuccessfulEdit(existing);
@@ -252,7 +249,7 @@ class ExpenseServiceTest {
             verify(expenseRepository).save(existing);
 
             ArgumentCaptor<ExpenseActivityEvent> captor = ArgumentCaptor.forClass(ExpenseActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.expense"), captor.capture());
+            verify(outboxService).save(eq("Expense"), any(), eq("activity.expense"), captor.capture());
             assertEquals(ExpenseActivityType.EDITED_EXPENSE, captor.getValue().type());
         }
 
@@ -271,7 +268,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldThrowExpenseBelongsToAnotherUser() {
-
             Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             existing.setUserId(99L);
 
@@ -286,10 +282,8 @@ class ExpenseServiceTest {
 
         @Test
         void shouldPublishLimitStatsEventForEachLimitOnEdit() {
-
             Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.SAVINGS, "new");
-
             Limit limit1 = mock(Limit.class);
             Limit limit2 = mock(Limit.class);
 
@@ -309,7 +303,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldPublishCorrectLimitStatsDataOnEdit() {
-
             Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.SAVINGS, "new");
             Limit limit = mock(Limit.class);
@@ -332,7 +325,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldNotPublishLimitStatsNoLimitsExistOnEdit() {
-
             Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.SAVINGS, "new");
             stubSuccessfulEdit(existing);
@@ -364,7 +356,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldDeleteExpenseSuccessfully() {
-
             Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             when(expenseRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
@@ -376,7 +367,7 @@ class ExpenseServiceTest {
             verify(expenseRepository).delete(expense);
 
             ArgumentCaptor<ExpenseActivityEvent> captor = ArgumentCaptor.forClass(ExpenseActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.expense"), captor.capture());
+            verify(outboxService).save(eq("Expense"), any(), eq("activity.expense"), captor.capture());
             assertEquals(ExpenseActivityType.DELETED_EXPENSE, captor.getValue().type());
         }
 
@@ -393,7 +384,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldPublishLimitStatsEventForEachLimitOnDelete() {
-
             Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             Limit limit1 = mock(Limit.class);
             Limit limit2 = mock(Limit.class);
@@ -411,7 +401,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldPublishCorrectLimitStatsDataOnDelete() {
-
             Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             Limit limit = mock(Limit.class);
             when(expenseRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(expense));
@@ -430,7 +419,6 @@ class ExpenseServiceTest {
 
         @Test
         void shouldNotPublishLimitStatsNoLimitsExistOnDelete() {
-
             Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
             when(expenseRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());

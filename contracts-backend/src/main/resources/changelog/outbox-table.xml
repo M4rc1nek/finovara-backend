@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.0.xsd">
+
+    <changeSet id="create-outbox-events-table" author="Marcin Parśniak">
+        <createTable tableName="outbox_events">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="aggregate_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="aggregate_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueDate="now()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sent_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="outbox_events" indexName="idx_outbox_status_created">
+            <column name="status"/>
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

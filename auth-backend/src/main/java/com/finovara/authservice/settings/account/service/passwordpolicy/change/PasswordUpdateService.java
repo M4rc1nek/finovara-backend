@@ -3,6 +3,7 @@ package com.finovara.authservice.settings.account.service.passwordpolicy.change;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.outbox.OutboxService;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
 import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
@@ -11,7 +12,6 @@ import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 public class PasswordUpdateService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OutboxService outboxService;
 
     @Transactional
     public void updatePassword(User user, String newPassword, HttpServletRequest request) {
@@ -31,12 +31,13 @@ public class PasswordUpdateService {
         userRepository.save(user);
 
         createActivity(user, request);
-
-        kafkaTemplate.send("notification.email.send", new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Zmiana hasla", "email/password-changed.html"));
+        outboxService.save("User", user.getId().toString(), "notification.email.send",
+                new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Zmiana hasla", "email/password-changed.html"));
     }
 
     private void createActivity(User user, HttpServletRequest request) {
         String ipAddress = getClientIpAddress(request);
-        kafkaTemplate.send("activity.account-changes", new AccountChangesActivityEvent(user.getId(), AccountChangesActivityType.PASSWORD_CHANGED, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
+        outboxService.save("User", user.getId().toString(), "activity.account-changes",
+                new AccountChangesActivityEvent(user.getId(), AccountChangesActivityType.PASSWORD_CHANGED, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
     }
 }
