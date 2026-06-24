@@ -17,7 +17,7 @@ public class OutboxService {
             OutboxEvent event = OutboxEvent.of(aggregateType, aggregateId, eventType, payload, eventPayload.getClass().getName());
             outboxEventRepository.save(event);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Nie można zserializować eventu: " + eventType, e);
+            throw new IllegalArgumentException("Cannot serialize event: " + eventType, e);
         }
     }
 }
