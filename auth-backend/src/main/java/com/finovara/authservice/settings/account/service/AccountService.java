@@ -16,6 +16,7 @@ import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.profile.ProfileImageUrlBuilder;
 import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.contracts.outbox.OutboxService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -32,7 +32,7 @@ public class AccountService {
     private final UserRepository userRepository;
     private final UserManagerService userManagerService;
     private final PasswordValidator passwordValidator;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OutboxService outboxService;
 
     @Transactional
     public AccountSettingsDto updateUsername(AccountSettingsDto accountSettingsDto, Long userId, HttpServletRequest request) {
@@ -44,9 +44,13 @@ public class AccountService {
 
         user.setUsername(accountSettingsDto.username());
         userRepository.save(user);
+
         String ipAddress = getClientIpAddress(request);
-        kafkaTemplate.send("activity.account-changes", new AccountChangesActivityEvent(userId, AccountChangesActivityType.USERNAME_CHANGED, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
-        kafkaTemplate.send("notification.email.send", new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Zmiana nazwy uzytkownika", "email/username-changed.html"));
+        outboxService.save("User", userId.toString(), "activity.account-changes",
+                new AccountChangesActivityEvent(userId, AccountChangesActivityType.USERNAME_CHANGED, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
+        outboxService.save("User", userId.toString(), "notification.email.send",
+                new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Zmiana nazwy użytkownika", "email/username-changed.html"));
+
         return accountSettingsDto;
     }
 
@@ -55,8 +59,12 @@ public class AccountService {
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         passwordValidator.validatePassword(userId, confirmPasswordDto);
-        kafkaTemplate.send("notification.email.send", new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Usuniecie konta", "email/account-deleted.html"));
-        kafkaTemplate.send("user-account.deleted", new UserAccountDeletedEvent(user.getId()));
+
+        outboxService.save("User", userId.toString(), "notification.email.send",
+                new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Usuniecie konta", "email/account-deleted.html"));
+        outboxService.save("User", userId.toString(), "user-account.deleted",
+                new UserAccountDeletedEvent(user.getId()));
+
         userRepository.delete(user);
         log.info("User account has been deleted. User email: {}", user.getEmail());
     }
@@ -68,5 +76,4 @@ public class AccountService {
 
         return new AccountSettingsDto(user.getUsername(), user.getEmail(), user.getCreatedAt(), profileImageUrl);
     }
-
 }
