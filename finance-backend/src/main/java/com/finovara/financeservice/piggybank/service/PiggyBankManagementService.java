@@ -5,6 +5,7 @@ import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
@@ -34,7 +35,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
 
     private final PiggyBankRepository piggyBankRepository;
     private final PiggyBankManagerService piggyBankManagerService;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OutboxService outboxService;
     private final PiggyBankSettingsRepository piggyBankSettingsRepository;
     private final RecurringSettingsRepository recurringSettingsRepository;
     private final PiggyBankMapper piggyBankMapper;
@@ -44,9 +45,8 @@ public class PiggyBankManagementService implements UserDataDeletable {
     public Long addPiggyBank(PiggyBankDto piggyBankDto, Long userId) {
         long currentPiggyBanks = piggyBankRepository.countPiggyBanksByUserId(userId);
 
-        int maxPiggyBanks = 5;
-        if (currentPiggyBanks >= maxPiggyBanks) {
-            throw new InvalidInputException("you have reached the maximum number of piggy banks: " + maxPiggyBanks);
+        if (currentPiggyBanks >= 5) {
+            throw new InvalidInputException("you have reached the maximum number of piggy banks: 5");
         }
 
         if (piggyBankRepository.existsByNameIgnoreCase(userId, piggyBankDto.name())) {
@@ -65,7 +65,8 @@ public class PiggyBankManagementService implements UserDataDeletable {
                 .build();
 
         PiggyBank saved = piggyBankRepository.save(piggyBank);
-        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.ADDED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
+        outboxService.save("PiggyBank", saved.getId().toString(), "activity.piggybank",
+                new PiggyBankActivityEvent(userId, PiggyBankActivityType.ADDED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
         PiggyBankSettings settings = piggyBankSettingsFactory.createDefaultPiggyBankSettings(saved);
         piggyBankSettingsRepository.save(settings);
 
@@ -87,8 +88,9 @@ public class PiggyBankManagementService implements UserDataDeletable {
         piggyBank.setGoalAmount(piggyBankDto.goalAmount());
         piggyBank.setGoalType(piggyBankDto.goalType());
 
-        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.EDITED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
         PiggyBank saved = piggyBankRepository.save(piggyBank);
+        outboxService.save("PiggyBank", saved.getId().toString(), "activity.piggybank",
+                new PiggyBankActivityEvent(userId, PiggyBankActivityType.EDITED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
 
         return saved.getId();
     }
@@ -107,8 +109,9 @@ public class PiggyBankManagementService implements UserDataDeletable {
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         if (piggyBank == null || piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
-            throw new InvalidInputException("Cannot delete piggy bank with balance.  Withdraw funds first.");
+            throw new InvalidInputException("Cannot delete piggy bank with balance. Withdraw funds first.");
         }
+
         recurringSettingsRepository.findByUserIdAndPiggyBankId(userId, piggyBankId)
                 .ifPresent(settings -> {
                     settings.setEnable(false);
@@ -116,7 +119,8 @@ public class PiggyBankManagementService implements UserDataDeletable {
                     settings.setNextExecutionDate(null);
                 });
 
-        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
+        outboxService.save("PiggyBank", piggyBankId.toString(), "activity.piggybank",
+                new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
         piggyBankRepository.delete(piggyBank);
     }
 
