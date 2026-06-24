@@ -17,12 +17,12 @@ import java.util.TimeZone;
 @EnableAsync
 @EnableKafka
 @EnableFeignClients
+@EnableScheduling
 @EnableConfigurationProperties(SecurityProperties.class)
 @SpringBootApplication
 @EntityScan(basePackages = {"com.finovara.authservice", "com.finovara.contracts.outbox"})
 @EnableJpaRepositories(basePackages = {"com.finovara.authservice", "com.finovara.contracts.outbox"})
 @ComponentScan(basePackages = {"com.finovara.authservice", "com.finovara.contracts.outbox"})
-@EnableScheduling
 public class FinovaraAuthBackendApplication {
 
     public static void main(String[] args) {
