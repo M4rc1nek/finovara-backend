@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActivity, PiggyBankActivityDto> implements UserDataDeletable {
+public class PiggyBankLifecycleActivityService extends AccountActivityCore<PiggyBankActivity, PiggyBankActivityDto> implements UserDataDeletable {
 
     @Value("${user-activity.piggy-bank.page-size}")
     private int pageSize;
@@ -32,8 +32,8 @@ public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActiv
     public void handleEvent(PiggyBankActivityEvent event) {
         PiggyBankActivity piggyBankActivity = PiggyBankActivity.builder()
                 .userId(event.userId())
-                .piggyBankName(event.name())
                 .activityType(event.type())
+                .piggyBankName(event.name())
                 .goalType(event.goalType())
                 .goalAmount(event.goalAmount())
                 .amountPaid(event.amountPaid())
