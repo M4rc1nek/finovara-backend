@@ -4,8 +4,9 @@ import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.dto
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.mapper.PiggyBankActivityMapper;
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.repository.PiggyBankActivityRepository;
-import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.service.PiggyBankLifecycleActivityService;
+import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.service.PiggyBankActivityService;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
@@ -32,7 +33,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PiggyBankLifecycleActivityServiceTest {
+class PiggyBankActivityServiceTest {
 
     private static final Long USER_ID = 1L;
     private static final LocalDateTime OCCURRED_AT = LocalDateTime.of(2026, 5, 25, 13, 0);
@@ -44,11 +45,11 @@ class PiggyBankLifecycleActivityServiceTest {
     private PiggyBankActivityMapper piggyBankActivityMapper;
 
     @InjectMocks
-    private PiggyBankLifecycleActivityService piggyBankLifecycleActivityService;
+    private PiggyBankActivityService piggyBankActivityService;
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(piggyBankLifecycleActivityService, "pageSize", 10);
+        ReflectionTestUtils.setField(piggyBankActivityService, "pageSize", 10);
     }
 
     @Nested
@@ -56,7 +57,7 @@ class PiggyBankLifecycleActivityServiceTest {
 
         @Test
         void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
-            piggyBankLifecycleActivityService.deleteByUserId(USER_ID);
+            piggyBankActivityService.deleteByUserId(USER_ID);
 
             verify(piggyBankActivityRepository).deleteByUserId(USER_ID);
         }
@@ -77,7 +78,7 @@ class PiggyBankLifecycleActivityServiceTest {
                     OCCURRED_AT
             );
 
-            piggyBankLifecycleActivityService.handleEvent(event);
+            piggyBankActivityService.handleEvent(event);
 
             ArgumentCaptor<PiggyBankActivity> captor = ArgumentCaptor.forClass(PiggyBankActivity.class);
             verify(piggyBankActivityRepository).save(captor.capture());
@@ -89,6 +90,41 @@ class PiggyBankLifecycleActivityServiceTest {
             assertThat(activity.getGoalType()).isEqualTo(event.goalType());
             assertThat(activity.getGoalAmount()).isEqualByComparingTo(event.goalAmount());
             assertThat(activity.getAmountPaid()).isEqualByComparingTo(event.amountPaid());
+            assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
+        }
+    }
+
+    @Nested
+    class HandleEditEvent {
+
+        @Test
+        void shouldBuildEditEntityAndSaveViaRepository() {
+            PiggyBankEditActivityEvent event = new PiggyBankEditActivityEvent(
+                    USER_ID,
+                    PiggyBankActivityType.EDITED_PIGGY_BANK,
+                    "Vacation Fund",
+                    "Old Vacation Fund",
+                    PiggyBankGoalType.VACATION,
+                    PiggyBankGoalType.GIFTS,
+                    new BigDecimal("2000.00"),
+                    new BigDecimal("1500.00"),
+                    OCCURRED_AT
+            );
+
+            piggyBankActivityService.handleEditEvent(event);
+
+            ArgumentCaptor<PiggyBankActivity> captor = ArgumentCaptor.forClass(PiggyBankActivity.class);
+            verify(piggyBankActivityRepository).save(captor.capture());
+
+            PiggyBankActivity activity = captor.getValue();
+            assertThat(activity.getUserId()).isEqualTo(USER_ID);
+            assertThat(activity.getActivityType()).isEqualTo(event.type());
+            assertThat(activity.getPiggyBankName()).isEqualTo(event.name());
+            assertThat(activity.getPreviousPiggyBankName()).isEqualTo(event.previousName());
+            assertThat(activity.getGoalType()).isEqualTo(event.goalType());
+            assertThat(activity.getPreviousGoalType()).isEqualTo(event.previousGoalType());
+            assertThat(activity.getGoalAmount()).isEqualByComparingTo(event.goalAmount());
+            assertThat(activity.getPreviousGoalAmount()).isEqualByComparingTo(event.previousGoalAmount());
             assertThat(activity.getCreatedAt()).isEqualTo(OCCURRED_AT);
         }
     }
@@ -115,7 +151,7 @@ class PiggyBankLifecycleActivityServiceTest {
             when(piggyBankActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
             when(piggyBankActivityMapper.mapToPiggyBankActivity(activity)).thenReturn(dto);
 
-            List<PiggyBankActivityDto> result = piggyBankLifecycleActivityService.getPiggyBankActivities(USER_ID, SortType.NEWEST);
+            List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(USER_ID, SortType.NEWEST);
 
             assertThat(result).containsExactly(dto);
             verify(piggyBankActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
@@ -126,7 +162,7 @@ class PiggyBankLifecycleActivityServiceTest {
         void shouldReturnEmptyListWhenUserHasNoActivities() {
             when(piggyBankActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
 
-            List<PiggyBankActivityDto> result = piggyBankLifecycleActivityService.getPiggyBankActivities(USER_ID, SortType.OLDEST);
+            List<PiggyBankActivityDto> result = piggyBankActivityService.getPiggyBankActivities(USER_ID, SortType.OLDEST);
 
             assertThat(result).isEmpty();
             verifyNoInteractions(piggyBankActivityMapper);
