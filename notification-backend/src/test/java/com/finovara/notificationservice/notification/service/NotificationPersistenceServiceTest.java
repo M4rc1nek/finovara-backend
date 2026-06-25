@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -36,6 +37,7 @@ class NotificationPersistenceServiceTest {
     @Mock
     private NotificationRepository notificationRepository;
 
+    @InjectMocks
     private NotificationPersistenceService notificationPersistenceService;
 
     private ArgumentCaptor<List<Notification>> captor;
@@ -213,8 +215,7 @@ class NotificationPersistenceServiceTest {
         @ParameterizedTest
         @EnumSource(value = SortType.class, names = {"AMOUNT_ASC", "AMOUNT_DESC"})
         void shouldThrowExceptionWhenSortTypeIsUnsupported(SortType sortType) {
-            assertThrows(InvalidInputException.class,
-                    () -> notificationPersistenceService.getUserNotifications(userId, sortType));
+            assertThrows(InvalidInputException.class, () -> notificationPersistenceService.getUserNotifications(userId, sortType));
         }
     }
 
