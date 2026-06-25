@@ -1,6 +1,7 @@
 package com.finovara.financeservice.piggybank.service;
 
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
@@ -91,7 +92,7 @@ class PiggyBankManagementServiceTest {
             verify(piggyBankRepository).save(any());
 
             ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank"), eventCaptor.capture());
+            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank.lifecycle"), eventCaptor.capture());
             assertEquals(PiggyBankActivityType.ADDED_PIGGY_BANK, eventCaptor.getValue().type());
 
             verify(piggyBankSettingsRepository).save(any());
@@ -135,8 +136,8 @@ class PiggyBankManagementServiceTest {
             assertEquals(piggyBankId, result);
             assertEquals("Piggy", piggyBank.getName());
 
-            ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank"), eventCaptor.capture());
+            ArgumentCaptor<PiggyBankEditActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankEditActivityEvent.class);
+            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank.edited"), eventCaptor.capture());
             assertEquals(PiggyBankActivityType.EDITED_PIGGY_BANK, eventCaptor.getValue().type());
         }
 
@@ -210,7 +211,7 @@ class PiggyBankManagementServiceTest {
             verify(piggyBankRepository).delete(piggyBank);
 
             ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank"), eventCaptor.capture());
+            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank.lifecycle"), eventCaptor.capture());
             assertEquals(PiggyBankActivityType.DELETED_PIGGY_BANK, eventCaptor.getValue().type());
         }
 
