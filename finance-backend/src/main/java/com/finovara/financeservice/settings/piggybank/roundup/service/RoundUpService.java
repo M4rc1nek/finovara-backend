@@ -33,7 +33,6 @@ public class RoundUpService {
 
     private final ExpenseManagerService expenseManagerService;
     private final PiggyBankManagerService piggyBankManagerService;
-    private final PiggyBankManagementService piggyBankManagementService;
     private final PiggyBankRepository piggyBankRepository;
     private final WalletRepository walletRepository;
     private final GoalCompletionService goalCompletionService;
@@ -46,11 +45,6 @@ public class RoundUpService {
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         return new RoundUpDto(piggyBankSettings.isRoundUpActive());
-    }
-
-    @Transactional
-    public Long addDefaultPiggyBank(PiggyBankDto piggyBankDto, Long userId) {
-        return piggyBankManagementService.addPiggyBank(piggyBankDto, userId);
     }
 
     @Transactional
