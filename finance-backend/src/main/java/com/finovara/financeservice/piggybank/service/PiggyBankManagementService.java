@@ -2,9 +2,11 @@ package com.finovara.financeservice.piggybank.service;
 
 import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
@@ -65,11 +67,12 @@ public class PiggyBankManagementService implements UserDataDeletable {
                 .build();
 
         PiggyBank saved = piggyBankRepository.save(piggyBank);
-        outboxService.save("PiggyBank", saved.getId().toString(), "activity.piggybank",
+        outboxService.save("PiggyBank", saved.getId().toString(), "activity.piggybank.lifecycle",
                 new PiggyBankActivityEvent(userId, PiggyBankActivityType.ADDED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
         PiggyBankSettings settings = piggyBankSettingsFactory.createDefaultPiggyBankSettings(saved);
         piggyBankSettingsRepository.save(settings);
 
+        log.info("Added a new Piggy Bank called {}, with a goal amount of {}", piggyBankDto.name(), piggyBankDto.goalAmount());
         return saved.getId();
     }
 
@@ -84,13 +87,20 @@ public class PiggyBankManagementService implements UserDataDeletable {
 
         PiggyBankValidator.validateGoalAmount(piggyBankDto);
 
+        String previousName = piggyBank.getName();
+        PiggyBankGoalType previousGoalType = piggyBank.getGoalType();
+        BigDecimal previousGoalAmount = piggyBank.getGoalAmount();
+
         piggyBank.setName(piggyBankDto.name());
         piggyBank.setGoalAmount(piggyBankDto.goalAmount());
         piggyBank.setGoalType(piggyBankDto.goalType());
 
         PiggyBank saved = piggyBankRepository.save(piggyBank);
-        outboxService.save("PiggyBank", saved.getId().toString(), "activity.piggybank",
-                new PiggyBankActivityEvent(userId, PiggyBankActivityType.EDITED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
+        outboxService.save("PiggyBank", saved.getId().toString(), "activity.piggybank.edited",
+                new PiggyBankEditActivityEvent(userId, PiggyBankActivityType.EDITED_PIGGY_BANK, piggyBank.getName(), previousName ,
+                        piggyBank.getGoalType(), previousGoalType,  piggyBank.getGoalAmount(), previousGoalAmount, LocalDateTime.now()));
+
+        log.info("Edited Piggy Bank. New name: {}, new goal amount: {}", piggyBankDto.name(), piggyBankDto.goalAmount());
 
         return saved.getId();
     }
@@ -119,9 +129,10 @@ public class PiggyBankManagementService implements UserDataDeletable {
                     settings.setNextExecutionDate(null);
                 });
 
-        outboxService.save("PiggyBank", piggyBankId.toString(), "activity.piggybank",
+        outboxService.save("PiggyBank", piggyBankId.toString(), "activity.piggybank.lifecycle",
                 new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
         piggyBankRepository.delete(piggyBank);
+        log.info("Manual deleted piggyBank for userId={}", userId);
     }
 
 
