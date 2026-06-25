@@ -48,7 +48,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
         long currentPiggyBanks = piggyBankRepository.countPiggyBanksByUserId(userId);
 
         if (currentPiggyBanks >= 5) {
-            throw new InvalidInputException("you have reached the maximum number of piggy banks: 5");
+            throw new InvalidInputException("You have reached the maximum number of piggy banks: 5");
         }
 
         if (piggyBankRepository.existsByNameIgnoreCase(userId, piggyBankDto.name())) {
