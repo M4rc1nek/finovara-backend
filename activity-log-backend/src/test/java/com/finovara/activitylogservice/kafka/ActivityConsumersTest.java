@@ -10,6 +10,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.settings.serv
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
@@ -58,13 +59,13 @@ class ActivityConsumersTest {
     private AccountChangesActivityService accountChangesActivityService;
 
     @InjectMocks
-    private ActivityConsumers consumer;
+    private ActivityConsumers activityConsumers;
 
     @Test
     void shouldDelegateExpenseEventToService() {
         ExpenseActivityEvent event = new ExpenseActivityEvent(USER_ID, ExpenseActivityType.ADDED_EXPENSE, new BigDecimal("10.00"), ExpenseCategory.FOOD, null, null, OCCURRED_AT);
 
-        consumer.handleExpense(event);
+        activityConsumers.handleExpense(event);
 
         verify(expenseActivityService).handleEvent(event);
     }
@@ -73,7 +74,7 @@ class ActivityConsumersTest {
     void shouldDelegateRevenueEventToService() {
         RevenueActivityEvent event = new RevenueActivityEvent(USER_ID, RevenueActivityType.ADDED_REVENUE, new BigDecimal("10.00"), RevenueCategory.SALARY, null, null, OCCURRED_AT);
 
-        consumer.handleRevenue(event);
+        activityConsumers.handleRevenue(event);
 
         verify(revenueActivityService).handleEvent(event);
     }
@@ -82,25 +83,42 @@ class ActivityConsumersTest {
     void shouldDelegateLimitEventToService() {
         LimitActivityEvent event = new LimitActivityEvent(USER_ID, LimitActivityType.ADDED_LIMIT, PeriodType.DAILY.name(), new BigDecimal("10.00"), null, OCCURRED_AT);
 
-        consumer.handleLimit(event);
+        activityConsumers.handleLimit(event);
 
         verify(limitActivityService).handleEvent(event);
     }
 
     @Test
-    void shouldDelegatePiggyBankEventToService() {
+    void shouldDelegatePiggyBankLifeCycleEventToService() {
         PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID, PiggyBankActivityType.ADDED_PIGGY_BANK, "Gift fund", PiggyBankGoalType.GIFTS, new BigDecimal("100.00"), null, OCCURRED_AT);
 
-        consumer.handlePiggyBank(event);
+        activityConsumers.handlePiggyBank(event);
 
         verify(piggyBankActivityService).handleEvent(event);
+    }
+
+    @Test
+    void shouldDelegatePiggyBankEditEventToService() {
+        PiggyBankEditActivityEvent event = new PiggyBankEditActivityEvent(USER_ID,
+                PiggyBankActivityType.EDITED_PIGGY_BANK,
+                "Gift fund",
+                "Health",
+                PiggyBankGoalType.HEALTH,
+                PiggyBankGoalType.GIFTS,
+                new BigDecimal("100.00"),
+                new BigDecimal("300.00"),
+                OCCURRED_AT);
+
+        activityConsumers.handleEditPiggyBank(event);
+
+        verify(piggyBankActivityService).handleEditEvent(event);
     }
 
     @Test
     void shouldDelegateSettingsEventToService() {
         SettingsActivityEvent event = new SettingsActivityEvent(USER_ID, SettingType.PIGGY_BANK_ROUND_UP, SettingActivityStatus.ENABLED, OCCURRED_AT);
 
-        consumer.handleSettings(event);
+        activityConsumers.handleSettings(event);
 
         verify(settingsActivityService).handleEvent(event);
     }
@@ -109,7 +127,7 @@ class ActivityConsumersTest {
     void shouldDelegateLoginEventToService() {
         LoginActivityEvent event = new LoginActivityEvent(USER_ID, LoginActivityStatus.SUCCESSFUL, "Firefox", "127.0.0.1", "Localhost", OCCURRED_AT);
 
-        consumer.handleLogin(event);
+        activityConsumers.handleLogin(event);
 
         verify(loginActivityService).handleEvent(event);
     }
@@ -118,7 +136,7 @@ class ActivityConsumersTest {
     void shouldDelegateAccountChangesEventToService() {
         AccountChangesActivityEvent event = new AccountChangesActivityEvent(USER_ID, AccountChangesActivityType.PASSWORD_CHANGED, "Firefox", "127.0.0.1", "Localhost", OCCURRED_AT);
 
-        consumer.handleAccountChanges(event);
+        activityConsumers.handleAccountChanges(event);
 
         verify(accountChangesActivityService).handleEvent(event);
     }
