@@ -1,14 +1,15 @@
-package com.finovara.contracts.exception;
+package com.finovara.financeservice.exception;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.exception.forbidden.InvalidPasswordException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
+import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
+import com.finovara.financeservice.exception.conflict.SmartScanConfirmationRequiredException;
+import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -16,7 +17,7 @@ import org.springframework.web.context.request.WebRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(EntityAlreadyExistsException.class)
+    @ExceptionHandler({QuantityLimitOperationException.class, SmartScanConfirmationRequiredException.class, EntityAlreadyExistsException.class})
     public ResponseEntity<ErrorResponseDto> handleConflictExceptions(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.CONFLICT.value(),
@@ -25,6 +26,18 @@ public class GlobalExceptionHandler {
                 webRequest.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+
+    }
+
+    @ExceptionHandler(FeignException.Forbidden.class)
+    public ResponseEntity<ErrorResponseDto> handleFeignForbidden(FeignException.Forbidden exception, WebRequest webRequest) {
+        ErrorResponseDto body = new ErrorResponseDto(
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler({RequestedEntityNotFoundException.class})
@@ -71,34 +84,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
-    @ExceptionHandler(InvalidPasswordException.class)
-    public ResponseEntity<ErrorResponseDto> handleForbidden(InvalidPasswordException exception, WebRequest webRequest) {
-        ErrorResponseDto body = new ErrorResponseDto(
-                HttpStatus.FORBIDDEN.value(),
-                HttpStatus.FORBIDDEN.getReasonPhrase(),
-                exception.getMessage(),
-                webRequest.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDto> handleValidation(MethodArgumentNotValidException exception, WebRequest webRequest) {
-        String message = exception.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .findFirst()
-                .map(error -> error.getDefaultMessage())
-                .orElse("Validation failed");
-        ErrorResponseDto body = new ErrorResponseDto(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                message,
-                webRequest.getDescription(false).replace("uri=", "")
-        );
-
-        return ResponseEntity.badRequest().body(body);
-    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleAll(WebRequest webRequest) {
@@ -112,3 +97,4 @@ public class GlobalExceptionHandler {
     }
 
 }
+
