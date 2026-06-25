@@ -5,7 +5,12 @@ import com.finovara.authservice.exception.conflict.LocalPasswordNotSetException;
 import com.finovara.authservice.exception.tomanyrequest.VerificationAttemptsExceededException;
 import com.finovara.authservice.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.contracts.exception.ErrorResponseDto;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.forbidden.InvalidPasswordException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
+import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -41,8 +46,8 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(LocalPasswordNotSetException.class)
-    public ResponseEntity<ErrorResponseDto> handleLocalPasswordNotSetException(RuntimeException exception, WebRequest webRequest) {
+    @ExceptionHandler({LocalPasswordNotSetException.class, EntityAlreadyExistsException.class})
+    public ResponseEntity<ErrorResponseDto> handleConflict(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.getReasonPhrase(),
@@ -76,4 +81,59 @@ public class GlobalExceptionHandler {
     }
 
 
+    @ExceptionHandler({RequestedEntityNotFoundException.class})
+    public ResponseEntity<ErrorResponseDto> handleNotFoundException(RuntimeException exception, WebRequest webRequest) {
+        ErrorResponseDto body = new ErrorResponseDto(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler({MissingRequirementException.class}) // NEW CODE 422
+    public ResponseEntity<ErrorResponseDto> handleUnprocessableEntity(RuntimeException exception, WebRequest webRequest) {
+        ErrorResponseDto body = new ErrorResponseDto(
+                HttpStatus.UNPROCESSABLE_CONTENT.value(),
+                HttpStatus.UNPROCESSABLE_CONTENT.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.UNPROCESSABLE_CONTENT);
+    }
+
+    @ExceptionHandler(InvalidInputException.class)
+    public ResponseEntity<ErrorResponseDto> handleBadRequest(InvalidInputException exception, WebRequest webRequest) {
+        ErrorResponseDto body = new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponseDto> handleServiceUnavailable(ServiceUnavailableException exception, WebRequest webRequest) {
+        ErrorResponseDto body = new ErrorResponseDto(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDto> handleAll(WebRequest webRequest) {
+        ErrorResponseDto body = new ErrorResponseDto(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                "An unexpected error occurred. Please contact your administrator.",
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
