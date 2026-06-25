@@ -15,9 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ComponentScan(basePackages = {"com.finovara.financeservice", "com.finovara.contracts.outbox"})
 @SpringBootApplication
 public class FinanceServiceApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(FinanceServiceApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(FinanceServiceApplication.class, args);
+    }
 }
