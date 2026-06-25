@@ -7,6 +7,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.mod
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.repository.PiggyBankActivityRepository;
 import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PiggyBankLifecycleActivityService extends AccountActivityCore<PiggyBankActivity, PiggyBankActivityDto> implements UserDataDeletable {
+public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActivity, PiggyBankActivityDto> implements UserDataDeletable {
 
     @Value("${user-activity.piggy-bank.page-size}")
     private int pageSize;
@@ -41,7 +42,27 @@ public class PiggyBankLifecycleActivityService extends AccountActivityCore<Piggy
                 .build();
 
         piggyBankActivityRepository.save(piggyBankActivity);
-        log.info("Created activity type: {}, userId: {}", event.type(), event.userId());
+        log.info("Created piggy bank activity. type={}, userId={}", event.type(), event.userId());
+    }
+
+
+    @Transactional
+    public void handleEditEvent(PiggyBankEditActivityEvent event) {
+        PiggyBankActivity piggyBankActivity = PiggyBankActivity.builder()
+                .userId(event.userId())
+                .activityType(event.type())
+                .piggyBankName(event.name())
+                .previousPiggyBankName(event.previousName())
+                .goalType(event.goalType())
+                .previousGoalType(event.previousGoalType())
+                .goalAmount(event.goalAmount())
+                .previousGoalAmount(event.previousGoalAmount())
+                .createdAt(event.occurredAt())
+                .build();
+
+
+        piggyBankActivityRepository.save(piggyBankActivity);
+        log.info("Created piggy bank edit activity. type={}, userId={}", event.type(), event.userId());
     }
 
     public List<PiggyBankActivityDto> getPiggyBankActivities(Long userId, SortType sort) {
