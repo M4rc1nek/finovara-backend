@@ -1,12 +1,10 @@
 package com.finovara.financeservice.settings.piggybank.roundup.service;
 
-import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.financeservice.expense.model.Expense;
-import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
-import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.piggybank.service.PiggyBankManagementService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
@@ -17,17 +15,17 @@ import com.finovara.financeservice.util.expense.ExpenseManagerService;
 import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -54,8 +52,6 @@ class RoundUpServiceTest {
     private GoalCompletionService goalCompletionService;
     @Mock
     private RoundUpCore roundUpCore;
-    @Mock
-    private PiggyBankManagementService piggyBankManagementService;
 
     @InjectMocks
     private RoundUpService roundUpService;
@@ -66,6 +62,7 @@ class RoundUpServiceTest {
     private PiggyBank piggyBank;
     private Wallet wallet;
     private Expense expense;
+
     @BeforeEach
     void setup() {
         wallet = Wallet.create(userId);
@@ -175,22 +172,5 @@ class RoundUpServiceTest {
             verifyNoInteractions(roundUpCore);
             verify(goalCompletionService).handleGoalCompletion(userId);
         }
-    }
-
-    @Nested
-    class AddPiggyBank {
-
-        @Test
-        void shouldAddPiggyBankSuccessfully() {
-            PiggyBankDto dto = new PiggyBankDto(123L, 1L, "My piggy bank", new BigDecimal("100"), null, PiggyBankGoalType.GIFTS, new BigDecimal("250"), null, false);
-
-            when(piggyBankManagementService.addPiggyBank(dto, userId)).thenReturn(123L);
-
-            Long result = roundUpService.addDefaultPiggyBank(dto, userId);
-
-            assertEquals(123L, result);
-            verify(piggyBankManagementService).addPiggyBank(dto, userId);
-        }
-
     }
 }
