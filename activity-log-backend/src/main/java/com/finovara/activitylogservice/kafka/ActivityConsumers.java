@@ -11,6 +11,7 @@ import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.event.activity.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
@@ -46,9 +47,14 @@ public class ActivityConsumers {
         revenueActivityService.handleEvent(event);
     }
 
-    @KafkaListener(topics = "activity.piggybank")
+    @KafkaListener(topics = "activity.piggybank.lifecycle")
     public void handlePiggyBank(PiggyBankActivityEvent event) {
         piggyBankActivityService.handleEvent(event);
+    }
+
+    @KafkaListener(topics = "activity.piggybank.edited")
+    public void handleEditPiggyBank(PiggyBankEditActivityEvent event) {
+        piggyBankActivityService.handleEditEvent(event);
     }
 
     @KafkaListener(topics = "activity.login")
