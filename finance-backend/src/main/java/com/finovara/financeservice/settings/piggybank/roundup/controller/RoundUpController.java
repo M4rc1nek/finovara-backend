@@ -1,6 +1,5 @@
 package com.finovara.financeservice.settings.piggybank.roundup.controller;
 
-import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.security.SecurityUtils;
 import com.finovara.financeservice.settings.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpService;
@@ -15,11 +14,6 @@ import org.springframework.web.bind.annotation.*;
 public class RoundUpController {
 
     private final RoundUpService roundUpService;
-
-    @PostMapping
-    public ResponseEntity<Long> addDefaultPiggyBank(@RequestBody @Valid PiggyBankDto piggyBankDto) {
-        return ResponseEntity.ok(roundUpService.addDefaultPiggyBank(piggyBankDto, SecurityUtils.getCurrentUserId()));
-    }
 
     @GetMapping("/{piggyBankId}")
     public ResponseEntity<RoundUpDto> getRoundUp(@PathVariable Long piggyBankId) {
