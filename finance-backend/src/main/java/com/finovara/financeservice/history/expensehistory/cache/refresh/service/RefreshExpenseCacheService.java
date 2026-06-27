@@ -6,12 +6,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RefreshCacheService {
+public class RefreshExpenseCacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
