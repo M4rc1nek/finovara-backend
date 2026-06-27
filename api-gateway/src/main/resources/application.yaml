@@ -72,7 +72,7 @@ spring:
             - id: report-backend
               uri: ${REPORT_BACKEND_URL}
               predicates:
-                - Path=/api/reports/**,/api/pdf/**
+                - Path=/api/reports/**,/api/pdf/**,/api/report-cache/**
 
             - id: auth_backend
               uri: ${AUTH_BACKEND_URL}
