@@ -21,8 +21,9 @@ public class RateLimitProperties {
     public static class Endpoint {
 
         private String path;
-        private int maxRequests = 3;
-        private int windowHours = 1;
+        private int maxRequests;
+        private int windowHours;
+        private long windowMinutes;
 
     }
 }
