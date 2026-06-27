@@ -11,7 +11,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RefreshCacheService {
+public class RefreshReportCacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
