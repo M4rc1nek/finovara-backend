@@ -10,7 +10,11 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import java.util.TimeZone;
 
 @EnableFeignClients
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class, LiquibaseAutoConfiguration.class})
+@SpringBootApplication(
+        exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class, LiquibaseAutoConfiguration.class},
+        scanBasePackages = {"com.finovara.reportservice", "com.finovara.contracts.cache"}
+)
+
 public class ReportServiceApplication {
 
     public static void main(String[] args) {
