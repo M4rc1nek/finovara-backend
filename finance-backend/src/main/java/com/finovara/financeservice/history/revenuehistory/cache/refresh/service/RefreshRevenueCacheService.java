@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RefreshCacheService {
+public class RefreshRevenueCacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
