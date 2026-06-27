@@ -1,6 +1,6 @@
-package com.finovara.reportservice.report.cache.refresh.controller;
+package com.finovara.reportservice.report.cache.evict.controller;
 
-import com.finovara.reportservice.report.cache.refresh.service.RefreshReportCacheService;
+import com.finovara.reportservice.report.cache.evict.service.EvictReportCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,11 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RefreshReportCacheController {
 
-    private final RefreshReportCacheService refreshReportCacheService;
+    private final EvictReportCacheService evictReportCacheService;
 
     @PostMapping("/refresh")
     public ResponseEntity<Void> refreshReportData(@RequestHeader("X-User-Id") Long userId) {
-        refreshReportCacheService.evictDataForUser(userId);
+        evictReportCacheService.evictDataForUser(userId);
         return ResponseEntity.ok().build();
     }
 }
