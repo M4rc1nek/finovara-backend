@@ -21,6 +21,8 @@ spring:
     redis:
       time-to-live: 180000  # 3 minutes
       cache-null-values: false
+  kafka:
+    bootstrap-servers: finovara-kafka:9092
 
 finance-backend:
   url: ${FINANCE_BACKEND_URL:https://finovara-finance-app:8087}
@@ -36,6 +38,12 @@ revenues:
 logging:
   level:
     root: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.cache: TRACE
+    org.springframework.data.redis: DEBUG
 
 management:
   endpoints:

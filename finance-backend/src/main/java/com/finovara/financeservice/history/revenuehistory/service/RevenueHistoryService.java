@@ -1,4 +1,4 @@
-package com.finovara.financeservice.revenuehistory.service;
+package com.finovara.financeservice.history.revenuehistory.service;
 
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.transaction.RevenueCategory;

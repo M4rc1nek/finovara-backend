@@ -78,6 +78,8 @@ logging:
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
     org.springframework.security: DEBUG
     org.springframework.security.web.access: DEBUG
+    org.springframework.cache: TRACE
+    org.springframework.data.redis: DEBUG
 
 mail:
   recipient:

@@ -72,7 +72,7 @@ spring:
             - id: report-backend
               uri: ${REPORT_BACKEND_URL}
               predicates:
-                - Path=/api/reports/**,/api/pdf/**
+                - Path=/api/reports/**,/api/pdf/**,/api/report-cache/**
 
             - id: auth_backend
               uri: ${AUTH_BACKEND_URL}
@@ -135,5 +135,12 @@ rate-limit:
     - path: /api/auth/login
       max-requests: 5
       window-hours: 1
-
-
+    - path: /api/report-cache/refresh
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/revenue-history-cache/refresh
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/expense-history-cache/refresh
+      max-requests: 1
+      window-minutes: 5

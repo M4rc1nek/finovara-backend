@@ -1,4 +1,4 @@
-package com.finovara.financeservice.expensehistory.service;
+package com.finovara.financeservice.history.expensehistory.service;
 
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.mapper.ExpenseMapper;

@@ -75,7 +75,7 @@ class RateLimitFilterTest {
     @Test
     void shouldAllowRequestWhenUnderLimit() {
         stubRedisCounter(1L);
-        properties.setEndpoints(List.of(endpointFor("/api/test", 3, 1)));
+        properties.setEndpoints(List.of(endpointFor("/api/test", 3, 1, 0)));
 
         var exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get("/api/test")
@@ -91,7 +91,7 @@ class RateLimitFilterTest {
     @Test
     void shouldReturn429WhenLimitExceeded() throws Exception {
         stubRedisCounter(1L, 2L);
-        properties.setEndpoints(List.of(endpointFor("/api/test", 1, 1)));
+        properties.setEndpoints(List.of(endpointFor("/api/test", 1, 1, 0)));
 
         var first = MockServerWebExchange.from(
                 MockServerHttpRequest.get("/api/test")
@@ -129,7 +129,7 @@ class RateLimitFilterTest {
     @Test
     void shouldTrackCountersSeparatelyPerIp() {
         stubRedisCounter(1L, 2L, 1L);
-        properties.setEndpoints(List.of(endpointFor("/api/test", 1, 1)));
+        properties.setEndpoints(List.of(endpointFor("/api/test", 1, 1, 0)));
 
         var ip1first = MockServerWebExchange.from(
                 MockServerHttpRequest.get("/api/test")
@@ -157,7 +157,7 @@ class RateLimitFilterTest {
     @Test
     void shouldMatchAntStyleWildcardPath() {
         stubRedisCounter(1L);
-        properties.setEndpoints(List.of(endpointFor("/api/pdf/**", 5, 1)));
+        properties.setEndpoints(List.of(endpointFor("/api/pdf/**", 5, 1, 0)));
 
         var exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get("/api/pdf/reports/123")
@@ -172,7 +172,7 @@ class RateLimitFilterTest {
     @Test
     void shouldUseXForwardedForInsteadOfRemoteAddress() {
         stubRedisCounter(1L, 2L);
-        properties.setEndpoints(List.of(endpointFor("/api/test", 1, 1)));
+        properties.setEndpoints(List.of(endpointFor("/api/test", 1, 1, 0)));
 
         var first = MockServerWebExchange.from(
                 MockServerHttpRequest.get("/api/test")
@@ -195,7 +195,7 @@ class RateLimitFilterTest {
     @Test
     void shouldSetTtlOnlyOnFirstRequest() {
         stubRedisCounter(1L, 2L);
-        properties.setEndpoints(List.of(endpointFor("/api/test", 5, 1)));
+        properties.setEndpoints(List.of(endpointFor("/api/test", 5, 1, 0)));
 
         var first = MockServerWebExchange.from(
                 MockServerHttpRequest.get("/api/test")
@@ -214,15 +214,31 @@ class RateLimitFilterTest {
     }
 
     @Test
+    void shouldUseWindowMinutesWhenSet() {
+        stubRedisCounter(1L);
+        properties.setEndpoints(List.of(endpointFor("/api/test", 5, 0, 20)));
+
+        var exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.get("/api/test")
+                        .remoteAddress(new InetSocketAddress("1.1.1.1", 0))
+                        .build());
+
+        filter.filter(exchange, chain).block();
+
+        verify(redisTemplate, times(1)).expire(anyString(), eq(Duration.ofMinutes(20)));
+    }
+
+    @Test
     void shouldRunBeforeJwtFilter() {
         assertThat(filter.getOrder()).isLessThan(-1);
     }
 
-    private RateLimitProperties.Endpoint endpointFor(String path, int maxRequests, int windowHours) {
+    private RateLimitProperties.Endpoint endpointFor(String path, int maxRequests, int windowHours, int windowMinutes) {
         RateLimitProperties.Endpoint endpoint = new RateLimitProperties.Endpoint();
         endpoint.setPath(path);
         endpoint.setMaxRequests(maxRequests);
         endpoint.setWindowHours(windowHours);
+        endpoint.setWindowMinutes(windowMinutes);
         return endpoint;
     }
 }

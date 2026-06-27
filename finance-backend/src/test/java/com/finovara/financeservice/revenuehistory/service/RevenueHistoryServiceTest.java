@@ -1,5 +1,6 @@
 package com.finovara.financeservice.revenuehistory.service;
 
+import com.finovara.financeservice.history.revenuehistory.service.RevenueHistoryService;
 import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.mapper.RevenueMapper;
 import com.finovara.financeservice.revenue.model.Revenue;

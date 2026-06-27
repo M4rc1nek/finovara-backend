@@ -1,8 +1,8 @@
-package com.finovara.financeservice.expensehistory.controller;
+package com.finovara.financeservice.history.expensehistory.controller;
 
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.financeservice.expensehistory.service.ExpenseHistoryService;
+import com.finovara.financeservice.history.expensehistory.service.ExpenseHistoryService;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.financeservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;

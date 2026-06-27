@@ -5,6 +5,7 @@ import com.finovara.financeservice.expense.mapper.ExpenseMapper;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.financeservice.history.expensehistory.service.ExpenseHistoryService;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
