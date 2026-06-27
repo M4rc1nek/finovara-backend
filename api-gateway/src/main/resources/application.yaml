@@ -135,5 +135,12 @@ rate-limit:
     - path: /api/auth/login
       max-requests: 5
       window-hours: 1
-
-
+    - path: /api/report-cache/refresh
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/revenue-history-cache/refresh
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/expense-history-cache/refresh
+      max-requests: 1
+      window-minutes: 5
