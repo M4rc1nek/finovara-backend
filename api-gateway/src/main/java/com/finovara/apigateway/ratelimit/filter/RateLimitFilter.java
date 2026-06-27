@@ -46,7 +46,7 @@ public class RateLimitFilter implements GlobalFilter, Ordered {
         String ip = resolveIp(exchange.getRequest());
         RateLimitProperties.Endpoint endpoint = endpointOpt.get();
         String key = RATE_LIMIT_PREFIX + endpoint.getPath() + ":" + ip;
-        Duration window = Duration.ofHours(endpoint.getWindowHours());
+        Duration window = endpoint.getWindowMinutes() > 0 ? Duration.ofMinutes(endpoint.getWindowMinutes()) : Duration.ofHours(endpoint.getWindowHours());
 
         return reactiveRedisTemplate.opsForValue()
                 .increment(key)
