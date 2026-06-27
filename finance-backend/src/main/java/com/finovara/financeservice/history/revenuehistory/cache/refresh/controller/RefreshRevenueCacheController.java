@@ -1,6 +1,6 @@
 package com.finovara.financeservice.history.revenuehistory.cache.refresh.controller;
 
-import com.finovara.financeservice.history.revenuehistory.cache.refresh.service.RefreshCacheService;
+import com.finovara.financeservice.history.revenuehistory.cache.refresh.service.RefreshRevenueCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("api/revenue-history-cache")
 @RequiredArgsConstructor
-public class RefreshCacheController {
+public class RefreshRevenueCacheController {
 
-    private final RefreshCacheService refreshCacheService;
+    private final RefreshRevenueCacheService refreshRevenueCacheService;
 
     @PostMapping("/refresh")
     public ResponseEntity<Void> refreshRevenueHistoryData(@RequestHeader("X-User-Id") Long userId) {
-        refreshCacheService.evictDataForUser(userId);
+        refreshRevenueCacheService.evictDataForUser(userId);
         return ResponseEntity.ok().build();
     }
 }
