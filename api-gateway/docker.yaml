@@ -6,6 +6,7 @@ services:
     container_name: finovara-gateway
     ports:
       - "443:8888"
+      - "9100:9100"
     environment:
       FINANCE_BACKEND_URL: https://finovara-finance-app:8087
       AUTH_BACKEND_URL: https://finovara-auth-app:8443
