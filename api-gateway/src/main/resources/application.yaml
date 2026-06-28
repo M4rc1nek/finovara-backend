@@ -86,13 +86,22 @@ spring:
 
 
 management:
+  server:
+    port: 9100
+    ssl:
+      enabled: false
   endpoint:
     gateway:
       access: read_only
+    health:
+      show-details: always
   endpoints:
     web:
       exposure:
-        include: health,gateway
+        include: health,prometheus,info,metrics,gateway
+  metrics:
+    tags:
+      application: api-gateway
 
 logging:
   level:
