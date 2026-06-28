@@ -46,7 +46,22 @@ logging:
     org.springframework.data.redis: DEBUG
 
 management:
+  server:
+    port: 9105
+    ssl:
+      enabled: false
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,prometheus,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: report-backend
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 100ms,500ms,1s,5s,10s
