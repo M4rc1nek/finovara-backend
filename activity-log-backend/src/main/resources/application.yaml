@@ -66,3 +66,22 @@ user-activity:
     page-size: 100
   settings:
     page-size: 100
+
+
+management:
+  server:
+    port: 9103
+    ssl:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info,metrics,scheduledtasks
+  endpoint:
+    health:
+      show-details: always
+    scheduledtasks:
+      enabled: true
+  metrics:
+    tags:
+      application: activity-log-backend
