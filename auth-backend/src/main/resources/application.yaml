@@ -110,3 +110,25 @@ security:
   cors:
     allowed-origins:
       - https://localhost:5173
+
+
+management:
+  server:
+    port: 9101
+    ssl:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: auth-backend
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 50ms,100ms,200ms,500ms
