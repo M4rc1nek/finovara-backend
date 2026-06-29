@@ -49,22 +49,15 @@ mail:
   recipient:
     address: ${MAIL_FROM_ADDRESS:finovaracenter@gmail.com}
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-
-
-
 notification-persistence:
   page-size: 5
-
 
 
 scheduler:
   notification:
     delete-cron: "0 2 0 ? * 1"
+
+
 
 logging:
   level:
@@ -73,3 +66,29 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
     org.springframework.security: DEBUG
+
+management:
+  server:
+    port: 9104
+    ssl:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  health:
+    mail:
+      enabled: true
+  metrics:
+    tags:
+      application: notification-backend
+    distribution:
+      percentiles:
+        http.server.requests: 0.5,0.9,0.95,0.99
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 50ms,100ms,200ms,500ms,1s

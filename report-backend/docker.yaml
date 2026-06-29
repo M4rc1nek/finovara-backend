@@ -6,6 +6,7 @@ services:
     container_name: finovara-report-app
     ports:
       - "8083:8083"
+      - "9105:9105"
     environment:
       FINANCE_BACKEND_URL: https://finovara-finance-app:8087
       SSL_PASSWORD: ${SSL_PASSWORD}

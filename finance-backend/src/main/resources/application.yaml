@@ -67,3 +67,27 @@ cache:
     "[expense:historyByCategory]": 10
     "[revenue:historyByCategory]": 10
     "[nbpRates]": 60
+
+
+management:
+  server:
+    port: 9102
+    ssl:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: finance-backend
+    distribution:
+      percentiles:
+        http.server.requests: 0.5,0.9,0.95,0.99
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 50ms,100ms,200ms,500ms,1s

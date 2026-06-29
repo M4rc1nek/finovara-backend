@@ -1,0 +1,37 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    project: finovara
+
+scrape_configs:
+
+  - job_name: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['finovara-gateway:9100']
+
+  - job_name: 'auth-backend'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['finovara-auth-app:9101']
+
+  - job_name: 'finance-backend'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['finovara-finance-app:9102']
+
+  - job_name: 'activity-log-backend'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['finovara-activity-app:9103']
+
+  - job_name: 'notification-backend'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['finovara-notification-app:9104']
+
+  - job_name: 'report-backend'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['finovara-report-app:9105']

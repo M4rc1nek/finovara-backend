@@ -23,6 +23,7 @@ services:
     container_name: finovara-auth-app
     ports:
       - "8443:8443"
+      - "9101:9101"
     environment:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
