@@ -1,4 +1,16 @@
 package com.finovara.authservice.sharedaccount.model.dto;
 
-public class SharedAccountInvitationDto {
+import com.finovara.authservice.sharedaccount.model.status.InvitationStatus;
+
+import java.time.LocalDateTime;
+
+public record SharedAccountInvitationDto(
+        Long inviterUserId,
+
+        Long inviteeUserId,
+
+        InvitationStatus status,
+
+        LocalDateTime createdAt
+) {
 }
