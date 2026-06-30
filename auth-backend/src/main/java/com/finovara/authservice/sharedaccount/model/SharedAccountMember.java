@@ -1,5 +1,6 @@
 package com.finovara.authservice.sharedaccount.model;
 
+import com.finovara.authservice.sharedaccount.model.status.SharedRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "shared_account_members")
-public class Member {
+public class SharedAccountMember {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +28,7 @@ public class Member {
     private Long userId;
 
     @Enumerated(EnumType.STRING)
-    private SharedRole role; // OWNER / MEMBER
+    private SharedRole role;
 
     private LocalDateTime joinedAt;
 }
