@@ -1,7 +1,7 @@
 package com.finovara.contracts.event.notification.sharedaccount.invitation;
 
-public record UserAcceptInviteEvent(
+public record UserAcceptSharedAccountInvitationEvent(
         Long userId,
-
+        String inviteeUsername
 ) {
 }
