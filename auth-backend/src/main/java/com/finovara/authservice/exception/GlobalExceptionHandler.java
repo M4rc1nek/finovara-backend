@@ -7,6 +7,7 @@ import com.finovara.authservice.exception.unauthorized.InvalidCredentialsExcepti
 import com.finovara.contracts.exception.ErrorResponseDto;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.exception.forbidden.AccessDeniedException;
 import com.finovara.contracts.exception.forbidden.InvalidPasswordException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
@@ -32,7 +33,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-
     @ExceptionHandler(VerificationAttemptsExceededException.class)
     public ResponseEntity<AttemptsErrorResponseDto> handleToManyVerificationAttempts(VerificationAttemptsExceededException exception, WebRequest webRequest) {
         AttemptsErrorResponseDto body = new AttemptsErrorResponseDto(
@@ -45,7 +45,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.TOO_MANY_REQUESTS);
     }
 
-
     @ExceptionHandler({LocalPasswordNotSetException.class, EntityAlreadyExistsException.class})
     public ResponseEntity<ErrorResponseDto> handleConflict(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
@@ -56,7 +55,6 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
-
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ErrorResponseDto> handleIncorrectCredentials(InvalidCredentialsException exception, WebRequest webRequest) {
@@ -69,8 +67,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(InvalidPasswordException.class)
-    public ResponseEntity<ErrorResponseDto> handleInvalidPassword(InvalidPasswordException exception, WebRequest webRequest) {
+    @ExceptionHandler({InvalidPasswordException.class, AccessDeniedException.class})
+    public ResponseEntity<ErrorResponseDto> handleForbidden(InvalidPasswordException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
@@ -79,7 +77,6 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
-
 
     @ExceptionHandler({RequestedEntityNotFoundException.class})
     public ResponseEntity<ErrorResponseDto> handleNotFoundException(RuntimeException exception, WebRequest webRequest) {
@@ -124,7 +121,6 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
     }
-
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleAll(WebRequest webRequest) {
