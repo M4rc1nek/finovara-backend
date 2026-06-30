@@ -6,8 +6,8 @@ import com.finovara.notificationservice.notification.dto.NotificationResponse;
 
 import java.time.LocalDateTime;
 
-@JsonTypeName("USER_ACCEPT_SHARED_ACCOUNT_INVITATION")
-public record UserAcceptSharedAccountInvitationDto(
+@JsonTypeName("USER_REJECT_SHARED_ACCOUNT_INVITATION")
+public record UserRejectSharedAccountInvitationDto(
         NotificationType type,
         LocalDateTime createdAt,
         String inviteeUsername
