@@ -1,4 +1,11 @@
 package com.finovara.authservice.sharedaccount.model.dto;
 
-public record InvitationResponse() {
+import com.finovara.authservice.sharedaccount.model.status.InvitationStatus;
+
+public record InvitationResponse(
+        Long id,
+        Long inviterUserId,
+        String inviterUsername,
+        InvitationStatus status
+) {
 }
