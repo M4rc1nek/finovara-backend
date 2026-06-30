@@ -6,25 +6,15 @@ import com.finovara.notificationservice.notification.dto.NotificationResponse;
 
 import java.time.LocalDateTime;
 
-@JsonTypeName("USER_ACCEPT_INVITE")
-public record UserAcceptInvitationDto(
-        NotificationType type
-        Long userId,
-        LocalDateTime acceptedAt
+@JsonTypeName("USER_ACCEPT_SHARED_ACCOUNT_INVITATION")
+public record UserAcceptSharedAccountInvitationDto(
+        NotificationType type,
+        LocalDateTime createdAt,
+        String inviteeUsername
 ) implements NotificationResponse {
 
     @Override
-    public NotificationType type() {
-        return null;
-    }
-
-    @Override
-    public LocalDateTime createdAt() {
-        return null;
-    }
-
-    @Override
     public String deduplicationKey() {
-        return "";
+        return "%s:%s".formatted(type, inviteeUsername);
     }
 }
