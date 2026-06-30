@@ -1,4 +1,12 @@
 package com.finovara.authservice.user.dto;
 
-public class UserDataDto {
-}
+public record UserDataDto(
+
+    Long id,
+
+    String username,
+
+    String email,
+
+    String userProfileImage
+){}
