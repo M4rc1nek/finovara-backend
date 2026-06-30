@@ -54,4 +54,58 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="create-shared-accounts" author="Marcin Parśniak">
+        <createTable tableName="shared_accounts">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-shared-account-members" author="Marcin Parśniak">
+        <createTable tableName="shared_account_members">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="joined_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_account_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_shared_account_members_account"
+                             references="shared_accounts(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-shared-account-invitations" author="Marcin Parśniak">
+        <createTable tableName="shared_account_invitations">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="inviter_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invitee_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>
