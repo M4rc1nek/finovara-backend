@@ -1,9 +1,9 @@
-package com.finovara.notificationservice.notification.service.piggybank;
+package com.finovara.notificationservice.notification.consumer.piggybank;
 
 import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.model.NotificationType;
 import com.finovara.notificationservice.notification.dto.piggybank.PiggyBankWarningDto;
-import com.finovara.notificationservice.notification.service.NotificationPersistenceService;
+import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class PiggyBankWarningService {
+public class PiggyBankWarningConsumer {
 
     private final NotificationPersistenceService notificationPersistenceService;
 
