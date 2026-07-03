@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notification.service;
+package com.finovara.notificationservice.notification;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
