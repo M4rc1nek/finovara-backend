@@ -1,11 +1,8 @@
 package com.finovara.authservice.sharedaccount.model;
 
-import com.finovara.authservice.sharedaccount.model.status.SharedRole;
+import com.finovara.authservice.sharedaccount.model.role.SharedRole;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "shared_account_members")
 public class SharedAccountMember {
 
