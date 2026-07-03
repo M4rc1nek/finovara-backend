@@ -8,5 +8,5 @@ public record UserDataDto(
 
     String email,
 
-    String userProfileImage
+    String profileImagePath
 ){}
