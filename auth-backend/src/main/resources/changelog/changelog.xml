@@ -20,6 +20,9 @@
             <column name="password_set" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
+            <column name="has_shared_account" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
             <column name="email" type="VARCHAR(255)">
                 <constraints nullable="false" unique="true"/>
             </column>
@@ -59,9 +62,6 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="status" type="VARCHAR(50)">
-                <constraints nullable="false"/>
-            </column>
             <column name="created_at" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -74,7 +74,7 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false"/>
+                <constraints nullable="false" unique="true"/>
             </column>
             <column name="role" type="VARCHAR(50)">
                 <constraints nullable="false"/>
@@ -87,6 +87,11 @@
                              references="shared_accounts(id)"/>
             </column>
         </createTable>
+
+        <addUniqueConstraint
+                tableName="shared_account_members"
+                columnNames="shared_account_id, user_id"
+                constraintName="uk_shared_account_members_account_user"/>
     </changeSet>
 
     <changeSet id="create-shared-account-invitations" author="Marcin Parśniak">
@@ -98,9 +103,6 @@
                 <constraints nullable="false"/>
             </column>
             <column name="invitee_user_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="status" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="TIMESTAMP">
