@@ -3,9 +3,9 @@ package com.finovara.authservice.user.repository;
 import com.finovara.authservice.user.dto.UserDataDto;
 import com.finovara.authservice.user.model.OAuthProvider;
 import com.finovara.authservice.user.model.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,11 +27,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("""
                 SELECT new com.finovara.authservice.user.dto.UserDataDto(
-                    u.id, u.username, u.email, u.profileImagePath
-                )
+                    u.id, 
+                    u.username, 
+                    u.email, 
+                    u.profileImagePath
+                ) 
                 FROM User u 
-                WHERE u.username LIKE %:query% OR u.email LIKE %:query%
+                WHERE (u.username LIKE %:query% OR u.email LIKE %:query%) 
+                  AND u.hasSharedAccount = false 
+                ORDER BY u.username ASC
             """)
-    List<UserDataDto> searchByUsernameOrEmail(@Param("query") String query);
-
+    List<UserDataDto> searchByUsernameOrEmail(String query, Pageable pageable);
 }
