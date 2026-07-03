@@ -2,7 +2,7 @@ package com.finovara.notificationservice.notification.controller;
 
 import com.finovara.contracts.model.SortType;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
-import com.finovara.notificationservice.notification.service.NotificationPersistenceService;
+import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
