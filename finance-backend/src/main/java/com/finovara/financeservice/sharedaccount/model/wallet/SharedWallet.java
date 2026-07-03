@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.model;
+package com.finovara.financeservice.sharedaccount.model.wallet;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import jakarta.persistence.*;
