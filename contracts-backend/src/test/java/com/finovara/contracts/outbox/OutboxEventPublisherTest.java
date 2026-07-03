@@ -8,11 +8,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.messaging.Message;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -32,6 +34,13 @@ class OutboxEventPublisherTest {
     @InjectMocks
     private OutboxEventPublisher outboxEventPublisher;
 
+    @SuppressWarnings("unchecked")
+    private void stubSuccessfulSend() {
+        SendResult<String, Object> sendResult = mock(SendResult.class);
+        when(kafkaTemplate.send(any(Message.class)))
+                .thenReturn(CompletableFuture.completedFuture(sendResult));
+    }
+
     @Nested
     class PublishPendingEventsTest {
         @Test
@@ -39,6 +48,7 @@ class OutboxEventPublisherTest {
             OutboxEvent event = pendingEvent("activity.piggybank", "123");
             when(outboxEventRepository.findPendingEvents(OutboxStatus.PENDING)).thenReturn(List.of(event));
             when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new Object());
+            stubSuccessfulSend();
 
             outboxEventPublisher.publishPendingEvents();
 
@@ -53,6 +63,22 @@ class OutboxEventPublisherTest {
             when(outboxEventRepository.findPendingEvents(OutboxStatus.PENDING)).thenReturn(List.of(event));
             when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new Object());
             when(kafkaTemplate.send(any(Message.class))).thenThrow(new RuntimeException("Kafka down"));
+
+            outboxEventPublisher.publishPendingEvents();
+
+            assertThat(event.getStatus()).isEqualTo(OutboxStatus.FAILED);
+            assertThat(event.getSentAt()).isNull();
+        }
+
+        @Test
+        void shouldMarkEventAsFailedWhenKafkaFutureCompletesExceptionally() throws Exception {
+            OutboxEvent event = pendingEvent("activity.piggybank", "123");
+            when(outboxEventRepository.findPendingEvents(OutboxStatus.PENDING)).thenReturn(List.of(event));
+            when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new Object());
+
+            CompletableFuture<SendResult<String, Object>> failedFuture = new CompletableFuture<>();
+            failedFuture.completeExceptionally(new RuntimeException("broker unreachable"));
+            when(kafkaTemplate.send(any(Message.class))).thenReturn(failedFuture);
 
             outboxEventPublisher.publishPendingEvents();
 
@@ -78,7 +104,10 @@ class OutboxEventPublisherTest {
             OutboxEvent successEvent = pendingEvent("activity.piggybank", "222");
 
             when(outboxEventRepository.findPendingEvents(OutboxStatus.PENDING)).thenReturn(List.of(failingEvent, successEvent));
-            when(objectMapper.readValue(anyString(), any(Class.class))).thenThrow(new RuntimeException("bad json")).thenReturn(new Object());
+            when(objectMapper.readValue(anyString(), any(Class.class)))
+                    .thenThrow(new RuntimeException("bad json"))
+                    .thenReturn(new Object());
+            stubSuccessfulSend();
 
             outboxEventPublisher.publishPendingEvents();
 
@@ -101,6 +130,7 @@ class OutboxEventPublisherTest {
             OutboxEvent event = pendingEvent("activity.piggybank", "abc-123");
             when(outboxEventRepository.findPendingEvents(OutboxStatus.PENDING)).thenReturn(List.of(event));
             when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new Object());
+            stubSuccessfulSend();
 
             ArgumentCaptor<Message<?>> messageCaptor = ArgumentCaptor.forClass(Message.class);
 
