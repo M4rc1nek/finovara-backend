@@ -14,14 +14,12 @@ import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.settings.account.dto.AccountSettingsDto;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
-import com.finovara.authservice.util.profile.ProfileImageUrlBuilder;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.outbox.OutboxService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -72,7 +70,7 @@ public class AccountService {
     @Transactional
     public AccountSettingsDto getAccountSettings(Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
-        String profileImageUrl = ProfileImageUrlBuilder.buildProfileImageUrl(user.getProfileImagePath());
+        String profileImageUrl = user.getProfileImageUrl();
 
         return new AccountSettingsDto(user.getUsername(), user.getEmail(), user.getCreatedAt(), profileImageUrl);
     }
