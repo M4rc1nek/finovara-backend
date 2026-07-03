@@ -1,6 +1,5 @@
 package com.finovara.authservice.sharedaccount.model;
 
-import com.finovara.authservice.sharedaccount.model.status.InvitationStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,9 +21,6 @@ public class SharedAccountInvitation {
     private Long inviterUserId;
 
     private Long inviteeUserId;
-
-    @Enumerated(EnumType.STRING)
-    private InvitationStatus status;
 
     private LocalDateTime createdAt;
 }
