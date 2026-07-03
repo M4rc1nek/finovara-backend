@@ -1,4 +1,7 @@
 package com.finovara.authservice.sharedaccount.repository;
 
-public interface SharedAccountRepository {
+import com.finovara.authservice.sharedaccount.model.SharedAccount;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface SharedAccountRepository extends JpaRepository<SharedAccount, Long> {
 }
