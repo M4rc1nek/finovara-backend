@@ -96,6 +96,10 @@ verification-code-manager:
 password-generator:
   length: 8
 
+shared-account:
+  search:
+    page-size: 25
+
 
 security:
   whitelist:
