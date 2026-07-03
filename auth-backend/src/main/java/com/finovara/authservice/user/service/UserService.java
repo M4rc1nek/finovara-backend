@@ -13,7 +13,6 @@ import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.settings.factory.SettingsFactory;
 import com.finovara.authservice.util.email.EmailDomainValidator;
-import com.finovara.authservice.util.profile.ProfileImageUrlBuilder;
 import com.finovara.contracts.outbox.OutboxService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -72,7 +71,7 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
         String jwtToken = jwtService.generateToken(savedUser);
-        String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(savedUser.getProfileImagePath());
+        String userProfileImage = savedUser.getProfileImageUrl();
         outboxService.save("User", savedUser.getId().toString(), "user.created", new UserCreatedEvent(savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getCreatedAt()));
 
         return new UserRegisterDto(savedUser.getId(), savedUser.getUsername(), null, userProfileImage, savedUser.getEmail(), jwtToken);
@@ -95,7 +94,7 @@ public class UserService {
 
             publishLoginActivity(user.getId(), LoginActivityStatus.SUCCESSFUL, request);
             String jwtToken = jwtService.generateToken(user);
-            String userProfileImage = ProfileImageUrlBuilder.buildProfileImageUrl(user.getProfileImagePath());
+            String userProfileImage = user.getProfileImageUrl();
 
             return new UserLoginDto(user.getId(), user.getUsername(), user.getEmail(), null, userProfileImage, jwtToken);
 
