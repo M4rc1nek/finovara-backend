@@ -25,6 +25,29 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="create-shared-wallets" author="Marcin Parśniak">
+        <createTable tableName="shared_wallets">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="balance" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="shared_wallets" columnNames="owner_id, member_id" constraintName="uk_shared_wallets_owner_member"/>
+    </changeSet>
+
+
     <changeSet id="create-limits" author="Marcin Parśniak">
         <createTable tableName="limits">
             <column name="id" type="BIGINT" autoIncrement="true">
