@@ -1,10 +1,10 @@
-package com.finovara.notificationservice.notification.service.limit;
+package com.finovara.notificationservice.notification.consumer.limit;
 
 import com.finovara.contracts.event.notification.limit.LimitStatsEvent;
 import com.finovara.contracts.model.NotificationType;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.notificationservice.notification.dto.limit.LimitExceededDto;
-import com.finovara.notificationservice.notification.service.NotificationPersistenceService;
+import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -21,19 +21,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 
 @ExtendWith(MockitoExtension.class)
-class LimitExceededServiceTest {
+class LimitExceededConsumerTest {
 
     @Mock
     private NotificationPersistenceService notificationPersistenceService;
 
     @InjectMocks
-    private LimitExceededService limitExceededService;
+    private LimitExceededConsumer limitExceededConsumer;
 
     @Test
     void shouldSaveNotificationWhenPercentageIsExactly100() {
         LimitStatsEvent event = new LimitStatsEvent(1L, 10L, BigDecimal.valueOf(100), PeriodType.WEEKLY);
 
-        limitExceededService.handle(event);
+        limitExceededConsumer.handle(event);
 
         ArgumentCaptor<LimitExceededDto> captor = ArgumentCaptor.forClass(LimitExceededDto.class);
         verify(notificationPersistenceService).save(eq(1L), captor.capture());
@@ -49,7 +49,7 @@ class LimitExceededServiceTest {
     void shouldSaveNotificationWhenPercentageIsAbove100() {
         LimitStatsEvent event = new LimitStatsEvent(1L, 10L, BigDecimal.valueOf(150), PeriodType.MONTHLY);
 
-        limitExceededService.handle(event);
+        limitExceededConsumer.handle(event);
 
         ArgumentCaptor<LimitExceededDto> captor = ArgumentCaptor.forClass(LimitExceededDto.class);
         verify(notificationPersistenceService).save(eq(1L), captor.capture());
@@ -60,7 +60,7 @@ class LimitExceededServiceTest {
     void shouldNotSaveWhenPercentageIsBelow100() {
         LimitStatsEvent event = new LimitStatsEvent(1L, 10L, BigDecimal.valueOf(99.99), PeriodType.WEEKLY);
 
-        limitExceededService.handle(event);
+        limitExceededConsumer.handle(event);
 
         verify(notificationPersistenceService, never()).save(any(), any());
     }
@@ -69,7 +69,7 @@ class LimitExceededServiceTest {
     void shouldNotSaveWhenPercentageIsZero() {
         LimitStatsEvent event = new LimitStatsEvent(1L, 10L, BigDecimal.ZERO, PeriodType.WEEKLY);
 
-        limitExceededService.handle(event);
+        limitExceededConsumer.handle(event);
 
         verify(notificationPersistenceService, never()).save(any(), any());
     }
