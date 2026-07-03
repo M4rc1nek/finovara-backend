@@ -1,9 +1,9 @@
-package com.finovara.notificationservice.notification.service.sharedaccount.invitation;
+package com.finovara.notificationservice.notification.consumer.sharedaccount.invitation;
 
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserRejectSharedAccountInvitationEvent;
 import com.finovara.contracts.model.NotificationType;
 import com.finovara.notificationservice.notification.dto.sharedaccount.invitation.UserRejectSharedAccountInvitationDto;
-import com.finovara.notificationservice.notification.service.NotificationPersistenceService;
+import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class UserRejectSharedAccountInvitationService {
+public class UserRejectSharedAccountInvitationConsumer {
 
     private final NotificationPersistenceService notificationPersistenceService;
 
