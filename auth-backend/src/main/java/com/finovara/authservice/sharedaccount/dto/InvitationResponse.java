@@ -1,4 +1,4 @@
-package com.finovara.authservice.sharedaccount.model.dto;
+package com.finovara.authservice.sharedaccount.dto;
 
 public record InvitationResponse(
         Long id,
