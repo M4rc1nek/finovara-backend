@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.dto;
+package com.finovara.financeservice.sharedaccount.dto.wallet;
 
 import java.math.BigDecimal;
 
