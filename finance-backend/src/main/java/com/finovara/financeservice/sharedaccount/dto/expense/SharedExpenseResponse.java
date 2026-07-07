@@ -1,7 +1,8 @@
-package com.finovara.financeservice.sharedaccount.dto.revenue;
+package com.finovara.financeservice.sharedaccount.dto.expense;
 
-public record SharedRevenueResponse(
-        Long revenueId,
-        Long userId
+public record SharedExpenseResponse(
+        Long expenseId,
+        Long userId,
+        String username
 ) {
 }
