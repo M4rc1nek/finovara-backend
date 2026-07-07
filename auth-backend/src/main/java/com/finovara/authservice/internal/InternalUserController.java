@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/internal/")
-public class InternalFinanceClientController {
+public class InternalUserController {
 
     private final PasswordValidator passwordValidator;
     private final UserManagerService userManagerService;
