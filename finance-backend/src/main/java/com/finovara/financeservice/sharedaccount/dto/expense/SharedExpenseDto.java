@@ -1,21 +1,24 @@
-package com.finovara.financeservice.expense.dto;
+package com.finovara.financeservice.sharedaccount.dto.expense;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record ExpenseDto(
+public record SharedExpenseDto(
 
         Long id,
-        Long userId,
 
-        @DecimalMin("0.01") @DecimalMax("5000000") BigDecimal amount,
+        @DecimalMin("0.01") @DecimalMax("999999") BigDecimal amount,
         ExpenseCategory category,
         LocalDate createdAt,
-        String description
+        @Size(max = 100)
+        String description,
+        Long expenseCreatorId,
+        String expenseCreatorUsername
 
 ) {
 }
