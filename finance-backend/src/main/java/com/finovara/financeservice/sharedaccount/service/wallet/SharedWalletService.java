@@ -1,5 +1,6 @@
 package com.finovara.financeservice.sharedaccount.service.wallet;
 
+import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.financeservice.sharedaccount.dto.wallet.SharedWalletDto;
 import com.finovara.financeservice.sharedaccount.model.wallet.SharedWallet;
 import com.finovara.financeservice.sharedaccount.repository.wallet.SharedWalletRepository;
@@ -19,7 +20,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SharedWalletService {
+public class SharedWalletService{
 
     private final SharedWalletRepository sharedWalletRepository;
 
