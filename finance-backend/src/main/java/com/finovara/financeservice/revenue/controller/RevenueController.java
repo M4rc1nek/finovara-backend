@@ -12,28 +12,29 @@ import java.util.List;
 
 
 @RestController
+@RequestMapping("api/transactions/revenue")
 @RequiredArgsConstructor
 public class RevenueController {
     private final RevenueService revenueService;
 
-    @PostMapping("/addRevenue")
+    @PostMapping
     public ResponseEntity<Long> addRevenue(@RequestBody @Valid RevenueDto revenueDto) {
         return ResponseEntity.ok(revenueService.addRevenue(revenueDto, SecurityUtils.getCurrentUserId()));
     }
 
-    @PutMapping("/editRevenue/{revenueId}")
+    @PutMapping("/edit/{revenueId}")
     public ResponseEntity<Long> editRevenue(@RequestBody @Valid RevenueDto revenueDto, @PathVariable Long revenueId) {
         return ResponseEntity.ok(revenueService.editRevenue(revenueDto, revenueId, SecurityUtils.getCurrentUserId()));
     }
 
-    @DeleteMapping("/deleteRevenue/{revenueId}")
+    @GetMapping
+    public ResponseEntity<List<RevenueDto>> getRevenue() {
+        return ResponseEntity.ok(revenueService.getRevenue(SecurityUtils.getCurrentUserId()));
+    }
+
+    @DeleteMapping("/{revenueId}")
     public ResponseEntity<Void> deleteRevenue(@PathVariable Long revenueId) {
         revenueService.deleteRevenue(revenueId,SecurityUtils.getCurrentUserId());
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/getRevenue")
-    public ResponseEntity<List<RevenueDto>> getRevenue() {
-        return ResponseEntity.ok(revenueService.getRevenue(SecurityUtils.getCurrentUserId()));
     }
 }
