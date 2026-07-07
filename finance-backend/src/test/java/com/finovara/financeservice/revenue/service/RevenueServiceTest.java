@@ -12,7 +12,6 @@ import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.financeservice.util.revenue.RevenueManagerService;
-import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
 import com.finovara.financeservice.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +22,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -38,8 +36,6 @@ class RevenueServiceTest {
 
     @Mock
     private RevenueRepository revenueRepository;
-    @Mock
-    private WalletRepository walletRepository;
     @Mock
     private WalletService walletService;
     @Mock
@@ -103,11 +99,7 @@ class RevenueServiceTest {
 
             RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit");
 
-            Wallet wallet = Wallet.create(userId);
-            wallet.deposit(new BigDecimal("1000"));
-
             when(revenueManagerService.getRevenueOrThrow(10L)).thenReturn(revenue);
-            when(walletRepository.findByUserId(userId)).thenReturn(Optional.of(wallet));
 
             revenueService.editRevenue(dto, 10L, userId);
 
@@ -124,24 +116,7 @@ class RevenueServiceTest {
             RevenueActivityEvent event = (RevenueActivityEvent) payloadCaptor.getValue();
             assertEquals(RevenueActivityType.EDITED_REVENUE, event.type());
 
-            verify(walletRepository).save(wallet);
             verify(revenueRepository).save(revenue);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenWalletNotFound() {
-            Revenue revenue = new Revenue();
-            revenue.setId(10L);
-            revenue.setUserId(userId);
-
-            when(revenueManagerService.getRevenueOrThrow(10L)).thenReturn(revenue);
-            when(walletRepository.findByUserId(userId)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () ->
-                    revenueService.editRevenue(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x"), 10L, userId));
-
-            verify(revenueRepository, never()).save(any());
-            verify(outboxService, never()).save(any(), any(), any(), any());
         }
 
         @Test
