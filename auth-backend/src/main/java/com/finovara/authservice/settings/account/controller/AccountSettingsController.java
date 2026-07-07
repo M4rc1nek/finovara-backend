@@ -5,7 +5,6 @@ import com.finovara.authservice.settings.account.dto.AccountSettingsDto;
 import com.finovara.authservice.settings.account.dto.passwordpolicy.ChangePasswordDto;
 import com.finovara.authservice.settings.account.service.AccountService;
 import com.finovara.authservice.settings.account.service.passwordpolicy.change.ChangePasswordService;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +26,6 @@ public class AccountSettingsController {
     @GetMapping
     public ResponseEntity<AccountSettingsDto> getAccountSettings() {
         return ResponseEntity.ok(accountService.getAccountSettings(SecurityUtils.getCurrentUserId()));
-    }
-
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteAccount(@RequestBody ConfirmPasswordDto confirmPasswordDto, @PathVariable Long userId) {
-        accountService.deleteAccount(confirmPasswordDto, userId);
-        return ResponseEntity.noContent().build();
     }
 
     @PutMapping
