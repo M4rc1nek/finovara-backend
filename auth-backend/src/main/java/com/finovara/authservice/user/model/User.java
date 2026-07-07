@@ -38,9 +38,11 @@ public class User {
     @Column(name = "provider_user_id")
     private String providerUserId;
 
+    @Version
+    private Long version;
+
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private AccountSettings accountSettings;
-
 
     public String getProfileImageUrl() {
         return ProfileImageUrlBuilder.buildProfileImageUrl(this.profileImagePath);
