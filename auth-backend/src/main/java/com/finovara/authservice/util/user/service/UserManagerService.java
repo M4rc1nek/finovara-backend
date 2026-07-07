@@ -21,4 +21,9 @@ public class UserManagerService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
     }
+
+    public String getUsernameByIdOrThrow(Long userId){
+        return userRepository.findUsernameById(userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
+    }
 }
