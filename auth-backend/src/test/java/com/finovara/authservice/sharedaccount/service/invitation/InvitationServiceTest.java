@@ -136,6 +136,9 @@ class InvitationServiceTest {
 
         @Test
         void shouldSaveInvitationAfterValidation() {
+
+            when(userRepository.findUsernameById(CURRENT_USER_ID)).thenReturn(Optional.of("inviter-username"));
+
             invitationService.sendInvitation(CURRENT_USER_ID, OTHER_USER_ID);
 
             verify(invitationValidator).validateSendInvitation(CURRENT_USER_ID, OTHER_USER_ID);
@@ -147,6 +150,9 @@ class InvitationServiceTest {
             assertThat(saved.getInviterUserId()).isEqualTo(CURRENT_USER_ID);
             assertThat(saved.getInviteeUserId()).isEqualTo(OTHER_USER_ID);
             assertThat(saved.getCreatedAt()).isNotNull();
+
+            verify(outboxService).save(eq("User"), eq(CURRENT_USER_ID.toString()),
+                    eq("notification.shared-account.invitation-sent"), any());
         }
 
         @Test
@@ -160,8 +166,21 @@ class InvitationServiceTest {
             assertEquals("rejected", exception.getMessage());
             verify(sharedAccountInvitationRepository, never()).save(any());
         }
-    }
 
+        @Test
+        void shouldThrowExceptionWhenInviterUsernameNotFound() {
+            when(userRepository.findUsernameById(CURRENT_USER_ID)).thenReturn(Optional.empty());
+
+            RequestedEntityNotFoundException exception = assertThrows(RequestedEntityNotFoundException.class,
+                    () -> invitationService.sendInvitation(CURRENT_USER_ID, OTHER_USER_ID));
+
+            assertEquals("Invitee username not found", exception.getMessage());
+
+            verify(invitationValidator).validateSendInvitation(CURRENT_USER_ID, OTHER_USER_ID);
+            verify(sharedAccountInvitationRepository, never()).save(any());
+            verifyNoInteractions(outboxService);
+        }
+    }
     @Nested
     class GetPendingInvitations {
 
