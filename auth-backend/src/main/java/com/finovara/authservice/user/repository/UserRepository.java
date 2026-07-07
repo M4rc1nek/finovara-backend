@@ -5,6 +5,7 @@ import com.finovara.authservice.user.model.OAuthProvider;
 import com.finovara.authservice.user.model.User;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -38,4 +39,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                 ORDER BY u.username ASC
             """)
     List<UserDataDto> searchByUsernameOrEmail(String query, Pageable pageable);
+
+    @Query("SELECT u.username FROM User u WHERE u.id = :userId")
+    Optional<String> findUsernameById(Long userId);
 }
