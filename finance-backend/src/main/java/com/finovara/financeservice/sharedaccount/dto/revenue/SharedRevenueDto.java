@@ -1,20 +1,24 @@
-package com.finovara.financeservice.revenue.dto;
+package com.finovara.financeservice.sharedaccount.dto.revenue;
 
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record RevenueDto(
+public record SharedRevenueDto(
         Long id,
-        Long userId,
 
-        @DecimalMin("1") @DecimalMax("5000000") BigDecimal amount,
+        @DecimalMin("1") @DecimalMax("999999") BigDecimal amount,
         RevenueCategory category,
         LocalDate createdAt,
-        String description
+
+        @Size(max = 100)
+        String description,
+        Long revenueCreatorId,
+        String revenueCreatorUsername
 
 
 ) {
