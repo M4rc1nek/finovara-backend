@@ -1,7 +1,8 @@
-package com.finovara.financeservice.sharedaccount.controller;
+package com.finovara.financeservice.sharedaccount.controller.revenue;
 
 import com.finovara.financeservice.security.SecurityUtils;
 import com.finovara.financeservice.sharedaccount.dto.revenue.SharedRevenueDto;
+import com.finovara.financeservice.sharedaccount.dto.revenue.SharedRevenueResponse;
 import com.finovara.financeservice.sharedaccount.service.revenue.SharedRevenueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,22 +18,22 @@ public class SharedRevenueController {
     private final SharedRevenueService sharedRevenueService;
 
     @PostMapping
-    public ResponseEntity<Long> addRevenue(@RequestBody @Valid SharedRevenueDto sharedRevenueDto) {
+    public ResponseEntity<SharedRevenueResponse> addSharedRevenue(@RequestBody @Valid SharedRevenueDto sharedRevenueDto) {
         return ResponseEntity.ok(sharedRevenueService.addSharedRevenue(sharedRevenueDto, SecurityUtils.getCurrentUserId()));
     }
 
     @PutMapping("/edit/{revenueId}")
-    public ResponseEntity<Long> editRevenue(@RequestBody @Valid SharedRevenueDto sharedRevenueDto, @PathVariable Long revenueId) {
+    public ResponseEntity<Long> editSharedRevenue(@RequestBody @Valid SharedRevenueDto sharedRevenueDto, @PathVariable Long revenueId) {
         return ResponseEntity.ok(sharedRevenueService.editRevenue(sharedRevenueDto, revenueId, SecurityUtils.getCurrentUserId()));
     }
 
     @GetMapping
-    public ResponseEntity<List<SharedRevenueDto>> getRevenue() {
+    public ResponseEntity<List<SharedRevenueDto>> getSharedRevenue() {
         return ResponseEntity.ok(sharedRevenueService.getRevenue(SecurityUtils.getCurrentUserId()));
     }
 
     @DeleteMapping("/{revenueId}")
-    public ResponseEntity<Void> deleteRevenue(@PathVariable Long revenueId) {
+    public ResponseEntity<Void> deleteSharedRevenue(@PathVariable Long revenueId) {
         sharedRevenueService.deleteRevenue(revenueId, SecurityUtils.getCurrentUserId());
         return ResponseEntity.noContent().build();
     }
