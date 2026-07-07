@@ -1,19 +1,21 @@
 package com.finovara.financeservice.sharedaccount.service.expense.mapper;
 
-import com.finovara.financeservice.expense.dto.ExpenseDto;
-import com.finovara.financeservice.expense.model.Expense;
+import com.finovara.financeservice.sharedaccount.dto.expense.SharedExpenseDto;
+import com.finovara.financeservice.sharedaccount.model.expense.SharedExpense;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ExpenseMapper {
-    public ExpenseDto mapExpenseToDto(Expense expense) {
-        return new ExpenseDto(
+public class SharedExpenseMapper {
+
+    public SharedExpenseDto mapToDto(SharedExpense expense, String createdByUsername) {
+        return new SharedExpenseDto(
                 expense.getId(),
-                expense.getUserId(),
                 expense.getAmount(),
                 expense.getCategory(),
                 expense.getCreatedAt(),
-                expense.getDescription()
+                expense.getDescription(),
+                expense.getCreatedByUserId(),
+                createdByUsername
         );
     }
 }
