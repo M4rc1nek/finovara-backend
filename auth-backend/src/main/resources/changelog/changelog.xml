@@ -30,11 +30,13 @@
             <column name="profile_image_path" type="VARCHAR(500)"/>
             <column name="oauth_provider" type="VARCHAR(50)"/>
             <column name="provider_user_id" type="VARCHAR(255)"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
         <addUniqueConstraint tableName="users" columnNames="oauth_provider, provider_user_id"
                              constraintName="uk_users_oauth_provider_user_id"/>
     </changeSet>
-
     <changeSet id="create-account-settings" author="Marcin Parśniak">
         <createTable tableName="account_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
