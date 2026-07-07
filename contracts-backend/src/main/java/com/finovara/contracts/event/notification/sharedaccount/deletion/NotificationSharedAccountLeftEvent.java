@@ -1,4 +1,8 @@
 package com.finovara.contracts.event.notification.sharedaccount.deletion;
 
-public class SharedAccountLeftEvent {
+public record NotificationSharedAccountLeftEvent(
+        Long accountId,
+        Long recipientUserId,
+        String leftUsername
+) {
 }
