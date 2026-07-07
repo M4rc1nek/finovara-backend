@@ -82,6 +82,28 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="create-shared-expenses" author="Marcin Parśniak">
+        <createTable tableName="shared_expenses">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL(19,2)"/>
+            <column name="category" type="VARCHAR(255)"/>
+            <column name="created_at" type="DATE"/>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+
 
     <changeSet id="create-revenues" author="Marcin Parśniak">
         <createTable tableName="revenues">
@@ -93,6 +115,26 @@
             <column name="created_at" type="DATE"/>
             <column name="description" type="VARCHAR(500)"/>
             <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-shared-revenues" author="Marcin Parśniak">
+        <createTable tableName="shared_revenues">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL(19,2)"/>
+            <column name="category" type="VARCHAR(255)"/>
+            <column name="created_at" type="DATE"/>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -215,4 +257,26 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="create-shared-tables-owner-member-indexes" author="Marcin Parśniak">
+        <createIndex tableName="shared_wallets" indexName="idx_shared_wallets_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_wallets" indexName="idx_shared_wallets_member_id">
+            <column name="member_id"/>
+        </createIndex>
+
+        <createIndex tableName="shared_revenues" indexName="idx_shared_revenues_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_revenues" indexName="idx_shared_revenues_member_id">
+            <column name="member_id"/>
+        </createIndex>
+
+        <createIndex tableName="shared_expenses" indexName="idx_shared_expenses_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_expenses" indexName="idx_shared_expenses_member_id">
+            <column name="member_id"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>
