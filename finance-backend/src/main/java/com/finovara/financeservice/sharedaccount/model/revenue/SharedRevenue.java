@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.model;
+package com.finovara.financeservice.sharedaccount.model.revenue;
 
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import jakarta.persistence.*;
@@ -31,4 +31,7 @@ public class SharedRevenue {
 
     @Column(nullable = false)
     private Long ownerId;
+
+    @Column(nullable = false)
+    private Long createdByUserId;
 }
