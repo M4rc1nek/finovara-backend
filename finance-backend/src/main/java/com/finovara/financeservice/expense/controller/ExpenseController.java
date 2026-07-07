@@ -14,30 +14,31 @@ import java.util.List;
 
 
 @RestController
+@RequestMapping("api/transactions/expense")
 @RequiredArgsConstructor
 public class ExpenseController {
 
     private final ExpenseService expenseService;
 
-    @PostMapping("/addExpense")
+    @PostMapping
     public ResponseEntity<Long> addExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto, @RequestParam(required = false) PeriodType periodType) {
         return ResponseEntity.ok(expenseService.addExpense(expenseRequestDto, SecurityUtils.getCurrentUserId(), periodType));
     }
 
-    @PutMapping("/editExpense/{expenseId}")
+    @PutMapping("/edit/{expenseId}")
     public ResponseEntity<Long> editExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto, @PathVariable Long expenseId, @RequestParam(required = false) PeriodType periodType) {
         return ResponseEntity.ok(expenseService.editExpense(expenseRequestDto, SecurityUtils.getCurrentUserId(), expenseId, periodType));
     }
 
-    @DeleteMapping("/deleteExpense/{expenseId}")
+    @GetMapping
+    public ResponseEntity<List<ExpenseDto>> getExpense() {
+        return ResponseEntity.ok(expenseService.getExpense(SecurityUtils.getCurrentUserId()));
+    }
+
+    @DeleteMapping("/{expenseId}")
     public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId) {
         expenseService.deleteExpense(expenseId, SecurityUtils.getCurrentUserId());
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/getExpense")
-    public ResponseEntity<List<ExpenseDto>> getExpense() {
-        return ResponseEntity.ok(expenseService.getExpense(SecurityUtils.getCurrentUserId()));
     }
 
 }
