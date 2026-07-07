@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/shared-account/users")
+@RequestMapping("/api/shared-accounts/users")
 @RequiredArgsConstructor
 public class UserInvitationController {
 
