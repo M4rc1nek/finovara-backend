@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.controller;
+package com.finovara.financeservice.sharedaccount.controller.wallet;
 
 import com.finovara.financeservice.security.SecurityUtils;
 import com.finovara.financeservice.sharedaccount.dto.wallet.SharedWalletDto;
