@@ -17,6 +17,7 @@ import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.contracts.event.finance.sharedaccount.UsersCreatedSharedAccountEvent;
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserAcceptSharedAccountInvitationEvent;
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserRejectSharedAccountInvitationEvent;
+import com.finovara.contracts.event.notification.sharedaccount.invitation.UserSentSharedAccountInvitationEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
 import lombok.RequiredArgsConstructor;
@@ -61,8 +62,10 @@ public class InvitationService {
 
     @Transactional
     public void sendInvitation(Long inviterUserId, Long inviteeUserId) {
-
         invitationValidator.validateSendInvitation(inviterUserId, inviteeUserId);
+
+        String inviterUsername = userRepository.findUsernameById(inviterUserId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Invitee username not found"));
 
         SharedAccountInvitation invitation = SharedAccountInvitation.builder()
                 .inviterUserId(inviterUserId)
@@ -71,7 +74,11 @@ public class InvitationService {
                 .build();
 
         sharedAccountInvitationRepository.save(invitation);
+
+        outboxService.save("User", inviterUserId.toString(), "notification.shared-account.invitation-sent",
+                new UserSentSharedAccountInvitationEvent(inviteeUserId, inviterUsername));
         log.info("Created invitation id={}, inviterUserId={}, inviteeUserId={}", invitation.getId(), inviterUserId, inviteeUserId);
+
     }
 
     public List<InvitationResponse> getPendingInvitations(Long userId) {
@@ -139,7 +146,7 @@ public class InvitationService {
         SharedAccountInvitation invitation = sharedAccountInvitationRepository.findInvitationForInviteeUser(invitationId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Pending invitation not found"));
 
-       invitationValidator.validateInvitationOwnership(invitation, inviteeUserId);
+        invitationValidator.validateInvitationOwnership(invitation, inviteeUserId);
 
         String inviteeUsername = sharedAccountInvitationRepository.findInviteeUsernameByInvitationId(invitationId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Invitee username not found"));
