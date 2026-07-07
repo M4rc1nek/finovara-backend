@@ -18,7 +18,7 @@ public class UserAcceptSharedAccountInvitationConsumer {
 
     private final NotificationPersistenceService notificationPersistenceService;
 
-    @KafkaListener(topics = "notification.shared-account.invitation-accepted", groupId = "notification-shared-account")
+    @KafkaListener(topics = "notification.shared-account.invitation-accepted", groupId = "notification-shared-account-invitation-accept")
     public void handle(UserAcceptSharedAccountInvitationEvent event) {
 
         notificationPersistenceService.save(event.userId(), new UserAcceptSharedAccountInvitationDto(
