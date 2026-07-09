@@ -25,4 +25,11 @@ public class InternalUserController {
     public ResponseEntity<String> getUsername(@RequestHeader("X-User-Id") Long userId){
         return ResponseEntity.ok(userManagerService.getUsernameByIdOrThrow(userId));
     }
+
+    @GetMapping("/email")
+    public ResponseEntity<String> getUserEmail(@RequestHeader("X-User-Id") Long userId){
+        return ResponseEntity.ok(userManagerService.getUserEmailById(userId));
+    }
+
+
 }
