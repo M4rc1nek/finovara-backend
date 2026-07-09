@@ -16,4 +16,7 @@ public interface AuthBackendClient {
     @GetMapping("/internal/username")
     String getUsername(@RequestHeader("X-User-Id") Long id);
 
+    @GetMapping("/internal/email")
+    String getUserEmail(@RequestHeader("X-User-Id") Long id);
+
 }
