@@ -8,6 +8,8 @@ import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepo
 import com.finovara.authservice.sharedaccount.repository.SharedAccountRepository;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
+import com.finovara.authservice.sharedaccount.context.SharedAccountUsers;
+import com.finovara.authservice.sharedaccount.context.UserContextLoader;
 import com.finovara.contracts.event.finance.sharedaccount.SharedAccountDeletedEvent;
 import com.finovara.contracts.event.notification.sharedaccount.deletion.NotificationSharedAccountDeletedEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
@@ -29,6 +31,20 @@ public class AccountRemovalTemplate {
     private final OutboxService outboxService;
     private final SharedAccountRepository sharedAccountRepository;
     private final SharedAccountMemberRepository sharedAccountMemberRepository;
+    private final UserContextLoader userContextLoader;
+
+    @Transactional
+    public Optional<SharedAccountDetailsDto> handleSharedAccountRemovalWithNotification(
+            Long accountId, Long actingUserId, String actingUsername) {
+
+        Optional<SharedAccountDetailsDto> result = handleSharedAccountRemoval(accountId, actingUserId, actingUsername);
+
+        result.ifPresent(details ->
+                outboxService.save("User", details.remainingUserId().toString(), "notification.shared-account.deleted",
+                        new NotificationSharedAccountDeletedEvent(accountId, details.remainingUserId(), actingUsername)));
+
+        return result;
+    }
 
     @Transactional
     public Optional<SharedAccountDetailsDto> handleSharedAccountRemoval(Long accountId, Long actingUserId, String actingUsername) {
@@ -48,29 +64,26 @@ public class AccountRemovalTemplate {
             return Optional.empty();
         }
 
+        SharedAccountUsers usersContext = userContextLoader.loadUsersContext(details);
+        String ownerUsername = usersContext.owner().getUsername();
+        String ownerEmail = usersContext.owner().getEmail();
+        String memberUsername = usersContext.member().getUsername();
+        String memberEmail = usersContext.member().getEmail();
+
+        outboxService.save("User", details.ownerId().toString(), "shared-account.deleted",
+                new SharedAccountDeletedEvent(accountId, details.ownerId(), details.memberId(), details.remainingUserId(),
+                        ownerUsername, ownerEmail, memberUsername, memberEmail));
+
         sharedAccountMemberRepository.deleteMembersByAccountId(accountId);
         sharedAccountRepository.deleteAccountById(accountId);
 
         clearHasSharedAccountFlag(details.remainingUserId());
         clearHasSharedAccountFlag(actingUserId);
 
-        outboxService.save("User", details.ownerId().toString(), "shared-account.deleted",
-                new SharedAccountDeletedEvent(accountId, details.ownerId(), details.memberId(), details.remainingUserId()));
-
-        outboxService.save("User", details.remainingUserId().toString(), "notification.shared-account.deleted",
-                new NotificationSharedAccountDeletedEvent(accountId, details.remainingUserId(), actingUsername));
-
         log.info("Shared account removed, accountId={}, ownerId={}, memberId={}, remainingUserId={}",
                 accountId, details.ownerId(), details.memberId(), details.remainingUserId());
 
         return Optional.of(details);
-    }
-
-    private void clearHasSharedAccountFlag(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("User not found, userId=" + userId));
-        user.setHasSharedAccount(false);
-        userRepository.save(user);
     }
 
     private SharedAccountDetailsDto getAccountDetails(Long accountId, Long actingUserId) {
@@ -91,5 +104,11 @@ public class AccountRemovalTemplate {
                 .findFirst()
                 .orElse(null);
     }
-}
 
+    private void clearHasSharedAccountFlag(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("User not found, userId=" + userId));
+        user.setHasSharedAccount(false);
+        userRepository.save(user);
+    }
+}
