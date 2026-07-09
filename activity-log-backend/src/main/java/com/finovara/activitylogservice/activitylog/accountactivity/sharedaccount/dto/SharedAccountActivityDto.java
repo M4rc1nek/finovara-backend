@@ -1,17 +1,15 @@
-package com.finovara.activitylogservice.activitylog.accountactivity.revenue.dto;
+package com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.dto;
 
-import com.finovara.contracts.model.activity.RevenueActivityType;
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.activity.SharedAccountActivityType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record RevenueActivityDto(
-        RevenueActivityType type,
-        BigDecimal amount,
-        BigDecimal previousAmount,
-        RevenueCategory category,
-        RevenueCategory previousCategory,
+public record SharedAccountActivityDto(
+        SharedAccountActivityType type,
+        BigDecimal refundedBalance,
+        String coFounderUsername,
+        String coFounderEmail,
         LocalDateTime createdAt
 ) {
 }
