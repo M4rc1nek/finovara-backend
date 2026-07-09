@@ -1,7 +1,6 @@
-package com.finovara.activitylogservice.activitylog.accountactivity.revenue.model;
+package com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.model;
 
-import com.finovara.contracts.model.activity.RevenueActivityType;
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,28 +8,24 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "revenue_activity")
+@Table(name = "shared_account_activity")
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
 @Builder
-public class RevenueActivity {
+public class SharedAccountActivity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private RevenueActivityType type;
+    private SharedAccountActivityType type;
 
-    private BigDecimal amount;
-    private BigDecimal previousAmount;
-
-    @Enumerated(EnumType.STRING)
-    private RevenueCategory category;
-    @Enumerated(EnumType.STRING)
-    private RevenueCategory previousCategory;
+    private BigDecimal refundedBalance;
+    private String coFounderUsername;
+    private String coFounderEmail;
 
     private LocalDateTime createdAt;
 
