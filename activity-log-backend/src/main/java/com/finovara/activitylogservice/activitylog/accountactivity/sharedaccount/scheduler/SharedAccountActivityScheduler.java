@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.accountactivity.revenue.scheduler;
+package com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.scheduler;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.revenue.processor.RevenueActivityProcessor;
+import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.processor.SharedAccountActivityProcessor;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -8,14 +8,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class RevenueActivityScheduler {
+public class SharedAccountActivityScheduler {
 
-    private final RevenueActivityProcessor revenueActivityProcessor;
+    private final SharedAccountActivityProcessor sharedAccountActivityProcessor;
 
-    @Scheduled(cron = "${scheduler.user-activity.revenue.delete-cron}", zone = "Europe/Warsaw")
+    @Scheduled(cron = "${scheduler.user-activity.shared-account.delete-cron}", zone = "Europe/Warsaw")
     @SchedulerLock(name = "deleteRevenueActivities", lockAtMostFor = "10m", lockAtLeastFor = "30s")
-    public void deleteRevenueActivities(){
-        revenueActivityProcessor.deleteRevenueActivity();
+    public void deleteSharedAccountActivities(){
+        sharedAccountActivityProcessor.deleteSharedAccountActivity();
     }
 
 }
