@@ -1,5 +1,6 @@
 package com.finovara.authservice.sharedaccount.service.invitation;
 
+import com.finovara.authservice.sharedaccount.dto.InvitationDetailsDto;
 import com.finovara.authservice.sharedaccount.dto.InvitationResponse;
 import com.finovara.authservice.sharedaccount.dto.SharedAccountMemberDto;
 import com.finovara.authservice.sharedaccount.dto.SharedAccountStatusDto;
@@ -14,11 +15,13 @@ import com.finovara.authservice.user.dto.UserDataDto;
 import com.finovara.authservice.user.mapper.UserDataMapper;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
+import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.event.finance.sharedaccount.UsersCreatedSharedAccountEvent;
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserAcceptSharedAccountInvitationEvent;
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserRejectSharedAccountInvitationEvent;
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserSentSharedAccountInvitationEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +32,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -64,8 +71,15 @@ public class InvitationService {
     public void sendInvitation(Long inviterUserId, Long inviteeUserId) {
         invitationValidator.validateSendInvitation(inviterUserId, inviteeUserId);
 
-        String inviterUsername = userRepository.findUsernameById(inviterUserId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Invitee username not found"));
+        Map<Long, UserDataDto> usersById = userRepository.findBasicInfoByIds(List.of(inviterUserId, inviteeUserId))
+                .stream()
+                .collect(Collectors.toMap(UserDataDto::id, Function.identity()));
+
+        UserDataDto inviter = Optional.ofNullable(usersById.get(inviterUserId))
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Inviter not found"));
+
+        UserDataDto invitee = Optional.ofNullable(usersById.get(inviteeUserId))
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Invitee not found"));
 
         SharedAccountInvitation invitation = SharedAccountInvitation.builder()
                 .inviterUserId(inviterUserId)
@@ -75,8 +89,11 @@ public class InvitationService {
 
         sharedAccountInvitationRepository.save(invitation);
 
+        outboxService.save("User", inviterUserId.toString(), "activity.shared-account",
+                new SharedAccountActivityEvent(inviterUserId, SharedAccountActivityType.SENT_INVITATION, null, invitee.username(), invitee.email(), LocalDateTime.now()));
+
         outboxService.save("User", inviterUserId.toString(), "notification.shared-account.invitation-sent",
-                new UserSentSharedAccountInvitationEvent(inviteeUserId, inviterUsername));
+                new UserSentSharedAccountInvitationEvent(inviteeUserId, inviter.username()));
         log.info("Created invitation id={}, inviterUserId={}, inviteeUserId={}", invitation.getId(), inviterUserId, inviteeUserId);
 
     }
@@ -87,13 +104,13 @@ public class InvitationService {
 
     @Transactional
     public void acceptInvite(Long inviteeUserId, Long invitationId) {
-        InvitationContext invitationContext = loadAndValidateInvitation(inviteeUserId, invitationId);
+        InvitationDetailsDto details = loadAndValidateInvitation(inviteeUserId, invitationId);
 
-        Long inviterUserId = invitationContext.invitation().getInviterUserId();
+        Long inviterUserId = details.inviterUserId();
 
         invitationValidator.validateAcceptInvite(inviterUserId, inviteeUserId, invitationId);
 
-        sharedAccountInvitationRepository.delete(invitationContext.invitation());
+        sharedAccountInvitationRepository.deleteInvitationById(invitationId);
 
         SharedAccount sharedAccount = sharedAccountRepository.save(
                 SharedAccount.builder()
@@ -110,26 +127,40 @@ public class InvitationService {
                 "finance.shared-account.invitation-accepted",
                 new UsersCreatedSharedAccountEvent(inviterUserId, inviteeUserId));
 
+        outboxService.save("User", inviteeUserId.toString(), "activity.shared-account",
+                new SharedAccountActivityEvent(
+                        inviteeUserId, SharedAccountActivityType.ACCEPTED_INVITATION, null,
+                        details.inviterUsername(), details.inviterEmail(),
+                        LocalDateTime.now()));
+
         outboxService.save("User", inviterUserId.toString(),
                 "notification.shared-account.invitation-accepted",
-                new UserAcceptSharedAccountInvitationEvent(inviterUserId, invitationContext.inviteeUsername()));
+                new UserAcceptSharedAccountInvitationEvent(inviterUserId, details.inviteeUsername()));
     }
 
     @Transactional
     public void rejectInvite(Long inviteeUserId, Long invitationId) {
 
-        InvitationContext invitationContext = loadAndValidateInvitation(inviteeUserId, invitationId);
+        InvitationDetailsDto details = loadAndValidateInvitation(inviteeUserId, invitationId);
 
-        sharedAccountInvitationRepository.delete(invitationContext.invitation());
+        Long inviterUserId = details.inviterUserId();
+
+        sharedAccountInvitationRepository.deleteInvitationById(invitationId);
+
+        outboxService.save("User", inviterUserId.toString(), "user.shared-account.reject-invitation",
+                new UserRejectSharedAccountInvitationEvent(
+                        inviterUserId,
+                        details.inviteeUsername()
+                ));
+
+        outboxService.save("User", inviteeUserId.toString(), "activity.shared-account",
+                new SharedAccountActivityEvent(
+                        inviteeUserId, SharedAccountActivityType.REJECTED_INVITATION, null,
+                        details.inviterUsername(), details.inviterEmail(),
+                        LocalDateTime.now()));
 
         log.info("Rejected invitation id={}, inviterUserId={}, inviteeUserId={}",
-                invitationId, invitationContext.invitation().getInviterUserId(), inviteeUserId);
-
-        outboxService.save("User", invitationContext.invitation().getInviterUserId().toString(), "user.shared-account.reject-invitation",
-                new UserRejectSharedAccountInvitationEvent(
-                        invitationContext.invitation().getInviterUserId(),
-                        invitationContext.inviteeUsername()
-                ));
+                invitationId, inviterUserId, inviteeUserId);
     }
 
     public List<SharedAccountMemberDto> getMemberDetails(Long accountId, Long callerId) {
@@ -141,17 +172,14 @@ public class InvitationService {
                 .toList();
     }
 
-    private InvitationContext loadAndValidateInvitation(Long inviteeUserId, Long invitationId) {
+    private InvitationDetailsDto loadAndValidateInvitation(Long inviteeUserId, Long invitationId) {
 
-        SharedAccountInvitation invitation = sharedAccountInvitationRepository.findInvitationForInviteeUser(invitationId)
+        InvitationDetailsDto details = sharedAccountInvitationRepository.findInvitationDetailsById(invitationId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Pending invitation not found"));
 
-        invitationValidator.validateInvitationOwnership(invitation, inviteeUserId);
+        invitationValidator.validateInvitationOwnership(details.inviteeUserId(), inviteeUserId, invitationId);
 
-        String inviteeUsername = sharedAccountInvitationRepository.findInviteeUsernameByInvitationId(invitationId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Invitee username not found"));
-
-        return new InvitationContext(invitation, inviteeUsername);
+        return details;
     }
 
     private void createMember(SharedAccount sharedAccount, Long userId, SharedRole role) {
@@ -164,9 +192,6 @@ public class InvitationService {
                         .joinedAt(LocalDateTime.now())
                         .build());
         user.setHasSharedAccount(true);
-    }
-
-    private record InvitationContext(SharedAccountInvitation invitation, String inviteeUsername) {
     }
 
 }
