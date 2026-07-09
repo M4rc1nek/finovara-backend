@@ -39,7 +39,7 @@ class InvitationValidatorTest {
     private static final Long INVITATION_ID = 10L;
 
     @Nested
-    class ValidateSendInvitation {
+    class ValidateSendInvitationTests {
 
         @Test
         void shouldPassWhenNoConflictsExist() {
@@ -102,10 +102,26 @@ class InvitationValidatorTest {
 
             assertEquals("Invitation already exists between these users!", exception.getMessage());
         }
+
+        @Test
+        void shouldThrowExceptionWhenInviterUserIdIsNull() {
+            assertThrows(NullPointerException.class,
+                    () -> invitationValidator.validateSendInvitation(null, INVITEE_USER_ID));
+        }
+
+        @Test
+        void shouldNotCallInvitationRepositoryWhenMemberConflictExists() {
+            when(sharedAccountMemberRepository.existsByUserId(INVITER_USER_ID)).thenReturn(true);
+
+            assertThrows(EntityAlreadyExistsException.class,
+                    () -> invitationValidator.validateSendInvitation(INVITER_USER_ID, INVITEE_USER_ID));
+
+            verifyNoInteractions(sharedAccountInvitationRepository);
+        }
     }
 
     @Nested
-    class ValidateAcceptInvite {
+    class ValidateAcceptInviteTests {
 
         @Test
         void shouldPassWhenNeitherUserHasSharedAccount() {
@@ -136,41 +152,74 @@ class InvitationValidatorTest {
 
             assertEquals("One of the users already belongs to a shared account", exception.getMessage());
         }
-    }
-
-    @Nested
-    class ValidateInvitationOwnership {
 
         @Test
-        void shouldPassWhenInvitationBelongsToInvitee() {
-            SharedAccountInvitation invitation = SharedAccountInvitation.builder()
-                    .id(INVITATION_ID)
-                    .inviterUserId(INVITER_USER_ID)
-                    .inviteeUserId(INVITEE_USER_ID)
-                    .build();
+        void shouldNotCallInvitationRepositoryWhenValidatingAccept() {
+            when(sharedAccountMemberRepository.existsByUserId(INVITER_USER_ID)).thenReturn(false);
+            when(sharedAccountMemberRepository.existsByUserId(INVITEE_USER_ID)).thenReturn(false);
 
-            assertDoesNotThrow(() -> invitationValidator.validateInvitationOwnership(invitation, INVITEE_USER_ID));
+            invitationValidator.validateAcceptInvite(INVITER_USER_ID, INVITEE_USER_ID, INVITATION_ID);
+
+            verifyNoInteractions(sharedAccountInvitationRepository);
         }
 
         @Test
-        void shouldThrowExceptionWhenInvitationBelongsToDifferentUser() {
-            SharedAccountInvitation invitation = SharedAccountInvitation.builder()
-                    .id(INVITATION_ID)
-                    .inviterUserId(INVITER_USER_ID)
-                    .inviteeUserId(INVITEE_USER_ID)
-                    .build();
+        void shouldPassWhenInviterUserIdIsNullAndNeitherUserHasSharedAccount() {
+            when(sharedAccountMemberRepository.existsByUserId(null)).thenReturn(false);
+            when(sharedAccountMemberRepository.existsByUserId(INVITEE_USER_ID)).thenReturn(false);
 
+            assertDoesNotThrow(() ->
+                    invitationValidator.validateAcceptInvite(null, INVITEE_USER_ID, INVITATION_ID));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenInviterUserIdIsNullButInviteeAlreadyHasSharedAccount() {
+            when(sharedAccountMemberRepository.existsByUserId(null)).thenReturn(false);
+            when(sharedAccountMemberRepository.existsByUserId(INVITEE_USER_ID)).thenReturn(true);
+
+            EntityAlreadyExistsException exception = assertThrows(EntityAlreadyExistsException.class,
+                    () -> invitationValidator.validateAcceptInvite(null, INVITEE_USER_ID, INVITATION_ID));
+
+            assertEquals("One of the users already belongs to a shared account", exception.getMessage());
+        }
+    }
+
+    @Nested
+    class ValidateInvitationOwnershipTests {
+
+        @Test
+        void shouldPassWhenActualInviteeMatchesCaller() {
+            assertDoesNotThrow(() ->
+                    invitationValidator.validateInvitationOwnership(INVITEE_USER_ID, INVITEE_USER_ID, INVITATION_ID));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenActualInviteeDoesNotMatchCaller() {
             Long someoneElseId = 999L;
 
             AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                    () -> invitationValidator.validateInvitationOwnership(invitation, someoneElseId));
+                    () -> invitationValidator.validateInvitationOwnership(INVITEE_USER_ID, someoneElseId, INVITATION_ID));
 
             assertEquals("This invitation does not belong to the current user", exception.getMessage());
+        }
+
+        @Test
+        void shouldNotCallAnyRepositoryWhenValidatingOwnership() {
+            invitationValidator.validateInvitationOwnership(INVITEE_USER_ID, INVITEE_USER_ID, INVITATION_ID);
+
+            verifyNoInteractions(sharedAccountMemberRepository);
+            verifyNoInteractions(sharedAccountInvitationRepository);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenActualInviteeUserIdIsNull() {
+            assertThrows(NullPointerException.class,
+                    () -> invitationValidator.validateInvitationOwnership(null, INVITEE_USER_ID, INVITATION_ID));
         }
     }
 
     @Nested
-    class ValidateMembership {
+    class ValidateMembershipTests {
 
         private static final Long ACCOUNT_ID = 50L;
 
@@ -211,6 +260,15 @@ class InvitationValidatorTest {
                     () -> invitationValidator.validateMembership(ACCOUNT_ID, INVITEE_USER_ID));
 
             assertEquals("You are not a member of this shared account", exception.getMessage());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositoryThrowsException() {
+            when(sharedAccountMemberRepository.findByUserId(INVITEE_USER_ID))
+                    .thenThrow(new RuntimeException("database error"));
+
+            assertThrows(RuntimeException.class,
+                    () -> invitationValidator.validateMembership(ACCOUNT_ID, INVITEE_USER_ID));
         }
     }
 }
