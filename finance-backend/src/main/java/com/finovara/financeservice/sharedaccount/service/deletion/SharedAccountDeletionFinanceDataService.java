@@ -1,6 +1,10 @@
 package com.finovara.financeservice.sharedaccount.service.deletion;
 
+import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.event.finance.sharedaccount.SharedAccountDeletedEvent;
+import com.finovara.contracts.model.activity.SharedAccountActivityType;
+import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.repository.expense.SharedExpenseRepository;
 import com.finovara.financeservice.sharedaccount.repository.revenue.SharedRevenueRepository;
 import com.finovara.financeservice.sharedaccount.repository.wallet.SharedWalletRepository;
@@ -13,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
@@ -23,6 +28,8 @@ public class SharedAccountDeletionService {
     private final SharedExpenseRepository sharedExpenseRepository;
     private final SharedRevenueRepository sharedRevenueRepository;
     private final SharedWalletRepository sharedWalletRepository;
+    private final AuthBackendClient authBackendClient;
+    private final OutboxService outboxService;
 
     @Transactional
     @Caching(evict = {
@@ -76,8 +83,15 @@ public class SharedAccountDeletionService {
     private void doRefund(Long userId, Long ownerId, Long memberId,
                           BigDecimal refundAmount, BigDecimal contributedRevenue, BigDecimal contributedExpense) {
 
+        String coFounderUsername = authBackendClient.getUsername(userId);
+        String coFounderEmail = authBackendClient.getUserEmail(userId);
+
         if (refundAmount.compareTo(BigDecimal.ZERO) > 0) {
             walletService.addBalanceToWallet(userId, refundAmount);
+
+            outboxService.save("User", userId.toString(), "activity.shared-account", new SharedAccountActivityEvent(
+                    userId, SharedAccountActivityType.REFUND_BALANCE_AFTER_LEFT_SHARED_ACCOUNT, refundAmount, coFounderUsername, coFounderEmail, LocalDateTime.now()));
+
             log.info("Refunded net contribution={} (revenue={}, expense={}) to userId={} from shared account ownerId={}, memberId={}",
                     refundAmount, contributedRevenue, contributedExpense, userId, ownerId, memberId);
         } else {
