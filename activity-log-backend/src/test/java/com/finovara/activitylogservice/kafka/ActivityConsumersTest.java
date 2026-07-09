@@ -7,6 +7,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.revenue.servi
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.service.LoginActivityService;
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.service.SettingsActivityService;
+import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.service.SharedAccountActivityService;
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
@@ -15,6 +16,7 @@ import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
+import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.*;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
@@ -57,6 +59,10 @@ class ActivityConsumersTest {
 
     @Mock
     private AccountChangesActivityService accountChangesActivityService;
+
+    @Mock
+    private SharedAccountActivityService sharedAccountActivityService;
+
 
     @InjectMocks
     private ActivityConsumers activityConsumers;
@@ -121,6 +127,15 @@ class ActivityConsumersTest {
         activityConsumers.handleSettings(event);
 
         verify(settingsActivityService).handleEvent(event);
+    }
+
+    @Test
+    void shouldDelegateSharedAccountEventToService() {
+        SharedAccountActivityEvent event = new SharedAccountActivityEvent(USER_ID, SharedAccountActivityType.ACCEPTED_INVITATION, null, "John", "example@gmail.com", OCCURRED_AT);
+
+        activityConsumers.handleSharedAccount(event);
+
+        verify(sharedAccountActivityService).handleEvent(event);
     }
 
     @Test
