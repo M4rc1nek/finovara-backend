@@ -1,19 +1,18 @@
-package com.finovara.activitylogservice.activitylog.accountactivity.revenue.mapper;
+package com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.mapper;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.revenue.dto.RevenueActivityDto;
-import com.finovara.activitylogservice.activitylog.accountactivity.revenue.model.RevenueActivity;
+import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.dto.SharedAccountActivityDto;
+import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.model.SharedAccountActivity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RevenueActivityMapper {
+public class SharedAccountActivityMapper {
 
-    public RevenueActivityDto mapToRevenueActivity(RevenueActivity activity) {
-        return new RevenueActivityDto(
+    public SharedAccountActivityDto mapToSharedAccountActivity(SharedAccountActivity activity) {
+        return new SharedAccountActivityDto(
                 activity.getType(),
-                activity.getAmount(),
-                activity.getPreviousAmount(),
-                activity.getCategory(),
-                activity.getPreviousCategory(),
+                activity.getRefundedBalance(),
+                activity.getCoFounderUsername(),
+                activity.getCoFounderEmail(),
                 activity.getCreatedAt()
         );
     }
