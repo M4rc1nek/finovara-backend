@@ -36,8 +36,9 @@ public class AccountDeletionService {
 
         try {
             sharedAccountMemberRepository.findByUserId(userId)
-                    .ifPresent(member -> accountRemovalTemplate.handleSharedAccountRemoval(
+                    .ifPresent(member -> accountRemovalTemplate.handleSharedAccountRemovalWithNotification(
                             member.getSharedAccount().getId(), userId, user.getUsername()));
+
         } catch (ObjectOptimisticLockingFailureException ex) {
             log.warn("Concurrent modification detected while removing shared account for userId={}. " +
                     "The other party likely deleted/left the shared account at the same time.", userId);
