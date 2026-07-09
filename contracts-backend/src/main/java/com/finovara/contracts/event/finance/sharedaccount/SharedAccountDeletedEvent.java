@@ -4,6 +4,10 @@ public record SharedAccountDeletedEvent(
         Long accountId,
         Long ownerId,
         Long memberId,
-        Long remainingUserId
+        Long remainingUserId,
+        String ownerUsername,
+        String ownerEmail,
+        String memberUsername,
+        String memberEmail
 ) {
 }
