@@ -18,4 +18,6 @@ public interface SharedWalletRepository extends JpaRepository<SharedWallet, Long
     @Query("DELETE FROM SharedWallet sw WHERE sw.ownerId = :ownerId AND sw.memberId = :memberId")
     void deleteByOwnerIdAndMemberId(Long ownerId, Long memberId);
 
+    boolean existsByOwnerIdAndMemberId(Long ownerId, Long memberId);
+
 }
