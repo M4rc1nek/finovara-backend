@@ -1,6 +1,5 @@
 package com.finovara.authservice.sharedaccount.service.invitation;
 
-import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
@@ -45,10 +44,10 @@ public class InvitationValidator {
         }
     }
 
-    public void validateInvitationOwnership(SharedAccountInvitation invitation, Long inviteeUserId) {
-        if (!invitation.getInviteeUserId().equals(inviteeUserId)) {
+    public void validateInvitationOwnership(Long actualInviteeUserId, Long callerUserId, Long invitationId) {
+        if (!actualInviteeUserId.equals(callerUserId)) {
             log.warn("Access denied: userId={} tried to act on invitationId={} belonging to inviteeUserId={}",
-                    inviteeUserId, invitation.getId(), invitation.getInviteeUserId());
+                    callerUserId, invitationId, actualInviteeUserId);
             throw new AccessDeniedException("This invitation does not belong to the current user");
         }
     }
