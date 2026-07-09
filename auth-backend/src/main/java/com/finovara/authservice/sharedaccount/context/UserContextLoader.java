@@ -1,4 +1,4 @@
-package com.finovara.authservice.util.user.context;
+package com.finovara.authservice.sharedaccount.context;
 
 import com.finovara.authservice.sharedaccount.dto.SharedAccountDetailsDto;
 import com.finovara.authservice.user.model.User;
