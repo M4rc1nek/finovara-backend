@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -54,14 +55,15 @@ class AccountDeletionServiceTest {
     @Mock
     private AccountRemovalTemplate accountRemovalTemplate;
 
-    private AccountDeletionService service;
+    @InjectMocks
+    private AccountDeletionService accountDeletionService;
 
     private User user;
     private ConfirmPasswordDto dto;
 
     @BeforeEach
     void setUp() {
-        service = new AccountDeletionService(
+        accountDeletionService = new AccountDeletionService(
                 userRepository,
                 userManagerService,
                 outboxService,
@@ -83,7 +85,7 @@ class AccountDeletionServiceTest {
                     .thenThrow(new RequestedEntityNotFoundException("User not found"));
 
             assertThrows(RequestedEntityNotFoundException.class,
-                    () -> service.deleteAccount(dto, USER_ID));
+                    () -> accountDeletionService.deleteAccount(dto, USER_ID));
 
             verifyNoInteractions(passwordValidator, sharedAccountMemberRepository,
                     accountRemovalTemplate, outboxService, userRepository);
@@ -103,7 +105,7 @@ class AccountDeletionServiceTest {
         @Test
         void shouldThrowWhenPasswordValidationFails() {
             assertThrows(InvalidInputException.class,
-                    () -> service.deleteAccount(dto, USER_ID));
+                    () -> accountDeletionService.deleteAccount(dto, USER_ID));
 
             verifyNoInteractions(sharedAccountMemberRepository, accountRemovalTemplate,
                     outboxService, userRepository);
@@ -124,7 +126,7 @@ class AccountDeletionServiceTest {
 
         @Test
         void shouldDeleteAccountWithoutTouchingSharedAccountRemoval() {
-            service.deleteAccount(dto, USER_ID);
+            accountDeletionService.deleteAccount(dto, USER_ID);
 
             verifyNoInteractions(accountRemovalTemplate);
             verify(outboxService, times(1)).save(eq("User"), eq(USER_ID.toString()),
@@ -158,10 +160,10 @@ class AccountDeletionServiceTest {
             when(user.getId()).thenReturn(USER_ID);
             when(user.getEmail()).thenReturn(EMAIL);
 
-            service.deleteAccount(dto, USER_ID);
+            accountDeletionService.deleteAccount(dto, USER_ID);
 
             verify(accountRemovalTemplate, times(1))
-                    .handleSharedAccountRemoval(ACCOUNT_ID, USER_ID, USERNAME);
+                    .handleSharedAccountRemovalWithNotification(ACCOUNT_ID, USER_ID, USERNAME);
             verify(outboxService, times(1)).save(eq("User"), eq(USER_ID.toString()),
                     eq("notification.email.send"), any());
             verify(outboxService, times(1)).save(eq("User"), eq(USER_ID.toString()),
@@ -171,11 +173,10 @@ class AccountDeletionServiceTest {
 
         @Test
         void shouldRethrowOptimisticLockingFailureExceptionAndNotDeleteAccount() {
-            when(accountRemovalTemplate.handleSharedAccountRemoval(ACCOUNT_ID, USER_ID, USERNAME))
+            when(accountRemovalTemplate.handleSharedAccountRemovalWithNotification(ACCOUNT_ID, USER_ID, USERNAME))
                     .thenThrow(new ObjectOptimisticLockingFailureException(SharedAccountMember.class, USER_ID));
 
-            assertThrows(ObjectOptimisticLockingFailureException.class,
-                    () -> service.deleteAccount(dto, USER_ID));
+            assertThrows(ObjectOptimisticLockingFailureException.class, () -> accountDeletionService.deleteAccount(dto, USER_ID));
 
             verifyNoInteractions(outboxService);
             verify(userRepository, never()).delete(any());
