@@ -1,16 +1,16 @@
-package com.finovara.activitylogservice.activitylog.accountactivity.revenue.processor;
+package com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.processor;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.revenue.repository.RevenueActivityRepository;
+import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.repository.SharedAccountActivityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class RevenueActivityProcessor {
+public class SharedAccountActivityProcessor {
 
-    private final RevenueActivityRepository revenueActivityRepository;
+    private final SharedAccountActivityRepository sharedAccountActivityRepository;
 
-    public void deleteRevenueActivity(){
-        revenueActivityRepository.deleteAllInBatch();
+    public void deleteSharedAccountActivity(){
+        sharedAccountActivityRepository.deleteAllInBatch();
     }
 }
