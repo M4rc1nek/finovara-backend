@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.accountactivity.revenue.repository;
+package com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.repository;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.revenue.model.RevenueActivity;
+import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.model.SharedAccountActivity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -8,9 +8,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface RevenueActivityRepository extends JpaRepository<RevenueActivity, Long> {
+public interface SharedAccountActivityRepository extends JpaRepository<SharedAccountActivity, Long> {
 
-    List<RevenueActivity> findByUserId(Long userId, Pageable pageable);
+    List<SharedAccountActivity> findByUserId(Long userId, Pageable pageable);
 
     void deleteByUserId(Long userId);
 }
