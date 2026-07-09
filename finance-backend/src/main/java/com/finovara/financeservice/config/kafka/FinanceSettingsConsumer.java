@@ -1,4 +1,4 @@
-package com.finovara.financeservice.kafka;
+package com.finovara.financeservice.config.kafka;
 
 import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
