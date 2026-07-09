@@ -1,7 +1,7 @@
 package com.finovara.financeservice.sharedaccount.consumer;
 
 import com.finovara.contracts.event.finance.sharedaccount.SharedAccountDeletedEvent;
-import com.finovara.financeservice.sharedaccount.service.deletion.SharedAccountDeletionService;
+import com.finovara.financeservice.sharedaccount.service.deletion.SharedAccountDeletionFinanceDataService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ class DeletionConsumerTest {
     private static final Long REMAINING_USER_ID = 2L;
 
     @Mock
-    private SharedAccountDeletionService sharedAccountDeletionService;
+    private SharedAccountDeletionFinanceDataService sharedAccountDeletionFinanceDataService;
 
     private DeletionConsumer deletionConsumer;
 
@@ -29,8 +29,9 @@ class DeletionConsumerTest {
 
     @BeforeEach
     void setUp() {
-        deletionConsumer = new DeletionConsumer(sharedAccountDeletionService);
-        event = new SharedAccountDeletedEvent(ACCOUNT_ID, OWNER_ID, MEMBER_ID, REMAINING_USER_ID);
+        deletionConsumer = new DeletionConsumer(sharedAccountDeletionFinanceDataService);
+        event = new SharedAccountDeletedEvent(ACCOUNT_ID, OWNER_ID, MEMBER_ID, REMAINING_USER_ID,
+                "John", "john@gmail.com", "Adam", "adam@gmail.com");
     }
 
     @Nested
@@ -40,7 +41,7 @@ class DeletionConsumerTest {
         void shouldDelegateEventToSharedAccountDeletionService() {
             deletionConsumer.deleteDataFromSharedAccount(event);
 
-            verify(sharedAccountDeletionService, times(1)).deleteData(event);
+            verify(sharedAccountDeletionFinanceDataService, times(1)).deleteData(event);
         }
     }
 }
