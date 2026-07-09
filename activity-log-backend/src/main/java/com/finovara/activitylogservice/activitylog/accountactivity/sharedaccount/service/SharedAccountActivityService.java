@@ -7,6 +7,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.repository.SharedAccountActivityRepository;
 import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
+import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,48 +21,47 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RevenueActivityService extends AccountActivityCore<SharedAccountActivity, SharedAccountActivityDto> implements UserDataDeletable {
+public class SharedAccountActivityService extends AccountActivityCore<SharedAccountActivity, SharedAccountActivityDto> implements UserDataDeletable {
 
-    @Value("${user-activity.revenue.page-size}")
+    @Value("${user-activity.shared-account.page-size}")
     private int pageSize;
 
-    private final SharedAccountActivityRepository revenueActivityRepository;
+    private final SharedAccountActivityRepository sharedAccountActivityRepository;
     private final SharedAccountActivityMapper sharedAccountActivityMapper;
 
     @Transactional
-    public void handleEvent(RevenueActivityEvent event) {
+    public void handleEvent(SharedAccountActivityEvent event) {
         SharedAccountActivity revenueActivity = SharedAccountActivity.builder()
                 .userId(event.userId())
                 .type(event.type())
-                .amount(event.amount())
-                .category(event.category())
-                .previousAmount(event.previousAmount())
-                .previousCategory(event.previousCategory())
+                .refundedBalance(event.refundedBalance())
+                .coFounderUsername(event.coFounderUsername())
+                .coFounderEmail(event.coFounderEmail())
                 .createdAt(event.occurredAt())
                 .build();
 
-        revenueActivityRepository.save(revenueActivity);
-        log.info("Created activity type: {}, userId: {}", event.type(), event.userId());
+        sharedAccountActivityRepository.save(revenueActivity);
+        log.info("Created shared account activity. Type: {}, userId: {}", event.type(), event.userId());
     }
 
-    public List<SharedAccountActivityDto> getRevenueActivity(Long userId, SortType sort) {
+    public List<SharedAccountActivityDto> getSharedAccountActivity(Long userId, SortType sort) {
         return getActivities(userId, sort, pageSize);
     }
 
     @Override
     protected List<SharedAccountActivity> getRepositoryFindByUserId(Long userId, Pageable pageable) {
-        return revenueActivityRepository.findByUserId(userId, pageable);
+        return sharedAccountActivityRepository.findByUserId(userId, pageable);
     }
 
     @Override
     protected SharedAccountActivityDto mapToDto(SharedAccountActivity entity) {
-        return sharedAccountActivityMapper.mapToRevenueActivity(entity);
+        return sharedAccountActivityMapper.mapToSharedAccountActivity(entity);
     }
 
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        revenueActivityRepository.deleteByUserId(userId);
-        log.info("Deleted revenue activity for userId={}", userId);
+        sharedAccountActivityRepository.deleteByUserId(userId);
+        log.info("Deleted shared account activity for userId={}", userId);
     }
 }
