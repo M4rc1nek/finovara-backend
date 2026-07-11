@@ -5,12 +5,12 @@ import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
 import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
 import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
-import com.finovara.financeservice.expense.model.Expense;
-import com.finovara.financeservice.expense.repository.ExpenseRepository;
-import com.finovara.financeservice.revenue.model.Revenue;
-import com.finovara.financeservice.revenue.repository.RevenueRepository;
-import com.finovara.financeservice.wallet.model.Wallet;
-import com.finovara.financeservice.wallet.repository.WalletRepository;
+import com.finovara.financeservice.sharedaccount.model.expense.SharedExpense;
+import com.finovara.financeservice.sharedaccount.model.revenue.SharedRevenue;
+import com.finovara.financeservice.sharedaccount.model.wallet.SharedWallet;
+import com.finovara.financeservice.sharedaccount.repository.expense.SharedExpenseRepository;
+import com.finovara.financeservice.sharedaccount.repository.revenue.SharedRevenueRepository;
+import com.finovara.financeservice.sharedaccount.repository.wallet.SharedWalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -21,84 +21,71 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class InternalReportDataService {
+public class InternalSharedReportDataService {
 
+    private final SharedExpenseRepository expenseRepository;
+    private final SharedRevenueRepository revenueRepository;
+    private final SharedWalletRepository sharedWalletRepository;
 
-    private final ExpenseRepository expenseRepository;
-    private final RevenueRepository revenueRepository;
-    private final WalletRepository walletRepository;
-
-    public BigDecimal sumExpenses(Long userId, LocalDate from, LocalDate to) {
-        return expenseRepository.sumExpensesByUserAndDateRange(userId, from, to)
+    public BigDecimal sumExpenses(Long ownerId, Long memberId, LocalDate from, LocalDate to) {
+        return expenseRepository.sumExpensesByOwnerIdOrMemberIdAndDateRange(ownerId, memberId, from, to)
                 .orElse(BigDecimal.ZERO);
     }
 
-    public BigDecimal avgExpenses(Long userId, LocalDate from, LocalDate to) {
-        return expenseRepository.avgExpensesByUserIdAndPeriod(userId, from, to)
-                .orElse(BigDecimal.ZERO);
+    public List<HighestExpenseDto> highestExpenses(Long ownerId, Long memberId, LocalDate from, LocalDate to, int pageSize) {
+        return expenseRepository.findHighestExpensesByOwnerIdOrMemberIdAndPeriod(ownerId, memberId, from, to, PageRequest.of(0, pageSize));
     }
 
-    public List<HighestExpenseDto> highestExpenses(Long userId, LocalDate from, LocalDate to, int pageSize) {
-        return expenseRepository.findHighestExpensesByUserIdAndPeriod(userId, from, to, PageRequest.of(0, pageSize));
-    }
-
-    public BigDecimal expensesByCategory(Long userId, LocalDate from, LocalDate to, ExpenseCategory category) {
-        return expenseRepository.findAllByUserIdAndCreatedAtBetweenAndCategory(userId, from, to, category)
+    public BigDecimal expensesByCategory(Long ownerId, Long memberId, LocalDate from, LocalDate to, ExpenseCategory category) {
+        return expenseRepository.findAllByOwnerIdOrMemberIdAndCreatedAtBetweenAndCategory(ownerId, memberId, from, to, category)
                 .stream()
-                .map(Expense::getAmount)
+                .map(SharedExpense::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public BigDecimal sumAllExpenses(Long userId) {
-        return expenseRepository.sumAllExpensesByUserId(userId);
+    public BigDecimal sumAllExpenses(Long ownerId, Long memberId) {
+        return expenseRepository.sumAllExpensesByOwnerIdOrMemberId(ownerId, memberId);
     }
 
-    public List<DailyCashDto> expensesGroupedByDate(Long userId) {
-        return expenseRepository.sumExpensesGroupedByDate(userId);
+    public List<DailyCashDto> expensesGroupedByDate(Long ownerId, Long memberId) {
+        return expenseRepository.sumExpensesGroupedByDateForOwnerIdOrMemberId(ownerId, memberId);
     }
 
-    public List<DailyCashDto> expensesAvgGroupedByDate(Long userId) {
-        return expenseRepository.avgExpensesGroupedByDate(userId);
+    public List<DailyCashDto> expensesAvgGroupedByDate(Long ownerId, Long memberId) {
+        return expenseRepository.avgExpensesGroupedByDateForOwnerIdOrMemberId(ownerId, memberId);
     }
 
-    public BigDecimal sumRevenues(Long userId, LocalDate from, LocalDate to) {
-        return revenueRepository.sumRevenuesByUserAndDateRange(userId, from, to)
+    public BigDecimal sumRevenues(Long ownerId, Long memberId, LocalDate from, LocalDate to) {
+        return revenueRepository.sumRevenuesByOwnerIdOrMemberIdAndDateRange(ownerId, memberId, from, to)
                 .orElse(BigDecimal.ZERO);
     }
 
-    public BigDecimal avgRevenues(Long userId, LocalDate from, LocalDate to) {
-        return revenueRepository.avgRevenuesByUserIdAndPeriod(userId, from, to)
-                .orElse(BigDecimal.ZERO);
+    public List<HighestRevenueDto> highestRevenues(Long ownerId, Long memberId, LocalDate from, LocalDate to, int pageSize) {
+        return revenueRepository.findHighestRevenuesByOwnerIdOrMemberIdAndPeriod(ownerId, memberId, from, to, PageRequest.of(0, pageSize));
     }
 
-    public List<HighestRevenueDto> highestRevenues(Long userId, LocalDate from, LocalDate to, int pageSize) {
-        return revenueRepository.findHighestRevenuesByUserIdAndPeriod(userId, from, to, PageRequest.of(0, pageSize));
-    }
-
-    public BigDecimal revenuesByCategory(Long userId, LocalDate from, LocalDate to, RevenueCategory category) {
-        return revenueRepository.findAllByUserIdAndCreatedAtBetweenAndCategory(userId, from, to, category)
+    public BigDecimal revenuesByCategory(Long ownerId, Long memberId, LocalDate from, LocalDate to, RevenueCategory category) {
+        return revenueRepository.findAllByOwnerIdOrMemberIdAndCreatedAtBetweenAndCategory(ownerId, memberId, from, to, category)
                 .stream()
-                .map(Revenue::getAmount)
+                .map(SharedRevenue::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public BigDecimal sumAllRevenues(Long userId) {
-        return revenueRepository.sumAllRevenuesByUserId(userId);
+    public BigDecimal sumAllRevenues(Long ownerId, Long memberId) {
+        return revenueRepository.sumAllRevenuesByOwnerIdOrMemberId(ownerId, memberId);
     }
 
-    public List<DailyCashDto> revenuesGroupedByDate(Long userId) {
-        return revenueRepository.sumRevenuesGroupedByDate(userId);
+    public List<DailyCashDto> revenuesGroupedByDate(Long ownerId, Long memberId) {
+        return revenueRepository.sumRevenuesGroupedByDateForOwnerIdOrMemberId(ownerId, memberId);
     }
 
-    public List<DailyCashDto> revenuesAvgGroupedByDate(Long userId) {
-        return revenueRepository.avgRevenuesGroupedByDate(userId);
+    public List<DailyCashDto> revenuesAvgGroupedByDate(Long ownerId, Long memberId) {
+        return revenueRepository.avgRevenuesGroupedByDateForOwnerIdOrMemberId(ownerId, memberId);
     }
 
-    public BigDecimal walletBalance(Long userId) {
-        return walletRepository.findByUserId(userId)
-                .map(Wallet::getBalance)
+    public BigDecimal walletBalance(Long ownerId, Long memberId) {
+        return sharedWalletRepository.findByOwnerIdOrMemberId(ownerId, memberId)
+                .map(SharedWallet::getBalance)
                 .orElse(BigDecimal.ZERO);
     }
 }
-
-
