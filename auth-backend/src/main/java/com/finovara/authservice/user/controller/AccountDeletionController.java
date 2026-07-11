@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
-@RequestMapping("/api/shared-accounts")
+@RequestMapping("/api/account-management")
 @RestController
 public class AccountDeletionController {
 
