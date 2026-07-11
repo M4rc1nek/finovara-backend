@@ -1,4 +1,4 @@
-package com.finovara.reportservice.sharedaccount.report.finances.categorypercentage.expense.dto;
+package com.finovara.reportservice.sharedaccount.report.finances.calculate.categorypercentage.expense.dto;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 
