@@ -1,4 +1,4 @@
-package com.finovara.reportservice.sharedaccount.report.finances.chart.dto;
+package com.finovara.reportservice.sharedaccount.report.finances.calculate.chart.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
