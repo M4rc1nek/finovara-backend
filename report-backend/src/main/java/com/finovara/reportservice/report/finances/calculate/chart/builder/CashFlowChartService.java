@@ -1,9 +1,8 @@
-package com.finovara.reportservice.report.finances.chart.builder;
+package com.finovara.reportservice.report.finances.calculate.chart.builder;
 
-import com.finovara.reportservice.report.finances.chart.dto.CashFlowDto;
+import com.finovara.reportservice.report.finances.calculate.chart.dto.CashFlowDto;
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
