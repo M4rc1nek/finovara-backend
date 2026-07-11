@@ -72,12 +72,12 @@ spring:
             - id: report-backend
               uri: ${REPORT_BACKEND_URL}
               predicates:
-                - Path=/api/reports/**,/api/pdf/**,/api/report-cache/**
+                - Path=/api/reports/**,/api/shared-accounts/reports/financial-report,/api/shared-accounts/report-cache/**,/api/report-cache/**,/api/pdf/**
 
             - id: auth_backend
               uri: ${AUTH_BACKEND_URL}
               predicates:
-                - Path=/api/auth/**,/api/profile-image/**,/profile-images/**,/api/password-reset/**,/api/contact,/oauth2/**,/login/oauth2/**,/api/account-settings/**,/api/email-change/**,/api/shared-accounts/**
+                - Path=/api/auth/**,/api/account-management/**,/api/profile-image/**,/profile-images/**,/api/password-reset/**,/api/contact,/oauth2/**,/login/oauth2/**,/api/account-settings/**,/api/email-change/**,/api/shared-accounts/users/**
 
             - id: finance_backend
               uri: ${FINANCE_BACKEND_URL}
@@ -158,6 +158,9 @@ rate-limit:
       max-requests: 1
       window-minutes: 5
     - path: /api/expense-history-cache/refresh
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/shared-accounts/report-cache/refresh
       max-requests: 1
       window-minutes: 5
     - path: /api/shared-account/users/send-invitation
