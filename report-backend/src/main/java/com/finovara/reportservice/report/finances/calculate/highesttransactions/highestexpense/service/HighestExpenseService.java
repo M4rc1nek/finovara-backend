@@ -1,4 +1,4 @@
-package com.finovara.reportservice.report.finances.highesttransactions.highestexpense.service;
+package com.finovara.reportservice.report.finances.calculate.highesttransactions.highestexpense.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.model.PeriodType;
