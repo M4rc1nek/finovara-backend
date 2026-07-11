@@ -1,7 +1,6 @@
-package com.finovara.reportservice.report.finances.chart.averagecashflow.service;
+package com.finovara.reportservice.report.finances.calculate.chart.averagecashflow.service;
 
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
-import com.finovara.reportservice.report.finances.calculate.chart.averagecashflow.service.AverageCashFlowChartService;
 import com.finovara.reportservice.report.finances.calculate.chart.builder.CashFlowChartService;
 import com.finovara.reportservice.report.finances.calculate.chart.dto.CashFlowDto;
 import org.junit.jupiter.api.Nested;
