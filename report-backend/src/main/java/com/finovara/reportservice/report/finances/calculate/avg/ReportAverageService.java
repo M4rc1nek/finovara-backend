@@ -1,8 +1,8 @@
-package com.finovara.reportservice.report.finances.average.service;
+package com.finovara.reportservice.report.finances.calculate.avg;
 
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
-import com.finovara.reportservice.report.dto.ReportDto;
+import com.finovara.reportservice.util.dto.ReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
