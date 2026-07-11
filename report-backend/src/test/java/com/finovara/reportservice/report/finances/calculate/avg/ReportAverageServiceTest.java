@@ -1,9 +1,8 @@
-package com.finovara.reportservice.report.finances.calculate.service;
+package com.finovara.reportservice.report.finances.calculate.avg;
 
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.util.dto.ReportDto;
-import com.finovara.reportservice.report.finances.calculate.avg.ReportAverageService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
