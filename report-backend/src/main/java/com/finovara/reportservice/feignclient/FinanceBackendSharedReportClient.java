@@ -13,51 +13,45 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-@FeignClient(name = "finance-backend", url = "${finance-backend.url}")
-public interface FinanceBackendReportClient {
+@FeignClient(name = "finance-backend", url = "${finance-backend.url}", contextId = "financeSharedReportClient")
+public interface FinanceBackendSharedReportClient {
 
-    @GetMapping("/internal/reports/expenses/sum")
-    BigDecimal sumExpenses(@RequestParam Long userId, @RequestParam LocalDate from, @RequestParam LocalDate to);
+    @GetMapping("/internal/shared/reports/expenses/sum")
+    BigDecimal sumExpenses(@RequestParam Long ownerId, @RequestParam Long memberId, @RequestParam LocalDate from, @RequestParam LocalDate to);
 
-    @GetMapping("/internal/reports/expenses/average")
-    BigDecimal avgExpenses(@RequestParam Long userId, @RequestParam LocalDate from, @RequestParam LocalDate to);
+    @GetMapping("/internal/shared/reports/revenues/sum")
+    BigDecimal sumRevenues(@RequestParam Long ownerId, @RequestParam Long memberId, @RequestParam LocalDate from, @RequestParam LocalDate to);
 
-    @GetMapping("/internal/reports/expenses/highest")
-    List<HighestExpenseDto> highestExpenses(@RequestParam Long userId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam int pageSize);
+    @GetMapping("/internal/shared/reports/expenses/sum-all")
+    BigDecimal sumAllExpenses(@RequestParam Long ownerId, @RequestParam Long memberId);
 
-    @GetMapping("/internal/reports/expenses/by-category")
-    BigDecimal expensesByCategory(@RequestParam Long userId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam ExpenseCategory category);
+    @GetMapping("/internal/shared/reports/revenues/sum-all")
+    BigDecimal sumAllRevenues(@RequestParam Long ownerId, @RequestParam Long memberId);
 
-    @GetMapping("/internal/reports/expenses/sum-all")
-    BigDecimal sumAllExpenses(@RequestParam Long userId);
+    @GetMapping("/internal/shared/reports/expenses/highest")
+    List<HighestExpenseDto> highestExpenses(@RequestParam Long ownerId, @RequestParam Long memberId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam int pageSize);
 
-    @GetMapping("/internal/reports/expenses/grouped-by-date")
-    List<DailyCashDto> expensesGroupedByDate(@RequestParam Long userId);
+    @GetMapping("/internal/shared/reports/revenues/highest")
+    List<HighestRevenueDto> highestRevenues(@RequestParam Long ownerId, @RequestParam Long memberId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam int pageSize);
 
-    @GetMapping("/internal/reports/expenses/avg-grouped-by-date")
-    List<DailyCashDto> expensesAvgGroupedByDate(@RequestParam Long userId);
+    @GetMapping("/internal/shared/reports/expenses/by-category")
+    BigDecimal expensesByCategory(@RequestParam Long ownerId, @RequestParam Long memberId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam ExpenseCategory category);
 
-    @GetMapping("/internal/reports/revenues/sum")
-    BigDecimal sumRevenues(@RequestParam Long userId, @RequestParam LocalDate from, @RequestParam LocalDate to);
+    @GetMapping("/internal/shared/reports/revenues/by-category")
+    BigDecimal revenuesByCategory(@RequestParam Long ownerId, @RequestParam Long memberId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam RevenueCategory category);
 
-    @GetMapping("/internal/reports/revenues/average")
-    BigDecimal avgRevenues(@RequestParam Long userId, @RequestParam LocalDate from, @RequestParam LocalDate to);
+    @GetMapping("/internal/shared/reports/expenses/grouped-by-date")
+    List<DailyCashDto> expensesGroupedByDate(@RequestParam Long ownerId, @RequestParam Long memberId);
 
-    @GetMapping("/internal/reports/revenues/highest")
-    List<HighestRevenueDto> highestRevenues(@RequestParam Long userId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam int pageSize);
+    @GetMapping("/internal/shared/reports/expenses/avg-grouped-by-date")
+    List<DailyCashDto> expensesAvgGroupedByDate(@RequestParam Long ownerId, @RequestParam Long memberId);
 
-    @GetMapping("/internal/reports/revenues/by-category")
-    BigDecimal revenuesByCategory(@RequestParam Long userId, @RequestParam LocalDate from, @RequestParam LocalDate to, @RequestParam RevenueCategory category);
+    @GetMapping("/internal/shared/reports/revenues/avg-grouped-by-date")
+    List<DailyCashDto> revenuesAvgGroupedByDate(@RequestParam Long ownerId, @RequestParam Long memberId);
 
-    @GetMapping("/internal/reports/revenues/sum-all")
-    BigDecimal sumAllRevenues(@RequestParam Long userId);
+    @GetMapping("/internal/shared/reports/revenues/grouped-by-date")
+    List<DailyCashDto> revenuesGroupedByDate(@RequestParam Long ownerId, @RequestParam Long memberId);
 
-    @GetMapping("/internal/reports/revenues/grouped-by-date")
-    List<DailyCashDto> revenuesGroupedByDate(@RequestParam Long userId);
-
-    @GetMapping("/internal/reports/revenues/avg-grouped-by-date")
-    List<DailyCashDto> revenuesAvgGroupedByDate(@RequestParam Long userId);
-
-    @GetMapping("/internal/reports/wallet/balance")
-    BigDecimal walletBalance(@RequestParam Long userId);
+    @GetMapping("/internal/shared/reports/wallet/balance")
+    BigDecimal walletBalance(@RequestParam Long ownerId, @RequestParam Long memberId);
 }
