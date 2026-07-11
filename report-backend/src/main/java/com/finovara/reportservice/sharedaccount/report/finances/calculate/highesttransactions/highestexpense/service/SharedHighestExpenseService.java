@@ -1,4 +1,4 @@
-package com.finovara.reportservice.sharedaccount.report.finances.highesttransactions.highestexpense.service;
+package com.finovara.reportservice.sharedaccount.report.finances.calculate.highesttransactions.highestexpense.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.model.PeriodType;
@@ -23,13 +23,13 @@ public class SharedHighestExpenseService {
     @Value("${shared.expenses.highest.page-size}")
     private int pageSize;
 
-    @Cacheable(value = "report:sharedHighestExpense", key = "#userId + ':' + #periodType")
-    public List<HighestExpenseDto> getHighestExpense(Long userId, PeriodType periodType) {
+    @Cacheable(value = "report:sharedHighestExpense", key = "#ownerId + ':' + #memberId + ':' + #periodType")
+    public List<HighestExpenseDto> getHighestExpense(Long ownerId, Long memberId, PeriodType periodType) {
         if (periodType == null) {
             throw new InvalidInputException("Unsupported report period type.");
         }
         LocalDate to = LocalDate.now(clock);
         LocalDate from = periodType.getStartDate(to);
-        return reportClient.highestExpenses(userId, from, to, pageSize);
+        return reportClient.highestExpenses(ownerId, memberId, from, to, pageSize);
     }
 }
