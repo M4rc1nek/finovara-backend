@@ -1,7 +1,7 @@
-package com.finovara.reportservice.sharedaccount.report.finances.cache.evict.service;
+package com.finovara.reportservice.sharedaccount.report.cache.evict.service;
 
 import com.finovara.contracts.cache.RedisCacheEvictor;
-import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
+import com.finovara.contracts.event.finance.sharedaccount.SharedAccountDeletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
@@ -15,16 +15,16 @@ public class EvictSharedReportCacheService {
     private final RedisCacheEvictor redisCacheEvictor;
 
     public void evictDataForUser(Long userId) {
-        // Only evict caches belonging to shared finances (prefix 'shared')
         redisCacheEvictor.evictByPatterns(List.of(
-                "report:shared*:" + userId + "*",
+                "report:shared*:" + userId + ":*",
+                "report:shared*:*:" + userId + ":*",
                 "report:shared*::" + userId
         ));
     }
 
-    @KafkaListener(topics = "user-account.deleted", groupId = "shared-account.report")
-    public void deleteSharedReportHistoryCache(UserAccountDeletedEvent event){
-        evictDataForUser(event.userId());
+    @KafkaListener(topics = "shared-account.deleted", groupId = "shared-account.report")
+    public void deleteSharedReportHistoryCache(SharedAccountDeletedEvent event) {
+        evictDataForUser(event.ownerId());
+        evictDataForUser(event.memberId());
     }
-
 }
