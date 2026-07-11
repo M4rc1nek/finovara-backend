@@ -1,8 +1,8 @@
-package com.finovara.reportservice.report.finances.categorypercentage.revenue.service;
+package com.finovara.reportservice.report.finances.calculate.categorypercentage.revenue.service;
 
 import com.finovara.contracts.percentage.CalculatePercentage;
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
-import com.finovara.reportservice.report.finances.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
+import com.finovara.reportservice.report.finances.calculate.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
