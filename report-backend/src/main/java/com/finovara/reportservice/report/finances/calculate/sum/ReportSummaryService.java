@@ -1,7 +1,7 @@
-package com.finovara.reportservice.report.finances.sum.service;
+package com.finovara.reportservice.report.finances.calculate.sum;
 
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
-import com.finovara.reportservice.report.dto.ReportDto;
+import com.finovara.reportservice.util.dto.ReportDto;
 import com.finovara.contracts.model.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
@@ -42,10 +42,5 @@ public class ReportSummaryService {
     @Cacheable(value = "report:sumAllRevenue", key = "#userId")
     public BigDecimal sumAllRevenues(Long userId) {
         return reportClient.sumAllRevenues(userId);
-    }
-
-    @Cacheable(value = "report:walletBalance", key = "#userId")
-    public BigDecimal walletBalance(Long userId) {
-        return reportClient.walletBalance(userId);
     }
 }
