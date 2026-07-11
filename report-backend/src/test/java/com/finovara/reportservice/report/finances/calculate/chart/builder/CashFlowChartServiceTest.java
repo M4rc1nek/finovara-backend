@@ -1,7 +1,6 @@
-package com.finovara.reportservice.report.finances.chart.builder;
+package com.finovara.reportservice.report.finances.calculate.chart.builder;
 
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
-import com.finovara.reportservice.report.finances.calculate.chart.builder.CashFlowChartService;
 import com.finovara.reportservice.report.finances.calculate.chart.dto.CashFlowDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
