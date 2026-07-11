@@ -1,8 +1,7 @@
-package com.finovara.reportservice.report.finances.chart.cashflow.service;
+package com.finovara.reportservice.report.finances.calculate.chart.cashflow.service;
 
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.finances.calculate.chart.builder.CashFlowChartService;
-import com.finovara.reportservice.report.finances.calculate.chart.cashflow.service.TotalCashFlowChartService;
 import com.finovara.reportservice.report.finances.calculate.chart.dto.CashFlowDto;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
