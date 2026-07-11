@@ -1,4 +1,4 @@
-package com.finovara.reportservice.report.finances.categorypercentage.revenue.dto;
+package com.finovara.reportservice.report.finances.calculate.categorypercentage.revenue.dto;
 
 import com.finovara.contracts.model.transaction.RevenueCategory;
 
