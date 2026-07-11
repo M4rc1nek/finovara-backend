@@ -1,4 +1,4 @@
-package com.finovara.reportservice.report.finances.categorypercentage.revenue.service;
+package com.finovara.reportservice.report.finances.calculate.categorypercentage.revenue.service;
 
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
