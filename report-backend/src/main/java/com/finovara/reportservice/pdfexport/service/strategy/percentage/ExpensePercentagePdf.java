@@ -6,8 +6,8 @@ import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
 import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
-import com.finovara.reportservice.report.finances.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
-import com.finovara.reportservice.report.finances.categorypercentage.expense.service.ExpenseCategoryPercentageService;
+import com.finovara.reportservice.report.finances.calculate.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
+import com.finovara.reportservice.report.finances.calculate.categorypercentage.expense.service.ExpenseCategoryPercentageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
