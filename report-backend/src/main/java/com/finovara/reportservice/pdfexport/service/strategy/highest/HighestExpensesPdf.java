@@ -6,7 +6,7 @@ import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
 import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
-import com.finovara.reportservice.report.finances.highesttransactions.highestexpense.service.HighestExpenseService;
+import com.finovara.reportservice.report.finances.calculate.highesttransactions.highestexpense.service.HighestExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +43,7 @@ public class HighestExpensesPdf implements ReportPdfHandler {
         document.addBarChart(
                 "Największe wydatki według kategorii",
                 expenses.stream()
-                        .map(e -> PdfReportText.expenseCategoryLabel(e.expenseCategory()))
+                        .map(e -> PdfReportText.expenseCategoryLabel(e.category()))
                         .toList(),
                 expenses.stream()
                         .map(HighestExpenseDto::amount)
@@ -54,7 +54,7 @@ public class HighestExpensesPdf implements ReportPdfHandler {
                 new String[]{"Kategoria", "Kwota"},
                 expenses.stream()
                         .map(e -> new String[]{
-                                PdfReportText.expenseCategoryLabel(e.expenseCategory()),
+                                PdfReportText.expenseCategoryLabel(e.category()),
                                 document.formatMoney(e.amount())
                         })
                         .toList()
