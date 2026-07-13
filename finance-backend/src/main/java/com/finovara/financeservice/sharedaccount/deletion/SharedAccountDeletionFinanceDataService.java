@@ -1,23 +1,20 @@
-package com.finovara.financeservice.sharedaccount.service.deletion;
+package com.finovara.financeservice.sharedaccount.deletion;
 
 import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.event.finance.sharedaccount.SharedAccountDeletedEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
-import com.finovara.financeservice.sharedaccount.model.piggybank.SharedPiggyBank;
-import com.finovara.financeservice.sharedaccount.repository.expense.SharedExpenseRepository;
-import com.finovara.financeservice.sharedaccount.repository.piggybank.SharedPiggyBankRepository;
-import com.finovara.financeservice.sharedaccount.repository.revenue.SharedRevenueRepository;
-import com.finovara.financeservice.sharedaccount.repository.wallet.SharedWalletRepository;
+import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
+import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
+import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
+import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
 import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,26 +25,22 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class SharedAccountDeletionFinanceDataService {
 
-    private static final String SHARED_WALLET_CACHE = "wallet:shared";
-    private static final String USER_WALLET_CACHE = "wallet:user";
-
     private final WalletService walletService;
     private final SharedExpenseRepository sharedExpenseRepository;
     private final SharedRevenueRepository sharedRevenueRepository;
     private final SharedWalletRepository sharedWalletRepository;
     private final SharedPiggyBankRepository sharedPiggyBankRepository;
     private final OutboxService outboxService;
-    private final CacheManager cacheManager;
 
-    @Transactional
-    public void deleteData(SharedAccountDeletedEvent event) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public boolean deleteData(SharedAccountDeletedEvent event) {
         Long ownerId = Objects.requireNonNull(event.ownerId(), "event.ownerId must not be null");
         Long memberId = Objects.requireNonNull(event.memberId(), "event.memberId must not be null");
 
         if (!sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)) {
             log.info("Shared account financial data already deleted for accountId={}, ownerId={}, memberId={} " +
                     "(duplicate Kafka delivery) — skipping.", event.accountId(), ownerId, memberId);
-            return;
+            return false;
         }
 
         refundContributedRevenue(event);
@@ -57,10 +50,9 @@ public class SharedAccountDeletionFinanceDataService {
         sharedWalletRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
         sharedPiggyBankRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
 
-        evictWalletCachesAfterCommit(ownerId, memberId);
-
         log.info("Deleted shared financial data for accountId={}, ownerId={}, memberId={}",
                 event.accountId(), ownerId, memberId);
+        return true;
     }
 
     private void refundContributedRevenue(SharedAccountDeletedEvent event) {
@@ -116,37 +108,6 @@ public class SharedAccountDeletionFinanceDataService {
 
         log.info("Refunded net contribution={} (revenue={}, expense={}) to userId={}",
                 instruction.amount(), instruction.contribution().revenue(), instruction.contribution().expense(), instruction.userId());
-    }
-
-    private void evictWalletCachesAfterCommit(Long ownerId, Long memberId) {
-        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            evictWalletCaches(ownerId, memberId);
-            return;
-        }
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                evictWalletCaches(ownerId, memberId);
-            }
-        });
-    }
-
-    private void evictWalletCaches(Long ownerId, Long memberId) {
-        evictIfPresent(SHARED_WALLET_CACHE, ownerId);
-        evictIfPresent(SHARED_WALLET_CACHE, memberId);
-        evictIfPresent(USER_WALLET_CACHE, ownerId);
-        evictIfPresent(USER_WALLET_CACHE, memberId);
-    }
-
-    private void evictIfPresent(String cacheName, Object key) {
-        try {
-            var cache = cacheManager.getCache(cacheName);
-            if (cache != null) {
-                cache.evict(key);
-            }
-        } catch (Exception ex) {
-            log.warn("Cache eviction failed for cache={}, key={} — entry may be stale until TTL expiry.", cacheName, key, ex);
-        }
     }
 
     private record NetContribution(BigDecimal revenue, BigDecimal expense) {
