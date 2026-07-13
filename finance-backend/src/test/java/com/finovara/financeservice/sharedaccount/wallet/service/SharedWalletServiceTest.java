@@ -1,10 +1,9 @@
-package com.finovara.financeservice.sharedaccount.service.wallet;
+package com.finovara.financeservice.sharedaccount.wallet.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
 import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
 import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
-import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
