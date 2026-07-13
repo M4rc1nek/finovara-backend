@@ -93,7 +93,7 @@ public class RecurringExecutionService {
             piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserId(), settings.getPiggyBankId(), settings.getAmount(),
                     PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
         } catch (RequestedEntityNotFoundException e) {
-            log.warn("PiggyBank not found for recurring settings id={}, disabling", settings.getId());
+            log.warn("SharedPiggyBank not found for recurring settings id={}, disabling", settings.getId());
             settings.setEnable(false);
             settings.setNextExecutionDate(null);
         }
