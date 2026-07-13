@@ -1,6 +1,6 @@
-package com.finovara.financeservice.sharedaccount.repository.piggybank;
+package com.finovara.financeservice.sharedaccount.piggybank.repository;
 
-import com.finovara.financeservice.sharedaccount.model.piggybank.SharedPiggyBank;
+import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
