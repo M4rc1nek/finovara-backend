@@ -1,7 +1,7 @@
 package com.finovara.financeservice.sharedaccount.consumer;
 
 import com.finovara.contracts.event.finance.sharedaccount.SharedAccountDeletedEvent;
-import com.finovara.financeservice.sharedaccount.service.deletion.SharedAccountDeletionFinanceDataService;
+import com.finovara.financeservice.sharedaccount.deletion.SharedAccountDeletionHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DeletionConsumer {
 
-    private final SharedAccountDeletionFinanceDataService sharedAccountDeletionFinanceDataService;
+    private final SharedAccountDeletionHandler sharedAccountDeletionHandler;
 
     @KafkaListener(topics = "shared-account.deleted")
     public void deleteDataFromSharedAccount(SharedAccountDeletedEvent event) {
-        sharedAccountDeletionFinanceDataService.deleteData(event);
+        sharedAccountDeletionHandler.handle(event);
     }
 }
