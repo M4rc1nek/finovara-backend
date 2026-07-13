@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.model.expense;
+package com.finovara.financeservice.sharedaccount.expense.model;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import jakarta.persistence.*;
