@@ -1,77 +1,89 @@
 package com.finovara.financeservice.util.piggybank;
 
 import com.finovara.financeservice.piggybank.model.PiggyBank;
+import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+import static org.assertj.core.api.Assertions.assertThat;
 
 class PiggyBankCalculatorTest {
 
     @Test
-    void shouldReturnZeroWhenGoalAmountIsNull() {
-        PiggyBank piggyBank = mock(PiggyBank.class);
-        when(piggyBank.getGoalAmount()).thenReturn(null);
+    void shouldCalculateProgressForPiggyBank() {
+        PiggyBank piggyBank = new PiggyBank();
+        piggyBank.setAmount(BigDecimal.valueOf(250));
+        piggyBank.setGoalAmount(BigDecimal.valueOf(1000));
 
-        Double result = PiggyBankCalculator.calculateProgress(piggyBank);
+        Double progress = PiggyBankCalculator.calculateProgress(piggyBank);
 
-        assertEquals(0.0, result);
+        assertThat(progress).isEqualTo(25);
     }
 
     @Test
-    void shouldReturnZeroWhenGoalAmountIsZero() {
-        PiggyBank piggyBank = mock(PiggyBank.class);
-        when(piggyBank.getGoalAmount()).thenReturn(BigDecimal.ZERO);
+    void shouldCalculateProgressForSharedPiggyBank() {
+        SharedPiggyBank sharedPiggyBank = new SharedPiggyBank();
+        sharedPiggyBank.setAmount(BigDecimal.valueOf(500));
+        sharedPiggyBank.setGoalAmount(BigDecimal.valueOf(1000));
 
-        Double result = PiggyBankCalculator.calculateProgress(piggyBank);
+        Double progress = PiggyBankCalculator.calculateSharedPiggyBankProgress(sharedPiggyBank);
 
-        assertEquals(0.0, result);
+        assertThat(progress).isEqualTo(50);
     }
 
     @Test
-    void shouldReturnZeroWhenGoalAmountIsNegative() {
-        PiggyBank piggyBank = mock(PiggyBank.class);
-        when(piggyBank.getGoalAmount()).thenReturn(new BigDecimal("-100"));
+    void shouldReturnZeroWhenGoalAmountIsZeroForPiggyBank() {
+        PiggyBank piggyBank = new PiggyBank();
+        piggyBank.setAmount(BigDecimal.valueOf(100));
+        piggyBank.setGoalAmount(BigDecimal.ZERO);
 
-        Double result = PiggyBankCalculator.calculateProgress(piggyBank);
+        Double progress = PiggyBankCalculator.calculateProgress(piggyBank);
 
-        assertEquals(0.0, result);
+        assertThat(progress).isZero();
     }
 
     @Test
-    void shouldCalculateProgressCorrectly() {
-        PiggyBank piggyBank = mock(PiggyBank.class);
-        when(piggyBank.getAmount()).thenReturn(new BigDecimal("50"));
-        when(piggyBank.getGoalAmount()).thenReturn(new BigDecimal("100"));
+    void shouldReturnZeroWhenGoalAmountIsNullForPiggyBank() {
+        PiggyBank piggyBank = new PiggyBank();
+        piggyBank.setAmount(BigDecimal.valueOf(100));
+        piggyBank.setGoalAmount(null);
 
-        Double result = PiggyBankCalculator.calculateProgress(piggyBank);
+        Double progress = PiggyBankCalculator.calculateProgress(piggyBank);
 
-        assertEquals(0.5, result);
+        assertThat(progress).isZero();
     }
 
     @Test
-    void shouldRoundToFourDecimalPlaces() {
-        PiggyBank piggyBank = mock(PiggyBank.class);
-        when(piggyBank.getAmount()).thenReturn(new BigDecimal("1"));
-        when(piggyBank.getGoalAmount()).thenReturn(new BigDecimal("3"));
+    void shouldReturnZeroWhenGoalAmountIsZeroForSharedPiggyBank() {
+        SharedPiggyBank sharedPiggyBank = new SharedPiggyBank();
+        sharedPiggyBank.setAmount(BigDecimal.valueOf(100));
+        sharedPiggyBank.setGoalAmount(BigDecimal.ZERO);
 
-        Double result = PiggyBankCalculator.calculateProgress(piggyBank);
+        Double progress = PiggyBankCalculator.calculateSharedPiggyBankProgress(sharedPiggyBank);
 
-        assertEquals(0.3333, result);
+        assertThat(progress).isZero();
     }
 
     @Test
-    void shouldHandleAmountGreaterThanGoal() {
-        PiggyBank piggyBank = mock(PiggyBank.class);
-        when(piggyBank.getAmount()).thenReturn(new BigDecimal("150"));
-        when(piggyBank.getGoalAmount()).thenReturn(new BigDecimal("100"));
+    void shouldReturnZeroWhenGoalAmountIsNullForSharedPiggyBank() {
+        SharedPiggyBank sharedPiggyBank = new SharedPiggyBank();
+        sharedPiggyBank.setAmount(BigDecimal.valueOf(100));
+        sharedPiggyBank.setGoalAmount(null);
 
-        Double result = PiggyBankCalculator.calculateProgress(piggyBank);
+        Double progress = PiggyBankCalculator.calculateSharedPiggyBankProgress(sharedPiggyBank);
 
-        assertEquals(1.5, result);
+        assertThat(progress).isZero();
+    }
+
+    @Test
+    void shouldRoundProgressToFourDecimalPlaces() {
+        PiggyBank piggyBank = new PiggyBank();
+        piggyBank.setAmount(BigDecimal.ONE);
+        piggyBank.setGoalAmount(BigDecimal.valueOf(3));
+
+        Double progress = PiggyBankCalculator.calculateProgress(piggyBank);
+
+        assertThat(progress).isEqualTo(33.33);
     }
 }
