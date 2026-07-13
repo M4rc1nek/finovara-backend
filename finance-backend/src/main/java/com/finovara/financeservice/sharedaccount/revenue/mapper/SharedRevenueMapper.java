@@ -1,7 +1,7 @@
-package com.finovara.financeservice.sharedaccount.mapper.revenue;
+package com.finovara.financeservice.sharedaccount.revenue.mapper;
 
-import com.finovara.financeservice.sharedaccount.dto.revenue.SharedRevenueDto;
-import com.finovara.financeservice.sharedaccount.model.revenue.SharedRevenue;
+import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueDto;
+import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
 import org.springframework.stereotype.Component;
 
 @Component
