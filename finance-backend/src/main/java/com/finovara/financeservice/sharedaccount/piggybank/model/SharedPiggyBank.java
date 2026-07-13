@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.model.piggybank;
+package com.finovara.financeservice.sharedaccount.piggybank.model;
 
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import jakarta.persistence.*;
