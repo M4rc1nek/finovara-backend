@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.dto.piggybank;
+package com.finovara.financeservice.sharedaccount.piggybank.dto;
 
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import jakarta.validation.constraints.DecimalMax;
