@@ -1,11 +1,10 @@
-package com.finovara.financeservice.sharedaccount.service.revenue;
+package com.finovara.financeservice.sharedaccount.revenue.service;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueDto;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueResponse;
-import com.finovara.financeservice.sharedaccount.revenue.service.SharedRevenueService;
 import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
