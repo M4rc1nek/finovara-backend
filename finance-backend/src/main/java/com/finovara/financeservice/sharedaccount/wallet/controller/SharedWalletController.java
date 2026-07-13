@@ -1,7 +1,7 @@
-package com.finovara.financeservice.sharedaccount.controller.wallet;
+package com.finovara.financeservice.sharedaccount.wallet.controller;
 
 import com.finovara.financeservice.security.SecurityUtils;
-import com.finovara.financeservice.sharedaccount.dto.wallet.SharedWalletDto;
+import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
