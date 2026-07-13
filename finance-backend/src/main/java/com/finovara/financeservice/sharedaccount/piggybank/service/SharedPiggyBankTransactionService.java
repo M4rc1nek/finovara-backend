@@ -1,6 +1,6 @@
-package com.finovara.financeservice.sharedaccount.service.piggybank;
+package com.finovara.financeservice.sharedaccount.piggybank.service;
 
-import com.finovara.financeservice.sharedaccount.model.piggybank.SharedPiggyBank;
+import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.piggybank.PiggyBankCalculator;
 import com.finovara.financeservice.util.piggybank.PiggyBankValidator;
@@ -43,8 +43,8 @@ public class SharedPiggyBankTransactionService {
         return calculatePercentage(piggyBank);
     }
 
-    private BigDecimal calculatePercentage(SharedPiggyBank piggyBank) {
-        Double progress = PiggyBankCalculator.calculateSharedPiggyBankProgress(piggyBank);
+    private BigDecimal calculatePercentage(SharedPiggyBank sharedPiggyBank) {
+        Double progress = PiggyBankCalculator.calculateSharedPiggyBankProgress(sharedPiggyBank);
         return BigDecimal.valueOf(progress).multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.HALF_UP);
     }
 }
