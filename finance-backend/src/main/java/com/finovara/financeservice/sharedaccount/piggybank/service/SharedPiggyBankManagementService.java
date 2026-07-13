@@ -1,12 +1,12 @@
-package com.finovara.financeservice.sharedaccount.service.piggybank;
+package com.finovara.financeservice.sharedaccount.piggybank.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.financeservice.sharedaccount.dto.piggybank.SharedPiggyBankDto;
-import com.finovara.financeservice.sharedaccount.dto.wallet.SharedWalletDto;
-import com.finovara.financeservice.sharedaccount.mapper.piggybank.SharedPiggyBankMapper;
-import com.finovara.financeservice.sharedaccount.model.piggybank.SharedPiggyBank;
-import com.finovara.financeservice.sharedaccount.repository.piggybank.SharedPiggyBankRepository;
+import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDto;
+import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
+import com.finovara.financeservice.sharedaccount.piggybank.mapper.SharedPiggyBankMapper;
+import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
+import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.piggybank.PiggyBankCalculator;
 import com.finovara.financeservice.util.piggybank.PiggyBankValidator;
