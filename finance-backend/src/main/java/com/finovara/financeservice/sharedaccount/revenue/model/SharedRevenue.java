@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.model.revenue;
+package com.finovara.financeservice.sharedaccount.revenue.model;
 
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import jakarta.persistence.*;
