@@ -1,7 +1,7 @@
-package com.finovara.financeservice.sharedaccount.mapper.expense;
+package com.finovara.financeservice.sharedaccount.expense.mapper;
 
-import com.finovara.financeservice.sharedaccount.dto.expense.SharedExpenseDto;
-import com.finovara.financeservice.sharedaccount.model.expense.SharedExpense;
+import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseDto;
+import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import org.springframework.stereotype.Component;
 
 @Component
