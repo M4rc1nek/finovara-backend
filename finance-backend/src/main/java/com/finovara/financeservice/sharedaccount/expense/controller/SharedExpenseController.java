@@ -1,9 +1,9 @@
-package com.finovara.financeservice.sharedaccount.controller.expense;
+package com.finovara.financeservice.sharedaccount.expense.controller;
 
 import com.finovara.financeservice.security.SecurityUtils;
-import com.finovara.financeservice.sharedaccount.dto.expense.SharedExpenseDto;
-import com.finovara.financeservice.sharedaccount.dto.expense.SharedExpenseResponse;
-import com.finovara.financeservice.sharedaccount.service.expense.SharedExpenseService;
+import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseDto;
+import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseResponse;
+import com.finovara.financeservice.sharedaccount.expense.service.SharedExpenseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
