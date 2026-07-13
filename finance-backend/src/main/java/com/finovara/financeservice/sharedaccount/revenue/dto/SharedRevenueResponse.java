@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.dto.revenue;
+package com.finovara.financeservice.sharedaccount.revenue.dto;
 
 public record SharedRevenueResponse(
         Long revenueId,
