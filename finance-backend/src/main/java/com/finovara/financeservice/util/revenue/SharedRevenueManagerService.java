@@ -1,8 +1,8 @@
 package com.finovara.financeservice.util.revenue;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.financeservice.sharedaccount.model.revenue.SharedRevenue;
-import com.finovara.financeservice.sharedaccount.repository.revenue.SharedRevenueRepository;
+import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
+import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
