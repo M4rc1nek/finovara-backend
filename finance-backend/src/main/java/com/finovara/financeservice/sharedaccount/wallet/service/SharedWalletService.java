@@ -1,9 +1,8 @@
-package com.finovara.financeservice.sharedaccount.service.wallet;
+package com.finovara.financeservice.sharedaccount.wallet.service;
 
-import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.financeservice.sharedaccount.dto.wallet.SharedWalletDto;
-import com.finovara.financeservice.sharedaccount.model.wallet.SharedWallet;
-import com.finovara.financeservice.sharedaccount.repository.wallet.SharedWalletRepository;
+import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
+import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
+import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
