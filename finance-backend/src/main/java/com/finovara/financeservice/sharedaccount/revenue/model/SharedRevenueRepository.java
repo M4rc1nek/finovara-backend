@@ -1,9 +1,8 @@
-package com.finovara.financeservice.sharedaccount.repository.revenue;
+package com.finovara.financeservice.sharedaccount.revenue.model;
 
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
 import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
-import com.finovara.financeservice.sharedaccount.model.revenue.SharedRevenue;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
