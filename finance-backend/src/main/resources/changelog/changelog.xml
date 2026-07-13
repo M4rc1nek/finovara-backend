@@ -141,7 +141,7 @@
     </changeSet>
 
     <changeSet id="create-piggy_banks" author="Marcin Parśniak">
-        <createTable tableName="piggy_banks">
+        <createTable tableName="piggybanks">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -158,13 +158,37 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-
         <sql>
             CREATE UNIQUE INDEX unique_piggy_bank_user_name
-            ON piggy_banks (user_id, LOWER(name));
+            ON piggybanks (user_id, LOWER(name));
         </sql>
     </changeSet>
-
+    <changeSet id="create-shared-piggy_banks" author="Marcin Parśniak">
+        <createTable tableName="shared_piggybanks">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="amount" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE"/>
+            <column name="goal_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="goal_amount" type="DECIMAL(19,2)"/>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>
+            CREATE UNIQUE INDEX unique_shared_piggy_bank_name
+            ON shared_piggybanks (owner_id, member_id, LOWER(name));
+        </sql>
+    </changeSet>
     <changeSet id="create-expense-settings" author="Marcin Parśniak">
         <createTable tableName="expense_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -236,7 +260,7 @@
             </column>
             <column name="piggy_bank_id" type="BIGINT">
                 <constraints nullable="false" unique="true" foreignKeyName="fk_piggy_bank_settings_pb"
-                             references="piggy_banks(id)"/>
+                             references="piggybanks(id)"/>
             </column>
         </createTable>
     </changeSet>
