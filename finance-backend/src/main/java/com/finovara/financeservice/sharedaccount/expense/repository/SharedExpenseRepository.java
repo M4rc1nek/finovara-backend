@@ -1,9 +1,9 @@
-package com.finovara.financeservice.sharedaccount.repository.expense;
+package com.finovara.financeservice.sharedaccount.expense.repository;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
 import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
-import com.finovara.financeservice.sharedaccount.model.expense.SharedExpense;
+import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
