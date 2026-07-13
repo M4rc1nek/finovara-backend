@@ -1,13 +1,13 @@
-package com.finovara.financeservice.sharedaccount.service.revenue;
+package com.finovara.financeservice.sharedaccount.revenue.service;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
-import com.finovara.financeservice.sharedaccount.dto.revenue.SharedRevenueDto;
-import com.finovara.financeservice.sharedaccount.dto.revenue.SharedRevenueResponse;
-import com.finovara.financeservice.sharedaccount.dto.wallet.SharedWalletDto;
-import com.finovara.financeservice.sharedaccount.model.revenue.SharedRevenue;
-import com.finovara.financeservice.sharedaccount.repository.revenue.SharedRevenueRepository;
-import com.finovara.financeservice.sharedaccount.mapper.revenue.SharedRevenueMapper;
+import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueDto;
+import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueResponse;
+import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
+import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
+import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
+import com.finovara.financeservice.sharedaccount.revenue.mapper.SharedRevenueMapper;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.revenue.SharedRevenueManagerService;
 import lombok.RequiredArgsConstructor;
