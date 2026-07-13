@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.service.expense;
+package com.finovara.financeservice.sharedaccount.expense.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
@@ -6,7 +6,6 @@ import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseDto;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseResponse;
-import com.finovara.financeservice.sharedaccount.expense.service.SharedExpenseService;
 import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
