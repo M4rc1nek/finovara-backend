@@ -1,7 +1,7 @@
-package com.finovara.financeservice.sharedaccount.mapper.piggybank;
+package com.finovara.financeservice.sharedaccount.piggybank.mapper;
 
-import com.finovara.financeservice.sharedaccount.dto.piggybank.SharedPiggyBankDto;
-import com.finovara.financeservice.sharedaccount.model.piggybank.SharedPiggyBank;
+import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDto;
+import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import org.springframework.stereotype.Component;
 
 @Component
