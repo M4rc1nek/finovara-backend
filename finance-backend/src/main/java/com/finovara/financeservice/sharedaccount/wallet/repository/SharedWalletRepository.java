@@ -1,6 +1,6 @@
-package com.finovara.financeservice.sharedaccount.repository.wallet;
+package com.finovara.financeservice.sharedaccount.wallet.repository;
 
-import com.finovara.financeservice.sharedaccount.model.wallet.SharedWallet;
+import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
