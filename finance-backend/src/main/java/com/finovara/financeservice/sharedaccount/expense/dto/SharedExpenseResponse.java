@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.dto.expense;
+package com.finovara.financeservice.sharedaccount.expense.dto;
 
 public record SharedExpenseResponse(
         Long expenseId,
