@@ -1,9 +1,9 @@
-package com.finovara.financeservice.sharedaccount.controller.piggybank;
+package com.finovara.financeservice.sharedaccount.piggybank.controller;
 
 import com.finovara.financeservice.security.SecurityUtils;
-import com.finovara.financeservice.sharedaccount.dto.piggybank.SharedPiggyBankDto;
-import com.finovara.financeservice.sharedaccount.service.piggybank.SharedPiggyBankManagementService;
-import com.finovara.financeservice.sharedaccount.service.piggybank.SharedPiggyBankTransactionService;
+import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDto;
+import com.finovara.financeservice.sharedaccount.piggybank.service.SharedPiggyBankManagementService;
+import com.finovara.financeservice.sharedaccount.piggybank.service.SharedPiggyBankTransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
