@@ -23,6 +23,13 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
     @Query("SELECT se FROM SharedExpense se WHERE se.id = :expenseId AND (se.ownerId = :userId OR se.memberId = :userId)")
     Optional<SharedExpense> findByIdAndOwnerIdOrMemberId(@Param("expenseId") Long expenseId, @Param("userId") Long userId);
 
+
+    @Query("SELECT SUM(e.amount) FROM SharedExpense e WHERE (e.ownerId = :userId OR e.memberId = :userId) AND e.createdAt >= :startDate AND e.createdAt <= :endDate")
+    Optional<BigDecimal> sumExpensesByUsersAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT SUM(e.amount) FROM SharedExpense e WHERE (e.ownerId = :userId OR e.memberId = :userId) AND e.createdAt >= :startDate AND e.createdAt <= :endDate AND e.category = :expenseCategory")
+    Optional<BigDecimal> sumExpensesByUsersAndDateRangeAndCategory(Long userId, LocalDate startDate, LocalDate endDate, ExpenseCategory expenseCategory);
+
     @Modifying
     @Query("DELETE FROM SharedExpense se WHERE se.ownerId = :ownerId AND se.memberId = :memberId")
     void deleteAllByOwnerIdAndMemberId(Long ownerId, Long memberId);
