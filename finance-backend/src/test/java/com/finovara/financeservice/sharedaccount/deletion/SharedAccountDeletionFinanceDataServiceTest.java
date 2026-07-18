@@ -5,6 +5,7 @@ import com.finovara.contracts.event.finance.sharedaccount.SharedAccountDeletedEv
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
+import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
 import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
 import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -48,8 +50,12 @@ class SharedAccountDeletionFinanceDataServiceTest {
     private SharedPiggyBankRepository sharedPiggyBankRepository;
 
     @Mock
+    private SharedLimitRepository sharedLimitRepository;
+
+    @Mock
     private OutboxService outboxService;
 
+    @InjectMocks
     private SharedAccountDeletionFinanceDataService financeDataService;
 
     private Long ownerId;
@@ -63,8 +69,9 @@ class SharedAccountDeletionFinanceDataServiceTest {
                 sharedRevenueRepository,
                 sharedWalletRepository,
                 sharedPiggyBankRepository,
+                sharedLimitRepository,
                 outboxService
-        );
+                );
         ownerId = 1L;
         memberId = 2L;
     }
