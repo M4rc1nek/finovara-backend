@@ -3,12 +3,12 @@ package com.finovara.financeservice.sharedaccount.piggybank.service;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDto;
 import com.finovara.financeservice.sharedaccount.piggybank.mapper.SharedPiggyBankMapper;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
-import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
-import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.piggybank.manager.SharedPiggyBankManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -46,7 +46,7 @@ class SharedPiggyBankManagementServiceTest {
     private SharedPiggyBankMapper sharedPiggyBankMapper;
 
     @Mock
-    private SharedWalletService sharedWalletService;
+    private SharedAccountParticipantsService sharedAccountParticipantsService;
 
     @InjectMocks
     private SharedPiggyBankManagementService sharedPiggyBankManagementService;
@@ -64,12 +64,12 @@ class SharedPiggyBankManagementServiceTest {
     class AddPiggyBank {
 
         private SharedPiggyBankDto dto;
-        private SharedWalletDto walletDto;
+        private SharedAccountParticipantsResponse participants;
 
         @BeforeEach
         void setUp() {
             dto = mock(SharedPiggyBankDto.class);
-            walletDto = mock(SharedWalletDto.class);
+            participants = mock(SharedAccountParticipantsResponse.class);
         }
 
         @Test
@@ -77,9 +77,9 @@ class SharedPiggyBankManagementServiceTest {
             when(dto.name()).thenReturn("Wakacje");
             when(dto.goalAmount()).thenReturn(BigDecimal.valueOf(500));
             when(dto.goalType()).thenReturn(PiggyBankGoalType.VACATION);
-            when(sharedWalletService.getWallet(userId)).thenReturn(walletDto);
-            when(walletDto.ownerId()).thenReturn(10L);
-            when(walletDto.memberId()).thenReturn(20L);
+            when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
+            when(participants.ownerId()).thenReturn(10L);
+            when(participants.memberId()).thenReturn(20L);
             when(sharedPiggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
             when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Wakacje")).thenReturn(false);
             when(sharedPiggyBankRepository.save(any(SharedPiggyBank.class)))
@@ -95,16 +95,15 @@ class SharedPiggyBankManagementServiceTest {
             when(dto.name()).thenReturn("Wakacje");
             when(dto.goalAmount()).thenReturn(BigDecimal.valueOf(500));
             when(dto.goalType()).thenReturn(PiggyBankGoalType.VACATION);
-            when(sharedWalletService.getWallet(userId)).thenReturn(walletDto);
-            when(walletDto.ownerId()).thenReturn(10L);
-            when(walletDto.memberId()).thenReturn(20L);
+            when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
+            when(participants.ownerId()).thenReturn(10L);
+            when(participants.memberId()).thenReturn(20L);
             when(sharedPiggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
             when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Wakacje")).thenReturn(false);
             when(sharedPiggyBankRepository.save(any(SharedPiggyBank.class)))
                     .thenReturn(SharedPiggyBank.builder().id(piggyBankId).build());
 
             sharedPiggyBankManagementService.addPiggyBank(dto, userId);
-
 
             verify(sharedPiggyBankRepository).save(argThat(bank ->
                     bank.getAmount().compareTo(BigDecimal.ZERO) == 0
@@ -118,7 +117,7 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenMaxPiggyBanksReached() {
-            when(sharedWalletService.getWallet(userId)).thenReturn(walletDto);
+            when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
             when(sharedPiggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(5L);
 
             assertThrows(InvalidInputException.class,
@@ -127,7 +126,7 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldNotSavePiggyBankWhenMaxPiggyBanksReached() {
-            when(sharedWalletService.getWallet(userId)).thenReturn(walletDto);
+            when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
             when(sharedPiggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(5L);
 
             assertThrows(InvalidInputException.class,
@@ -139,7 +138,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldThrowExceptionWhenNameAlreadyExists() {
             when(dto.name()).thenReturn("Wakacje");
-            when(sharedWalletService.getWallet(userId)).thenReturn(walletDto);
+            when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
             when(sharedPiggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(2L);
             when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Wakacje")).thenReturn(true);
 
@@ -150,7 +149,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldNotSavePiggyBankWhenNameAlreadyExists() {
             when(dto.name()).thenReturn("Wakacje");
-            when(sharedWalletService.getWallet(userId)).thenReturn(walletDto);
+            when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
             when(sharedPiggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(2L);
             when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Wakacje")).thenReturn(true);
 
@@ -175,9 +174,9 @@ class SharedPiggyBankManagementServiceTest {
             when(dto.name()).thenReturn("Bez celu");
             when(dto.goalAmount()).thenReturn(null);
             when(dto.goalType()).thenReturn(PiggyBankGoalType.OTHER);
-            when(sharedWalletService.getWallet(userId)).thenReturn(walletDto);
-            when(walletDto.ownerId()).thenReturn(10L);
-            when(walletDto.memberId()).thenReturn(20L);
+            when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
+            when(participants.ownerId()).thenReturn(10L);
+            when(participants.memberId()).thenReturn(20L);
             when(sharedPiggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
             when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Bez celu")).thenReturn(false);
             when(sharedPiggyBankRepository.save(any(SharedPiggyBank.class)))
