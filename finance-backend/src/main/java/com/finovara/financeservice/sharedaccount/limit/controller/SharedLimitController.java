@@ -1,9 +1,9 @@
-package com.finovara.financeservice.limit.controller;
+package com.finovara.financeservice.sharedaccount.limit.controller;
 
-import com.finovara.financeservice.limit.dto.LimitDto;
-import com.finovara.financeservice.limit.dto.LimitStatsDto;
-import com.finovara.financeservice.limit.service.LimitManagementService;
 import com.finovara.financeservice.security.SecurityUtils;
+import com.finovara.financeservice.sharedaccount.limit.dto.SharedLimitDto;
+import com.finovara.financeservice.sharedaccount.limit.dto.SharedLimitStatsDto;
+import com.finovara.financeservice.sharedaccount.limit.service.SharedLimitManagementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,28 +13,28 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/limits")
-public class LimitController {
-    private final LimitManagementService limitManagementService;
+@RequestMapping("/api/shared-accounts/limits")
+public class SharedLimitController {
+    private final SharedLimitManagementService sharedLimitManagementService;
 
     @PostMapping
-    public ResponseEntity<Long> addLimit(@Valid @RequestBody LimitDto limitDto) {
-        return ResponseEntity.ok(limitManagementService.createLimit(limitDto, SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<Long> addSharedLimit(@Valid @RequestBody SharedLimitDto sharedLimitDto) {
+        return ResponseEntity.ok(sharedLimitManagementService.createSharedLimit(sharedLimitDto, SecurityUtils.getCurrentUserId()));
     }
 
-    @PutMapping("/{limitId}/edit")
-    public ResponseEntity<Long> editLimit(@Valid @RequestBody LimitDto limitDto, @PathVariable Long limitId) {
-        return ResponseEntity.ok(limitManagementService.editLimit(limitDto, limitId, SecurityUtils.getCurrentUserId()));
+    @PutMapping("/{sharedLimitId}/edit")
+    public ResponseEntity<Long> editSharedLimit(@Valid @RequestBody SharedLimitDto sharedLimitDto, @PathVariable Long sharedLimitId) {
+        return ResponseEntity.ok(sharedLimitManagementService.editSharedLimit(sharedLimitDto, sharedLimitId, SecurityUtils.getCurrentUserId()));
     }
 
     @GetMapping
-    public ResponseEntity<List<LimitStatsDto>> getLimits() {
-        return ResponseEntity.ok(limitManagementService.getLimitStats(SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<List<SharedLimitStatsDto>> getSharedLimits() {
+        return ResponseEntity.ok(sharedLimitManagementService.getSharedLimitStats(SecurityUtils.getCurrentUserId()));
     }
 
-    @DeleteMapping("/{limitId}")
-    public ResponseEntity<Void> deleteLimit(@PathVariable Long limitId) {
-        limitManagementService.deleteLimit(SecurityUtils.getCurrentUserId(), limitId);
+    @DeleteMapping("/{sharedLimitId}")
+    public ResponseEntity<Void> deleteSharedLimit(@PathVariable Long sharedLimitId) {
+        sharedLimitManagementService.deleteSharedLimit(SecurityUtils.getCurrentUserId(), sharedLimitId);
         return ResponseEntity.noContent().build();
     }
 
