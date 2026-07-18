@@ -6,12 +6,15 @@ import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseDto;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseResponse;
-import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
+import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
 import com.finovara.financeservice.sharedaccount.expense.mapper.SharedExpenseMapper;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.expense.SharedExpenseManagerService;
+import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,6 +47,12 @@ class SharedExpenseServiceTest {
     private SharedWalletService sharedWalletService;
 
     @Mock
+    private SharedLimitRepository sharedLimitRepository;
+
+    @Mock
+    private FinancialPeriodService financialPeriodService;
+
+    @Mock
     private SharedExpenseManagerService sharedExpenseManagerService;
 
     @Mock
@@ -51,6 +60,9 @@ class SharedExpenseServiceTest {
 
     @Mock
     private AuthBackendClient authBackendClient;
+
+    @Mock
+    private SharedAccountParticipantsService sharedAccountParticipantsService;
 
     @InjectMocks
     private SharedExpenseService sharedExpenseService;
@@ -67,7 +79,7 @@ class SharedExpenseServiceTest {
     @Nested
     class AddExpense {
 
-        private SharedWalletDto walletDto;
+        private SharedAccountParticipantsResponse participants;
         private Long ownerId;
         private Long memberId;
         private BigDecimal amount;
@@ -83,21 +95,21 @@ class SharedExpenseServiceTest {
             category = ExpenseCategory.FOOD;
             description = "Groceries";
             username = "testuser";
+
+            when(sharedLimitRepository.findAllByUserId(userId)).thenReturn(List.of());
         }
 
         @Test
         void shouldAddExpenseAndReturnResponse() {
             when(sharedExpenseDto.amount()).thenReturn(amount);
-
-            walletDto = mock(SharedWalletDto.class);
-            when(walletDto.ownerId()).thenReturn(ownerId);
-            when(walletDto.memberId()).thenReturn(memberId);
-
-            when(sharedWalletService.getWallet(userId)).thenReturn(walletDto);
-            when(authBackendClient.getUsername(userId)).thenReturn(username);
-
             when(sharedExpenseDto.category()).thenReturn(category);
             when(sharedExpenseDto.description()).thenReturn(description);
+
+            participants = mock(SharedAccountParticipantsResponse.class);
+            when(participants.ownerId()).thenReturn(ownerId);
+            when(participants.memberId()).thenReturn(memberId);
+            when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
+            when(authBackendClient.getUsername(userId)).thenReturn(username);
 
             SharedExpenseResponse response = sharedExpenseService.addExpense(sharedExpenseDto, userId);
 
@@ -116,7 +128,7 @@ class SharedExpenseServiceTest {
             assertThrows(InvalidInputException.class,
                     () -> sharedExpenseService.addExpense(sharedExpenseDto, userId));
 
-            verify(sharedWalletService, never()).getWallet(any());
+            verify(sharedAccountParticipantsService, never()).getParticipants(any());
             verify(sharedExpenseRepository, never()).save(any());
         }
 
@@ -127,7 +139,7 @@ class SharedExpenseServiceTest {
             assertThrows(InvalidInputException.class,
                     () -> sharedExpenseService.addExpense(sharedExpenseDto, userId));
 
-            verify(sharedWalletService, never()).getWallet(any());
+            verify(sharedAccountParticipantsService, never()).getParticipants(any());
             verify(sharedExpenseRepository, never()).save(any());
         }
     }
@@ -167,6 +179,8 @@ class SharedExpenseServiceTest {
             when(sharedExpenseDto.category()).thenReturn(category);
             when(sharedExpenseDto.description()).thenReturn(description);
 
+            when(sharedLimitRepository.findAllByUserId(ownerId)).thenReturn(List.of());
+
             Long result = sharedExpenseService.editExpense(sharedExpenseDto, ownerId, expenseId);
 
             assertEquals(expenseId, result);
@@ -188,6 +202,8 @@ class SharedExpenseServiceTest {
             when(sharedExpenseDto.amount()).thenReturn(newAmount);
             when(sharedExpenseDto.category()).thenReturn(category);
             when(sharedExpenseDto.description()).thenReturn(description);
+
+            when(sharedLimitRepository.findAllByUserId(memberId)).thenReturn(List.of());
 
             Long result = sharedExpenseService.editExpense(sharedExpenseDto, memberId, expenseId);
 
