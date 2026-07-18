@@ -2,6 +2,8 @@ package com.finovara.financeservice.sharedaccount.piggybank.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDto;
 import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
 import com.finovara.financeservice.sharedaccount.piggybank.mapper.SharedPiggyBankMapper;
@@ -30,11 +32,12 @@ public class SharedPiggyBankManagementService {
     private final SharedPiggyBankRepository sharedPiggyBankRepository;
     private final SharedPiggyBankManager sharedPiggyBankManager;
     private final SharedPiggyBankMapper sharedPiggyBankMapper;
-    private final SharedWalletService sharedWalletService;
+    private final SharedAccountParticipantsService sharedAccountParticipantsService;
 
     @Transactional
     public Long addPiggyBank(SharedPiggyBankDto sharedPiggyBankDto, Long userId) {
-        SharedWalletDto walletDto = sharedWalletService.getWallet(userId);
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
+
         long currentPiggyBanks = sharedPiggyBankRepository.countPiggyBanksByUserId(userId);
 
         if (currentPiggyBanks >= MAX_PIGGY_BANKS) {
@@ -53,8 +56,8 @@ public class SharedPiggyBankManagementService {
                 .createdAt(LocalDate.now())
                 .goalAmount(sharedPiggyBankDto.goalAmount())
                 .goalType(sharedPiggyBankDto.goalType())
-                .ownerId(walletDto.ownerId())
-                .memberId(walletDto.memberId())
+                .ownerId(sharedAccountParticipantsResponse.ownerId())
+                .memberId(sharedAccountParticipantsResponse.memberId())
                 .build();
 
         SharedPiggyBank saved = sharedPiggyBankRepository.save(sharedPiggyBank);
