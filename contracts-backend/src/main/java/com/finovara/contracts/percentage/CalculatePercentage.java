@@ -23,7 +23,6 @@ public class CalculatePercentage {
         if (amount == null || percentage == null) {
             return BigDecimal.ZERO;
         }
-
         return amount
                 .multiply(percentage)
                 .divide(ONE_HUNDRED, scale, RoundingMode.HALF_UP);
