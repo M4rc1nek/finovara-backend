@@ -6,7 +6,6 @@ import com.finovara.contracts.event.notification.limit.LimitStatsEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
-import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.ExpenseActivityType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.outbox.OutboxService;
@@ -16,6 +15,7 @@ import com.finovara.financeservice.expense.mapper.ExpenseMapper;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.limit.dto.LimitStatsDto;
+import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.limit.service.LimitCalculateService;
 import com.finovara.financeservice.settings.finances.expense.controlamount.service.ControlAmountService;
@@ -37,7 +37,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -59,8 +58,9 @@ public class ExpenseService implements UserDataDeletable {
     private final FinancialPeriodService financialPeriodService;
 
     @Transactional
-    public Long addExpense(ExpenseRequestDto expenseRequestDto, Long userId, PeriodType periodType) {
-        validateLimitOrThrow(userId, periodType, BigDecimal.ZERO, expenseRequestDto.expenseDto().amount());
+    public Long addExpense(ExpenseRequestDto expenseRequestDto, Long userId) {
+        validateLimitOrThrow(userId, expenseRequestDto.expenseDto().category(), expenseRequestDto.expenseDto().category(),
+                BigDecimal.ZERO, expenseRequestDto.expenseDto().amount());
 
         countQuantityLimitService.handleExpenseLimitExceeded(userId, expenseRequestDto.countQuantityLimitDto(),
                 expenseRequestDto.countQuantityLimitDto().periodType(), expenseRequestDto.confirmPasswordDto());
@@ -93,14 +93,13 @@ public class ExpenseService implements UserDataDeletable {
     }
 
     @Transactional
-    public Long editExpense(ExpenseRequestDto expenseRequestDto, Long userId, Long expenseId, PeriodType periodType) {
+    public Long editExpense(ExpenseRequestDto expenseRequestDto, Long userId, Long expenseId) {
         Expense existingExpense = expenseManagerService.getExpenseByIdOrThrow(expenseId);
-
         if (!existingExpense.getUserId().equals(userId)) {
             throw new RequestedEntityNotFoundException("Expense not found for this user");
         }
-
-        validateLimitOrThrow(userId, periodType, existingExpense.getAmount(), expenseRequestDto.expenseDto().amount());
+        validateLimitOrThrow(userId, existingExpense.getCategory(), expenseRequestDto.expenseDto().category(),
+                existingExpense.getAmount(), expenseRequestDto.expenseDto().amount());
 
         walletService.addBalanceToWallet(userId, existingExpense.getAmount());
         walletService.removeBalanceFromWallet(userId, expenseRequestDto.expenseDto().amount());
@@ -154,20 +153,32 @@ public class ExpenseService implements UserDataDeletable {
         });
     }
 
-    private BigDecimal checkSpentInPeriod(PeriodType periodType, Long userId) {
-        if (periodType == null) return BigDecimal.ZERO;
-        return financialPeriodService.getExpensesSum(userId, periodType);
+    private void validateLimitOrThrow(Long userId, ExpenseCategory oldCategory, ExpenseCategory newCategory,
+                                      BigDecimal oldAmount, BigDecimal newAmount) {
+
+        limitRepository.findAllByUserId(userId).forEach(limit -> {
+
+            if (!limitApplies(limit, newCategory)) {
+                return;
+            }
+
+            BigDecimal spentAlready = financialPeriodService.getExpensesSum(userId, limit.getPeriodType(), limit.getCategory());
+            boolean oldAmountAlreadyCounted = limitApplies(limit, oldCategory);
+            BigDecimal amountToRemove = oldAmountAlreadyCounted ? oldAmount : BigDecimal.ZERO;
+
+            BigDecimal totalAfterEdit = spentAlready
+                    .subtract(amountToRemove)
+                    .add(newAmount);
+
+            if (totalAfterEdit.compareTo(limit.getAmount()) > 0) {
+                String msg = limit.getCategory() == null ? "General limit exceeded" : "Category limit exceeded";
+                throw new MissingRequirementException(msg);
+            }
+        });
     }
 
-    private void validateLimitOrThrow(Long userId, PeriodType periodType, BigDecimal existingAmount, BigDecimal newAmount) {
-        Optional<BigDecimal> limitAmount = (periodType == null) ? Optional.empty() : limitRepository.getLimitAmountByUserIdAndType(userId, periodType);
-
-        BigDecimal spent = checkSpentInPeriod(periodType, userId);
-        BigDecimal totalAmount = spent.subtract(existingAmount).add(newAmount);
-
-        if (limitAmount.isPresent() && totalAmount.compareTo(limitAmount.get()) > 0) {
-            throw new MissingRequirementException("Limit Exceeded");
-        }
+    private boolean limitApplies(Limit limit, ExpenseCategory category) {
+        return limit.getCategory() == null || limit.getCategory().equals(category);
     }
 
     @Override
