@@ -1,5 +1,6 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
+import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringExpenseDto;
@@ -9,11 +10,14 @@ import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringExpenseValidator;
+import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +27,7 @@ public class RecurringExpenseService {
     private final RecurringExpenseValidator recurringExpenseValidator;
     private final ExpenseSettingsRepository expenseSettingsRepository;
     private final WalletManagerService walletManagerService;
+    private final LimitManagerService limitManagerService;
 
     @Transactional
     public void saveExpenseSettings(Long userId, RecurringExpenseDto dto) {
@@ -42,8 +47,9 @@ public class RecurringExpenseService {
         if (settings.isEnable()) {
             ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
             Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
+            List<Limit> limits = limitManagerService.getLimitsByUserId(userId);
 
-            recurringExpenseValidator.validate(settings, expenseSettings, wallet);
+            recurringExpenseValidator.validate(settings, expenseSettings, wallet, limits);
         }
     }
 
