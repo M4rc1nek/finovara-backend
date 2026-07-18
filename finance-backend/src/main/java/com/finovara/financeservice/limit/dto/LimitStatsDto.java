@@ -1,5 +1,6 @@
 package com.finovara.financeservice.limit.dto;
 
+import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.financeservice.limit.model.LimitStatus;
 import com.finovara.contracts.model.PeriodType;
 
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 public record LimitStatsDto(
         Long limitId,
         PeriodType periodType,
+        ExpenseCategory category,
         BigDecimal amount,
         BigDecimal spent,
         BigDecimal remaining,
