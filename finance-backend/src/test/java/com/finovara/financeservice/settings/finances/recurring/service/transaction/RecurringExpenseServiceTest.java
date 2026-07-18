@@ -1,30 +1,44 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringExpenseDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
-import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringExpenseValidator;
+import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
-import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RecurringExpenseServiceTest {
@@ -41,10 +55,14 @@ class RecurringExpenseServiceTest {
     @Mock
     private WalletManagerService walletManagerService;
 
+    @Mock
+    private LimitManagerService limitManagerService;
+
     @InjectMocks
     private RecurringExpenseService recurringExpenseService;
 
     private Long userId;
+
     private RecurringSettings settings;
 
     @BeforeEach
@@ -55,72 +73,115 @@ class RecurringExpenseServiceTest {
     }
 
     @Nested
-    class SaveExpenseSettings {
+    class SaveExpenseSettingsTests {
 
-        @Test
-        void shouldSaveAndValidateWhenEnabled() {
-            RecurringExpenseDto dto = new RecurringExpenseDto(
+        private RecurringExpenseDto dto;
+
+        @BeforeEach
+        void setUp() {
+            dto = new RecurringExpenseDto(
                     true,
                     BigDecimal.valueOf(100),
-                    null,
+                    ExpenseCategory.FOOD,
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
                     null
             );
+        }
 
-            settings.setEnable(true);
-            ExpenseSettings expenseSettings = new ExpenseSettings();
-            Wallet wallet = Wallet.create(userId);
-
+        @Test
+        void shouldSaveExpenseCategoryAndClearOtherCategoriesWhenSaving() {
             when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
-            when(expenseSettingsRepository.findByUserId(userId)).thenReturn(expenseSettings);
-            when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
 
             recurringExpenseService.saveExpenseSettings(userId, dto);
 
             assertEquals(dto.expenseCategory(), settings.getExpenseCategory());
             assertNull(settings.getRevenueCategory());
             assertNull(settings.getPiggyBankId());
+        }
 
-            verify(recurringSettingsSupport).applyCommonFields(eq(userId), eq(settings), any(RecurringCommonFields.class), eq(SettingType.EXPENSE_RECURRING));
-            verify(recurringExpenseValidator).validate(eq(settings), eq(expenseSettings), eq(wallet));
+        @Test
+        void shouldApplyCommonFieldsWhenSaving() {
+            when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
+
+            recurringExpenseService.saveExpenseSettings(userId, dto);
+
+            ArgumentCaptor<RecurringCommonFields> captor = ArgumentCaptor.forClass(RecurringCommonFields.class);
+            verify(recurringSettingsSupport).applyCommonFields(eq(userId), eq(settings), captor.capture(), eq(SettingType.EXPENSE_RECURRING));
+            RecurringCommonFields capturedFields = captor.getValue();
+            assertThat(capturedFields.enable()).isEqualTo(dto.enable());
+            assertThat(capturedFields.amount()).isEqualByComparingTo(dto.amount());
+            assertThat(capturedFields.periodType()).isEqualTo(dto.periodType());
+            assertThat(capturedFields.startDate()).isEqualTo(dto.startDate());
+        }
+
+        @Test
+        void shouldValidateWhenEnabled() {
+            settings.setEnable(true);
+            ExpenseSettings expenseSettings = mock(ExpenseSettings.class);
+            Wallet wallet = Wallet.create(userId);
+            List<Limit> limits = List.of();
+
+            when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
+            when(expenseSettingsRepository.findByUserId(userId)).thenReturn(expenseSettings);
+            when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
+            when(limitManagerService.getLimitsByUserId(userId)).thenReturn(limits);
+
+            recurringExpenseService.saveExpenseSettings(userId, dto);
+
+            verify(recurringExpenseValidator, times(1)).validate(settings, expenseSettings, wallet, limits);
         }
 
         @Test
         void shouldNotValidateWhenDisabled() {
-            RecurringExpenseDto dto = new RecurringExpenseDto(
+            RecurringExpenseDto disabledDto = new RecurringExpenseDto(
                     false,
                     BigDecimal.valueOf(100),
-                    null,
+                    ExpenseCategory.FOOD,
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
                     null
             );
 
-            settings.setEnable(false);
+            when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
+
+            recurringExpenseService.saveExpenseSettings(userId, disabledDto);
+
+            verify(recurringExpenseValidator, never()).validate(any(), any(), any(), any());
+        }
+
+        @Test
+        void shouldNotFetchExpenseSettingsWalletOrLimitsWhenDisabled() {
+            RecurringExpenseDto disabledDto = new RecurringExpenseDto(
+                    false,
+                    BigDecimal.valueOf(100),
+                    ExpenseCategory.FOOD,
+                    PeriodType.MONTHLY,
+                    LocalDate.of(2025, 1, 1),
+                    null
+            );
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
 
-            recurringExpenseService.saveExpenseSettings(userId, dto);
+            recurringExpenseService.saveExpenseSettings(userId, disabledDto);
 
-            verify(recurringExpenseValidator, never()).validate(any(), any(), any());
+            verifyNoInteractions(expenseSettingsRepository, walletManagerService, limitManagerService);
         }
     }
 
     @Nested
-    class GetExpenseSettings {
+    class GetExpenseSettingsTests {
 
         @Test
-        void shouldReturnDtoFromSettings() {
+        void shouldReturnDtoWhenSettingsExist() {
             settings.setEnable(true);
             settings.setAmount(BigDecimal.valueOf(200));
-            settings.setExpenseCategory(null);
+            settings.setExpenseCategory(ExpenseCategory.TRANSPORT);
             settings.setPeriodType(PeriodType.MONTHLY);
             settings.setStartDate(LocalDate.of(2025, 1, 1));
             settings.setNextExecutionDate(LocalDate.of(2025, 1, 2));
 
-            when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE))
-                    .thenReturn(settings);
+            when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
 
             RecurringExpenseDto result = recurringExpenseService.getExpenseSettings(userId);
 
@@ -130,6 +191,23 @@ class RecurringExpenseServiceTest {
             assertEquals(settings.getPeriodType(), result.periodType());
             assertEquals(settings.getStartDate(), result.startDate());
             assertEquals(settings.getNextExecutionDate(), result.nextExecutionDate());
+        }
+
+        @Test
+        void shouldReturnDtoWithNullExpenseCategoryWhenNotSet() {
+            settings.setEnable(false);
+            settings.setAmount(BigDecimal.valueOf(50));
+            settings.setExpenseCategory(null);
+            settings.setPeriodType(PeriodType.WEEKLY);
+            settings.setStartDate(LocalDate.of(2025, 2, 1));
+            settings.setNextExecutionDate(null);
+
+            when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
+
+            RecurringExpenseDto result = recurringExpenseService.getExpenseSettings(userId);
+
+            assertNull(result.expenseCategory());
+            assertNull(result.nextExecutionDate());
         }
     }
 }
