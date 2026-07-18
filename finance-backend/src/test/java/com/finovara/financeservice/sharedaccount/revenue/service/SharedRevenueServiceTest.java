@@ -3,9 +3,10 @@ package com.finovara.financeservice.sharedaccount.revenue.service;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueDto;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueResponse;
-import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
 import com.finovara.financeservice.sharedaccount.revenue.mapper.SharedRevenueMapper;
@@ -28,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -42,6 +42,9 @@ class SharedRevenueServiceTest {
 
     @Mock
     private SharedRevenueRepository sharedRevenueRepository;
+
+    @Mock
+    private SharedAccountParticipantsService sharedAccountParticipantsService;
 
     @Mock
     private SharedWalletService sharedWalletService;
@@ -67,7 +70,7 @@ class SharedRevenueServiceTest {
     @Nested
     class AddSharedRevenue {
 
-        private SharedWalletDto walletDto;
+        private SharedAccountParticipantsResponse participants;
         private Long ownerId;
         private Long memberId;
         private BigDecimal amount;
@@ -84,11 +87,11 @@ class SharedRevenueServiceTest {
             description = "Groceries";
             username = "testuser";
 
-            walletDto = mock(SharedWalletDto.class);
-            when(walletDto.ownerId()).thenReturn(ownerId);
-            when(walletDto.memberId()).thenReturn(memberId);
+            participants = mock(SharedAccountParticipantsResponse.class);
+            when(participants.ownerId()).thenReturn(ownerId);
+            when(participants.memberId()).thenReturn(memberId);
 
-            when(sharedWalletService.getWallet(userId)).thenReturn(walletDto);
+            when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
             when(authBackendClient.getUsername(userId)).thenReturn(username);
 
             when(sharedRevenueDto.amount()).thenReturn(amount);
@@ -105,7 +108,7 @@ class SharedRevenueServiceTest {
 
             assertEquals(userId, response.userId());
             assertEquals(username, response.username());
-            assertNull(response.revenueId() );
+            assertNull(response.revenueId());
         }
     }
 
