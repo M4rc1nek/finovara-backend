@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.participants;
 
-public record SharedAccountParticipants(
+public record SharedAccountParticipantsResponse(
         Long ownerId,
         Long memberId
 ) {
