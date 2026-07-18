@@ -2,6 +2,8 @@ package com.finovara.financeservice.sharedaccount.revenue.service;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueDto;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueResponse;
 import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
@@ -27,12 +29,13 @@ public class SharedRevenueService {
 
     private final SharedRevenueMapper sharedRevenueMapper;
     private final SharedRevenueRepository sharedRevenueRepository;
+    private final SharedAccountParticipantsService sharedAccountParticipantsService;
     private final SharedWalletService sharedWalletService;
     private final SharedRevenueManagerService sharedRevenueManagerService;
     private final AuthBackendClient authBackendClient;
     @Transactional
     public SharedRevenueResponse addSharedRevenue(SharedRevenueDto sharedRevenueDto, Long userId) {
-        SharedWalletDto walletDto = sharedWalletService.getWallet(userId);
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
         String createdByUsername = authBackendClient.getUsername(userId);
 
         SharedRevenue revenue = SharedRevenue.builder()
@@ -40,8 +43,8 @@ public class SharedRevenueService {
                 .category(sharedRevenueDto.category())
                 .createdAt(LocalDate.now())
                 .description(sharedRevenueDto.description())
-                .ownerId(walletDto.ownerId())
-                .memberId(walletDto.memberId())
+                .ownerId(sharedAccountParticipantsResponse.ownerId())
+                .memberId(sharedAccountParticipantsResponse.memberId())
                 .createdByUserId(userId)
                 .build();
 
