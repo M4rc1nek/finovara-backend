@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 @Setter
 @Entity
 @Table(name = "shared_limits")
-public class Limit {
+public class SharedLimit {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
