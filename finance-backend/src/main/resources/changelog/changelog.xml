@@ -56,6 +56,9 @@
             <column name="period_type" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+            <column name="category" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
             <column name="amount" type="DECIMAL(10,2)">
                 <constraints nullable="false"/>
             </column>
@@ -66,6 +69,39 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <sql>
+            CREATE UNIQUE INDEX uq_limit_general ON limits(user_id, period_type) WHERE category IS NULL AND is_active = true;
+            CREATE UNIQUE INDEX uq_limit_category ON limits(user_id, period_type, category) WHERE category IS NOT NULL AND is_active = true;
+        </sql>
+    </changeSet>
+    <changeSet id="create-shared-limits" author="Marcin Parśniak">
+        <createTable tableName="shared_limits">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="period_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="amount" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>
+            CREATE UNIQUE INDEX uq_shared_limit_general ON shared_limits(owner_id, member_id, period_type) WHERE category IS NULL AND is_active = true;
+            CREATE UNIQUE INDEX uq_shared_limit_category ON shared_limits(owner_id, member_id, period_type, category) WHERE category IS NOT NULL AND is_active = true;
+        </sql>
     </changeSet>
 
     <changeSet id="create-expenses" author="Marcin Parśniak">
