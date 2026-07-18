@@ -41,6 +41,9 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userId = :userId AND e.createdAt >= :startDate AND e.createdAt <= :endDate")
     Optional<BigDecimal> sumExpensesByUserAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
 
+    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userId = :userId AND e.createdAt >= :startDate AND e.createdAt <= :endDate AND e.category = :expenseCategory")
+    Optional<BigDecimal> sumExpensesByUserAndDateRangeAndCategory(Long userId, LocalDate startDate, LocalDate endDate, ExpenseCategory expenseCategory);
+
     @Query("SELECT CAST(AVG(e.amount) AS big_decimal) FROM Expense e WHERE e.userId = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
     Optional<BigDecimal> avgExpensesByUserIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
