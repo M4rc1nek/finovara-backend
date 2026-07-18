@@ -1,6 +1,7 @@
 package com.finovara.financeservice.limit.model;
 
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,6 +23,9 @@ public class Limit {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PeriodType periodType;
+
+    @Enumerated(EnumType.STRING)
+    private ExpenseCategory category;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
