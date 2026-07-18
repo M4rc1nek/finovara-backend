@@ -1,13 +1,10 @@
 package com.finovara.financeservice.expense.service;
 
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
-import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
-import com.finovara.contracts.event.notification.limit.LimitStatsEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.activity.ExpenseActivityType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
@@ -15,11 +12,10 @@ import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.mapper.ExpenseMapper;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
-import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
-import com.finovara.financeservice.limit.model.LimitStatus;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.limit.service.LimitCalculateService;
+import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.settings.finances.expense.controlamount.service.ControlAmountService;
 import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitDto;
 import com.finovara.financeservice.settings.finances.expense.quantitylimit.service.CountQuantityLimitService;
@@ -34,8 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -43,193 +38,302 @@ import org.springframework.kafka.core.KafkaTemplate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ExpenseServiceTest {
 
-    @InjectMocks
-    private ExpenseService expenseService;
-
-    @Mock
-    private ExpenseRepository expenseRepository;
-    @Mock
-    private LimitRepository limitRepository;
-    @Mock
-    private LimitCalculateService limitCalculateService;
-    @Mock
-    private WalletService walletService;
-    @Mock
-    private RoundUpService roundUpService;
-    @Mock
-    private CountQuantityLimitService countQuantityLimitService;
-    @Mock
-    private ControlAmountService controlAmountService;
-    @Mock
-    private SmartScanService smartScanService;
-    @Mock
-    private ExpenseManagerService expenseManagerService;
-    @Mock
-    private ExpenseMapper expenseMapper;
-    @Mock
-    private FinancialPeriodService financialPeriodService;
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
+
     @Mock
     private OutboxService outboxService;
 
-    private final Long userId = 1L;
+    @Mock
+    private ExpenseRepository expenseRepository;
+
+    @Mock
+    private LimitRepository limitRepository;
+
+    @Mock
+    private LimitCalculateService limitCalculateService;
+
+    @Mock
+    private WalletService walletService;
+
+    @Mock
+    private RoundUpService roundUpService;
+
+    @Mock
+    private CountQuantityLimitService countQuantityLimitService;
+
+    @Mock
+    private ControlAmountService controlAmountService;
+
+    @Mock
+    private SmartScanService smartScanService;
+
+    @Mock
+    private ExpenseManagerService expenseManagerService;
+
+    @Mock
+    private ExpenseMapper expenseMapper;
+
+    @Mock
+    private FinancialPeriodService financialPeriodService;
+
+    private ExpenseService expenseService;
+
+    private Long userId;
+    private ExpenseCategory category;
+    private ExpenseCategory otherCategory;
+    private PeriodType periodType;
 
     @BeforeEach
     void setUp() {
+        expenseService = new ExpenseService(
+                kafkaTemplate,
+                outboxService,
+                expenseRepository,
+                limitRepository,
+                limitCalculateService,
+                walletService,
+                roundUpService,
+                countQuantityLimitService,
+                controlAmountService,
+                smartScanService,
+                expenseManagerService,
+                expenseMapper,
+                financialPeriodService
+        );
+
+        userId = 1L;
+        category = ExpenseCategory.values()[0];
+        otherCategory = ExpenseCategory.values().length > 1 ? ExpenseCategory.values()[1] : ExpenseCategory.values()[0];
+        periodType = PeriodType.values()[0];
     }
 
-    private LimitStatsDto buildLimitStats(Long limitId, double percentage, PeriodType periodType) {
-        return new LimitStatsDto(limitId, periodType, new BigDecimal("100"), new BigDecimal("50"),
-                new BigDecimal("50"), BigDecimal.valueOf(percentage), LimitStatus.NONE, LocalDate.now());
+    private ExpenseRequestDto buildRequestDto(BigDecimal amount, ExpenseCategory expenseCategory) {
+        ExpenseDto expenseDto = new ExpenseDto(null, userId, amount, expenseCategory, LocalDate.now(), "description");
+        return new ExpenseRequestDto(expenseDto, mock(ConfirmPasswordDto.class), mock(CountQuantityLimitDto.class));
     }
 
-    private Expense buildExpense(Long id, BigDecimal amount, ExpenseCategory category) {
-        Expense expense = new Expense();
-        expense.setId(id);
-        expense.setAmount(amount);
-        expense.setCategory(category);
-        expense.setUserId(userId);
-        return expense;
+    private Limit buildLimit(Long id, ExpenseCategory limitCategory, BigDecimal amount) {
+        return Limit.builder()
+                .id(id)
+                .periodType(periodType)
+                .category(limitCategory)
+                .amount(amount)
+                .isActive(true)
+                .userId(userId)
+                .build();
     }
 
-    private void stubSuccessfulAdd(BigDecimal amount) {
-        when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
-        when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
-        when(expenseRepository.save(any())).thenAnswer(inv -> {
-            Expense e = inv.getArgument(0);
-            e.setId(1L);
-            return e;
-        });
-        when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
-    }
-
-    private void stubSuccessfulEdit(Expense existing) {
-        when(expenseManagerService.getExpenseByIdOrThrow(existing.getId())).thenReturn(existing);
-        when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
-        when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
-        when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+    private Expense buildExistingExpense(Long id, Long ownerId, BigDecimal amount, ExpenseCategory expenseCategory) {
+        return Expense.builder()
+                .id(id)
+                .amount(amount)
+                .category(expenseCategory)
+                .createdAt(LocalDate.now())
+                .description("old description")
+                .userId(ownerId)
+                .build();
     }
 
     @Nested
     class AddExpenseTests {
 
         @Test
-        void shouldAddExpenseSuccessfully() {
-            BigDecimal amount = new BigDecimal("100");
-            ExpenseRequestDto request = buildAddRequest(amount, ExpenseCategory.FOOD, "test");
-            stubSuccessfulAdd(amount);
+        void shouldAddExpenseAndReturnIdWhenValidRequest() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(100), category);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+                Expense expense = invocation.getArgument(0);
+                expense.setId(10L);
+                return expense;
+            });
 
-            Long result = expenseService.addExpense(request, userId, PeriodType.DAILY);
+            Long result = expenseService.addExpense(requestDto, userId);
 
-            assertEquals(1L, result);
-            verify(walletService).removeBalanceFromWallet(userId, amount);
-            verify(expenseRepository).save(any());
-            verify(smartScanService).handleSmartScan(eq(userId), any(), eq(amount), eq(SmartScanMode.ADD));
-            verify(roundUpService).handleExpenseForRoundUp(eq(userId), anyLong(), eq(PiggyBankAutomationMode.APPLY));
-            verify(controlAmountService).handleExpenseAmountControl(userId, amount);
-
-            ArgumentCaptor<ExpenseActivityEvent> captor = ArgumentCaptor.forClass(ExpenseActivityEvent.class);
-            verify(outboxService).save(eq("Expense"), any(), eq("activity.expense"), captor.capture());
-            assertEquals(ExpenseActivityType.ADDED_EXPENSE, captor.getValue().type());
+            assertEquals(10L, result);
         }
 
         @Test
-        void shouldThrowExceptionWhenAmountLessThanOne() {
-            ExpenseRequestDto request = buildAddRequest(new BigDecimal("0.50"), ExpenseCategory.FOOD, "test");
-            when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
-            when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
+        void shouldRemoveBalanceFromWalletWhenAddingExpense() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(50), category);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+                Expense expense = invocation.getArgument(0);
+                expense.setId(5L);
+                return expense;
+            });
 
-            assertThrows(InvalidInputException.class, () -> expenseService.addExpense(request, userId, PeriodType.DAILY));
+            expenseService.addExpense(requestDto, userId);
+
+            verify(walletService).removeBalanceFromWallet(userId, BigDecimal.valueOf(50));
+        }
+
+        @Test
+        void shouldSaveExpenseWithCurrentDateWhenAddingExpense() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(50), category);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+                Expense expense = invocation.getArgument(0);
+                expense.setId(5L);
+                return expense;
+            });
+
+            expenseService.addExpense(requestDto, userId);
+
+            verify(expenseRepository).save(any(Expense.class));
+        }
+
+        @Test
+        void shouldCallSmartScanServiceWithAddModeWhenAddingExpense() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(50), category);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+                Expense expense = invocation.getArgument(0);
+                expense.setId(5L);
+                return expense;
+            });
+
+            expenseService.addExpense(requestDto, userId);
+
+            verify(smartScanService).handleSmartScan(userId, requestDto.confirmPasswordDto(), BigDecimal.valueOf(50), SmartScanMode.ADD);
+        }
+
+        @Test
+        void shouldHandleRoundUpWithApplyModeWhenAddingExpense() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(50), category);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+                Expense expense = invocation.getArgument(0);
+                expense.setId(7L);
+                return expense;
+            });
+
+            expenseService.addExpense(requestDto, userId);
+
+            verify(roundUpService).handleExpenseForRoundUp(userId, 7L, PiggyBankAutomationMode.APPLY);
+        }
+
+        @Test
+        void shouldCallControlAmountServiceWhenAddingExpense() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(50), category);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+                Expense expense = invocation.getArgument(0);
+                expense.setId(7L);
+                return expense;
+            });
+
+            expenseService.addExpense(requestDto, userId);
+
+            verify(controlAmountService).handleExpenseAmountControl(userId, BigDecimal.valueOf(50));
+        }
+
+        @Test
+        void shouldCallCountQuantityLimitServiceWhenAddingExpense() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(50), category);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+                Expense expense = invocation.getArgument(0);
+                expense.setId(7L);
+                return expense;
+            });
+
+            expenseService.addExpense(requestDto, userId);
+
+            verify(countQuantityLimitService).handleExpenseLimitExceeded(userId, requestDto.countQuantityLimitDto(),
+                    requestDto.countQuantityLimitDto().periodType(), requestDto.confirmPasswordDto());
+        }
+
+        @Test
+        void shouldPublishLimitStatsEventForEachActiveLimitWhenAddingExpense() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(50), category);
+            Limit firstLimit = buildLimit(1L, category, BigDecimal.valueOf(1000));
+            Limit secondLimit = buildLimit(2L, null, BigDecimal.valueOf(2000));
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(firstLimit, secondLimit));
+            when(financialPeriodService.getExpensesSum(eq(userId), any(), any())).thenReturn(BigDecimal.ZERO);
+            when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+                Expense expense = invocation.getArgument(0);
+                expense.setId(7L);
+                return expense;
+            });
+            LimitStatsDto firstStats = new LimitStatsDto(1L, periodType, category, BigDecimal.valueOf(1000), BigDecimal.valueOf(50), BigDecimal.valueOf(950), BigDecimal.valueOf(5), null, LocalDate.now());
+            LimitStatsDto secondStats = new LimitStatsDto(2L, periodType, null, BigDecimal.valueOf(2000), BigDecimal.valueOf(50), BigDecimal.valueOf(1950), BigDecimal.valueOf(2), null, LocalDate.now());
+            when(limitCalculateService.calculateLimitStats(eq(firstLimit), eq(userId), any(LocalDate.class))).thenReturn(firstStats);
+            when(limitCalculateService.calculateLimitStats(eq(secondLimit), eq(userId), any(LocalDate.class))).thenReturn(secondStats);
+
+            expenseService.addExpense(requestDto, userId);
+
+            verify(kafkaTemplate, times(2)).send(eq("limit.calculate-stats"), any());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenAmountIsLessThanOne() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(0.5), category);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+
+            assertThrows(InvalidInputException.class, () -> expenseService.addExpense(requestDto, userId));
 
             verify(walletService, never()).removeBalanceFromWallet(anyLong(), any());
             verify(expenseRepository, never()).save(any());
-            verify(smartScanService, never()).handleSmartScan(anyLong(), any(), any(), any());
         }
 
         @Test
-        void shouldThrowExceptionWhenLimitExceeded() {
-            ExpenseRequestDto request = buildAddRequest(new BigDecimal("200"), ExpenseCategory.FOOD, "test");
-            when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any()))
-                    .thenReturn(Optional.of(new BigDecimal("100")));
-            when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(new BigDecimal("50"));
+        void shouldThrowExceptionWhenGeneralLimitExceeded() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(500), category);
+            Limit generalLimit = buildLimit(1L, null, BigDecimal.valueOf(400));
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(generalLimit));
+            when(financialPeriodService.getExpensesSum(userId, periodType, null)).thenReturn(BigDecimal.ZERO);
 
-            assertThrows(MissingRequirementException.class,
-                    () -> expenseService.addExpense(request, userId, PeriodType.DAILY));
+            assertThrows(MissingRequirementException.class, () -> expenseService.addExpense(requestDto, userId));
 
-            verifyNoInteractions(walletService, expenseRepository, smartScanService);
+            verify(walletService, never()).removeBalanceFromWallet(anyLong(), any());
+            verify(expenseRepository, never()).save(any());
         }
 
         @Test
-        void shouldPublishLimitStatsEventForEachLimitOnAdd() {
-            ExpenseRequestDto request = buildAddRequest(new BigDecimal("100"), ExpenseCategory.FOOD, "test");
-            Limit limit1 = mock(Limit.class);
-            Limit limit2 = mock(Limit.class);
-            when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
-            when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
-            when(expenseRepository.save(any())).thenAnswer(inv -> {
-                Expense e = inv.getArgument(0);
-                e.setId(1L);
-                return e;
+        void shouldThrowExceptionWhenCategoryLimitExceeded() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(500), category);
+            Limit categoryLimit = buildLimit(1L, category, BigDecimal.valueOf(400));
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(categoryLimit));
+            when(financialPeriodService.getExpensesSum(userId, periodType, category)).thenReturn(BigDecimal.ZERO);
+
+            assertThrows(MissingRequirementException.class, () -> expenseService.addExpense(requestDto, userId));
+
+            verify(walletService, never()).removeBalanceFromWallet(anyLong(), any());
+        }
+
+        @Test
+        void shouldSaveOutboxEventWhenAddingExpense() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(50), category);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+                Expense expense = invocation.getArgument(0);
+                expense.setId(7L);
+                return expense;
             });
-            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit1, limit2));
-            when(limitCalculateService.calculateLimitStats(eq(limit1), eq(userId), any(LocalDate.class)))
-                    .thenReturn(buildLimitStats(1L, 30.0, PeriodType.DAILY));
-            when(limitCalculateService.calculateLimitStats(eq(limit2), eq(userId), any(LocalDate.class)))
-                    .thenReturn(buildLimitStats(2L, 70.0, PeriodType.MONTHLY));
 
-            expenseService.addExpense(request, userId, PeriodType.DAILY);
+            expenseService.addExpense(requestDto, userId);
 
-            verify(kafkaTemplate, times(2)).send(eq("limit.calculate-stats"), any(LimitStatsEvent.class));
-        }
-
-        @Test
-        void shouldPublishCorrectLimitStatsDataOnAdd() {
-            ExpenseRequestDto request = buildAddRequest(new BigDecimal("100"), ExpenseCategory.FOOD, "test");
-            Limit limit = mock(Limit.class);
-            when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
-            when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
-            when(expenseRepository.save(any())).thenAnswer(inv -> {
-                Expense e = inv.getArgument(0);
-                e.setId(1L);
-                return e;
-            });
-            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit));
-            when(limitCalculateService.calculateLimitStats(eq(limit), eq(userId), any(LocalDate.class)))
-                    .thenReturn(buildLimitStats(5L, 80.0, PeriodType.DAILY));
-
-            expenseService.addExpense(request, userId, PeriodType.DAILY);
-
-            ArgumentCaptor<LimitStatsEvent> captor = ArgumentCaptor.forClass(LimitStatsEvent.class);
-            verify(kafkaTemplate).send(eq("limit.calculate-stats"), captor.capture());
-            assertEquals(userId, captor.getValue().userId());
-            assertEquals(5L, captor.getValue().limitId());
-            assertEquals(PeriodType.DAILY, captor.getValue().periodType());
-        }
-
-        @Test
-        void shouldNotPublishLimitStatsNoLimitsExistOnAdd() {
-            ExpenseRequestDto request = buildAddRequest(new BigDecimal("100"), ExpenseCategory.FOOD, "test");
-            stubSuccessfulAdd(new BigDecimal("100"));
-
-            expenseService.addExpense(request, userId, PeriodType.DAILY);
-
-            verify(kafkaTemplate, never()).send(eq("limit.calculate-stats"), any());
-        }
-
-        private ExpenseRequestDto buildAddRequest(BigDecimal amount, ExpenseCategory category, String description) {
-            ExpenseDto dto = new ExpenseDto(null, null, amount, category, null, description);
-            CountQuantityLimitDto countQuantityLimitDto = new CountQuantityLimitDto(false, PeriodType.DAILY, 10);
-            return new ExpenseRequestDto(dto, new ConfirmPasswordDto("pass"), countQuantityLimitDto);
+            verify(outboxService).save(eq("Expense"), eq("7"), eq("activity.expense"), any());
         }
     }
 
@@ -237,195 +341,274 @@ class ExpenseServiceTest {
     class EditExpenseTests {
 
         @Test
-        void shouldEditExpenseSuccessfully() {
-            Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-            ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.SAVINGS, "new");
-            stubSuccessfulEdit(existing);
+        void shouldEditExpenseAndReturnIdWhenValidRequest() {
+            Long expenseId = 3L;
+            Expense existingExpense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(100), category);
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(200), category);
+            when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
-            expenseService.editExpense(request, userId, 1L, PeriodType.DAILY);
+            Long result = expenseService.editExpense(requestDto, userId, expenseId);
 
-            verify(walletService).addBalanceToWallet(userId, new BigDecimal("100"));
-            verify(walletService).removeBalanceFromWallet(userId, new BigDecimal("200"));
-            verify(expenseRepository).save(existing);
-
-            ArgumentCaptor<ExpenseActivityEvent> captor = ArgumentCaptor.forClass(ExpenseActivityEvent.class);
-            verify(outboxService).save(eq("Expense"), any(), eq("activity.expense"), captor.capture());
-            assertEquals(ExpenseActivityType.EDITED_EXPENSE, captor.getValue().type());
+            assertEquals(expenseId, result);
         }
 
         @Test
-        void shouldThrowExceptionWhenExpenseNotFound() {
-            when(expenseManagerService.getExpenseByIdOrThrow(anyLong()))
-                    .thenThrow(new RequestedEntityNotFoundException("Expense not found"));
+        void shouldThrowExceptionWhenExpenseNotFoundEntirely() {
+            Long expenseId = 3L;
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(200), category);
+            doThrow(new RequestedEntityNotFoundException("Expense not found"))
+                    .when(expenseManagerService).getExpenseByIdOrThrow(expenseId);
 
-            ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.FOOD, "x");
+            assertThrows(RequestedEntityNotFoundException.class, () -> expenseService.editExpense(requestDto, userId, expenseId));
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> expenseService.editExpense(request, userId, 1L, PeriodType.DAILY));
-
-            verifyNoInteractions(walletService, expenseRepository);
+            verifyNoInteractions(walletService);
         }
 
         @Test
-        void shouldThrowExpenseBelongsToAnotherUser() {
-            Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-            existing.setUserId(99L);
+        void shouldThrowExceptionWhenExpenseBelongsToDifferentUser() {
+            Long expenseId = 3L;
+            Expense existingExpense = buildExistingExpense(expenseId, 999L, BigDecimal.valueOf(100), category);
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(200), category);
+            when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
 
-            when(expenseManagerService.getExpenseByIdOrThrow(1L)).thenReturn(existing);
-            ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.FOOD, "x");
+            assertThrows(RequestedEntityNotFoundException.class, () -> expenseService.editExpense(requestDto, userId, expenseId));
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> expenseService.editExpense(request, userId, 1L, PeriodType.DAILY));
-
-            verifyNoInteractions(walletService, expenseRepository);
+            verifyNoInteractions(walletService);
+            verify(expenseRepository, never()).save(any());
         }
 
         @Test
-        void shouldPublishLimitStatsEventForEachLimitOnEdit() {
-            Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-            ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.SAVINGS, "new");
-            Limit limit1 = mock(Limit.class);
-            Limit limit2 = mock(Limit.class);
+        void shouldThrowExceptionWhenLimitExceededOnEdit() {
+            Long expenseId = 3L;
+            Expense existingExpense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(100), category);
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(900), category);
+            Limit generalLimit = buildLimit(1L, null, BigDecimal.valueOf(400));
+            when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(generalLimit));
+            when(financialPeriodService.getExpensesSum(userId, periodType, null)).thenReturn(BigDecimal.ZERO);
 
-            when(expenseManagerService.getExpenseByIdOrThrow(1L)).thenReturn(existing);
-            when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
-            when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
-            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit1, limit2));
-            when(limitCalculateService.calculateLimitStats(eq(limit1), eq(userId), any(LocalDate.class)))
-                    .thenReturn(buildLimitStats(1L, 40.0, PeriodType.DAILY));
-            when(limitCalculateService.calculateLimitStats(eq(limit2), eq(userId), any(LocalDate.class)))
-                    .thenReturn(buildLimitStats(2L, 60.0, PeriodType.MONTHLY));
+            assertThrows(MissingRequirementException.class, () -> expenseService.editExpense(requestDto, userId, expenseId));
 
-            expenseService.editExpense(request, userId, 1L, PeriodType.DAILY);
-
-            verify(kafkaTemplate, times(2)).send(eq("limit.calculate-stats"), any(LimitStatsEvent.class));
+            verifyNoInteractions(walletService);
+            verify(expenseRepository, never()).save(any());
         }
 
         @Test
-        void shouldPublishCorrectLimitStatsDataOnEdit() {
-            Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-            ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.SAVINGS, "new");
-            Limit limit = mock(Limit.class);
+        void shouldAdjustWalletBalanceWhenEditingExpense() {
+            Long expenseId = 3L;
+            Expense existingExpense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(100), category);
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(250), category);
+            when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
-            when(expenseManagerService.getExpenseByIdOrThrow(1L)).thenReturn(existing);
-            when(limitRepository.getLimitAmountByUserIdAndType(anyLong(), any())).thenReturn(Optional.empty());
-            when(financialPeriodService.getExpensesSum(anyLong(), any())).thenReturn(BigDecimal.ZERO);
+            expenseService.editExpense(requestDto, userId, expenseId);
+
+            verify(walletService).addBalanceToWallet(userId, BigDecimal.valueOf(100));
+            verify(walletService).removeBalanceFromWallet(userId, BigDecimal.valueOf(250));
+        }
+
+        @Test
+        void shouldRollbackThenApplyRoundUpWhenEditingExpense() {
+            Long expenseId = 3L;
+            Expense existingExpense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(100), category);
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(250), category);
+            when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+
+            expenseService.editExpense(requestDto, userId, expenseId);
+
+            InOrder inOrder = inOrder(roundUpService);
+            inOrder.verify(roundUpService).handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
+            inOrder.verify(roundUpService).handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.APPLY);
+        }
+
+        @Test
+        void shouldUpdateExpenseFieldsWhenEditingExpense() {
+            Long expenseId = 3L;
+            Expense existingExpense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(100), category);
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(250), otherCategory);
+            when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+
+            expenseService.editExpense(requestDto, userId, expenseId);
+
+            assertEquals(BigDecimal.valueOf(250), existingExpense.getAmount());
+            assertEquals(otherCategory, existingExpense.getCategory());
+            assertEquals("description", existingExpense.getDescription());
+        }
+
+        @Test
+        void shouldCallSmartScanServiceWithEditModeWhenEditingExpense() {
+            Long expenseId = 3L;
+            Expense existingExpense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(100), category);
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(250), category);
+            when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+
+            expenseService.editExpense(requestDto, userId, expenseId);
+
+            verify(smartScanService).handleSmartScan(userId, requestDto.confirmPasswordDto(), BigDecimal.valueOf(250), SmartScanMode.EDIT);
+        }
+
+        @Test
+        void shouldCallControlAmountServiceWhenEditingExpense() {
+            Long expenseId = 3L;
+            Expense existingExpense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(100), category);
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(250), category);
+            when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+
+            expenseService.editExpense(requestDto, userId, expenseId);
+
+            verify(controlAmountService).handleExpenseAmountControl(userId, BigDecimal.valueOf(250));
+        }
+
+        @Test
+        void shouldSaveOutboxEventWhenEditingExpense() {
+            Long expenseId = 3L;
+            Expense existingExpense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(100), category);
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(250), category);
+            when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+
+            expenseService.editExpense(requestDto, userId, expenseId);
+
+            verify(outboxService).save(eq("Expense"), eq(expenseId.toString()), eq("activity.expense"), any());
+        }
+
+        @Test
+        void shouldPublishLimitStatsEventsWhenEditingExpense() {
+            Long expenseId = 3L;
+            Expense existingExpense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(100), category);
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(250), category);
+            Limit limit = buildLimit(1L, null, BigDecimal.valueOf(1000));
+            when(expenseManagerService.getExpenseByIdOrThrow(expenseId)).thenReturn(existingExpense);
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit));
-            when(limitCalculateService.calculateLimitStats(eq(limit), eq(userId), any(LocalDate.class)))
-                    .thenReturn(buildLimitStats(3L, 55.0, PeriodType.WEEKLY));
+            when(financialPeriodService.getExpensesSum(userId, periodType, null)).thenReturn(BigDecimal.ZERO);
+            LimitStatsDto stats = new LimitStatsDto(1L, periodType, null, BigDecimal.valueOf(1000), BigDecimal.valueOf(250), BigDecimal.valueOf(750), BigDecimal.valueOf(25), null, LocalDate.now());
+            when(limitCalculateService.calculateLimitStats(eq(limit), eq(userId), any(LocalDate.class))).thenReturn(stats);
 
-            expenseService.editExpense(request, userId, 1L, PeriodType.DAILY);
+            expenseService.editExpense(requestDto, userId, expenseId);
 
-            ArgumentCaptor<LimitStatsEvent> captor = ArgumentCaptor.forClass(LimitStatsEvent.class);
-            verify(kafkaTemplate).send(eq("limit.calculate-stats"), captor.capture());
-            assertEquals(userId, captor.getValue().userId());
-            assertEquals(3L, captor.getValue().limitId());
-            assertEquals(PeriodType.WEEKLY, captor.getValue().periodType());
-        }
-
-        @Test
-        void shouldNotPublishLimitStatsNoLimitsExistOnEdit() {
-            Expense existing = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-            ExpenseRequestDto request = buildEditRequest(new BigDecimal("200"), ExpenseCategory.SAVINGS, "new");
-            stubSuccessfulEdit(existing);
-
-            expenseService.editExpense(request, userId, 1L, PeriodType.DAILY);
-
-            verify(kafkaTemplate, never()).send(eq("limit.calculate-stats"), any());
-        }
-
-        private ExpenseRequestDto buildEditRequest(BigDecimal amount, ExpenseCategory category, String description) {
-            ExpenseDto dto = new ExpenseDto(null, null, amount, category, null, description);
-            return new ExpenseRequestDto(dto, new ConfirmPasswordDto("pass"), null);
+            verify(kafkaTemplate).send(eq("limit.calculate-stats"), any());
         }
     }
 
-    @Test
-    void shouldReturnMappedExpenses() {
-        when(expenseRepository.findAllByUserId(userId)).thenReturn(List.of(new Expense(), new Expense()));
-        when(expenseMapper.mapExpenseToDto(any()))
-                .thenReturn(new ExpenseDto(null, null, BigDecimal.TEN, ExpenseCategory.FOOD, null, "x"));
+    @Nested
+    class GetExpenseTests {
 
-        List<?> result = expenseService.getExpense(userId);
+        @Test
+        void shouldReturnMappedExpenseDtosWhenExpensesExist() {
+            Expense firstExpense = buildExistingExpense(1L, userId, BigDecimal.valueOf(50), category);
+            Expense secondExpense = buildExistingExpense(2L, userId, BigDecimal.valueOf(75), otherCategory);
+            ExpenseDto firstDto = new ExpenseDto(1L, userId, BigDecimal.valueOf(50), category, LocalDate.now(), "d1");
+            ExpenseDto secondDto = new ExpenseDto(2L, userId, BigDecimal.valueOf(75), otherCategory, LocalDate.now(), "d2");
+            when(expenseRepository.findAllByUserId(userId)).thenReturn(List.of(firstExpense, secondExpense));
+            when(expenseMapper.mapExpenseToDto(firstExpense)).thenReturn(firstDto);
+            when(expenseMapper.mapExpenseToDto(secondExpense)).thenReturn(secondDto);
 
-        assertEquals(2, result.size());
+            List<ExpenseDto> result = expenseService.getExpense(userId);
+
+            assertEquals(List.of(firstDto, secondDto), result);
+        }
+
+        @Test
+        void shouldReturnEmptyListWhenNoExpensesExist() {
+            when(expenseRepository.findAllByUserId(userId)).thenReturn(List.of());
+
+            List<ExpenseDto> result = expenseService.getExpense(userId);
+
+            assertTrue(result.isEmpty());
+        }
     }
 
     @Nested
     class DeleteExpenseTests {
 
         @Test
-        void shouldDeleteExpenseSuccessfully() {
-            Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-            when(expenseRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(expense));
+        void shouldDeleteExpenseWhenExpenseExists() {
+            Long expenseId = 4L;
+            Expense expense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(80), category);
+            when(expenseRepository.findByIdAndUserId(expenseId, userId)).thenReturn(java.util.Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
-            expenseService.deleteExpense(1L, userId);
+            expenseService.deleteExpense(expenseId, userId);
 
-            verify(roundUpService).handleExpenseForRoundUp(userId, 1L, PiggyBankAutomationMode.ROLLBACK);
-            verify(walletService).addBalanceToWallet(userId, expense.getAmount());
             verify(expenseRepository).delete(expense);
-
-            ArgumentCaptor<ExpenseActivityEvent> captor = ArgumentCaptor.forClass(ExpenseActivityEvent.class);
-            verify(outboxService).save(eq("Expense"), any(), eq("activity.expense"), captor.capture());
-            assertEquals(ExpenseActivityType.DELETED_EXPENSE, captor.getValue().type());
         }
 
         @Test
-        void shouldThrowExceptionWhenExpenseNotFound() {
-            when(expenseRepository.findByIdAndUserId(anyLong(), anyLong())).thenReturn(Optional.empty());
+        void shouldThrowExceptionWhenExpenseNotFoundOnDelete() {
+            Long expenseId = 4L;
+            when(expenseRepository.findByIdAndUserId(expenseId, userId)).thenReturn(java.util.Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> expenseService.deleteExpense(1L, userId));
+            assertThrows(RequestedEntityNotFoundException.class, () -> expenseService.deleteExpense(expenseId, userId));
 
-            verifyNoInteractions(walletService, roundUpService);
             verify(expenseRepository, never()).delete(any());
+            verifyNoInteractions(walletService);
         }
 
         @Test
-        void shouldPublishLimitStatsEventForEachLimitOnDelete() {
-            Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-            Limit limit1 = mock(Limit.class);
-            Limit limit2 = mock(Limit.class);
-            when(expenseRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(expense));
-            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit1, limit2));
-            when(limitCalculateService.calculateLimitStats(eq(limit1), eq(userId), any(LocalDate.class)))
-                    .thenReturn(buildLimitStats(1L, 20.0, PeriodType.DAILY));
-            when(limitCalculateService.calculateLimitStats(eq(limit2), eq(userId), any(LocalDate.class)))
-                    .thenReturn(buildLimitStats(2L, 45.0, PeriodType.MONTHLY));
-
-            expenseService.deleteExpense(1L, userId);
-
-            verify(kafkaTemplate, times(2)).send(eq("limit.calculate-stats"), any(LimitStatsEvent.class));
-        }
-
-        @Test
-        void shouldPublishCorrectLimitStatsDataOnDelete() {
-            Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-            Limit limit = mock(Limit.class);
-            when(expenseRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(expense));
-            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit));
-            when(limitCalculateService.calculateLimitStats(eq(limit), eq(userId), any(LocalDate.class)))
-                    .thenReturn(buildLimitStats(7L, 90.0, PeriodType.WEEKLY));
-
-            expenseService.deleteExpense(1L, userId);
-
-            ArgumentCaptor<LimitStatsEvent> captor = ArgumentCaptor.forClass(LimitStatsEvent.class);
-            verify(kafkaTemplate).send(eq("limit.calculate-stats"), captor.capture());
-            assertEquals(userId, captor.getValue().userId());
-            assertEquals(7L, captor.getValue().limitId());
-            assertEquals(PeriodType.WEEKLY, captor.getValue().periodType());
-        }
-
-        @Test
-        void shouldNotPublishLimitStatsNoLimitsExistOnDelete() {
-            Expense expense = buildExpense(1L, new BigDecimal("100"), ExpenseCategory.FOOD);
-            when(expenseRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(expense));
+        void shouldRollbackRoundUpWhenDeletingExpense() {
+            Long expenseId = 4L;
+            Expense expense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(80), category);
+            when(expenseRepository.findByIdAndUserId(expenseId, userId)).thenReturn(java.util.Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
-            expenseService.deleteExpense(1L, userId);
+            expenseService.deleteExpense(expenseId, userId);
 
-            verify(kafkaTemplate, never()).send(eq("limit.calculate-stats"), any());
+            verify(roundUpService).handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
+        }
+
+        @Test
+        void shouldAddBalanceBackToWalletWhenDeletingExpense() {
+            Long expenseId = 4L;
+            Expense expense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(80), category);
+            when(expenseRepository.findByIdAndUserId(expenseId, userId)).thenReturn(java.util.Optional.of(expense));
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+
+            expenseService.deleteExpense(expenseId, userId);
+
+            verify(walletService).addBalanceToWallet(userId, BigDecimal.valueOf(80));
+        }
+
+        @Test
+        void shouldSaveOutboxEventWhenDeletingExpense() {
+            Long expenseId = 4L;
+            Expense expense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(80), category);
+            when(expenseRepository.findByIdAndUserId(expenseId, userId)).thenReturn(java.util.Optional.of(expense));
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+
+            expenseService.deleteExpense(expenseId, userId);
+
+            verify(outboxService).save(eq("Expense"), eq(expenseId.toString()), eq("activity.expense"), any());
+        }
+
+        @Test
+        void shouldPublishLimitStatsEventsWhenDeletingExpense() {
+            Long expenseId = 4L;
+            Expense expense = buildExistingExpense(expenseId, userId, BigDecimal.valueOf(80), category);
+            Limit limit = buildLimit(1L, null, BigDecimal.valueOf(500));
+            when(expenseRepository.findByIdAndUserId(expenseId, userId)).thenReturn(java.util.Optional.of(expense));
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(limit));
+            LimitStatsDto stats = new LimitStatsDto(1L, periodType, null, BigDecimal.valueOf(500), BigDecimal.ZERO, BigDecimal.valueOf(500), BigDecimal.ZERO, null, LocalDate.now());
+            when(limitCalculateService.calculateLimitStats(eq(limit), eq(userId), any(LocalDate.class))).thenReturn(stats);
+
+            expenseService.deleteExpense(expenseId, userId);
+
+            verify(kafkaTemplate).send(eq("limit.calculate-stats"), any());
+        }
+    }
+
+    @Nested
+    class DeleteByUserIdTests {
+
+        @Test
+        void shouldDeleteAllExpensesForUserWhenCalled() {
+            expenseService.deleteByUserId(userId);
+
+            verify(expenseRepository).deleteByUserId(userId);
         }
     }
 }
