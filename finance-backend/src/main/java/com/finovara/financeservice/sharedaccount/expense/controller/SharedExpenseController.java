@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/shared/transactions/expense")
+@RequestMapping("/api/shared-accounts/transactions/expense")
 @RequiredArgsConstructor
 public class SharedExpenseController {
 
