@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/shared/transactions/revenue")
+@RequestMapping("/api/shared-accounts/transactions/revenue")
 @RequiredArgsConstructor
 public class SharedRevenueController {
     private final SharedRevenueService sharedRevenueService;
