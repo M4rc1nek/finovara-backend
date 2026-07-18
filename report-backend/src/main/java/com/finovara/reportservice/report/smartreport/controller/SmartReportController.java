@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/reports/smart-report")
+@RequestMapping("/api/reports/smart-report")
 @RequiredArgsConstructor
 public class SmartReportController {
 
