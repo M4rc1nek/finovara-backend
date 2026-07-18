@@ -6,6 +6,7 @@ import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundExceptio
 import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
+import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
 import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
 import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
@@ -30,6 +31,7 @@ public class SharedAccountDeletionFinanceDataService {
     private final SharedRevenueRepository sharedRevenueRepository;
     private final SharedWalletRepository sharedWalletRepository;
     private final SharedPiggyBankRepository sharedPiggyBankRepository;
+    private final SharedLimitRepository sharedLimitRepository;
     private final OutboxService outboxService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -45,10 +47,7 @@ public class SharedAccountDeletionFinanceDataService {
 
         refundContributedRevenue(event);
 
-        sharedExpenseRepository.deleteAllByOwnerIdAndMemberId(ownerId, memberId);
-        sharedRevenueRepository.deleteAllByOwnerIdAndMemberId(ownerId, memberId);
-        sharedWalletRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
-        sharedPiggyBankRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
+        deleteSharedFinancialData(ownerId, memberId);
 
         log.info("Deleted shared financial data for accountId={}, ownerId={}, memberId={}",
                 event.accountId(), ownerId, memberId);
@@ -118,6 +117,14 @@ public class SharedAccountDeletionFinanceDataService {
         boolean isNegative() {
             return net().compareTo(BigDecimal.ZERO) < 0;
         }
+    }
+
+    private void deleteSharedFinancialData(Long ownerId, Long memberId) {
+        sharedExpenseRepository.deleteAllByOwnerIdAndMemberId(ownerId, memberId);
+        sharedRevenueRepository.deleteAllByOwnerIdAndMemberId(ownerId, memberId);
+        sharedWalletRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
+        sharedPiggyBankRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
+        sharedLimitRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
     }
 
     private record RefundInstruction(Long userId, String coFounderUsername, String coFounderEmail,
