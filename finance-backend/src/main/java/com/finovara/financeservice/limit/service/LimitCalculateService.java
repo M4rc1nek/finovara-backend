@@ -22,7 +22,7 @@ public class LimitCalculateService {
     private final LimitMapper limitMapper;
 
     public LimitStatsDto calculateLimitStats(Limit limit, Long userId, LocalDate date) {
-        BigDecimal spent = financialPeriodService.getExpensesSum(userId, limit.getPeriodType());
+        BigDecimal spent = financialPeriodService.getExpensesSum(userId, limit.getPeriodType(), limit.getCategory());
 
         BigDecimal remaining = limit.getAmount().subtract(spent);
         if (remaining.compareTo(BigDecimal.ZERO) < 0) {
