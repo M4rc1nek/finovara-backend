@@ -47,6 +47,31 @@
         <addUniqueConstraint tableName="shared_wallets" columnNames="owner_id, member_id" constraintName="uk_shared_wallets_owner_member"/>
     </changeSet>
 
+    <changeSet id="create-shared-notes-table" author="Marcin Parśniak">
+        <createTable tableName="shared_notes">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="topic" type="VARCHAR(40)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="description" type="VARCHAR(600)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 
     <changeSet id="create-limits" author="Marcin Parśniak">
         <createTable tableName="limits">
@@ -324,7 +349,6 @@
         <createIndex tableName="shared_wallets" indexName="idx_shared_wallets_member_id">
             <column name="member_id"/>
         </createIndex>
-
         <createIndex tableName="shared_revenues" indexName="idx_shared_revenues_owner_id">
             <column name="owner_id"/>
         </createIndex>
@@ -338,5 +362,24 @@
         <createIndex tableName="shared_expenses" indexName="idx_shared_expenses_member_id">
             <column name="member_id"/>
         </createIndex>
+        <createIndex tableName="shared_piggybanks" indexName="idx_shared_piggybanks_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_piggybanks" indexName="idx_shared_piggybanks_member_id">
+            <column name="member_id"/>
+        </createIndex>
+        <createIndex tableName="shared_limits" indexName="idx_shared_limits_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_limits" indexName="idx_shared_limits_member_id">
+            <column name="member_id"/>
+        </createIndex>
+        <createIndex tableName="shared_notes" indexName="idx_shared_notes_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_notes" indexName="idx_shared_notes_member_id">
+            <column name="member_id"/>
+        </createIndex>
+
     </changeSet>
 </databaseChangeLog>
