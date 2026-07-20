@@ -1,4 +1,8 @@
 package com.finovara.financeservice.sharedaccount.note.dto;
 
-public class SharedAccountNoteResponse {
+public record SharedAccountNoteResponse(
+        Long noteId,
+        Long userId,
+        String username
+){
 }
