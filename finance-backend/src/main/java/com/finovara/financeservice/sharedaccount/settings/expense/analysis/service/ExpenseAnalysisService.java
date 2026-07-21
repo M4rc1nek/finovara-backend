@@ -1,66 +1,55 @@
 package com.finovara.financeservice.sharedaccount.settings.expense.analysis.service;
 
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
-import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
-import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.financeservice.exception.conflict.SmartScanConfirmationRequiredException;
-import com.finovara.financeservice.expense.model.Expense;
-import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
-import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
-import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
-import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.SmartScanDto;
-import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.SmartScanMode;
+import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
+import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
+import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
+import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
+import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisDto;
+import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisMode;
+import com.finovara.financeservice.util.settings.ExpenseAnomalyDetector;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SmartScanService {
+public class ExpenseAnalysisService {
 
-    private static final int SCAN_INTERVAL = 5;
+    private static final int SCAN_INTERVAL = 10;
     private static final BigDecimal ANOMALY_MULTIPLIER = BigDecimal.valueOf(3);
 
-    private final ExpenseSettingsRepository expenseSettingsRepository;
-    private final ExpenseRepository expenseRepository;
+    private final SharedAccountSettingsRepository sharedAccountSettingsRepository;
+    private final SharedExpenseRepository sharedExpenseRepository;
     private final AuthBackendClient authBackendClient;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final ExpenseAnomalyDetector expenseAnomalyDetector;
 
     @Transactional
-    public void saveSmartScan(Long userId, SmartScanDto settings) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+    public void saveExpenseAnalysis(Long userId, ExpenseAnalysisDto settings) {
+        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
 
-        expenseSettings.setSmartScanEnabled(settings.smartScanEnabled());
-        if (expenseSettings.isSmartScanEnabled()) {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.EXPENSE_SMART_SCAN, SettingActivityStatus.ENABLED, LocalDateTime.now()));
-        } else {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.EXPENSE_SMART_SCAN, SettingActivityStatus.DISABLED, LocalDateTime.now()));
-        }
+        sharedAccountSettings.setExpenseAnalysisEnabled(settings.expenseAnalysisEnabled());
     }
 
     @Transactional
-    public SmartScanDto getSmartScan(Long userId) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+    public ExpenseAnalysisDto getExpenseAnalysis(Long userId) {
+        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
 
-        return new SmartScanDto(expenseSettings.isSmartScanEnabled());
+        return new ExpenseAnalysisDto(sharedAccountSettings.isExpenseAnalysisEnabled());
     }
 
     @Transactional
-    public void handleSmartScan(Long userId, ConfirmPasswordDto confirmPasswordDto, BigDecimal newExpenseAmount, SmartScanMode mode) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+    public void handleExpenseAnalysis(Long userId, ConfirmPasswordDto confirmPasswordDto, BigDecimal newExpenseAmount, ExpenseAnalysisMode mode) {
+        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
 
-        if (!expenseSettings.isSmartScanEnabled()) return;
+        if (!sharedAccountSettings.isExpenseAnalysisEnabled()) return;
 
         boolean shouldScan = calculateQuantityExpense(userId, mode);
 
@@ -69,33 +58,24 @@ public class SmartScanService {
         BigDecimal expenseAnomalyThreshold = calculateAnomalyThreshold(userId);
 
         if (newExpenseAmount.compareTo(expenseAnomalyThreshold) > 0) {
-            requirePasswordConfirmation(userId, confirmPasswordDto);
+            expenseAnomalyDetector.requirePasswordConfirmation(userId, confirmPasswordDto, authBackendClient);
         }
     }
 
-    private boolean calculateQuantityExpense(Long userId, SmartScanMode mode) {
-        long expenseCount = expenseRepository.countExpensesByUserId(userId);
+    private boolean calculateQuantityExpense(Long userId, ExpenseAnalysisMode mode) {
+        long expenseCount = sharedExpenseRepository.countExpensesByUserId(userId);
 
         return switch (mode) {
             case ADD -> (expenseCount + 1) % SCAN_INTERVAL == 0;
-            case EDIT -> expenseCount % 5 == 0;
+            case EDIT -> expenseCount % SCAN_INTERVAL == 0;
         };
     }
 
     private BigDecimal calculateAnomalyThreshold(Long userId) {
-        List<Expense> expenses = expenseRepository.findFiveLastByUserId(userId, PageRequest.of(0, 4));
+        List<SharedExpense> sharedExpenses = sharedExpenseRepository.findTenLastByUserId(userId, PageRequest.of(0, 11));
 
-        BigDecimal averageAmountExpense = expenses.stream().map(Expense::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(expenses.size()), 2, RoundingMode.HALF_UP);
+        List<BigDecimal> amounts = sharedExpenses.stream().map(SharedExpense::getAmount).toList();
 
-        return averageAmountExpense.multiply(ANOMALY_MULTIPLIER);
+        return expenseAnomalyDetector.calculateAnomalyThreshold(amounts, ANOMALY_MULTIPLIER);
     }
-
-    private void requirePasswordConfirmation(Long userId, ConfirmPasswordDto confirmPasswordDto) {
-        if (confirmPasswordDto == null || confirmPasswordDto.password() == null) {
-            throw new SmartScanConfirmationRequiredException("Unusual expense detected. Password confirmation required.");
-        }
-
-            authBackendClient.verifyPassword(userId, confirmPasswordDto);
-    }
-
 }
