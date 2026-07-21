@@ -15,6 +15,9 @@ public interface SharedWalletRepository extends JpaRepository<SharedWallet, Long
     @Query("SELECT sw FROM SharedWallet sw WHERE sw.ownerId = :ownerId OR sw.memberId = :memberId")
     Optional<SharedWallet> findByOwnerIdOrMemberId(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId);
 
+    @Query("SELECT sw FROM SharedWallet sw WHERE sw.ownerId = :userId OR sw.memberId = :userId")
+    SharedWallet findByUserId(Long userId);
+
     @Modifying
     @Query("DELETE FROM SharedWallet sw WHERE sw.ownerId = :ownerId AND sw.memberId = :memberId")
     void deleteByOwnerIdAndMemberId(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId);
