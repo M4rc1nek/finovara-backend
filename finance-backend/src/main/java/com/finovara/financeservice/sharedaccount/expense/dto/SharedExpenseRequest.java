@@ -1,4 +1,10 @@
 package com.finovara.financeservice.sharedaccount.expense.dto;
 
-public class SharedExpenseRequest {
+import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import jakarta.validation.Valid;
+
+public record SharedExpenseRequest(
+       @Valid SharedExpenseDto sharedExpenseDto,
+       ConfirmPasswordDto confirmPasswordDto
+) {
 }
