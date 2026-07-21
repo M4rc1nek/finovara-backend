@@ -3,7 +3,7 @@ package com.finovara.financeservice.settings.finances.recurring.service.validato
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.financeservice.exception.conflict.SmartScanConfirmationRequiredException;
+import com.finovara.financeservice.exception.conflict.ConfirmationRequiredException;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
@@ -230,7 +230,7 @@ class RecurringExpenseValidatorTest {
         void shouldThrowExceptionWhenSmartScanConfirmationRequired() {
             expenseSettings.setSmartScanEnabled(true);
             Wallet wallet = sufficientWallet();
-            doThrow(new SmartScanConfirmationRequiredException("confirmation required"))
+            doThrow(new ConfirmationRequiredException("confirmation required"))
                     .when(smartScanService).handleSmartScan(userId, null, settings.getAmount(), SmartScanMode.ADD);
 
             assertThrows(InvalidInputException.class, () -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
