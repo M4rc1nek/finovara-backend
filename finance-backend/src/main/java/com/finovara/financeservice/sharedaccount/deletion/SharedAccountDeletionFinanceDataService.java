@@ -7,8 +7,10 @@ import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
 import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
+import com.finovara.financeservice.sharedaccount.note.repository.SharedAccountNoteRepository;
 import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
+import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
 import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,8 @@ public class SharedAccountDeletionFinanceDataService {
     private final SharedWalletRepository sharedWalletRepository;
     private final SharedPiggyBankRepository sharedPiggyBankRepository;
     private final SharedLimitRepository sharedLimitRepository;
+    private final SharedAccountNoteRepository sharedAccountNoteRepository;
+    private final SharedAccountSettingsRepository sharedAccountSettingsRepository;
     private final OutboxService outboxService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -125,6 +129,8 @@ public class SharedAccountDeletionFinanceDataService {
         sharedWalletRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
         sharedPiggyBankRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
         sharedLimitRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
+        sharedAccountNoteRepository.deleteByOwnerIdAndMemberId(ownerId,memberId);
+        sharedAccountSettingsRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
     }
 
     private record RefundInstruction(Long userId, String coFounderUsername, String coFounderEmail,
