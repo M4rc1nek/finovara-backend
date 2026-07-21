@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.settings.spendcontrol.dto;
+package com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.dto;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
