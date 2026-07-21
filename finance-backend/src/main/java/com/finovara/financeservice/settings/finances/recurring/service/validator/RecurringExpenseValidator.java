@@ -4,7 +4,7 @@ import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
-import com.finovara.financeservice.exception.conflict.SmartScanConfirmationRequiredException;
+import com.finovara.financeservice.exception.conflict.ConfirmationRequiredException;
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.util.RecurringBasicValidator;
@@ -78,7 +78,7 @@ public class RecurringExpenseValidator {
 
         try {
             smartScanService.handleSmartScan(settings.getUserId(), null, settings.getAmount(), SmartScanMode.ADD);
-        } catch (SmartScanConfirmationRequiredException exception) {
+        } catch (ConfirmationRequiredException exception) {
             throw new InvalidInputException("You cannot create this recurring expense because the amount is considered unusual. " +
                     "Try lowering the amount or disable Smart Scan.");
         }
