@@ -44,7 +44,8 @@
             </column>
         </createTable>
 
-        <addUniqueConstraint tableName="shared_wallets" columnNames="owner_id, member_id" constraintName="uk_shared_wallets_owner_member"/>
+        <addUniqueConstraint tableName="shared_wallets" columnNames="owner_id, member_id"
+                             constraintName="uk_shared_wallets_owner_member"/>
     </changeSet>
 
     <changeSet id="create-shared-notes-table" author="Marcin Parśniak">
@@ -95,8 +96,10 @@
             </column>
         </createTable>
         <sql>
-            CREATE UNIQUE INDEX uq_limit_general ON limits(user_id, period_type) WHERE category IS NULL AND is_active = true;
-            CREATE UNIQUE INDEX uq_limit_category ON limits(user_id, period_type, category) WHERE category IS NOT NULL AND is_active = true;
+            CREATE UNIQUE INDEX uq_limit_general ON limits(user_id, period_type) WHERE category IS NULL AND is_active =
+            true;
+            CREATE UNIQUE INDEX uq_limit_category ON limits(user_id, period_type, category) WHERE category IS NOT NULL
+            AND is_active = true;
         </sql>
     </changeSet>
     <changeSet id="create-shared-limits" author="Marcin Parśniak">
@@ -124,8 +127,10 @@
             </column>
         </createTable>
         <sql>
-            CREATE UNIQUE INDEX uq_shared_limit_general ON shared_limits(owner_id, member_id, period_type) WHERE category IS NULL AND is_active = true;
-            CREATE UNIQUE INDEX uq_shared_limit_category ON shared_limits(owner_id, member_id, period_type, category) WHERE category IS NOT NULL AND is_active = true;
+            CREATE UNIQUE INDEX uq_shared_limit_general ON shared_limits(owner_id, member_id, period_type) WHERE
+            category IS NULL AND is_active = true;
+            CREATE UNIQUE INDEX uq_shared_limit_category ON shared_limits(owner_id, member_id, period_type, category)
+            WHERE category IS NOT NULL AND is_active = true;
         </sql>
     </changeSet>
 
@@ -163,7 +168,6 @@
             </column>
         </createTable>
     </changeSet>
-
 
 
     <changeSet id="create-revenues" author="Marcin Parśniak">
@@ -325,6 +329,30 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="create-shared-settings" author="Marcin Parśniak">
+        <createTable tableName="shared_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="spend_control_enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="spend_control_percentage" type="DECIMAL(5,2)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="expense_analysis_enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="shared_settings" columnNames="owner_id, member_id" constraintName="uk_shared_settings_owner_member"/>
+    </changeSet>
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">
             <column name="name" type="varchar(64)">
@@ -380,6 +408,11 @@
         <createIndex tableName="shared_notes" indexName="idx_shared_notes_member_id">
             <column name="member_id"/>
         </createIndex>
-
+        <createIndex tableName="shared_settings" indexName="idx_shared_settings_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_settings" indexName="idx_shared_settings_member_id">
+            <column name="member_id"/>
+        </createIndex>
     </changeSet>
 </databaseChangeLog>
