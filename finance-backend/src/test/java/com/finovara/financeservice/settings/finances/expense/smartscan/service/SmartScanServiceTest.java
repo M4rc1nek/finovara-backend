@@ -2,6 +2,7 @@ package com.finovara.financeservice.settings.finances.expense.smartscan.service;
 
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
+import com.finovara.financeservice.exception.conflict.ConfirmationRequiredException;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
@@ -9,7 +10,7 @@ import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettin
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanDto;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
-import com.finovara.financeservice.exception.conflict.SmartScanConfirmationRequiredException;
+import com.finovara.financeservice.util.settings.ExpenseAnomalyDetector;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,8 +27,17 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SmartScanServiceTest {
@@ -44,6 +54,9 @@ class SmartScanServiceTest {
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
 
+    @Mock
+    private ExpenseAnomalyDetector expenseAnomalyDetector;
+
     @InjectMocks
     private SmartScanService smartScanService;
 
@@ -59,6 +72,7 @@ class SmartScanServiceTest {
 
     @Nested
     class SaveSmartScan {
+
         @Test
         void shouldEnableSmartScan() {
             SmartScanDto dto = new SmartScanDto(true);
@@ -88,6 +102,7 @@ class SmartScanServiceTest {
 
     @Nested
     class GetSmartScan {
+
         @Test
         void shouldReturnEnabledTrue() {
             expenseSettings.setSmartScanEnabled(true);
@@ -109,13 +124,14 @@ class SmartScanServiceTest {
 
     @Nested
     class HandleSmartScan {
+
         @Test
         void shouldDoNothingWhenSmartScanDisabled() {
             expenseSettings.setSmartScanEnabled(false);
 
             smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(100), SmartScanMode.ADD);
 
-            verifyNoInteractions(authBackendClient, expenseRepository);
+            verifyNoInteractions(authBackendClient, expenseRepository, expenseAnomalyDetector);
         }
 
         @Test
@@ -126,7 +142,23 @@ class SmartScanServiceTest {
 
             smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(100), SmartScanMode.ADD);
 
-            verifyNoInteractions(authBackendClient);
+            verify(expenseRepository, never()).findFiveLastByUserId(any(), any());
+            verifyNoInteractions(authBackendClient, expenseAnomalyDetector);
+        }
+
+        @Test
+        void shouldNotRequirePasswordWhenExpenseWithinThreshold() {
+            expenseSettings.setSmartScanEnabled(true);
+
+            when(expenseRepository.countExpensesByUserId(USER_ID)).thenReturn(4L);
+
+            List<Expense> lastExpenses = buildExpenses(BigDecimal.valueOf(100));
+            when(expenseRepository.findFiveLastByUserId(USER_ID, PageRequest.of(0, 4))).thenReturn(lastExpenses);
+            when(expenseAnomalyDetector.calculateAnomalyThreshold(any(), any())).thenReturn(BigDecimal.valueOf(500));
+
+            smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(300), SmartScanMode.ADD);
+
+            verify(expenseAnomalyDetector, never()).requirePasswordConfirmation(any(), any(), any());
         }
 
         @Test
@@ -135,19 +167,16 @@ class SmartScanServiceTest {
 
             when(expenseRepository.countExpensesByUserId(USER_ID)).thenReturn(4L);
 
-            List<Expense> lastExpenses = IntStream.range(0, 4).mapToObj(i -> {
-                Expense expense = new Expense();
-                expense.setAmount(BigDecimal.valueOf(100));
-                return expense;
-            }).toList();
-
+            List<Expense> lastExpenses = buildExpenses(BigDecimal.valueOf(100));
             when(expenseRepository.findFiveLastByUserId(USER_ID, PageRequest.of(0, 4))).thenReturn(lastExpenses);
+            when(expenseAnomalyDetector.calculateAnomalyThreshold(any(), any())).thenReturn(BigDecimal.valueOf(300));
+            doThrow(new ConfirmationRequiredException("Password confirmation required"))
+                    .when(expenseAnomalyDetector).requirePasswordConfirmation(USER_ID, null, authBackendClient);
 
             BigDecimal newExpense = BigDecimal.valueOf(400);
 
-            assertThrows(SmartScanConfirmationRequiredException.class, () -> smartScanService.handleSmartScan(USER_ID, null, newExpense, SmartScanMode.ADD));
-
-            verifyNoInteractions(authBackendClient);
+            assertThrows(ConfirmationRequiredException.class,
+                    () -> smartScanService.handleSmartScan(USER_ID, null, newExpense, SmartScanMode.ADD));
         }
 
         @Test
@@ -156,20 +185,36 @@ class SmartScanServiceTest {
 
             when(expenseRepository.countExpensesByUserId(USER_ID)).thenReturn(4L);
 
-            List<Expense> lastExpenses = IntStream.range(0, 4).mapToObj(i -> {
-                Expense expense = new Expense();
-                expense.setAmount(BigDecimal.valueOf(100));
-                return expense;
-            }).toList();
-
+            List<Expense> lastExpenses = buildExpenses(BigDecimal.valueOf(100));
             when(expenseRepository.findFiveLastByUserId(USER_ID, PageRequest.of(0, 4))).thenReturn(lastExpenses);
+            when(expenseAnomalyDetector.calculateAnomalyThreshold(any(), any())).thenReturn(BigDecimal.valueOf(300));
 
             BigDecimal newExpense = BigDecimal.valueOf(400);
             ConfirmPasswordDto passwordDto = new ConfirmPasswordDto("password");
 
             smartScanService.handleSmartScan(USER_ID, passwordDto, newExpense, SmartScanMode.ADD);
 
-            verify(authBackendClient).verifyPassword(USER_ID, passwordDto);
+            verify(expenseAnomalyDetector).requirePasswordConfirmation(USER_ID, passwordDto, authBackendClient);
+        }
+
+        @Test
+        void shouldDoNothingWhenEditModeNotAtScanInterval() {
+            expenseSettings.setSmartScanEnabled(true);
+
+            when(expenseRepository.countExpensesByUserId(USER_ID)).thenReturn(6L);
+
+            smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(100), SmartScanMode.EDIT);
+
+            verify(expenseRepository, never()).findFiveLastByUserId(any(), any());
+            verifyNoInteractions(authBackendClient, expenseAnomalyDetector);
+        }
+
+        private List<Expense> buildExpenses(BigDecimal amount) {
+            return IntStream.range(0, 4).mapToObj(i -> {
+                Expense expense = new Expense();
+                expense.setAmount(amount);
+                return expense;
+            }).toList();
         }
     }
 }
