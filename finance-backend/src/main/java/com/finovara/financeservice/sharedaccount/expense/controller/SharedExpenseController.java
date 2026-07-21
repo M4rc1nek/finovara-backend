@@ -2,6 +2,7 @@ package com.finovara.financeservice.sharedaccount.expense.controller;
 
 import com.finovara.financeservice.security.SecurityUtils;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseDto;
+import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseRequest;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseResponse;
 import com.finovara.financeservice.sharedaccount.expense.service.SharedExpenseService;
 import jakarta.validation.Valid;
@@ -19,13 +20,13 @@ public class SharedExpenseController {
     private final SharedExpenseService expenseService;
 
     @PostMapping
-    public ResponseEntity<SharedExpenseResponse> addSharedExpense(@RequestBody @Valid SharedExpenseDto sharedExpenseDto) {
-        return ResponseEntity.ok(expenseService.addExpense(sharedExpenseDto, SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<SharedExpenseResponse> addSharedExpense(@RequestBody @Valid SharedExpenseRequest sharedExpenseRequest) {
+        return ResponseEntity.ok(expenseService.addExpense(sharedExpenseRequest, SecurityUtils.getCurrentUserId()));
     }
 
     @PutMapping("/edit/{expenseId}")
-    public ResponseEntity<Long> editSharedExpense(@RequestBody @Valid SharedExpenseDto sharedExpenseDto, @PathVariable Long expenseId) {
-        return ResponseEntity.ok(expenseService.editExpense(sharedExpenseDto, SecurityUtils.getCurrentUserId(), expenseId));
+    public ResponseEntity<Long> editSharedExpense(@RequestBody @Valid SharedExpenseRequest sharedExpenseRequest, @PathVariable Long expenseId) {
+        return ResponseEntity.ok(expenseService.editExpense(sharedExpenseRequest, SecurityUtils.getCurrentUserId(), expenseId));
     }
 
     @GetMapping
