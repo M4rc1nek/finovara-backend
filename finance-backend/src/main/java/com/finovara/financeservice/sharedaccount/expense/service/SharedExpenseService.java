@@ -6,6 +6,7 @@ import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementE
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseDto;
+import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseRequest;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseResponse;
 import com.finovara.financeservice.sharedaccount.expense.mapper.SharedExpenseMapper;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
@@ -14,6 +15,9 @@ import com.finovara.financeservice.sharedaccount.limit.model.SharedLimit;
 import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
+import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisMode;
+import com.finovara.financeservice.sharedaccount.settings.expense.analysis.service.ExpenseAnalysisService;
+import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.service.SpendControlService;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.expense.SharedExpenseManagerService;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
@@ -39,25 +43,33 @@ public class SharedExpenseService {
     private final FinancialPeriodService financialPeriodService;
     private final SharedExpenseManagerService sharedExpenseManagerService;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
+    private final SpendControlService spendControlService;
+    private final ExpenseAnalysisService expenseAnalysisService;
     private final SharedExpenseMapper sharedExpenseMapper;
     private final AuthBackendClient authBackendClient;
 
     @Transactional
-    public SharedExpenseResponse addExpense(SharedExpenseDto sharedExpenseDto, Long userId) {
-        validateLimitOrThrow(userId, sharedExpenseDto.category(), sharedExpenseDto.category(),
-                BigDecimal.ZERO, sharedExpenseDto.amount());
+    public SharedExpenseResponse addExpense(SharedExpenseRequest sharedExpenseRequest, Long userId) {
+        ExpenseCategory category = sharedExpenseRequest.sharedExpenseDto().category();
+        BigDecimal amount = sharedExpenseRequest.sharedExpenseDto().amount();
+        String description = sharedExpenseRequest.sharedExpenseDto().description();
 
-        if (sharedExpenseDto.amount().compareTo(BigDecimal.ONE) < 0) {
+        if (amount.compareTo(BigDecimal.ONE) < 0) {
             throw new InvalidInputException("Expense amount must be positive");
         }
+
+        spendControlService.handleSpendControl(userId, amount);
+        validateLimitOrThrow(userId, category, category, BigDecimal.ZERO, amount);
+        expenseAnalysisService.handleExpenseAnalysis(userId, sharedExpenseRequest.confirmPasswordDto(), amount, ExpenseAnalysisMode.ADD);
+
         SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
         String createdByUsername = authBackendClient.getUsername(userId);
 
         SharedExpense expense = SharedExpense.builder()
-                .amount(sharedExpenseDto.amount())
-                .category(sharedExpenseDto.category())
+                .amount(amount)
+                .category(category)
                 .createdAt(LocalDate.now())
-                .description(sharedExpenseDto.description())
+                .description(description)
                 .ownerId(sharedAccountParticipantsResponse.ownerId())
                 .memberId(sharedAccountParticipantsResponse.memberId())
                 .createdByUserId(userId)
@@ -70,22 +82,26 @@ public class SharedExpenseService {
     }
 
     @Transactional
-    public Long editExpense(SharedExpenseDto sharedExpenseDto, Long userId, Long expenseId) {
+    public Long editExpense(SharedExpenseRequest sharedExpenseRequest, Long userId, Long expenseId) {
         SharedExpense existingExpense = sharedExpenseManagerService.getSharedExpenseOrThrow(expenseId);
+        ExpenseCategory category = sharedExpenseRequest.sharedExpenseDto().category();
+        BigDecimal amount = sharedExpenseRequest.sharedExpenseDto().amount();
+        String description = sharedExpenseRequest.sharedExpenseDto().description();
 
         if (!isOwnerOrMember(existingExpense, userId)) {
             throw new RequestedEntityNotFoundException("Expense not found for this user");
         }
 
-        validateLimitOrThrow(userId, existingExpense.getCategory(), sharedExpenseDto.category(),
-                existingExpense.getAmount(), sharedExpenseDto.amount());
+        validateLimitOrThrow(userId, existingExpense.getCategory(), category,
+                existingExpense.getAmount(), amount);
+        expenseAnalysisService.handleExpenseAnalysis(userId, sharedExpenseRequest.confirmPasswordDto(), amount, ExpenseAnalysisMode.EDIT);
 
         sharedWalletService.addBalanceToWallet(userId, existingExpense.getAmount());
-        sharedWalletService.removeBalanceFromWallet(userId, sharedExpenseDto.amount());
+        sharedWalletService.removeBalanceFromWallet(userId, amount);
 
-        existingExpense.setAmount(sharedExpenseDto.amount());
-        existingExpense.setCategory(sharedExpenseDto.category());
-        existingExpense.setDescription(sharedExpenseDto.description());
+        existingExpense.setAmount(amount);
+        existingExpense.setCategory(category);
+        existingExpense.setDescription(description);
 
         sharedExpenseRepository.save(existingExpense);
 
