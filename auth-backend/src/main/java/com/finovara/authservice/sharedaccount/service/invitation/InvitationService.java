@@ -20,6 +20,7 @@ import com.finovara.contracts.event.finance.sharedaccount.UsersCreatedSharedAcco
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserAcceptSharedAccountInvitationEvent;
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserRejectSharedAccountInvitationEvent;
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserSentSharedAccountInvitationEvent;
+import com.finovara.contracts.event.user.sharedaccount.SharedAccountCreateDefaultSettingsEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
@@ -126,6 +127,10 @@ public class InvitationService {
         outboxService.save("User", inviterUserId.toString(),
                 "finance.shared-account.invitation-accepted",
                 new UsersCreatedSharedAccountEvent(inviterUserId, inviteeUserId));
+
+        outboxService.save("User", inviteeUserId.toString(),
+                "finance.shared-account.create-default-settings",
+                new SharedAccountCreateDefaultSettingsEvent(inviterUserId, inviteeUserId));
 
         outboxService.save("User", inviteeUserId.toString(), "activity.shared-account",
                 new SharedAccountActivityEvent(
