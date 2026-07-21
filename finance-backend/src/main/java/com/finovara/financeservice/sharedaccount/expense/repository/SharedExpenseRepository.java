@@ -3,7 +3,9 @@ package com.finovara.financeservice.sharedaccount.expense.repository;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
 import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
+import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
+import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -19,6 +21,9 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
 
     @Query("SELECT se FROM SharedExpense se WHERE se.ownerId = :userId OR se.memberId = :userId")
     List<SharedExpense> findAllByOwnerIdOrMemberId(@Param("userId") Long userId);
+
+    @Query("SELECT se FROM SharedExpense se WHERE se.ownerId = :userId OR se.memberId = :userId")
+    SharedExpense findByUserId(Long userId);
 
     @Query("SELECT se FROM SharedExpense se WHERE se.id = :expenseId AND (se.ownerId = :userId OR se.memberId = :userId)")
     Optional<SharedExpense> findByIdAndOwnerIdOrMemberId(@Param("expenseId") Long expenseId, @Param("userId") Long userId);
@@ -94,5 +99,12 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
                 GROUP BY e.createdAt
             """)
     List<DailyCashDto> avgExpensesGroupedByDateForOwnerIdOrMemberId(Long ownerId, Long memberId);
+
+    @Query("SELECT e FROM SharedExpense e WHERE (e.ownerId = :userId OR e.memberId = :userId) ORDER BY e.id DESC")
+    List<SharedExpense> findTenLastByUserId(Long userId, Pageable pageable);
+
+    @Query("SELECT COUNT(e) FROM SharedExpense e WHERE (e.ownerId = :userId OR e.memberId = :userId)")
+    long countExpensesByUserId(Long userId);
+
 
 }
