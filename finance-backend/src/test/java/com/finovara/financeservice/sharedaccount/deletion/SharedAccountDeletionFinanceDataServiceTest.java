@@ -6,8 +6,10 @@ import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundExceptio
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
 import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
+import com.finovara.financeservice.sharedaccount.note.repository.SharedAccountNoteRepository;
 import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
+import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
 import com.finovara.financeservice.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,12 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SharedAccountDeletionFinanceDataServiceTest {
@@ -53,6 +50,12 @@ class SharedAccountDeletionFinanceDataServiceTest {
     private SharedLimitRepository sharedLimitRepository;
 
     @Mock
+    private SharedAccountNoteRepository sharedAccountNoteRepository;
+
+    @Mock
+    private SharedAccountSettingsRepository sharedAccountSettingsRepository;
+
+    @Mock
     private OutboxService outboxService;
 
     @InjectMocks
@@ -70,6 +73,8 @@ class SharedAccountDeletionFinanceDataServiceTest {
                 sharedWalletRepository,
                 sharedPiggyBankRepository,
                 sharedLimitRepository,
+                sharedAccountNoteRepository,
+                sharedAccountSettingsRepository,
                 outboxService
                 );
         ownerId = 1L;
