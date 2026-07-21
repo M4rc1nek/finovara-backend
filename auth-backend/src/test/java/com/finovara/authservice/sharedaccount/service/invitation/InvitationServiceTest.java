@@ -20,6 +20,7 @@ import com.finovara.contracts.event.finance.sharedaccount.UsersCreatedSharedAcco
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserAcceptSharedAccountInvitationEvent;
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserRejectSharedAccountInvitationEvent;
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserSentSharedAccountInvitationEvent;
+import com.finovara.contracts.event.user.sharedaccount.SharedAccountCreateDefaultSettingsEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.forbidden.AccessDeniedException;
@@ -256,6 +257,8 @@ class InvitationServiceTest {
             verify(inviteeUser).setHasSharedAccount(true);
             verify(outboxService).save(eq("User"), eq(INVITER_ID.toString()),
                     eq("finance.shared-account.invitation-accepted"), any(UsersCreatedSharedAccountEvent.class));
+            verify(outboxService).save(eq("User"), eq(INVITEE_ID.toString()),
+                    eq("finance.shared-account.create-default-settings"), any(SharedAccountCreateDefaultSettingsEvent.class));
             verify(outboxService).save(eq("User"), eq(INVITEE_ID.toString()),
                     eq("activity.shared-account"), any(SharedAccountActivityEvent.class));
             verify(outboxService).save(eq("User"), eq(INVITER_ID.toString()),
