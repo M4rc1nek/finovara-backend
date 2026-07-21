@@ -1,5 +1,7 @@
-package com.finovara.financeservice.sharedaccount.settings;
+package com.finovara.financeservice.sharedaccount.settings.factory;
 
+import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
+import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,6 +23,7 @@ public class SharedAccountSettingsFactory {
             sharedAccountSettingsRepository.save(SharedAccountSettings.builder()
                     .spendControlEnabled(false)
                     .spendControlPercentage(BigDecimal.ZERO)
+                    .expenseAnalysisEnabled(false)
                     .ownerId(ownerId)
                     .memberId(memberId)
                     .build());
@@ -28,8 +31,5 @@ public class SharedAccountSettingsFactory {
         } catch (DataIntegrityViolationException e) {
             log.debug("Shared Account  settings already exist for ownerId={}, memberId={}", ownerId, memberId);
         }
-
-        // napisz changeset dla tych ustawien + kafka gdy stworzy sie konto shared to tworza sie te ustawienia
-
     }
 }
