@@ -10,7 +10,7 @@ import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepo
 import com.finovara.authservice.sharedaccount.repository.SharedAccountRepository;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
-import com.finovara.contracts.event.finance.sharedaccount.SharedAccountDeletedEvent;
+import com.finovara.contracts.event.notification.sharedaccount.deletion.SharedAccountDeletedEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
 import org.junit.jupiter.api.BeforeEach;
