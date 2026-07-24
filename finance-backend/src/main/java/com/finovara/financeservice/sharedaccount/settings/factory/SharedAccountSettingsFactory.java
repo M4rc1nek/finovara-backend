@@ -24,6 +24,9 @@ public class SharedAccountSettingsFactory {
                     .spendControlEnabled(false)
                     .spendControlPercentage(BigDecimal.ZERO)
                     .expenseAnalysisEnabled(false)
+                    .largeExpenseNotificationEnabled(false)
+                    .largeExpenseNotificationThreshold(BigDecimal.ZERO)
+                    .piggyBankGoalAchievedNotificationEnabled(false)
                     .ownerId(ownerId)
                     .memberId(memberId)
                     .build());
