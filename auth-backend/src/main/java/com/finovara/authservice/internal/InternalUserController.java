@@ -3,6 +3,7 @@ package com.finovara.authservice.internal;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
+import com.finovara.contracts.auth.dto.UserDataResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,5 +32,8 @@ public class InternalUserController {
         return ResponseEntity.ok(userManagerService.getUserEmailById(userId));
     }
 
-
+    @GetMapping("/user-data")
+    public ResponseEntity<UserDataResponse> getUserData(@RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(userManagerService.getUserData(userId));
+    }
 }
