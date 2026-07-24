@@ -1,4 +1,4 @@
-package com.finovara.contracts.event.finance.sharedaccount;
+package com.finovara.contracts.event.notification.sharedaccount.deletion;
 
 public record SharedAccountDeletedEvent(
         Long accountId,
