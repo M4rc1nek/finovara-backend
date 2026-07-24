@@ -1,6 +1,6 @@
 package com.finovara.contracts.event.notification.sharedaccount.invitation;
 
-public record UserSharedAccountInvitationExpiredEvent(
+public record SharedAccountInvitationExpiredEvent(
         Long userId,
         String inviteeUsername
 ) {
