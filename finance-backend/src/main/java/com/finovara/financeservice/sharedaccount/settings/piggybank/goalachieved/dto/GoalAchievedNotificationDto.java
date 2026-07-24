@@ -1,4 +1,7 @@
-package com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto;
+package com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieved.dto;
 
-public record GoalAchievedNotificationDto() {
+public record GoalAchievedNotificationDto(
+        Boolean piggyBankGoalAchievedNotificationEnabled
+
+) {
 }
