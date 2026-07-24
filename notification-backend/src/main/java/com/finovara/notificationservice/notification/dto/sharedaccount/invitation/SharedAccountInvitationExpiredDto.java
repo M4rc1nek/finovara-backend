@@ -7,7 +7,7 @@ import com.finovara.notificationservice.notification.dto.NotificationResponse;
 import java.time.LocalDateTime;
 
 @JsonTypeName("SHARED_ACCOUNT_INVITATION_EXPIRED")
-public record UserSharedAccountInvitationExpiredDto(
+public record SharedAccountInvitationExpiredDto(
         NotificationType type,
         LocalDateTime createdAt,
         String inviteeUsername
