@@ -27,6 +27,14 @@ public class SharedAccountSettings {
     private boolean expenseAnalysisEnabled;
 
     @Column(nullable = false)
+    private boolean largeExpenseNotificationEnabled;
+
+    private BigDecimal largeExpenseNotificationThreshold;
+
+    @Column(nullable = false)
+    private boolean piggyBankGoalAchievedNotificationEnabled;
+
+    @Column(nullable = false)
     private Long ownerId;
 
     @Column(nullable = false)
