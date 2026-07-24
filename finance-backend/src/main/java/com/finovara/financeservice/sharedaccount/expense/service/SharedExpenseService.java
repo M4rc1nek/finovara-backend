@@ -17,6 +17,7 @@ import com.finovara.financeservice.sharedaccount.participants.SharedAccountParti
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisMode;
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.service.ExpenseAnalysisService;
+import com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.service.LargeExpenseNotificationService;
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.service.SpendControlService;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.expense.SharedExpenseManagerService;
@@ -45,6 +46,7 @@ public class SharedExpenseService {
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
     private final SpendControlService spendControlService;
     private final ExpenseAnalysisService expenseAnalysisService;
+    private final LargeExpenseNotificationService largeExpenseNotificationService;
     private final SharedExpenseMapper sharedExpenseMapper;
     private final AuthBackendClient authBackendClient;
 
@@ -77,6 +79,8 @@ public class SharedExpenseService {
 
         sharedWalletService.removeBalanceFromWallet(userId, expense.getAmount());
         sharedExpenseRepository.save(expense);
+
+        largeExpenseNotificationService.handleLargeNotification(userId, expense);
 
         return new SharedExpenseResponse(expense.getId(), userId, createdByUsername);
     }
