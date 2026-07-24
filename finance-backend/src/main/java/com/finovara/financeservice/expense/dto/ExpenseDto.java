@@ -12,7 +12,7 @@ public record ExpenseDto(
         Long id,
         Long userId,
 
-        @DecimalMin("0.01") @DecimalMax("999999") BigDecimal amount,
+        @DecimalMin("1") @DecimalMax("999999") BigDecimal amount,
         ExpenseCategory category,
         LocalDate createdAt,
         String description
