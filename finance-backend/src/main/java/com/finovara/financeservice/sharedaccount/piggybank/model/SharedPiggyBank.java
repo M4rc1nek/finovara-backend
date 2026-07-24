@@ -32,6 +32,9 @@ public class SharedPiggyBank {
     private BigDecimal goalAmount;
 
     @Column(nullable = false)
+    private boolean goalAchievedNotified;
+
+    @Column(nullable = false)
     private Long ownerId;
 
     @Column(nullable = false)
