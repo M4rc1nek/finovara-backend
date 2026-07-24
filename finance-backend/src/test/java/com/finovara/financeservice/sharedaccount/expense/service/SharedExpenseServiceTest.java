@@ -17,6 +17,7 @@ import com.finovara.financeservice.sharedaccount.participants.SharedAccountParti
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisMode;
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.service.ExpenseAnalysisService;
+import com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.service.LargeExpenseNotificationService;
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.service.SpendControlService;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.expense.SharedExpenseManagerService;
@@ -34,10 +35,17 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SharedExpenseServiceTest {
@@ -65,6 +73,9 @@ class SharedExpenseServiceTest {
 
     @Mock
     private ExpenseAnalysisService expenseAnalysisService;
+
+    @Mock
+    private LargeExpenseNotificationService largeExpenseNotificationService;
 
     @Mock
     private SharedExpenseMapper sharedExpenseMapper;
@@ -135,6 +146,7 @@ class SharedExpenseServiceTest {
             verify(spendControlService).handleSpendControl(userId, amount);
             verify(expenseAnalysisService).handleExpenseAnalysis(eq(userId), any(), eq(amount), eq(ExpenseAnalysisMode.ADD));
             verify(sharedExpenseRepository).save(any(SharedExpense.class));
+            verify(largeExpenseNotificationService).handleLargeNotification(eq(userId), any(SharedExpense.class));
 
             assertEquals(userId, response.userId());
             assertEquals(username, response.username());
