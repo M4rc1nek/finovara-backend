@@ -22,5 +22,13 @@ public class SharedAccountInvitation {
 
     private Long inviteeUserId;
 
+    private LocalDateTime expiresAt;
     private LocalDateTime createdAt;
+
+    @Version
+    private Long version;
+
+    public boolean hasExpired() {
+        return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
+    }
 }
