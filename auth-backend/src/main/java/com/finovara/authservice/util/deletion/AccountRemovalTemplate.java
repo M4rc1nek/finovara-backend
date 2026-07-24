@@ -10,7 +10,7 @@ import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.sharedaccount.context.SharedAccountUsers;
 import com.finovara.authservice.sharedaccount.context.UserContextLoader;
-import com.finovara.contracts.event.finance.sharedaccount.SharedAccountDeletedEvent;
+import com.finovara.contracts.event.notification.sharedaccount.deletion.SharedAccountDeletedEvent;
 import com.finovara.contracts.event.notification.sharedaccount.deletion.NotificationSharedAccountDeletedEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
