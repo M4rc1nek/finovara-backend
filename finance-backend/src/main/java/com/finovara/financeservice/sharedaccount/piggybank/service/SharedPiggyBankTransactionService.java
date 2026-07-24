@@ -1,6 +1,7 @@
 package com.finovara.financeservice.sharedaccount.piggybank.service;
 
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
+import com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieved.service.GoalAchievedNotificationService;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.piggybank.PiggyBankCalculator;
 import com.finovara.financeservice.util.piggybank.PiggyBankValidator;
@@ -18,6 +19,7 @@ public class SharedPiggyBankTransactionService {
 
     private final SharedPiggyBankManager sharedPiggyBankManager;
     private final SharedWalletService sharedWalletService;
+    private final GoalAchievedNotificationService goalAchievedNotificationService;
 
     @Transactional
     public BigDecimal addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount) {
@@ -26,6 +28,8 @@ public class SharedPiggyBankTransactionService {
         PiggyBankValidator.validateAmount(amount);
         sharedWalletService.removeBalanceFromWallet(userId, amount);
         piggyBank.setAmount(piggyBank.getAmount().add(amount));
+
+        goalAchievedNotificationService.handleGoalAchieved(userId, piggyBank);
 
         return calculatePercentage(piggyBank);
     }
@@ -39,6 +43,10 @@ public class SharedPiggyBankTransactionService {
 
         piggyBank.setAmount(piggyBank.getAmount().subtract(amount));
         sharedWalletService.addBalanceToWallet(userId, amount);
+
+        if (piggyBank.getGoalAmount() != null && piggyBank.getAmount().compareTo(piggyBank.getGoalAmount()) < 0) {
+            piggyBank.setGoalAchievedNotified(false);
+        }
 
         return calculatePercentage(piggyBank);
     }
