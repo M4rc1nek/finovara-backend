@@ -52,7 +52,6 @@ public class InvitationValidator {
         }
     }
 
-
     public void validateMembership(Long accountId, Long callerId) {
         boolean isMember = sharedAccountMemberRepository.findByUserId(callerId)
                 .map(member -> member.getSharedAccount().getId().equals(accountId))
