@@ -57,6 +57,10 @@ scheduler:
   notification:
     delete-cron: "0 2 0 ? * 1"
 
+auth-backend:
+  url: ${AUTH_BACKEND_URL}
+
+
 
 
 logging:
