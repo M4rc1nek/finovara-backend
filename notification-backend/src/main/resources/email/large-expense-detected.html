@@ -1,10 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Wykryto duży wydatek - Finovara</title>
 </head>
-<body>
-$END$
+
+<body style="margin:0; padding:0; background:#f9fafb; font-family:Arial, Helvetica, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr>
+        <td align="center">
+
+            <table width="580" cellpadding="0" cellspacing="0"
+                   style="background:#ffffff; border-radius:8px; border:1px solid #e5e7eb;">
+
+                <!-- Header -->
+                <tr>
+                    <td style="background:#f59e0b; color:#ffffff; padding:24px 30px; font-size:22px; font-weight:bold;">
+                        Finovara
+                    </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                    <td style="padding:30px; color:#333333; font-size:15px; line-height:1.7;">
+
+                        <p style="margin-top:0;">
+                            Witaj <strong>{{username}}</strong>,
+                        </p>
+
+                        <p>
+                            System <strong>Finovara</strong> wykrył dodanie wydatku,
+                            który przekroczył ustawiony przez Ciebie próg dla funkcji
+                            <strong>"Powiadomienie o dużym wydatku"</strong>.
+                        </p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0"
+                               style="margin:25px 0; border:1px solid #e5e7eb; border-radius:6px;">
+
+                            <tr>
+                                <td style="padding:14px 18px; background:#f9fafb; font-weight:bold; width:45%;">
+                                    Kwota wydatku
+                                </td>
+                                <td style="padding:14px 18px; color:#dc2626; font-weight:bold; font-size:17px;">
+                                    {{amount}}
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="padding:14px 18px; background:#f9fafb; font-weight:bold;">
+                                    Ustawiony próg powiadomienia
+                                </td>
+                                <td style="padding:14px 18px; color:#059669; font-weight:bold;">
+                                    {{threshold}}
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="padding:14px 18px; background:#f9fafb; font-weight:bold;">
+                                    Data osiągnięcia celu
+                                </td>
+                                <td style="padding:14px 18px;">
+                                    {{occurredAt}}
+                                </td>
+                            </tr>
+
+                        </table>
+
+                        <div style="background:#fef3c7; border-left:4px solid #f59e0b; padding:18px; margin:25px 0;">
+                            <strong>Dlaczego otrzymałeś tę wiadomość?</strong>
+                            <p style="margin:10px 0 0 0;">
+                                W ustawieniach konta została włączona opcja
+                                <strong>"Powiadomienie o dużym wydatku"</strong>.
+                                Gdy nowo dodany wydatek osiągnie lub przekroczy ustawiony przez
+                                Ciebie limit, system automatycznie wysyła takie powiadomienie.
+                            </p>
+                        </div>
+
+                        <p>
+                            Jeżeli dodanie tego wydatku było zamierzone, nie musisz podejmować
+                            żadnych dodatkowych działań.
+                        </p>
+
+                        <p>
+                            Jeśli jednak nie rozpoznajesz tej operacji, zalecamy sprawdzenie
+                            historii wydatków oraz aktywności na swoim koncie.
+                        </p>
+
+                        <div style="margin-top:30px; padding:16px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px;">
+                            <span style="font-size:14px; color:#6b7280;">
+                                Wydatek dodany przez
+                            </span>
+                            <br>
+                            <span style="font-size:16px; font-weight:bold; color:#111827;">
+                                {{triggeredByUsername}}
+                            </span>
+                        </div>
+
+                        <p style="margin-top:30px;">
+                            Dziękujemy za korzystanie z <strong>Finovara</strong>.
+                        </p>
+
+                        <p>
+                            Z poważaniem,<br>
+                            <strong>Zespół Finovara</strong>
+                        </p>
+
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background:#f3f4f6; padding:18px 30px; font-size:12px; color:#6b7280; border-top:1px solid #e5e7eb;">
+                        Ta wiadomość została wygenerowana automatycznie przez system Finovara
+                        na podstawie ustawionych przez Ciebie preferencji powiadomień.
+                        <br><br>
+                        Prosimy nie odpowiadać bezpośrednio na tę wiadomość.
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
 </body>
 </html>
