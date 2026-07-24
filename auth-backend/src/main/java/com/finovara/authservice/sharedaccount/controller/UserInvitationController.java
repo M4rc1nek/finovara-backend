@@ -1,10 +1,12 @@
 package com.finovara.authservice.sharedaccount.controller;
 
 import com.finovara.authservice.security.SecurityUtils;
+import com.finovara.authservice.sharedaccount.dto.InvitationResponse;
 import com.finovara.authservice.sharedaccount.dto.SharedAccountMemberDto;
 import com.finovara.authservice.sharedaccount.dto.SharedAccountStatusDto;
-import com.finovara.authservice.sharedaccount.dto.InvitationResponse;
+import com.finovara.authservice.sharedaccount.service.invitation.InvitationResponseService;
 import com.finovara.authservice.sharedaccount.service.invitation.InvitationService;
+import com.finovara.authservice.sharedaccount.service.invitation.SharedAccountMemberService;
 import com.finovara.authservice.user.dto.UserDataDto;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,8 @@ import java.util.List;
 public class UserInvitationController {
 
     private final InvitationService invitationService;
+    private final InvitationResponseService invitationResponseService;
+    private final SharedAccountMemberService sharedAccountMemberService;
 
     @GetMapping("/search")
     public ResponseEntity<List<UserDataDto>> search(@RequestParam @Size(min = 3, max = 20, message = "Query must be between 3 and 20 characters")
@@ -40,19 +44,19 @@ public class UserInvitationController {
 
     @PostMapping("/invitations/{invitationId}/accept")
     public ResponseEntity<Void> acceptInvite(@PathVariable Long invitationId) {
-        invitationService.acceptInvite(SecurityUtils.getCurrentUserId(), invitationId);
+        invitationResponseService.acceptInvite(SecurityUtils.getCurrentUserId(), invitationId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/invitations/{invitationId}/reject")
     public ResponseEntity<Void> rejectInvite(@PathVariable Long invitationId) {
-        invitationService.rejectInvite(SecurityUtils.getCurrentUserId(), invitationId);
+        invitationResponseService.rejectInvite(SecurityUtils.getCurrentUserId(), invitationId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/members-details/{accountId}")
     public ResponseEntity<List<SharedAccountMemberDto>> getMembersDetails(@PathVariable Long accountId) {
-        return ResponseEntity.ok(invitationService.getMemberDetails(accountId, SecurityUtils.getCurrentUserId()));
+        return ResponseEntity.ok(sharedAccountMemberService.getMemberDetails(accountId, SecurityUtils.getCurrentUserId()));
     }
 
     @GetMapping("/status")
