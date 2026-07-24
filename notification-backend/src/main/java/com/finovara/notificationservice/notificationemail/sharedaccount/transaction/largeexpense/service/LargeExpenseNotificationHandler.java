@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notificationemail.sharedaccount.largeexpense.service;
+package com.finovara.notificationservice.notificationemail.sharedaccount.transaction.largeexpense.service;
 
 import com.finovara.contracts.auth.dto.UserDataResponse;
 import com.finovara.contracts.event.finance.sharedaccount.LargeExpenseNotificationEvent;
@@ -40,7 +40,8 @@ public class LargeExpenseNotificationHandler {
                 recipient.username().orElse("Użytkowniku"),
                 triggeredByUsername,
                 event.amount(),
-                event.threshold()
+                event.threshold(),
+                event.occurredAt()
         );
     }
 }
