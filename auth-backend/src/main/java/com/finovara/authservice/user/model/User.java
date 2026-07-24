@@ -1,6 +1,7 @@
 package com.finovara.authservice.user.model;
 
 import com.finovara.authservice.settings.account.model.AccountSettings;
+import com.finovara.authservice.util.profile.ProfileImageUrlBuilder;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,7 +22,12 @@ public class User {
 
     private String username;
     private String password;
+
+    @Column(nullable = false)
     private boolean passwordSet;
+    @Column(nullable = false)
+    private boolean hasSharedAccount;
+
     private String email;
     private LocalDateTime createdAt;
     @Column(name = "profile_image_path")
@@ -32,6 +38,13 @@ public class User {
     @Column(name = "provider_user_id")
     private String providerUserId;
 
+    @Version
+    private Long version;
+
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private AccountSettings accountSettings;
+
+    public String getProfileImageUrl() {
+        return ProfileImageUrlBuilder.buildProfileImageUrl(this.profileImagePath);
+    }
 }

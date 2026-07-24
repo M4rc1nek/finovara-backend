@@ -1,7 +1,7 @@
 package com.finovara.notificationservice.kafka;
 
-import com.finovara.contracts.event.user.UserAccountDeletedEvent;
-import com.finovara.notificationservice.notification.service.NotificationPersistenceService;
+import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
+import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

@@ -6,7 +6,7 @@ import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
 import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
-import com.finovara.reportservice.report.finances.highesttransactions.highestexpense.service.HighestExpenseService;
+import com.finovara.reportservice.report.finances.calculate.highesttransactions.highestexpense.service.HighestExpenseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

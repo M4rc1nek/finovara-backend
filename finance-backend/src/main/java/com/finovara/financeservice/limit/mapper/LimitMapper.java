@@ -14,6 +14,7 @@ public class LimitMapper {
         return new LimitStatsDto(
                 limit.getId(),
                 limit.getPeriodType(),
+                limit.getCategory(),
                 limit.getAmount(),
                 spent,
                 remaining,

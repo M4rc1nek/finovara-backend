@@ -1,7 +1,7 @@
 package com.finovara.financeservice.history.expensehistory.cache.evict.service;
 
 import com.finovara.contracts.cache.RedisCacheEvictor;
-import com.finovara.contracts.event.user.UserAccountDeletedEvent;
+import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;

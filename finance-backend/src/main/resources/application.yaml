@@ -48,12 +48,13 @@ logging:
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
     org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
-    org.springframework.cache: TRACE
-    org.springframework.data.redis: DEBUG
 
 scheduler:
   recurring-settings:
     frequency: "0 0 0 * * ?"
+  shared-account:
+    notes:
+      delete-cron: "0 0 1 5 * ?"
 
 nbp:
   api:
@@ -64,6 +65,7 @@ nbp:
 cache:
   ttl-minutes:
     "[wallet:user]": 1
+    "[wallet:shared]": 1
     "[expense:historyByCategory]": 10
     "[revenue:historyByCategory]": 10
     "[nbpRates]": 60

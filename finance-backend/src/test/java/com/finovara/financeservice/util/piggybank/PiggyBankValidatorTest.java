@@ -1,7 +1,9 @@
 package com.finovara.financeservice.util.piggybank;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
+import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDto;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -72,6 +74,43 @@ class PiggyBankValidatorTest {
             PiggyBankDto dto = createDto(BigDecimal.valueOf(-100));
 
             assertThrows(InvalidInputException.class, () -> PiggyBankValidator.validateGoalAmount(dto));
+        }
+    }
+
+
+    @Nested
+    class ValidateSharedPiggyBankGoalAmount {
+
+        private SharedPiggyBankDto createDto(BigDecimal goalAmount) {
+            return new SharedPiggyBankDto(1L, "tEST", new BigDecimal(100), LocalDate.now(), PiggyBankGoalType.GIFTS, goalAmount, null);
+        }
+
+        @Test
+        void shouldNotThrowExceptionWhenGoalAmountIsNull() {
+            SharedPiggyBankDto dto = createDto(null);
+
+            assertDoesNotThrow(() -> PiggyBankValidator.validateSharedPiggyBankGoalAmount(dto));
+        }
+
+        @Test
+        void shouldNotThrowExceptionWhenGoalAmountIsPositive() {
+            SharedPiggyBankDto dto = createDto(BigDecimal.valueOf(100));
+
+            assertDoesNotThrow(() -> PiggyBankValidator.validateSharedPiggyBankGoalAmount(dto));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenGoalAmountIsZero() {
+            SharedPiggyBankDto dto = createDto(BigDecimal.ZERO);
+
+            assertThrows(InvalidInputException.class, () -> PiggyBankValidator.validateSharedPiggyBankGoalAmount(dto));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenGoalAmountIsNegative() {
+            SharedPiggyBankDto dto = createDto(BigDecimal.valueOf(-100));
+
+            assertThrows(InvalidInputException.class, () -> PiggyBankValidator.validateSharedPiggyBankGoalAmount(dto));
         }
     }
 

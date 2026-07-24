@@ -34,6 +34,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
       SPRING_DATASOURCE_URL: jdbc:postgresql://finovara-notification-db:5432/finovara_notification_db
       SSL_PASSWORD: ${SSL_PASSWORD}
+      AUTH_BACKEND_URL: https://finovara-auth-app:8443
     volumes:
       - ../localhost.p12:/app/localhost.p12
     healthcheck:

@@ -5,6 +5,7 @@ import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.service.ExpenseService;
+import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.piggybank.service.PiggyBankTransactionService;
 import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.service.RevenueService;
@@ -18,6 +19,7 @@ import com.finovara.financeservice.settings.finances.recurring.service.validator
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -39,6 +42,7 @@ public class RecurringExecutionService {
     private final RecurringSavingsValidator recurringSavingsValidator;
     private final ExpenseSettingsRepository expenseSettingsRepository;
     private final WalletManagerService walletManagerService;
+    private final LimitManagerService limitManagerService;
 
     public void execute(RecurringSettings settings, LocalDate date) {
         if (settings.getType() == null) {
@@ -71,15 +75,17 @@ public class RecurringExecutionService {
             return;
         }
 
+
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(settings.getUserId());
-        recurringExpenseValidator.validate(settings, expenseSettings, wallet);
+        List<Limit> limits = limitManagerService.getLimitsByUserId(settings.getUserId());
+        recurringExpenseValidator.validate(settings, expenseSettings, wallet, limits);
 
         PeriodType limitPeriodType = resolveLimitPeriodType(settings, expenseSettings);
         ExpenseDto expenseDto = buildExpenseDto(settings, date);
 
         ExpenseRequestDto requestDto = new ExpenseRequestDto(expenseDto, new ConfirmPasswordDto(null), buildCountQuantityLimitDto(expenseSettings, limitPeriodType));
 
-        expenseService.addExpense(requestDto, settings.getUserId(), limitPeriodType);
+        expenseService.addExpense(requestDto, settings.getUserId());
     }
 
     private void createSavings(RecurringSettings settings) {
@@ -93,7 +99,7 @@ public class RecurringExecutionService {
             piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserId(), settings.getPiggyBankId(), settings.getAmount(),
                     PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
         } catch (RequestedEntityNotFoundException e) {
-            log.warn("PiggyBank not found for recurring settings id={}, disabling", settings.getId());
+            log.warn("SharedPiggyBank not found for recurring settings id={}, disabling", settings.getId());
             settings.setEnable(false);
             settings.setNextExecutionDate(null);
         }

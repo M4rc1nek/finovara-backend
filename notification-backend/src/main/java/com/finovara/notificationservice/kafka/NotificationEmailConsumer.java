@@ -1,7 +1,7 @@
 package com.finovara.notificationservice.kafka;
 
 import com.finovara.contracts.event.notification.SendEmailEvent;
-import com.finovara.contracts.event.user.UserAccountDeletedEvent;
+import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
 import com.finovara.contracts.event.user.UserCreatedEvent;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;

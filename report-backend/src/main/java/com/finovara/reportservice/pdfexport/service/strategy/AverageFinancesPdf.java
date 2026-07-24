@@ -5,8 +5,8 @@ import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
 import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
-import com.finovara.reportservice.report.dto.ReportDto;
-import com.finovara.reportservice.report.finances.average.service.ReportAverageService;
+import com.finovara.reportservice.util.dto.ReportDto;
+import com.finovara.reportservice.report.finances.calculate.avg.ReportAverageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

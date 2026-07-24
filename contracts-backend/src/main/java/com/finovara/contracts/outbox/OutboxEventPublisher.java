@@ -12,6 +12,8 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -35,7 +37,8 @@ public class OutboxEventPublisher {
                                 .withPayload(deserializedPayload)
                                 .setHeader(KafkaHeaders.TOPIC, event.getEventType())
                                 .setHeader(KafkaHeaders.KEY, event.getAggregateId())
-                                .build());
+                                .build())
+                        .get(5, TimeUnit.SECONDS);   // <- dopisz to, wymusza czekanie na ACK
 
                 event.markSent();
                 log.debug("Outbox: event {} sent for {}/{}", event.getEventType(), event.getAggregateType(), event.getAggregateId());

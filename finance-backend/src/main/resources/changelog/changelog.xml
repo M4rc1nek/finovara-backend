@@ -25,6 +25,55 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="create-shared-wallets" author="Marcin Parśniak">
+        <createTable tableName="shared_wallets">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="balance" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="shared_wallets" columnNames="owner_id, member_id"
+                             constraintName="uk_shared_wallets_owner_member"/>
+    </changeSet>
+
+    <changeSet id="create-shared-notes-table" author="Marcin Parśniak">
+        <createTable tableName="shared_notes">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="topic" type="VARCHAR(40)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="description" type="VARCHAR(600)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
     <changeSet id="create-limits" author="Marcin Parśniak">
         <createTable tableName="limits">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -32,6 +81,9 @@
             </column>
             <column name="period_type" type="VARCHAR(255)">
                 <constraints nullable="false"/>
+            </column>
+            <column name="category" type="VARCHAR(255)">
+                <constraints nullable="true"/>
             </column>
             <column name="amount" type="DECIMAL(10,2)">
                 <constraints nullable="false"/>
@@ -43,6 +95,43 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <sql>
+            CREATE UNIQUE INDEX uq_limit_general ON limits(user_id, period_type) WHERE category IS NULL AND is_active =
+            true;
+            CREATE UNIQUE INDEX uq_limit_category ON limits(user_id, period_type, category) WHERE category IS NOT NULL
+            AND is_active = true;
+        </sql>
+    </changeSet>
+    <changeSet id="create-shared-limits" author="Marcin Parśniak">
+        <createTable tableName="shared_limits">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="period_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="amount" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>
+            CREATE UNIQUE INDEX uq_shared_limit_general ON shared_limits(owner_id, member_id, period_type) WHERE
+            category IS NULL AND is_active = true;
+            CREATE UNIQUE INDEX uq_shared_limit_category ON shared_limits(owner_id, member_id, period_type, category)
+            WHERE category IS NOT NULL AND is_active = true;
+        </sql>
     </changeSet>
 
     <changeSet id="create-expenses" author="Marcin Parśniak">
@@ -59,6 +148,27 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="create-shared-expenses" author="Marcin Parśniak">
+        <createTable tableName="shared_expenses">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL(19,2)"/>
+            <column name="category" type="VARCHAR(255)"/>
+            <column name="created_at" type="DATE"/>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
 
     <changeSet id="create-revenues" author="Marcin Parśniak">
         <createTable tableName="revenues">
@@ -74,9 +184,29 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="create-shared-revenues" author="Marcin Parśniak">
+        <createTable tableName="shared_revenues">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="amount" type="DECIMAL(19,2)"/>
+            <column name="category" type="VARCHAR(255)"/>
+            <column name="created_at" type="DATE"/>
+            <column name="description" type="VARCHAR(500)"/>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 
     <changeSet id="create-piggy_banks" author="Marcin Parśniak">
-        <createTable tableName="piggy_banks">
+        <createTable tableName="piggybanks">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -93,13 +223,40 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-
         <sql>
             CREATE UNIQUE INDEX unique_piggy_bank_user_name
-            ON piggy_banks (user_id, LOWER(name));
+            ON piggybanks (user_id, LOWER(name));
         </sql>
     </changeSet>
-
+    <changeSet id="create-shared-piggy_banks" author="Marcin Parśniak">
+        <createTable tableName="shared_piggybanks">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="amount" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE"/>
+            <column name="goal_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="goal_amount" type="DECIMAL(19,2)"/>
+            <column name="goal_achieved_notified" type="BOOLEAN">
+                <constraints nullable="true"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <sql>
+            CREATE UNIQUE INDEX unique_shared_piggy_bank_name
+            ON shared_piggybanks (owner_id, member_id, LOWER(name));
+        </sql>
+    </changeSet>
     <changeSet id="create-expense-settings" author="Marcin Parśniak">
         <createTable tableName="expense_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -171,9 +328,42 @@
             </column>
             <column name="piggy_bank_id" type="BIGINT">
                 <constraints nullable="false" unique="true" foreignKeyName="fk_piggy_bank_settings_pb"
-                             references="piggy_banks(id)"/>
+                             references="piggybanks(id)"/>
             </column>
         </createTable>
+    </changeSet>
+    <changeSet id="create-shared-settings" author="Marcin Parśniak">
+        <createTable tableName="shared_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="spend_control_enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="spend_control_percentage" type="DECIMAL(5,2)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="expense_analysis_enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="large_expense_notification_enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="large_expense_notification_threshold" type="DECIMAL(19,2)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="piggy_bank_goal_achieved_notification_enabled" type="BOOLEAN">
+                <constraints nullable="true"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="member_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="shared_settings" columnNames="owner_id, member_id" constraintName="uk_shared_settings_owner_member"/>
     </changeSet>
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">
@@ -192,4 +382,49 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="create-shared-tables-owner-member-indexes" author="Marcin Parśniak">
+        <createIndex tableName="shared_wallets" indexName="idx_shared_wallets_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_wallets" indexName="idx_shared_wallets_member_id">
+            <column name="member_id"/>
+        </createIndex>
+        <createIndex tableName="shared_revenues" indexName="idx_shared_revenues_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_revenues" indexName="idx_shared_revenues_member_id">
+            <column name="member_id"/>
+        </createIndex>
+
+        <createIndex tableName="shared_expenses" indexName="idx_shared_expenses_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_expenses" indexName="idx_shared_expenses_member_id">
+            <column name="member_id"/>
+        </createIndex>
+        <createIndex tableName="shared_piggybanks" indexName="idx_shared_piggybanks_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_piggybanks" indexName="idx_shared_piggybanks_member_id">
+            <column name="member_id"/>
+        </createIndex>
+        <createIndex tableName="shared_limits" indexName="idx_shared_limits_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_limits" indexName="idx_shared_limits_member_id">
+            <column name="member_id"/>
+        </createIndex>
+        <createIndex tableName="shared_notes" indexName="idx_shared_notes_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_notes" indexName="idx_shared_notes_member_id">
+            <column name="member_id"/>
+        </createIndex>
+        <createIndex tableName="shared_settings" indexName="idx_shared_settings_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex tableName="shared_settings" indexName="idx_shared_settings_member_id">
+            <column name="member_id"/>
+        </createIndex>
+    </changeSet>
 </databaseChangeLog>

@@ -55,7 +55,7 @@ public class GoalCompletionCore {
             settings.setNextExecutionDate(null);
         });
 
-        outboxService.save("PiggyBank", piggyBank.getId().toString(), "activity.piggybank",
+        outboxService.save("SharedPiggyBank", piggyBank.getId().toString(), "activity.piggybank",
                 new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
 
         piggyBankRepository.delete(piggyBank);

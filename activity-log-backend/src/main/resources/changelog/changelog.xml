@@ -158,6 +158,21 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="create-shared-account-activity-table" author="Marcin Parśniak">
+        <createTable tableName="shared_account_activity">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="refunded_balance" type="DECIMAL(19,2)"/>
+            <column name="co_founder_username" type="VARCHAR(255)"/>
+            <column name="co_founder_email" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">

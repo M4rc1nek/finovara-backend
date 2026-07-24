@@ -7,6 +7,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.revenue.servi
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.service.LoginActivityService;
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.service.SettingsActivityService;
+import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.service.SharedAccountActivityService;
 import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
@@ -16,7 +17,8 @@ import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
-import com.finovara.contracts.event.user.UserAccountDeletedEvent;
+import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,7 @@ public class ActivityConsumers {
     private final LimitActivityService limitActivityService;
     private final ExpenseActivityService expenseActivityService;
     private final AccountChangesActivityService accountChangesActivityService;
+    private final SharedAccountActivityService sharedAccountActivityService;
 
     private final List<UserDataDeletable> deletableServices;
 
@@ -75,6 +78,11 @@ public class ActivityConsumers {
     @KafkaListener(topics = "activity.account-changes")
     public void handleAccountChanges(AccountChangesActivityEvent event) {
         accountChangesActivityService.handleEvent(event);
+    }
+
+    @KafkaListener(topics = "activity.shared-account")
+    public void handleSharedAccount(SharedAccountActivityEvent event) {
+        sharedAccountActivityService.handleEvent(event);
     }
 
     @KafkaListener(topics = "user-account.deleted")

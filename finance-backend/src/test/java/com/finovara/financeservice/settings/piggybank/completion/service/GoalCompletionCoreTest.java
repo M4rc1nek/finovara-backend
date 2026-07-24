@@ -99,7 +99,7 @@ class GoalCompletionCoreTest {
 
         ArgumentCaptor<Object> outboxCaptor = ArgumentCaptor.forClass(Object.class);
         verify(outboxService).save(
-                eq("PiggyBank"),
+                eq("SharedPiggyBank"),
                 eq(piggyBank.getId().toString()),
                 eq("activity.piggybank"),
                 outboxCaptor.capture()

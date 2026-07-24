@@ -1,6 +1,8 @@
 package com.finovara.financeservice.util.piggybank;
 
 import com.finovara.financeservice.piggybank.model.PiggyBank;
+import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
+import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
@@ -13,4 +15,10 @@ public class PiggyBankCheckGoalCompletion {
         return piggyBank.getAmount().compareTo(piggyBank.getGoalAmount()) >= 0;
     }
 
+    public static boolean isSharedPiggyBankGoalCompleted(SharedPiggyBank piggyBank) {
+        if (piggyBank.getGoalAmount() == null) {
+            return false;
+        }
+        return piggyBank.getAmount().compareTo(piggyBank.getGoalAmount()) >= 0;
+    }
 }

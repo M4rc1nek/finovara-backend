@@ -96,6 +96,18 @@ verification-code-manager:
 password-generator:
   length: 8
 
+shared-account:
+  invitation:
+    expiration-hours: 24
+  search:
+    page-size: 25
+
+scheduler:
+  shared-account:
+    invitation:
+      expire-cron: "0 0 * * * ?"
+
+
 
 security:
   whitelist:

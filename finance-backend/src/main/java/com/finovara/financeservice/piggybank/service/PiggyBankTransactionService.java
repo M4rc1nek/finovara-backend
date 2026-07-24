@@ -5,15 +5,12 @@ import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEven
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
-import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
 import com.finovara.financeservice.util.piggybank.PiggyBankCalculator;
 import com.finovara.financeservice.util.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.financeservice.util.piggybank.PiggyBankValidator;
 import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
-import com.finovara.financeservice.util.wallet.WalletManagerService;
-import com.finovara.financeservice.wallet.model.Wallet;
-import com.finovara.financeservice.wallet.repository.WalletRepository;
+import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,31 +22,26 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class PiggyBankTransactionService {
-    private final WalletManagerService walletManagerService;
-    private final PiggyBankRepository piggyBankRepository;
-    private final WalletRepository walletRepository;
     private final PiggyBankManagerService piggyBankManagerService;
     private final OutboxService outboxService;
     private final GoalCompletionService goalCompletionService;
+    private final WalletService walletService;
 
     @Transactional
     public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, PiggyBankActivityType piggyBankActivityType) {
-        TransactionContext transactionContext = getEntitiesForTransaction(userId, piggyBankId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         PiggyBankValidator.validateAmount(amount);
-        transactionContext.wallet.withdraw(amount);
-        transactionContext.piggyBank.setAmount(transactionContext.piggyBank.getAmount().add(amount));
+        walletService.removeBalanceFromWallet(userId, amount);
+        piggyBank.setAmount(piggyBank.getAmount().add(amount));
 
-        BigDecimal percentage = calculatePercentage(transactionContext.piggyBank);
-        boolean completed = PiggyBankCheckGoalCompletion.isGoalCompleted(transactionContext.piggyBank);
-
-        walletRepository.save(transactionContext.wallet);
-        piggyBankRepository.save(transactionContext.piggyBank);
+        BigDecimal percentage = calculatePercentage(piggyBank);
+        boolean completed = PiggyBankCheckGoalCompletion.isGoalCompleted(piggyBank);
 
         outboxService.save("PiggyBank", piggyBankId.toString(), "activity.piggybank",
-                new PiggyBankActivityEvent(userId, piggyBankActivityType, transactionContext.piggyBank.getName(), transactionContext.piggyBank.getGoalType(), transactionContext.piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
+                new PiggyBankActivityEvent(userId, piggyBankActivityType, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
         outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.calculate-progress",
-                new PiggyBankProgressEvent(userId, piggyBankId, percentage, transactionContext.piggyBank.getGoalType(), transactionContext.piggyBank.getName()));
+                new PiggyBankProgressEvent(userId, piggyBankId, percentage, piggyBank.getGoalType(), piggyBank.getName()));
 
         if (completed) {
             goalCompletionService.handleGoalCompletion(userId);
@@ -58,36 +50,24 @@ public class PiggyBankTransactionService {
 
     @Transactional
     public void removeBalanceFromPiggyBank(Long userId, Long piggyBankId, BigDecimal amount) {
-        TransactionContext transactionContext = getEntitiesForTransaction(userId, piggyBankId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         PiggyBankValidator.validateAmount(amount);
-        PiggyBankValidator.validateSufficientFunds(transactionContext.piggyBank.getAmount(), amount);
+        PiggyBankValidator.validateSufficientFunds(piggyBank.getAmount(), amount);
 
-        transactionContext.piggyBank.setAmount(transactionContext.piggyBank.getAmount().subtract(amount));
-        transactionContext.wallet.deposit(amount);
+        piggyBank.setAmount(piggyBank.getAmount().subtract(amount));
+        walletService.addBalanceToWallet(userId, amount);
 
-        BigDecimal percentage = calculatePercentage(transactionContext.piggyBank);
-
-        walletRepository.save(transactionContext.wallet);
-        piggyBankRepository.save(transactionContext.piggyBank);
+        BigDecimal percentage = calculatePercentage(piggyBank);
 
         outboxService.save("PiggyBank", piggyBankId.toString(), "activity.piggybank",
-                new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, transactionContext.piggyBank.getName(), transactionContext.piggyBank.getGoalType(), transactionContext.piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
+                new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
         outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.calculate-progress",
-                new PiggyBankProgressEvent(userId, piggyBankId, percentage, transactionContext.piggyBank.getGoalType(), transactionContext.piggyBank.getName()));
+                new PiggyBankProgressEvent(userId, piggyBankId, percentage, piggyBank.getGoalType(), piggyBank.getName()));
     }
 
     private BigDecimal calculatePercentage(PiggyBank piggyBank) {
         Double progress = PiggyBankCalculator.calculateProgress(piggyBank);
         return BigDecimal.valueOf(progress).multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.HALF_UP);
-    }
-
-    private TransactionContext getEntitiesForTransaction(Long userId, Long piggyBankId) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
-        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
-        return new TransactionContext(wallet, piggyBank);
-    }
-
-    private record TransactionContext(Wallet wallet, PiggyBank piggyBank) {
     }
 }

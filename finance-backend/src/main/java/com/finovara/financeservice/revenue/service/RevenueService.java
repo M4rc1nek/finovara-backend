@@ -33,7 +33,6 @@ public class RevenueService implements UserDataDeletable {
 
     private final OutboxService outboxService;
     private final RevenueRepository revenueRepository;
-    private final WalletRepository walletRepository;
     private final WalletService walletService;
     private final RevenueManagerService revenueManagerService;
     private final RevenueMapper revenueMapper;
@@ -64,23 +63,19 @@ public class RevenueService implements UserDataDeletable {
             throw new RequestedEntityNotFoundException("Revenue not found for this user");
         }
 
-        Wallet wallet = walletRepository.findByUserId(userId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Wallet not found"));
-
         BigDecimal oldAmount = existingRevenue.getAmount();
         BigDecimal newAmount = revenueDto.amount();
         RevenueCategory oldCategory = existingRevenue.getCategory();
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, oldAmount, PiggyBankAutomationMode.ROLLBACK);
 
-        wallet.withdraw(oldAmount);
-        wallet.deposit(newAmount);
+        walletService.addBalanceToWallet(userId, newAmount);
+        walletService.removeBalanceFromWallet(userId,  oldAmount);
 
         existingRevenue.setAmount(revenueDto.amount());
         existingRevenue.setCategory(revenueDto.category());
         existingRevenue.setDescription(revenueDto.description());
 
-        walletRepository.save(wallet);
         revenueRepository.save(existingRevenue);
 
         outboxService.save("Revenue", revenueId.toString(), "activity.revenue",

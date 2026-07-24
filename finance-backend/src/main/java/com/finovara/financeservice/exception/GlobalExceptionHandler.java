@@ -4,9 +4,10 @@ import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
+import com.finovara.contracts.exception.unprocessablecontent.InvalidOperationException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
-import com.finovara.financeservice.exception.conflict.SmartScanConfirmationRequiredException;
+import com.finovara.financeservice.exception.conflict.ConfirmationRequiredException;
 import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,7 @@ import org.springframework.web.context.request.WebRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({QuantityLimitOperationException.class, SmartScanConfirmationRequiredException.class, EntityAlreadyExistsException.class})
+    @ExceptionHandler({QuantityLimitOperationException.class, ConfirmationRequiredException.class, EntityAlreadyExistsException.class})
     public ResponseEntity<ErrorResponseDto> handleConflictExceptions(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.CONFLICT.value(),
@@ -51,7 +52,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler({MissingRequirementException.class}) // NEW CODE 422
+    @ExceptionHandler({MissingRequirementException.class, InvalidOperationException.class}) // NEW CODE 422
     public ResponseEntity<ErrorResponseDto> handleUnprocessableEntity(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.UNPROCESSABLE_CONTENT.value(),

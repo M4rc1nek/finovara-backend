@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/revenue-history-cache")
+@RequestMapping("/api/revenue-history-cache")
 @RequiredArgsConstructor
 public class RefreshRevenueCacheController {
 

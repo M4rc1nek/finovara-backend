@@ -11,7 +11,7 @@ public record RevenueDto(
         Long id,
         Long userId,
 
-        @DecimalMin("1") @DecimalMax("5000000") BigDecimal amount,
+        @DecimalMin("1") @DecimalMax("999999") BigDecimal amount,
         RevenueCategory category,
         LocalDate createdAt,
         String description

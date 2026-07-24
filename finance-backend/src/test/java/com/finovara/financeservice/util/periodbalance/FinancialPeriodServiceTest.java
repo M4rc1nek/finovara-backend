@@ -1,12 +1,15 @@
 package com.finovara.financeservice.util.periodbalance;
 
-import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.financeservice.expense.repository.ExpenseRepository;
-import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.contracts.model.PeriodType;
-import org.junit.jupiter.api.BeforeEach;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.financeservice.expense.model.Expense;
+import com.finovara.financeservice.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.revenue.model.Revenue;
+import com.finovara.financeservice.revenue.repository.RevenueRepository;
+import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -16,153 +19,224 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class FinancialPeriodServiceTest {
 
+    private static final Long USER_ID = 1L;
+
     @Mock
     private ExpenseRepository expenseRepository;
 
     @Mock
+    private SharedExpenseRepository sharedExpenseRepository;
+
+    @Mock
     private RevenueRepository revenueRepository;
+
+    @Mock
+    private ExpenseCategory expenseCategory;
+
+    @Mock
+    private RevenueCategory revenueCategory;
 
     @InjectMocks
     private FinancialPeriodService financialPeriodService;
 
-    private final Long userId = 1L;
-    private LocalDate today;
-
-    @BeforeEach
-    void setUp() {
-        today = LocalDate.now();
-    }
-
     @Nested
-    class Expense {
+    class GetExpensesInPeriodByCategory {
+
         @ParameterizedTest
         @EnumSource(PeriodType.class)
-        void shouldReturnExpensesInPeriod(PeriodType periodType) {
+        void shouldReturnExpensesForEveryPeriodType(PeriodType periodType) {
+            LocalDate today = LocalDate.now();
             LocalDate from = periodType.getStartDate(today);
+            List<Expense> expected = List.of(mock(Expense.class));
 
-            when(expenseRepository.sumExpensesByUserAndDateRange(userId, from, today)).thenReturn(Optional.of(BigDecimal.valueOf(50)));
+            when(expenseRepository.findAllByUserIdAndCreatedAtBetweenAndCategory(USER_ID, from, today, expenseCategory))
+                    .thenReturn(expected);
 
-            BigDecimal result = financialPeriodService.getExpensesSum(userId, periodType);
+            List<Expense> result = financialPeriodService.getExpensesInPeriodByCategory(USER_ID, periodType, expenseCategory);
 
-            assertThat(result).isEqualByComparingTo("50");
-            verify(expenseRepository).sumExpensesByUserAndDateRange(userId, from, today);
+            assertThat(result).isSameAs(expected);
         }
 
-        @ParameterizedTest
-        @EnumSource(PeriodType.class)
-        void shouldReturnZeroWhenNoExpenses(PeriodType periodType) {
-            LocalDate from = periodType.getStartDate(today);
+        @Test
+        void shouldReturnEmptyListWhenNoExpensesFound() {
+            LocalDate today = LocalDate.now();
+            LocalDate from = PeriodType.MONTHLY.getStartDate(today);
 
-            when(expenseRepository.sumExpensesByUserAndDateRange(userId, from, today)).thenReturn(Optional.empty());
+            when(expenseRepository.findAllByUserIdAndCreatedAtBetweenAndCategory(USER_ID, from, today, expenseCategory))
+                    .thenReturn(List.of());
 
-            BigDecimal result = financialPeriodService.getExpensesSum(userId, periodType);
+            List<Expense> result = financialPeriodService.getExpensesInPeriodByCategory(USER_ID, PeriodType.MONTHLY, expenseCategory);
 
-            assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
+            assertThat(result).isEmpty();
         }
 
-        @ParameterizedTest
-        @EnumSource(PeriodType.class)
-        void shouldReturnExpensesByCategory(PeriodType periodType) {
-            LocalDate from = periodType.getStartDate(today);
+        @Test
+        void shouldCallRepositoryWithCorrectDateRange() {
+            LocalDate today = LocalDate.now();
+            LocalDate from = PeriodType.WEEKLY.getStartDate(today);
 
-            financialPeriodService.getExpensesInPeriodByCategory(userId, periodType, ExpenseCategory.FOOD);
+            when(expenseRepository.findAllByUserIdAndCreatedAtBetweenAndCategory(USER_ID, from, today, expenseCategory))
+                    .thenReturn(List.of());
 
-            verify(expenseRepository).findAllByUserIdAndCreatedAtBetweenAndCategory(userId, from, today, ExpenseCategory.FOOD);
-        }
+            financialPeriodService.getExpensesInPeriodByCategory(USER_ID, PeriodType.WEEKLY, expenseCategory);
 
-        @ParameterizedTest
-        @EnumSource(PeriodType.class)
-        void shouldReturnAverageExpenseInPeriod(PeriodType periodType) {
-            LocalDate from = periodType.getStartDate(today);
-
-            when(expenseRepository.avgExpensesByUserIdAndPeriod(userId, from, today)).thenReturn(Optional.of(BigDecimal.valueOf(75)));
-
-            BigDecimal result = financialPeriodService.getAverageExpense(userId, periodType);
-
-            assertThat(result).isEqualByComparingTo("75");
-            verify(expenseRepository).avgExpensesByUserIdAndPeriod(userId, from, today);
-        }
-
-        @ParameterizedTest
-        @EnumSource(PeriodType.class)
-        void shouldReturnZeroAverageExpenseWhenNoData(PeriodType periodType) {
-            LocalDate from = periodType.getStartDate(today);
-
-            when(expenseRepository.avgExpensesByUserIdAndPeriod(userId, from, today)).thenReturn(Optional.empty());
-
-            BigDecimal result = financialPeriodService.getAverageExpense(userId, periodType);
-
-            assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
+            verify(expenseRepository).findAllByUserIdAndCreatedAtBetweenAndCategory(USER_ID, from, today, expenseCategory);
         }
     }
 
     @Nested
-    class Revenue {
+    class GetRevenuesInPeriodByCategory {
+
         @ParameterizedTest
         @EnumSource(PeriodType.class)
-        void shouldReturnRevenueInPeriod(PeriodType periodType) {
+        void shouldReturnRevenuesForEveryPeriodType(PeriodType periodType) {
+            LocalDate today = LocalDate.now();
             LocalDate from = periodType.getStartDate(today);
+            List<Revenue> expected = List.of(mock(Revenue.class));
 
-            when(revenueRepository.sumRevenuesByUserAndDateRange(userId, from, today)).thenReturn(Optional.of(BigDecimal.valueOf(100)));
+            when(revenueRepository.findAllByUserIdAndCreatedAtBetweenAndCategory(USER_ID, from, today, revenueCategory))
+                    .thenReturn(expected);
 
-            BigDecimal result = financialPeriodService.getRevenueSum(userId, periodType);
+            List<Revenue> result = financialPeriodService.getRevenuesInPeriodByCategory(USER_ID, periodType, revenueCategory);
 
-            assertThat(result).isEqualByComparingTo("100");
-            verify(revenueRepository).sumRevenuesByUserAndDateRange(userId, from, today);
+            assertThat(result).isSameAs(expected);
         }
 
-        @ParameterizedTest
-        @EnumSource(PeriodType.class)
-        void shouldReturnZeroWhenNoRevenue(PeriodType periodType) {
-            LocalDate from = periodType.getStartDate(today);
+        @Test
+        void shouldReturnEmptyListWhenNoRevenuesFound() {
+            LocalDate today = LocalDate.now();
+            LocalDate from = PeriodType.DAILY.getStartDate(today);
 
-            when(revenueRepository.sumRevenuesByUserAndDateRange(userId, from, today)).thenReturn(Optional.empty());
+            when(revenueRepository.findAllByUserIdAndCreatedAtBetweenAndCategory(USER_ID, from, today, revenueCategory))
+                    .thenReturn(List.of());
 
-            BigDecimal result = financialPeriodService.getRevenueSum(userId, periodType);
+            List<Revenue> result = financialPeriodService.getRevenuesInPeriodByCategory(USER_ID, PeriodType.DAILY, revenueCategory);
+
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    class GetExpensesSum {
+
+        @Test
+        void shouldReturnCategorySumWhenCategoryProvided() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.MONTHLY.getStartDate(to);
+
+            when(expenseRepository.sumExpensesByUserAndDateRangeAndCategory(USER_ID, from, to, expenseCategory))
+                    .thenReturn(Optional.of(new BigDecimal("150.00")));
+
+            BigDecimal result = financialPeriodService.getExpensesSum(USER_ID, PeriodType.MONTHLY, expenseCategory);
+
+            assertThat(result).isEqualByComparingTo("150.00");
+            verify(expenseRepository, never()).sumExpensesByUserAndDateRange(USER_ID, from, to);
+        }
+
+        @Test
+        void shouldReturnGeneralSumWhenCategoryIsNull() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.MONTHLY.getStartDate(to);
+
+            when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, from, to))
+                    .thenReturn(Optional.of(new BigDecimal("500.00")));
+
+            BigDecimal result = financialPeriodService.getExpensesSum(USER_ID, PeriodType.MONTHLY, null);
+
+            assertThat(result).isEqualByComparingTo("500.00");
+            verify(expenseRepository, never()).sumExpensesByUserAndDateRangeAndCategory(USER_ID, from, to, expenseCategory);
+        }
+
+        @Test
+        void shouldReturnZeroWhenGeneralSumIsEmpty() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.DAILY.getStartDate(to);
+
+            when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, from, to)).thenReturn(Optional.empty());
+
+            BigDecimal result = financialPeriodService.getExpensesSum(USER_ID, PeriodType.DAILY, null);
 
             assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
         }
 
-        @ParameterizedTest
-        @EnumSource(PeriodType.class)
-        void shouldReturnRevenueByCategory(PeriodType periodType) {
-            LocalDate from = periodType.getStartDate(today);
+        @Test
+        void shouldReturnZeroWhenCategorySumIsEmpty() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.DAILY.getStartDate(to);
 
-            financialPeriodService.getRevenuesInPeriodByCategory(userId, periodType, RevenueCategory.SALARY);
+            when(expenseRepository.sumExpensesByUserAndDateRangeAndCategory(USER_ID, from, to, expenseCategory))
+                    .thenReturn(Optional.empty());
 
-            verify(revenueRepository).findAllByUserIdAndCreatedAtBetweenAndCategory(userId, from, today, RevenueCategory.SALARY);
+            BigDecimal result = financialPeriodService.getExpensesSum(USER_ID, PeriodType.DAILY, expenseCategory);
+
+            assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
+        }
+    }
+
+    @Nested
+    class GetSharedExpensesSum {
+
+        @Test
+        void shouldReturnCategorySumWhenCategoryProvided() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.MONTHLY.getStartDate(to);
+
+            when(sharedExpenseRepository.sumExpensesByUsersAndDateRangeAndCategory(USER_ID, from, to, expenseCategory))
+                    .thenReturn(Optional.of(new BigDecimal("220.00")));
+
+            BigDecimal result = financialPeriodService.getSharedExpensesSum(USER_ID, PeriodType.MONTHLY, expenseCategory);
+
+            assertThat(result).isEqualByComparingTo("220.00");
+            verify(sharedExpenseRepository, never()).sumExpensesByUsersAndDateRange(USER_ID, from, to);
         }
 
-        @ParameterizedTest
-        @EnumSource(PeriodType.class)
-        void shouldReturnAverageRevenueInPeriod(PeriodType periodType) {
-            LocalDate from = periodType.getStartDate(today);
+        @Test
+        void shouldReturnGeneralSumWhenCategoryIsNull() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.WEEKLY.getStartDate(to);
 
-            when(revenueRepository.avgRevenuesByUserIdAndPeriod(userId, from, today)).thenReturn(Optional.of(BigDecimal.valueOf(200)));
+            when(sharedExpenseRepository.sumExpensesByUsersAndDateRange(USER_ID, from, to))
+                    .thenReturn(Optional.of(new BigDecimal("640.00")));
 
-            BigDecimal result = financialPeriodService.getAverageRevenue(userId, periodType);
+            BigDecimal result = financialPeriodService.getSharedExpensesSum(USER_ID, PeriodType.WEEKLY, null);
 
-            assertThat(result).isEqualByComparingTo("200");
-            verify(revenueRepository).avgRevenuesByUserIdAndPeriod(userId, from, today);
+            assertThat(result).isEqualByComparingTo("640.00");
+            verify(sharedExpenseRepository, never()).sumExpensesByUsersAndDateRangeAndCategory(USER_ID, from, to, expenseCategory);
         }
 
-        @ParameterizedTest
-        @EnumSource(PeriodType.class)
-        void shouldReturnZeroAverageRevenueWhenNoData(PeriodType periodType) {
-            LocalDate from = periodType.getStartDate(today);
+        @Test
+        void shouldReturnZeroWhenGeneralSumIsEmpty() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.DAILY.getStartDate(to);
 
-            when(revenueRepository.avgRevenuesByUserIdAndPeriod(userId, from, today)).thenReturn(Optional.empty());
+            when(sharedExpenseRepository.sumExpensesByUsersAndDateRange(USER_ID, from, to)).thenReturn(Optional.empty());
 
-            BigDecimal result = financialPeriodService.getAverageRevenue(userId, periodType);
+            BigDecimal result = financialPeriodService.getSharedExpensesSum(USER_ID, PeriodType.DAILY, null);
+
+            assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
+        }
+
+        @Test
+        void shouldReturnZeroWhenCategorySumIsEmpty() {
+            LocalDate to = LocalDate.now();
+            LocalDate from = PeriodType.MONTHLY.getStartDate(to);
+
+            when(sharedExpenseRepository.sumExpensesByUsersAndDateRangeAndCategory(USER_ID, from, to, expenseCategory))
+                    .thenReturn(Optional.empty());
+
+            BigDecimal result = financialPeriodService.getSharedExpensesSum(USER_ID, PeriodType.MONTHLY, expenseCategory);
 
             assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
         }

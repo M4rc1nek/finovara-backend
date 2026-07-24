@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,14 @@ public class EmailTemplateService {
 
     @Async
     public void sendEmail(String recipientEmail, String subject, String templatePath, String username, String templateEmailValue) {
+        sendEmail(recipientEmail, subject, templatePath, Map.of(
+                "username", username == null ? "" : username,
+                "email", templateEmailValue == null ? "" : templateEmailValue
+        ));
+    }
+
+    @Async
+    public void sendEmail(String recipientEmail, String subject, String templatePath, Map<String, String> placeholders) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -33,7 +42,7 @@ public class EmailTemplateService {
             helper.setReplyTo(senderAddress);
             helper.setSubject(subject);
 
-            String html = loadTemplate(templatePath, username, templateEmailValue);
+            String html = loadTemplate(templatePath, placeholders);
             helper.setText(html, true);
 
             javaMailSender.send(message);
@@ -43,19 +52,17 @@ public class EmailTemplateService {
         }
     }
 
-    private String loadTemplate(String templatePath, String username, String templateEmailValue) {
+    private String loadTemplate(String templatePath, Map<String, String> placeholders) {
         try {
             ClassPathResource resource = new ClassPathResource(templatePath);
 
             try (InputStream inputStream = resource.getInputStream()) {
                 String html = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-                if (username != null) {
-                    html = html.replace("{{username}}", username);
+                for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+                    html = html.replace("{{" + entry.getKey() + "}}", entry.getValue());
                 }
-                if (templateEmailValue != null) {
-                    html = html.replace("{{email}}", templateEmailValue);
-                }
+
                 return html;
             }
 

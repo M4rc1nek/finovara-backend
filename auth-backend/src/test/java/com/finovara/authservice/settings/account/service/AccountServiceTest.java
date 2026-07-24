@@ -2,7 +2,7 @@ package com.finovara.authservice.settings.account.service;
 
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.event.notification.SendEmailEvent;
-import com.finovara.contracts.event.user.UserAccountDeletedEvent;
+import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.outbox.OutboxService;
@@ -22,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -172,90 +171,6 @@ class AccountServiceTest {
             AccountSettingsDto result = accountService.getAccountSettings(userId);
 
             assertThat(result.profileImageUrl()).isNull();
-        }
-    }
-
-    @Nested
-    class DeleteAccount {
-
-        @Test
-        void shouldValidatePasswordAndDeleteUser() {
-            Long userId = 1L;
-            ConfirmPasswordDto dto = new ConfirmPasswordDto("password");
-            User user = new User();
-            user.setId(userId);
-            user.setEmail("test@test.com");
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-
-            accountService.deleteAccount(dto, userId);
-
-            verify(passwordValidator).validatePassword(userId, dto);
-            verify(userRepository).delete(user);
-        }
-
-        @Test
-        void shouldSaveEmailNotificationToOutbox() {
-            Long userId = 1L;
-            ConfirmPasswordDto dto = new ConfirmPasswordDto("password");
-            User user = new User();
-            user.setId(userId);
-            user.setEmail("test@test.com");
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-
-            accountService.deleteAccount(dto, userId);
-
-            ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
-            verify(outboxService).save(
-                    eq("User"),
-                    eq(userId.toString()),
-                    eq("notification.email.send"),
-                    payloadCaptor.capture()
-            );
-
-            SendEmailEvent event = (SendEmailEvent) payloadCaptor.getValue();
-            assertThat(event.userId()).isEqualTo(userId);
-            assertThat(event.email()).isEqualTo("test@test.com");
-        }
-
-        @Test
-        void shouldSaveUserAccountDeletedEventToOutbox() {
-            Long userId = 1L;
-            ConfirmPasswordDto dto = new ConfirmPasswordDto("password");
-            User user = new User();
-            user.setId(userId);
-            user.setEmail("test@test.com");
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-
-            accountService.deleteAccount(dto, userId);
-
-            ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
-            verify(outboxService).save(
-                    eq("User"),
-                    eq(userId.toString()),
-                    eq("user-account.deleted"),
-                    payloadCaptor.capture()
-            );
-
-            UserAccountDeletedEvent event = (UserAccountDeletedEvent) payloadCaptor.getValue();
-            assertThat(event.userId()).isEqualTo(userId);
-        }
-
-        @Test
-        void shouldSaveBothOutboxEventsExactlyOnce() {
-            Long userId = 1L;
-            ConfirmPasswordDto dto = new ConfirmPasswordDto("password");
-            User user = new User();
-            user.setId(userId);
-            user.setEmail("test@test.com");
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
-
-            accountService.deleteAccount(dto, userId);
-
-            verify(outboxService, times(2)).save(any(), any(), any(), any());
         }
     }
 }

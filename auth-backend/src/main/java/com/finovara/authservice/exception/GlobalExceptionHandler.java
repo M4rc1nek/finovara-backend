@@ -7,12 +7,14 @@ import com.finovara.authservice.exception.unauthorized.InvalidCredentialsExcepti
 import com.finovara.contracts.exception.ErrorResponseDto;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.exception.forbidden.AccessDeniedException;
 import com.finovara.contracts.exception.forbidden.InvalidPasswordException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -32,7 +34,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-
     @ExceptionHandler(VerificationAttemptsExceededException.class)
     public ResponseEntity<AttemptsErrorResponseDto> handleToManyVerificationAttempts(VerificationAttemptsExceededException exception, WebRequest webRequest) {
         AttemptsErrorResponseDto body = new AttemptsErrorResponseDto(
@@ -45,7 +46,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.TOO_MANY_REQUESTS);
     }
 
-
     @ExceptionHandler({LocalPasswordNotSetException.class, EntityAlreadyExistsException.class})
     public ResponseEntity<ErrorResponseDto> handleConflict(RuntimeException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
@@ -56,7 +56,6 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
-
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ErrorResponseDto> handleIncorrectCredentials(InvalidCredentialsException exception, WebRequest webRequest) {
@@ -69,8 +68,8 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(InvalidPasswordException.class)
-    public ResponseEntity<ErrorResponseDto> handleInvalidPassword(InvalidPasswordException exception, WebRequest webRequest) {
+    @ExceptionHandler({InvalidPasswordException.class, AccessDeniedException.class})
+    public ResponseEntity<ErrorResponseDto> handleForbidden(InvalidPasswordException exception, WebRequest webRequest) {
         ErrorResponseDto body = new ErrorResponseDto(
                 HttpStatus.FORBIDDEN.value(),
                 HttpStatus.FORBIDDEN.getReasonPhrase(),
@@ -79,7 +78,6 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
-
 
     @ExceptionHandler({RequestedEntityNotFoundException.class})
     public ResponseEntity<ErrorResponseDto> handleNotFoundException(RuntimeException exception, WebRequest webRequest) {
@@ -125,6 +123,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponseDto> handleOptimisticLocking(ObjectOptimisticLockingFailureException exception, WebRequest webRequest) {
+        ErrorResponseDto body = new ErrorResponseDto(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                "The data has been changed by another operation. Please try again.",
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleAll(WebRequest webRequest) {

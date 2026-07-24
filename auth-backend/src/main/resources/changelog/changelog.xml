@@ -20,6 +20,9 @@
             <column name="password_set" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
+            <column name="has_shared_account" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
             <column name="email" type="VARCHAR(255)">
                 <constraints nullable="false" unique="true"/>
             </column>
@@ -27,11 +30,13 @@
             <column name="profile_image_path" type="VARCHAR(500)"/>
             <column name="oauth_provider" type="VARCHAR(50)"/>
             <column name="provider_user_id" type="VARCHAR(255)"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
         <addUniqueConstraint tableName="users" columnNames="oauth_provider, provider_user_id"
                              constraintName="uk_users_oauth_provider_user_id"/>
     </changeSet>
-
     <changeSet id="create-account-settings" author="Marcin Parśniak">
         <createTable tableName="account_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -51,6 +56,81 @@
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" unique="true" foreignKeyName="fk_account_settings_user"
                              references="users(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-shared-accounts" author="Marcin Parśniak">
+        <createTable tableName="shared_accounts">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-shared-account-members" author="Marcin Parśniak">
+        <createTable tableName="shared_account_members">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="role" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="joined_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="shared_account_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_shared_account_members_account"
+                             references="shared_accounts(id)"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint
+                tableName="shared_account_members"
+                columnNames="shared_account_id, user_id"
+                constraintName="uk_shared_account_members_account_user"/>
+    </changeSet>
+
+    <changeSet id="create-shared-account-invitations" author="Marcin Parśniak">
+        <createTable tableName="shared_account_invitations">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="inviter_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invitee_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="create-shedlock-table" author="Marcin Parśniak">
+        <createTable tableName="shedlock">
+            <column name="name" type="varchar(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="lock_until" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_at" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_by" type="varchar(255)">
+                <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>

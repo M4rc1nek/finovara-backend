@@ -35,6 +35,15 @@ revenues:
   highest:
     page-size: 5
 
+shared:
+  expenses:
+    highest:
+      page-size: 10
+  revenues:
+    highest:
+      page-size: 10
+
+
 logging:
   level:
     root: INFO

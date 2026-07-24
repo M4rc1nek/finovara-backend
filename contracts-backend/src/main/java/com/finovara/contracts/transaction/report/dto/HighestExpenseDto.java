@@ -5,7 +5,7 @@ import com.finovara.contracts.model.transaction.ExpenseCategory;
 import java.math.BigDecimal;
 
 public record HighestExpenseDto(
-        ExpenseCategory expenseCategory,
+        ExpenseCategory category,
         BigDecimal amount
 ) {
 }
