@@ -155,4 +155,13 @@ class ActivityConsumersTest {
 
         verify(accountChangesActivityService).handleEvent(event);
     }
+
+    @Test
+    void shouldDelegatePiggyBankTransactionEventToService() {
+        PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, "Gift fund", PiggyBankGoalType.GIFTS, new BigDecimal("100.00"), new BigDecimal("50.00"), OCCURRED_AT);
+
+        activityConsumers.handlePiggyBankTransaction(event);
+
+        verify(piggyBankActivityService).handleEvent(event);
+    }
 }

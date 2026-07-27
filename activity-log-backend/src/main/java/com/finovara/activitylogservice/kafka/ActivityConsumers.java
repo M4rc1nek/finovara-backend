@@ -60,6 +60,11 @@ public class ActivityConsumers {
         piggyBankActivityService.handleEditEvent(event);
     }
 
+    @KafkaListener(topics = "activity.piggybank")
+    public void handlePiggyBankTransaction(PiggyBankActivityEvent event) {
+        piggyBankActivityService.handleEvent(event);
+    }
+
     @KafkaListener(topics = "activity.login")
     public void handleLogin(LoginActivityEvent event) {
         loginActivityService.handleEvent(event);
