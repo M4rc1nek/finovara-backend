@@ -1,7 +1,6 @@
 package com.finovara.financeservice.util.piggybank;
 
 import com.finovara.financeservice.piggybank.model.PiggyBank;
-import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import lombok.experimental.UtilityClass;
 
