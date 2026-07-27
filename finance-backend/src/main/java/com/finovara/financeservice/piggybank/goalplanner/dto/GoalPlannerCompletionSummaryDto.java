@@ -1,4 +1,14 @@
 package com.finovara.financeservice.piggybank.goalplanner.dto;
 
-public record GoalPlannerCompletionSummaryDto() {
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+public record GoalPlannerCompletionSummaryDto(
+        long durationDays,
+        long durationHours,
+        long durationMinutes,
+        BigDecimal totalSaved,
+        LocalDateTime completedOnTime
+
+) {
 }
