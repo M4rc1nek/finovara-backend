@@ -9,6 +9,7 @@ import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
+import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
@@ -22,7 +23,6 @@ import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerServic
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -42,6 +42,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
     private final RecurringSettingsRepository recurringSettingsRepository;
     private final PiggyBankMapper piggyBankMapper;
     private final PiggyBankSettingsFactory piggyBankSettingsFactory;
+    private final GoalPlannerService goalPlannerService;
 
     @Transactional
     public Long addPiggyBank(PiggyBankDto piggyBankDto, Long userId) {
@@ -96,9 +97,11 @@ public class PiggyBankManagementService implements UserDataDeletable {
         piggyBank.setGoalType(piggyBankDto.goalType());
 
         PiggyBank saved = piggyBankRepository.save(piggyBank);
+        goalPlannerService.checkAndMarkGoalCompletion(saved.getGoalPlanner());
         outboxService.save("PiggyBank", saved.getId().toString(), "activity.piggybank.edited",
-                new PiggyBankEditActivityEvent(userId, PiggyBankActivityType.EDITED_PIGGY_BANK, piggyBank.getName(), previousName ,
-                        piggyBank.getGoalType(), previousGoalType,  piggyBank.getGoalAmount(), previousGoalAmount, LocalDateTime.now()));
+                new PiggyBankEditActivityEvent(userId, PiggyBankActivityType.EDITED_PIGGY_BANK, piggyBank.getName(), previousName,
+                        piggyBank.getGoalType(), previousGoalType, piggyBank.getGoalAmount(), previousGoalAmount, LocalDateTime.now()));
+
 
         log.info("Edited Piggy Bank. New name: {}, new goal amount: {}", piggyBankDto.name(), piggyBankDto.goalAmount());
 
@@ -134,7 +137,6 @@ public class PiggyBankManagementService implements UserDataDeletable {
         piggyBankRepository.delete(piggyBank);
         log.info("Manual deleted piggyBank for userId={}", userId);
     }
-
 
     @Override
     @Transactional
