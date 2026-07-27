@@ -1,6 +1,7 @@
 package com.finovara.financeservice.piggybank.model;
 
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.financeservice.piggybank.goalplanner.model.GoalPlanner;
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
 import jakarta.persistence.*;
 import lombok.*;
@@ -37,5 +38,8 @@ public class PiggyBank {
 
     @OneToOne(mappedBy = "piggyBankAssigned", cascade = CascadeType.ALL)
     private PiggyBankSettings settings;
+
+    @OneToOne(mappedBy = "piggyBankAssigned", cascade = CascadeType.ALL)
+    private GoalPlanner goalPlanner;
 
 }

@@ -5,6 +5,7 @@ import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEven
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
 import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
@@ -37,6 +38,8 @@ class PiggyBankTransactionServiceTest {
     @Mock
     private GoalCompletionService goalCompletionService;
     @Mock
+    private GoalPlannerService goalPlannerService;
+    @Mock
     private WalletService walletService;
 
     private PiggyBank piggyBank;
@@ -62,6 +65,7 @@ class PiggyBankTransactionServiceTest {
 
             assertEquals(new BigDecimal("100"), piggyBank.getAmount());
             verify(walletService).removeBalanceFromWallet(userId, new BigDecimal("100"));
+            verify(goalPlannerService).checkAndMarkGoalCompletion(any());
         }
 
         @Test
@@ -156,6 +160,7 @@ class PiggyBankTransactionServiceTest {
             assertEquals(new BigDecimal("100"), piggyBank.getAmount());
             verify(walletService).addBalanceToWallet(userId, new BigDecimal("100"));
             verifyNoInteractions(goalCompletionService);
+            verify(goalPlannerService).checkAndMarkGoalCompletion(any());
         }
 
         @Test

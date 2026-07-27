@@ -7,6 +7,7 @@ import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
+import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
@@ -52,6 +53,8 @@ class PiggyBankManagementServiceTest {
     private PiggyBankSettingsFactory piggyBankSettingsFactory;
     @Mock
     private PiggyBankMapper piggyBankMapper;
+    @Mock
+    private GoalPlannerService goalPlannerService;
     @Mock
     private RecurringSettingsRepository recurringSettingsRepository;
 
@@ -138,11 +141,12 @@ class PiggyBankManagementServiceTest {
 
             ArgumentCaptor<PiggyBankEditActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankEditActivityEvent.class);
             verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank.edited"), eventCaptor.capture());
+            verify(goalPlannerService).checkAndMarkGoalCompletion(any());
             assertEquals(PiggyBankActivityType.EDITED_PIGGY_BANK, eventCaptor.getValue().type());
         }
 
         @Test
-        void shouldNotThrowWhenEditingWithSameName() {
+        void shouldNotThrowExceptionWhenEditingWithSameName() {
             PiggyBank piggyBank = new PiggyBank();
             piggyBank.setId(piggyBankId);
             piggyBank.setName("Piggy");
