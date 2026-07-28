@@ -15,7 +15,7 @@ import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
-import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringExpenseValidator;
+import com.finovara.financeservice.settings.finances.recurring.service.validator.ExpenseSettingsValidator;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
@@ -57,7 +57,7 @@ class RecurringExecutionServiceTest {
     private PiggyBankTransactionService piggyBankTransactionService;
 
     @Mock
-    private RecurringExpenseValidator recurringExpenseValidator;
+    private ExpenseSettingsValidator expenseSettingsValidator;
 
     @Mock
     private RecurringRevenueValidator recurringRevenueValidator;
@@ -86,7 +86,7 @@ class RecurringExecutionServiceTest {
                 revenueService,
                 expenseService,
                 piggyBankTransactionService,
-                recurringExpenseValidator,
+                expenseSettingsValidator,
                 recurringRevenueValidator,
                 recurringSavingsValidator,
                 expenseSettingsRepository,
@@ -107,7 +107,7 @@ class RecurringExecutionServiceTest {
             recurringExecutionService.execute(recurringSettings, executionDate);
 
             verifyNoInteractions(revenueService, expenseService, piggyBankTransactionService,
-                    recurringExpenseValidator, recurringRevenueValidator, recurringSavingsValidator);
+                    expenseSettingsValidator, recurringRevenueValidator, recurringSavingsValidator);
         }
 
         @Test
@@ -271,7 +271,7 @@ class RecurringExecutionServiceTest {
 
             recurringExecutionService.execute(recurringSettings, executionDate);
 
-            verify(recurringExpenseValidator, times(1)).validate(recurringSettings, expenseSettings, wallet, List.of());
+            verify(expenseSettingsValidator, times(1)).validate(recurringSettings, expenseSettings, wallet, List.of());
             verify(expenseService, times(1)).addExpense(any(ExpenseRequestDto.class), eq(1L));
         }
 
@@ -354,7 +354,7 @@ class RecurringExecutionServiceTest {
             when(expenseSettingsRepository.findByUserId(1L)).thenReturn(expenseSettings);
             when(walletManagerService.getWalletByUserIdOrThrow(1L)).thenReturn(wallet);
             when(limitManagerService.getLimitsByUserId(1L)).thenReturn(List.of());
-            doThrow(new IllegalStateException("invalid settings")).when(recurringExpenseValidator)
+            doThrow(new IllegalStateException("invalid settings")).when(expenseSettingsValidator)
                     .validate(recurringSettings, expenseSettings, wallet, List.of());
 
             assertThrows(IllegalStateException.class, () -> recurringExecutionService.execute(recurringSettings, executionDate));
