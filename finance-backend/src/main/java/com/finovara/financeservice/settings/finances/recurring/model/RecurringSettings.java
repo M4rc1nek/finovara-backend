@@ -44,6 +44,7 @@ public class RecurringSettings  {
     private PeriodType periodType;
 
     private LocalDate startDate;
+    private LocalDate endDate;
     private LocalDate nextExecutionDate;
 
     @Column(nullable = false)
