@@ -1,15 +1,15 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
 import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringRevenueDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
-import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringRevenueValidator;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +30,7 @@ public class RecurringRevenueService {
         recurringSettingsSupport.applyCommonFields(
                 userId,
                 settings,
-                new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate()),
+                new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate(), dto.endDate()),
                 SettingType.REVENUE_RECURRING
         );
 
@@ -48,6 +48,7 @@ public class RecurringRevenueService {
                 settings.getRevenueCategory(),
                 settings.getPeriodType(),
                 settings.getStartDate(),
+                settings.getEndDate(),
                 settings.getNextExecutionDate()
         );
     }
