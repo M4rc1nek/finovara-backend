@@ -1,21 +1,21 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
+import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringExpenseDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
-import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
-import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringExpenseValidator;
+import com.finovara.financeservice.settings.finances.recurring.service.validator.ExpenseSettingsValidator;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import java.util.List;
 public class RecurringExpenseService {
 
     private final RecurringSettingsSupport recurringSettingsSupport;
-    private final RecurringExpenseValidator recurringExpenseValidator;
+    private final ExpenseSettingsValidator expenseSettingsValidator;
     private final ExpenseSettingsRepository expenseSettingsRepository;
     private final WalletManagerService walletManagerService;
     private final LimitManagerService limitManagerService;
@@ -40,7 +40,7 @@ public class RecurringExpenseService {
         recurringSettingsSupport.applyCommonFields(
                 userId,
                 settings,
-                new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate()),
+                new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate(), dto.endDate()),
                 SettingType.EXPENSE_RECURRING
         );
 
@@ -49,7 +49,7 @@ public class RecurringExpenseService {
             Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
             List<Limit> limits = limitManagerService.getLimitsByUserId(userId);
 
-            recurringExpenseValidator.validate(settings, expenseSettings, wallet, limits);
+            expenseSettingsValidator.validate(settings, expenseSettings, wallet, limits);
         }
     }
 
@@ -62,6 +62,7 @@ public class RecurringExpenseService {
                 settings.getExpenseCategory(),
                 settings.getPeriodType(),
                 settings.getStartDate(),
+                settings.getEndDate(),
                 settings.getNextExecutionDate()
         );
     }
