@@ -10,6 +10,7 @@ public class RecurringBasicValidator {
     public <C> void validateBasics(RecurringSettings settings, C category) {
         validateUser(settings);
         validateStartDate(settings);
+        validateEndDate(settings);
         validateCategory(category);
         validatePeriodType(settings);
         validateAmount(settings);
@@ -18,6 +19,7 @@ public class RecurringBasicValidator {
     public void validateBasicsWithoutCategory(RecurringSettings settings) {
         validateUser(settings);
         validateStartDate(settings);
+        validateEndDate(settings);
         validatePeriodType(settings);
         validateAmount(settings);
     }
@@ -31,6 +33,12 @@ public class RecurringBasicValidator {
     private void validateStartDate(RecurringSettings settings) {
         if (settings.getStartDate() == null) {
             throw new InvalidInputException("Start date is required");
+        }
+    }
+
+    private void validateEndDate(RecurringSettings settings) {
+        if (settings.getEndDate() == null) {
+            throw new InvalidInputException("End date is required");
         }
     }
 
