@@ -1,17 +1,17 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
 import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringSavingsDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
-import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +32,7 @@ public class RecurringSavingsService {
         recurringSettingsSupport.applyCommonFields(
                 userId,
                 settings,
-                new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate()),
+                new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate(), dto.endDate()),
                 SettingType.SAVINGS_RECURRING
         );
 
@@ -51,6 +51,7 @@ public class RecurringSavingsService {
                 settings.getPiggyBankId(),
                 settings.getPeriodType(),
                 settings.getStartDate(),
+                settings.getEndDate(),
                 settings.getNextExecutionDate()
         );
     }
