@@ -14,7 +14,7 @@ import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettin
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringDescription;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringExpenseValidator;
+import com.finovara.financeservice.settings.finances.recurring.service.validator.ExpenseSettingsValidator;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
@@ -37,7 +37,7 @@ public class RecurringExecutionService {
     private final RevenueService revenueService;
     private final ExpenseService expenseService;
     private final PiggyBankTransactionService piggyBankTransactionService;
-    private final RecurringExpenseValidator recurringExpenseValidator;
+    private final ExpenseSettingsValidator expenseSettingsValidator;
     private final RecurringRevenueValidator recurringRevenueValidator;
     private final RecurringSavingsValidator recurringSavingsValidator;
     private final ExpenseSettingsRepository expenseSettingsRepository;
@@ -78,7 +78,7 @@ public class RecurringExecutionService {
 
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(settings.getUserId());
         List<Limit> limits = limitManagerService.getLimitsByUserId(settings.getUserId());
-        recurringExpenseValidator.validate(settings, expenseSettings, wallet, limits);
+        expenseSettingsValidator.validate(settings, expenseSettings, wallet, limits);
 
         PeriodType limitPeriodType = resolveLimitPeriodType(settings, expenseSettings);
         ExpenseDto expenseDto = buildExpenseDto(settings, date);
