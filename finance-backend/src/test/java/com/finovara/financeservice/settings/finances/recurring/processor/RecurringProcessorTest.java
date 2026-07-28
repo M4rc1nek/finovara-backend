@@ -168,5 +168,15 @@ class RecurringProcessorTest {
 
             verifyNoInteractions(executionService);
         }
+
+        @Test
+        void shouldSkipWhenEndDateIsNull() {
+            RecurringSettings settings = createValidSettings(today);
+            settings.setEndDate(null);
+
+            recurringProcessor.generateRecurringTransaction();
+
+            verifyNoInteractions(executionService);
+        }
     }
 }
