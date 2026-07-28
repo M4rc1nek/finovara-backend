@@ -52,6 +52,7 @@ logging:
 scheduler:
   recurring-settings:
     frequency: "0 0 0 * * ?"
+    max-occurrence-range-days: 180
   shared-account:
     notes:
       delete-cron: "0 0 1 5 * ?"
