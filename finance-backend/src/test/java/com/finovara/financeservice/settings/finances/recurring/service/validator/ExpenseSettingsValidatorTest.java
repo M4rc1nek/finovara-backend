@@ -35,7 +35,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class RecurringExpenseValidatorTest {
+class ExpenseSettingsValidatorTest {
 
     @Mock
     private SmartScanService smartScanService;
@@ -47,7 +47,7 @@ class RecurringExpenseValidatorTest {
     private FinancialPeriodService financialPeriodService;
 
     @InjectMocks
-    private RecurringExpenseValidator recurringExpenseValidator;
+    private ExpenseSettingsValidator expenseSettingsValidator;
 
     private Long userId;
 
@@ -80,7 +80,7 @@ class RecurringExpenseValidatorTest {
         void shouldCallBasicValidatorWhenValidating() {
             Wallet wallet = sufficientWallet();
 
-            recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of());
+            expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of());
 
             verify(recurringBasicValidator, times(1)).validateBasics(settings, settings.getExpenseCategory());
         }
@@ -90,7 +90,7 @@ class RecurringExpenseValidatorTest {
             Wallet wallet = mock(Wallet.class);
             doThrow(new InvalidInputException("invalid settings")).when(recurringBasicValidator).validateBasics(any(), any());
 
-            assertThrows(InvalidInputException.class, () -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertThrows(InvalidInputException.class, () -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
 
             verifyNoInteractions(smartScanService, financialPeriodService);
         }
@@ -105,7 +105,7 @@ class RecurringExpenseValidatorTest {
             Wallet wallet = mock(Wallet.class);
             when(wallet.getBalance()).thenReturn(BigDecimal.valueOf(100));
 
-            assertThrows(InvalidInputException.class, () -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertThrows(InvalidInputException.class, () -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
         }
 
         @Test
@@ -114,7 +114,7 @@ class RecurringExpenseValidatorTest {
             Wallet wallet = mock(Wallet.class);
             when(wallet.getBalance()).thenReturn(BigDecimal.valueOf(100));
 
-            assertDoesNotThrow(() -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertDoesNotThrow(() -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
         }
 
         @Test
@@ -123,7 +123,7 @@ class RecurringExpenseValidatorTest {
             Wallet wallet = mock(Wallet.class);
             when(wallet.getBalance()).thenReturn(BigDecimal.valueOf(100));
 
-            assertDoesNotThrow(() -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertDoesNotThrow(() -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
         }
     }
 
@@ -135,7 +135,7 @@ class RecurringExpenseValidatorTest {
             expenseSettings.setCountQuantityLimitEnabled(false);
             Wallet wallet = sufficientWallet();
 
-            assertDoesNotThrow(() -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertDoesNotThrow(() -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
         }
 
         @Test
@@ -146,7 +146,7 @@ class RecurringExpenseValidatorTest {
             settings.setNextExecutionDate(LocalDate.now().withDayOfMonth(1).minusMonths(1));
             Wallet wallet = sufficientWallet();
 
-            assertThrows(InvalidInputException.class, () -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertThrows(InvalidInputException.class, () -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
         }
 
         @Test
@@ -157,7 +157,7 @@ class RecurringExpenseValidatorTest {
             settings.setNextExecutionDate(LocalDate.now().plusMonths(1));
             Wallet wallet = sufficientWallet();
 
-            assertDoesNotThrow(() -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertDoesNotThrow(() -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
         }
     }
 
@@ -169,7 +169,7 @@ class RecurringExpenseValidatorTest {
             expenseSettings.setAmountThresholdEnabled(false);
             Wallet wallet = sufficientWallet();
 
-            assertDoesNotThrow(() -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertDoesNotThrow(() -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
         }
 
         @Test
@@ -179,7 +179,7 @@ class RecurringExpenseValidatorTest {
             settings.setAmount(BigDecimal.valueOf(100));
             Wallet wallet = sufficientWallet();
 
-            assertThrows(InvalidInputException.class, () -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertThrows(InvalidInputException.class, () -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
         }
 
         @Test
@@ -189,7 +189,7 @@ class RecurringExpenseValidatorTest {
             settings.setAmount(BigDecimal.valueOf(100));
             Wallet wallet = sufficientWallet();
 
-            assertDoesNotThrow(() -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertDoesNotThrow(() -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
         }
 
         @Test
@@ -199,7 +199,7 @@ class RecurringExpenseValidatorTest {
             settings.setAmount(BigDecimal.valueOf(100));
             Wallet wallet = sufficientWallet();
 
-            assertDoesNotThrow(() -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertDoesNotThrow(() -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
         }
     }
 
@@ -211,7 +211,7 @@ class RecurringExpenseValidatorTest {
             expenseSettings.setSmartScanEnabled(false);
             Wallet wallet = sufficientWallet();
 
-            recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of());
+            expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of());
 
             verifyNoInteractions(smartScanService);
         }
@@ -221,7 +221,7 @@ class RecurringExpenseValidatorTest {
             expenseSettings.setSmartScanEnabled(true);
             Wallet wallet = sufficientWallet();
 
-            recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of());
+            expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of());
 
             verify(smartScanService, times(1)).handleSmartScan(userId, null, settings.getAmount(), SmartScanMode.ADD);
         }
@@ -233,7 +233,7 @@ class RecurringExpenseValidatorTest {
             doThrow(new ConfirmationRequiredException("confirmation required"))
                     .when(smartScanService).handleSmartScan(userId, null, settings.getAmount(), SmartScanMode.ADD);
 
-            assertThrows(InvalidInputException.class, () -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of()));
+            assertThrows(InvalidInputException.class, () -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of()));
         }
     }
 
@@ -248,7 +248,7 @@ class RecurringExpenseValidatorTest {
             limit.setAmount(BigDecimal.valueOf(10));
             Wallet wallet = sufficientWallet();
 
-            assertDoesNotThrow(() -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of(limit)));
+            assertDoesNotThrow(() -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of(limit)));
 
             verifyNoInteractions(financialPeriodService);
         }
@@ -263,7 +263,7 @@ class RecurringExpenseValidatorTest {
             Wallet wallet = sufficientWallet();
             when(financialPeriodService.getExpensesSum(userId, PeriodType.MONTHLY, null)).thenReturn(BigDecimal.valueOf(100));
 
-            assertThrows(InvalidInputException.class, () -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of(limit)));
+            assertThrows(InvalidInputException.class, () -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of(limit)));
         }
 
         @Test
@@ -277,7 +277,7 @@ class RecurringExpenseValidatorTest {
             Wallet wallet = sufficientWallet();
             when(financialPeriodService.getExpensesSum(userId, PeriodType.MONTHLY, ExpenseCategory.FOOD)).thenReturn(BigDecimal.valueOf(100));
 
-            assertThrows(InvalidInputException.class, () -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of(limit)));
+            assertThrows(InvalidInputException.class, () -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of(limit)));
         }
 
         @Test
@@ -291,7 +291,7 @@ class RecurringExpenseValidatorTest {
             Wallet wallet = sufficientWallet();
             when(financialPeriodService.getExpensesSum(userId, PeriodType.MONTHLY, ExpenseCategory.FOOD)).thenReturn(BigDecimal.valueOf(100));
 
-            assertDoesNotThrow(() -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of(limit)));
+            assertDoesNotThrow(() -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of(limit)));
         }
 
         @Test
@@ -305,7 +305,7 @@ class RecurringExpenseValidatorTest {
             Wallet wallet = sufficientWallet();
             when(financialPeriodService.getExpensesSum(userId, PeriodType.MONTHLY, ExpenseCategory.FOOD)).thenReturn(BigDecimal.valueOf(100));
 
-            assertDoesNotThrow(() -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of(limit)));
+            assertDoesNotThrow(() -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of(limit)));
         }
 
         @Test
@@ -326,14 +326,14 @@ class RecurringExpenseValidatorTest {
             when(financialPeriodService.getExpensesSum(userId, PeriodType.MONTHLY, ExpenseCategory.FOOD)).thenReturn(BigDecimal.valueOf(100));
 
             assertThrows(InvalidInputException.class,
-                    () -> recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of(passingLimit, failingLimit)));
+                    () -> expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of(passingLimit, failingLimit)));
         }
 
         @Test
         void shouldNotCallFinancialPeriodServiceWhenLimitsListIsEmpty() {
             Wallet wallet = sufficientWallet();
 
-            recurringExpenseValidator.validate(settings, expenseSettings, wallet, List.of());
+            expenseSettingsValidator.validate(settings, expenseSettings, wallet, List.of());
 
             verifyNoInteractions(financialPeriodService);
         }
