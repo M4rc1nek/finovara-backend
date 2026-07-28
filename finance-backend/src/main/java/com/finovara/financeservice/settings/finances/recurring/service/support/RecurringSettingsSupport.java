@@ -33,6 +33,7 @@ public class RecurringSettingsSupport {
 
         if (enabled) {
             settings.setStartDate(fields.startDate());
+            settings.setEndDate(fields.endDate());
             settings.setNextExecutionDate(fields.startDate());
             kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, settingType, SettingActivityStatus.ENABLED, LocalDateTime.now()));
         } else {
