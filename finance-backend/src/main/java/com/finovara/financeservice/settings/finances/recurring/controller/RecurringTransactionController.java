@@ -2,8 +2,10 @@ package com.finovara.financeservice.settings.finances.recurring.controller;
 
 import com.finovara.financeservice.security.SecurityUtils;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringExpenseDto;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringOccurrenceDto;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringRevenueDto;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringSavingsDto;
+import com.finovara.financeservice.settings.finances.recurring.service.occurrence.RecurringOccurrenceService;
 import com.finovara.financeservice.settings.finances.recurring.service.transaction.RecurringExpenseService;
 import com.finovara.financeservice.settings.finances.recurring.service.transaction.RecurringRevenueService;
 import com.finovara.financeservice.settings.finances.recurring.service.transaction.RecurringSavingsService;
@@ -11,6 +13,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/recurring-settings")
@@ -20,6 +25,7 @@ public class RecurringTransactionController {
     private final RecurringExpenseService recurringExpenseService;
     private final RecurringSavingsService recurringSavingsService;
     private final RecurringRevenueService recurringRevenueService;
+    private final RecurringOccurrenceService recurringOccurrenceService;
 
 
     @PatchMapping("/expense")
@@ -53,5 +59,10 @@ public class RecurringTransactionController {
     @GetMapping("/savings")
     public ResponseEntity<RecurringSavingsDto> getRecurringSavings() {
         return ResponseEntity.ok(recurringSavingsService.getSavingsSettings(SecurityUtils.getCurrentUserId()));
+    }
+
+    @GetMapping("/occurrences")
+    public ResponseEntity<List<RecurringOccurrenceDto>> getOccurrences(@RequestParam LocalDate from, @RequestParam LocalDate to) {
+        return ResponseEntity.ok(recurringOccurrenceService.getUpcomingOccurrences(SecurityUtils.getCurrentUserId(), from, to));
     }
 }
