@@ -318,6 +318,7 @@
             <column name="expense_category" type="VARCHAR(255)"/>
             <column name="recurring_period" type="VARCHAR(255)"/>
             <column name="start_date" type="DATE"/>
+            <column name="end_date" type="DATE"/>
             <column name="next_execution_date" type="DATE"/>
             <column name="created_at" type="DATE">
                 <constraints nullable="false"/>
