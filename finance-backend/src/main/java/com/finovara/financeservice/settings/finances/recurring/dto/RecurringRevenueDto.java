@@ -17,6 +17,7 @@ public record RecurringRevenueDto(
         @NotNull PeriodType periodType,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
         LocalDate startDate,
+        LocalDate endDate,
         LocalDate nextExecutionDate
 
 ) {
