@@ -14,7 +14,9 @@ public record RecurringCommonFields(
         @DecimalMin("1") @DecimalMax("5000000") BigDecimal amount,
         @NotNull PeriodType periodType,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-        LocalDate startDate
+        LocalDate startDate,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+        LocalDate endDate
 ) {
 }
 
