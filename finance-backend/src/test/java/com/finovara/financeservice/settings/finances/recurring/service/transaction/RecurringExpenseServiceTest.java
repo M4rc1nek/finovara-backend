@@ -10,8 +10,9 @@ import com.finovara.financeservice.settings.finances.recurring.dto.RecurringComm
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringExpenseDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
+import com.finovara.financeservice.settings.finances.recurring.service.occurrence.RecurringOccurrenceService;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
-import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringExpenseValidator;
+import com.finovara.financeservice.settings.finances.recurring.service.validator.ExpenseSettingsValidator;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
@@ -33,12 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RecurringExpenseServiceTest {
@@ -47,7 +43,7 @@ class RecurringExpenseServiceTest {
     private RecurringSettingsSupport recurringSettingsSupport;
 
     @Mock
-    private RecurringExpenseValidator recurringExpenseValidator;
+    private ExpenseSettingsValidator expenseSettingsValidator;
 
     @Mock
     private ExpenseSettingsRepository expenseSettingsRepository;
@@ -57,6 +53,9 @@ class RecurringExpenseServiceTest {
 
     @Mock
     private LimitManagerService limitManagerService;
+
+    @Mock
+    private RecurringOccurrenceService recurringOccurrenceService;
 
     @InjectMocks
     private RecurringExpenseService recurringExpenseService;
@@ -85,7 +84,8 @@ class RecurringExpenseServiceTest {
                     ExpenseCategory.FOOD,
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
-                    null
+                    LocalDate.of(2026, 1, 1),
+                    LocalDate.of(2025, 2, 1)
             );
         }
 
@@ -113,6 +113,7 @@ class RecurringExpenseServiceTest {
             assertThat(capturedFields.amount()).isEqualByComparingTo(dto.amount());
             assertThat(capturedFields.periodType()).isEqualTo(dto.periodType());
             assertThat(capturedFields.startDate()).isEqualTo(dto.startDate());
+            assertThat(capturedFields.endDate()).isEqualTo(dto.endDate());
         }
 
         @Test
@@ -129,7 +130,7 @@ class RecurringExpenseServiceTest {
 
             recurringExpenseService.saveExpenseSettings(userId, dto);
 
-            verify(recurringExpenseValidator, times(1)).validate(settings, expenseSettings, wallet, limits);
+            verify(expenseSettingsValidator, times(1)).validate(settings, expenseSettings, wallet, limits);
         }
 
         @Test
@@ -140,14 +141,15 @@ class RecurringExpenseServiceTest {
                     ExpenseCategory.FOOD,
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
-                    null
+                    LocalDate.of(2026, 1, 1),
+                    LocalDate.of(2025, 2, 1)
             );
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
 
             recurringExpenseService.saveExpenseSettings(userId, disabledDto);
 
-            verify(recurringExpenseValidator, never()).validate(any(), any(), any(), any());
+            verify(expenseSettingsValidator, never()).validate(any(), any(), any(), any());
         }
 
         @Test
@@ -158,7 +160,8 @@ class RecurringExpenseServiceTest {
                     ExpenseCategory.FOOD,
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
-                    null
+                    LocalDate.of(2026, 1, 1),
+                    LocalDate.of(2025, 2, 1)
             );
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
@@ -179,6 +182,7 @@ class RecurringExpenseServiceTest {
             settings.setExpenseCategory(ExpenseCategory.TRANSPORT);
             settings.setPeriodType(PeriodType.MONTHLY);
             settings.setStartDate(LocalDate.of(2025, 1, 1));
+            settings.setEndDate(LocalDate.of(2026, 1, 1));
             settings.setNextExecutionDate(LocalDate.of(2025, 1, 2));
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
@@ -190,6 +194,7 @@ class RecurringExpenseServiceTest {
             assertEquals(settings.getExpenseCategory(), result.expenseCategory());
             assertEquals(settings.getPeriodType(), result.periodType());
             assertEquals(settings.getStartDate(), result.startDate());
+            assertEquals(settings.getEndDate(), result.endDate());
             assertEquals(settings.getNextExecutionDate(), result.nextExecutionDate());
         }
 
@@ -200,6 +205,7 @@ class RecurringExpenseServiceTest {
             settings.setExpenseCategory(null);
             settings.setPeriodType(PeriodType.WEEKLY);
             settings.setStartDate(LocalDate.of(2025, 2, 1));
+            settings.setEndDate(null);
             settings.setNextExecutionDate(null);
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
@@ -207,6 +213,7 @@ class RecurringExpenseServiceTest {
             RecurringExpenseDto result = recurringExpenseService.getExpenseSettings(userId);
 
             assertNull(result.expenseCategory());
+            assertNull(result.endDate());
             assertNull(result.nextExecutionDate());
         }
     }
