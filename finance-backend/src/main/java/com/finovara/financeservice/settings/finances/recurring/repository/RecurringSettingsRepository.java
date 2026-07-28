@@ -30,5 +30,8 @@ public interface RecurringSettingsRepository extends JpaRepository<RecurringSett
 
     Optional<RecurringSettings> findByUserIdAndPiggyBankId(Long userId, Long piggyBankId);
 
+    @Query("SELECT rs FROM RecurringSettings rs WHERE rs.enable = true AND rs.userId = :userId")
+    List<RecurringSettings> findAllEnabledByUserId(Long userId);
+
     void deleteAllByUserId(Long userId);
 }
