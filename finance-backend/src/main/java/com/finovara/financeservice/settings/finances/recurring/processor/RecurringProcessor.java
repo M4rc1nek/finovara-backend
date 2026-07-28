@@ -40,8 +40,9 @@ public class RecurringProcessor {
         int safetyCounter = 0;
 
         LocalDate nextDate = settings.getNextExecutionDate();
+        LocalDate endDate = settings.getEndDate();
 
-        while (settings.isEnable() && !nextDate.isAfter(today) && safetyCounter++ < MAX_ITERATIONS) {
+        while (settings.isEnable() && !nextDate.isAfter(today) && (endDate == null ||  !nextDate.isAfter(endDate)) && safetyCounter++ < MAX_ITERATIONS) {
             recurringExecutionService.execute(settings, nextDate);
 
             if (!settings.isEnable()) {
