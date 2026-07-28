@@ -1,8 +1,8 @@
 package com.finovara.financeservice.settings.finances.recurring.service.validator.util;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,6 +24,7 @@ class RecurringBasicValidatorTest {
         recurringSettings = new RecurringSettings();
         recurringSettings.setAmount(BigDecimal.valueOf(100));
         recurringSettings.setStartDate(LocalDate.of(2025, 1, 1));
+        recurringSettings.setEndDate(LocalDate.of(2026, 1, 1));
         recurringSettings.setPeriodType(PeriodType.MONTHLY);
     }
 
@@ -56,6 +57,17 @@ class RecurringBasicValidatorTest {
                     () -> recurringBasicValidator.validateBasics(recurringSettings, "CATEGORY"));
 
             assertEquals("Start date is required", invalidInputException.getMessage());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenEndDateIsNull() {
+            recurringSettings.setUserId(1L);
+            recurringSettings.setEndDate(null);
+
+            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
+                    () -> recurringBasicValidator.validateBasics(recurringSettings, "CATEGORY"));
+
+            assertEquals("End date is required", invalidInputException.getMessage());
         }
 
         @Test
@@ -120,6 +132,17 @@ class RecurringBasicValidatorTest {
                     () -> recurringBasicValidator.validateBasicsWithoutCategory(recurringSettings));
 
             assertEquals("Start date is required", invalidInputException.getMessage());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenEndDateIsNull() {
+            recurringSettings.setUserId(1L);
+            recurringSettings.setEndDate(null);
+
+            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
+                    () -> recurringBasicValidator.validateBasics(recurringSettings, "CATEGORY"));
+
+            assertEquals("End date is required", invalidInputException.getMessage());
         }
 
         @Test
