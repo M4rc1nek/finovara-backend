@@ -1,18 +1,20 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringRevenueDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
-import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
+import com.finovara.financeservice.settings.finances.recurring.service.occurrence.RecurringOccurrenceService;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringRevenueValidator;
-import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -20,7 +22,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +35,9 @@ class RecurringRevenueServiceTest {
 
     @Mock
     private RecurringRevenueValidator recurringRevenueValidator;
+
+    @Mock
+    private RecurringOccurrenceService recurringOccurrenceService;
 
     @InjectMocks
     private RecurringRevenueService recurringRevenueService;
@@ -44,7 +51,6 @@ class RecurringRevenueServiceTest {
         settings = new RecurringSettings();
     }
 
-
     @Nested
     class SaveRevenueSettings {
 
@@ -56,6 +62,7 @@ class RecurringRevenueServiceTest {
                     RevenueCategory.SALARY,
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2026, 1, 1),
                     null
             );
 
@@ -69,8 +76,10 @@ class RecurringRevenueServiceTest {
             assertNull(settings.getExpenseCategory());
             assertNull(settings.getPiggyBankId());
 
-            verify(recurringSettingsSupport).applyCommonFields(eq(userId), eq(settings), any(RecurringCommonFields.class),
+            ArgumentCaptor<RecurringCommonFields> captor = ArgumentCaptor.forClass(RecurringCommonFields.class);
+            verify(recurringSettingsSupport).applyCommonFields(eq(userId), eq(settings), captor.capture(),
                     eq(SettingType.REVENUE_RECURRING));
+            assertThat(captor.getValue().endDate()).isEqualTo(dto.endDate());
 
             verify(recurringRevenueValidator).validate(settings);
         }
@@ -83,6 +92,7 @@ class RecurringRevenueServiceTest {
                     RevenueCategory.SALARY,
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
+                    LocalDate.of(2026, 1, 1),
                     null
             );
 
@@ -106,6 +116,7 @@ class RecurringRevenueServiceTest {
             settings.setRevenueCategory(RevenueCategory.SALARY);
             settings.setPeriodType(PeriodType.MONTHLY);
             settings.setStartDate(LocalDate.of(2025, 1, 1));
+            settings.setEndDate(LocalDate.of(2026, 1, 1));
             settings.setNextExecutionDate(LocalDate.of(2025, 1, 2));
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.REVENUE)).thenReturn(settings);
@@ -117,6 +128,7 @@ class RecurringRevenueServiceTest {
             assertEquals(settings.getRevenueCategory(), result.revenueCategory());
             assertEquals(settings.getPeriodType(), result.periodType());
             assertEquals(settings.getStartDate(), result.startDate());
+            assertEquals(settings.getEndDate(), result.endDate());
             assertEquals(settings.getNextExecutionDate(), result.nextExecutionDate());
         }
     }
