@@ -34,8 +34,8 @@ public class ExpenseController {
     }
 
     @DeleteMapping("/{expenseId}")
-    public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId) {
-        expenseService.deleteExpense(expenseId, SecurityUtils.getCurrentUserId());
+    public ResponseEntity<Void> deleteExpense(@PathVariable Long expenseId, @RequestParam(required = false) String authorizationCode) {
+        expenseService.deleteExpense(expenseId, SecurityUtils.getCurrentUserId(), authorizationCode);
         return ResponseEntity.noContent().build();
     }
 
