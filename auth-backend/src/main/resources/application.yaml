@@ -96,6 +96,12 @@ verification-code-manager:
 password-generator:
   length: 8
 
+secret-generator:
+  password:
+    length: 8
+  additional-authorization-code:
+    length: 10
+
 shared-account:
   invitation:
     expiration-hours: 24
