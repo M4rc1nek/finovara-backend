@@ -118,6 +118,20 @@
             </column>
         </createTable>
     </changeSet>
+    <changeSet id="create-security-settings" author="Marcin Parśniak">
+        <createTable tableName="security_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="additional_authorization_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="additional_authorization_code" type="VARCHAR(255)"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true" foreignKeyName="fk_security_settings_user" references="users(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">
             <column name="name" type="varchar(64)">
