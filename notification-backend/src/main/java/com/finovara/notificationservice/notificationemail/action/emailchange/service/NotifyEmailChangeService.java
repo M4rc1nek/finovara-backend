@@ -11,6 +11,7 @@ import com.finovara.notificationservice.notificationemail.model.NotificationEmai
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
 import com.finovara.notificationservice.notificationemail.util.emailsender.EmailNotifier;
+import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +22,8 @@ public class NotifyEmailChangeService extends AbstractNotificationEmailService {
     private final EmailNotifier emailNotifier;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public NotifyEmailChangeService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender, EmailNotifier emailNotifier, KafkaTemplate<String, Object> kafkaTemplate) {
-        super(notificationEmailSettingsRepository, notificationEmailSender);
+    public NotifyEmailChangeService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender, AuthBackendClient authBackendClient, EmailNotifier emailNotifier, KafkaTemplate<String, Object> kafkaTemplate) {
+        super(notificationEmailSettingsRepository, notificationEmailSender, authBackendClient);
         this.emailNotifier = emailNotifier;
         this.kafkaTemplate = kafkaTemplate;
     }
@@ -44,7 +45,7 @@ public class NotifyEmailChangeService extends AbstractNotificationEmailService {
 
     @Override
     protected NotificationEmailDto mapToDto(NotificationEmailSettings settings) {
-        return new NotificationEmailDto(settings.isNotifyOnEmailChange());
+        return new NotificationEmailDto(settings.isNotifyOnEmailChange(), null);
     }
 
     @Override
