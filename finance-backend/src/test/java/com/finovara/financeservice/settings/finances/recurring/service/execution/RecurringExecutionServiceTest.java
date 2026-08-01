@@ -404,7 +404,7 @@ class RecurringExecutionServiceTest {
 
             verify(recurringSavingsValidator, times(1)).validate(recurringSettings, wallet);
             verify(piggyBankTransactionService, times(1))
-                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
+                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null);
         }
 
         @Test
@@ -416,7 +416,7 @@ class RecurringExecutionServiceTest {
             when(walletManagerService.getWalletByUserIdOrThrow(1L)).thenReturn(wallet);
             doThrow(new RequestedEntityNotFoundException("piggy bank not found"))
                     .when(piggyBankTransactionService)
-                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
+                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null);
 
             recurringExecutionService.execute(recurringSettings, executionDate);
 
@@ -432,12 +432,12 @@ class RecurringExecutionServiceTest {
             when(walletManagerService.getWalletByUserIdOrThrow(1L)).thenReturn(wallet);
             doThrow(new RequestedEntityNotFoundException("piggy bank not found"))
                     .when(piggyBankTransactionService)
-                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
+                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null);
 
             recurringExecutionService.execute(recurringSettings, executionDate);
 
             verify(piggyBankTransactionService, times(1))
-                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
+                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null);
         }
 
         @Test
