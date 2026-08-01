@@ -1,6 +1,7 @@
 package com.finovara.authservice.user.model;
 
 import com.finovara.authservice.settings.account.model.AccountSettings;
+import com.finovara.authservice.settings.security.SecuritySettings;
 import com.finovara.authservice.util.profile.ProfileImageUrlBuilder;
 import jakarta.persistence.*;
 import lombok.*;
@@ -43,6 +44,9 @@ public class User {
 
     @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
     private AccountSettings accountSettings;
+
+    @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    private SecuritySettings securitySettings;
 
     public String getProfileImageUrl() {
         return ProfileImageUrlBuilder.buildProfileImageUrl(this.profileImagePath);
