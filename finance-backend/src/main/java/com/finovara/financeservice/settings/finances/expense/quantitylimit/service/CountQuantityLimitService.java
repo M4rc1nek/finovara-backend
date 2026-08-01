@@ -1,5 +1,6 @@
 package com.finovara.financeservice.settings.finances.expense.quantitylimit.service;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
@@ -33,7 +34,7 @@ public class CountQuantityLimitService {
     @Transactional
     public void saveCountQuantityLimit(Long userId, CountQuantityLimitDto dto) {
         ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
-
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
         expenseSettings.setCountQuantityLimitEnabled(dto.expenseCountLimitEnabled());
 
         createActivity(userId, dto.expenseCountLimitEnabled());
@@ -78,7 +79,7 @@ public class CountQuantityLimitService {
     public CountQuantityLimitDto getCountQuantityLimit(Long userId) {
         ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
-        return new CountQuantityLimitDto(expenseSettings.isCountQuantityLimitEnabled(), expenseSettings.getPeriodType(), expenseSettings.getNumberOfQuantityLimit());
+        return new CountQuantityLimitDto(expenseSettings.isCountQuantityLimitEnabled(), expenseSettings.getPeriodType(), expenseSettings.getNumberOfQuantityLimit(), null);
     }
 
     private long countExpensesInPeriod(Long userId, PeriodType periodType) {
