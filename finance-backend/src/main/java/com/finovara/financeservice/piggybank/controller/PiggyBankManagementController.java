@@ -36,20 +36,20 @@ public class PiggyBankManagementController {
     }
 
     @DeleteMapping("/{piggyBankId}")
-    public ResponseEntity<Void> deletePiggyBank(@PathVariable Long piggyBankId) {
-        piggyBankManagementService.deletePiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId);
+    public ResponseEntity<Void> deletePiggyBank(@PathVariable Long piggyBankId, @RequestParam(required = false) String authorizationCode) {
+        piggyBankManagementService.deletePiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, authorizationCode);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{piggyBankId}/deposit")
-    public ResponseEntity<Void> addBalanceToPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
-        piggyBankTransactionService.addBalanceToPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
+    public ResponseEntity<Void> addBalanceToPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount, @RequestParam(required = false) String authorizationCode) {
+        piggyBankTransactionService.addBalanceToPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, authorizationCode);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{piggyBankId}/withdraw")
-    public ResponseEntity<PiggyBankDto> removeBalanceFromPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount) {
-        piggyBankTransactionService.removeBalanceFromPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount);
+    public ResponseEntity<PiggyBankDto> removeBalanceFromPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount, @RequestParam(required = false) String authorizationCode) {
+        piggyBankTransactionService.removeBalanceFromPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, authorizationCode);
         return ResponseEntity.noContent().build();
     }
 
