@@ -1,6 +1,7 @@
 package com.finovara.notificationservice.notificationemail.dto;
 
 public record NotificationEmailDto(
-        Boolean enabled
+        Boolean enabled,
+        String authorizationCode
 ) {
 }
