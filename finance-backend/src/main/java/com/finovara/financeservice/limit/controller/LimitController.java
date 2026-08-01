@@ -33,8 +33,8 @@ public class LimitController {
     }
 
     @DeleteMapping("/{limitId}")
-    public ResponseEntity<Void> deleteLimit(@PathVariable Long limitId) {
-        limitManagementService.deleteLimit(SecurityUtils.getCurrentUserId(), limitId);
+    public ResponseEntity<Void> deleteLimit(@PathVariable Long limitId, @RequestParam(required = false) String authorizationCode) {
+        limitManagementService.deleteLimit(SecurityUtils.getCurrentUserId(), limitId, authorizationCode);
         return ResponseEntity.noContent().build();
     }
 
