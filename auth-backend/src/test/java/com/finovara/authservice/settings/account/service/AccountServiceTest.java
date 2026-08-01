@@ -1,5 +1,6 @@
 package com.finovara.authservice.settings.account.service;
 
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
@@ -40,6 +41,8 @@ class AccountServiceTest {
     @Mock
     private PasswordValidator passwordValidator;
     @Mock
+    private AdditionalAuthorizationService additionalAuthorizationService;
+    @Mock
     private HttpServletRequest request;
 
     @InjectMocks
@@ -54,9 +57,10 @@ class AccountServiceTest {
             User user = new User();
             user.setId(userId);
             user.setEmail("test@test.com");
-            AccountSettingsDto dto = new AccountSettingsDto("newUsername", user.getEmail(), null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("newUsername", user.getEmail(), LocalDateTime.now(), null, null);
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());
             when(userRepository.existsByUsername(dto.username())).thenReturn(false);
 
             AccountSettingsDto result = accountService.updateUsername(dto, userId, request);
@@ -71,9 +75,10 @@ class AccountServiceTest {
             User user = new User();
             user.setId(userId);
             user.setEmail("test@test.com");
-            AccountSettingsDto dto = new AccountSettingsDto("newUsername", user.getEmail(), null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("newUsername", user.getEmail(), LocalDateTime.now(), null, null);
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());
             when(userRepository.existsByUsername(dto.username())).thenReturn(false);
 
             accountService.updateUsername(dto, userId, request);
@@ -98,9 +103,10 @@ class AccountServiceTest {
             User user = new User();
             user.setId(userId);
             user.setEmail("test@test.com");
-            AccountSettingsDto dto = new AccountSettingsDto("newUsername", user.getEmail(), null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("newUsername", user.getEmail(), LocalDateTime.now(), null, null);
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());
             when(userRepository.existsByUsername(dto.username())).thenReturn(false);
 
             accountService.updateUsername(dto, userId, request);
@@ -123,9 +129,10 @@ class AccountServiceTest {
             Long userId = 1L;
             User user = new User();
             user.setId(userId);
-            AccountSettingsDto dto = new AccountSettingsDto("existingUsername", "test@test.com", null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("existingUsername", "test@test.com", LocalDateTime.now(), null, null);
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());
             when(userRepository.existsByUsername(dto.username())).thenReturn(true);
 
             assertThatThrownBy(() -> accountService.updateUsername(dto, userId, request))
