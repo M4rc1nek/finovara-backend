@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 
 public record ControlAmountDto(
         Boolean expenseAmountThresholdEnabled,
-       @DecimalMin("1") @DecimalMax("1000000") BigDecimal blockedAmount
+        @DecimalMin("1") @DecimalMax("1000000") BigDecimal blockedAmount,
+        String authorizationCode
 ) {
 }
