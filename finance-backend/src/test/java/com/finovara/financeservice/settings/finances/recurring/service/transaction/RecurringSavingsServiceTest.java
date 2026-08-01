@@ -1,7 +1,9 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringSavingsDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
@@ -43,7 +45,7 @@ class RecurringSavingsServiceTest {
     private WalletManagerService walletManagerService;
 
     @Mock
-    private RecurringOccurrenceService recurringOccurrenceService;
+    private AuthBackendClient authBackendClient;
 
     @InjectMocks
     private RecurringSavingsService recurringSavingsService;
@@ -72,7 +74,8 @@ class RecurringSavingsServiceTest {
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2026, 1, 1),
-                    null
+                    LocalDate.of(2025, 2, 1),
+                    "code12345678"
             );
 
             settings.setEnable(true);
@@ -90,6 +93,7 @@ class RecurringSavingsServiceTest {
             verify(recurringSettingsSupport).applyCommonFields(eq(userId), eq(settings), captor.capture(),
                     eq(SettingType.SAVINGS_RECURRING));
             assertThat(captor.getValue().endDate()).isEqualTo(dto.endDate());
+            verify(authBackendClient).confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto("code12345678"));
 
             verify(recurringSavingsValidator).validate(settings, wallet);
         }
@@ -103,7 +107,8 @@ class RecurringSavingsServiceTest {
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2026, 1, 1),
-                    null
+                    LocalDate.of(2025, 2, 1),
+                    "code12345678"
             );
 
             settings.setEnable(false);
@@ -113,6 +118,7 @@ class RecurringSavingsServiceTest {
             recurringSavingsService.saveSavingsSettings(userId, dto);
 
             verify(recurringSavingsValidator, never()).validate(any(), any());
+            verify(authBackendClient).confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto("code12345678"));
         }
     }
 
