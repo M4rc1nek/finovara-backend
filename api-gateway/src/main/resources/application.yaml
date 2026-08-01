@@ -77,7 +77,7 @@ spring:
             - id: auth_backend
               uri: ${AUTH_BACKEND_URL}
               predicates:
-                - Path=/api/auth/**,/api/account-management/**,/api/profile-image/**,/profile-images/**,/api/password-reset/**,/api/contact,/oauth2/**,/login/oauth2/**,/api/account-settings/**,/api/email-change/**,/api/shared-accounts/users/**
+                - Path=/api/auth/**,/api/account-management/**,/api/profile-image/**,/profile-images/**,/api/password-reset/**,/api/contact,/oauth2/**,/login/oauth2/**,/api/account-settings/**,/api/security-settings/**,/api/email-change/**,/api/shared-accounts/users/**
 
             - id: finance_backend
               uri: ${FINANCE_BACKEND_URL}
@@ -166,3 +166,6 @@ rate-limit:
     - path: /api/shared-account/users/send-invitation
       max-requests: 555 # 1
       window-hours: 1
+    - path: /api/security-settings/additional-authorization/regenerate
+      max-requests: 1
+      window-hours: 24
