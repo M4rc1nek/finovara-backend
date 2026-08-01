@@ -33,8 +33,8 @@ public class RevenueController {
     }
 
     @DeleteMapping("/{revenueId}")
-    public ResponseEntity<Void> deleteRevenue(@PathVariable Long revenueId) {
-        revenueService.deleteRevenue(revenueId,SecurityUtils.getCurrentUserId());
+    public ResponseEntity<Void> deleteRevenue(@PathVariable Long revenueId, @RequestParam(required = false) String authorizationCode) {
+        revenueService.deleteRevenue(revenueId, SecurityUtils.getCurrentUserId(), authorizationCode);
         return ResponseEntity.noContent().build();
     }
 }
