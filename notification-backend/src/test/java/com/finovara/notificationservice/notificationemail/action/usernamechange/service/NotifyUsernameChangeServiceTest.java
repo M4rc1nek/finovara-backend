@@ -8,6 +8,7 @@ import com.finovara.notificationservice.notificationemail.util.emailsender.Email
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
+import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,8 @@ class NotifyUsernameChangeServiceTest {
     @Mock
     private NotificationEmailSender notificationEmailSender;
     @Mock
+    private AuthBackendClient authBackendClient;
+    @Mock
     private EmailNotifier emailNotifier;
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -61,7 +64,7 @@ class NotifyUsernameChangeServiceTest {
         void shouldSaveAndCreateActivity(boolean enabled, SettingActivityStatus expectedStatus) {
             when(repository.findByUserId(userId)).thenReturn(Optional.of(notificationEmailSettings));
 
-            notifyUsernameChangeService.saveEmailNotification(userId, new NotificationEmailDto(enabled));
+            notifyUsernameChangeService.saveEmailNotification(userId, new NotificationEmailDto(enabled, "auth-code"));
 
             assertEquals(enabled, notificationEmailSettings.isNotifyOnUsernameChange());
 
