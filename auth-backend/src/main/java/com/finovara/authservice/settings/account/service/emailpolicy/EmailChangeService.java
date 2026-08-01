@@ -14,6 +14,8 @@ import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.email.EmailDomainValidator;
 import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,9 +32,12 @@ public class EmailChangeService {
     private final PasswordValidator passwordValidator;
     private final EmailUpdateService emailUpdateService;
     private final EmailDomainValidator emailDomainValidator;
+    private final AdditionalAuthorizationService additionalAuthorizationService;
 
     @Transactional
     public void requestEmailChange(Long userId, EmailChangeRequestDto dto) {
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
+        
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         validateEmailChangeRequest(user, dto);
@@ -41,6 +46,8 @@ public class EmailChangeService {
 
     @Transactional
     public AttemptsDto confirmEmailChange(Long userId, EmailChangeConfirmDto dto, HttpServletRequest request) {
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
+        
         User user = userManagerService.getUserByIdOrThrow(userId);
         AccountSettings settings = user.getAccountSettings();
 
