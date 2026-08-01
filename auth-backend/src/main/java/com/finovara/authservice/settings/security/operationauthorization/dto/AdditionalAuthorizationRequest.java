@@ -4,7 +4,7 @@ import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
-public record SaveAdditionalAuthorizationRequest(
+public record AdditionalAuthorizationRequest(
         @NotNull boolean additionalAuthorizationEnabled,
         @Valid @NotNull ConfirmPasswordDto confirmPasswordDto
 ) {
