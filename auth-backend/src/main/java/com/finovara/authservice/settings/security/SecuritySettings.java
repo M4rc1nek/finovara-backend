@@ -1,10 +1,9 @@
-package com.finovara.authservice.settings.secutiy;
+package com.finovara.authservice.settings.security;
 
 import com.finovara.authservice.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "security_settings")
@@ -22,11 +21,7 @@ public class SecuritySettings {
     @Column(nullable = false)
     private boolean additionalAuthorizationEnabled;
 
-    @Column(nullable = false)
-    private String additionalAuthorizationCodeHash;
-
-    @Column(nullable = false)
-    private LocalDateTime additionalCodeGeneratedAt;
+    private String additionalAuthorizationCode;
 
     @OneToOne
     @JoinColumn(name = "user_id")
