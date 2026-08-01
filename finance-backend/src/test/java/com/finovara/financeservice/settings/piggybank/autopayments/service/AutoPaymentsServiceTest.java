@@ -8,6 +8,7 @@ import com.finovara.financeservice.settings.piggybank.autopayments.dto.AutoPayme
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
@@ -49,6 +50,9 @@ class AutoPaymentsServiceTest {
     @Mock
     private GoalCompletionService goalCompletionService;
 
+    @Mock
+    private AuthBackendClient authBackendClient;
+
     @InjectMocks
     private AutoPaymentsService autoPaymentsService;
 
@@ -74,7 +78,7 @@ class AutoPaymentsServiceTest {
         void shouldActivateAutomationWithPercentage() {
             when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
-            autoPaymentsService.createAutomation(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, BigDecimal.valueOf(20)));
+            autoPaymentsService.createAutomation(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, BigDecimal.valueOf(20), null));
 
             assertTrue(piggyBank.getSettings().isAutomationActive());
             assertThat(piggyBank.getSettings().getAutomationPercentage()).isEqualByComparingTo(BigDecimal.valueOf(20));
@@ -84,7 +88,7 @@ class AutoPaymentsServiceTest {
         void shouldDeactivateAutomationAndResetPercentage() {
             when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
-            autoPaymentsService.createAutomation(USER_ID, PIGGY_ID, new AutoPaymentsDto(false, null));
+            autoPaymentsService.createAutomation(USER_ID, PIGGY_ID, new AutoPaymentsDto(false, null, null));
 
             assertFalse(piggyBank.getSettings().isAutomationActive());
             assertEquals(BigDecimal.ZERO, piggyBank.getSettings().getAutomationPercentage());
@@ -94,7 +98,7 @@ class AutoPaymentsServiceTest {
         void shouldSaveAutomationAndCreateActivity() {
             when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
-            autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, BigDecimal.TEN));
+            autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, BigDecimal.TEN, null));
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
             verify(kafkaTemplate).send(eq("activity.settings"), eventCaptor.capture());
@@ -105,7 +109,7 @@ class AutoPaymentsServiceTest {
         void shouldThrowExceptionWhenActiveWithoutPercentage() {
             when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
-            assertThrows(IllegalArgumentException.class, () -> autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, null)));
+            assertThrows(IllegalArgumentException.class, () -> autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, null, null)));
         }
     }
 
