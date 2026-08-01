@@ -1,6 +1,8 @@
 package com.finovara.financeservice.settings.piggybank.completion.service;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.piggybank.completion.dto.GoalCompletionDto;
@@ -26,11 +28,13 @@ public class GoalCompletionService {
     private final PiggyBankRepository piggyBankRepository;
     private final GoalCompletionCore goalCompletionCore;
     private final WalletRepository walletRepository;
+    private final AuthBackendClient authBackendClient;
 
     @Transactional
     public void setGoalCompletion(Long userId, Long piggyBankId, GoalCompletionDto goalCompletionDto) {
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(goalCompletionDto.authorizationCode()));
 
         piggyBankSettings.setGoalCompletionStrategy(goalCompletionDto.strategy());
     }
@@ -52,7 +56,7 @@ public class GoalCompletionService {
     public GoalCompletionDto getCompletionDto(Long userId, Long piggyBankId) {
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
-        return new GoalCompletionDto(piggyBankSettings.getGoalCompletionStrategy());
+        return new GoalCompletionDto(piggyBankSettings.getGoalCompletionStrategy(), null);
     }
 
     @Transactional
