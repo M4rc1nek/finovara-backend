@@ -21,6 +21,7 @@ public record LimitDto(
         @Digits(integer = 7, fraction = 2)
         BigDecimal amount,
 
-        Boolean isActive
+        Boolean isActive,
+        String authorizationCode
 ) {
 }
