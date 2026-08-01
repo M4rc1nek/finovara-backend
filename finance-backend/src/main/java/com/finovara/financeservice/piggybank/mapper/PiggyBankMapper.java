@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PiggyBankMapper {
-    public PiggyBankDto mapToPiggyBankDto(PiggyBank piggyBank, Double progress, boolean goalCompleted) {
+    public PiggyBankDto mapToPiggyBankDto(PiggyBank piggyBank, Double progress, Boolean goalCompleted) {
         return new PiggyBankDto(
                 piggyBank.getId(),
                 piggyBank.getUserId(),
@@ -16,7 +16,8 @@ public class PiggyBankMapper {
                 piggyBank.getGoalType(),
                 piggyBank.getGoalAmount(),
                 progress,
-                goalCompleted
+                goalCompleted,
+                null
         );
     }
 }
