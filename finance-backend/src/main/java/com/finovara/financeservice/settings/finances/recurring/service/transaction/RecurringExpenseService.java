@@ -1,6 +1,8 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
@@ -28,11 +30,12 @@ public class RecurringExpenseService {
     private final ExpenseSettingsRepository expenseSettingsRepository;
     private final WalletManagerService walletManagerService;
     private final LimitManagerService limitManagerService;
+    private final AuthBackendClient authBackendClient;
 
     @Transactional
     public void saveExpenseSettings(Long userId, RecurringExpenseDto dto) {
         RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE);
-
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
         settings.setExpenseCategory(dto.expenseCategory());
         settings.setRevenueCategory(null);
         settings.setPiggyBankId(null);
@@ -63,7 +66,8 @@ public class RecurringExpenseService {
                 settings.getPeriodType(),
                 settings.getStartDate(),
                 settings.getEndDate(),
-                settings.getNextExecutionDate()
+                settings.getNextExecutionDate(),
+                null
         );
     }
 }
