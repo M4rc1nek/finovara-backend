@@ -1,9 +1,11 @@
 package com.finovara.financeservice.settings.finances.expense.controlamount.service;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
@@ -24,10 +26,12 @@ public class ControlAmountService {
 
     private final ExpenseSettingsRepository expenseSettingsRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final AuthBackendClient authBackendClient;
 
     @Transactional
     public void saveExpenseAmountControl(Long userId, ControlAmountDto controlAmountDto) {
         ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(controlAmountDto.authorizationCode()));
 
         BigDecimal blockedAmount = Optional.ofNullable(controlAmountDto.blockedAmount()).orElse(BigDecimal.ZERO);
 
@@ -44,7 +48,7 @@ public class ControlAmountService {
     public ControlAmountDto getExpenseAmountControl(Long userId) {
         ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
-        return new ControlAmountDto(expenseSettings.isAmountThresholdEnabled(), expenseSettings.getBlockedAmount());
+        return new ControlAmountDto(expenseSettings.isAmountThresholdEnabled(), expenseSettings.getBlockedAmount(), null);
     }
 
     public void handleExpenseAmountControl(Long userId, BigDecimal newAmount) {
