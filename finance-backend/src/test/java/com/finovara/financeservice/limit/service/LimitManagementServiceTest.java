@@ -7,6 +7,7 @@ import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundExceptio
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.limit.dto.LimitDto;
 import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
@@ -61,6 +62,9 @@ class LimitManagementServiceTest {
     @Mock
     private OutboxService outboxService;
 
+    @Mock
+    private AuthBackendClient authBackendClient;
+
     @InjectMocks
     private LimitManagementService limitManagementService;
 
@@ -78,7 +82,7 @@ class LimitManagementServiceTest {
                 .isActive(true)
                 .build();
 
-        limitDto = new LimitDto(USER_ID, LIMIT_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD, LimitStatus.LOW, BigDecimal.valueOf(700), true);
+        limitDto = new LimitDto(USER_ID, LIMIT_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD, LimitStatus.LOW, BigDecimal.valueOf(700), true, null);
     }
 
     @Nested
@@ -86,7 +90,7 @@ class LimitManagementServiceTest {
 
         @Test
         void shouldCreateGeneralLimitWhenGeneralLimitDoesNotExist() {
-            LimitDto dto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, null, null, BigDecimal.valueOf(1000), true);
+            LimitDto dto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, null, null, BigDecimal.valueOf(1000), true, null);
             Limit savedLimit = Limit.builder().id(LIMIT_ID).userId(USER_ID).periodType(dto.periodType()).category(null).amount(dto.amount()).isActive(true).build();
 
             when(limitRepository.findGeneralLimit(USER_ID, PeriodType.MONTHLY)).thenReturn(Optional.empty());
@@ -115,7 +119,7 @@ class LimitManagementServiceTest {
 
         @Test
         void shouldThrowEntityAlreadyExistsExceptionWhenGeneralLimitAlreadyExists() {
-            LimitDto dto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, null, null, BigDecimal.valueOf(1000), true);
+            LimitDto dto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, null, null, BigDecimal.valueOf(1000), true, null);
 
             when(limitRepository.findGeneralLimit(USER_ID, PeriodType.MONTHLY)).thenReturn(Optional.of(limit));
 
@@ -137,7 +141,7 @@ class LimitManagementServiceTest {
 
         @Test
         void shouldThrowInvalidInputExceptionWhenCurrentExpensesExceedLimit() {
-            LimitDto dto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, ExpenseCategory.FOOD, null, BigDecimal.valueOf(700), true);
+            LimitDto dto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, ExpenseCategory.FOOD, null, BigDecimal.valueOf(700), true, null);
 
             doThrow(new InvalidInputException("Current expenses exceed limit"))
                     .when(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, dto);
@@ -256,7 +260,7 @@ class LimitManagementServiceTest {
         void shouldDeleteLimitWhenLimitExists() {
             when(limitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(limit));
 
-            limitManagementService.deleteLimit(USER_ID, LIMIT_ID);
+            limitManagementService.deleteLimit(USER_ID, LIMIT_ID, "authCode");
 
             verify(limitRepository).delete(limit);
             verify(outboxService).save(eq("Limit"), eq(LIMIT_ID.toString()), eq("activity.limit"), any(LimitActivityEvent.class));
@@ -266,7 +270,7 @@ class LimitManagementServiceTest {
         void shouldThrowRequestedEntityNotFoundExceptionWhenDeletingNonExistingLimit() {
             when(limitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> limitManagementService.deleteLimit(USER_ID, LIMIT_ID));
+            assertThrows(RequestedEntityNotFoundException.class, () -> limitManagementService.deleteLimit(USER_ID, LIMIT_ID, "authCode"));
 
             verify(limitRepository, never()).delete(any());
             verifyNoInteractions(outboxService);
@@ -276,7 +280,7 @@ class LimitManagementServiceTest {
         void shouldThrowRequestedEntityNotFoundExceptionWhenLimitBelongsToAnotherUser() {
             when(limitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> limitManagementService.deleteLimit(USER_ID, LIMIT_ID));
+            assertThrows(RequestedEntityNotFoundException.class, () -> limitManagementService.deleteLimit(USER_ID, LIMIT_ID, "authCode"));
 
             verify(limitRepository, never()).delete(any());
             verifyNoInteractions(outboxService);
