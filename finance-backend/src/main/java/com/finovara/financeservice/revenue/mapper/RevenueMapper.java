@@ -13,7 +13,8 @@ public class RevenueMapper {
                 revenue.getAmount(),
                 revenue.getCategory(),
                 revenue.getCreatedAt(),
-                revenue.getDescription()
+                revenue.getDescription(),
+                null
         );
     }
 }
