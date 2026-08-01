@@ -75,7 +75,7 @@ class SmartScanServiceTest {
 
         @Test
         void shouldEnableSmartScan() {
-            SmartScanDto dto = new SmartScanDto(true);
+            SmartScanDto dto = new SmartScanDto(true, null);
 
             smartScanService.saveSmartScan(USER_ID, dto);
 
@@ -88,7 +88,7 @@ class SmartScanServiceTest {
 
         @Test
         void shouldDisableSmartScan() {
-            SmartScanDto dto = new SmartScanDto(false);
+            SmartScanDto dto = new SmartScanDto(false, null);
 
             smartScanService.saveSmartScan(USER_ID, dto);
 
