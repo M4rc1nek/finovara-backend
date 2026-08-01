@@ -12,7 +12,7 @@ import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.financeservice.util.revenue.RevenueManagerService;
-import com.finovara.financeservice.wallet.repository.WalletRepository;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -46,6 +46,8 @@ class RevenueServiceTest {
     private RevenueManagerService revenueManagerService;
     @Mock
     private RevenueMapper revenueMapper;
+    @Mock
+    private AuthBackendClient authBackendClient;
 
     @InjectMocks
     private RevenueService revenueService;
@@ -62,7 +64,7 @@ class RevenueServiceTest {
 
         @Test
         void shouldAddRevenueSuccessfully() {
-            RevenueDto dto = new RevenueDto(2L, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit");
+            RevenueDto dto = new RevenueDto(2L, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", null);
 
             when(revenueRepository.save(any(Revenue.class)))
                     .thenAnswer(invocation -> {
@@ -97,7 +99,7 @@ class RevenueServiceTest {
             revenue.setAmount(new BigDecimal("50"));
             revenue.setCategory(RevenueCategory.SALARY);
 
-            RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit");
+            RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", null);
 
             when(revenueManagerService.getRevenueOrThrow(10L)).thenReturn(revenue);
 
@@ -128,7 +130,7 @@ class RevenueServiceTest {
             when(revenueManagerService.getRevenueOrThrow(10L)).thenReturn(revenue);
 
             assertThrows(RequestedEntityNotFoundException.class, () ->
-                    revenueService.editRevenue(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x"), 10L, userId));
+                    revenueService.editRevenue(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x", null), 10L, userId));
 
             verify(revenueRepository, never()).save(any());
             verify(outboxService, never()).save(any(), any(), any(), any());
@@ -143,7 +145,7 @@ class RevenueServiceTest {
             Revenue revenue1 = new Revenue();
             Revenue revenue2 = new Revenue();
             when(revenueRepository.findAllByUserId(userId)).thenReturn(List.of(revenue1, revenue2));
-            when(revenueMapper.mapRevenueToDto(any())).thenReturn(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x"));
+            when(revenueMapper.mapRevenueToDto(any())).thenReturn(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x", null));
 
             List<RevenueDto> result = revenueService.getRevenue(userId);
 
@@ -175,7 +177,7 @@ class RevenueServiceTest {
 
             when(revenueRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.of(revenue));
 
-            revenueService.deleteRevenue(1L, userId);
+            revenueService.deleteRevenue(1L, userId, null);
 
             verify(autoPaymentsService).handleRevenuePiggyBankAutomation(userId, new BigDecimal("100"), PiggyBankAutomationMode.ROLLBACK);
             verify(walletService).removeBalanceFromWallet(userId, new BigDecimal("100"));
@@ -197,7 +199,7 @@ class RevenueServiceTest {
         void shouldThrowWhenRevenueNotFound() {
             when(revenueRepository.findByIdAndUserId(1L, userId)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> revenueService.deleteRevenue(1L, userId));
+            assertThrows(RequestedEntityNotFoundException.class, () -> revenueService.deleteRevenue(1L, userId, null));
 
             verify(revenueRepository, never()).delete(any());
             verify(outboxService, never()).save(any(), any(), any(), any());
