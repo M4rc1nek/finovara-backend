@@ -5,6 +5,7 @@ import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.piggybank.completion.dto.GoalCompletionDto;
 import com.finovara.financeservice.settings.piggybank.completion.model.GoalCompletionStrategy;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
 import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
@@ -39,6 +40,9 @@ class GoalCompletionServiceTest {
     @Mock
     private WalletRepository walletRepository;
 
+    @Mock
+    private AuthBackendClient authBackendClient;
+
     @InjectMocks
     private GoalCompletionService goalCompletionService;
 
@@ -52,7 +56,7 @@ class GoalCompletionServiceTest {
 
             when(piggyBankManagerService.getPiggyBankByUserId(1L, USER_ID)).thenReturn(piggyBank);
 
-            GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_KEEP);
+            GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_KEEP, null);
 
             assertThrows(InvalidInputException.class, () -> goalCompletionService.saveGoalCompletion(1L, USER_ID, dto));
         }
@@ -63,7 +67,7 @@ class GoalCompletionServiceTest {
 
             when(piggyBankManagerService.getPiggyBankByUserId(1L, USER_ID)).thenReturn(piggyBank);
 
-            GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_KEEP);
+            GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_KEEP, null);
 
             goalCompletionService.saveGoalCompletion(1L, USER_ID, dto);
 
@@ -83,7 +87,7 @@ class GoalCompletionServiceTest {
 
             when(piggyBankManagerService.getPiggyBankByUserId(1L, USER_ID)).thenReturn(piggyBank);
 
-            GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_DELETE);
+            GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_DELETE, null);
 
             goalCompletionService.setGoalCompletion(USER_ID, 1L, dto);
 
