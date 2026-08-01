@@ -20,6 +20,9 @@ import com.finovara.financeservice.util.piggybank.PiggyBankCalculator;
 import com.finovara.financeservice.util.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.financeservice.util.piggybank.PiggyBankValidator;
 import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import feign.FeignException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,9 +46,12 @@ public class PiggyBankManagementService implements UserDataDeletable {
     private final PiggyBankMapper piggyBankMapper;
     private final PiggyBankSettingsFactory piggyBankSettingsFactory;
     private final GoalPlannerService goalPlannerService;
+    private final AuthBackendClient authBackendClient;
 
     @Transactional
     public Long addPiggyBank(PiggyBankDto piggyBankDto, Long userId) {
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(piggyBankDto.authorizationCode()));
+        
         long currentPiggyBanks = piggyBankRepository.countPiggyBanksByUserId(userId);
 
         if (currentPiggyBanks >= 5) {
@@ -79,6 +85,8 @@ public class PiggyBankManagementService implements UserDataDeletable {
 
     @Transactional
     public Long editPiggyBank(Long userId, PiggyBankDto piggyBankDto, Long piggyBankId) {
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(piggyBankDto.authorizationCode()));
+        
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         if (piggyBankRepository.existsByNameIgnoreCase(userId, piggyBankDto.name())
@@ -118,7 +126,9 @@ public class PiggyBankManagementService implements UserDataDeletable {
     }
 
     @Transactional
-    public void deletePiggyBank(Long userId, Long piggyBankId) {
+    public void deletePiggyBank(Long userId, Long piggyBankId, String authorizationCode) {
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         if (piggyBank == null || piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
