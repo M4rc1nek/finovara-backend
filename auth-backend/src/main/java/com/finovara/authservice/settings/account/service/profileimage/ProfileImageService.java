@@ -10,6 +10,8 @@ import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableExc
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ public class ProfileImageService {
     private final UserRepository userRepository;
     private final UserManagerService userManagerService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final AdditionalAuthorizationService additionalAuthorizationService;
 
     @Value("${application.upload.profile-images-directory}")
     private String profileImagesDirectory;
@@ -40,7 +43,9 @@ public class ProfileImageService {
     private String profileImagesDefaultDirectory;
 
     @Transactional
-    public void uploadProfileImage(MultipartFile file, Long userId, HttpServletRequest request) {
+    public void uploadProfileImage(MultipartFile file, Long userId, HttpServletRequest request, String authorizationCode) {
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        
         User user = userManagerService.getUserByIdOrThrow(userId);
         validateFile(file);
 
@@ -69,7 +74,9 @@ public class ProfileImageService {
     }
 
     @Transactional
-    public void deleteProfileImage(Long userId, HttpServletRequest request) {
+    public void deleteProfileImage(Long userId, HttpServletRequest request, String authorizationCode) {
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        
         User user = userManagerService.getUserByIdOrThrow(userId);
         String currentPath = user.getProfileImagePath();
 
