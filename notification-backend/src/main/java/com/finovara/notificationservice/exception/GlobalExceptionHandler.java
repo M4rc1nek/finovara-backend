@@ -5,6 +5,7 @@ import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundExceptio
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import feign.FeignException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -20,6 +21,17 @@ public class GlobalExceptionHandler {
                 webRequest.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(FeignException.Forbidden.class)
+    public ResponseEntity<ErrorResponseDto> handleFeignForbidden(FeignException.Forbidden exception, WebRequest webRequest) {
+        ErrorResponseDto body = new ErrorResponseDto(
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                exception.getMessage(),
+                webRequest.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(InvalidInputException.class)
