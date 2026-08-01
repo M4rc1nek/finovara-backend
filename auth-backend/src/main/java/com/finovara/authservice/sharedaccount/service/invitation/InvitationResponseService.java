@@ -15,6 +15,8 @@ import com.finovara.contracts.event.finance.sharedaccount.SharedAccountCreateDef
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,9 +36,12 @@ public class InvitationResponseService {
     private final SharedAccountMemberService sharedAccountMemberService;
     private final UserManagerService userManagerService;
     private final OutboxService outboxService;
+    private final AdditionalAuthorizationService additionalAuthorizationService;
 
     @Transactional
-    public void acceptInvite(Long inviteeUserId, Long invitationId) {
+    public void acceptInvite(Long inviteeUserId, Long invitationId, String authorizationCode) {
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviteeUserId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        
         SharedAccountInvitation invitation = loadAndValidateInvitation(inviteeUserId, invitationId);
 
         Long inviterUserId = invitation.getInviterUserId();
@@ -79,7 +84,9 @@ public class InvitationResponseService {
     }
 
     @Transactional
-    public void rejectInvite(Long inviteeUserId, Long invitationId) {
+    public void rejectInvite(Long inviteeUserId, Long invitationId, String authorizationCode) {
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviteeUserId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        
         SharedAccountInvitation invitation = loadAndValidateInvitation(inviteeUserId, invitationId);
 
         Long inviterUserId = invitation.getInviterUserId();
