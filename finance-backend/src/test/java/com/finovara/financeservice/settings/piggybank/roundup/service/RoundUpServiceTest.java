@@ -6,7 +6,6 @@ import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
-import com.finovara.financeservice.piggybank.service.PiggyBankManagementService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
@@ -15,6 +14,7 @@ import com.finovara.financeservice.util.expense.ExpenseManagerService;
 import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -53,6 +53,9 @@ class RoundUpServiceTest {
     @Mock
     private RoundUpCore roundUpCore;
 
+    @Mock
+    private AuthBackendClient authBackendClient;
+
     @InjectMocks
     private RoundUpService roundUpService;
 
@@ -83,7 +86,7 @@ class RoundUpServiceTest {
         void shouldSaveRoundUp(boolean active) {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-            RoundUpDto dto = new RoundUpDto(active);
+            RoundUpDto dto = new RoundUpDto(active, null);
 
             roundUpService.saveRoundUpPiggyBank(userId, piggyBankId, dto);
 
