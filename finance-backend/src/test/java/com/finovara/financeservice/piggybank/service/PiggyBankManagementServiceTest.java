@@ -6,6 +6,7 @@ import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
@@ -57,6 +58,8 @@ class PiggyBankManagementServiceTest {
     private GoalPlannerService goalPlannerService;
     @Mock
     private RecurringSettingsRepository recurringSettingsRepository;
+    @Mock
+    private AuthBackendClient authBackendClient;
 
     private Long userId;
     private Long piggyBankId;
@@ -71,7 +74,7 @@ class PiggyBankManagementServiceTest {
                 null, null, "Piggy",
                 BigDecimal.valueOf(100), null,
                 PiggyBankGoalType.GIFTS,
-                BigDecimal.valueOf(230), null, null
+                BigDecimal.valueOf(230), null, null, null
         );
     }
 
@@ -210,7 +213,7 @@ class PiggyBankManagementServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(recurringSettingsRepository.findByUserIdAndPiggyBankId(userId, piggyBankId)).thenReturn(Optional.empty());
 
-            piggyBankManagementService.deletePiggyBank(userId, piggyBankId);
+            piggyBankManagementService.deletePiggyBank(userId, piggyBankId, "authCode");
 
             verify(piggyBankRepository).delete(piggyBank);
 
@@ -226,7 +229,7 @@ class PiggyBankManagementServiceTest {
 
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-            assertThrows(InvalidInputException.class, () -> piggyBankManagementService.deletePiggyBank(userId, piggyBankId));
+            assertThrows(InvalidInputException.class, () -> piggyBankManagementService.deletePiggyBank(userId, piggyBankId, "authCode"));
         }
 
         @Test
@@ -242,7 +245,7 @@ class PiggyBankManagementServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(recurringSettingsRepository.findByUserIdAndPiggyBankId(userId, piggyBankId)).thenReturn(Optional.of(settings));
 
-            piggyBankManagementService.deletePiggyBank(userId, piggyBankId);
+            piggyBankManagementService.deletePiggyBank(userId, piggyBankId, "authCode");
 
             assertFalse(settings.isEnable());
             assertNull(settings.getNextExecutionDate());
