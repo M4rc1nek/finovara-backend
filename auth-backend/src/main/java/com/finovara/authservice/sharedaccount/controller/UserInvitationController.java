@@ -32,8 +32,8 @@ public class UserInvitationController {
     }
 
     @PostMapping("/invitations/{inviteeUserId}")
-    public ResponseEntity<Void> createInvitation(@PathVariable Long inviteeUserId) {
-        invitationService.sendInvitation(SecurityUtils.getCurrentUserId(), inviteeUserId);
+    public ResponseEntity<Void> createInvitation(@PathVariable Long inviteeUserId, @RequestParam(required = false) String authorizationCode) {
+        invitationService.sendInvitation(SecurityUtils.getCurrentUserId(), inviteeUserId, authorizationCode);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -43,14 +43,14 @@ public class UserInvitationController {
     }
 
     @PostMapping("/invitations/{invitationId}/accept")
-    public ResponseEntity<Void> acceptInvite(@PathVariable Long invitationId) {
-        invitationResponseService.acceptInvite(SecurityUtils.getCurrentUserId(), invitationId);
+    public ResponseEntity<Void> acceptInvite(@PathVariable Long invitationId, @RequestParam(required = false) String authorizationCode) {
+        invitationResponseService.acceptInvite(SecurityUtils.getCurrentUserId(), invitationId, authorizationCode);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/invitations/{invitationId}/reject")
-    public ResponseEntity<Void> rejectInvite(@PathVariable Long invitationId) {
-        invitationResponseService.rejectInvite(SecurityUtils.getCurrentUserId(), invitationId);
+    public ResponseEntity<Void> rejectInvite(@PathVariable Long invitationId, @RequestParam(required = false) String authorizationCode) {
+        invitationResponseService.rejectInvite(SecurityUtils.getCurrentUserId(), invitationId, authorizationCode);
         return ResponseEntity.noContent().build();
     }
 
