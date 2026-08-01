@@ -1,6 +1,6 @@
-package com.finovara.authservice.settings.security.operationauthorization.dto;
+package com.finovara.contracts.auth.dto;
 
-public record GeneratedAuthorizationCodeDto(
+public record ConfirmAuthorizationCodeDto(
         String code
 ) {
 }
