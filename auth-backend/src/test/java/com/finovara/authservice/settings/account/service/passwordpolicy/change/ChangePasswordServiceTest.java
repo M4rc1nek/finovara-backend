@@ -1,5 +1,6 @@
 package com.finovara.authservice.settings.account.service.passwordpolicy.change;
 
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.settings.account.dto.passwordpolicy.ChangePasswordDto;
@@ -29,6 +30,9 @@ class ChangePasswordServiceTest {
     private PasswordUpdateService passwordUpdateService;
 
     @Mock
+    private AdditionalAuthorizationService additionalAuthorizationService;
+
+    @Mock
     private HttpServletRequest request;
 
     @InjectMocks
@@ -42,7 +46,7 @@ class ChangePasswordServiceTest {
     void setUp() {
         userId = 1L;
         newPassword = "newPass";
-        dto = new ChangePasswordDto(newPassword, newPassword);
+        dto = new ChangePasswordDto(newPassword, newPassword, null);
     }
 
     @Test
