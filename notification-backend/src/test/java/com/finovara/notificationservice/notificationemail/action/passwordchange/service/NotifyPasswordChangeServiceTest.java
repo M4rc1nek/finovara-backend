@@ -10,6 +10,7 @@ import com.finovara.notificationservice.notificationemail.model.NotificationEmai
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
 import com.finovara.notificationservice.notificationemail.util.emailsender.EmailNotifier;
+import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -30,6 +31,8 @@ class NotifyPasswordChangeServiceTest {
     @Mock
     private NotificationEmailSender notificationEmailSender;
     @Mock
+    private AuthBackendClient authBackendClient;
+    @Mock
     private EmailNotifier emailNotifier;
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -41,7 +44,7 @@ class NotifyPasswordChangeServiceTest {
 
     @Test
     void shouldReturnTrueWhenDtoIsEnabled() {
-        NotificationEmailDto dto = new NotificationEmailDto(true);
+        NotificationEmailDto dto = new NotificationEmailDto(true, "auth-code");
 
         boolean result = notifyPasswordChangeService.isEnabled(dto);
 
