@@ -1,4 +1,4 @@
-package com.finovara.authservice.settings.account.service.passwordpolicy;
+package com.finovara.authservice.settings.account.service.passwordpolicy.attempts;
 
 import com.finovara.authservice.settings.account.model.AccountSettings;
 import com.finovara.authservice.settings.account.repository.AccountRepository;
