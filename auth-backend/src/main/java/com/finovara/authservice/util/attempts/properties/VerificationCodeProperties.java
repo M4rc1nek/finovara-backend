@@ -1,4 +1,4 @@
-package com.finovara.authservice.settings.account.service.verification.properties;
+package com.finovara.authservice.util.attempts.properties;
 
 import lombok.Getter;
 import lombok.Setter;
