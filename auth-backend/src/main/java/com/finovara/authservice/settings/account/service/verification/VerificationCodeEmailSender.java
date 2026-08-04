@@ -22,6 +22,7 @@ public class VerificationCodeEmailSender {
 
     private static final String EMAIL_CHANGE_TEMPLATE_PATH = "email/emailchange/change-email-code.html";
     private static final String PASSWORD_RESET_TEMPLATE_PATH = "email/password/reset-password.html";
+    private static final String ADDITIONAL_AUTHORIZATION_EMAIL_TEMPLATE_PATH  = "email/authorization/additional-authorization-email-code.html";
 
     private final JavaMailSender javaMailSender;
 
@@ -38,6 +39,12 @@ public class VerificationCodeEmailSender {
     public void sendPasswordResetCode(User user, String email, int code) {
         log.info("Password reset code requested: userId={}, email={}", user.getId(), email);
         sendEmail(user, email, code, "Przypomnienie Hasła", PASSWORD_RESET_TEMPLATE_PATH);
+    }
+
+    @Async
+    public void sendAuthorizationConfirmCode(User user, String email, int code) {
+        log.info("Authorization confirm code requested: userId={}, email={}", user.getId(), email);
+        sendEmail(user, email, code, "Dodatkowa Autoryzacja - Potwierdzenie", ADDITIONAL_AUTHORIZATION_EMAIL_TEMPLATE_PATH);
     }
 
     private void sendEmail(User user, String email, int code, String subject, String templatePath) {
