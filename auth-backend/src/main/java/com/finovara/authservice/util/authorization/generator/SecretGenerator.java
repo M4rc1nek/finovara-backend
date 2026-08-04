@@ -30,6 +30,10 @@ public class SecretGenerator {
     @Value("${secret-generator.additional-authorization-code.length}")
     private int additionalAuthorizationCodeLength;
 
+    public int generateSecureCode() {
+        return random.nextInt(900_000) + 100_000;
+    }
+
     public String generateAdditionalAuthorizationCode() {
         if (additionalAuthorizationCodeLength < 8) {
             throw new InvalidInputException("Additional authorization code length must be at least 8");
