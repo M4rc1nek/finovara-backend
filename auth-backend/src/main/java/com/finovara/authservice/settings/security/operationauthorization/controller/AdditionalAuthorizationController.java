@@ -1,9 +1,8 @@
 package com.finovara.authservice.settings.security.operationauthorization.controller;
 
 import com.finovara.authservice.security.SecurityUtils;
-import com.finovara.authservice.settings.security.operationauthorization.dto.AdditionalAuthorizationDto;
-import com.finovara.authservice.settings.security.operationauthorization.dto.AdditionalAuthorizationRequest;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.authservice.settings.security.operationauthorization.dto.*;
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationEmailVerificationService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import jakarta.validation.Valid;
@@ -17,20 +16,35 @@ import org.springframework.web.bind.annotation.*;
 public class AdditionalAuthorizationController {
 
     private final AdditionalAuthorizationService additionalAuthorizationService;
+    private final AdditionalAuthorizationEmailVerificationService additionalAuthorizationEmailVerificationService;
 
     @PostMapping
-    public ResponseEntity<ConfirmAuthorizationCodeDto> saveAdditionalAuthorization(@Valid @RequestBody AdditionalAuthorizationRequest request) {
-        return ResponseEntity.ok(additionalAuthorizationService.saveAdditionalAuthorization(SecurityUtils.getCurrentUserId(), request));
+    public ResponseEntity<Void> saveAdditionalAuthorization(@Valid @RequestBody AdditionalAuthorizationRequest request) {
+        additionalAuthorizationService.saveAdditionalAuthorization(SecurityUtils.getCurrentUserId(), request);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public ResponseEntity<AdditionalAuthorizationDto> getAdditionalAuthorizationSettings() {
+    public ResponseEntity<AdditionalAuthorizationSettingsResponse> getAdditionalAuthorizationSettings() {
         return ResponseEntity.ok(additionalAuthorizationService.getAdditionalAuthorizationSettings(SecurityUtils.getCurrentUserId()));
     }
 
     @PatchMapping("/regenerate")
-    public ResponseEntity<ConfirmAuthorizationCodeDto> regenerateCode(@RequestBody ConfirmPasswordDto confirmPasswordDto) {
-        return ResponseEntity.ok(additionalAuthorizationService.regenerateCode(SecurityUtils.getCurrentUserId(), confirmPasswordDto));
+    public ResponseEntity<Void> regenerateCode(@RequestBody ConfirmPasswordDto confirmPasswordDto) {
+        additionalAuthorizationService.regenerateCode(SecurityUtils.getCurrentUserId(), confirmPasswordDto);
+        return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/request-email-code")
+    public ResponseEntity<Void> requestAdditionalAuthorizationEmailCode() {
+        additionalAuthorizationEmailVerificationService.requestAdditionalAuthorizationEmail(SecurityUtils.getCurrentUserId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/confirm-email-code")
+    public ResponseEntity<AdditionalAuthorizationEmailCodeResponse> confirmAdditionalAuthorizationEmailCode(@RequestBody @Valid AdditionalAuthorizationEmailCodeRequest dto) {
+        return ResponseEntity.ok(additionalAuthorizationEmailVerificationService.confirmAdditionalAuthorizationCode(SecurityUtils.getCurrentUserId(), dto));
+    }
+
 
 }
