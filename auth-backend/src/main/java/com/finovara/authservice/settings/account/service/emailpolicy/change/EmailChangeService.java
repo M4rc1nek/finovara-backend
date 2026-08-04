@@ -1,14 +1,11 @@
 package com.finovara.authservice.settings.account.service.emailpolicy;
 
-import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authservice.exception.badrequest.InvalidVerificationCodeException;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.settings.account.dto.AttemptsDto;
 import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeConfirmDto;
 import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeRequestDto;
 import com.finovara.authservice.settings.account.model.AccountSettings;
 import com.finovara.authservice.settings.account.service.verification.CredentialValidationService;
-import com.finovara.authservice.settings.account.service.verification.VerificationCodeManager;
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
@@ -27,7 +24,7 @@ public class EmailChangeService {
 
     private final UserManagerService userManagerService;
     private final CredentialValidationService credentialValidationService;
-    private final VerificationCodeManager verificationCodeManager;
+    private final EmailChangeVerificationService emailChangeVerificationService;
     private final VerificationCodeEmailSender verificationCodeEmailSender;
     private final PasswordValidator passwordValidator;
     private final EmailUpdateService emailUpdateService;
@@ -51,19 +48,13 @@ public class EmailChangeService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         AccountSettings settings = user.getAccountSettings();
 
-        try {
-            verificationCodeManager.verifyEmailChangeCode(settings, dto.code());
-        } catch (InvalidInputException exception) {
-            AttemptsDto attemptsDto = verificationCodeManager.verifyEmailChangeAttemptsCode(userId, settings);
-            throw new InvalidVerificationCodeException(exception.getMessage(), attemptsDto);
-        }
+        emailChangeVerificationService.verifyCodeOrThrow(userId, settings, dto.code());
 
-        AttemptsDto attemptsDto = verificationCodeManager.getCurrentEmailChangeAttempts(userId);
-
+        AttemptsDto attemptsDto = emailChangeVerificationService.getCurrentAttempts(userId);
 
         String newEmail = settings.getPendingEmail();
 
-        verificationCodeManager.removeEmailChangeCode(settings);
+        emailChangeVerificationService.removeCode(settings);
 
         emailUpdateService.updateEmail(user, newEmail, request);
         return attemptsDto;
@@ -76,7 +67,7 @@ public class EmailChangeService {
     }
 
     private void generateAndSendEmailChangeCode(User user, String newEmail) {
-        int code = verificationCodeManager.generateEmailChangeCode(user.getAccountSettings(), newEmail);
+        int code = emailChangeVerificationService.generateCode(user.getAccountSettings(), newEmail);
         verificationCodeEmailSender.sendEmailChangeCode(user, newEmail, code);
     }
 }

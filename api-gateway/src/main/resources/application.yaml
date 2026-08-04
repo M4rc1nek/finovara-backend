@@ -169,3 +169,6 @@ rate-limit:
     - path: /api/security-settings/additional-authorization/regenerate
       max-requests: 1
       window-hours: 24
+    - path: /api/security-settings/additional-authorization/request-email-code
+      max-requests: 1
+      window-hours: 1

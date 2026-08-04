@@ -1,5 +1,7 @@
 package com.finovara.authservice.settings.account.service.emailpolicy;
 
+import com.finovara.authservice.settings.account.service.emailpolicy.change.EmailChangeService;
+import com.finovara.authservice.settings.account.service.emailpolicy.change.EmailUpdateService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.authservice.exception.badrequest.InvalidVerificationCodeException;
@@ -10,7 +12,6 @@ import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeRequ
 import com.finovara.authservice.settings.account.model.AccountSettings;
 import com.finovara.authservice.settings.account.service.verification.CredentialValidationService;
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
-import com.finovara.authservice.settings.account.service.verification.VerificationCodeManager;
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.email.EmailDomainValidator;
