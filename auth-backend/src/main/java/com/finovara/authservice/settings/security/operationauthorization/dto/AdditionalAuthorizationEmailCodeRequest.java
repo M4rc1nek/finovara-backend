@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-public record AdditionalAuthorizationEmailCodeDto(
+public record AdditionalAuthorizationEmailCodeRequest(
         @NotNull @Min(100000) @Max(999999) Integer code
 ) {
 }
