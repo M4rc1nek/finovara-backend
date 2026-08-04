@@ -1,7 +1,5 @@
 package com.finovara.authservice.settings.account.service.passwordpolicy;
 
-import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.authservice.exception.badrequest.InvalidVerificationCodeException;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.settings.account.dto.AttemptsDto;
 import com.finovara.authservice.settings.account.dto.passwordpolicy.PasswordResetConfirmDto;
@@ -9,7 +7,7 @@ import com.finovara.authservice.settings.account.dto.passwordpolicy.PasswordRese
 import com.finovara.authservice.settings.account.model.AccountSettings;
 import com.finovara.authservice.settings.account.service.passwordpolicy.change.PasswordUpdateService;
 import com.finovara.authservice.settings.account.service.verification.CredentialValidationService;
-import com.finovara.authservice.settings.account.service.verification.VerificationCodeManager;
+import com.finovara.authservice.settings.account.service.passwordpolicy.attempts.PasswordResetVerificationService;
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PasswordResetService {
 
     private final CredentialValidationService credentialValidationService;
-    private final VerificationCodeManager verificationCodeManager;
+    private final PasswordResetVerificationService passwordResetVerificationService;
     private final VerificationCodeEmailSender verificationCodeEmailSender;
     private final PasswordUpdateService passwordUpdateService;
     private final UserManagerService userManagerService;
@@ -40,16 +38,12 @@ public class PasswordResetService {
         AccountSettings settings = user.getAccountSettings();
 
         validatePasswordReset(user, dto);
-        try {
-            verificationCodeManager.verifyPasswordResetCode(settings, dto.code());
-        } catch (InvalidInputException exception) {
-            AttemptsDto attemptsDto = verificationCodeManager.verifyPasswordResetAttemptsCode(dto.email(), settings);
-            throw new InvalidVerificationCodeException(exception.getMessage(), attemptsDto);
-        }
 
-        AttemptsDto attemptsDto = verificationCodeManager.getCurrentPasswordResetAttempts(dto.email());
+        passwordResetVerificationService.verifyCodeOrThrow(dto.email(), settings, dto.code());
 
-        verificationCodeManager.removePasswordResetCode(settings);
+        AttemptsDto attemptsDto = passwordResetVerificationService.getCurrentAttempts(dto.email());
+
+        passwordResetVerificationService.removeCode(settings);
 
         passwordUpdateService.updatePassword(user, dto.newPassword(), request);
 
@@ -57,7 +51,7 @@ public class PasswordResetService {
     }
 
     private void generateAndSendPasswordResetCode(User user, String email) {
-        int code = verificationCodeManager.generatePasswordResetCode(user.getAccountSettings());
+        int code = passwordResetVerificationService.generateCode(user.getAccountSettings());
         verificationCodeEmailSender.sendPasswordResetCode(user, email, code);
     }
 

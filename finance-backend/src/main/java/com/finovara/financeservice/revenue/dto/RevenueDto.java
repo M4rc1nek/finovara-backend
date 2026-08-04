@@ -14,7 +14,8 @@ public record RevenueDto(
         @DecimalMin("1") @DecimalMax("999999") BigDecimal amount,
         RevenueCategory category,
         LocalDate createdAt,
-        String description
+        String description,
+        String authorizationCode
 
 
 ) {

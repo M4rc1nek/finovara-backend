@@ -1,6 +1,9 @@
 package com.finovara.financeservice.settings.finances.recurring.service.execution;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
@@ -9,16 +12,14 @@ import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.piggybank.service.PiggyBankTransactionService;
 import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.service.RevenueService;
-import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitDto;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitDto;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringDescription;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.ExpenseSettingsValidator;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
-import com.finovara.contracts.model.PeriodType;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
@@ -75,7 +76,6 @@ public class RecurringExecutionService {
             return;
         }
 
-
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(settings.getUserId());
         List<Limit> limits = limitManagerService.getLimitsByUserId(settings.getUserId());
         expenseSettingsValidator.validate(settings, expenseSettings, wallet, limits);
@@ -83,7 +83,7 @@ public class RecurringExecutionService {
         PeriodType limitPeriodType = resolveLimitPeriodType(settings, expenseSettings);
         ExpenseDto expenseDto = buildExpenseDto(settings, date);
 
-        ExpenseRequestDto requestDto = new ExpenseRequestDto(expenseDto, new ConfirmPasswordDto(null), buildCountQuantityLimitDto(expenseSettings, limitPeriodType));
+        ExpenseRequestDto requestDto = new ExpenseRequestDto(expenseDto, new ConfirmPasswordDto(null), new ConfirmAuthorizationCodeDto(null), buildCountQuantityLimitDto(expenseSettings, limitPeriodType));
 
         expenseService.addExpense(requestDto, settings.getUserId());
     }
@@ -97,7 +97,7 @@ public class RecurringExecutionService {
 
         try {
             piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserId(), settings.getPiggyBankId(), settings.getAmount(),
-                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null);
         } catch (RequestedEntityNotFoundException e) {
             log.warn("SharedPiggyBank not found for recurring settings id={}, disabling", settings.getId());
             settings.setEnable(false);
@@ -111,7 +111,7 @@ public class RecurringExecutionService {
     }
 
     private CountQuantityLimitDto buildCountQuantityLimitDto(ExpenseSettings expenseSettings, PeriodType limitPeriodType) {
-        return new CountQuantityLimitDto(expenseSettings.isCountQuantityLimitEnabled(), limitPeriodType, expenseSettings.getNumberOfQuantityLimit());
+        return new CountQuantityLimitDto(expenseSettings.isCountQuantityLimitEnabled(), limitPeriodType, expenseSettings.getNumberOfQuantityLimit(), null);
     }
 
     private ExpenseDto buildExpenseDto(RecurringSettings settings, LocalDate date) {
@@ -132,7 +132,8 @@ public class RecurringExecutionService {
                 settings.getAmount(),
                 settings.getRevenueCategory(),
                 date,
-                RecurringDescription.REVENUE.label()
+                RecurringDescription.REVENUE.label(),
+                null
         );
     }
 }

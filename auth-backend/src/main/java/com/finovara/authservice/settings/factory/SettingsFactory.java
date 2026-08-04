@@ -1,6 +1,7 @@
 package com.finovara.authservice.settings.factory;
 
 import com.finovara.authservice.settings.account.model.AccountSettings;
+import com.finovara.authservice.settings.security.SecuritySettings;
 import com.finovara.authservice.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,14 @@ public class SettingsFactory {
                 .resetPasswordCodeExpiresAt(null)
                 .attemptsEmailExpiresAt(null)
                 .attemptsPasswordExpiresAt(null)
+                .build();
+    }
+
+    public SecuritySettings createDefaultSecuritySettings(User user){
+        return SecuritySettings.builder()
+                .additionalAuthorizationEnabled(false)
+                .additionalAuthorizationCode(null)
+                .userAssigned(user)
                 .build();
     }
 

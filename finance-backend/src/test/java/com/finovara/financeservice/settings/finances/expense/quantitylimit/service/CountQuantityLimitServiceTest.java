@@ -63,7 +63,7 @@ class CountQuantityLimitServiceTest {
         void shouldEnableLimitSuccessfully() {
             when(expenseRepository.countExpensesByUserIdAndCreatedAtBetween(anyLong(), any(), any())).thenReturn(2L);
 
-            CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
+            CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5, null);
 
             countQuantityLimitService.saveCountQuantityLimit(USER_ID, dto);
 
@@ -78,7 +78,7 @@ class CountQuantityLimitServiceTest {
         void shouldThrowWhenLimitExceeded() {
             when(expenseRepository.countExpensesByUserIdAndCreatedAtBetween(anyLong(), any(), any())).thenReturn(5L);
 
-            CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 3);
+            CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 3, null);
 
             assertThrows(QuantityLimitOperationException.class, () -> countQuantityLimitService.saveCountQuantityLimit(USER_ID, dto));
         }
@@ -87,7 +87,7 @@ class CountQuantityLimitServiceTest {
         void shouldDisableLimit() {
             expenseSettings.setQuantityLimitEmergencyModeUsed(true);
 
-            CountQuantityLimitDto dto = new CountQuantityLimitDto(false, PeriodType.DAILY, 5);
+            CountQuantityLimitDto dto = new CountQuantityLimitDto(false, PeriodType.DAILY, 5, null);
 
             countQuantityLimitService.saveCountQuantityLimit(USER_ID, dto);
 
@@ -107,7 +107,7 @@ class CountQuantityLimitServiceTest {
             expenseSettings.setCountQuantityLimitEnabled(false);
 
             countQuantityLimitService.handleExpenseLimitExceeded(USER_ID, new CountQuantityLimitDto(true,
-                    PeriodType.DAILY, 5), PeriodType.DAILY, null);
+                    PeriodType.DAILY, 5, null), PeriodType.DAILY, null);
 
             verifyNoInteractions(authBackendClient);
         }
@@ -119,7 +119,7 @@ class CountQuantityLimitServiceTest {
 
             when(expenseRepository.countExpensesByUserIdAndCreatedAtBetween(eq(USER_ID), any(), any())).thenReturn(5L);
 
-            CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5);
+            CountQuantityLimitDto dto = new CountQuantityLimitDto(true, PeriodType.DAILY, 5, null);
             ConfirmPasswordDto confirmPasswordDto = new ConfirmPasswordDto("password");
 
             countQuantityLimitService.handleExpenseLimitExceeded(USER_ID, dto, PeriodType.DAILY, confirmPasswordDto);

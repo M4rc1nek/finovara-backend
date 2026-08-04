@@ -1,18 +1,18 @@
 package com.finovara.financeservice.limit.service;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
-import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.LimitActivityType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.limit.dto.LimitDto;
 import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.util.limit.validator.LimitExpensesValidator;
-import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,9 +31,11 @@ public class LimitManagementService implements UserDataDeletable {
     private final LimitCalculateService limitCalculateService;
     private final LimitExpensesValidator limitExpensesValidator;
     private final OutboxService outboxService;
+    private final AuthBackendClient authBackendClient;
 
     @Transactional
     public Long createLimit(LimitDto limitDto, Long userId) {
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(limitDto.authorizationCode()));
 
         limitExpensesValidator.validateCurrentExpensesDoNotExceedLimit(userId, limitDto);
 
@@ -66,6 +68,7 @@ public class LimitManagementService implements UserDataDeletable {
 
     @Transactional
     public Long editLimit(LimitDto limitDto, Long limitId, Long userId) {
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(limitDto.authorizationCode()));
         Limit limit = limitRepository.findByIdAndUserId(userId, limitId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Active limit not found"));
 
@@ -99,7 +102,9 @@ public class LimitManagementService implements UserDataDeletable {
     }
 
     @Transactional
-    public void deleteLimit(Long userId, Long limitId) {
+    public void deleteLimit(Long userId, Long limitId, String authorizationCode) {
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+
         Limit limit = limitRepository.findByIdAndUserId(userId, limitId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Active limit not found"));
 
@@ -107,7 +112,6 @@ public class LimitManagementService implements UserDataDeletable {
                 new LimitActivityEvent(userId, LimitActivityType.DELETED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
         limitRepository.delete(limit);
     }
-
 
     @Override
     @Transactional

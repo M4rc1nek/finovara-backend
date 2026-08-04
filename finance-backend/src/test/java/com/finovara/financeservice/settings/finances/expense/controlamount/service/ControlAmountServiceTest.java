@@ -33,6 +33,9 @@ class ControlAmountServiceTest {
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
 
+    @Mock
+    private com.finovara.financeservice.feignclient.AuthBackendClient authBackendClient;
+
     @InjectMocks
     private ControlAmountService controlAmountService;
 
@@ -123,7 +126,7 @@ class ControlAmountServiceTest {
     class SaveExpenseControlAmount {
         @Test
         void shouldEnableControl() {
-            ControlAmountDto dto = new ControlAmountDto(true, BigDecimal.valueOf(100));
+            ControlAmountDto dto = new ControlAmountDto(true, BigDecimal.valueOf(100), null);
 
             controlAmountService.saveExpenseAmountControl(USER_ID, dto);
 
@@ -137,7 +140,7 @@ class ControlAmountServiceTest {
 
         @Test
         void shouldDisableControl() {
-            ControlAmountDto dto = new ControlAmountDto(false, BigDecimal.valueOf(50));
+            ControlAmountDto dto = new ControlAmountDto(false, BigDecimal.valueOf(50), null);
 
             controlAmountService.saveExpenseAmountControl(USER_ID, dto);
 
@@ -151,7 +154,7 @@ class ControlAmountServiceTest {
 
         @Test
         void shouldSetZeroWhenNullAmount() {
-            ControlAmountDto dto = new ControlAmountDto(true, null);
+            ControlAmountDto dto = new ControlAmountDto(true, null, null);
 
             controlAmountService.saveExpenseAmountControl(USER_ID, dto);
 
@@ -163,7 +166,7 @@ class ControlAmountServiceTest {
             when(expenseSettingsRepository.findByUserId(USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("Expense settings not found"));
 
-            ControlAmountDto dto = new ControlAmountDto(true, BigDecimal.valueOf(10));
+            ControlAmountDto dto = new ControlAmountDto(true, BigDecimal.valueOf(10), null);
 
             assertThrows(RequestedEntityNotFoundException.class,
                     () -> controlAmountService.saveExpenseAmountControl(USER_ID, dto));

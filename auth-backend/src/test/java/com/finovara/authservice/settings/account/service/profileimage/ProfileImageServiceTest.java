@@ -1,5 +1,6 @@
 package com.finovara.authservice.settings.account.service.profileimage;
 
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.authservice.user.model.User;
@@ -38,6 +39,8 @@ class ProfileImageServiceTest {
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
     @Mock
+    private AdditionalAuthorizationService additionalAuthorizationService;
+    @Mock
     private HttpServletRequest request;
 
     @InjectMocks
@@ -63,6 +66,7 @@ class ProfileImageServiceTest {
         ReflectionTestUtils.setField(profileImageService, "profileImagesDefaultDirectory", defaultDir.toString());
 
         when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(USER_ID), any());
     }
 
     @Nested
@@ -77,7 +81,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
 
             assertThat(user.getProfileImagePath()).isNotNull();
             assertThat(Files.exists(Path.of(user.getProfileImagePath()))).isTrue();
@@ -89,7 +93,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
 
             verify(userRepository).save(user);
         }
@@ -100,7 +104,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
 
             ArgumentCaptor<AccountChangesActivityEvent> captor =
                     ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
@@ -117,7 +121,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
 
             assertThat(user.getProfileImagePath()).contains("avatar.png");
         }
@@ -131,7 +135,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
 
             assertThat(Files.exists(oldFile)).isFalse();
         }
@@ -144,7 +148,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
 
             verify(userRepository).save(user);
         }
@@ -158,7 +162,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.uploadProfileImage(jpeg, USER_ID, request);
+            profileImageService.uploadProfileImage(jpeg, USER_ID, request, "auth");
 
             assertThat(user.getProfileImagePath()).contains("photo.jpg");
         }
@@ -172,7 +176,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.uploadProfileImage(exact, USER_ID, request);
+            profileImageService.uploadProfileImage(exact, USER_ID, request, "auth");
 
             verify(userRepository).save(user);
         }
@@ -183,7 +187,7 @@ class ProfileImageServiceTest {
                     new MockMultipartFile("file", "avatar.png", "image/png", new byte[0]);
 
             assertThatThrownBy(() ->
-                    profileImageService.uploadProfileImage(empty, USER_ID, request))
+                    profileImageService.uploadProfileImage(empty, USER_ID, request, "auth"))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("File is empty");
 
@@ -196,7 +200,7 @@ class ProfileImageServiceTest {
                     new MockMultipartFile("file", "document.pdf", "application/pdf", "data".getBytes());
 
             assertThatThrownBy(() ->
-                    profileImageService.uploadProfileImage(pdf, USER_ID, request))
+                    profileImageService.uploadProfileImage(pdf, USER_ID, request, "auth"))
                     .isInstanceOf(IllegalArgumentException.class);
 
             verify(userRepository, never()).save(any());
@@ -208,7 +212,7 @@ class ProfileImageServiceTest {
                     new MockMultipartFile("file", "large.png", "image/png", new byte[6 * 1024 * 1024]);
 
             assertThatThrownBy(() ->
-                    profileImageService.uploadProfileImage(large, USER_ID, request))
+                    profileImageService.uploadProfileImage(large, USER_ID, request, "auth"))
                     .isInstanceOf(IllegalArgumentException.class);
 
             verify(userRepository, never()).save(any());
@@ -228,7 +232,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.deleteProfileImage(USER_ID, request);
+            profileImageService.deleteProfileImage(USER_ID, request, "auth");
 
             assertThat(Files.exists(image)).isFalse();
         }
@@ -241,7 +245,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.deleteProfileImage(USER_ID, request);
+            profileImageService.deleteProfileImage(USER_ID, request, "auth");
 
             assertThat(user.getProfileImagePath()).contains("UserProf.png");
         }
@@ -254,7 +258,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.deleteProfileImage(USER_ID, request);
+            profileImageService.deleteProfileImage(USER_ID, request, "auth");
 
             verify(userRepository).save(user);
         }
@@ -270,7 +274,7 @@ class ProfileImageServiceTest {
             when(request.getHeader("X-Forwarded-For")).thenReturn(null);
             when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
 
-            profileImageService.deleteProfileImage(USER_ID, request);
+            profileImageService.deleteProfileImage(USER_ID, request, "auth");
 
             verify(kafkaTemplate).send(eq("activity.account-changes"), captor.capture());
 
@@ -283,7 +287,7 @@ class ProfileImageServiceTest {
             user.setProfileImagePath(null);
 
             assertThatThrownBy(() ->
-                    profileImageService.deleteProfileImage(USER_ID, request))
+                    profileImageService.deleteProfileImage(USER_ID, request, "auth"))
                     .isInstanceOf(IllegalArgumentException.class);
 
             verify(userRepository, never()).save(any());

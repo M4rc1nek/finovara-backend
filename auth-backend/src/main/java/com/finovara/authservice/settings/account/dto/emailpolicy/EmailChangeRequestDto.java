@@ -5,7 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public record EmailChangeRequestDto(
         @Email @NotBlank String email,
-        @NotBlank String password
+        @NotBlank String password,
+        String authorizationCode
 ) {
 }
 

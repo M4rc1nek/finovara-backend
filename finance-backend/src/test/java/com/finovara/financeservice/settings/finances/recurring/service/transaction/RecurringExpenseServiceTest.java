@@ -10,10 +10,10 @@ import com.finovara.financeservice.settings.finances.recurring.dto.RecurringComm
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringExpenseDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
-import com.finovara.financeservice.settings.finances.recurring.service.occurrence.RecurringOccurrenceService;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.ExpenseSettingsValidator;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
+import  com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +55,7 @@ class RecurringExpenseServiceTest {
     private LimitManagerService limitManagerService;
 
     @Mock
-    private RecurringOccurrenceService recurringOccurrenceService;
+    private AuthBackendClient authBackendClient;
 
     @InjectMocks
     private RecurringExpenseService recurringExpenseService;
@@ -85,7 +85,8 @@ class RecurringExpenseServiceTest {
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2026, 1, 1),
-                    LocalDate.of(2025, 2, 1)
+                    LocalDate.of(2025, 2, 1),
+                    "1234"
             );
         }
 
@@ -142,7 +143,8 @@ class RecurringExpenseServiceTest {
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2026, 1, 1),
-                    LocalDate.of(2025, 2, 1)
+                    LocalDate.of(2025, 2, 1),
+                    "1234"
             );
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
@@ -161,7 +163,8 @@ class RecurringExpenseServiceTest {
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2026, 1, 1),
-                    LocalDate.of(2025, 2, 1)
+                    LocalDate.of(2025, 2, 1),
+                    null
             );
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);

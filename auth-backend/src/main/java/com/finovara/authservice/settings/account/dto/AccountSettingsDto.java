@@ -10,7 +10,8 @@ public record AccountSettingsDto(
 
         String email,
         LocalDateTime createdAt,
-        String profileImageUrl
+        String profileImageUrl,
+        String authorizationCode
 
 ) {
 }

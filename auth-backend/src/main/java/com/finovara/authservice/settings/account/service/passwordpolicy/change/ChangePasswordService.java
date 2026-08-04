@@ -4,6 +4,8 @@ import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.settings.account.dto.passwordpolicy.ChangePasswordDto;
 import com.finovara.authservice.settings.account.service.verification.CredentialValidationService;
 import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,8 +17,11 @@ public class ChangePasswordService {
     private final UserManagerService userManagerService;
     private final CredentialValidationService credentialValidationService;
     private final PasswordUpdateService passwordUpdateService;
+    private final AdditionalAuthorizationService additionalAuthorizationService;
 
     public void changePassword(Long userId, ChangePasswordDto changePasswordDto, HttpServletRequest request) {
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(changePasswordDto.authorizationCode()));
+        
         User user = userManagerService.getUserByIdOrThrow(userId);
         String newPassword = changePasswordDto.newPassword();
 

@@ -3,8 +3,8 @@ package com.finovara.authservice.user.controller;
 import com.finovara.authservice.security.jwt.logout.LogoutService;
 import com.finovara.authservice.user.dto.UserLoginDto;
 import com.finovara.authservice.user.dto.UserRegisterDto;
-import com.finovara.authservice.user.service.GeneratePasswordService;
 import com.finovara.authservice.user.service.UserService;
+import com.finovara.authservice.util.authorization.generator.SecretGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     private final UserService userService;
-    private final GeneratePasswordService generatePasswordService;
+    private final SecretGenerator secretGenerator;
     private final LogoutService logoutService;
 
     @PostMapping("/register")
@@ -52,7 +52,7 @@ public class UserController {
 
     @PostMapping("/generatePassword")
     public ResponseEntity<String> generatePasswordForUser() {
-        return ResponseEntity.ok(generatePasswordService.generatePassword());
+        return ResponseEntity.ok(secretGenerator.generatePassword());
     }
 }
 

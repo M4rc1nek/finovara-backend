@@ -65,9 +65,17 @@ public class UserService {
 
         String defaultImagePath = Paths.get(profileImagesDefaultDirectory).resolve("UserProf.png").toString();
 
-        User user = User.builder().username(dto.username()).email(dto.email()).password(passwordEncoder.encode(dto.password())).passwordSet(true).profileImagePath(defaultImagePath).createdAt(LocalDateTime.now()).build();
+        User user = User.builder()
+                .username(dto.username())
+                .email(dto.email())
+                .password(passwordEncoder.encode(dto.password()))
+                .passwordSet(true)
+                .profileImagePath(defaultImagePath)
+                .createdAt(LocalDateTime.now())
+                .build();
 
         user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
+        user.setSecuritySettings(settingsFactory.createDefaultSecuritySettings(user));
 
         User savedUser = userRepository.save(user);
         String jwtToken = jwtService.generateToken(savedUser);

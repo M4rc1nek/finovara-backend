@@ -43,7 +43,7 @@ class RevenueHistoryServiceTest {
         userId = 1L;
         revenue = new Revenue();
         revenueDto = new RevenueDto(null, null, new BigDecimal(200),
-                RevenueCategory.SALARY, LocalDate.of(2026, 3, 12), "test"
+                RevenueCategory.SALARY, LocalDate.of(2026, 3, 12), "test", null
         );
     }
 

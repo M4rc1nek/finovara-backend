@@ -1,8 +1,10 @@
 package com.finovara.authservice.internal;
 
-import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
+import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.contracts.auth.dto.UserDataResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class InternalUserController {
 
     private final PasswordValidator passwordValidator;
+    private final AdditionalAuthorizationService additionalAuthorizationService;
     private final UserManagerService userManagerService;
 
     @PostMapping("/verify-password")
@@ -22,13 +25,19 @@ public class InternalUserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/confirm-authorization-code")
+    public ResponseEntity<Void> confirmAuthorizationCode(@RequestHeader("X-User-Id") Long userId, @RequestBody ConfirmAuthorizationCodeDto confirmAuthorizationCodeDto) {
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, confirmAuthorizationCodeDto);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/username")
-    public ResponseEntity<String> getUsername(@RequestHeader("X-User-Id") Long userId){
+    public ResponseEntity<String> getUsername(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(userManagerService.getUsernameByIdOrThrow(userId));
     }
 
     @GetMapping("/email")
-    public ResponseEntity<String> getUserEmail(@RequestHeader("X-User-Id") Long userId){
+    public ResponseEntity<String> getUserEmail(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(userManagerService.getUserEmailById(userId));
     }
 
@@ -36,4 +45,5 @@ public class InternalUserController {
     public ResponseEntity<UserDataResponse> getUserData(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(userManagerService.getUserData(userId));
     }
+
 }

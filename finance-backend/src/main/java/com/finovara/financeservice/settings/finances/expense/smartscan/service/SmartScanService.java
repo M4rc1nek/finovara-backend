@@ -1,5 +1,7 @@
 package com.finovara.financeservice.settings.finances.expense.smartscan.service;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
@@ -11,13 +13,12 @@ import com.finovara.financeservice.settings.finances.expense.repository.ExpenseS
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanDto;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.financeservice.util.settings.ExpenseAnomalyDetector;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,10 +39,11 @@ public class SmartScanService {
     private final ExpenseAnomalyDetector expenseAnomalyDetector;
 
     @Transactional
-    public void saveSmartScan(Long userId, SmartScanDto settings) {
+    public void saveSmartScan(Long userId, SmartScanDto smartScanDto) {
         ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(smartScanDto.authorizationCode()));
 
-        expenseSettings.setSmartScanEnabled(settings.smartScanEnabled());
+        expenseSettings.setSmartScanEnabled(smartScanDto.smartScanEnabled());
         if (expenseSettings.isSmartScanEnabled()) {
             kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.EXPENSE_SMART_SCAN, SettingActivityStatus.ENABLED, LocalDateTime.now()));
         } else {
@@ -53,7 +55,7 @@ public class SmartScanService {
     public SmartScanDto getSmartScan(Long userId) {
         ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
 
-        return new SmartScanDto(expenseSettings.isSmartScanEnabled());
+        return new SmartScanDto(expenseSettings.isSmartScanEnabled(), null);
     }
 
     @Transactional

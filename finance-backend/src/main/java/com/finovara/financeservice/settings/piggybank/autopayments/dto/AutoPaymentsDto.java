@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 
 public record AutoPaymentsDto(
         Boolean isAutomationActive,
-        @DecimalMin("0") @DecimalMax("100") BigDecimal percentage
+        @DecimalMin("0") @DecimalMax("100") BigDecimal percentage,
+        String authorizationCode
 ) {
 }

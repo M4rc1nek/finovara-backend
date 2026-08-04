@@ -44,10 +44,11 @@ class PiggyBankValidatorTest {
 
         private PiggyBankDto createDto(BigDecimal goalAmount) {
             return new PiggyBankDto(1L, 1L, "Savings", BigDecimal.valueOf(100), LocalDate.now(),
-                    null, goalAmount, 0.0, false
+                    null, goalAmount, 0.0, false, null
             );
         }
 
+        // dokoncz prace, testy i przetestuj wszystko!
         @Test
         void shouldNotThrowExceptionWhenGoalAmountIsNull() {
             PiggyBankDto dto = createDto(null);

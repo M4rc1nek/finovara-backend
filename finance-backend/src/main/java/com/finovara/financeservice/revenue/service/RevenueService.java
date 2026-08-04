@@ -16,6 +16,10 @@ import com.finovara.financeservice.util.revenue.RevenueManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
 import com.finovara.financeservice.wallet.service.WalletService;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,9 +41,11 @@ public class RevenueService implements UserDataDeletable {
     private final RevenueManagerService revenueManagerService;
     private final RevenueMapper revenueMapper;
     private final AutoPaymentsService autoPaymentsService;
+    private final AuthBackendClient authBackendClient;
 
     @Transactional
     public Long addRevenue(RevenueDto revenueDto, Long userId) {
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(revenueDto.authorizationCode()));
         Revenue revenue = Revenue.builder()
                 .amount(revenueDto.amount())
                 .category(revenueDto.category())
@@ -57,6 +63,7 @@ public class RevenueService implements UserDataDeletable {
 
     @Transactional
     public Long editRevenue(RevenueDto revenueDto, Long revenueId, Long userId) {
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(revenueDto.authorizationCode()));
         Revenue existingRevenue = revenueManagerService.getRevenueOrThrow(revenueId);
 
         if (!existingRevenue.getUserId().equals(userId)) {
@@ -94,7 +101,9 @@ public class RevenueService implements UserDataDeletable {
     }
 
     @Transactional
-    public void deleteRevenue(Long revenueId, Long userId) {
+    public void deleteRevenue(Long revenueId, Long userId, String authorizationCode) {
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        
         Revenue revenue = revenueRepository.findByIdAndUserId(revenueId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);

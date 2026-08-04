@@ -1,6 +1,7 @@
 package com.finovara.financeservice.feignclient;
 
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,9 @@ public interface AuthBackendClient {
 
     @PostMapping("/internal/verify-password")
     Void verifyPassword(@RequestHeader("X-User-Id") Long userId, @RequestBody ConfirmPasswordDto dto);
+
+    @PostMapping("/internal/confirm-authorization-code")
+    Void confirmAuthorizationCode(@RequestHeader("X-User-Id") Long userId, @RequestBody ConfirmAuthorizationCodeDto dto);
 
     @GetMapping("/internal/username")
     String getUsername(@RequestHeader("X-User-Id") Long id);

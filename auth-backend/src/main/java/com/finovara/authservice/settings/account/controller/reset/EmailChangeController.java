@@ -4,7 +4,7 @@ import com.finovara.authservice.security.SecurityUtils;
 import com.finovara.authservice.settings.account.dto.AttemptsDto;
 import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeConfirmDto;
 import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeRequestDto;
-import com.finovara.authservice.settings.account.service.emailpolicy.EmailChangeService;
+import com.finovara.authservice.settings.account.service.emailpolicy.change.EmailChangeService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

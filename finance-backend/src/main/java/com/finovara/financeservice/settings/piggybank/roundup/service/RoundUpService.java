@@ -1,10 +1,12 @@
 package com.finovara.financeservice.settings.piggybank.roundup.service;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.expense.model.Expense;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
@@ -38,18 +40,20 @@ public class RoundUpService {
     private final GoalCompletionService goalCompletionService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final RoundUpCore roundUpCore;
+    private final AuthBackendClient authBackendClient;
 
     @Transactional
     public RoundUpDto getRoundUp(Long userId, Long piggyBankId) {
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
-        return new RoundUpDto(piggyBankSettings.isRoundUpActive());
+        return new RoundUpDto(piggyBankSettings.isRoundUpActive(), null);
     }
 
     @Transactional
     public void saveRoundUpPiggyBank(Long userId, Long piggyBankId, RoundUpDto dto) {
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
 
         PiggyBankSettings settings = piggyBank.getSettings();
         settings.setRoundUpActive(dto.roundUpActive());

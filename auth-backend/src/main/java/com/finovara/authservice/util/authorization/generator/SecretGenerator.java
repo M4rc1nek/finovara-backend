@@ -1,20 +1,20 @@
-package com.finovara.authservice.user.service;
+package com.finovara.authservice.util.authorization.generator;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
-public class GeneratePasswordService {
+public class SecretGenerator {
+
+    private static final String UNAMBIGUOUS_CHARS = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
     private static final String LOWER = "abcdefghijklmnopqrstuvwxyz";
     private static final String UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -22,13 +22,32 @@ public class GeneratePasswordService {
     private static final String SPECIAL = "!@#$%^&*";
     private static final String ALL = LOWER + UPPER + DIGITS + SPECIAL;
 
-    @Value("${password-generator.length}")
-    private int length;
-
     private static final SecureRandom random = new SecureRandom();
 
+    @Value("${secret-generator.password.length}")
+    private int passwordLength;
+
+    @Value("${secret-generator.additional-authorization-code.length}")
+    private int additionalAuthorizationCodeLength;
+
+    public int generateSecureCode() {
+        return random.nextInt(900_000) + 100_000;
+    }
+
+    public String generateAdditionalAuthorizationCode() {
+        if (additionalAuthorizationCodeLength < 8) {
+            throw new InvalidInputException("Additional authorization code length must be at least 8");
+        }
+
+        StringBuilder code = new StringBuilder();
+        for (int i = 0; i < additionalAuthorizationCodeLength; i++) {
+            code.append(randomChar(UNAMBIGUOUS_CHARS));
+        }
+        return code.toString();
+    }
+
     public String generatePassword() {
-        if (length < 3) {
+        if (passwordLength < 3) {
             throw new InvalidInputException("Password length must be at least 3");
         }
         List<Character> password = new ArrayList<>();
@@ -37,7 +56,7 @@ public class GeneratePasswordService {
         password.add(randomChar(DIGITS));
         password.add(randomChar(SPECIAL));
 
-        for (int i = password.size(); i < length; i++) {
+        for (int i = password.size(); i < passwordLength; i++) {
             password.add(randomChar(ALL));
         }
 

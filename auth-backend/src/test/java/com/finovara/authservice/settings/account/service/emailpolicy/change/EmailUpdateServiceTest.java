@@ -1,4 +1,4 @@
-package com.finovara.authservice.settings.account.service.emailpolicy;
+package com.finovara.authservice.settings.account.service.emailpolicy.change;
 
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.event.notification.SendEmailEvent;

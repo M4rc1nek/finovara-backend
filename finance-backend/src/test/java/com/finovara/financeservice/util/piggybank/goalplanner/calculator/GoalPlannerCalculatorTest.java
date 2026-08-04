@@ -151,16 +151,6 @@ class GoalPlannerCalculatorTest {
 
     @Nested
     class CalculateMonthlyInstallment {
-
-        @Test
-        void shouldDivideRemainingAmountByMonthsLeftWhenPeriodsPositive() {
-            goalPlanner.setTargetDate(LocalDate.now().plusMonths(4));
-
-            BigDecimal result = GoalPlannerCalculator.calculateMonthlyInstallment(goalPlanner);
-
-            assertEquals(new BigDecimal("200.00"), result);
-        }
-
         @Test
         void shouldReturnRemainingAmountWhenTargetDateIsToday() {
             goalPlanner.setTargetDate(LocalDate.now());

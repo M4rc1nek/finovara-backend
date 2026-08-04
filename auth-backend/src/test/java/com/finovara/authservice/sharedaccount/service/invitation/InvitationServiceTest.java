@@ -1,5 +1,6 @@
 package com.finovara.authservice.sharedaccount.service.invitation;
 
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.authservice.sharedaccount.dto.InvitationResponse;
 import com.finovara.authservice.sharedaccount.dto.SharedAccountStatusDto;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
@@ -57,6 +58,8 @@ class InvitationServiceTest {
 
     @Mock
     private InvitationValidator invitationValidator;
+    @Mock
+    private AdditionalAuthorizationService additionalAuthorizationService;
 
     private InvitationService invitationService;
 
@@ -67,7 +70,7 @@ class InvitationServiceTest {
     @BeforeEach
     void setUp() {
         invitationService = new InvitationService(userDataMapper, sharedAccountMemberRepository, outboxService,
-                userRepository, sharedAccountInvitationRepository, invitationValidator);
+                userRepository, sharedAccountInvitationRepository, invitationValidator, additionalAuthorizationService);
 
         ReflectionTestUtils.setField(invitationService, "pageSize", 10);
         ReflectionTestUtils.setField(invitationService, "invitationExpirationHours", 48);
@@ -149,7 +152,7 @@ class InvitationServiceTest {
             when(userRepository.findBasicInfoByIds(List.of(inviterUserId, inviteeUserId)))
                     .thenReturn(List.of(inviter, invitee));
 
-            invitationService.sendInvitation(inviterUserId, inviteeUserId);
+            invitationService.sendInvitation(inviterUserId, inviteeUserId, "auth");
 
             verify(sharedAccountInvitationRepository).save(any(SharedAccountInvitation.class));
         }
@@ -167,7 +170,7 @@ class InvitationServiceTest {
             when(userRepository.findBasicInfoByIds(List.of(inviterUserId, inviteeUserId)))
                     .thenReturn(List.of(inviter, invitee));
 
-            invitationService.sendInvitation(inviterUserId, inviteeUserId);
+            invitationService.sendInvitation(inviterUserId, inviteeUserId, "auth");
 
             verify(outboxService).save(eq("User"), eq(inviterUserId.toString()),
                     eq("activity.shared-account"), any(SharedAccountActivityEvent.class));
@@ -188,7 +191,7 @@ class InvitationServiceTest {
                     .thenReturn(List.of(invitee));
 
             assertThrows(RequestedEntityNotFoundException.class,
-                    () -> invitationService.sendInvitation(inviterUserId, inviteeUserId));
+                    () -> invitationService.sendInvitation(inviterUserId, inviteeUserId, "auth"));
 
             verify(sharedAccountInvitationRepository, never()).save(any(SharedAccountInvitation.class));
         }
@@ -202,7 +205,7 @@ class InvitationServiceTest {
                     .thenReturn(List.of(inviter));
 
             assertThrows(RequestedEntityNotFoundException.class,
-                    () -> invitationService.sendInvitation(inviterUserId, inviteeUserId));
+                    () -> invitationService.sendInvitation(inviterUserId, inviteeUserId, "auth"));
 
             verify(sharedAccountInvitationRepository, never()).save(any(SharedAccountInvitation.class));
         }
@@ -213,7 +216,7 @@ class InvitationServiceTest {
                     .when(invitationValidator).validateSendInvitation(inviterUserId, inviteeUserId);
 
             assertThrows(RequestedEntityNotFoundException.class,
-                    () -> invitationService.sendInvitation(inviterUserId, inviteeUserId));
+                    () -> invitationService.sendInvitation(inviterUserId, inviteeUserId, "auth"));
 
             verify(userRepository, never()).findBasicInfoByIds(any());
             verify(sharedAccountInvitationRepository, never()).save(any(SharedAccountInvitation.class));

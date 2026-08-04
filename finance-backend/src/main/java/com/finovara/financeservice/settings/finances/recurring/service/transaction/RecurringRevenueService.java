@@ -1,6 +1,8 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringRevenueDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
@@ -17,11 +19,12 @@ public class RecurringRevenueService {
 
     private final RecurringSettingsSupport recurringSettingsSupport;
     private final RecurringRevenueValidator recurringRevenueValidator;
+    private final AuthBackendClient authBackendClient;
 
     @Transactional
     public void saveRevenueSettings(Long userId, RecurringRevenueDto dto) {
-
         RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.REVENUE);
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
 
         settings.setRevenueCategory(dto.revenueCategory());
         settings.setExpenseCategory(null);
@@ -49,7 +52,8 @@ public class RecurringRevenueService {
                 settings.getPeriodType(),
                 settings.getStartDate(),
                 settings.getEndDate(),
-                settings.getNextExecutionDate()
+                settings.getNextExecutionDate(),
+                null
         );
     }
 }

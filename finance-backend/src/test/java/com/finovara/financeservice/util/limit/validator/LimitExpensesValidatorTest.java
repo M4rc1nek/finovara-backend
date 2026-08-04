@@ -36,7 +36,7 @@ class LimitExpensesValidatorTest {
 
         @Test
         void shouldNotThrowWhenSpentIsLessThanLimitAmount() {
-            LimitDto limitDto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, ExpenseCategory.FOOD, LimitStatus.LOW, BigDecimal.valueOf(500), true);
+            LimitDto limitDto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, ExpenseCategory.FOOD, LimitStatus.LOW, BigDecimal.valueOf(500), true, null);
 
             when(financialPeriodService.getExpensesSum(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD)).thenReturn(BigDecimal.valueOf(300));
 
@@ -45,7 +45,7 @@ class LimitExpensesValidatorTest {
 
         @Test
         void shouldNotThrowWhenSpentEqualsLimitAmount() {
-            LimitDto limitDto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, ExpenseCategory.FOOD, LimitStatus.LOW, BigDecimal.valueOf(500), true);
+            LimitDto limitDto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, ExpenseCategory.FOOD, LimitStatus.LOW, BigDecimal.valueOf(500), true, null);
 
             when(financialPeriodService.getExpensesSum(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD)).thenReturn(BigDecimal.valueOf(500));
 
@@ -54,7 +54,7 @@ class LimitExpensesValidatorTest {
 
         @Test
         void shouldThrowInvalidInputExceptionWhenSpentExceedsLimitAmount() {
-            LimitDto limitDto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, ExpenseCategory.FOOD, LimitStatus.LOW, BigDecimal.valueOf(500), true);
+            LimitDto limitDto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, ExpenseCategory.FOOD, LimitStatus.LOW, BigDecimal.valueOf(500), true, null);
 
             when(financialPeriodService.getExpensesSum(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD)).thenReturn(BigDecimal.valueOf(600));
 
@@ -63,7 +63,7 @@ class LimitExpensesValidatorTest {
 
         @Test
         void shouldQueryFinancialPeriodServiceWithNullCategoryWhenGeneralLimit() {
-            LimitDto limitDto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, null, LimitStatus.LOW, BigDecimal.valueOf(1000), true);
+            LimitDto limitDto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, null, LimitStatus.LOW, BigDecimal.valueOf(1000), true, null);
 
             when(financialPeriodService.getExpensesSum(USER_ID, PeriodType.MONTHLY, null)).thenReturn(BigDecimal.valueOf(200));
 

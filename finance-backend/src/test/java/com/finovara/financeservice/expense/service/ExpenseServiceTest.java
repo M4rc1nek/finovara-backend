@@ -1,6 +1,7 @@
 package com.finovara.financeservice.expense.service;
 
 import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
@@ -12,6 +13,7 @@ import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.mapper.ExpenseMapper;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.limit.service.LimitCalculateService;
@@ -96,6 +98,9 @@ class ExpenseServiceTest {
     @Mock
     private FinancialPeriodService financialPeriodService;
 
+    @Mock
+    private AuthBackendClient authBackendClient;
+
     private ExpenseService expenseService;
 
     private Long userId;
@@ -118,7 +123,8 @@ class ExpenseServiceTest {
                 smartScanService,
                 expenseManagerService,
                 expenseMapper,
-                financialPeriodService
+                financialPeriodService,
+                authBackendClient
         );
 
         userId = 1L;
@@ -129,7 +135,7 @@ class ExpenseServiceTest {
 
     private ExpenseRequestDto buildRequestDto(BigDecimal amount, ExpenseCategory expenseCategory) {
         ExpenseDto expenseDto = new ExpenseDto(null, userId, amount, expenseCategory, LocalDate.now(), "description");
-        return new ExpenseRequestDto(expenseDto, mock(ConfirmPasswordDto.class), mock(CountQuantityLimitDto.class));
+        return new ExpenseRequestDto(expenseDto, mock(ConfirmPasswordDto.class), mock(ConfirmAuthorizationCodeDto.class), mock(CountQuantityLimitDto.class));
     }
 
     private Limit buildLimit(Long id, ExpenseCategory limitCategory, BigDecimal amount) {
@@ -533,7 +539,7 @@ class ExpenseServiceTest {
             when(expenseRepository.findByIdAndUserId(expenseId, userId)).thenReturn(java.util.Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
-            expenseService.deleteExpense(expenseId, userId);
+            expenseService.deleteExpense(expenseId, userId, "authCode");
 
             verify(expenseRepository).delete(expense);
         }
@@ -543,7 +549,7 @@ class ExpenseServiceTest {
             Long expenseId = 4L;
             when(expenseRepository.findByIdAndUserId(expenseId, userId)).thenReturn(java.util.Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> expenseService.deleteExpense(expenseId, userId));
+            assertThrows(RequestedEntityNotFoundException.class, () -> expenseService.deleteExpense(expenseId, userId, "authCode"));
 
             verify(expenseRepository, never()).delete(any());
             verifyNoInteractions(walletService);
@@ -556,7 +562,7 @@ class ExpenseServiceTest {
             when(expenseRepository.findByIdAndUserId(expenseId, userId)).thenReturn(java.util.Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
-            expenseService.deleteExpense(expenseId, userId);
+            expenseService.deleteExpense(expenseId, userId, "authCode");
 
             verify(roundUpService).handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
         }
@@ -568,7 +574,7 @@ class ExpenseServiceTest {
             when(expenseRepository.findByIdAndUserId(expenseId, userId)).thenReturn(java.util.Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
-            expenseService.deleteExpense(expenseId, userId);
+            expenseService.deleteExpense(expenseId, userId, "authCode");
 
             verify(walletService).addBalanceToWallet(userId, BigDecimal.valueOf(80));
         }
@@ -580,7 +586,7 @@ class ExpenseServiceTest {
             when(expenseRepository.findByIdAndUserId(expenseId, userId)).thenReturn(java.util.Optional.of(expense));
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
-            expenseService.deleteExpense(expenseId, userId);
+            expenseService.deleteExpense(expenseId, userId, "authCode");
 
             verify(outboxService).save(eq("Expense"), eq(expenseId.toString()), eq("activity.expense"), any());
         }
@@ -595,7 +601,7 @@ class ExpenseServiceTest {
             LimitStatsDto stats = new LimitStatsDto(1L, periodType, null, BigDecimal.valueOf(500), BigDecimal.ZERO, BigDecimal.valueOf(500), BigDecimal.ZERO, null, LocalDate.now());
             when(limitCalculateService.calculateLimitStats(eq(limit), eq(userId), any(LocalDate.class))).thenReturn(stats);
 
-            expenseService.deleteExpense(expenseId, userId);
+            expenseService.deleteExpense(expenseId, userId, "authCode");
 
             verify(kafkaTemplate).send(eq("limit.calculate-stats"), any());
         }

@@ -13,6 +13,8 @@ import com.finovara.contracts.event.notification.sharedaccount.invitation.UserSe
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +40,7 @@ public class InvitationService {
     private final UserRepository userRepository;
     private final SharedAccountInvitationRepository sharedAccountInvitationRepository;
     private final InvitationValidator invitationValidator;
+    private final AdditionalAuthorizationService additionalAuthorizationService;
 
     @Value("${shared-account.search.page-size}")
     private int pageSize;
@@ -60,7 +63,9 @@ public class InvitationService {
     }
 
     @Transactional
-    public void sendInvitation(Long inviterUserId, Long inviteeUserId) {
+    public void sendInvitation(Long inviterUserId, Long inviteeUserId, String authorizationCode) {
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviterUserId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        
         LocalDateTime now = LocalDateTime.now();
         invitationValidator.validateSendInvitation(inviterUserId, inviteeUserId);
 

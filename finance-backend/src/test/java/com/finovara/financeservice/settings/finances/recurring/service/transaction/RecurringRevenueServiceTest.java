@@ -1,13 +1,14 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringRevenueDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
-import com.finovara.financeservice.settings.finances.recurring.service.occurrence.RecurringOccurrenceService;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringRevenueValidator;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +38,7 @@ class RecurringRevenueServiceTest {
     private RecurringRevenueValidator recurringRevenueValidator;
 
     @Mock
-    private RecurringOccurrenceService recurringOccurrenceService;
+    private AuthBackendClient authBackendClient;
 
     @InjectMocks
     private RecurringRevenueService recurringRevenueService;
@@ -63,7 +64,8 @@ class RecurringRevenueServiceTest {
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2026, 1, 1),
-                    null
+                    LocalDate.of(2025, 2, 1),
+                    "1234"
             );
 
             settings.setEnable(true);
@@ -82,6 +84,8 @@ class RecurringRevenueServiceTest {
             assertThat(captor.getValue().endDate()).isEqualTo(dto.endDate());
 
             verify(recurringRevenueValidator).validate(settings);
+            verify(authBackendClient).confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto("1234"));
+
         }
 
         @Test
@@ -93,7 +97,8 @@ class RecurringRevenueServiceTest {
                     PeriodType.MONTHLY,
                     LocalDate.of(2025, 1, 1),
                     LocalDate.of(2026, 1, 1),
-                    null
+                    LocalDate.of(2025, 2, 1),
+                    "1234"
             );
 
             settings.setEnable(false);
@@ -103,6 +108,8 @@ class RecurringRevenueServiceTest {
             recurringRevenueService.saveRevenueSettings(userId, dto);
 
             verify(recurringRevenueValidator, never()).validate(any());
+            verify(authBackendClient).confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto("1234"));
+
         }
     }
 

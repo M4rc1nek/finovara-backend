@@ -1,9 +1,11 @@
 package com.finovara.financeservice.piggybank.service;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
@@ -28,9 +30,12 @@ public class PiggyBankTransactionService {
     private final GoalCompletionService goalCompletionService;
     private final GoalPlannerService goalPlannerService;
     private final WalletService walletService;
+    private final AuthBackendClient authBackendClient;
 
     @Transactional
-    public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, PiggyBankActivityType piggyBankActivityType) {
+    public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, PiggyBankActivityType piggyBankActivityType, String authorizationCode) {
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         PiggyBankValidator.validateAmount(amount);
@@ -52,7 +57,9 @@ public class PiggyBankTransactionService {
     }
 
     @Transactional
-    public void removeBalanceFromPiggyBank(Long userId, Long piggyBankId, BigDecimal amount) {
+    public void removeBalanceFromPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, String authorizationCode) {
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         PiggyBankValidator.validateAmount(amount);

@@ -1,5 +1,6 @@
 package com.finovara.authservice.sharedaccount.service.invitation;
 
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.authservice.sharedaccount.model.SharedAccount;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
 import com.finovara.authservice.sharedaccount.model.role.SharedRole;
@@ -32,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -60,6 +62,9 @@ class InvitationResponseServiceTest {
 
     @Mock
     private OutboxService outboxService;
+
+    @Mock
+    private AdditionalAuthorizationService additionalAuthorizationService;
 
     @InjectMocks
     private InvitationResponseService invitationResponseService;
@@ -99,7 +104,8 @@ class InvitationResponseServiceTest {
             SharedAccount savedAccount = SharedAccount.builder().id(100L).createdAt(LocalDateTime.now()).build();
             when(sharedAccountRepository.save(any(SharedAccount.class))).thenReturn(savedAccount);
 
-            invitationResponseService.acceptInvite(inviteeUserId, invitationId);
+            doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(inviteeUserId), any());
+            invitationResponseService.acceptInvite(inviteeUserId, invitationId, "auth");
 
             verify(sharedAccountInvitationRepository).delete(pendingInvitation);
             verify(sharedAccountMemberService).createMember(savedAccount, inviterUserId, SharedRole.OWNER);
@@ -125,7 +131,8 @@ class InvitationResponseServiceTest {
             SharedAccount savedAccount = SharedAccount.builder().id(100L).createdAt(LocalDateTime.now()).build();
             when(sharedAccountRepository.save(any(SharedAccount.class))).thenReturn(savedAccount);
 
-            invitationResponseService.acceptInvite(inviteeUserId, invitationId);
+            doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(inviteeUserId), any());
+            invitationResponseService.acceptInvite(inviteeUserId, invitationId, "auth");
 
             ArgumentCaptor<UsersCreatedSharedAccountEvent> createdCaptor =
                     ArgumentCaptor.forClass(UsersCreatedSharedAccountEvent.class);
@@ -151,7 +158,7 @@ class InvitationResponseServiceTest {
             when(sharedAccountInvitationRepository.findById(invitationId)).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class,
-                    () -> invitationResponseService.acceptInvite(inviteeUserId, invitationId));
+                    () -> invitationResponseService.acceptInvite(inviteeUserId, invitationId, "auth"));
 
             verify(sharedAccountRepository, never()).save(any(SharedAccount.class));
         }
@@ -164,7 +171,7 @@ class InvitationResponseServiceTest {
                     .when(invitationValidator).validateInvitationOwnership(inviteeUserId, inviteeUserId, invitationId);
 
             assertThrows(RequestedEntityNotFoundException.class,
-                    () -> invitationResponseService.acceptInvite(inviteeUserId, invitationId));
+                    () -> invitationResponseService.acceptInvite(inviteeUserId, invitationId, "auth"));
 
             verify(sharedAccountInvitationRepository, never()).delete(any(SharedAccountInvitation.class));
         }
@@ -176,7 +183,7 @@ class InvitationResponseServiceTest {
             when(sharedAccountInvitationRepository.findById(invitationId)).thenReturn(Optional.of(pendingInvitation));
 
             assertThrows(RequestedEntityNotFoundException.class,
-                    () -> invitationResponseService.acceptInvite(inviteeUserId, invitationId));
+                    () -> invitationResponseService.acceptInvite(inviteeUserId, invitationId, "auth"));
 
             verify(invitationExpirationService).expireInvitation(pendingInvitation);
             verify(sharedAccountRepository, never()).save(any(SharedAccount.class));
@@ -192,7 +199,7 @@ class InvitationResponseServiceTest {
                     .when(invitationValidator).validateAcceptInvite(inviterUserId, inviteeUserId, invitationId);
 
             assertThrows(RequestedEntityNotFoundException.class,
-                    () -> invitationResponseService.acceptInvite(inviteeUserId, invitationId));
+                    () -> invitationResponseService.acceptInvite(inviteeUserId, invitationId, "auth"));
 
             verify(sharedAccountInvitationRepository, never()).delete(any(SharedAccountInvitation.class));
             verify(outboxService, never()).save(anyString(), anyString(), anyString(), any());
@@ -218,7 +225,8 @@ class InvitationResponseServiceTest {
             when(userManagerService.getUserDataWithProfileImg(inviteeUserId)).thenReturn(invitee);
             when(userManagerService.getUserDataWithProfileImg(inviterUserId)).thenReturn(inviter);
 
-            invitationResponseService.rejectInvite(inviteeUserId, invitationId);
+            doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(inviteeUserId), any());
+            invitationResponseService.rejectInvite(inviteeUserId, invitationId, "auth");
 
             verify(sharedAccountInvitationRepository).delete(pendingInvitation);
         }
@@ -239,7 +247,8 @@ class InvitationResponseServiceTest {
             when(userManagerService.getUserDataWithProfileImg(inviteeUserId)).thenReturn(invitee);
             when(userManagerService.getUserDataWithProfileImg(inviterUserId)).thenReturn(inviter);
 
-            invitationResponseService.rejectInvite(inviteeUserId, invitationId);
+            doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(inviteeUserId), any());
+            invitationResponseService.rejectInvite(inviteeUserId, invitationId, "auth");
 
             ArgumentCaptor<UserRejectSharedAccountInvitationEvent> rejectCaptor =
                     ArgumentCaptor.forClass(UserRejectSharedAccountInvitationEvent.class);
@@ -256,7 +265,7 @@ class InvitationResponseServiceTest {
             when(sharedAccountInvitationRepository.findById(invitationId)).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class,
-                    () -> invitationResponseService.rejectInvite(inviteeUserId, invitationId));
+                    () -> invitationResponseService.rejectInvite(inviteeUserId, invitationId, "auth"));
 
             verify(sharedAccountInvitationRepository, never()).delete(any(SharedAccountInvitation.class));
         }
@@ -268,7 +277,7 @@ class InvitationResponseServiceTest {
             when(sharedAccountInvitationRepository.findById(invitationId)).thenReturn(Optional.of(pendingInvitation));
 
             assertThrows(RequestedEntityNotFoundException.class,
-                    () -> invitationResponseService.rejectInvite(inviteeUserId, invitationId));
+                    () -> invitationResponseService.rejectInvite(inviteeUserId, invitationId, "auth"));
 
             verify(invitationExpirationService).expireInvitation(pendingInvitation);
             verify(outboxService, never()).save(anyString(), anyString(), anyString(), any());
@@ -282,7 +291,7 @@ class InvitationResponseServiceTest {
                     .when(invitationValidator).validateInvitationOwnership(inviteeUserId, inviteeUserId, invitationId);
 
             assertThrows(RequestedEntityNotFoundException.class,
-                    () -> invitationResponseService.rejectInvite(inviteeUserId, invitationId));
+                    () -> invitationResponseService.rejectInvite(inviteeUserId, invitationId, "auth"));
 
             verify(sharedAccountInvitationRepository, never()).delete(any(SharedAccountInvitation.class));
         }

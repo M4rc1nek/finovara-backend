@@ -1,8 +1,10 @@
 package com.finovara.financeservice.settings.piggybank.autopayments.service;
 
+import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.piggybank.autopayments.dto.AutoPaymentsDto;
@@ -34,10 +36,41 @@ public class AutoPaymentsService {
     private final GoalCompletionService goalCompletionService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final AutoPaymentsCore autoPaymentsCore;
+    private final AuthBackendClient authBackendClient;
+
+    @Transactional
+    public void saveAutoPaymentsPiggyBank(Long userId, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(autoPaymentsDto.authorizationCode()));
+
+
+        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
+
+        validatePercentage(autoPaymentsDto);
+
+        piggyBankSettings.setAutomationActive(autoPaymentsDto.isAutomationActive());
+        piggyBankSettings.setAutomationPercentage(autoPaymentsDto.isAutomationActive() ? autoPaymentsDto.percentage() : BigDecimal.ZERO);
+        if (piggyBankSettings.isAutomationActive()) {
+            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_AUTO_PAYMENTS, SettingActivityStatus.ENABLED, LocalDateTime.now()));
+        } else {
+            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_AUTO_PAYMENTS, SettingActivityStatus.DISABLED, LocalDateTime.now()));
+        }
+    }
+
+    @Transactional
+    public AutoPaymentsDto getAutomation(Long userId, Long piggyBankId) {
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+
+        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
+
+        return new AutoPaymentsDto(piggyBankSettings.isAutomationActive(), piggyBankSettings.getAutomationPercentage(), null);
+    }
 
     @Transactional
     public void createAutomation(Long userId, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(autoPaymentsDto.authorizationCode()));
+
 
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
@@ -50,32 +83,6 @@ public class AutoPaymentsService {
             piggyBankSettings.setAutomationPercentage(BigDecimal.ZERO);
         }
 
-    }
-
-    @Transactional
-    public AutoPaymentsDto getAutomation(Long userId, Long piggyBankId) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
-
-        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
-
-        return new AutoPaymentsDto(piggyBankSettings.isAutomationActive(), piggyBankSettings.getAutomationPercentage());
-    }
-
-    @Transactional
-    public void saveAutoPaymentsPiggyBank(Long userId, Long piggyBankId, AutoPaymentsDto settings) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
-
-        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
-
-        validatePercentage(settings);
-
-        piggyBankSettings.setAutomationActive(settings.isAutomationActive());
-        piggyBankSettings.setAutomationPercentage(settings.isAutomationActive() ? settings.percentage() : BigDecimal.ZERO);
-        if (piggyBankSettings.isAutomationActive()) {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_AUTO_PAYMENTS, SettingActivityStatus.ENABLED, LocalDateTime.now()));
-        } else {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_AUTO_PAYMENTS, SettingActivityStatus.DISABLED, LocalDateTime.now()));
-        }
     }
 
     @Transactional

@@ -14,12 +14,12 @@ public class ProfileImageController {
     private final ProfileImageService profileImageService;
 
     @PostMapping("/{userId}")
-    public void uploadProfileImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file, HttpServletRequest request) {
-        profileImageService.uploadProfileImage(file, userId, request);
+    public void uploadProfileImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file, HttpServletRequest request, @RequestParam(required = false) String authorizationCode) {
+        profileImageService.uploadProfileImage(file, userId, request, authorizationCode);
     }
 
     @DeleteMapping("/{userId}")
-    public void deleteProfileImage(@PathVariable Long userId, HttpServletRequest request) {
-        profileImageService.deleteProfileImage(userId, request);
+    public void deleteProfileImage(@PathVariable Long userId, HttpServletRequest request, @RequestParam(required = false) String authorizationCode) {
+        profileImageService.deleteProfileImage(userId, request, authorizationCode);
     }
 }

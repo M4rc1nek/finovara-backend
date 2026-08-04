@@ -11,6 +11,7 @@ import com.finovara.notificationservice.notificationemail.model.NotificationEmai
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
 import com.finovara.notificationservice.notificationemail.util.emailsender.EmailNotifier;
+import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -22,8 +23,8 @@ public class NotifyOnAccountDeletedService extends AbstractNotificationEmailServ
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public NotifyOnAccountDeletedService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender,
-                                         KafkaTemplate<String, Object> kafkaTemplate, EmailNotifier emailNotifier) {
-        super(notificationEmailSettingsRepository, notificationEmailSender);
+                                         AuthBackendClient authBackendClient, KafkaTemplate<String, Object> kafkaTemplate, EmailNotifier emailNotifier) {
+        super(notificationEmailSettingsRepository, notificationEmailSender, authBackendClient);
         this.emailNotifier = emailNotifier;
         this.kafkaTemplate = kafkaTemplate;
     }
@@ -45,7 +46,7 @@ public class NotifyOnAccountDeletedService extends AbstractNotificationEmailServ
 
     @Override
     protected NotificationEmailDto mapToDto(NotificationEmailSettings settings) {
-        return new NotificationEmailDto(settings.isNotifyOnAccountDeleted());
+        return new NotificationEmailDto(settings.isNotifyOnAccountDeleted(), null);
     }
 
     @Override
