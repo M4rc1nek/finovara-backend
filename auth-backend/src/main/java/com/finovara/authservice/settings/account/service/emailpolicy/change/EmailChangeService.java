@@ -1,5 +1,6 @@
-package com.finovara.authservice.settings.account.service.emailpolicy;
+package com.finovara.authservice.settings.account.service.emailpolicy.change;
 
+import com.finovara.authservice.settings.account.service.emailpolicy.attempts.EmailChangeVerificationService;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.settings.account.dto.AttemptsDto;
 import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeConfirmDto;
