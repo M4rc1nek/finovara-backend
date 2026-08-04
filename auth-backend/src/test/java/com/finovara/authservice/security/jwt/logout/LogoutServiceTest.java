@@ -20,6 +20,8 @@ import java.util.Date;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,7 +74,7 @@ class LogoutServiceTest {
 
             logoutService.logout(request, response);
 
-            verify(jwtBlacklistService, never()).blacklist(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
+            verify(jwtBlacklistService, never()).blacklist(anyString(), any());
         }
 
         @Test
@@ -82,7 +84,7 @@ class LogoutServiceTest {
 
             logoutService.logout(request, response);
 
-            verify(jwtBlacklistService, never()).blacklist(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.any());
+            verify(jwtBlacklistService, never()).blacklist(anyString(), any());
         }
 
         @Test
