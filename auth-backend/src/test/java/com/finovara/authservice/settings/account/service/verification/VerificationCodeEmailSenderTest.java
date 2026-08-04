@@ -53,6 +53,13 @@ class VerificationCodeEmailSenderTest {
     }
 
     @Test
+    void shouldSendAdditionalAuthorizationCodeCorrectly() {
+        verificationCodeEmailSender.sendAuthorizationConfirmCode(user, "user@test.com", 612930);
+
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
     void shouldThrowExceptionWhenCreateMimeMessageFails() {
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException());
 
