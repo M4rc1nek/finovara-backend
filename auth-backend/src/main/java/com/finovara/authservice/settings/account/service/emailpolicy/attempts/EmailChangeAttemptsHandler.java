@@ -1,4 +1,4 @@
-package com.finovara.authservice.settings.account.service.emailpolicy;
+package com.finovara.authservice.settings.account.service.emailpolicy.attempts;
 
 import com.finovara.authservice.settings.account.model.AccountSettings;
 import com.finovara.authservice.settings.account.repository.AccountRepository;
