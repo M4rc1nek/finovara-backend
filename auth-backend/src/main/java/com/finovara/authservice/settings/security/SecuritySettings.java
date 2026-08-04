@@ -4,6 +4,7 @@ import com.finovara.authservice.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "security_settings")
@@ -22,6 +23,11 @@ public class SecuritySettings {
     private boolean additionalAuthorizationEnabled;
 
     private String additionalAuthorizationCode;
+
+    private Integer additionalAuthorizationEmailCode;
+    private int  additionalAuthorizationAttempts;
+    private LocalDateTime additionalAuthorizationEmailCodeExpiresAt;
+    private LocalDateTime additionalAuthorizationAttemptsExpiresAt;
 
     @OneToOne
     @JoinColumn(name = "user_id")
