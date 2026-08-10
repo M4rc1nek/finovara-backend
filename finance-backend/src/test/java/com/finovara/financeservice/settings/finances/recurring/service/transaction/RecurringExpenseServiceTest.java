@@ -1,5 +1,6 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
@@ -56,6 +57,9 @@ class RecurringExpenseServiceTest {
 
     @Mock
     private AuthBackendClient authBackendClient;
+
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @InjectMocks
     private RecurringExpenseService recurringExpenseService;
