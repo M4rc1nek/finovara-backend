@@ -1,11 +1,13 @@
 package com.finovara.authservice.settings.account.service.profileimage;
 
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
-import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -41,6 +43,8 @@ class ProfileImageServiceTest {
     @Mock
     private AdditionalAuthorizationService additionalAuthorizationService;
     @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    @Mock
     private HttpServletRequest request;
 
     @InjectMocks
@@ -52,21 +56,33 @@ class ProfileImageServiceTest {
     Path defaultDir;
 
     private User user;
+    private ConfirmAuthorizationCodeDto resolvedAuthorizationCode;
     private static final Long USER_ID = 1L;
+    private static final String AUTHORIZATION_CODE = "auth";
 
     @BeforeEach
     void setUp() throws Exception {
         user = new User();
         user.setId(USER_ID);
         user.setEmail("test@test.com");
+        resolvedAuthorizationCode = mock(ConfirmAuthorizationCodeDto.class);
 
         Files.createFile(defaultDir.resolve("UserProf.png"));
 
         ReflectionTestUtils.setField(profileImageService, "profileImagesDirectory", uploadDir.toString());
         ReflectionTestUtils.setField(profileImageService, "profileImagesDefaultDirectory", defaultDir.toString());
 
+        when(additionalAuthorizationCodeResolver.resolve(AUTHORIZATION_CODE)).thenReturn(resolvedAuthorizationCode);
+    }
+
+    private void stubUserFound() {
         when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-        doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(USER_ID), any());
+    }
+
+    private void stubValidRequest() {
+        when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+        when(request.getHeader("X-Forwarded-For")).thenReturn(null);
+        when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
     }
 
     @Nested
@@ -76,118 +92,116 @@ class ProfileImageServiceTest {
                 new MockMultipartFile("file", "avatar.png", "image/png", "image-data".getBytes());
 
         @Test
-        void shouldSaveFileOnDiskAndUpdateUserPath() {
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
+        void shouldSaveFileOnDiskAndUpdateUserPathWhenUploadingValidFile() {
+            stubUserFound();
+            stubValidRequest();
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
 
             assertThat(user.getProfileImagePath()).isNotNull();
             assertThat(Files.exists(Path.of(user.getProfileImagePath()))).isTrue();
         }
 
         @Test
-        void shouldPersistUserAfterUpload() {
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
+        void shouldPersistUserWhenUploadingValidFile() {
+            stubUserFound();
+            stubValidRequest();
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
 
             verify(userRepository).save(user);
         }
 
         @Test
-        void shouldTrackAccountActivityAfterUpload() {
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
+        void shouldConfirmAdditionalAuthorizationCodeWhenUploadingValidFile() {
+            stubUserFound();
+            stubValidRequest();
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
+
+            verify(additionalAuthorizationCodeResolver).resolve(AUTHORIZATION_CODE);
+            verify(additionalAuthorizationService).confirmAdditionalAuthorizationCode(USER_ID, resolvedAuthorizationCode);
+        }
+
+        @Test
+        void shouldTrackAccountActivityWhenUploadingValidFile() {
+            stubUserFound();
+            stubValidRequest();
+
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
 
             ArgumentCaptor<AccountChangesActivityEvent> captor =
                     ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
 
             verify(kafkaTemplate).send(eq("activity.account-changes"), captor.capture());
-
-            assertThat(captor.getValue().type())
-                    .isEqualTo(AccountChangesActivityType.PROFILE_IMG_CHANGED);
+            assertThat(captor.getValue().type()).isEqualTo(AccountChangesActivityType.PROFILE_IMG_CHANGED);
         }
 
         @Test
-        void shouldGenerateUniqueFilenameContainingOriginalName() {
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
+        void shouldGenerateUniqueFilenameContainingOriginalNameWhenUploadingValidFile() {
+            stubUserFound();
+            stubValidRequest();
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
 
             assertThat(user.getProfileImagePath()).contains("avatar.png");
         }
 
         @Test
-        void shouldDeleteOldLocalImageAfterUpload() throws Exception {
+        void shouldDeleteOldLocalImageWhenUploadingNewFile() throws Exception {
             Path oldFile = Files.createTempFile(uploadDir, "old-avatar", ".png");
             user.setProfileImagePath(oldFile.toString());
+            stubUserFound();
+            stubValidRequest();
 
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
-
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
 
             assertThat(Files.exists(oldFile)).isFalse();
         }
 
         @Test
-        void shouldNotDeleteExternalImageAfterUpload() {
+        void shouldNotDeleteExternalImageWhenUploadingNewFile() {
             user.setProfileImagePath("https://cdn.example.com/avatar.png");
+            stubUserFound();
+            stubValidRequest();
 
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
-
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, "auth");
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
 
             verify(userRepository).save(user);
         }
 
         @Test
-        void shouldUploadJpegFile() {
+        void shouldUploadJpegFileWhenContentTypeIsImageJpeg() {
             MockMultipartFile jpeg =
                     new MockMultipartFile("file", "photo.jpg", "image/jpeg", "jpeg-data".getBytes());
+            stubUserFound();
+            stubValidRequest();
 
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
-
-            profileImageService.uploadProfileImage(jpeg, USER_ID, request, "auth");
+            profileImageService.uploadProfileImage(jpeg, USER_ID, request, AUTHORIZATION_CODE);
 
             assertThat(user.getProfileImagePath()).contains("photo.jpg");
         }
 
         @Test
-        void shouldAcceptFileExactlyAt5MB() {
+        void shouldAcceptFileWhenSizeIsExactly5MB() {
             MockMultipartFile exact =
                     new MockMultipartFile("file", "exact.png", "image/png", new byte[5 * 1024 * 1024]);
+            stubUserFound();
+            stubValidRequest();
 
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
-
-            profileImageService.uploadProfileImage(exact, USER_ID, request, "auth");
+            profileImageService.uploadProfileImage(exact, USER_ID, request, AUTHORIZATION_CODE);
 
             verify(userRepository).save(user);
         }
 
         @Test
-        void shouldThrowWhenFileIsEmpty() {
+        void shouldThrowExceptionWhenFileIsEmpty() {
             MockMultipartFile empty =
                     new MockMultipartFile("file", "avatar.png", "image/png", new byte[0]);
+            stubUserFound();
 
             assertThatThrownBy(() ->
-                    profileImageService.uploadProfileImage(empty, USER_ID, request, "auth"))
+                    profileImageService.uploadProfileImage(empty, USER_ID, request, AUTHORIZATION_CODE))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("File is empty");
 
@@ -195,24 +209,52 @@ class ProfileImageServiceTest {
         }
 
         @Test
-        void shouldThrowWhenFileIsNotAnImage() {
+        void shouldThrowExceptionWhenFileIsNotAnImage() {
             MockMultipartFile pdf =
                     new MockMultipartFile("file", "document.pdf", "application/pdf", "data".getBytes());
+            stubUserFound();
 
             assertThatThrownBy(() ->
-                    profileImageService.uploadProfileImage(pdf, USER_ID, request, "auth"))
+                    profileImageService.uploadProfileImage(pdf, USER_ID, request, AUTHORIZATION_CODE))
                     .isInstanceOf(IllegalArgumentException.class);
 
             verify(userRepository, never()).save(any());
         }
 
         @Test
-        void shouldThrowWhenFileSizeExceeds5MB() {
-            MockMultipartFile large =
-                    new MockMultipartFile("file", "large.png", "image/png", new byte[6 * 1024 * 1024]);
+        void shouldThrowExceptionWhenContentTypeIsNull() {
+            MockMultipartFile noContentType =
+                    new MockMultipartFile("file", "avatar.png", null, "data".getBytes());
+            stubUserFound();
 
             assertThatThrownBy(() ->
-                    profileImageService.uploadProfileImage(large, USER_ID, request, "auth"))
+                    profileImageService.uploadProfileImage(noContentType, USER_ID, request, AUTHORIZATION_CODE))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenFileSizeExceeds5MB() {
+            MockMultipartFile large =
+                    new MockMultipartFile("file", "large.png", "image/png", new byte[6 * 1024 * 1024]);
+            stubUserFound();
+
+            assertThatThrownBy(() ->
+                    profileImageService.uploadProfileImage(large, USER_ID, request, AUTHORIZATION_CODE))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldNotSaveUserWhenAdditionalAuthorizationCodeConfirmationFails() {
+            doThrow(new IllegalArgumentException("Invalid authorization code"))
+                    .when(additionalAuthorizationService)
+                    .confirmAdditionalAuthorizationCode(USER_ID, resolvedAuthorizationCode);
+
+            assertThatThrownBy(() ->
+                    profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE))
                     .isInstanceOf(IllegalArgumentException.class);
 
             verify(userRepository, never()).save(any());
@@ -222,72 +264,115 @@ class ProfileImageServiceTest {
     @Nested
     class DeleteProfileImage {
 
-        // request stubbing moved into individual tests to avoid unnecessary stubbing in tests
-
         @Test
-        void shouldDeleteLocalFileFromDisk() throws Exception {
+        void shouldDeleteLocalFileFromDiskWhenDeletingExistingImage() throws Exception {
             Path image = Files.createTempFile(uploadDir, "avatar", ".png");
             user.setProfileImagePath(image.toString());
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
+            stubUserFound();
+            stubValidRequest();
 
-            profileImageService.deleteProfileImage(USER_ID, request, "auth");
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
 
             assertThat(Files.exists(image)).isFalse();
         }
 
         @Test
-        void shouldSetUserPathToDefaultImageAfterDelete() throws Exception {
+        void shouldSetUserPathToDefaultImageWhenDeletingExistingImage() throws Exception {
             Path image = Files.createTempFile(uploadDir, "avatar", ".png");
             user.setProfileImagePath(image.toString());
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
+            stubUserFound();
+            stubValidRequest();
 
-            profileImageService.deleteProfileImage(USER_ID, request, "auth");
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
 
             assertThat(user.getProfileImagePath()).contains("UserProf.png");
         }
 
         @Test
-        void shouldPersistUserAfterDelete() throws Exception {
+        void shouldPersistUserWhenDeletingExistingImage() throws Exception {
             Path image = Files.createTempFile(uploadDir, "avatar", ".png");
             user.setProfileImagePath(image.toString());
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
+            stubUserFound();
+            stubValidRequest();
 
-            profileImageService.deleteProfileImage(USER_ID, request, "auth");
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
 
             verify(userRepository).save(user);
         }
 
         @Test
-        void shouldTrackAccountActivityAfterDelete() throws Exception {
+        void shouldTrackAccountActivityWhenDeletingExistingImage() throws Exception {
             Path image = Files.createTempFile(uploadDir, "avatar", ".png");
             user.setProfileImagePath(image.toString());
+            stubUserFound();
+            stubValidRequest();
+
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
 
             ArgumentCaptor<AccountChangesActivityEvent> captor =
                     ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
-            when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-            when(request.getHeader("X-Forwarded-For")).thenReturn(null);
-            when(request.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
-
-            profileImageService.deleteProfileImage(USER_ID, request, "auth");
-
             verify(kafkaTemplate).send(eq("activity.account-changes"), captor.capture());
-
-            assertThat(captor.getValue().type())
-                    .isEqualTo(AccountChangesActivityType.PROFILE_IMG_DELETED);
+            assertThat(captor.getValue().type()).isEqualTo(AccountChangesActivityType.PROFILE_IMG_DELETED);
         }
 
         @Test
-        void shouldThrowWhenPathIsNull() {
+        void shouldNotDeleteExternalImageFileWhenDeletingExternalImage() {
+            user.setProfileImagePath("https://cdn.example.com/avatar.png");
+            stubUserFound();
+            stubValidRequest();
+
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
+
+            assertThat(user.getProfileImagePath()).contains("UserProf.png");
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void shouldConfirmAdditionalAuthorizationCodeWhenDeletingExistingImage() throws Exception {
+            Path image = Files.createTempFile(uploadDir, "avatar", ".png");
+            user.setProfileImagePath(image.toString());
+            stubUserFound();
+            stubValidRequest();
+
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
+
+            verify(additionalAuthorizationCodeResolver).resolve(AUTHORIZATION_CODE);
+            verify(additionalAuthorizationService).confirmAdditionalAuthorizationCode(USER_ID, resolvedAuthorizationCode);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenPathIsNull() {
             user.setProfileImagePath(null);
+            stubUserFound();
 
             assertThatThrownBy(() ->
-                    profileImageService.deleteProfileImage(USER_ID, request, "auth"))
+                    profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenPathIsAlreadyDefault() {
+            String defaultPath = defaultDir.resolve("UserProf.png").toString();
+            user.setProfileImagePath(defaultPath);
+            stubUserFound();
+
+            assertThatThrownBy(() ->
+                    profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldNotSaveUserWhenAdditionalAuthorizationCodeConfirmationFails() {
+            doThrow(new IllegalArgumentException("Invalid authorization code"))
+                    .when(additionalAuthorizationService)
+                    .confirmAdditionalAuthorizationCode(USER_ID, resolvedAuthorizationCode);
+
+            assertThatThrownBy(() ->
+                    profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE))
                     .isInstanceOf(IllegalArgumentException.class);
 
             verify(userRepository, never()).save(any());
