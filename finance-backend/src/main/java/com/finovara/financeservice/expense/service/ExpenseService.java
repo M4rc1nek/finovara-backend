@@ -1,6 +1,5 @@
 package com.finovara.financeservice.expense.service;
 
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
 import com.finovara.contracts.event.notification.limit.LimitStatsEvent;
@@ -30,6 +29,7 @@ import com.finovara.financeservice.util.expense.ExpenseManagerService;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -59,10 +59,11 @@ public class ExpenseService implements UserDataDeletable {
     private final ExpenseMapper expenseMapper;
     private final FinancialPeriodService financialPeriodService;
     private final AuthBackendClient authBackendClient;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public Long addExpense(ExpenseRequestDto expenseRequestDto, Long userId) {
-        authBackendClient.confirmAuthorizationCode(userId, expenseRequestDto.confirmAuthorizationCodeDto());
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
         validateLimitOrThrow(userId, expenseRequestDto.expenseDto().category(), expenseRequestDto.expenseDto().category(),
                 BigDecimal.ZERO, expenseRequestDto.expenseDto().amount());
 
@@ -102,7 +103,7 @@ public class ExpenseService implements UserDataDeletable {
         if (!existingExpense.getUserId().equals(userId)) {
             throw new RequestedEntityNotFoundException("Expense not found for this user");
         }
-        authBackendClient.confirmAuthorizationCode(userId, expenseRequestDto.confirmAuthorizationCodeDto());
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
         validateLimitOrThrow(userId, existingExpense.getCategory(), expenseRequestDto.expenseDto().category(),
                 existingExpense.getAmount(), expenseRequestDto.expenseDto().amount());
 
@@ -142,7 +143,7 @@ public class ExpenseService implements UserDataDeletable {
     public void deleteExpense(Long expenseId, Long userId, String authorizationCode) {
         Expense expense = expenseRepository.findByIdAndUserId(expenseId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
         walletService.addBalanceToWallet(userId, expense.getAmount());
         outboxService.save("Expense", expenseId.toString(), "activity.expense",
