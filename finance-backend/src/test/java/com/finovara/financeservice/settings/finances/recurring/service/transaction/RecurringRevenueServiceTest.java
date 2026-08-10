@@ -1,6 +1,7 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
@@ -40,16 +41,22 @@ class RecurringRevenueServiceTest {
     @Mock
     private AuthBackendClient authBackendClient;
 
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+
     @InjectMocks
     private RecurringRevenueService recurringRevenueService;
 
     private Long userId;
+    private ConfirmAuthorizationCodeDto resolvedAuthorizationCode;
     private RecurringSettings settings;
 
     @BeforeEach
     void setUp() {
         userId = 1L;
         settings = new RecurringSettings();
+
+        resolvedAuthorizationCode = mock(ConfirmAuthorizationCodeDto.class);
     }
 
     @Nested
@@ -57,20 +64,13 @@ class RecurringRevenueServiceTest {
 
         @Test
         void shouldSaveAndValidateWhenEnabled() {
-            RecurringRevenueDto dto = new RecurringRevenueDto(
-                    true,
-                    BigDecimal.valueOf(100),
-                    RevenueCategory.SALARY,
-                    PeriodType.MONTHLY,
-                    LocalDate.of(2025, 1, 1),
-                    LocalDate.of(2026, 1, 1),
-                    LocalDate.of(2025, 2, 1),
-                    "1234"
-            );
+            RecurringRevenueDto dto = new RecurringRevenueDto(true, BigDecimal.valueOf(100), RevenueCategory.SALARY, PeriodType.MONTHLY, LocalDate.of(2025, 1, 1), LocalDate.of(2026, 1, 1), LocalDate.of(2025, 2, 1), "1234");
 
             settings.setEnable(true);
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.REVENUE)).thenReturn(settings);
+
+            when(additionalAuthorizationCodeResolver.resolve(dto.authorizationCode())).thenReturn(resolvedAuthorizationCode);
 
             recurringRevenueService.saveRevenueSettings(userId, dto);
 
@@ -79,37 +79,39 @@ class RecurringRevenueServiceTest {
             assertNull(settings.getPiggyBankId());
 
             ArgumentCaptor<RecurringCommonFields> captor = ArgumentCaptor.forClass(RecurringCommonFields.class);
-            verify(recurringSettingsSupport).applyCommonFields(eq(userId), eq(settings), captor.capture(),
-                    eq(SettingType.REVENUE_RECURRING));
+
+            verify(recurringSettingsSupport).applyCommonFields(eq(userId), eq(settings), captor.capture(), eq(SettingType.REVENUE_RECURRING));
+
+            assertThat(captor.getValue().enable()).isTrue();
+            assertThat(captor.getValue().amount()).isEqualByComparingTo(dto.amount());
+            assertThat(captor.getValue().periodType()).isEqualTo(dto.periodType());
+            assertThat(captor.getValue().startDate()).isEqualTo(dto.startDate());
             assertThat(captor.getValue().endDate()).isEqualTo(dto.endDate());
 
             verify(recurringRevenueValidator).validate(settings);
-            verify(authBackendClient).confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto("1234"));
 
+            verify(additionalAuthorizationCodeResolver).resolve(dto.authorizationCode());
+
+            verify(authBackendClient).confirmAuthorizationCode(userId, resolvedAuthorizationCode);
         }
 
         @Test
         void shouldNotValidateWhenDisabled() {
-            RecurringRevenueDto dto = new RecurringRevenueDto(
-                    false,
-                    BigDecimal.valueOf(100),
-                    RevenueCategory.SALARY,
-                    PeriodType.MONTHLY,
-                    LocalDate.of(2025, 1, 1),
-                    LocalDate.of(2026, 1, 1),
-                    LocalDate.of(2025, 2, 1),
-                    "1234"
-            );
+            RecurringRevenueDto dto = new RecurringRevenueDto(false, BigDecimal.valueOf(100), RevenueCategory.SALARY, PeriodType.MONTHLY, LocalDate.of(2025, 1, 1), LocalDate.of(2026, 1, 1), LocalDate.of(2025, 2, 1), "1234");
 
             settings.setEnable(false);
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.REVENUE)).thenReturn(settings);
 
+            when(additionalAuthorizationCodeResolver.resolve(dto.authorizationCode())).thenReturn(resolvedAuthorizationCode);
+
             recurringRevenueService.saveRevenueSettings(userId, dto);
 
             verify(recurringRevenueValidator, never()).validate(any());
-            verify(authBackendClient).confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto("1234"));
 
+            verify(additionalAuthorizationCodeResolver).resolve(dto.authorizationCode());
+
+            verify(authBackendClient).confirmAuthorizationCode(userId, resolvedAuthorizationCode);
         }
     }
 
@@ -137,6 +139,10 @@ class RecurringRevenueServiceTest {
             assertEquals(settings.getStartDate(), result.startDate());
             assertEquals(settings.getEndDate(), result.endDate());
             assertEquals(settings.getNextExecutionDate(), result.nextExecutionDate());
+
+            verify(recurringSettingsSupport).getSettings(userId, RecurringType.REVENUE);
+
+            verifyNoInteractions(recurringRevenueValidator, authBackendClient, additionalAuthorizationCodeResolver);
         }
     }
 }
