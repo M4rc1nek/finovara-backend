@@ -22,6 +22,9 @@ public class SecuritySettings {
     @Column(nullable = false)
     private boolean additionalAuthorizationEnabled;
 
+    @Column(nullable = false)
+    private boolean additionalAuthorizationVisible;
+
     private String additionalAuthorizationCode;
 
     private Integer additionalAuthorizationEmailCode;
