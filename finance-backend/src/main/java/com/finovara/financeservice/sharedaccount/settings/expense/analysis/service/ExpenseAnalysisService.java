@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.settings.expense.analysis.service;
 
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
