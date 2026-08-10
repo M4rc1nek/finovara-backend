@@ -2,23 +2,33 @@ package com.finovara.authservice.settings.security.operationauthorization.servic
 
 import com.finovara.authservice.settings.account.dto.AttemptsDto;
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
-import com.finovara.authservice.util.attempts.properties.VerificationCodeProperties;
 import com.finovara.authservice.settings.security.SecuritySettings;
 import com.finovara.authservice.settings.security.SecuritySettingsRepository;
 import com.finovara.authservice.settings.security.operationauthorization.dto.AdditionalAuthorizationEmailCodeRequest;
 import com.finovara.authservice.settings.security.operationauthorization.dto.AdditionalAuthorizationEmailCodeResponse;
 import com.finovara.authservice.settings.security.operationauthorization.service.attempts.AdditionalAuthorizationAttemptsHandler;
 import com.finovara.authservice.user.model.User;
+import com.finovara.authservice.util.attempts.VerificationCodeAttemptsTemplate;
+import com.finovara.authservice.util.attempts.VerificationCodeVerifier;
 import com.finovara.authservice.util.attempts.dto.AttemptsContext;
+import com.finovara.authservice.util.attempts.properties.VerificationCodeProperties;
 import com.finovara.authservice.util.authorization.generator.SecretGenerator;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.outbox.OutboxService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+
+import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
 
 @Service
 @RequiredArgsConstructor
@@ -28,12 +38,13 @@ public class AdditionalAuthorizationEmailVerificationService {
 
     private final VerificationCodeEmailSender verificationCodeEmailSender;
     private final SecretGenerator secretGenerator;
-    private final com.finovara.authservice.util.attempts.VerificationCodeVerifier verificationCodeVerifier;
-    private final com.finovara.authservice.util.attempts.VerificationCodeAttemptsTemplate attemptsTemplate;
+    private final VerificationCodeVerifier verificationCodeVerifier;
+    private final VerificationCodeAttemptsTemplate attemptsTemplate;
     private final SecuritySettingsRepository securitySettingsRepository;
     private final PasswordEncoder passwordEncoder;
     private final VerificationCodeProperties properties;
     private final UserManagerService userManagerService;
+    private final OutboxService outboxService;
 
     @Transactional
     public void requestAdditionalAuthorizationEmail(Long userId) {
@@ -49,7 +60,7 @@ public class AdditionalAuthorizationEmailVerificationService {
     }
 
     @Transactional
-    public AdditionalAuthorizationEmailCodeResponse confirmAdditionalAuthorizationCode(Long userId, AdditionalAuthorizationEmailCodeRequest dto) {
+    public AdditionalAuthorizationEmailCodeResponse confirmAdditionalAuthorizationCode(Long userId, AdditionalAuthorizationEmailCodeRequest dto, HttpServletRequest httpServletRequest) {
         User user = userManagerService.getUserByIdOrThrow(userId);
         SecuritySettings securitySettings = user.getSecuritySettings();
 
@@ -73,6 +84,11 @@ public class AdditionalAuthorizationEmailVerificationService {
         securitySettings.setAdditionalAuthorizationEmailCodeExpiresAt(null);
         securitySettings.setAdditionalAuthorizationAttempts(0);
         securitySettingsRepository.save(securitySettings);
+
+        String ipAddress = getClientIpAddress(httpServletRequest);
+        outboxService.save("User", userId.toString(), "activity.account-changes",
+                new AccountChangesActivityEvent(userId, AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_ENABLED,
+                        getBrowser(httpServletRequest), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
 
         return new AdditionalAuthorizationEmailCodeResponse(new ConfirmAuthorizationCodeDto(generatedCode), attemptsDto);
     }
