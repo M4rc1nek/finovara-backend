@@ -5,7 +5,7 @@ import com.finovara.authservice.settings.security.operationauthorization.service
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
@@ -30,11 +30,12 @@ public class AccountService {
     private final UserManagerService userManagerService;
     private final OutboxService outboxService;
     private final AdditionalAuthorizationService additionalAuthorizationService;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public AccountSettingsDto updateUsername(AccountSettingsDto accountSettingsDto, Long userId, HttpServletRequest request) {
         User user = userManagerService.getUserByIdOrThrow(userId);
-        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(accountSettingsDto.authorizationCode()));
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(accountSettingsDto.authorizationCode()));
 
         if (userRepository.existsByUsername(accountSettingsDto.username())) {
             throw new EntityAlreadyExistsException("Username is already taken");
