@@ -1,5 +1,6 @@
 package com.finovara.financeservice.piggybank.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
@@ -60,6 +61,8 @@ class PiggyBankManagementServiceTest {
     private RecurringSettingsRepository recurringSettingsRepository;
     @Mock
     private AuthBackendClient authBackendClient;
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     private Long userId;
     private Long piggyBankId;
@@ -69,7 +72,7 @@ class PiggyBankManagementServiceTest {
     void setUp() {
         userId = 1L;
         piggyBankId = 1L;
-
+        
         defaultDto = new PiggyBankDto(
                 null, null, "Piggy",
                 BigDecimal.valueOf(100), null,
