@@ -1,7 +1,7 @@
 package com.finovara.financeservice.expense.dto;
 
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitDto;
 import jakarta.validation.Valid;
 
