@@ -1,5 +1,6 @@
 package com.finovara.notificationservice.notificationemail.action.accountdeleted.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
@@ -23,8 +24,8 @@ public class NotifyOnAccountDeletedService extends AbstractNotificationEmailServ
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     public NotifyOnAccountDeletedService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender,
-                                         AuthBackendClient authBackendClient, KafkaTemplate<String, Object> kafkaTemplate, EmailNotifier emailNotifier) {
-        super(notificationEmailSettingsRepository, notificationEmailSender, authBackendClient);
+                                         AuthBackendClient authBackendClient, KafkaTemplate<String, Object> kafkaTemplate, EmailNotifier emailNotifier, AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver) {
+        super(notificationEmailSettingsRepository, notificationEmailSender, authBackendClient, additionalAuthorizationCodeResolver);
         this.emailNotifier = emailNotifier;
         this.kafkaTemplate = kafkaTemplate;
     }
