@@ -1,5 +1,6 @@
 package com.finovara.financeservice.piggybank.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
@@ -44,6 +45,8 @@ class PiggyBankTransactionServiceTest {
     private WalletService walletService;
     @Mock
     private AuthBackendClient authBackendClient;
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     private PiggyBank piggyBank;
 
