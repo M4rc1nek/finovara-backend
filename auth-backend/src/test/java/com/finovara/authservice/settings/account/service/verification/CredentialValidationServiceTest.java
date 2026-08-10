@@ -19,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,32 +55,33 @@ class CredentialValidationServiceTest {
 
         @ParameterizedTest
         @MethodSource("invalidEmailsProvider")
-        void shouldThrowWhenEmailIsEmpty(String email, String expectedMessage) {
-            MissingRequirementException exception = assertThrows(MissingRequirementException.class, () -> credentialValidationService.validateEmailChange(user, email));
+        void shouldThrowMissingRequirementExceptionWhenEmailIsEmpty(String email, String expectedMessage) {
+            MissingRequirementException exception = assertThrows(MissingRequirementException.class, 
+                () -> credentialValidationService.validateEmailChange(user, email));
 
-            assertEquals(expectedMessage, exception.getMessage());
+            assertThat(exception.getMessage()).isEqualTo(expectedMessage);
         }
 
         @Test
-        void shouldThrowWhenEmailIsSameAsCurrent() {
-            InvalidInputException exception = assertThrows(InvalidInputException.class, () ->
-                    credentialValidationService.validateEmailChange(user, "OLD@mail.com"));
+        void shouldThrowInvalidInputExceptionWhenEmailIsSameAsCurrent() {
+            InvalidInputException exception = assertThrows(InvalidInputException.class, 
+                () -> credentialValidationService.validateEmailChange(user, "OLD@mail.com"));
 
-            assertEquals("New mail cannot be the same", exception.getMessage());
+            assertThat(exception.getMessage()).isEqualTo("New mail cannot be the same");
         }
 
         @Test
-        void shouldThrowWhenEmailAlreadyExists() {
+        void shouldThrowEntityAlreadyExistsExceptionWhenEmailAlreadyExists() {
             when(userRepository.existsByEmail("new@mail.com")).thenReturn(true);
 
-            EntityAlreadyExistsException exception = assertThrows(EntityAlreadyExistsException.class, () ->
-                    credentialValidationService.validateEmailChange(user, "new@mail.com"));
+            EntityAlreadyExistsException exception = assertThrows(EntityAlreadyExistsException.class, 
+                () -> credentialValidationService.validateEmailChange(user, "new@mail.com"));
 
-            assertEquals("Email already in use", exception.getMessage());
+            assertThat(exception.getMessage()).isEqualTo("Email already in use");
         }
 
         @Test
-        void shouldPassWhenEmailIsValid() {
+        void shouldPassValidationWhenEmailIsValid() {
             when(userRepository.existsByEmail("new@mail.com")).thenReturn(false);
 
             assertDoesNotThrow(() -> credentialValidationService.validateEmailChange(user, "new@mail.com"));
@@ -90,11 +93,16 @@ class CredentialValidationServiceTest {
         private final String currentPasswordHash = "hashedPassword";
 
         static Stream<Arguments> invalidPasswordsProvider() {
-            return Stream.of(Arguments.of(null, "confirm", "Password cannot be empty"), Arguments.of("   ", "confirm", "Password cannot be empty"), Arguments.of("password123", "different", "New passwords have to be the same"), Arguments.of("short", "short", "Password too short"));
+            return Stream.of(
+                Arguments.of(null, "confirm", "Password cannot be empty"), 
+                Arguments.of("   ", "confirm", "Password cannot be empty"), 
+                Arguments.of("password123", "different", "New passwords have to be the same"), 
+                Arguments.of("short", "short", "Password too short")
+            );
         }
 
         @Test
-        void shouldPassWhenPasswordIsValid() {
+        void shouldPassValidationWhenPasswordIsValid() {
             when(passwordEncoder.matches("newPassword123", currentPasswordHash)).thenReturn(false);
 
             assertDoesNotThrow(() -> credentialValidationService.validateNewPassword("newPassword123", "newPassword123", currentPasswordHash));
@@ -102,22 +110,21 @@ class CredentialValidationServiceTest {
 
         @ParameterizedTest
         @MethodSource("invalidPasswordsProvider")
-        void shouldThrowForInvalidPasswords(String password, String confirm, String expectedMessage) {
-            MissingRequirementException exception = assertThrows(MissingRequirementException.class, () ->
-                    credentialValidationService.validateNewPassword(password, confirm, currentPasswordHash));
+        void shouldThrowMissingRequirementExceptionWhenPasswordIsInvalid(String password, String confirm, String expectedMessage) {
+            MissingRequirementException exception = assertThrows(MissingRequirementException.class, 
+                () -> credentialValidationService.validateNewPassword(password, confirm, currentPasswordHash));
 
-            assertEquals(expectedMessage, exception.getMessage());
+            assertThat(exception.getMessage()).isEqualTo(expectedMessage);
         }
 
         @Test
-        void shouldThrowWhenPasswordIsSameAsCurrent() {
+        void shouldThrowMissingRequirementExceptionWhenPasswordIsSameAsCurrent() {
             when(passwordEncoder.matches("password123", currentPasswordHash)).thenReturn(true);
 
-            MissingRequirementException exception = assertThrows(MissingRequirementException.class, () ->
-                    credentialValidationService.validateNewPassword("password123", "password123", currentPasswordHash));
+            MissingRequirementException exception = assertThrows(MissingRequirementException.class, 
+                () -> credentialValidationService.validateNewPassword("password123", "password123", currentPasswordHash));
 
-            assertEquals("This password is already set", exception.getMessage());
-
+            assertThat(exception.getMessage()).isEqualTo("This password is already set");
             verify(passwordEncoder).matches("password123", currentPasswordHash);
         }
     }
