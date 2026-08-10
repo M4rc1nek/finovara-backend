@@ -13,17 +13,13 @@ import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.financeservice.util.revenue.RevenueManagerService;
-import com.finovara.financeservice.wallet.model.Wallet;
-import com.finovara.financeservice.wallet.repository.WalletRepository;
 import com.finovara.financeservice.wallet.service.WalletService;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -42,10 +38,12 @@ public class RevenueService implements UserDataDeletable {
     private final RevenueMapper revenueMapper;
     private final AutoPaymentsService autoPaymentsService;
     private final AuthBackendClient authBackendClient;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public Long addRevenue(RevenueDto revenueDto, Long userId) {
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(revenueDto.authorizationCode()));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
+
         Revenue revenue = Revenue.builder()
                 .amount(revenueDto.amount())
                 .category(revenueDto.category())
@@ -63,7 +61,8 @@ public class RevenueService implements UserDataDeletable {
 
     @Transactional
     public Long editRevenue(RevenueDto revenueDto, Long revenueId, Long userId) {
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(revenueDto.authorizationCode()));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
+
         Revenue existingRevenue = revenueManagerService.getRevenueOrThrow(revenueId);
 
         if (!existingRevenue.getUserId().equals(userId)) {
@@ -102,7 +101,7 @@ public class RevenueService implements UserDataDeletable {
 
     @Transactional
     public void deleteRevenue(Long revenueId, Long userId, String authorizationCode) {
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         
         Revenue revenue = revenueRepository.findByIdAndUserId(revenueId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
