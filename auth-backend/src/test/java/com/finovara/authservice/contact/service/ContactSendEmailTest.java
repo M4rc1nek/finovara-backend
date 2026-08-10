@@ -2,6 +2,7 @@ package com.finovara.authservice.contact.service;
 
 import com.finovara.authservice.contact.dto.ContactDto;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -26,43 +27,82 @@ class ContactSendEmailTest {
     @InjectMocks
     private ContactSendEmail contactService;
 
+    private ContactDto testDto;
+
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(contactService, "recipientAddress", "finovaracenter@gmail.com");
         ReflectionTestUtils.setField(contactService, "fromAddress", "support@finovara.pl");
+        testDto = new ContactDto("Jan Kowalski", "Mam pytanie", "Pomoc", "jan@example.com");
     }
 
-    @Test
-    void shouldSendEmailWithCorrectFields() {
-        ContactDto dto = new ContactDto("Jan Kowalski", "Mam pytanie", "Pomoc", "jan@example.com");
-        ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+    @Nested
+    class SendContactEmail {
 
-        contactService.sendContactEmail(dto);
+        @Test
+        void shouldSendEmailWithCorrectFieldsWhenDtoIsValid() {
+            ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
 
-        verify(mailSender).send(captor.capture());
-        SimpleMailMessage sent = captor.getValue();
+            contactService.sendContactEmail(testDto);
 
-        assertThat(sent.getTo()).containsExactly("finovaracenter@gmail.com");
-        assertThat(sent.getFrom()).isEqualTo("support@finovara.pl");
-        assertThat(sent.getSubject()).isEqualTo("Pomoc");
-        assertThat(sent.getReplyTo()).isEqualTo("jan@example.com");
-        assertThat(sent.getText()).contains("Jan Kowalski", "jan@example.com", "Mam pytanie");
-    }
+            verify(mailSender).send(captor.capture());
+            SimpleMailMessage sent = captor.getValue();
 
-    @Test
-    void shouldNotThrowWhenMailSenderFails() {
-        ContactDto dto = new ContactDto("Jan Kowalski", "Mam pytanie", "Pomoc", "jan@example.com");
-        doThrow(new MailSendException("SMTP error")).when(mailSender).send(any(SimpleMailMessage.class));
+            assertThat(sent.getTo()).containsExactly("finovaracenter@gmail.com");
+            assertThat(sent.getFrom()).isEqualTo("support@finovara.pl");
+            assertThat(sent.getSubject()).isEqualTo("Pomoc");
+            assertThat(sent.getReplyTo()).isEqualTo("jan@example.com");
+            assertThat(sent.getText()).contains("Jan Kowalski", "jan@example.com", "Mam pytanie");
+        }
 
-        assertThatCode(() -> contactService.sendContactEmail(dto)).doesNotThrowAnyException();
-    }
+        @Test
+        void shouldNotThrowExceptionWhenMailSenderFails() {
+            doThrow(new MailSendException("SMTP error")).when(mailSender).send(any(SimpleMailMessage.class));
 
-    @Test
-    void shouldCallMailSenderExactlyOnce() {
-        ContactDto dto = new ContactDto("Anna Nowak", "Wiadomość", "Temat", "anna@example.com");
+            assertThatCode(() -> contactService.sendContactEmail(testDto)).doesNotThrowAnyException();
+        }
 
-        contactService.sendContactEmail(dto);
+        @Test
+        void shouldCallMailSenderExactlyOnceWhenDtoIsValid() {
+            contactService.sendContactEmail(testDto);
 
-        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+            verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
+        }
+
+        @Test
+        void shouldIncludeContactNameInEmailBodyWhenSendingEmail() {
+            ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+
+            contactService.sendContactEmail(testDto);
+
+            verify(mailSender).send(captor.capture());
+            SimpleMailMessage sent = captor.getValue();
+
+            assertThat(sent.getText()).contains("Jan Kowalski");
+        }
+
+        @Test
+        void shouldIncludeContactEmailInEmailBodyWhenSendingEmail() {
+            ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+
+            contactService.sendContactEmail(testDto);
+
+            verify(mailSender).send(captor.capture());
+            SimpleMailMessage sent = captor.getValue();
+
+            assertThat(sent.getText()).contains("jan@example.com");
+        }
+
+        @Test
+        void shouldIncludeContactMessageInEmailBodyWhenSendingEmail() {
+            ArgumentCaptor<SimpleMailMessage> captor = ArgumentCaptor.forClass(SimpleMailMessage.class);
+
+            contactService.sendContactEmail(testDto);
+
+            verify(mailSender).send(captor.capture());
+            SimpleMailMessage sent = captor.getValue();
+
+            assertThat(sent.getText()).contains("Mam pytanie");
+        }
     }
 }
