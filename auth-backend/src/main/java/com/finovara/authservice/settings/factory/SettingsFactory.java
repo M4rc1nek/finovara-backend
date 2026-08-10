@@ -22,10 +22,11 @@ public class SettingsFactory {
                 .build();
     }
 
-    public SecuritySettings createDefaultSecuritySettings(User user){
+    public SecuritySettings createDefaultSecuritySettings(User user) {
         return SecuritySettings.builder()
                 .additionalAuthorizationEnabled(false)
-                .additionalAuthorizationCode(null)
+                .additionalAuthorizationVisible(false)
+                .additionalAuthorizationAttempts(0)
                 .userAssigned(user)
                 .build();
     }
