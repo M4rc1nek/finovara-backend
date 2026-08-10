@@ -1,5 +1,6 @@
 package com.finovara.notificationservice.notificationemail.action.passwordchange.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
@@ -23,8 +24,8 @@ public class NotifyPasswordChangeService extends AbstractNotificationEmailServic
     private final EmailNotifier emailNotifier;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public NotifyPasswordChangeService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender, AuthBackendClient authBackendClient, EmailNotifier emailNotifier, KafkaTemplate<String, Object> kafkaTemplate) {
-        super(notificationEmailSettingsRepository, notificationEmailSender, authBackendClient);
+    public NotifyPasswordChangeService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender, AuthBackendClient authBackendClient, EmailNotifier emailNotifier, KafkaTemplate<String, Object> kafkaTemplate, AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver) {
+        super(notificationEmailSettingsRepository, notificationEmailSender, authBackendClient, additionalAuthorizationCodeResolver);
         this.emailNotifier = emailNotifier;
         this.kafkaTemplate = kafkaTemplate;
     }
