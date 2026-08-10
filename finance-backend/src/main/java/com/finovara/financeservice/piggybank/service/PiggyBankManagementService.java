@@ -21,10 +21,9 @@ import com.finovara.financeservice.util.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.financeservice.util.piggybank.PiggyBankValidator;
 import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
-import feign.FeignException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -47,11 +46,12 @@ public class PiggyBankManagementService implements UserDataDeletable {
     private final PiggyBankSettingsFactory piggyBankSettingsFactory;
     private final GoalPlannerService goalPlannerService;
     private final AuthBackendClient authBackendClient;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public Long addPiggyBank(PiggyBankDto piggyBankDto, Long userId) {
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(piggyBankDto.authorizationCode()));
-        
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(piggyBankDto.authorizationCode()));
+
         long currentPiggyBanks = piggyBankRepository.countPiggyBanksByUserId(userId);
 
         if (currentPiggyBanks >= 5) {
@@ -85,7 +85,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
 
     @Transactional
     public Long editPiggyBank(Long userId, PiggyBankDto piggyBankDto, Long piggyBankId) {
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(piggyBankDto.authorizationCode()));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(piggyBankDto.authorizationCode()));
         
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
@@ -127,7 +127,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
 
     @Transactional
     public void deletePiggyBank(Long userId, Long piggyBankId, String authorizationCode) {
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
