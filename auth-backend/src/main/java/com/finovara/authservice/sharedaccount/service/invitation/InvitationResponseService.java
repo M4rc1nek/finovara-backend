@@ -7,6 +7,7 @@ import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitation
 import com.finovara.authservice.sharedaccount.repository.SharedAccountRepository;
 import com.finovara.authservice.user.dto.UserDataDto;
 import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.event.finance.sharedaccount.UsersCreatedSharedAccountEvent;
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserAcceptSharedAccountInvitationEvent;
@@ -16,7 +17,6 @@ import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundExceptio
 import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,10 +37,11 @@ public class InvitationResponseService {
     private final UserManagerService userManagerService;
     private final OutboxService outboxService;
     private final AdditionalAuthorizationService additionalAuthorizationService;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public void acceptInvite(Long inviteeUserId, Long invitationId, String authorizationCode) {
-        additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviteeUserId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviteeUserId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         
         SharedAccountInvitation invitation = loadAndValidateInvitation(inviteeUserId, invitationId);
 
@@ -85,7 +86,7 @@ public class InvitationResponseService {
 
     @Transactional
     public void rejectInvite(Long inviteeUserId, Long invitationId, String authorizationCode) {
-        additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviteeUserId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviteeUserId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         
         SharedAccountInvitation invitation = loadAndValidateInvitation(inviteeUserId, invitationId);
 
