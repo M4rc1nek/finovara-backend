@@ -1,7 +1,6 @@
 package com.finovara.financeservice.settings.finances.expense.smartscan.service;
 
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
@@ -14,6 +13,7 @@ import com.finovara.financeservice.settings.finances.expense.smartscan.dto.Smart
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.financeservice.util.settings.ExpenseAnomalyDetector;
 import lombok.RequiredArgsConstructor;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -35,13 +35,14 @@ public class SmartScanService {
     private final ExpenseSettingsRepository expenseSettingsRepository;
     private final ExpenseRepository expenseRepository;
     private final AuthBackendClient authBackendClient;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ExpenseAnomalyDetector expenseAnomalyDetector;
 
     @Transactional
     public void saveSmartScan(Long userId, SmartScanDto smartScanDto) {
         ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(smartScanDto.authorizationCode()));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(smartScanDto.authorizationCode()));
 
         expenseSettings.setSmartScanEnabled(smartScanDto.smartScanEnabled());
         if (expenseSettings.isSmartScanEnabled()) {
