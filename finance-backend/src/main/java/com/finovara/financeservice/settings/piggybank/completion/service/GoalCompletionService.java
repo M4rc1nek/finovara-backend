@@ -1,6 +1,5 @@
 package com.finovara.financeservice.settings.piggybank.completion.service;
 
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
@@ -15,6 +14,7 @@ import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -29,12 +29,13 @@ public class GoalCompletionService {
     private final GoalCompletionCore goalCompletionCore;
     private final WalletRepository walletRepository;
     private final AuthBackendClient authBackendClient;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public void setGoalCompletion(Long userId, Long piggyBankId, GoalCompletionDto goalCompletionDto) {
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(goalCompletionDto.authorizationCode()));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(goalCompletionDto.authorizationCode()));
 
         piggyBankSettings.setGoalCompletionStrategy(goalCompletionDto.strategy());
     }
