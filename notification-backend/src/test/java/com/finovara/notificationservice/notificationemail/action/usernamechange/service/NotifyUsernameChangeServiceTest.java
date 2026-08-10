@@ -1,5 +1,6 @@
 package com.finovara.notificationservice.notificationemail.action.usernamechange.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
@@ -42,6 +43,8 @@ class NotifyUsernameChangeServiceTest {
     private EmailNotifier emailNotifier;
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @InjectMocks
     private NotifyUsernameChangeService notifyUsernameChangeService;
