@@ -1,6 +1,5 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.limit.model.Limit;
@@ -12,6 +11,7 @@ import com.finovara.financeservice.settings.finances.recurring.model.RecurringSe
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.ExpenseSettingsValidator;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
@@ -31,11 +31,12 @@ public class RecurringExpenseService {
     private final WalletManagerService walletManagerService;
     private final LimitManagerService limitManagerService;
     private final AuthBackendClient authBackendClient;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public void saveExpenseSettings(Long userId, RecurringExpenseDto dto) {
         RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE);
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
         settings.setExpenseCategory(dto.expenseCategory());
         settings.setRevenueCategory(null);
         settings.setPiggyBankId(null);
