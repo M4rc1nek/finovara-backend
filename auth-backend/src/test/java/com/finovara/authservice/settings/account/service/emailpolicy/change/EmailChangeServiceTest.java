@@ -12,6 +12,7 @@ import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.email.EmailDomainValidator;
 import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -20,7 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -72,7 +73,7 @@ class EmailChangeServiceTest {
     @BeforeEach
     void setUp() {
         emailChangeService = new EmailChangeService(userManagerService, credentialValidationService, emailChangeVerificationService,
-                verificationCodeEmailSender, passwordValidator, emailUpdateService, emailDomainValidator, additionalAuthorizationService);
+                verificationCodeEmailSender, passwordValidator, emailUpdateService, emailDomainValidator, additionalAuthorizationService, new AdditionalAuthorizationCodeResolver());
         user = mock(User.class);
         settings = mock(AccountSettings.class);
     }
@@ -101,13 +102,24 @@ class EmailChangeServiceTest {
             assertThrows(RuntimeException.class, () -> emailChangeService.requestEmailChange(USER_ID, dto));
             verify(verificationCodeEmailSender, never()).sendEmailChangeCode(any(), any(), anyInt());
         }
+
+        @Test
+        void shouldNotSendEmailWhenAuthorizationFails() {
+            EmailChangeRequestDto dto = new EmailChangeRequestDto(AUTH_CODE, NEW_EMAIL, PASSWORD);
+            doThrow(new RuntimeException("invalid authorization"))
+                    .when(additionalAuthorizationService)
+                    .confirmAdditionalAuthorizationCode(eq(USER_ID), any());
+
+            assertThrows(RuntimeException.class, () -> emailChangeService.requestEmailChange(USER_ID, dto));
+            verifyNoInteractions(verificationCodeEmailSender);
+        }
     }
 
     @Nested
     class ConfirmEmailChange {
 
         @Test
-        void shouldUpdateEmailWhenCodeIsValid() {
+        void shouldUpdateEmailWhenCodeAndPasswordAreValid() {
             EmailChangeConfirmDto dto = new EmailChangeConfirmDto(VERIFICATION_CODE, AUTH_CODE);
             when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
             when(user.getAccountSettings()).thenReturn(settings);
@@ -116,7 +128,7 @@ class EmailChangeServiceTest {
 
             AttemptsDto result = emailChangeService.confirmEmailChange(USER_ID, dto, request);
 
-            assertEquals(5, result.remaining());
+            assertThat(result.remaining()).isEqualTo(5);
             verify(emailChangeVerificationService).verifyCodeOrThrow(USER_ID, settings, VERIFICATION_CODE);
             verify(emailChangeVerificationService).removeCode(settings);
             verify(emailUpdateService).updateEmail(user, NEW_EMAIL, request);
@@ -144,6 +156,19 @@ class EmailChangeServiceTest {
 
             assertThrows(RuntimeException.class, () -> emailChangeService.confirmEmailChange(USER_ID, dto, request));
             verify(userManagerService, never()).getUserByIdOrThrow(any());
+        }
+
+        @Test
+        void shouldNotUpdateEmailWhenVerificationFails() {
+            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(VERIFICATION_CODE, AUTH_CODE);
+            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+            when(user.getAccountSettings()).thenReturn(settings);
+            doThrow(new RuntimeException("invalid code"))
+                    .when(emailChangeVerificationService)
+                    .verifyCodeOrThrow(USER_ID, settings, VERIFICATION_CODE);
+
+            assertThrows(RuntimeException.class, () -> emailChangeService.confirmEmailChange(USER_ID, dto, request));
+            verify(emailUpdateService, never()).updateEmail(any(), any(), any());
         }
     }
 }
