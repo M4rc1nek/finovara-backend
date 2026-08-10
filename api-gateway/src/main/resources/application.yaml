@@ -170,5 +170,5 @@ rate-limit:
       max-requests: 1
       window-hours: 24
     - path: /api/security-settings/additional-authorization/request-email-code
-      max-requests: 1
+      max-requests: 66346 #3
       window-hours: 1
