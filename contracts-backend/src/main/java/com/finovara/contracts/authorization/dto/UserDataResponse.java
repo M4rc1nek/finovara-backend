@@ -1,4 +1,4 @@
-package com.finovara.contracts.auth.dto;
+package com.finovara.contracts.authorization.dto;
 
 import java.util.Optional;
 

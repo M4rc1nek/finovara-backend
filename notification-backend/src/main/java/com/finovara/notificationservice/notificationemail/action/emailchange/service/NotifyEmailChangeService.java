@@ -1,8 +1,10 @@
 package com.finovara.notificationservice.notificationemail.action.emailchange.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.core.AbstractNotificationEmailService;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.notificationemail.dto.UserEmailDataDto;
@@ -11,7 +13,6 @@ import com.finovara.notificationservice.notificationemail.model.NotificationEmai
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
 import com.finovara.notificationservice.notificationemail.util.emailsender.EmailNotifier;
-import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -22,8 +23,8 @@ public class NotifyEmailChangeService extends AbstractNotificationEmailService {
     private final EmailNotifier emailNotifier;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public NotifyEmailChangeService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender, AuthBackendClient authBackendClient, EmailNotifier emailNotifier, KafkaTemplate<String, Object> kafkaTemplate) {
-        super(notificationEmailSettingsRepository, notificationEmailSender, authBackendClient);
+    public NotifyEmailChangeService(NotificationEmailSettingsRepository notificationEmailSettingsRepository, NotificationEmailSender notificationEmailSender, AuthBackendClient authBackendClient, EmailNotifier emailNotifier, KafkaTemplate<String, Object> kafkaTemplate, AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver) {
+        super(notificationEmailSettingsRepository, notificationEmailSender, authBackendClient, additionalAuthorizationCodeResolver);
         this.emailNotifier = emailNotifier;
         this.kafkaTemplate = kafkaTemplate;
     }

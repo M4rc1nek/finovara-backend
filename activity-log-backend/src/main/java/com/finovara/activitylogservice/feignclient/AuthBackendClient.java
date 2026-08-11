@@ -1,6 +1,6 @@
 package com.finovara.activitylogservice.feignclient;
 
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,5 +1,6 @@
 package com.finovara.financeservice.settings.piggybank.autopayments.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
@@ -52,6 +53,9 @@ class AutoPaymentsServiceTest {
 
     @Mock
     private AuthBackendClient authBackendClient;
+
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @InjectMocks
     private AutoPaymentsService autoPaymentsService;

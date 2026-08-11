@@ -1,5 +1,6 @@
 package com.finovara.financeservice.settings.finances.expense.controlamount.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
@@ -35,6 +36,9 @@ class ControlAmountServiceTest {
 
     @Mock
     private com.finovara.financeservice.feignclient.AuthBackendClient authBackendClient;
+
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @InjectMocks
     private ControlAmountService controlAmountService;

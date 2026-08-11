@@ -1,6 +1,5 @@
 package com.finovara.financeservice.settings.finances.expense.quantitylimit.service;
 
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
@@ -11,7 +10,8 @@ import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.C
 import com.finovara.financeservice.settings.finances.expense.quantitylimit.validator.CountQuantityLimitValidator;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.model.PeriodType;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,11 +30,12 @@ public class CountQuantityLimitService {
     private final AuthBackendClient authBackendClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final CountQuantityLimitValidator countQuantityLimitValidator;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public void saveCountQuantityLimit(Long userId, CountQuantityLimitDto dto) {
         ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
         expenseSettings.setCountQuantityLimitEnabled(dto.expenseCountLimitEnabled());
 
         createActivity(userId, dto.expenseCountLimitEnabled());

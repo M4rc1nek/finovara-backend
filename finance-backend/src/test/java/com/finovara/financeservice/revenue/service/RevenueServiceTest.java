@@ -1,5 +1,6 @@
 package com.finovara.financeservice.revenue.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
@@ -48,6 +49,8 @@ class RevenueServiceTest {
     private RevenueMapper revenueMapper;
     @Mock
     private AuthBackendClient authBackendClient;
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @InjectMocks
     private RevenueService revenueService;

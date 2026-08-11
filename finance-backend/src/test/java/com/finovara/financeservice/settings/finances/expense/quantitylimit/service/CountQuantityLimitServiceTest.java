@@ -1,5 +1,6 @@
 package com.finovara.financeservice.settings.finances.expense.quantitylimit.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
@@ -9,7 +10,7 @@ import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.C
 import com.finovara.financeservice.settings.finances.expense.quantitylimit.validator.CountQuantityLimitValidator;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.model.PeriodType;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +43,9 @@ class CountQuantityLimitServiceTest {
 
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @InjectMocks
     private CountQuantityLimitService countQuantityLimitService;

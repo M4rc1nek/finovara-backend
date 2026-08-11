@@ -1,7 +1,7 @@
 package com.finovara.financeservice.expense.service;
 
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
@@ -36,6 +36,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -124,7 +125,8 @@ class ExpenseServiceTest {
                 expenseManagerService,
                 expenseMapper,
                 financialPeriodService,
-                authBackendClient
+                authBackendClient,
+                new AdditionalAuthorizationCodeResolver()
         );
 
         userId = 1L;

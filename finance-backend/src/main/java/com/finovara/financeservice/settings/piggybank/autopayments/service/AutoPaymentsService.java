@@ -1,6 +1,5 @@
 package com.finovara.financeservice.settings.piggybank.autopayments.service;
 
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
@@ -17,6 +16,7 @@ import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -37,11 +37,13 @@ public class AutoPaymentsService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final AutoPaymentsCore autoPaymentsCore;
     private final AuthBackendClient authBackendClient;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public void saveAutoPaymentsPiggyBank(Long userId, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(autoPaymentsDto.authorizationCode()));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(autoPaymentsDto.authorizationCode()));
+
 
 
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
@@ -69,8 +71,7 @@ public class AutoPaymentsService {
     @Transactional
     public void createAutomation(Long userId, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(autoPaymentsDto.authorizationCode()));
-
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(autoPaymentsDto.authorizationCode()));
 
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 

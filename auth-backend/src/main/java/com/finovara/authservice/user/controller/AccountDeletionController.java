@@ -3,7 +3,7 @@ package com.finovara.authservice.user.controller;
 import com.finovara.authservice.security.SecurityUtils;
 import com.finovara.authservice.sharedaccount.service.deletion.SharedAccountDeletionService;
 import com.finovara.authservice.user.service.AccountDeletionService;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

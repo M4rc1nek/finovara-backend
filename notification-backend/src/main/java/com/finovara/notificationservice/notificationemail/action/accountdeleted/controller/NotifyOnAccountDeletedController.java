@@ -25,3 +25,4 @@ public class NotifyOnAccountDeletedController {
         return ResponseEntity.ok(notifyOnAccountDeletedService.getEmailNotification(SecurityUtils.getCurrentUserId()));
     }
 }
+

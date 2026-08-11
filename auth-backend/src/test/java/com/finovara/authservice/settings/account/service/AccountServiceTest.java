@@ -1,19 +1,20 @@
 package com.finovara.authservice.settings.account.service;
 
+import com.finovara.authservice.settings.account.dto.AccountSettingsDto;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
-import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.event.notification.SendEmailEvent;
-import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
-import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
-import com.finovara.authservice.settings.account.dto.AccountSettingsDto;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.event.notification.SendEmailEvent;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.outbox.OutboxService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,8 +26,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,10 +45,27 @@ class AccountServiceTest {
     @Mock
     private AdditionalAuthorizationService additionalAuthorizationService;
     @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    @Mock
     private HttpServletRequest request;
 
     @InjectMocks
     private AccountService accountService;
+
+    private User testUser;
+    private AccountSettingsDto testDto;
+
+    @BeforeEach
+    void setUp() {
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setUsername("testUser");
+        testUser.setEmail("test@test.com");
+        testUser.setCreatedAt(LocalDateTime.of(2024, 1, 10, 12, 0));
+        testUser.setProfileImagePath(null);
+
+        testDto = new AccountSettingsDto("testUser", "test@test.com", LocalDateTime.of(2024, 1, 10, 12, 0), null, null);
+    }
 
     @Nested
     class UpdateUsername {
@@ -54,30 +73,24 @@ class AccountServiceTest {
         @Test
         void shouldUpdateUsernameSuccessfully() {
             Long userId = 1L;
-            User user = new User();
-            user.setId(userId);
-            user.setEmail("test@test.com");
-            AccountSettingsDto dto = new AccountSettingsDto("newUsername", user.getEmail(), LocalDateTime.now(), null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("newUsername", testUser.getEmail(), LocalDateTime.now(), null, null);
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(testUser);
             doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());
             when(userRepository.existsByUsername(dto.username())).thenReturn(false);
 
             AccountSettingsDto result = accountService.updateUsername(dto, userId, request);
 
             assertThat(result.username()).isEqualTo("newUsername");
-            verify(userRepository).save(user);
+            verify(userRepository).save(testUser);
         }
 
         @Test
-        void shouldSaveActivityEventToOutbox() {
+        void shouldSaveActivityEventToOutboxWhenUsernameUpdated() {
             Long userId = 1L;
-            User user = new User();
-            user.setId(userId);
-            user.setEmail("test@test.com");
-            AccountSettingsDto dto = new AccountSettingsDto("newUsername", user.getEmail(), LocalDateTime.now(), null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("newUsername", testUser.getEmail(), LocalDateTime.now(), null, null);
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(testUser);
             doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());
             when(userRepository.existsByUsername(dto.username())).thenReturn(false);
 
@@ -98,14 +111,11 @@ class AccountServiceTest {
         }
 
         @Test
-        void shouldSaveEmailNotificationToOutbox() {
+        void shouldSaveEmailNotificationToOutboxWhenUsernameUpdated() {
             Long userId = 1L;
-            User user = new User();
-            user.setId(userId);
-            user.setEmail("test@test.com");
-            AccountSettingsDto dto = new AccountSettingsDto("newUsername", user.getEmail(), LocalDateTime.now(), null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("newUsername", testUser.getEmail(), LocalDateTime.now(), null, null);
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(testUser);
             doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());
             when(userRepository.existsByUsername(dto.username())).thenReturn(false);
 
@@ -125,18 +135,16 @@ class AccountServiceTest {
         }
 
         @Test
-        void shouldThrowWhenUsernameAlreadyExists() {
+        void shouldThrowEntityAlreadyExistsExceptionWhenUsernameAlreadyExists() {
             Long userId = 1L;
-            User user = new User();
-            user.setId(userId);
-            AccountSettingsDto dto = new AccountSettingsDto("existingUsername", "test@test.com", LocalDateTime.now(), null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("existingUsername", testUser.getEmail(), LocalDateTime.now(), null, null);
 
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(testUser);
             doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());
             when(userRepository.existsByUsername(dto.username())).thenReturn(true);
 
-            assertThatThrownBy(() -> accountService.updateUsername(dto, userId, request))
-                    .isInstanceOf(EntityAlreadyExistsException.class);
+            assertThrows(EntityAlreadyExistsException.class,
+                    () -> accountService.updateUsername(dto, userId, request));
 
             verify(userRepository, never()).save(any());
             verify(outboxService, never()).save(any(), any(), any(), any());
@@ -147,37 +155,35 @@ class AccountServiceTest {
     class GetAccountSettings {
 
         @Test
-        void shouldReturnAccountSettings() {
+        void shouldReturnAccountSettingsWhenUserExists() {
             Long userId = 1L;
-            User user = new User();
-            user.setUsername("john123");
-            user.setEmail("test@test.com");
-            user.setCreatedAt(LocalDateTime.of(2024, 1, 10, 12, 0));
-            user.setProfileImagePath(null);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(testUser);
 
             AccountSettingsDto result = accountService.getAccountSettings(userId);
 
-            assertThat(result.username()).isEqualTo("john123");
+            assertThat(result.username()).isEqualTo("testUser");
             assertThat(result.email()).isEqualTo("test@test.com");
-            assertThat(result.createdAt()).isEqualTo(user.getCreatedAt());
+            assertThat(result.createdAt()).isEqualTo(testUser.getCreatedAt());
+            assertThat(result.profileImageUrl()).isNull();
         }
 
         @Test
-        void shouldReturnNullProfileImageWhenPathIsNull() {
+        void shouldReturnNullProfileImageUrlWhenPathIsNull() {
             Long userId = 1L;
-            User user = new User();
-            user.setUsername("john123");
-            user.setEmail("test@test.com");
-            user.setCreatedAt(LocalDateTime.of(2026, 3, 1, 12, 0));
-            user.setProfileImagePath(null);
-
-            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(user);
+            testUser.setProfileImagePath(null);
+            when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(testUser);
 
             AccountSettingsDto result = accountService.getAccountSettings(userId);
 
             assertThat(result.profileImageUrl()).isNull();
+        }
+
+        @Test
+        void shouldThrowRequestedEntityNotFoundExceptionWhenUserNotFound() {
+            Long userId = 999L;
+            when(userManagerService.getUserByIdOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("User not found"));
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> accountService.getAccountSettings(userId));
         }
     }
 }

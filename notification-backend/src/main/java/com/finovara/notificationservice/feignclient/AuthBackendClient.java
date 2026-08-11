@@ -1,7 +1,7 @@
 package com.finovara.notificationservice.feignclient;
 
-import com.finovara.contracts.auth.dto.UserDataResponse;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.authorization.dto.UserDataResponse;
+import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

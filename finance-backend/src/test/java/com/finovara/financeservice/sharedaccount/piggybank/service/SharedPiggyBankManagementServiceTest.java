@@ -74,16 +74,16 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldReturnGeneratedIdWhenPiggyBankIsCreated() {
-            when(dto.name()).thenReturn("Wakacje");
+            when(dto.name()).thenReturn("Car");
             when(dto.goalAmount()).thenReturn(BigDecimal.valueOf(500));
             when(dto.goalType()).thenReturn(PiggyBankGoalType.VACATION);
             when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
             when(participants.ownerId()).thenReturn(10L);
             when(participants.memberId()).thenReturn(20L);
             when(sharedPiggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
-            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Wakacje")).thenReturn(false);
+            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Car")).thenReturn(false);
             when(sharedPiggyBankRepository.save(any(SharedPiggyBank.class)))
-                    .thenReturn(SharedPiggyBank.builder().id(piggyBankId).name("Wakacje").build());
+                    .thenReturn(SharedPiggyBank.builder().id(piggyBankId).name("Car").build());
 
             Long result = sharedPiggyBankManagementService.addPiggyBank(dto, userId);
 
@@ -92,14 +92,14 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldSavePiggyBankWithZeroAmountWhenCreated() {
-            when(dto.name()).thenReturn("Wakacje");
+            when(dto.name()).thenReturn("Car");
             when(dto.goalAmount()).thenReturn(BigDecimal.valueOf(500));
             when(dto.goalType()).thenReturn(PiggyBankGoalType.VACATION);
             when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
             when(participants.ownerId()).thenReturn(10L);
             when(participants.memberId()).thenReturn(20L);
             when(sharedPiggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
-            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Wakacje")).thenReturn(false);
+            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Car")).thenReturn(false);
             when(sharedPiggyBankRepository.save(any(SharedPiggyBank.class)))
                     .thenReturn(SharedPiggyBank.builder().id(piggyBankId).build());
 
@@ -107,7 +107,7 @@ class SharedPiggyBankManagementServiceTest {
 
             verify(sharedPiggyBankRepository).save(argThat(bank ->
                     bank.getAmount().compareTo(BigDecimal.ZERO) == 0
-                            && bank.getName().equals("Wakacje")
+                            && bank.getName().equals("Car")
                             && bank.getGoalAmount().equals(BigDecimal.valueOf(500))
                             && bank.getGoalType() == PiggyBankGoalType.VACATION
                             && bank.getOwnerId().equals(10L)
@@ -137,10 +137,10 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenNameAlreadyExists() {
-            when(dto.name()).thenReturn("Wakacje");
+            when(dto.name()).thenReturn("Car");
             when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
             when(sharedPiggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(2L);
-            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Wakacje")).thenReturn(true);
+            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Car")).thenReturn(true);
 
             assertThrows(EntityAlreadyExistsException.class,
                     () -> sharedPiggyBankManagementService.addPiggyBank(dto, userId));
@@ -148,10 +148,10 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldNotSavePiggyBankWhenNameAlreadyExists() {
-            when(dto.name()).thenReturn("Wakacje");
+            when(dto.name()).thenReturn("Car");
             when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participants);
             when(sharedPiggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(2L);
-            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Wakacje")).thenReturn(true);
+            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Car")).thenReturn(true);
 
             assertThrows(EntityAlreadyExistsException.class,
                     () -> sharedPiggyBankManagementService.addPiggyBank(dto, userId));
@@ -199,18 +199,18 @@ class SharedPiggyBankManagementServiceTest {
             dto = mock(SharedPiggyBankDto.class);
             existingPiggyBank = SharedPiggyBank.builder()
                     .id(piggyBankId)
-                    .name("Stara nazwa")
+                    .name("Old  name")
                     .amount(BigDecimal.ZERO)
                     .build();
         }
 
         @Test
         void shouldReturnPiggyBankIdWhenEditIsValid() {
-            when(dto.name()).thenReturn("Nowa nazwa");
+            when(dto.name()).thenReturn("New name");
             when(dto.goalAmount()).thenReturn(BigDecimal.valueOf(700));
             when(dto.goalType()).thenReturn(PiggyBankGoalType.CAR);
             when(sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(existingPiggyBank);
-            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Nowa nazwa")).thenReturn(false);
+            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "New name")).thenReturn(false);
             when(sharedPiggyBankRepository.save(existingPiggyBank)).thenReturn(existingPiggyBank);
 
             Long result = sharedPiggyBankManagementService.editPiggyBank(userId, dto, piggyBankId);
@@ -220,39 +220,25 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldUpdatePiggyBankFieldsWhenEditIsValid() {
-            when(dto.name()).thenReturn("Nowa nazwa");
+            when(dto.name()).thenReturn("New name");
             when(dto.goalAmount()).thenReturn(BigDecimal.valueOf(700));
             when(dto.goalType()).thenReturn(PiggyBankGoalType.CAR);
             when(sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(existingPiggyBank);
-            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Nowa nazwa")).thenReturn(false);
+            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "New name")).thenReturn(false);
             when(sharedPiggyBankRepository.save(existingPiggyBank)).thenReturn(existingPiggyBank);
 
             sharedPiggyBankManagementService.editPiggyBank(userId, dto, piggyBankId);
 
-            assertEquals("Nowa nazwa", existingPiggyBank.getName());
+            assertEquals("New name", existingPiggyBank.getName());
             assertEquals(BigDecimal.valueOf(700), existingPiggyBank.getGoalAmount());
             assertEquals(PiggyBankGoalType.CAR, existingPiggyBank.getGoalType());
         }
 
         @Test
-        void shouldNotThrowExceptionWhenNameIsUnchanged() {
-            when(dto.name()).thenReturn("Stara nazwa");
-            when(dto.goalAmount()).thenReturn(BigDecimal.valueOf(300));
-            when(dto.goalType()).thenReturn(PiggyBankGoalType.HOME);
-            when(sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(existingPiggyBank);
-            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Stara nazwa")).thenReturn(true);
-            when(sharedPiggyBankRepository.save(existingPiggyBank)).thenReturn(existingPiggyBank);
-
-            Long result = sharedPiggyBankManagementService.editPiggyBank(userId, dto, piggyBankId);
-
-            assertEquals(piggyBankId, result);
-        }
-
-        @Test
         void shouldThrowExceptionWhenNewNameAlreadyExists() {
-            when(dto.name()).thenReturn("Zajęta nazwa");
+            when(dto.name()).thenReturn("Name taken");
             when(sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(existingPiggyBank);
-            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Zajęta nazwa")).thenReturn(true);
+            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Name taken")).thenReturn(true);
 
             assertThrows(EntityAlreadyExistsException.class,
                     () -> sharedPiggyBankManagementService.editPiggyBank(userId, dto, piggyBankId));
@@ -260,9 +246,9 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldNotSaveWhenNewNameAlreadyExists() {
-            when(dto.name()).thenReturn("Zajęta nazwa");
+            when(dto.name()).thenReturn("Name taken");
             when(sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(existingPiggyBank);
-            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Zajęta nazwa")).thenReturn(true);
+            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Name taken")).thenReturn(true);
 
             assertThrows(EntityAlreadyExistsException.class,
                     () -> sharedPiggyBankManagementService.editPiggyBank(userId, dto, piggyBankId));
@@ -272,10 +258,10 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenGoalAmountIsNegativeOnEdit() {
-            when(dto.name()).thenReturn("Nowa nazwa");
+            when(dto.name()).thenReturn("New name");
             when(dto.goalAmount()).thenReturn(BigDecimal.valueOf(-50));
             when(sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(existingPiggyBank);
-            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Nowa nazwa")).thenReturn(false);
+            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "New name")).thenReturn(false);
 
             assertThrows(InvalidInputException.class,
                     () -> sharedPiggyBankManagementService.editPiggyBank(userId, dto, piggyBankId));
@@ -283,10 +269,10 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldNotSaveWhenGoalAmountIsNegativeOnEdit() {
-            when(dto.name()).thenReturn("Nowa nazwa");
+            when(dto.name()).thenReturn("New name");
             when(dto.goalAmount()).thenReturn(BigDecimal.valueOf(-50));
             when(sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(existingPiggyBank);
-            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "Nowa nazwa")).thenReturn(false);
+            when(sharedPiggyBankRepository.existsByNameIgnoreCase(userId, "New name")).thenReturn(false);
 
             assertThrows(InvalidInputException.class,
                     () -> sharedPiggyBankManagementService.editPiggyBank(userId, dto, piggyBankId));

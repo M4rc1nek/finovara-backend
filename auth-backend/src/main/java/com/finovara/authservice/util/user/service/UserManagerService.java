@@ -3,7 +3,7 @@ package com.finovara.authservice.util.user.service;
 import com.finovara.authservice.user.dto.UserDataDto;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
-import com.finovara.contracts.auth.dto.UserDataResponse;
+import com.finovara.contracts.authorization.dto.UserDataResponse;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

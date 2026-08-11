@@ -8,13 +8,13 @@ import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepo
 import com.finovara.authservice.user.dto.UserDataDto;
 import com.finovara.authservice.user.mapper.UserDataMapper;
 import com.finovara.authservice.user.repository.UserRepository;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.event.notification.sharedaccount.invitation.UserSentSharedAccountInvitationEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +41,7 @@ public class InvitationService {
     private final SharedAccountInvitationRepository sharedAccountInvitationRepository;
     private final InvitationValidator invitationValidator;
     private final AdditionalAuthorizationService additionalAuthorizationService;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Value("${shared-account.search.page-size}")
     private int pageSize;
@@ -64,7 +65,7 @@ public class InvitationService {
 
     @Transactional
     public void sendInvitation(Long inviterUserId, Long inviteeUserId, String authorizationCode) {
-        additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviterUserId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviterUserId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         
         LocalDateTime now = LocalDateTime.now();
         invitationValidator.validateSendInvitation(inviterUserId, inviteeUserId);

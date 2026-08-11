@@ -24,9 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -95,7 +94,7 @@ class AccountRemovalTemplateTest {
             Optional<SharedAccountDetailsDto> result =
                     template.handleSharedAccountRemoval(ACCOUNT_ID, OWNER_ID, ACTING_USERNAME);
 
-            assertTrue(result.isEmpty());
+            assertThat(result).isEmpty();
             verifyNoInteractions(sharedAccountMemberRepository, outboxService, userRepository, userContextLoader);
         }
     }
@@ -119,7 +118,7 @@ class AccountRemovalTemplateTest {
             Optional<SharedAccountDetailsDto> result =
                     template.handleSharedAccountRemoval(ACCOUNT_ID, MEMBER_ID, ACTING_USERNAME);
 
-            assertTrue(result.isEmpty());
+            assertThat(result).isEmpty();
             verify(sharedAccountMemberRepository, times(1)).deleteMembersByAccountId(ACCOUNT_ID);
             verify(sharedAccountRepository, times(1)).deleteAccountById(ACCOUNT_ID);
             verifyNoInteractions(outboxService, userRepository, userContextLoader);
@@ -136,7 +135,7 @@ class AccountRemovalTemplateTest {
             Optional<SharedAccountDetailsDto> result =
                     template.handleSharedAccountRemoval(ACCOUNT_ID, OWNER_ID, ACTING_USERNAME);
 
-            assertTrue(result.isEmpty());
+            assertThat(result).isEmpty();
             verify(sharedAccountMemberRepository, times(1)).deleteMembersByAccountId(ACCOUNT_ID);
             verify(sharedAccountRepository, times(1)).deleteAccountById(ACCOUNT_ID);
             verifyNoInteractions(outboxService, userRepository, userContextLoader);
@@ -150,7 +149,7 @@ class AccountRemovalTemplateTest {
             Optional<SharedAccountDetailsDto> result =
                     template.handleSharedAccountRemoval(ACCOUNT_ID, OWNER_ID, ACTING_USERNAME);
 
-            assertTrue(result.isEmpty());
+            assertThat(result).isEmpty();
             verify(sharedAccountMemberRepository, times(1)).deleteMembersByAccountId(ACCOUNT_ID);
             verify(sharedAccountRepository, times(1)).deleteAccountById(ACCOUNT_ID);
             verifyNoInteractions(outboxService, userRepository, userContextLoader);
@@ -193,10 +192,10 @@ class AccountRemovalTemplateTest {
             Optional<SharedAccountDetailsDto> result =
                     template.handleSharedAccountRemovalWithNotification(ACCOUNT_ID, OWNER_ID, ACTING_USERNAME);
 
-            assertTrue(result.isPresent());
-            assertEquals(MEMBER_ID, result.get().remainingUserId());
-            assertEquals(OWNER_ID, result.get().ownerId());
-            assertEquals(MEMBER_ID, result.get().memberId());
+            assertThat(result).isPresent();
+            assertThat(result.get().remainingUserId()).isEqualTo(MEMBER_ID);
+            assertThat(result.get().ownerId()).isEqualTo(OWNER_ID);
+            assertThat(result.get().memberId()).isEqualTo(MEMBER_ID);
 
             verify(sharedAccountMemberRepository, times(1)).deleteMembersByAccountId(ACCOUNT_ID);
             verify(sharedAccountRepository, times(1)).deleteAccountById(ACCOUNT_ID);
@@ -209,10 +208,10 @@ class AccountRemovalTemplateTest {
             ArgumentCaptor<SharedAccountDeletedEvent> eventCaptor = ArgumentCaptor.forClass(SharedAccountDeletedEvent.class);
             verify(outboxService, times(1)).save(eq("User"), eq(OWNER_ID.toString()),
                     eq("shared-account.deleted"), eventCaptor.capture());
-            assertEquals(OWNER_USERNAME, eventCaptor.getValue().ownerUsername());
-            assertEquals(OWNER_EMAIL, eventCaptor.getValue().ownerEmail());
-            assertEquals(MEMBER_USERNAME, eventCaptor.getValue().memberUsername());
-            assertEquals(MEMBER_EMAIL, eventCaptor.getValue().memberEmail());
+            assertThat(eventCaptor.getValue().ownerUsername()).isEqualTo(OWNER_USERNAME);
+            assertThat(eventCaptor.getValue().ownerEmail()).isEqualTo(OWNER_EMAIL);
+            assertThat(eventCaptor.getValue().memberUsername()).isEqualTo(MEMBER_USERNAME);
+            assertThat(eventCaptor.getValue().memberEmail()).isEqualTo(MEMBER_EMAIL);
 
             verify(outboxService, times(1)).save(eq("User"), eq(MEMBER_ID.toString()),
                     eq("notification.shared-account.deleted"), any());
@@ -226,8 +225,8 @@ class AccountRemovalTemplateTest {
             Optional<SharedAccountDetailsDto> result =
                     template.handleSharedAccountRemovalWithNotification(ACCOUNT_ID, MEMBER_ID, ACTING_USERNAME);
 
-            assertTrue(result.isPresent());
-            assertEquals(OWNER_ID, result.get().remainingUserId());
+            assertThat(result).isPresent();
+            assertThat(result.get().remainingUserId()).isEqualTo(OWNER_ID);
 
             verify(outboxService, times(1)).save(eq("User"), eq(OWNER_ID.toString()),
                     eq("shared-account.deleted"), any());

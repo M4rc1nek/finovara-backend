@@ -2,7 +2,7 @@ package com.finovara.authservice.util.user.service;
 
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
-import com.finovara.contracts.auth.dto.UserDataResponse;
+import com.finovara.contracts.authorization.dto.UserDataResponse;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -52,9 +52,9 @@ class UserManagerServiceTest {
 
             UserDataResponse response = userManagerService.getUserData(userId);
 
-            assertEquals(userId, response.userId());
-            assertEquals(Optional.of(username), response.username());
-            assertEquals(Optional.of(email), response.email());
+            assertThat(response.userId()).isEqualTo(userId);
+            assertThat(response.username()).isEqualTo(Optional.of(username));
+            assertThat(response.email()).isEqualTo(Optional.of(email));
             verify(userRepository).findEmailById(userId);
             verify(userRepository).findUsernameById(userId);
             verifyNoMoreInteractions(userRepository);
@@ -67,9 +67,9 @@ class UserManagerServiceTest {
 
             UserDataResponse response = userManagerService.getUserData(userId);
 
-            assertEquals(userId, response.userId());
-            assertEquals(Optional.empty(), response.username());
-            assertEquals(Optional.empty(), response.email());
+            assertThat(response.userId()).isEqualTo(userId);
+            assertThat(response.username()).isEqualTo(Optional.empty());
+            assertThat(response.email()).isEqualTo(Optional.empty());
         }
     }
 
@@ -82,15 +82,16 @@ class UserManagerServiceTest {
 
             User result = userManagerService.getUserByIdOrThrow(userId);
 
-            assertEquals(user, result);
+            assertThat(result).isEqualTo(user);
             verify(userRepository).findById(userId);
         }
 
         @Test
-        void shouldThrowExceptionWhenUserIsMissing() {
+        void shouldThrowRequestedEntityNotFoundExceptionWhenUserIsMissing() {
             when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> userManagerService.getUserByIdOrThrow(userId));
+            assertThrows(RequestedEntityNotFoundException.class, 
+                () -> userManagerService.getUserByIdOrThrow(userId));
 
             verify(userRepository).findById(userId);
         }
@@ -105,15 +106,16 @@ class UserManagerServiceTest {
 
             User result = userManagerService.getUserByEmailOrThrow(email);
 
-            assertEquals(user, result);
+            assertThat(result).isEqualTo(user);
             verify(userRepository).findByEmail(email);
         }
 
         @Test
-        void shouldThrowExceptionWhenEmailIsMissing() {
+        void shouldThrowRequestedEntityNotFoundExceptionWhenEmailIsMissing() {
             when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> userManagerService.getUserByEmailOrThrow(email));
+            assertThrows(RequestedEntityNotFoundException.class, 
+                () -> userManagerService.getUserByEmailOrThrow(email));
 
             verify(userRepository).findByEmail(email);
         }
@@ -128,15 +130,16 @@ class UserManagerServiceTest {
 
             String result = userManagerService.getUsernameByIdOrThrow(userId);
 
-            assertEquals(username, result);
+            assertThat(result).isEqualTo(username);
             verify(userRepository).findUsernameById(userId);
         }
 
         @Test
-        void shouldThrowExceptionWhenUsernameIsMissing() {
+        void shouldThrowRequestedEntityNotFoundExceptionWhenUsernameIsMissing() {
             when(userRepository.findUsernameById(userId)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> userManagerService.getUsernameByIdOrThrow(userId));
+            assertThrows(RequestedEntityNotFoundException.class, 
+                () -> userManagerService.getUsernameByIdOrThrow(userId));
 
             verify(userRepository).findUsernameById(userId);
         }
@@ -151,15 +154,16 @@ class UserManagerServiceTest {
 
             String result = userManagerService.getUserEmailById(userId);
 
-            assertEquals(email, result);
+            assertThat(result).isEqualTo(email);
             verify(userRepository).findEmailById(userId);
         }
 
         @Test
-        void shouldThrowExceptionWhenEmailIsMissing() {
+        void shouldThrowRequestedEntityNotFoundExceptionWhenEmailIsMissing() {
             when(userRepository.findEmailById(userId)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> userManagerService.getUserEmailById(userId));
+            assertThrows(RequestedEntityNotFoundException.class, 
+                () -> userManagerService.getUserEmailById(userId));
 
             verify(userRepository).findEmailById(userId);
         }

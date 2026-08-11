@@ -18,7 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -88,6 +88,15 @@ class PasswordResetServiceTest {
             assertThrows(RuntimeException.class, () -> passwordResetService.requestPasswordReset(dto));
             verify(verificationCodeEmailSender, never()).sendPasswordResetCode(any(), any(), any(Integer.class));
         }
+
+        @Test
+        void shouldNotSendEmailWhenUserNotFound() {
+            PasswordResetRequestDto dto = new PasswordResetRequestDto(EMAIL);
+            when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenThrow(new RuntimeException("user not found"));
+
+            assertThrows(RuntimeException.class, () -> passwordResetService.requestPasswordReset(dto));
+            verifyNoInteractions(verificationCodeEmailSender);
+        }
     }
 
     @Nested
@@ -103,7 +112,7 @@ class PasswordResetServiceTest {
 
             AttemptsDto result = passwordResetService.confirmPasswordReset(dto, request);
 
-            assertEquals(5, result.remaining());
+            assertThat(result.remaining()).isEqualTo(5);
             verify(credentialValidationService).validateNewPassword(NEW_PASSWORD, CONFIRM_NEW_PASSWORD, CURRENT_PASSWORD_HASH);
             verify(passwordResetVerificationService).verifyCodeOrThrow(EMAIL, settings, VERIFICATION_CODE);
             verify(passwordResetVerificationService).removeCode(settings);
@@ -133,6 +142,20 @@ class PasswordResetServiceTest {
             doThrow(new RuntimeException("invalid code"))
                     .when(passwordResetVerificationService)
                     .verifyCodeOrThrow(EMAIL, settings, VERIFICATION_CODE);
+
+            assertThrows(RuntimeException.class, () -> passwordResetService.confirmPasswordReset(dto, request));
+            verify(passwordUpdateService, never()).updatePassword(any(), any(), any());
+        }
+
+        @Test
+        void shouldNotUpdatePasswordWhenValidationFails() {
+            PasswordResetConfirmDto dto = new PasswordResetConfirmDto(EMAIL, "short", "short", 2342516);
+            when(userManagerService.getUserByEmailOrThrow(EMAIL)).thenReturn(user);
+            when(user.getAccountSettings()).thenReturn(settings);
+            when(user.getPassword()).thenReturn(CURRENT_PASSWORD_HASH);
+            doThrow(new RuntimeException("password too short"))
+                    .when(credentialValidationService)
+                    .validateNewPassword("short", "short", CURRENT_PASSWORD_HASH);
 
             assertThrows(RuntimeException.class, () -> passwordResetService.confirmPasswordReset(dto, request));
             verify(passwordUpdateService, never()).updatePassword(any(), any(), any());

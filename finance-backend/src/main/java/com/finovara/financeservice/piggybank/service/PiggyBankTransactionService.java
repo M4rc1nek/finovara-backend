@@ -1,6 +1,5 @@
 package com.finovara.financeservice.piggybank.service;
 
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
@@ -15,6 +14,7 @@ import com.finovara.financeservice.util.piggybank.PiggyBankValidator;
 import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,10 +31,12 @@ public class PiggyBankTransactionService {
     private final GoalPlannerService goalPlannerService;
     private final WalletService walletService;
     private final AuthBackendClient authBackendClient;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, PiggyBankActivityType piggyBankActivityType, String authorizationCode) {
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
+
 
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
@@ -58,7 +60,7 @@ public class PiggyBankTransactionService {
 
     @Transactional
     public void removeBalanceFromPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, String authorizationCode) {
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(authorizationCode));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
 
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 

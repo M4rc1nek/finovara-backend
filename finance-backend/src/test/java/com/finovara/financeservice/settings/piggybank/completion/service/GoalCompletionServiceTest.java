@@ -1,5 +1,6 @@
 package com.finovara.financeservice.settings.piggybank.completion.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
@@ -43,10 +44,14 @@ class GoalCompletionServiceTest {
     @Mock
     private AuthBackendClient authBackendClient;
 
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+
     @InjectMocks
     private GoalCompletionService goalCompletionService;
 
     private static final Long USER_ID = 1L;
+
 
     @Nested
     class AddGoalCompletion {

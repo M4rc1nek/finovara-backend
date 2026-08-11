@@ -3,9 +3,10 @@ package com.finovara.authservice.internal;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
-import com.finovara.contracts.auth.dto.UserDataResponse;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.UserDataResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ public class InternalUserController {
 
     private final PasswordValidator passwordValidator;
     private final AdditionalAuthorizationService additionalAuthorizationService;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     private final UserManagerService userManagerService;
 
     @PostMapping("/verify-password")
@@ -27,7 +29,7 @@ public class InternalUserController {
 
     @PostMapping("/confirm-authorization-code")
     public ResponseEntity<Void> confirmAuthorizationCode(@RequestHeader("X-User-Id") Long userId, @RequestBody ConfirmAuthorizationCodeDto confirmAuthorizationCodeDto) {
-        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, confirmAuthorizationCodeDto);
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(confirmAuthorizationCodeDto));
         return ResponseEntity.noContent().build();
     }
 

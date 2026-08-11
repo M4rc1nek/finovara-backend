@@ -1,6 +1,6 @@
 package com.finovara.authservice.settings.security.operationauthorization.dto;
 
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 

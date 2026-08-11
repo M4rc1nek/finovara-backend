@@ -8,7 +8,7 @@ import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.deletion.AccountRemovalTemplate;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
@@ -23,6 +23,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -80,7 +81,7 @@ class AccountDeletionServiceTest {
     class WhenUserNotFound {
 
         @Test
-        void shouldThrowWhenUserNotFound() {
+        void shouldThrowRequestedEntityNotFoundExceptionWhenUserNotFound() {
             when(userManagerService.getUserByIdOrThrow(USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("User not found"));
 
@@ -103,12 +104,20 @@ class AccountDeletionServiceTest {
         }
 
         @Test
-        void shouldThrowWhenPasswordValidationFails() {
+        void shouldThrowInvalidInputExceptionWhenPasswordValidationFails() {
             assertThrows(InvalidInputException.class,
                     () -> accountDeletionService.deleteAccount(dto, USER_ID));
 
             verifyNoInteractions(sharedAccountMemberRepository, accountRemovalTemplate,
                     outboxService, userRepository);
+        }
+
+        @Test
+        void shouldNotDeleteAccountWhenPasswordValidationFails() {
+            assertThrows(InvalidInputException.class,
+                    () -> accountDeletionService.deleteAccount(dto, USER_ID));
+
+            verify(userRepository, never()).delete(any());
         }
     }
 
@@ -125,7 +134,7 @@ class AccountDeletionServiceTest {
         }
 
         @Test
-        void shouldDeleteAccountWithoutTouchingSharedAccountRemoval() {
+        void shouldDeleteAccountWithoutTouchingSharedAccountRemovalWhenNoMembership() {
             accountDeletionService.deleteAccount(dto, USER_ID);
 
             verifyNoInteractions(accountRemovalTemplate);
@@ -134,6 +143,22 @@ class AccountDeletionServiceTest {
             verify(outboxService, times(1)).save(eq("User"), eq(USER_ID.toString()),
                     eq("user-account.deleted"), any());
             verify(userRepository, times(1)).delete(user);
+        }
+
+        @Test
+        void shouldPublishEmailNotificationWhenDeletingAccountWithoutMembership() {
+            accountDeletionService.deleteAccount(dto, USER_ID);
+
+            verify(outboxService, times(1)).save(eq("User"), eq(USER_ID.toString()),
+                    eq("notification.email.send"), any());
+        }
+
+        @Test
+        void shouldPublishAccountDeletedEventWhenDeletingAccountWithoutMembership() {
+            accountDeletionService.deleteAccount(dto, USER_ID);
+
+            verify(outboxService, times(1)).save(eq("User"), eq(USER_ID.toString()),
+                    eq("user-account.deleted"), any());
         }
     }
 
@@ -156,7 +181,7 @@ class AccountDeletionServiceTest {
         }
 
         @Test
-        void shouldHandleSharedAccountRemovalThenDeleteAccount() {
+        void shouldHandleSharedAccountRemovalThenDeleteAccountWhenHasMembership() {
             when(user.getId()).thenReturn(USER_ID);
             when(user.getEmail()).thenReturn(EMAIL);
 
@@ -172,14 +197,26 @@ class AccountDeletionServiceTest {
         }
 
         @Test
-        void shouldRethrowOptimisticLockingFailureExceptionAndNotDeleteAccount() {
+        void shouldRethrowOptimisticLockingFailureExceptionAndNotDeleteAccountWhenLockingFails() {
             when(accountRemovalTemplate.handleSharedAccountRemovalWithNotification(ACCOUNT_ID, USER_ID, USERNAME))
                     .thenThrow(new ObjectOptimisticLockingFailureException(SharedAccountMember.class, USER_ID));
 
-            assertThrows(ObjectOptimisticLockingFailureException.class, () -> accountDeletionService.deleteAccount(dto, USER_ID));
+            assertThrows(ObjectOptimisticLockingFailureException.class, 
+                () -> accountDeletionService.deleteAccount(dto, USER_ID));
 
             verifyNoInteractions(outboxService);
             verify(userRepository, never()).delete(any());
+        }
+
+        @Test
+        void shouldNotPublishEventsWhenSharedAccountRemovalFails() {
+            when(accountRemovalTemplate.handleSharedAccountRemovalWithNotification(ACCOUNT_ID, USER_ID, USERNAME))
+                    .thenThrow(new ObjectOptimisticLockingFailureException(SharedAccountMember.class, USER_ID));
+
+            assertThrows(ObjectOptimisticLockingFailureException.class, 
+                () -> accountDeletionService.deleteAccount(dto, USER_ID));
+
+            verifyNoInteractions(outboxService);
         }
     }
 }

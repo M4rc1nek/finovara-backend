@@ -6,7 +6,7 @@ import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.deletion.AccountRemovalTemplate;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.event.notification.SendEmailEvent;
 import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
 import com.finovara.contracts.outbox.OutboxService;

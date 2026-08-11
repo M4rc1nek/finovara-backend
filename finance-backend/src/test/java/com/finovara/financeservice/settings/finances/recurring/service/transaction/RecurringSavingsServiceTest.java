@@ -1,6 +1,7 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
@@ -8,7 +9,6 @@ import com.finovara.financeservice.settings.finances.recurring.dto.RecurringComm
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringSavingsDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
-import com.finovara.financeservice.settings.finances.recurring.service.occurrence.RecurringOccurrenceService;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
@@ -47,6 +47,9 @@ class RecurringSavingsServiceTest {
     @Mock
     private AuthBackendClient authBackendClient;
 
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+
     @InjectMocks
     private RecurringSavingsService recurringSavingsService;
 
@@ -82,6 +85,7 @@ class RecurringSavingsServiceTest {
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.SAVINGS)).thenReturn(settings);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
+            when(additionalAuthorizationCodeResolver.resolve("code12345678")).thenReturn(new ConfirmAuthorizationCodeDto("code12345678"));
 
             recurringSavingsService.saveSavingsSettings(userId, dto);
 
@@ -115,10 +119,12 @@ class RecurringSavingsServiceTest {
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.SAVINGS)).thenReturn(settings);
 
+            when(additionalAuthorizationCodeResolver.resolve("code12345678")).thenReturn(new ConfirmAuthorizationCodeDto("code12345678"));
             recurringSavingsService.saveSavingsSettings(userId, dto);
 
             verify(recurringSavingsValidator, never()).validate(any(), any());
             verify(authBackendClient).confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto("code12345678"));
+
         }
     }
 

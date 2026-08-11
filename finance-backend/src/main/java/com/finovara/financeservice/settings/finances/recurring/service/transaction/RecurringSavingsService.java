@@ -1,6 +1,5 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
@@ -12,6 +11,7 @@ import com.finovara.financeservice.settings.finances.recurring.service.validator
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import lombok.RequiredArgsConstructor;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,11 +23,12 @@ public class RecurringSavingsService {
     private final RecurringSavingsValidator recurringSavingsValidator;
     private final WalletManagerService walletManagerService;
     private final AuthBackendClient authBackendClient;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public void saveSavingsSettings(Long userId, RecurringSavingsDto dto) {
         RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.SAVINGS);
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
 
         settings.setPiggyBankId(dto.piggyBankId());
         settings.setRevenueCategory(null);

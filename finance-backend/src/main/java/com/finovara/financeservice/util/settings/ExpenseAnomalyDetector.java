@@ -1,6 +1,6 @@
 package com.finovara.financeservice.util.settings;
 
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.financeservice.exception.conflict.ConfirmationRequiredException;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import org.springframework.stereotype.Component;

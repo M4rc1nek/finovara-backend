@@ -1,6 +1,6 @@
 package com.finovara.authservice.util.confirmationpassword.service;
 
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.exception.forbidden.InvalidPasswordException;

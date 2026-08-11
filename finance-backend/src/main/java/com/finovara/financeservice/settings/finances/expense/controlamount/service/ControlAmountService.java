@@ -1,6 +1,5 @@
 package com.finovara.financeservice.settings.finances.expense.controlamount.service;
 
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
@@ -10,6 +9,7 @@ import com.finovara.financeservice.settings.finances.expense.controlamount.dto.C
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import org.springframework.transaction.annotation.Transactional;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -27,11 +27,12 @@ public class ControlAmountService {
     private final ExpenseSettingsRepository expenseSettingsRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final AuthBackendClient authBackendClient;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public void saveExpenseAmountControl(Long userId, ControlAmountDto controlAmountDto) {
         ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(controlAmountDto.authorizationCode()));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(controlAmountDto.authorizationCode()));
 
         BigDecimal blockedAmount = Optional.ofNullable(controlAmountDto.blockedAmount()).orElse(BigDecimal.ZERO);
 

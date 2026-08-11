@@ -1,5 +1,6 @@
 package com.finovara.financeservice.settings.piggybank.roundup.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
@@ -55,6 +56,9 @@ class RoundUpServiceTest {
 
     @Mock
     private AuthBackendClient authBackendClient;
+
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @InjectMocks
     private RoundUpService roundUpService;

@@ -8,12 +8,12 @@ import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeRequ
 import com.finovara.authservice.settings.account.model.AccountSettings;
 import com.finovara.authservice.settings.account.service.verification.CredentialValidationService;
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
-import com.finovara.contracts.auth.dto.ConfirmPasswordDto;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.email.EmailDomainValidator;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -31,10 +31,11 @@ public class EmailChangeService {
     private final EmailUpdateService emailUpdateService;
     private final EmailDomainValidator emailDomainValidator;
     private final AdditionalAuthorizationService additionalAuthorizationService;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public void requestEmailChange(Long userId, EmailChangeRequestDto dto) {
-        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
         
         User user = userManagerService.getUserByIdOrThrow(userId);
 
@@ -44,7 +45,7 @@ public class EmailChangeService {
 
     @Transactional
     public AttemptsDto confirmEmailChange(Long userId, EmailChangeConfirmDto dto, HttpServletRequest request) {
-        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
         
         User user = userManagerService.getUserByIdOrThrow(userId);
         AccountSettings settings = user.getAccountSettings();

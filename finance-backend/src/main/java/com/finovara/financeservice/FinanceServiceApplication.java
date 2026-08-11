@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @EntityScan(basePackages = {"com.finovara.financeservice", "com.finovara.contracts.outbox"})
 @EnableJpaRepositories(basePackages = {"com.finovara.financeservice", "com.finovara.contracts.outbox"})
-@SpringBootApplication(scanBasePackages = {"com.finovara.financeservice", "com.finovara.contracts.outbox", "com.finovara.contracts.cache"})
+@SpringBootApplication(scanBasePackages = {"com.finovara.financeservice", "com.finovara.contracts.outbox", "com.finovara.contracts.cache", "com.finovara.contracts.authorization.additionalcode.resolver"})
 public class FinanceServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(FinanceServiceApplication.class, args);

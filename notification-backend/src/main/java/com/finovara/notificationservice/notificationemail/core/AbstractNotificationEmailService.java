@@ -1,5 +1,6 @@
 package com.finovara.notificationservice.notificationemail.core;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.notificationemail.dto.UserEmailDataDto;
@@ -7,21 +8,19 @@ import com.finovara.notificationservice.notificationemail.model.NotificationEmai
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.util.NotificationEmailSender;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
-import feign.FeignException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @RequiredArgsConstructor
 public abstract class AbstractNotificationEmailService {
     protected final NotificationEmailSettingsRepository notificationEmailSettingsRepository;
     protected final NotificationEmailSender notificationEmailSender;
     protected final AuthBackendClient authBackendClient;
+    protected final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public void saveEmailNotification(Long userId, NotificationEmailDto dto) {
-        authBackendClient.confirmAuthorizationCode(userId, new ConfirmAuthorizationCodeDto(dto.authorizationCode()));
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
         NotificationEmailSettings settings = notificationEmailSettingsRepository.findByUserId(userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Notification email settings not found for userId: " + userId));
 

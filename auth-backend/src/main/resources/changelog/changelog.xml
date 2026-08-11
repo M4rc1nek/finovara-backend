@@ -126,6 +126,9 @@
             <column name="additional_authorization_enabled" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
+            <column name="additional_authorization_visible" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
             <column name="additional_authorization_code" type="VARCHAR(255)"/>
             <column name="additional_authorization_email_code" type="INT"/>
             <column name="additional_authorization_attempts" type="INT" defaultValueNumeric="0">
