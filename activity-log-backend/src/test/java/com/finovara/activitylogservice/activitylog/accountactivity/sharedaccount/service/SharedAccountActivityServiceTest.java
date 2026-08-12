@@ -4,6 +4,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.mapper.SharedAccountActivityMapper;
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.model.SharedAccountActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.repository.SharedAccountActivityRepository;
+import com.finovara.activitylogservice.feignclient.AuthBackendClient;
 import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.SharedAccountActivityType;
@@ -34,13 +35,18 @@ class SharedAccountActivityServiceTest {
     @Mock
     private SharedAccountActivityMapper sharedAccountActivityMapper;
 
+    @Mock
+    private AuthBackendClient authBackendClient;
+
+
     private SharedAccountActivityService sharedAccountActivityService;
 
     @BeforeEach
     void setUp() {
         sharedAccountActivityService = new SharedAccountActivityService(
                 sharedAccountActivityRepository,
-                sharedAccountActivityMapper
+                sharedAccountActivityMapper,
+                authBackendClient
         );
         ReflectionTestUtils.setField(sharedAccountActivityService, "pageSize", 10);
     }

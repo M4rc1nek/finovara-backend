@@ -5,6 +5,8 @@ import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.mapper.SharedAccountActivityMapper;
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.model.SharedAccountActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.repository.SharedAccountActivityRepository;
+import com.finovara.activitylogservice.feignclient.AuthBackendClient;
+import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
 import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
@@ -28,6 +30,8 @@ public class SharedAccountActivityService extends AccountActivityCore<SharedAcco
 
     private final SharedAccountActivityRepository sharedAccountActivityRepository;
     private final SharedAccountActivityMapper sharedAccountActivityMapper;
+    private final AuthBackendClient authBackendClient;
+
 
     @Transactional
     public void handleEvent(SharedAccountActivityEvent event) {
@@ -46,6 +50,10 @@ public class SharedAccountActivityService extends AccountActivityCore<SharedAcco
 
     public List<SharedAccountActivityDto> getSharedAccountActivity(Long userId, SortType sort) {
         return getActivities(userId, sort, pageSize);
+    }
+
+    public void confirmPassword(Long userId, ConfirmPasswordDto confirmPasswordDto) {
+        authBackendClient.verifyPassword(userId, confirmPasswordDto);
     }
 
     @Override
