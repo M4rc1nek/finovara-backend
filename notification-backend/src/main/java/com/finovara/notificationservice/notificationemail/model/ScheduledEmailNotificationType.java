@@ -1,4 +1,34 @@
 package com.finovara.notificationservice.notificationemail.model;
 
-public enum ScheduledEmailNotificationType {
+public enum ScheduledEmailNotificationType implements EmailNotificationTemplate {
+
+    WEEKLY_DIGEST_REPORT_EMAIL(
+            "Finovara - Cotygodniowy Raport finansowy",
+            "email/digest/digest-weekly-report-email.html",
+            EmailNotificationCategory.SYSTEM);
+
+    private final String subject;
+    private final String templatePath;
+    private final EmailNotificationCategory category;
+
+    ScheduledEmailNotificationType(String subject, String templatePath, EmailNotificationCategory category) {
+        this.subject = subject;
+        this.templatePath = templatePath;
+        this.category = category;
+    }
+
+    @Override
+    public String getSubject() {
+        return subject;
+    }
+
+    @Override
+    public String getTemplatePath() {
+        return templatePath;
+    }
+
+    @Override
+    public EmailNotificationCategory getCategory() {
+        return category;
+    }
 }
