@@ -1,6 +1,6 @@
-package com.finovara.notificationservice.notificationemail.service.action.accountdeleted.controller;
+package com.finovara.notificationservice.notificationemail.service.settings.action.accountdeleted.controller;
 
-import com.finovara.notificationservice.notificationemail.service.action.accountdeleted.service.NotifyOnAccountDeletedService;
+import com.finovara.notificationservice.notificationemail.service.settings.action.accountdeleted.service.NotifyOnAccountDeletedServiceAction;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class NotifyOnAccountDeletedController {
 
-    private final NotifyOnAccountDeletedService notifyOnAccountDeletedService;
+    private final NotifyOnAccountDeletedServiceAction notifyOnAccountDeletedService;
 
     @PatchMapping
     public ResponseEntity<Void> saveNotifyAccountDeleted(@RequestBody NotificationEmailDto dto) {
