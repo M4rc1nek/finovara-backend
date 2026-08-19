@@ -1,6 +1,6 @@
 package com.finovara.contracts.notification.email;
 
-public enum SendEmailEventType {
+public enum ActionEmailEventType {
     PASSWORD_CHANGED,
     USERNAME_CHANGED,
     EMAIL_CHANGED,
