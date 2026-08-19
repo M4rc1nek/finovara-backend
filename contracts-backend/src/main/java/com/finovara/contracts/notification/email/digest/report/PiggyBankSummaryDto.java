@@ -1,4 +1,4 @@
-package com.finovara.financeservice.internal.digest.report.email.dto;
+package com.finovara.contracts.notification.email.digest.report;
 
 import java.math.BigDecimal;
 
