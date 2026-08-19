@@ -1,4 +1,4 @@
-package com.finovara.contracts.event.notification.piggybank;
+package com.finovara.contracts.notification.event.piggybank;
 
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 
