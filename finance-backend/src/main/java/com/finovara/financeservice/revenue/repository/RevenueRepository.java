@@ -24,13 +24,25 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
 
     @Query("SELECT r From Revenue r WHERE r.userId = :userId AND r.createdAt BETWEEN :startDate AND :endDate AND r.category = :category")
     List<Revenue> findAllByUserIdAndCreatedAtBetweenAndCategory(Long userId, @Param("startDate") LocalDate from,
-                                                                        @Param("endDate") LocalDate to, RevenueCategory category);
+                                                                @Param("endDate") LocalDate to, RevenueCategory category);
 
     @Query("SELECT coalesce(sum(r.amount),0) FROM Revenue r WHERE r.userId = :userId")
     BigDecimal sumAllRevenuesByUserId(Long userId);
 
     @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userId = :userId AND r.createdAt >= :startDate AND r.createdAt <= :endDate")
     Optional<BigDecimal> sumRevenuesByUserAndDateRange(Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT r FROM Revenue r WHERE r.userId = :userId AND r.createdAt BETWEEN :from AND :to ORDER BY r.amount DESC")
+    List<Revenue> findTopRevenuesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
+
+    @Query("""
+            SELECT r.category
+            FROM Revenue r
+            WHERE r.userId = :userId AND r.createdAt BETWEEN :from AND :to
+            GROUP BY r.category
+            ORDER BY SUM(r.amount) DESC
+            """)
+    List<RevenueCategory> findTopRevenueCategoriesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("SELECT CAST(AVG(r.amount) AS big_decimal) FROM Revenue r WHERE r.userId = :userId AND r.createdAt BETWEEN :startDate AND :endDate")
     Optional<BigDecimal> avgRevenuesByUserIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);

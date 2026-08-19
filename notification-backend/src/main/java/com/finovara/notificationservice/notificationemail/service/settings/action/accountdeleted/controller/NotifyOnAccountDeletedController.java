@@ -1,0 +1,28 @@
+package com.finovara.notificationservice.notificationemail.service.settings.action.accountdeleted.controller;
+
+import com.finovara.notificationservice.notificationemail.service.settings.action.accountdeleted.service.NotifyOnAccountDeletedServiceAction;
+import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
+import com.finovara.notificationservice.security.SecurityUtils;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/notification-settings/notify-account-deleted")
+@RequiredArgsConstructor
+public class NotifyOnAccountDeletedController {
+
+    private final NotifyOnAccountDeletedServiceAction notifyOnAccountDeletedService;
+
+    @PatchMapping
+    public ResponseEntity<Void> saveNotifyAccountDeleted(@RequestBody NotificationEmailDto dto) {
+        notifyOnAccountDeletedService.saveEmailNotification(SecurityUtils.getCurrentUserId(), dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<NotificationEmailDto> getNotifyAccountDeleted() {
+        return ResponseEntity.ok(notifyOnAccountDeletedService.getEmailNotification(SecurityUtils.getCurrentUserId()));
+    }
+}
+

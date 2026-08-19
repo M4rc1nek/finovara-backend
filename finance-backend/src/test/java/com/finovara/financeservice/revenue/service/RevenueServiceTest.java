@@ -1,7 +1,7 @@
 package com.finovara.financeservice.revenue.service;
 
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
+import com.finovara.contracts.activity.event.revenue.RevenueActivityEvent;
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.transaction.RevenueCategory;

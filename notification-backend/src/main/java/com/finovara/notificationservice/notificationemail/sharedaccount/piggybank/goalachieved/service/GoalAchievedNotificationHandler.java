@@ -1,12 +1,16 @@
 package com.finovara.notificationservice.notificationemail.sharedaccount.piggybank.goalachieved.service;
 
 import com.finovara.contracts.authorization.dto.UserDataResponse;
-import com.finovara.contracts.event.finance.sharedaccount.GoalAchievedNotificationEvent;
+import com.finovara.contracts.finance.event.sharedaccount.GoalAchievedNotificationEvent;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
-import com.finovara.notificationservice.notificationemail.util.emailsender.EmailNotifier;
+import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
+import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -35,13 +39,18 @@ public class GoalAchievedNotificationHandler {
             return;
         }
 
-        emailNotifier.sendGoalAchieved(
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
+
+        emailNotifier.send(
+                ActionEmailNotificationType.PIGGY_BANK_GOAL_ACHIEVED,
                 recipient.email().get(),
-                recipient.username().orElse("Użytkowniku"),
-                triggeredByUsername,
-                event.currentAmount(),
-                event.goalAmount(),
-                event.occurredAt()
+                Map.of(
+                        "username", recipient.username().orElse("Użytkowniku"),
+                        "triggeredByUsername", triggeredByUsername,
+                        "currentAmount", event.currentAmount().toPlainString(),
+                        "goalAmount", event.goalAmount().toPlainString(),
+                        "occurredAt", event.occurredAt().format(formatter)
+                )
         );
     }
 }

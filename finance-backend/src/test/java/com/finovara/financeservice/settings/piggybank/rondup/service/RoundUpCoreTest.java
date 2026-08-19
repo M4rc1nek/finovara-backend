@@ -1,6 +1,6 @@
 package com.finovara.financeservice.settings.piggybank.rondup.service;
 
-import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.financeservice.piggybank.model.PiggyBank;

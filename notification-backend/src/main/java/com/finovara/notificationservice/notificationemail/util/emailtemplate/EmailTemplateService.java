@@ -24,14 +24,6 @@ public class EmailTemplateService {
     private String senderAddress;
 
     @Async
-    public void sendEmail(String recipientEmail, String subject, String templatePath, String username, String templateEmailValue) {
-        sendEmail(recipientEmail, subject, templatePath, Map.of(
-                "username", username == null ? "" : username,
-                "email", templateEmailValue == null ? "" : templateEmailValue
-        ));
-    }
-
-    @Async
     public void sendEmail(String recipientEmail, String subject, String templatePath, Map<String, String> placeholders) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
@@ -60,7 +52,7 @@ public class EmailTemplateService {
                 String html = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
                 for (Map.Entry<String, String> entry : placeholders.entrySet()) {
-                    html = html.replace("{{" + entry.getKey() + "}}", entry.getValue());
+                    html = html.replace("{" + entry.getKey() + "}", entry.getValue());
                 }
 
                 return html;

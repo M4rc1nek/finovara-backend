@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twój tygodniowy raport finansowy</title>
+</head>
+<body style="margin:0; padding:0; background-color:#eef0f4; font-family:Arial, Helvetica, sans-serif;">
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef0f4; padding:32px 0;">
+    <tr>
+        <td align="center">
+
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 6px 24px rgba(17,24,39,0.08);">
+
+                <!-- HEADER -->
+                <tr>
+                    <td style="background-color:#151a30; padding:36px 40px;" align="center">
+                        <table role="presentation" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td align="center">
+                                    <span style="color:#ffffff; font-size:19px; font-weight:bold; letter-spacing:0.2px;">
+                                        Finovara
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-top:4px;" align="center">
+                                    <span style="color:#9095b3; font-size:13px;">
+                                        Cotygodniowy raport finansowy
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- GREETING -->
+                <tr>
+                    <td style="padding:36px 40px 4px 40px;">
+                        <p style="margin:0; font-size:14px; color:#6b7280;">
+                            Cześć {userName},
+                        </p>
+
+                        <h1 style="margin:6px 0 0 0; font-size:24px; color:#111827; font-weight:700;">
+                            Twój tydzień w liczbach
+                        </h1>
+
+                        <p style="margin:8px 0 0 0; font-size:13px; color:#9ca3af;">
+                            {weekStart} — {weekEnd}
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- MAIN SUMMARY -->
+                <tr>
+                    <td style="padding:24px 40px 0 40px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f9fc; border-radius:12px;">
+                            <tr>
+                                <td style="padding:22px 26px;">
+
+                                    <p style="margin:0 0 10px 0; font-size:15px; color:#1f2937; line-height:1.6;">
+                                        W tym tygodniu wydałeś
+                                        <strong style="color:#111827;">{expensesSum} zł</strong>,
+                                        głównie na
+                                        <strong style="color:#111827;">{topExpenseCategory}</strong>.
+                                    </p>
+
+                                    <p style="margin:0; font-size:15px; color:#1f2937; line-height:1.6;">
+                                        Zarobiłeś
+                                        <strong style="color:#111827;">{revenuesSum} zł</strong>,
+                                        przede wszystkim dzięki
+                                        <strong style="color:#111827;">{topRevenueCategory}</strong>.
+                                    </p>
+
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- BUDGET PROGRESS -->
+                <tr>
+                    <td style="padding:16px 40px 0 40px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8eaf0; border-radius:12px;">
+                            <tr>
+                                <td style="padding:20px 26px;">
+
+                                    <p style="margin:0 0 4px 0; font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.6px; font-weight:bold;">
+                                        Budżet miesięczny
+                                    </p>
+
+                                    <p style="margin:0; font-size:14px; color:#374151;">
+                                        Zostało Ci do wydania
+                                        <strong style="color:#4f6bff; font-size:16px;">
+                                            {remainingBudgetPercentage}%
+                                        </strong>
+                                        budżetu
+                                    </p>
+
+                                    <!-- BUDGET PROGRESS BAR -->
+                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px; border-collapse:collapse; height:8px;">
+                                        <tr>
+                                            <td style="background-color:#e8eaf0; border-radius:4px; font-size:0; line-height:0; height:8px;">
+
+                                                <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse; width:{remainingBudgetPercentage}%; max-width:100%;">
+                                                    <tr>
+                                                        <td style="background-color:#4f6bff; border-radius:4px; height:8px; font-size:0; line-height:0;">
+                                                            &nbsp;
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- 2-COLUMN STAT CARDS -->
+                <tr>
+                    <td style="padding:16px 40px 0 40px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+
+                                <td width="48%" style="background-color:#f0fdf4; border-radius:12px; padding:20px 22px; vertical-align:top;">
+                                    <p style="margin:0 0 6px 0; font-size:11px; color:#16a34a; text-transform:uppercase; letter-spacing:0.6px; font-weight:bold;">
+                                        Zaoszczędziłeś
+                                    </p>
+
+                                    <p style="margin:0; font-size:22px; color:#111827; font-weight:bold;">
+                                        {savedMoney} zł
+                                    </p>
+                                </td>
+
+                                <td width="4%">&nbsp;</td>
+
+                                <td width="48%" style="background-color:#eff3ff; border-radius:12px; padding:20px 22px; vertical-align:top;">
+                                    <p style="margin:0 0 6px 0; font-size:11px; color:#4f6bff; text-transform:uppercase; letter-spacing:0.6px; font-weight:bold;">
+                                        Dni bez wydatków
+                                    </p>
+
+                                    <p style="margin:0; font-size:22px; color:#111827; font-weight:bold;">
+                                        {daysWithoutExpense}
+                                    </p>
+                                </td>
+
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- HIGHEST EXPENSE / HIGHEST REVENUE -->
+                <tr>
+                    <td style="padding:16px 40px 0 40px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+
+                                <td width="48%" style="border:1px solid #e8eaf0; border-radius:12px; padding:20px 22px; vertical-align:top;">
+                                    <p style="margin:0 0 6px 0; font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.6px; font-weight:bold;">
+                                        Największy wydatek
+                                    </p>
+
+                                    <p style="margin:0; font-size:15px; color:#111827; line-height:1.5;">
+                                        <strong>{highestExpenseAmount} zł</strong><br>
+                                        <span style="color:#6b7280; font-size:13px;">{highestExpenseCategory}, {highestExpenseDate}</span>
+                                    </p>
+                                </td>
+
+                                <td width="4%">&nbsp;</td>
+
+                                <td width="48%" style="border:1px solid #e8eaf0; border-radius:12px; padding:20px 22px; vertical-align:top;">
+                                    <p style="margin:0 0 6px 0; font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.6px; font-weight:bold;">
+                                        Największy przychód
+                                    </p>
+
+                                    <p style="margin:0; font-size:15px; color:#111827; line-height:1.5;">
+                                        <strong>{highestRevenueAmount} zł</strong><br>
+                                        <span style="color:#6b7280; font-size:13px;">{highestRevenueCategory}, {highestRevenueDate}</span>
+                                    </p>
+                                </td>
+
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- PIGGY BANKS -->
+                <tr>
+                    <td style="padding:16px 40px 0 40px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8eaf0; border-radius:12px;">
+                            <tr>
+                                <td style="padding:20px 26px;">
+
+                                    <p style="margin:0 0 14px 0; font-size:11px; color:#9ca3af; text-transform:uppercase; letter-spacing:0.6px; font-weight:bold;">
+                                        Twoje skarbonki
+                                    </p>
+
+                                    <!-- PIGGY BANK STATS -->
+                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                        <tr>
+
+                                            <td width="50%" style="vertical-align:top; padding-right:8px;">
+                                                <p style="margin:0 0 2px 0; font-size:11px; color:#9ca3af;">
+                                                    Liczba skarbonek
+                                                </p>
+
+                                                <p style="margin:0; font-size:17px; color:#111827; font-weight:bold;">
+                                                    {piggyBankQuantity}
+                                                </p>
+                                            </td>
+
+                                            <td width="50%" style="vertical-align:top; padding-left:8px;">
+                                                <p style="margin:0 0 2px 0; font-size:11px; color:#9ca3af;">
+                                                    Łącznie odłożone
+                                                </p>
+
+                                                <p style="margin:0; font-size:17px; color:#111827; font-weight:bold;">
+                                                    {piggyBankTotalDeposited} zł
+                                                </p>
+                                            </td>
+
+                                        </tr>
+                                    </table>
+
+                                    <!-- PIGGY BANK PROGRESS -->
+                                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;">
+                                        <tr>
+                                            <td>
+
+                                                <p style="margin:0 0 6px 0; font-size:13px; color:#374151;">
+                                                    Postęp celów:
+                                                    <strong style="color:#4f6bff;">
+                                                        {piggyBankProgressPercentage}%
+                                                    </strong>
+                                                </p>
+
+                                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; height:8px;">
+                                                    <tr>
+                                                        <td style="background-color:#e8eaf0; border-radius:4px; font-size:0; line-height:0; height:8px;">
+
+                                                            <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse; width:{piggyBankProgressPercentage}%; max-width:100%;">
+                                                                <tr>
+                                                                    <td style="background-color:#4f6bff; border-radius:4px; height:8px; font-size:0; line-height:0;">
+                                                                        &nbsp;
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                            </td>
+                                        </tr>
+                                    </table>
+
+                                    <p style="margin:14px 0 0 0; font-size:13px; color:#374151;">
+                                        Zostało do zebrania:
+                                        <strong style="color:#111827;">
+                                            {piggyBankRemainingAmount} zł
+                                        </strong>
+                                    </p>
+
+                                    <p style="margin:6px 0 0 0; font-size:13px; color:#374151;">
+                                        Wszystkie cele osiągnięte:
+                                        <strong style="color:#111827;">
+                                            {piggyBankGoalCompleted}
+                                        </strong>
+                                    </p>
+
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- DIVIDER -->
+                <tr>
+                    <td style="padding:32px 40px 0 40px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="border-top:1px solid #e8eaf0; font-size:0; line-height:0;">
+                                    &nbsp;
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- FOOTER -->
+                <tr>
+                    <td style="padding:22px 40px 36px 40px;" align="center">
+
+                        <p style="margin:0 0 6px 0; font-size:12px; color:#9ca3af; line-height:1.6;">
+                            Ta wiadomość została wygenerowana automatycznie przez Finovara — Cotygodniowy Raport finansowy. Prosimy na nią nie odpowiadać.
+                        </p>
+
+                        <p style="margin:0 0 14px 0; font-size:12px; color:#9ca3af; line-height:1.6;">
+                            Otrzymujesz ją, ponieważ masz aktywne konto w Finovara i włączony tygodniowy raport finansowy.
+                        </p>
+
+                        <p style="margin:16px 0 0 0; font-size:11px; color:#c1c5cd;">
+                            &copy; Finovara. Wszelkie prawa zastrzeżone.
+                        </p>
+
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

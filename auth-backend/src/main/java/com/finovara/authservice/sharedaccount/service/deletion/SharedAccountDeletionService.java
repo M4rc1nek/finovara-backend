@@ -9,8 +9,8 @@ import com.finovara.authservice.util.confirmationpassword.service.PasswordValida
 import com.finovara.authservice.util.deletion.AccountRemovalTemplate;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
-import com.finovara.contracts.event.notification.sharedaccount.deletion.NotificationSharedAccountLeftEvent;
+import com.finovara.contracts.activity.event.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.notification.event.sharedaccount.deletion.NotificationSharedAccountLeftEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;

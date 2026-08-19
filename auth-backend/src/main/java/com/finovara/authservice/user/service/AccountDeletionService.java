@@ -7,14 +7,17 @@ import com.finovara.authservice.util.confirmationpassword.service.PasswordValida
 import com.finovara.authservice.util.deletion.AccountRemovalTemplate;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.event.notification.SendEmailEvent;
-import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
+import com.finovara.contracts.notification.email.ActionEmailEventType;
+import com.finovara.contracts.notification.event.SendEmailEvent;
+import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -46,7 +49,8 @@ public class AccountDeletionService {
         }
 
         outboxService.save("User", userId.toString(), "notification.email.send",
-                new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Usunięcie konta", "email/account-deleted.html"));
+                new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(),
+                        ActionEmailEventType.ACCOUNT_DELETED, Map.of()));
         outboxService.save("User", userId.toString(), "user-account.deleted",
                 new UserAccountDeletedEvent(user.getId()));
 

@@ -1,11 +1,10 @@
 package com.finovara.notificationservice.notification.consumer.sharedaccount.invitation;
 
-import com.finovara.contracts.event.notification.sharedaccount.invitation.UserRejectSharedAccountInvitationEvent;
+import com.finovara.contracts.notification.event.sharedaccount.invitation.UserRejectSharedAccountInvitationEvent;
 import com.finovara.contracts.model.NotificationType;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import com.finovara.notificationservice.notification.dto.sharedaccount.invitation.UserRejectSharedAccountInvitationDto;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

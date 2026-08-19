@@ -1,6 +1,6 @@
 package com.finovara.notificationservice.notification.consumer.limit;
 
-import com.finovara.contracts.event.notification.limit.LimitStatsEvent;
+import com.finovara.contracts.notification.event.limit.LimitStatsEvent;
 import com.finovara.contracts.model.NotificationType;
 import com.finovara.notificationservice.notification.dto.limit.LimitWarningDto;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;

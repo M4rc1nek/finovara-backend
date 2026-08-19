@@ -140,7 +140,7 @@ rate-limit:
       max-requests: 14
       window-hours: 1
     - path: /api/email-change/request
-      max-requests: 1
+      max-requests: 3
       window-hours: 1
     - path: /api/password-reset/request
       max-requests: 1

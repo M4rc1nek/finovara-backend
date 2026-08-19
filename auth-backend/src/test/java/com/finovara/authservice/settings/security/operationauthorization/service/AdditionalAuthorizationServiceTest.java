@@ -10,7 +10,7 @@ import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.clientdata.browser.UserBrowser;
 import com.finovara.contracts.clientdata.ip.ClientIp;
 import com.finovara.contracts.clientdata.location.UserLocation;
-import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.exception.forbidden.InvalidPasswordException;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.contracts.outbox.OutboxService;

@@ -5,8 +5,8 @@ import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.map
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.repository.PiggyBankActivityRepository;
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.event.activity.piggybank.PiggyBankEditActivityEvent;
+import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.activity.event.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;

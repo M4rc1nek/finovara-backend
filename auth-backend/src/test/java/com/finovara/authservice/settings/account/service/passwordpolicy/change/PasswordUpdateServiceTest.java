@@ -1,7 +1,7 @@
 package com.finovara.authservice.settings.account.service.passwordpolicy.change;
 
-import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.event.notification.SendEmailEvent;
+import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.notification.event.SendEmailEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.authservice.user.model.User;

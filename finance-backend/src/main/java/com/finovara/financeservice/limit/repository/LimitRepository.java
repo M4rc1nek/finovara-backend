@@ -1,14 +1,12 @@
 package com.finovara.financeservice.limit.repository;
 
+import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.financeservice.limit.model.Limit;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.financeservice.wallet.model.Wallet;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 

@@ -1,26 +1,38 @@
 package com.finovara.notificationservice.notificationemail.sharedaccount.piggybank.goalachieved.service;
 
 import com.finovara.contracts.authorization.dto.UserDataResponse;
-import com.finovara.contracts.event.finance.sharedaccount.GoalAchievedNotificationEvent;
+import com.finovara.contracts.finance.event.sharedaccount.GoalAchievedNotificationEvent;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
-import com.finovara.notificationservice.notificationemail.util.emailsender.EmailNotifier;
+import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
+import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.Month;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class GoalAchievedNotificationHandlerTest {
+
+    private static final Long OWNER_ID = 1L;
+    private static final Long MEMBER_ID = 2L;
+    private static final Long TRIGGERED_BY_USER_ID = 3L;
+    private static final Long PIGGY_BANK_ID = 100L;
 
     @Mock
     private AuthBackendClient authBackendClient;
@@ -28,57 +40,136 @@ class GoalAchievedNotificationHandlerTest {
     @Mock
     private EmailNotifier emailNotifier;
 
-    @InjectMocks
-    private GoalAchievedNotificationHandler goalAchievedNotificationHandler;
-
-    private Long triggeredByUserId;
-    private Long ownerId;
-    private Long memberId;
+    @Mock
     private GoalAchievedNotificationEvent event;
+
+    @Mock
+    private UserDataResponse triggeredByUser;
+
+    @Mock
+    private UserDataResponse ownerUser;
+
+    @Mock
+    private UserDataResponse memberUser;
+
+    private GoalAchievedNotificationHandler handler;
 
     @BeforeEach
     void setUp() {
-        triggeredByUserId = 10L;
-        ownerId = 1L;
-        memberId = 2L;
-        event = new GoalAchievedNotificationEvent(ownerId, memberId, triggeredByUserId, 30L, new BigDecimal("200.00"), new BigDecimal("300.00"), LocalDateTime.of(2026, Month.JUNE, 5, 7, 8));
+        handler = new GoalAchievedNotificationHandler(authBackendClient, emailNotifier);
+        when(event.triggeredByUserId()).thenReturn(TRIGGERED_BY_USER_ID);
+        when(event.ownerId()).thenReturn(OWNER_ID);
+        when(event.memberId()).thenReturn(MEMBER_ID);
+        when(event.piggyBankId()).thenReturn(PIGGY_BANK_ID);
+        when(event.currentAmount()).thenReturn(new BigDecimal("500.00"));
+        when(event.goalAmount()).thenReturn(new BigDecimal("1000.00"));
+        when(event.occurredAt()).thenReturn(LocalDateTime.of(2024, 5, 10, 12, 30));
+        when(authBackendClient.getUserEmailData(TRIGGERED_BY_USER_ID)).thenReturn(triggeredByUser);
     }
 
     @Nested
     class Handle {
 
         @Test
-        void shouldSendEmailsToBothRecipientsWhenEmailsArePresent() {
-            when(authBackendClient.getUserEmailData(triggeredByUserId)).thenReturn(new UserDataResponse(triggeredByUserId, Optional.of("Jan"), Optional.of("jan@example.com")));
-            when(authBackendClient.getUserEmailData(ownerId)).thenReturn(new UserDataResponse(ownerId, Optional.of("Owner"), Optional.of("owner@example.com")));
-            when(authBackendClient.getUserEmailData(memberId)).thenReturn(new UserDataResponse(memberId, Optional.empty(), Optional.of("member@example.com")));
+        void shouldSendEmailsToBothRecipientsWhenBothHaveEmail() {
+            when(triggeredByUser.username()).thenReturn(Optional.of("trigger-user"));
+            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(ownerUser.email()).thenReturn(Optional.of("owner@example.com"));
+            when(ownerUser.username()).thenReturn(Optional.of("owner"));
+            when(memberUser.email()).thenReturn(Optional.of("member@example.com"));
+            when(memberUser.username()).thenReturn(Optional.of("member"));
 
-            goalAchievedNotificationHandler.handle(event);
+            handler.handle(event);
 
-            verify(authBackendClient).getUserEmailData(triggeredByUserId);
-            verify(authBackendClient).getUserEmailData(ownerId);
-            verify(authBackendClient).getUserEmailData(memberId);
-            verify(emailNotifier).sendGoalAchieved("owner@example.com", "Owner", "Jan", new BigDecimal("200.00"), new BigDecimal("300.00"), event.occurredAt());
-            verify(emailNotifier).sendGoalAchieved("member@example.com", "Użytkowniku", "Jan", new BigDecimal("200.00"), new BigDecimal("300.00"), event.occurredAt());
-            verifyNoMoreInteractions(emailNotifier);
+            verify(emailNotifier).send(eq(ActionEmailNotificationType.PIGGY_BANK_GOAL_ACHIEVED), eq("owner@example.com"), any());
+            verify(emailNotifier).send(eq(ActionEmailNotificationType.PIGGY_BANK_GOAL_ACHIEVED), eq("member@example.com"), any());
         }
 
         @Test
-        void shouldSkipRecipientWithoutEmailAndUseDefaultTriggeredUsernameWhenMissing() {
-            when(authBackendClient.getUserEmailData(triggeredByUserId)).thenReturn(new UserDataResponse(triggeredByUserId, Optional.empty(), Optional.of("jan@example.com")));
-            when(authBackendClient.getUserEmailData(ownerId)).thenReturn(new UserDataResponse(ownerId, Optional.of("Owner"), Optional.empty()));
-            when(authBackendClient.getUserEmailData(memberId)).thenReturn(new UserDataResponse(memberId, Optional.of("Member"), Optional.of("member@example.com")));
+        void shouldSkipOwnerEmailWhenOwnerHasNoEmail() {
+            when(triggeredByUser.username()).thenReturn(Optional.of("trigger-user"));
+            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(ownerUser.email()).thenReturn(Optional.empty());
+            when(memberUser.email()).thenReturn(Optional.of("member@example.com"));
+            when(memberUser.username()).thenReturn(Optional.of("member"));
 
-            goalAchievedNotificationHandler.handle(event);
+            handler.handle(event);
 
-            verify(authBackendClient).getUserEmailData(triggeredByUserId);
-            verify(authBackendClient).getUserEmailData(ownerId);
-            verify(authBackendClient).getUserEmailData(memberId);
-            verify(emailNotifier).sendGoalAchieved("member@example.com", "Member", "Nieznany użytkownik", new BigDecimal("200.00"), new BigDecimal("300.00"), event.occurredAt());
-            verify(emailNotifier, never()).sendGoalAchieved("owner@example.com", "Owner", "Nieznany użytkownik", new BigDecimal("200.00"), new BigDecimal("300.00"), event.occurredAt());
-            verifyNoMoreInteractions(emailNotifier);
+            verify(emailNotifier, never()).send(any(), eq("owner@example.com"), any());
+            verify(emailNotifier, times(1)).send(any(), eq("member@example.com"), any());
+        }
+
+        @Test
+        void shouldSkipMemberEmailWhenMemberHasNoEmail() {
+            when(triggeredByUser.username()).thenReturn(Optional.of("trigger-user"));
+            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(ownerUser.email()).thenReturn(Optional.of("owner@example.com"));
+            when(ownerUser.username()).thenReturn(Optional.of("owner"));
+            when(memberUser.email()).thenReturn(Optional.empty());
+
+            handler.handle(event);
+
+            verify(emailNotifier, times(1)).send(any(), eq("owner@example.com"), any());
+            verify(emailNotifier, never()).send(any(), eq("member@example.com"), any());
+        }
+
+        @Test
+        void shouldUseDefaultTriggeredByUsernameWhenTriggeredByUsernameMissing() {
+            when(triggeredByUser.username()).thenReturn(Optional.empty());
+            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(ownerUser.email()).thenReturn(Optional.of("owner@example.com"));
+            when(ownerUser.username()).thenReturn(Optional.of("owner"));
+            when(memberUser.email()).thenReturn(Optional.empty());
+
+            ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
+
+            handler.handle(event);
+
+            verify(emailNotifier).send(any(), eq("owner@example.com"), captor.capture());
+            assertEquals("Nieznany użytkownik", captor.getValue().get("triggeredByUsername"));
+        }
+
+        @Test
+        void shouldUseDefaultRecipientUsernameWhenRecipientUsernameMissing() {
+            when(triggeredByUser.username()).thenReturn(Optional.of("trigger-user"));
+            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(ownerUser.email()).thenReturn(Optional.of("owner@example.com"));
+            when(ownerUser.username()).thenReturn(Optional.empty());
+            when(memberUser.email()).thenReturn(Optional.empty());
+
+            ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
+
+            handler.handle(event);
+
+            verify(emailNotifier).send(any(), eq("owner@example.com"), captor.capture());
+            assertEquals("Użytkowniku", captor.getValue().get("username"));
+        }
+
+        @Test
+        void shouldIncludeCorrectPlaceholdersInEmail() {
+            when(triggeredByUser.username()).thenReturn(Optional.of("trigger-user"));
+            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(ownerUser.email()).thenReturn(Optional.of("owner@example.com"));
+            when(ownerUser.username()).thenReturn(Optional.of("owner"));
+            when(memberUser.email()).thenReturn(Optional.empty());
+
+            ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
+
+            handler.handle(event);
+
+            verify(emailNotifier).send(any(), eq("owner@example.com"), captor.capture());
+            Map<String, String> placeholders = captor.getValue();
+            assertEquals("owner", placeholders.get("username"));
+            assertEquals("trigger-user", placeholders.get("triggeredByUsername"));
+            assertEquals("500.00", placeholders.get("currentAmount"));
+            assertEquals("1000.00", placeholders.get("goalAmount"));
+            assertEquals("10.05.2024 12:30", placeholders.get("occurredAt"));
         }
     }
 }
-
-

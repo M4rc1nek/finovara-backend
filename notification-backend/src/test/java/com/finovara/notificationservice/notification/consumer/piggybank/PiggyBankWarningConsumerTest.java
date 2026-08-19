@@ -1,6 +1,6 @@
 package com.finovara.notificationservice.notification.consumer.piggybank;
 
-import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEvent;
+import com.finovara.contracts.notification.event.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.model.NotificationType;
 import com.finovara.contracts.model.transaction.PiggyBankGoalType;
 import com.finovara.notificationservice.notification.dto.piggybank.PiggyBankWarningDto;

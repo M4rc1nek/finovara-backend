@@ -1,7 +1,8 @@
 package com.finovara.authservice.settings.account.service.passwordpolicy.change;
 
-import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.event.notification.SendEmailEvent;
+import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.notification.email.ActionEmailEventType;
+import com.finovara.contracts.notification.event.SendEmailEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +34,8 @@ public class PasswordUpdateService {
 
         createActivity(user, request);
         outboxService.save("User", user.getId().toString(), "notification.email.send",
-                new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Zmiana hasla", "email/password-changed.html"));
+                new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(),
+                        ActionEmailEventType.PASSWORD_CHANGED, Map.of()));
     }
 
     private void createActivity(User user, HttpServletRequest request) {

@@ -1,6 +1,6 @@
 package com.finovara.financeservice.settings.piggybank.roundup.service;
 
-import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;

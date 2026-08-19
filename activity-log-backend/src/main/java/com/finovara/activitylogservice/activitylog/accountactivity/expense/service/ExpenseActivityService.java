@@ -6,7 +6,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.expense.mappe
 import com.finovara.activitylogservice.activitylog.accountactivity.expense.model.ExpenseActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.expense.repository.ExpenseActivityRepository;
 import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
+import com.finovara.contracts.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

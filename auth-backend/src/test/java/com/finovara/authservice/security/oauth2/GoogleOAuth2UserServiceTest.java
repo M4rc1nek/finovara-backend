@@ -1,6 +1,6 @@
 package com.finovara.authservice.security.oauth2;
 
-import com.finovara.contracts.event.user.UserCreatedEvent;
+import com.finovara.contracts.user.event.UserCreatedEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.authservice.user.model.OAuthProvider;
 import com.finovara.authservice.user.model.User;

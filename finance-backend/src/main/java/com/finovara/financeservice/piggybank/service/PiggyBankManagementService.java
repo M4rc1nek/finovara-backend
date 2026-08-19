@@ -1,8 +1,8 @@
 package com.finovara.financeservice.piggybank.service;
 
 import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.event.activity.piggybank.PiggyBankEditActivityEvent;
+import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.activity.event.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;

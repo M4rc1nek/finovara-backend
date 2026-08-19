@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
+import java.util.List;
+
 @FeignClient(name = "auth-backend", url = "${auth-backend.url}")
 public interface AuthBackendClient {
 
@@ -19,6 +21,9 @@ public interface AuthBackendClient {
 
     @GetMapping("/internal/username")
     String getUsername(@RequestHeader("X-User-Id") Long id);
+
+    @GetMapping("/internal/user-ids")
+    List<Long> getAllUserIds();
 
     @GetMapping("/internal/email")
     String getUserEmail(@RequestHeader("X-User-Id") Long id);

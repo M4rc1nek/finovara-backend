@@ -1,7 +1,7 @@
 package com.finovara.financeservice.piggybank.service;
 
-import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.event.notification.piggybank.PiggyBankProgressEvent;
+import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.notification.event.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.feignclient.AuthBackendClient;

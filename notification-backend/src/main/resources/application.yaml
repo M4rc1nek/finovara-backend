@@ -56,9 +56,14 @@ notification-persistence:
 scheduler:
   notification:
     delete-cron: "0 2 0 ? * 1"
+  email-notification:
+    weekly-digest-report-send: "0 0 23 * * *"
 
 auth-backend:
   url: ${AUTH_BACKEND_URL}
+
+finance-backend:
+  url: ${FINANCE_BACKEND_URL}
 
 
 

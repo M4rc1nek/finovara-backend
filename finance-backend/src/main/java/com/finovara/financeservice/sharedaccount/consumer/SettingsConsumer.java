@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.consumer;
 
-import com.finovara.contracts.event.finance.sharedaccount.SharedAccountCreateDefaultSettingsEvent;
+import com.finovara.contracts.finance.event.sharedaccount.SharedAccountCreateDefaultSettingsEvent;
 import com.finovara.financeservice.sharedaccount.settings.factory.SharedAccountSettingsFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;

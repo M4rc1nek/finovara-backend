@@ -1,0 +1,49 @@
+package com.finovara.notificationservice.notificationemail.service.settings.action.emailchange.service;
+
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.activity.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.model.activity.SettingActivityStatus;
+import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.notificationservice.feignclient.AuthBackendClient;
+import com.finovara.notificationservice.notificationemail.service.settings.action.core.AbstractActionNotificationEmailService;
+import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
+import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
+import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+
+@Service
+public class NotifyEmailChangeServiceAction extends AbstractActionNotificationEmailService {
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    public NotifyEmailChangeServiceAction(NotificationEmailSettingsRepository notificationEmailSettingsRepository,
+                                    AuthBackendClient authBackendClient,
+                                    KafkaTemplate<String, Object> kafkaTemplate,
+                                    AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver) {
+        super(notificationEmailSettingsRepository, authBackendClient, additionalAuthorizationCodeResolver);
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    @Override
+    protected boolean isEnabled(NotificationEmailDto dto) {
+        return dto.enabled();
+    }
+
+    @Override
+    protected void applySetting(NotificationEmailSettings settings, boolean value) {
+        settings.setNotifyOnEmailChange(value);
+    }
+
+    @Override
+    protected NotificationEmailDto mapToDto(NotificationEmailSettings settings) {
+        return new NotificationEmailDto(settings.isNotifyOnEmailChange(), null);
+    }
+
+    @Override
+    protected void handleActivity(Long userId, boolean enabled) {
+        kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.NOTIFICATION_EMAIL_CHANGED, enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED, LocalDateTime.now()));
+    }
+}

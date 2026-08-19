@@ -5,7 +5,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.model.SharedAccountActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.repository.SharedAccountActivityRepository;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
-import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.activity.event.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.SharedAccountActivityType;
 import org.junit.jupiter.api.BeforeEach;

@@ -15,7 +15,7 @@ import com.finovara.authservice.util.attempts.properties.VerificationCodePropert
 import com.finovara.authservice.util.authorization.generator.SecretGenerator;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import jakarta.servlet.http.HttpServletRequest;

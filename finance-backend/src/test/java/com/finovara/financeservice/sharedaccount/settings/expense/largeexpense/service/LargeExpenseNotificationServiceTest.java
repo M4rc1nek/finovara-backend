@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.service;
 
-import com.finovara.contracts.event.finance.sharedaccount.LargeExpenseNotificationEvent;
+import com.finovara.contracts.finance.event.sharedaccount.LargeExpenseNotificationEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
