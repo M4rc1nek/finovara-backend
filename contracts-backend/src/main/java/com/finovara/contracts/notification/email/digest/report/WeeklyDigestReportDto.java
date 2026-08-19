@@ -3,7 +3,7 @@ package com.finovara.contracts.notification.email.digest.report;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record DigestReportDto(
+public record WeeklyDigestReportDto(
         Long userId,
         LocalDate weekStart,
         LocalDate weekEnd,
@@ -16,6 +16,10 @@ public record DigestReportDto(
         Integer daysWithoutExpense,
         BigDecimal highestExpenseAmount,
         String highestExpenseCategory,
-        LocalDate highestExpenseDate
+        LocalDate highestExpenseDate,
+        BigDecimal highestRevenueAmount,
+        String highestRevenueCategory,
+        LocalDate highestRevenueDate,
+        PiggyBankSummaryDto piggyBankSummary
 ) {
 }
