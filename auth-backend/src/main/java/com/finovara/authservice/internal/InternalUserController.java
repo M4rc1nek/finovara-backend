@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/internal/")
@@ -46,6 +48,11 @@ public class InternalUserController {
     @GetMapping("/user-data")
     public ResponseEntity<UserDataResponse> getUserData(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(userManagerService.getUserData(userId));
+    }
+
+    @GetMapping("/user-ids")
+    public ResponseEntity<List<Long>> getAllUserIds() {
+        return ResponseEntity.ok(userManagerService.getAllUserIds());
     }
 
 }
