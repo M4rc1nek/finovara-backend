@@ -1,7 +1,7 @@
 package com.finovara.reportservice.sharedaccount.report.cache.evict.service;
 
 import com.finovara.contracts.cache.RedisCacheEvictor;
-import com.finovara.contracts.event.notification.sharedaccount.deletion.SharedAccountDeletedEvent;
+import com.finovara.contracts.notification.event.sharedaccount.deletion.SharedAccountDeletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
