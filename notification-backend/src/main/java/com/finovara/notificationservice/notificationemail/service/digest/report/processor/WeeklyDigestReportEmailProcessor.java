@@ -22,7 +22,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DigestReportEmailProcessor {
+public class WeeklyDigestReportEmailProcessor {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private static final String NOT_AVAILABLE = "—";
@@ -65,6 +65,9 @@ public class DigestReportEmailProcessor {
                 Map.entry("highestExpenseAmount", formatAmount(report.highestExpenseAmount())),
                 Map.entry("highestExpenseCategory", formatText(categoryLabelResolver.resolveExpenseCategoryName(report.highestExpenseCategory()))),
                 Map.entry("highestExpenseDate", formatDate(report.highestExpenseDate())),
+                Map.entry("highestRevenueAmount", formatAmount(report.highestRevenueAmount())),
+                Map.entry("highestRevenueCategory", formatText(categoryLabelResolver.resolveRevenueCategoryName(report.highestRevenueCategory()))),
+                Map.entry("highestRevenueDate", formatDate(report.highestRevenueDate())),
                 Map.entry("piggyBankQuantity", String.valueOf(piggyBankSummary.quantityOfPiggyBanks())),
                 Map.entry("piggyBankTotalDeposited", formatAmount(piggyBankSummary.totalDepositedMoney())),
                 Map.entry("piggyBankProgressPercentage", formatAmount(piggyBankSummary.progressPercentage())),
