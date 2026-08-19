@@ -1,29 +1,29 @@
-package com.finovara.notificationservice.notificationemail.service;
+package com.finovara.notificationservice.notificationemail.service.settings;
 
-import com.finovara.contracts.event.notification.SendEmailEvent;
-import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
-import com.finovara.contracts.event.user.UserCreatedEvent;
+import com.finovara.contracts.notification.email.ActionEmailEventType;
+import com.finovara.contracts.notification.event.SendEmailEvent;
+import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
+import com.finovara.contracts.user.event.UserCreatedEvent;
+import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
-import com.finovara.notificationservice.notificationemail.util.emailtemplate.EmailTemplateService;
+import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class NotificationSettingEmailConsumer {
 
-    private static final String EMAIL_CHANGED_TEMPLATE = "email/email-changed.html";
-    private static final String PASSWORD_CHANGED_TEMPLATE = "email/password-changed.html";
-    private static final String USERNAME_CHANGED_TEMPLATE = "email/username-changed.html";
-    private static final String ACCOUNT_DELETED_TEMPLATE = "email/account-deleted.html";
-
     private final NotificationEmailSettingsRepository notificationEmailSettingsRepository;
     private final NotificationEmailSettingsService notificationEmailSettingsService;
-    private final EmailTemplateService emailTemplateService;
+    private final EmailNotifier emailNotifier;
 
     @KafkaListener(topics = "user.created")
     public void handleUserCreated(UserCreatedEvent event) {
@@ -33,7 +33,7 @@ public class NotificationSettingEmailConsumer {
     @KafkaListener(topics = "notification.email.send")
     public void sendEmail(SendEmailEvent event) {
         notificationEmailSettingsRepository.findByUserId(event.userId())
-                .filter(settings -> isEnabled(settings, event.templateName()))
+                .filter(settings -> isEnabled(settings, event.eventType()))
                 .ifPresent(settings -> processEmail(event));
     }
 
@@ -43,22 +43,23 @@ public class NotificationSettingEmailConsumer {
                 .ifPresent(notificationEmailSettingsService::deleteSettings);
     }
 
-    private boolean isEnabled(NotificationEmailSettings settings, String templateName) {
-        return switch (templateName) {
-            case EMAIL_CHANGED_TEMPLATE -> settings.isNotifyOnEmailChange();
-            case PASSWORD_CHANGED_TEMPLATE -> settings.isNotifyOnPasswordChange();
-            case USERNAME_CHANGED_TEMPLATE -> settings.isNotifyOnUsernameChange();
-            case ACCOUNT_DELETED_TEMPLATE -> settings.isNotifyOnAccountDeleted();
-            default -> true;
+    private boolean isEnabled(NotificationEmailSettings settings, ActionEmailEventType eventType) {
+        return switch (eventType) {
+            case EMAIL_CHANGED -> settings.isNotifyOnEmailChange();
+            case PASSWORD_CHANGED -> settings.isNotifyOnPasswordChange();
+            case USERNAME_CHANGED -> settings.isNotifyOnUsernameChange();
+            case ACCOUNT_DELETED -> settings.isNotifyOnAccountDeleted();
+            case LARGE_EXPENSE_DETECTED, PIGGY_BANK_GOAL_ACHIEVED -> true;
         };
     }
 
     private void processEmail(SendEmailEvent event) {
-        emailTemplateService.sendEmail(
-                event.email(),
-                event.subject(),
-                event.templateName(),
-                event.username(),
-                event.email());
+        ActionEmailNotificationType template = ActionEmailNotificationType.valueOf(event.eventType().name());
+
+        Map<String, String> placeholders = new HashMap<>(event.placeholders());
+        placeholders.putIfAbsent("username", event.username());
+        placeholders.putIfAbsent("email", event.email());
+
+        emailNotifier.send(template, event.email(), placeholders);
     }
 }
