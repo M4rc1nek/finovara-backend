@@ -1,7 +1,7 @@
-package com.finovara.notificationservice.notificationemail.service.action.emailchange.controller;
+package com.finovara.notificationservice.notificationemail.service.settings.action.emailchange.controller;
 
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
-import com.finovara.notificationservice.notificationemail.service.action.emailchange.service.NotifyEmailChangeService;
+import com.finovara.notificationservice.notificationemail.service.settings.action.emailchange.service.NotifyEmailChangeServiceAction;
 import com.finovara.notificationservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/notification-settings/notify-email-change")
 @RequiredArgsConstructor
 public class NotifyEmailChangeController {
-    private final NotifyEmailChangeService notifyEmailChangeService;
+    private final NotifyEmailChangeServiceAction notifyEmailChangeService;
 
     @PatchMapping
     public ResponseEntity<Void> saveNotifyEmailChange(@RequestBody NotificationEmailDto dto) {
