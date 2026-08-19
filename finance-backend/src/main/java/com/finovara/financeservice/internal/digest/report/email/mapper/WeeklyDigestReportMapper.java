@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Component
-public class DigestReportMapper {
+public class WeeklyDigestReportMapper {
 
     public WeeklyDigestReportDto toDto(Long userId, LocalDate from, LocalDate to,
                                        ExpenseSummary expenseSummary, RevenueSummary revenueSummary,
@@ -31,6 +31,9 @@ public class DigestReportMapper {
                 expenseSummary.highestAmount(),
                 expenseSummary.highestCategory(),
                 expenseSummary.highestDate(),
+                revenueSummary.highestAmount(),
+                revenueSummary.highestCategory(),
+                revenueSummary.highestDate(),
                 toPiggyBankSummaryDto(piggyBankSummary)
         );
     }
