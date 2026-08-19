@@ -1,9 +1,6 @@
 package com.finovara.notificationservice.notificationemail.model;
 
-import lombok.Getter;
-
-@Getter
-public enum EmailNotificationType {
+public enum ActionEmailNotificationType implements EmailNotificationTemplate {
 
     ACCOUNT_DELETED(
             "Finovara - Usunięcie konta",
@@ -33,24 +30,30 @@ public enum EmailNotificationType {
     PIGGY_BANK_GOAL_ACHIEVED(
             "Finovara - Cel skarbonki osiągnięty!",
             "email/piggy-bank-goal-achieved.html",
-            EmailNotificationCategory.PREFERENCE_BASED),
-
-    DIGEST_REPORT_EMAIL(
-            "Finovara - Cotygodniowy Raport finansowy",
-            "email/digest/digest-report-email.html",
-            EmailNotificationCategory.SYSTEM);
+            EmailNotificationCategory.PREFERENCE_BASED);
 
     private final String subject;
     private final String templatePath;
     private final EmailNotificationCategory category;
 
-    EmailNotificationType(String subject, String templatePath, EmailNotificationCategory category) {
+    ActionEmailNotificationType(String subject, String templatePath, EmailNotificationCategory category) {
         this.subject = subject;
         this.templatePath = templatePath;
         this.category = category;
     }
 
-    public boolean requiresUserOptIn() {
-        return category == EmailNotificationCategory.PREFERENCE_BASED;
+    @Override
+    public String getSubject() {
+        return subject;
+    }
+
+    @Override
+    public String getTemplatePath() {
+        return templatePath;
+    }
+
+    @Override
+    public EmailNotificationCategory getCategory() {
+        return category;
     }
 }
