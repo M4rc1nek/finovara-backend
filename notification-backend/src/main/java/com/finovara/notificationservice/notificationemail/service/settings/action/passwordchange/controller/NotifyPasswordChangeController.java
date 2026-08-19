@@ -1,7 +1,7 @@
-package com.finovara.notificationservice.notificationemail.service.action.passwordchange.controller;
+package com.finovara.notificationservice.notificationemail.service.settings.action.passwordchange.controller;
 
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
-import com.finovara.notificationservice.notificationemail.service.action.passwordchange.service.NotifyPasswordChangeService;
+import com.finovara.notificationservice.notificationemail.service.settings.action.passwordchange.service.NotifyPasswordChangeServiceAction;
 import com.finovara.notificationservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class NotifyPasswordChangeController {
 
-    private final NotifyPasswordChangeService notifyPasswordChangeService;
+    private final NotifyPasswordChangeServiceAction notifyPasswordChangeService;
 
     @PatchMapping
     public ResponseEntity<Void> saveNotifyPasswordChange(@RequestBody NotificationEmailDto dto) {
