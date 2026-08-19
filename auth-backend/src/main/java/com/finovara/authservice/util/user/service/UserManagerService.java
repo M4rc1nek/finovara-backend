@@ -30,6 +30,12 @@ public class UserManagerService {
                 .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
     }
 
+    public List<Long> getAllUserIds() {
+        return userRepository.findAll().stream()
+                .map(User::getId)
+                .toList();
+    }
+
     public User getUserByIdOrThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
