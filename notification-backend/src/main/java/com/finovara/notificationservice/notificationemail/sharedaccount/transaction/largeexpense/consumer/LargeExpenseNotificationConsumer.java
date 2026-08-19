@@ -1,6 +1,6 @@
 package com.finovara.notificationservice.notificationemail.sharedaccount.transaction.largeexpense.consumer;
 
-import com.finovara.contracts.event.finance.sharedaccount.LargeExpenseNotificationEvent;
+import com.finovara.contracts.finance.event.sharedaccount.LargeExpenseNotificationEvent;
 import com.finovara.notificationservice.notificationemail.sharedaccount.transaction.largeexpense.service.LargeExpenseNotificationHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;

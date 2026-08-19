@@ -1,6 +1,6 @@
 package com.finovara.notificationservice.notificationemail.sharedaccount.piggybank.goalachieved.consumer;
 
-import com.finovara.contracts.event.finance.sharedaccount.GoalAchievedNotificationEvent;
+import com.finovara.contracts.finance.event.sharedaccount.GoalAchievedNotificationEvent;
 import com.finovara.notificationservice.notificationemail.sharedaccount.piggybank.goalachieved.service.GoalAchievedNotificationHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
