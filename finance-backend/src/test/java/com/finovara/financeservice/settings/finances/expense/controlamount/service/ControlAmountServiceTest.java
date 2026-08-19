@@ -2,7 +2,7 @@ package com.finovara.financeservice.settings.finances.expense.controlamount.serv
 
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
+import com.finovara.contracts.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.settings.finances.expense.controlamount.dto.ControlAmountDto;

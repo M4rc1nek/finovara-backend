@@ -1,7 +1,7 @@
 package com.finovara.financeservice.sharedaccount.deletion;
 
-import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
-import com.finovara.contracts.event.notification.sharedaccount.deletion.SharedAccountDeletedEvent;
+import com.finovara.contracts.activity.event.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.notification.event.sharedaccount.deletion.SharedAccountDeletedEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;

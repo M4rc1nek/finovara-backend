@@ -1,7 +1,7 @@
 package com.finovara.financeservice.limit.service;
 
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.event.activity.limit.LimitActivityEvent;
+import com.finovara.contracts.activity.event.limit.LimitActivityEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;

@@ -2,7 +2,7 @@ package com.finovara.financeservice.settings.finances.expense.quantitylimit.serv
 
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
+import com.finovara.contracts.activity.event.settings.SettingsActivityEvent;
 import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
