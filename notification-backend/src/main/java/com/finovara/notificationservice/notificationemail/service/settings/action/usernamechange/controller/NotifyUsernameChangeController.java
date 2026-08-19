@@ -1,7 +1,7 @@
-package com.finovara.notificationservice.notificationemail.service.action.usernamechange.controller;
+package com.finovara.notificationservice.notificationemail.service.settings.action.usernamechange.controller;
 
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
-import com.finovara.notificationservice.notificationemail.service.action.usernamechange.service.NotifyUsernameChangeService;
+import com.finovara.notificationservice.notificationemail.service.settings.action.usernamechange.service.NotifyUsernameChangeServiceAction;
 import com.finovara.notificationservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class NotifyUsernameChangeController {
 
-    private final NotifyUsernameChangeService notifyUsernameChangeService;
+    private final NotifyUsernameChangeServiceAction notifyUsernameChangeService;
 
     @PatchMapping
     public ResponseEntity<Void> saveNotifyUsernameChange(@RequestBody NotificationEmailDto dto) {
