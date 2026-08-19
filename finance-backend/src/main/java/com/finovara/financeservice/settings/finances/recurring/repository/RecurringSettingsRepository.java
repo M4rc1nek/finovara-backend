@@ -33,5 +33,14 @@ public interface RecurringSettingsRepository extends JpaRepository<RecurringSett
     @Query("SELECT rs FROM RecurringSettings rs WHERE rs.enable = true AND rs.userId = :userId")
     List<RecurringSettings> findAllEnabledByUserId(Long userId);
 
+    @Query("""
+            SELECT rs FROM RecurringSettings rs
+            WHERE rs.userId = :userId
+              AND rs.enable = true
+              AND rs.nextExecutionDate IS NOT NULL
+              AND rs.nextExecutionDate BETWEEN :from AND :to
+        """)
+    List<RecurringSettings> findUpcomingByUserId(Long userId, LocalDate from, LocalDate to);
+
     void deleteAllByUserId(Long userId);
 }
