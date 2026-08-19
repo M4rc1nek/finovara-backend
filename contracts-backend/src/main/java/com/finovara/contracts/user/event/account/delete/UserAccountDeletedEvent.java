@@ -1,4 +1,4 @@
-package com.finovara.contracts.event.user.delete.account;
+package com.finovara.contracts.user.event.account.delete;
 
 public record UserAccountDeletedEvent(
         Long userId
