@@ -6,8 +6,8 @@ import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.map
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.repository.PiggyBankActivityRepository;
 import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.event.activity.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.event.activity.piggybank.PiggyBankEditActivityEvent;
+import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.activity.event.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

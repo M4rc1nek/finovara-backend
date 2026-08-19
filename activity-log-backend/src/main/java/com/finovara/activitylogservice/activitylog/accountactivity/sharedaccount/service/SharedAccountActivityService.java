@@ -8,8 +8,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
 import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.event.activity.revenue.RevenueActivityEvent;
-import com.finovara.contracts.event.activity.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.activity.event.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.model.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
