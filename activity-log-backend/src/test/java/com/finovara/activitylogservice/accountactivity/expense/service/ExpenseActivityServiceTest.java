@@ -5,7 +5,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.expense.mappe
 import com.finovara.activitylogservice.activitylog.accountactivity.expense.model.ExpenseActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.expense.repository.ExpenseActivityRepository;
 import com.finovara.activitylogservice.activitylog.accountactivity.expense.service.ExpenseActivityService;
-import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
+import com.finovara.contracts.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.model.SortType;
 import com.finovara.contracts.model.activity.ExpenseActivityType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
