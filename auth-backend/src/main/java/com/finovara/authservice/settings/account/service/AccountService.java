@@ -6,8 +6,9 @@ import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.event.activity.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.event.notification.SendEmailEvent;
+import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.notification.email.ActionEmailEventType;
+import com.finovara.contracts.notification.event.SendEmailEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.contracts.outbox.OutboxService;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
 import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
@@ -48,7 +50,8 @@ public class AccountService {
         outboxService.save("User", userId.toString(), "activity.account-changes",
                 new AccountChangesActivityEvent(userId, AccountChangesActivityType.USERNAME_CHANGED, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
         outboxService.save("User", userId.toString(), "notification.email.send",
-                new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(), "Finovara - Zmiana nazwy użytkownika", "email/username-changed.html"));
+                new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(),
+                        ActionEmailEventType.USERNAME_CHANGED, Map.of()));
 
         return accountSettingsDto;
     }
