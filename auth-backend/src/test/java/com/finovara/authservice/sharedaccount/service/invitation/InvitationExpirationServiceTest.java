@@ -4,7 +4,7 @@ import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.user.dto.UserDataDto;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.event.notification.sharedaccount.invitation.SharedAccountInvitationExpiredEvent;
+import com.finovara.contracts.notification.event.sharedaccount.invitation.SharedAccountInvitationExpiredEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
