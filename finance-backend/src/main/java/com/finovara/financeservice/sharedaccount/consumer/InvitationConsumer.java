@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.consumer;
 
-import com.finovara.contracts.event.finance.sharedaccount.UsersCreatedSharedAccountEvent;
+import com.finovara.contracts.finance.event.sharedaccount.UsersCreatedSharedAccountEvent;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;

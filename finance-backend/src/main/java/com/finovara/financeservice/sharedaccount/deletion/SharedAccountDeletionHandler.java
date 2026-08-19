@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.deletion;
 
-import com.finovara.contracts.event.notification.sharedaccount.deletion.SharedAccountDeletedEvent;
+import com.finovara.contracts.notification.event.sharedaccount.deletion.SharedAccountDeletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

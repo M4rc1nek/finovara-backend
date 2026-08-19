@@ -1,6 +1,6 @@
 package com.finovara.financeservice.settings.finances.expense.controlamount.service;
 
-import com.finovara.contracts.event.activity.settings.SettingsActivityEvent;
+import com.finovara.contracts.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.model.activity.SettingActivityStatus;
 import com.finovara.contracts.model.activity.SettingType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;

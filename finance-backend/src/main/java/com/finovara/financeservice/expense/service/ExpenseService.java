@@ -1,8 +1,8 @@
 package com.finovara.financeservice.expense.service;
 
 import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.event.activity.expense.ExpenseActivityEvent;
-import com.finovara.contracts.event.notification.limit.LimitStatsEvent;
+import com.finovara.contracts.activity.event.expense.ExpenseActivityEvent;
+import com.finovara.contracts.notification.event.limit.LimitStatsEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;

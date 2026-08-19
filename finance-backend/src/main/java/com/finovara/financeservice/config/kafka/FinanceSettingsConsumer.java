@@ -1,8 +1,8 @@
 package com.finovara.financeservice.config.kafka;
 
 import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.event.user.delete.account.UserAccountDeletedEvent;
-import com.finovara.contracts.event.user.UserCreatedEvent;
+import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
+import com.finovara.contracts.user.event.UserCreatedEvent;
 import com.finovara.financeservice.settings.FinanceSettingsService;
 import com.finovara.financeservice.settings.factory.FinanceSettingsFactory;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
