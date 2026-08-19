@@ -3,18 +3,16 @@ package com.finovara.notificationservice.notificationemail.service.settings.acti
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
-import com.finovara.notificationservice.notificationemail.dto.UserEmailDataDto;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
-import com.finovara.notificationservice.notificationemail.service.settings.NotificationSettingEmailSender;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
-public abstract class AbstractNotificationEmailService {
+public abstract class AbstractActionNotificationEmailService {
+
     protected final NotificationEmailSettingsRepository notificationEmailSettingsRepository;
-    protected final NotificationSettingEmailSender notificationSettingEmailSender;
     protected final AuthBackendClient authBackendClient;
     protected final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
@@ -38,24 +36,11 @@ public abstract class AbstractNotificationEmailService {
         return mapToDto(settings);
     }
 
-    public void sendEmail(Long userId, UserEmailDataDto userEmailData) {
-        notificationSettingEmailSender.sendIfEnabled(
-                userId,
-                userEmailData,
-                this::isNotificationEmailSettingsEnabled,
-                this::sendEmailToUser
-        );
-    }
-
     protected abstract boolean isEnabled(NotificationEmailDto dto);
 
     protected abstract void applySetting(NotificationEmailSettings settings, boolean value);
 
-    protected abstract boolean isNotificationEmailSettingsEnabled(NotificationEmailSettings settings);
-
     protected abstract NotificationEmailDto mapToDto(NotificationEmailSettings settings);
-
-    protected abstract void sendEmailToUser(Long userId, UserEmailDataDto userEmailData);
 
     protected void handleActivity(Long userId, boolean enabled) {
     }
