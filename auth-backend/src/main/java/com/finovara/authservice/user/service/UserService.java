@@ -2,8 +2,8 @@ package com.finovara.authservice.user.service;
 
 import com.finovara.authservice.exception.conflict.LocalPasswordNotSetException;
 import com.finovara.authservice.exception.unauthorized.InvalidCredentialsException;
-import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
-import com.finovara.contracts.event.user.UserCreatedEvent;
+import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.user.event.UserCreatedEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
 import com.finovara.authservice.security.jwt.JwtService;

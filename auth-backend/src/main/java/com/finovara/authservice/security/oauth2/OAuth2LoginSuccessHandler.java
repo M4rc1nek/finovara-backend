@@ -1,6 +1,6 @@
 package com.finovara.authservice.security.oauth2;
 
-import com.finovara.contracts.event.activity.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
