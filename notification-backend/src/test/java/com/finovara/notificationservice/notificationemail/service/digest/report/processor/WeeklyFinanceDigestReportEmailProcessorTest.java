@@ -2,7 +2,7 @@ package com.finovara.notificationservice.notificationemail.service.digest.report
 
 import com.finovara.contracts.authorization.dto.UserDataResponse;
 import com.finovara.contracts.notification.email.digest.report.PiggyBankSummaryDto;
-import com.finovara.contracts.notification.email.digest.report.WeeklyDigestReportDto;
+import com.finovara.contracts.notification.email.digest.report.WeeklyFinanceDigestReportDto;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.feignclient.FinanceBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ScheduledEmailNotificationType;
@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -34,7 +35,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class WeeklyDigestReportEmailProcessorTest {
+class WeeklyFinanceDigestReportEmailProcessorTest {
 
     private static final Long USER_ID = 1L;
 
@@ -50,15 +51,16 @@ class WeeklyDigestReportEmailProcessorTest {
     @Mock
     private CategoryLabelResolver categoryLabelResolver;
 
-    private WeeklyDigestReportEmailProcessor processor;
+    @InjectMocks
+    private WeeklyFinanceDigestReportEmailProcessor processor;
 
     @BeforeEach
     void setUp() {
-        processor = new WeeklyDigestReportEmailProcessor(authBackendClient, financeBackendClient, emailNotifier, categoryLabelResolver);
+        processor = new WeeklyFinanceDigestReportEmailProcessor(authBackendClient, financeBackendClient, emailNotifier, categoryLabelResolver);
     }
 
-    private WeeklyDigestReportDto fullReport() {
-        return new WeeklyDigestReportDto(
+    private WeeklyFinanceDigestReportDto fullReport() {
+        return new WeeklyFinanceDigestReportDto(
                 USER_ID,
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 1, 7),
@@ -79,8 +81,8 @@ class WeeklyDigestReportEmailProcessorTest {
         );
     }
 
-    private WeeklyDigestReportDto emptyReport() {
-        return new WeeklyDigestReportDto(
+    private WeeklyFinanceDigestReportDto emptyReport() {
+        return new WeeklyFinanceDigestReportDto(
                 USER_ID,
                 null,
                 null,
@@ -106,37 +108,37 @@ class WeeklyDigestReportEmailProcessorTest {
 
         @Test
         void shouldSendEmailWhenUserHasEmail() {
-            WeeklyDigestReportDto report = fullReport();
+            WeeklyFinanceDigestReportDto report = fullReport();
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.of("john@example.com"));
 
-            when(financeBackendClient.getWeeklyDigestReports()).thenReturn(List.of(report));
+            when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
             when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 
-            processor.sendDigestEmailReport();
+            processor.sendWeeklyFinanceDigestEmail();
 
-            verify(emailNotifier).send(eq(ScheduledEmailNotificationType.WEEKLY_DIGEST_REPORT_EMAIL), eq("john@example.com"), any());
+            verify(emailNotifier).send(eq(ScheduledEmailNotificationType.WEEKLY_FINANCE_DIGEST_REPORT_EMAIL), eq("john@example.com"), any());
         }
 
         @Test
         void shouldNotSendEmailWhenUserEmailIsEmpty() {
-            WeeklyDigestReportDto report = fullReport();
+            WeeklyFinanceDigestReportDto report = fullReport();
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.empty());
 
-            when(financeBackendClient.getWeeklyDigestReports()).thenReturn(List.of(report));
+            when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
             when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
 
-            processor.sendDigestEmailReport();
+            processor.sendWeeklyFinanceDigestEmail();
 
             verify(emailNotifier, never()).send(any(), any(), any());
         }
 
         @Test
         void shouldNotCallAnythingWhenReportsListIsEmpty() {
-            when(financeBackendClient.getWeeklyDigestReports()).thenReturn(List.of());
+            when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of());
 
-            processor.sendDigestEmailReport();
+            processor.sendWeeklyFinanceDigestEmail();
 
             verifyNoInteractions(authBackendClient);
             verifyNoInteractions(emailNotifier);
@@ -144,8 +146,8 @@ class WeeklyDigestReportEmailProcessorTest {
 
         @Test
         void shouldProcessMultipleReportsIndependently() {
-            WeeklyDigestReportDto reportOne = fullReport();
-            WeeklyDigestReportDto reportTwo = new WeeklyDigestReportDto(
+            WeeklyFinanceDigestReportDto reportOne = fullReport();
+            WeeklyFinanceDigestReportDto reportTwo = new WeeklyFinanceDigestReportDto(
                     2L, LocalDate.of(2026, 1, 8), LocalDate.of(2026, 1, 14),
                     new BigDecimal("10.00"), null, new BigDecimal("20.00"), null,
                     new BigDecimal("5.00"), new BigDecimal("3.00"), 1,
@@ -156,30 +158,30 @@ class WeeklyDigestReportEmailProcessorTest {
             UserDataResponse userOne = new UserDataResponse(USER_ID, Optional.of("john"), Optional.of("john@example.com"));
             UserDataResponse userTwo = new UserDataResponse(2L, Optional.of("anna"), Optional.of("anna@example.com"));
 
-            when(financeBackendClient.getWeeklyDigestReports()).thenReturn(List.of(reportOne, reportTwo));
+            when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(reportOne, reportTwo));
             when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(userOne);
             when(authBackendClient.getUserEmailData(2L)).thenReturn(userTwo);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 
-            processor.sendDigestEmailReport();
+            processor.sendWeeklyFinanceDigestEmail();
 
             verify(emailNotifier, times(2)).send(any(), any(), any());
         }
 
         @Test
         void shouldUseDefaultUsernameWhenUsernameIsAbsent() {
-            WeeklyDigestReportDto report = fullReport();
+            WeeklyFinanceDigestReportDto report = fullReport();
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.empty(), Optional.of("john@example.com"));
 
-            when(financeBackendClient.getWeeklyDigestReports()).thenReturn(List.of(report));
+            when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
             when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 
             ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
 
-            processor.sendDigestEmailReport();
+            processor.sendWeeklyFinanceDigestEmail();
 
             verify(emailNotifier).send(any(), any(), captor.capture());
             assertEquals("Użytkowniku", captor.getValue().get("userName"));
@@ -187,17 +189,17 @@ class WeeklyDigestReportEmailProcessorTest {
 
         @Test
         void shouldFormatNullValuesAsNotAvailable() {
-            WeeklyDigestReportDto report = emptyReport();
+            WeeklyFinanceDigestReportDto report = emptyReport();
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.of("john@example.com"));
 
-            when(financeBackendClient.getWeeklyDigestReports()).thenReturn(List.of(report));
+            when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
             when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn(null);
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn(null);
 
             ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
 
-            processor.sendDigestEmailReport();
+            processor.sendWeeklyFinanceDigestEmail();
 
             verify(emailNotifier).send(any(), any(), captor.capture());
             Map<String, String> placeholders = captor.getValue();
@@ -210,17 +212,17 @@ class WeeklyDigestReportEmailProcessorTest {
 
         @Test
         void shouldFormatGoalCompletedAsTakWhenTrue() {
-            WeeklyDigestReportDto report = fullReport();
+            WeeklyFinanceDigestReportDto report = fullReport();
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.of("john@example.com"));
 
-            when(financeBackendClient.getWeeklyDigestReports()).thenReturn(List.of(report));
+            when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
             when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 
             ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
 
-            processor.sendDigestEmailReport();
+            processor.sendWeeklyFinanceDigestEmail();
 
             verify(emailNotifier).send(any(), any(), captor.capture());
             assertEquals("Tak", captor.getValue().get("piggyBankGoalCompleted"));
@@ -228,17 +230,17 @@ class WeeklyDigestReportEmailProcessorTest {
 
         @Test
         void shouldFormatDatesUsingDdMmYyyyPattern() {
-            WeeklyDigestReportDto report = fullReport();
+            WeeklyFinanceDigestReportDto report = fullReport();
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.of("john@example.com"));
 
-            when(financeBackendClient.getWeeklyDigestReports()).thenReturn(List.of(report));
+            when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
             when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 
             ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
 
-            processor.sendDigestEmailReport();
+            processor.sendWeeklyFinanceDigestEmail();
 
             verify(emailNotifier).send(any(), any(), captor.capture());
             assertEquals("01.01.2026", captor.getValue().get("weekStart"));
@@ -247,17 +249,17 @@ class WeeklyDigestReportEmailProcessorTest {
 
         @Test
         void shouldIncludePiggyBankQuantityAsPlainNumber() {
-            WeeklyDigestReportDto report = fullReport();
+            WeeklyFinanceDigestReportDto report = fullReport();
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.of("john@example.com"));
 
-            when(financeBackendClient.getWeeklyDigestReports()).thenReturn(List.of(report));
+            when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
             when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 
             ArgumentCaptor<Map<String, String>> captor = ArgumentCaptor.forClass(Map.class);
 
-            processor.sendDigestEmailReport();
+            processor.sendWeeklyFinanceDigestEmail();
 
             verify(emailNotifier).send(any(), any(), captor.capture());
             assertEquals("2", captor.getValue().get("piggyBankQuantity"));

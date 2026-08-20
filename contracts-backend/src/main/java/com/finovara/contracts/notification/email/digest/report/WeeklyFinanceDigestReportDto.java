@@ -3,7 +3,7 @@ package com.finovara.contracts.notification.email.digest.report;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record WeeklyDigestReportDto(
+public record WeeklyFinanceDigestReportDto(
         Long userId,
         LocalDate weekStart,
         LocalDate weekEnd,

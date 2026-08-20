@@ -1,11 +1,11 @@
 package com.finovara.financeservice.internal.digest.report.email;
 
 import com.finovara.contracts.notification.email.digest.report.PiggyBankSummaryDto;
-import com.finovara.contracts.notification.email.digest.report.WeeklyDigestReportDto;
+import com.finovara.contracts.notification.email.digest.report.WeeklyFinanceDigestReportDto;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.internal.digest.report.email.dto.ExpenseSummary;
 import com.finovara.financeservice.internal.digest.report.email.dto.RevenueSummary;
-import com.finovara.financeservice.internal.digest.report.email.mapper.WeeklyDigestReportMapper;
+import com.finovara.financeservice.internal.digest.report.email.mapper.WeeklyFinanceDigestReportMapper;
 import com.finovara.financeservice.internal.digest.report.email.service.ExpenseDigestService;
 import com.finovara.financeservice.internal.digest.report.email.service.PiggyBankDigestService;
 import com.finovara.financeservice.internal.digest.report.email.service.RevenueDigestService;
@@ -46,7 +46,7 @@ class InternalDigestReportEmailServiceTest {
     private PiggyBankDigestService piggyBankDigestService;
 
     @Mock
-    private WeeklyDigestReportMapper weeklyDigestReportMapper;
+    private WeeklyFinanceDigestReportMapper weeklyFinanceDigestReportMapper;
 
     @Mock
     private AuthBackendClient authBackendClient;
@@ -55,7 +55,7 @@ class InternalDigestReportEmailServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new InternalDigestReportEmailService(expenseDigestService, revenueDigestService, piggyBankDigestService, weeklyDigestReportMapper, authBackendClient);
+        service = new InternalDigestReportEmailService(expenseDigestService, revenueDigestService, piggyBankDigestService, weeklyFinanceDigestReportMapper, authBackendClient);
     }
 
     private ExpenseSummary expenseSummary() {
@@ -71,13 +71,13 @@ class InternalDigestReportEmailServiceTest {
     }
 
     @Nested
-    class GetWeeklyDigestReports {
+    class GetWeeklyFinanceDigestReports {
 
         @Test
         void shouldReturnEmptyListWhenNoUserIdsExist() {
             when(authBackendClient.getAllUserIds()).thenReturn(List.of());
 
-            List<WeeklyDigestReportDto> result = service.getWeeklyDigestReports();
+            List<WeeklyFinanceDigestReportDto> result = service.getWeeklyFinanceDigestReports();
 
             assertTrue(result.isEmpty());
             verify(expenseDigestService, never()).calculateSummary(any(), any(), any());
@@ -86,15 +86,15 @@ class InternalDigestReportEmailServiceTest {
         @Test
         void shouldBuildReportForSingleUser() {
             Long userId = 1L;
-            WeeklyDigestReportDto dto = mock(WeeklyDigestReportDto.class);
+            WeeklyFinanceDigestReportDto dto = mock(WeeklyFinanceDigestReportDto.class);
 
             when(authBackendClient.getAllUserIds()).thenReturn(List.of(userId));
             when(expenseDigestService.calculateSummary(eq(userId), any(LocalDate.class), any(LocalDate.class))).thenReturn(expenseSummary());
             when(revenueDigestService.calculateSummary(eq(userId), any(LocalDate.class), any(LocalDate.class))).thenReturn(revenueSummary());
             when(piggyBankDigestService.calculateSummary(eq(userId), any(LocalDate.class), any(LocalDate.class))).thenReturn(piggyBankSummaryDto());
-            when(weeklyDigestReportMapper.toDto(eq(userId), any(LocalDate.class), any(LocalDate.class), any(ExpenseSummary.class), any(RevenueSummary.class), any(PiggyBankSummaryDto.class))).thenReturn(dto);
+            when(weeklyFinanceDigestReportMapper.toDto(eq(userId), any(LocalDate.class), any(LocalDate.class), any(ExpenseSummary.class), any(RevenueSummary.class), any(PiggyBankSummaryDto.class))).thenReturn(dto);
 
-            List<WeeklyDigestReportDto> result = service.getWeeklyDigestReports();
+            List<WeeklyFinanceDigestReportDto> result = service.getWeeklyFinanceDigestReports();
 
             assertEquals(1, result.size());
             assertEquals(dto, result.get(0));
@@ -106,9 +106,9 @@ class InternalDigestReportEmailServiceTest {
             when(expenseDigestService.calculateSummary(any(), any(LocalDate.class), any(LocalDate.class))).thenReturn(expenseSummary());
             when(revenueDigestService.calculateSummary(any(), any(LocalDate.class), any(LocalDate.class))).thenReturn(revenueSummary());
             when(piggyBankDigestService.calculateSummary(any(), any(LocalDate.class), any(LocalDate.class))).thenReturn(piggyBankSummaryDto());
-            when(weeklyDigestReportMapper.toDto(any(), any(LocalDate.class), any(LocalDate.class), any(ExpenseSummary.class), any(RevenueSummary.class), any(PiggyBankSummaryDto.class))).thenReturn(mock(WeeklyDigestReportDto.class));
+            when(weeklyFinanceDigestReportMapper.toDto(any(), any(LocalDate.class), any(LocalDate.class), any(ExpenseSummary.class), any(RevenueSummary.class), any(PiggyBankSummaryDto.class))).thenReturn(mock(WeeklyFinanceDigestReportDto.class));
 
-            List<WeeklyDigestReportDto> result = service.getWeeklyDigestReports();
+            List<WeeklyFinanceDigestReportDto> result = service.getWeeklyFinanceDigestReports();
 
             assertEquals(3, result.size());
             verify(expenseDigestService, times(3)).calculateSummary(any(), any(LocalDate.class), any(LocalDate.class));
@@ -124,9 +124,9 @@ class InternalDigestReportEmailServiceTest {
             when(expenseDigestService.calculateSummary(eq(userId), fromCaptor.capture(), toCaptor.capture())).thenReturn(expenseSummary());
             when(revenueDigestService.calculateSummary(eq(userId), any(LocalDate.class), any(LocalDate.class))).thenReturn(revenueSummary());
             when(piggyBankDigestService.calculateSummary(eq(userId), any(LocalDate.class), any(LocalDate.class))).thenReturn(piggyBankSummaryDto());
-            when(weeklyDigestReportMapper.toDto(eq(userId), any(LocalDate.class), any(LocalDate.class), any(ExpenseSummary.class), any(RevenueSummary.class), any(PiggyBankSummaryDto.class))).thenReturn(mock(WeeklyDigestReportDto.class));
+            when(weeklyFinanceDigestReportMapper.toDto(eq(userId), any(LocalDate.class), any(LocalDate.class), any(ExpenseSummary.class), any(RevenueSummary.class), any(PiggyBankSummaryDto.class))).thenReturn(mock(WeeklyFinanceDigestReportDto.class));
 
-            service.getWeeklyDigestReports();
+            service.getWeeklyFinanceDigestReports();
 
             assertEquals(DayOfWeek.MONDAY, fromCaptor.getValue().getDayOfWeek());
             assertEquals(fromCaptor.getValue().plusDays(6), toCaptor.getValue());
@@ -143,9 +143,9 @@ class InternalDigestReportEmailServiceTest {
             when(expenseDigestService.calculateSummary(eq(userId), expenseFrom.capture(), any(LocalDate.class))).thenReturn(expenseSummary());
             when(revenueDigestService.calculateSummary(eq(userId), revenueFrom.capture(), any(LocalDate.class))).thenReturn(revenueSummary());
             when(piggyBankDigestService.calculateSummary(eq(userId), piggyFrom.capture(), any(LocalDate.class))).thenReturn(piggyBankSummaryDto());
-            when(weeklyDigestReportMapper.toDto(eq(userId), any(LocalDate.class), any(LocalDate.class), any(ExpenseSummary.class), any(RevenueSummary.class), any(PiggyBankSummaryDto.class))).thenReturn(mock(WeeklyDigestReportDto.class));
+            when(weeklyFinanceDigestReportMapper.toDto(eq(userId), any(LocalDate.class), any(LocalDate.class), any(ExpenseSummary.class), any(RevenueSummary.class), any(PiggyBankSummaryDto.class))).thenReturn(mock(WeeklyFinanceDigestReportDto.class));
 
-            service.getWeeklyDigestReports();
+            service.getWeeklyFinanceDigestReports();
 
             assertEquals(expenseFrom.getValue(), revenueFrom.getValue());
             assertEquals(expenseFrom.getValue(), piggyFrom.getValue());
@@ -156,14 +156,14 @@ class InternalDigestReportEmailServiceTest {
             when(authBackendClient.getAllUserIds()).thenReturn(List.of(1L));
             when(expenseDigestService.calculateSummary(any(), any(LocalDate.class), any(LocalDate.class))).thenThrow(new RuntimeException("expense failure"));
 
-            assertThrows(RuntimeException.class, () -> service.getWeeklyDigestReports());
+            assertThrows(RuntimeException.class, () -> service.getWeeklyFinanceDigestReports());
         }
 
         @Test
         void shouldThrowExceptionWhenAuthBackendClientFails() {
             when(authBackendClient.getAllUserIds()).thenThrow(new RuntimeException("auth failure"));
 
-            assertThrows(RuntimeException.class, () -> service.getWeeklyDigestReports());
+            assertThrows(RuntimeException.class, () -> service.getWeeklyFinanceDigestReports());
         }
 
         @Test
@@ -172,9 +172,9 @@ class InternalDigestReportEmailServiceTest {
             when(expenseDigestService.calculateSummary(any(), any(LocalDate.class), any(LocalDate.class))).thenReturn(expenseSummary());
             when(revenueDigestService.calculateSummary(any(), any(LocalDate.class), any(LocalDate.class))).thenReturn(revenueSummary());
             when(piggyBankDigestService.calculateSummary(any(), any(LocalDate.class), any(LocalDate.class))).thenReturn(piggyBankSummaryDto());
-            when(weeklyDigestReportMapper.toDto(any(), any(LocalDate.class), any(LocalDate.class), any(ExpenseSummary.class), any(RevenueSummary.class), any(PiggyBankSummaryDto.class))).thenThrow(new RuntimeException("mapping failure"));
+            when(weeklyFinanceDigestReportMapper.toDto(any(), any(LocalDate.class), any(LocalDate.class), any(ExpenseSummary.class), any(RevenueSummary.class), any(PiggyBankSummaryDto.class))).thenThrow(new RuntimeException("mapping failure"));
 
-            assertThrows(RuntimeException.class, () -> service.getWeeklyDigestReports());
+            assertThrows(RuntimeException.class, () -> service.getWeeklyFinanceDigestReports());
         }
     }
 }

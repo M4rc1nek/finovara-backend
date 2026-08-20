@@ -2,7 +2,7 @@ package com.finovara.notificationservice.notificationemail.service.digest.report
 
 import com.finovara.contracts.authorization.dto.UserDataResponse;
 import com.finovara.contracts.notification.email.digest.report.PiggyBankSummaryDto;
-import com.finovara.contracts.notification.email.digest.report.WeeklyDigestReportDto;
+import com.finovara.contracts.notification.email.digest.report.WeeklyFinanceDigestReportDto;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.feignclient.FinanceBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ScheduledEmailNotificationType;
@@ -22,7 +22,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class WeeklyDigestReportEmailProcessor {
+public class WeeklyFinanceDigestReportEmailProcessor {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private static final String NOT_AVAILABLE = "—";
@@ -32,12 +32,12 @@ public class WeeklyDigestReportEmailProcessor {
     private final EmailNotifier emailNotifier;
     private final CategoryLabelResolver categoryLabelResolver;
 
-    public void sendDigestEmailReport() {
-        List<WeeklyDigestReportDto> reports = financeBackendClient.getWeeklyDigestReports();
+    public void sendWeeklyFinanceDigestEmail() {
+        List<WeeklyFinanceDigestReportDto> reports = financeBackendClient.getWeeklyFinanceDigestReports();
         reports.forEach(this::sendForUser);
     }
 
-    private void sendForUser(WeeklyDigestReportDto report) {
+    private void sendForUser(WeeklyFinanceDigestReportDto report) {
         UserDataResponse user = authBackendClient.getUserEmailData(report.userId());
         if (user.email().isEmpty()) {
             log.warn("Skipping digest email - no email found for userId={}", report.userId());
@@ -45,10 +45,10 @@ public class WeeklyDigestReportEmailProcessor {
         }
 
         Map<String, String> placeholders = buildPlaceholders(report, user);
-        emailNotifier.send(ScheduledEmailNotificationType.WEEKLY_DIGEST_REPORT_EMAIL, user.email().get(), placeholders);
+        emailNotifier.send(ScheduledEmailNotificationType.WEEKLY_FINANCE_DIGEST_REPORT_EMAIL, user.email().get(), placeholders);
     }
 
-    private Map<String, String> buildPlaceholders(WeeklyDigestReportDto report, UserDataResponse user) {
+    private Map<String, String> buildPlaceholders(WeeklyFinanceDigestReportDto report, UserDataResponse user) {
         PiggyBankSummaryDto piggyBankSummary = report.piggyBankSummary();
 
         return Map.ofEntries(

@@ -1,7 +1,7 @@
 package com.finovara.financeservice.internal.digest.report.email.mapper;
 
 import com.finovara.contracts.notification.email.digest.report.PiggyBankSummaryDto;
-import com.finovara.contracts.notification.email.digest.report.WeeklyDigestReportDto;
+import com.finovara.contracts.notification.email.digest.report.WeeklyFinanceDigestReportDto;
 import com.finovara.financeservice.internal.digest.report.email.dto.ExpenseSummary;
 import com.finovara.financeservice.internal.digest.report.email.dto.RevenueSummary;
 import org.springframework.stereotype.Component;
@@ -10,14 +10,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Component
-public class WeeklyDigestReportMapper {
+public class WeeklyFinanceDigestReportMapper {
 
-    public WeeklyDigestReportDto toDto(Long userId, LocalDate from, LocalDate to,
+    public WeeklyFinanceDigestReportDto toDto(Long userId, LocalDate from, LocalDate to,
                                        ExpenseSummary expenseSummary, RevenueSummary revenueSummary,
                                        PiggyBankSummaryDto piggyBankSummary) {
         BigDecimal savedMoney = calculateSavedMoney(expenseSummary.sum(), revenueSummary.sum());
 
-        return new WeeklyDigestReportDto(
+        return new WeeklyFinanceDigestReportDto(
                 userId,
                 from,
                 to,

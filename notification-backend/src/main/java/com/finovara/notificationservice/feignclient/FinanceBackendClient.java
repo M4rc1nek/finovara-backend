@@ -1,6 +1,6 @@
 package com.finovara.notificationservice.feignclient;
 
-import com.finovara.contracts.notification.email.digest.report.WeeklyDigestReportDto;
+import com.finovara.contracts.notification.email.digest.report.WeeklyFinanceDigestReportDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -10,5 +10,5 @@ import java.util.List;
 public interface FinanceBackendClient {
 
     @GetMapping("/internal/digest/weekly-email/report")
-    List<WeeklyDigestReportDto> getWeeklyDigestReports();
+    List<WeeklyFinanceDigestReportDto> getWeeklyFinanceDigestReports();
 }
