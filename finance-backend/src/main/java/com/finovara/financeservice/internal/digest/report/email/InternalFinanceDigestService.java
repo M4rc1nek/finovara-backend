@@ -18,7 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class InternalFinanceDigestReportEmailService {
+public class InternalFinanceDigestService {
 
     private final ExpenseDigestService expenseDigestService;
     private final RevenueDigestService revenueDigestService;
