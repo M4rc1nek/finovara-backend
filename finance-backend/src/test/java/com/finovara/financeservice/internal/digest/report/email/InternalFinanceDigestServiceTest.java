@@ -34,7 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class InternalFinanceDigestReportEmailServiceTest {
+class InternalFinanceDigestServiceTest {
 
     @Mock
     private ExpenseDigestService expenseDigestService;
@@ -51,11 +51,11 @@ class InternalFinanceDigestReportEmailServiceTest {
     @Mock
     private AuthBackendClient authBackendClient;
 
-    private InternalFinanceDigestReportEmailService service;
+    private InternalFinanceDigestService service;
 
     @BeforeEach
     void setUp() {
-        service = new InternalFinanceDigestReportEmailService(expenseDigestService, revenueDigestService, piggyBankDigestService, weeklyFinanceDigestReportMapper, authBackendClient);
+        service = new InternalFinanceDigestService(expenseDigestService, revenueDigestService, piggyBankDigestService, weeklyFinanceDigestReportMapper, authBackendClient);
     }
 
     private ExpenseSummary expenseSummary() {
