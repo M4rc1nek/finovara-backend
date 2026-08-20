@@ -1,8 +1,8 @@
-package com.finovara.notificationservice.notificationemail.service.digest.report.processor;
+package com.finovara.notificationservice.notificationemail.service.digest.report.finance.processor;
 
 import com.finovara.contracts.authorization.dto.UserDataResponse;
-import com.finovara.contracts.notification.email.digest.report.PiggyBankSummaryDto;
-import com.finovara.contracts.notification.email.digest.report.WeeklyFinanceDigestReportDto;
+import com.finovara.contracts.notification.email.digest.report.finance.PiggyBankSummaryDto;
+import com.finovara.contracts.notification.email.digest.report.finance.WeeklyFinanceDigestReportDto;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.feignclient.FinanceBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ScheduledEmailNotificationType;
