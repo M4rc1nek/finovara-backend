@@ -12,12 +12,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/internal/digest/weekly-email")
 @RequiredArgsConstructor
-public class InternalFinanceDigestReportEmailController {
+public class InternalFinanceDigestController {
 
-    private final InternalFinanceDigestReportEmailService internalFinanceDigestReportEmailService;
+    private final InternalFinanceDigestService internalFinanceDigestService;
 
     @GetMapping("/report")
     public ResponseEntity<List<WeeklyFinanceDigestReportDto>> getWeeklyFinanceDigestReports() {
-        return ResponseEntity.ok(internalFinanceDigestReportEmailService.getWeeklyFinanceDigestReports());
+        return ResponseEntity.ok(internalFinanceDigestService.getWeeklyFinanceDigestReports());
     }
 }
