@@ -1,7 +1,7 @@
 package com.finovara.financeservice.internal.digest.report.email;
 
-import com.finovara.contracts.notification.email.digest.report.PiggyBankSummaryDto;
-import com.finovara.contracts.notification.email.digest.report.WeeklyFinanceDigestReportDto;
+import com.finovara.contracts.notification.email.digest.report.finance.PiggyBankSummaryDto;
+import com.finovara.contracts.notification.email.digest.report.finance.WeeklyFinanceDigestReportDto;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.internal.digest.report.email.dto.ExpenseSummary;
 import com.finovara.financeservice.internal.digest.report.email.dto.RevenueSummary;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class InternalDigestReportEmailServiceTest {
+class InternalFinanceDigestReportEmailServiceTest {
 
     @Mock
     private ExpenseDigestService expenseDigestService;
@@ -51,11 +51,11 @@ class InternalDigestReportEmailServiceTest {
     @Mock
     private AuthBackendClient authBackendClient;
 
-    private InternalDigestReportEmailService service;
+    private InternalFinanceDigestReportEmailService service;
 
     @BeforeEach
     void setUp() {
-        service = new InternalDigestReportEmailService(expenseDigestService, revenueDigestService, piggyBankDigestService, weeklyFinanceDigestReportMapper, authBackendClient);
+        service = new InternalFinanceDigestReportEmailService(expenseDigestService, revenueDigestService, piggyBankDigestService, weeklyFinanceDigestReportMapper, authBackendClient);
     }
 
     private ExpenseSummary expenseSummary() {
