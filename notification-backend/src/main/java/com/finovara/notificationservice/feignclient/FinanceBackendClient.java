@@ -1,6 +1,6 @@
 package com.finovara.notificationservice.feignclient;
 
-import com.finovara.contracts.notification.email.digest.report.WeeklyFinanceDigestReportDto;
+import com.finovara.contracts.notification.email.digest.report.finance.WeeklyFinanceDigestReportDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 
