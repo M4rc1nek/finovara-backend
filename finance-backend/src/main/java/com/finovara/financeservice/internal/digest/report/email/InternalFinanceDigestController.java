@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/internal/digest/weekly-email")
+@RequestMapping("/internal/finance/digest/weekly-email")
 @RequiredArgsConstructor
 public class InternalFinanceDigestController {
 
