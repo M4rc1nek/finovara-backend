@@ -1,35 +1,35 @@
-package com.finovara.authservice.internal.digest.report.email.mapper;
+package com.finovara.activitylogservice.internal.security.digest.mapper;
 
+import com.finovara.activitylogservice.internal.security.digest.dto.AccountChangesDigestSummaryDto;
+import com.finovara.activitylogservice.internal.security.digest.dto.LoginDigestSummaryDto;
 import com.finovara.contracts.notification.email.digest.report.security.WeeklySecurityDigestReportDto;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Component
 public class WeeklySecurityDigestReportMapper {
 
-    public WeeklySecurityDigestReportDto toDto(Long userId, LocalDate weekStart, LocalDate weekEnd, long successfulLogins,
-                                               long failedLogins, List<String> ipAddresses, List<String> locations, List<String> browsers,
-                                               long passwordChanges, LocalDateTime lastPasswordChangeDate, long emailChanges, LocalDateTime
-                                                       lastEmailChangeDate, long usernameChanges, LocalDateTime lastUsernameChangeDate
-    ) {
+    public WeeklySecurityDigestReportDto toDto(Long userId, LocalDateTime weekStart, LocalDateTime weekEnd, LoginDigestSummaryDto loginSummary, AccountChangesDigestSummaryDto accountChangesSummary) {
         return new WeeklySecurityDigestReportDto(
                 userId,
                 weekStart,
                 weekEnd,
-                successfulLogins,
-                failedLogins,
-                ipAddresses,
-                locations,
-                browsers,
-                passwordChanges,
-                lastPasswordChangeDate,
-                emailChanges,
-                lastEmailChangeDate,
-                usernameChanges,
-                lastUsernameChangeDate
+                loginSummary.successfulLogins(),
+                loginSummary.failedLogins(),
+                loginSummary.ipAddresses(),
+                loginSummary.locations(),
+                loginSummary.browsers(),
+                accountChangesSummary.passwordChanges(),
+                accountChangesSummary.lastPasswordChangeDate(),
+                accountChangesSummary.emailChanges(),
+                accountChangesSummary.lastEmailChangeDate(),
+                accountChangesSummary.usernameChanges(),
+                accountChangesSummary.lastUsernameChangeDate(),
+                accountChangesSummary.profileImageChanges(),
+                accountChangesSummary.lastProfileImageChangeDate(),
+                accountChangesSummary.profileImageDeleted(),
+                accountChangesSummary.lastProfileImageDeleteDate()
         );
     }
 }
