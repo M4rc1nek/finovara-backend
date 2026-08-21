@@ -15,7 +15,7 @@ public class DigestReportEmailScheduler {
     @Scheduled(cron = "${scheduler.email-notification.weekly-finance-digest-report-send}", zone = "Europe/Warsaw")
     @SchedulerLock(name = "sendWeeklyFinanceDigestEmail", lockAtMostFor = "10m", lockAtLeastFor = "30s")
     public void sendWeeklyFinanceDigestEmail() {
-        weeklyFinanceDigestReportEmailProcessor.sendDigestEmailReport();
+        weeklyFinanceDigestReportEmailProcessor.sendWeeklyFinanceDigestEmail();
     }
 
 }
