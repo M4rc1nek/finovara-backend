@@ -1,9 +1,15 @@
 package com.finovara.contracts.clientdata.location;
 
+import lombok.experimental.UtilityClass;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 import java.util.Map;
 
+@UtilityClass
 public class UserLocation {
+
+    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
     public static String getLocationFromIp(String ip) {
         if (ip == null) {
@@ -13,6 +19,7 @@ public class UserLocation {
         if (ip.equals("127.0.0.1") || ip.equals("0:0:0:0:0:0:0:1")) {
             return "Localhost";
         }
+
         if (ip.equals("172.18.0.1")) {
             return "Host dockera (gateway)";
         }
@@ -20,9 +27,8 @@ public class UserLocation {
         try {
             String url = "http://ip-api.com/json/" + ip;
 
-
-            RestTemplate restTemplate = new RestTemplate();
-            Map<String, Object> response = restTemplate.getForObject(url, Map.class);
+            Map<String, Object> response =
+                    REST_TEMPLATE.getForObject(url, Map.class);
 
             if (response == null) {
                 return "Unknown";
@@ -40,5 +46,16 @@ public class UserLocation {
         } catch (Exception e) {
             return "Unknown";
         }
+    }
+
+    public static List<String> getLocationsFromIps(List<String> ips) {
+        if (ips == null || ips.isEmpty()) {
+            return List.of();
+        }
+
+        return ips.stream()
+                .map(UserLocation::getLocationFromIp)
+                .distinct()
+                .toList();
     }
 }
