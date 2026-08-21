@@ -1,10 +1,233 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finovara - Cotygodniowy raport bezpieczeństwa</title>
 </head>
-<body>
-$END$
+
+<body style="margin:0; padding:0; background-color:#f5f6f8; font-family:'Segoe UI', Arial, Helvetica, sans-serif; color:#20242b;">
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f6f8; padding:40px 0;">
+    <tr>
+        <td align="center">
+
+            <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+                   style="width:600px; max-width:600px; background-color:#ffffff; border:1px solid #e6e8ec; border-radius:8px; overflow:hidden;">
+
+                <!-- Header -->
+                <tr>
+                    <td style="background-color:#14213d; padding:26px 40px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td style="color:#ffffff; font-size:19px; font-weight:600; letter-spacing:0.2px;">
+                                    Finovara
+                                </td>
+                                <td align="right" style="color:#c6ccda; font-size:12px; font-weight:400;">
+                                    Raport bezpieczeństwa
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- Intro -->
+                <tr>
+                    <td style="padding:34px 40px 18px 40px;">
+                        <h1 style="margin:0 0 9px 0; font-size:21px; line-height:28px; font-weight:600; color:#14213d;">
+                            Cześć, {userName}
+                        </h1>
+
+                        <p style="margin:0; font-size:14px; line-height:22px; color:#626873;">
+                            Poniżej znajdziesz podsumowanie aktywności na Twoim koncie za okres
+                            <strong style="color:#20242b;">{weekStart} - {weekEnd}</strong>.
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Login summary -->
+                <tr>
+                    <td style="padding:12px 40px 24px 40px;">
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                            <tr>
+
+                                <td width="48%" style="background-color:#f7f8fa; border:1px solid #e5e7eb; border-radius:6px; padding:18px 20px; vertical-align:top;">
+                                    <div style="font-size:11px; color:#737984; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:7px;">
+                                        Udane logowania
+                                    </div>
+                                    <div style="font-size:25px; line-height:30px; font-weight:600; color:#14213d;">
+                                        {successfulLogins}
+                                    </div>
+                                </td>
+
+                                <td width="4%"></td>
+
+                                <td width="48%" style="background-color:#f7f8fa; border:1px solid #e5e7eb; border-radius:6px; padding:18px 20px; vertical-align:top;">
+                                    <div style="font-size:11px; color:#737984; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:7px;">
+                                        Nieudane próby
+                                    </div>
+                                    <div style="font-size:25px; line-height:30px; font-weight:600; color:#14213d;">
+                                        {failedLogins}
+                                    </div>
+                                </td>
+
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+
+                <!-- Login details -->
+                <tr>
+                    <td style="padding:0 40px 24px 40px;">
+
+                        <h2 style="margin:0 0 14px 0; padding-bottom:9px; border-bottom:1px solid #e5e7eb; font-size:15px; line-height:20px; font-weight:600; color:#14213d;">
+                            Szczegóły logowania
+                        </h2>
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px; line-height:20px;">
+
+                            <tr>
+                                <td style="width:140px; padding:7px 0; color:#8a9099;">
+                                    Adresy IP
+                                </td>
+                                <td style="padding:7px 0; color:#20242b; font-weight:600;">
+                                    {ipAddresses}
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="padding:7px 0; color:#8a9099;">
+                                    Lokalizacje
+                                </td>
+                                <td style="padding:7px 0; color:#20242b; font-weight:600;">
+                                    {locations}
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td style="padding:7px 0; color:#8a9099;">
+                                    Przeglądarki
+                                </td>
+                                <td style="padding:7px 0; color:#20242b; font-weight:600;">
+                                    {browsers}
+                                </td>
+                            </tr>
+
+                        </table>
+
+                    </td>
+                </tr>
+
+                <!-- Account changes -->
+                <tr>
+                    <td style="padding:0 40px 24px 40px;">
+
+                        <h2 style="margin:0 0 14px 0; padding-bottom:9px; border-bottom:1px solid #e5e7eb; font-size:15px; line-height:20px; font-weight:600; color:#14213d;">
+                            Zmiany w ustawieniach konta
+                        </h2>
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:13px; line-height:20px;">
+
+                            <!-- Password -->
+                            <tr>
+                                <td style="width:180px; padding:7px 0; color:#8a9099;">
+                                    Zmiany hasła
+                                </td>
+                                <td style="padding:7px 0; color:#20242b;">
+                                    <strong>{passwordChanges}</strong>
+                                    <span style="color:#8a9099;">(ostatnia: {lastPasswordChangeDate})</span>
+                                </td>
+                            </tr>
+
+                            <!-- Email -->
+                            <tr>
+                                <td style="padding:7px 0; color:#8a9099;">
+                                    Zmiany adresu e-mail
+                                </td>
+                                <td style="padding:7px 0; color:#20242b;">
+                                    <strong>{emailChanges}</strong>
+                                    <span style="color:#8a9099;">(ostatnia: {lastEmailChangeDate})</span>
+                                </td>
+                            </tr>
+
+                            <!-- Username -->
+                            <tr>
+                                <td style="padding:7px 0; color:#8a9099;">
+                                    Zmiany nazwy użytkownika
+                                </td>
+                                <td style="padding:7px 0; color:#20242b;">
+                                    <strong>{usernameChanges}</strong>
+                                    <span style="color:#8a9099;">(ostatnia: {lastUsernameChangeDate})</span>
+                                </td>
+                            </tr>
+
+                            <!-- Profile image changes -->
+                            <tr>
+                                <td style="padding:7px 0; color:#8a9099;">
+                                    Zmiany zdjęcia profilowego
+                                </td>
+                                <td style="padding:7px 0; color:#20242b;">
+                                    <strong>{profileImageChanges}</strong>
+                                    <span style="color:#8a9099;">(ostatnia: {lastProfileImageChangeDate})</span>
+                                </td>
+                            </tr>
+
+                            <!-- Profile image deleted -->
+                            <tr>
+                                <td style="padding:7px 0; color:#8a9099;">
+                                    Usunięcia zdjęcia profilowego
+                                </td>
+                                <td style="padding:7px 0; color:#20242b;">
+                                    <strong>{profileImageDeleted}</strong>
+                                    <span style="color:#8a9099;">(ostatnie: {lastProfileImageDeleteDate})</span>
+                                </td>
+                            </tr>
+
+                        </table>
+
+                    </td>
+                </tr>
+
+                <!-- Security note -->
+                <tr>
+                    <td style="padding:0 40px 32px 40px;">
+
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                               style="background-color:#f7f8fa; border:1px solid #e2e5e9; border-radius:6px;">
+
+                            <tr>
+                                <td style="padding:14px 16px; font-size:12px; line-height:19px; color:#626873;">
+                                    <strong style="color:#20242b;">Ważne:</strong>
+                                    jeśli którakolwiek z powyższych aktywności nie wygląda znajomo,
+                                    zmień hasło i sprawdź listę aktywnych sesji tak szybko, jak to możliwe.
+                                </td>
+                            </tr>
+
+                        </table>
+
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background-color:#fafbfc; padding:20px 40px; border-top:1px solid #e8eaed;">
+
+                        <p style="margin:0; font-size:11px; line-height:18px; color:#969ca5;">
+                            Ten e-mail został wysłany automatycznie przez Finovara.
+                            Jeśli nie chcesz otrzymywać cotygodniowych raportów bezpieczeństwa,
+                            zmień ustawienia powiadomień w aplikacji.
+                        </p>
+
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
 </body>
 </html>
