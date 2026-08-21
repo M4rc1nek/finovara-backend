@@ -9,6 +9,6 @@ import java.util.List;
 @FeignClient(name = "finance-backend", url = "${finance-backend.url}")
 public interface FinanceBackendClient {
 
-    @GetMapping("/internal/digest/weekly-email/report")
+    @GetMapping("/internal/finance/digest/weekly-email/report")
     List<WeeklyFinanceDigestReportDto> getWeeklyFinanceDigestReports();
 }
