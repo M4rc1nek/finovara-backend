@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class DigestReportEmailScheduler {
+public class FinanceDigestReportEmailScheduler {
 
     private final WeeklyFinanceDigestReportEmailProcessor weeklyFinanceDigestReportEmailProcessor;
 
