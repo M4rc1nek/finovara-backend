@@ -1,7 +1,7 @@
 package com.finovara.financeservice.internal.digest.report.email;
 
-import com.finovara.contracts.notification.email.digest.report.PiggyBankSummaryDto;
-import com.finovara.contracts.notification.email.digest.report.WeeklyFinanceDigestReportDto;
+import com.finovara.contracts.notification.email.digest.report.finance.PiggyBankSummaryDto;
+import com.finovara.contracts.notification.email.digest.report.finance.WeeklyFinanceDigestReportDto;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.internal.digest.report.email.dto.ExpenseSummary;
 import com.finovara.financeservice.internal.digest.report.email.dto.RevenueSummary;
@@ -18,7 +18,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class InternalDigestReportEmailService {
+public class InternalFinanceDigestService {
 
     private final ExpenseDigestService expenseDigestService;
     private final RevenueDigestService revenueDigestService;

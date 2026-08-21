@@ -2,11 +2,13 @@ package com.finovara.activitylogservice.activitylog.accountactivity.secure.accou
 
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
+import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -19,13 +21,33 @@ public interface AccountChangesActivityRepository extends JpaRepository<AccountC
             WHERE a.userId = :userId
             ORDER BY a.id DESC
             """)
-     List<AccountChangesActivityDto> findByUserIdOrderByIdDesc(Long userId);
+    List<AccountChangesActivityDto> findByUserIdOrderByIdDesc(Long userId);
 
     @Query("SELECT COUNT(u) FROM AccountChangesActivity u WHERE u.userId = :userId")
     long countAccountChangesByUserId(Long userId);
 
+    @Query("""
+            SELECT COUNT(u)
+            FROM AccountChangesActivity u
+            WHERE u.userId = :userId
+              AND u.type = :type
+              AND u.createdAt >= :from
+              AND u.createdAt <= :to
+            """)
+    long countByUserIdAndStatusAndCreatedAtBetween(Long userId, AccountChangesActivityType type, LocalDateTime from, LocalDateTime to);
+
+    @Query("""
+            SELECT MAX(u.createdAt)
+            FROM AccountChangesActivity u
+            WHERE u.userId = :userId
+              AND u.type = :type
+              AND u.createdAt >= :from
+              AND u.createdAt <= :to
+            """)
+    LocalDateTime findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(Long userId, AccountChangesActivityType type, LocalDateTime from, LocalDateTime to);
+
     @Query("SELECT u FROM AccountChangesActivity u WHERE u.userId = :userId ORDER BY u.id")
-     List<AccountChangesActivity> findFewByUserId(Long userId, Pageable pageable);
+    List<AccountChangesActivity> findFewByUserId(Long userId, Pageable pageable);
 
     void deleteByUserId(Long userId);
 }

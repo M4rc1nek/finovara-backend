@@ -1,7 +1,7 @@
 package com.finovara.financeservice.internal.digest.report.email.mapper;
 
-import com.finovara.contracts.notification.email.digest.report.PiggyBankSummaryDto;
-import com.finovara.contracts.notification.email.digest.report.WeeklyFinanceDigestReportDto;
+import com.finovara.contracts.notification.email.digest.report.finance.PiggyBankSummaryDto;
+import com.finovara.contracts.notification.email.digest.report.finance.WeeklyFinanceDigestReportDto;
 import com.finovara.financeservice.internal.digest.report.email.dto.ExpenseSummary;
 import com.finovara.financeservice.internal.digest.report.email.dto.RevenueSummary;
 import org.springframework.stereotype.Component;
@@ -38,8 +38,8 @@ public class WeeklyFinanceDigestReportMapper {
         );
     }
 
-    private com.finovara.contracts.notification.email.digest.report.PiggyBankSummaryDto toPiggyBankSummaryDto(PiggyBankSummaryDto summary) {
-        return new com.finovara.contracts.notification.email.digest.report.PiggyBankSummaryDto(
+    private PiggyBankSummaryDto toPiggyBankSummaryDto(PiggyBankSummaryDto summary) {
+        return new PiggyBankSummaryDto(
                 summary.quantityOfPiggyBanks(),
                 summary.totalDepositedMoney(),
                 summary.progressPercentage(),

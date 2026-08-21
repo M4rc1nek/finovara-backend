@@ -36,6 +36,7 @@ services:
       SSL_PASSWORD: ${SSL_PASSWORD}
       AUTH_BACKEND_URL: https://finovara-auth-app:8443
       FINANCE_BACKEND_URL: https://finovara-finance-app:8087
+      ACTIVITY_LOG_BACKEND_URL: https://finovara-activity-app:8082
     volumes:
       - ../localhost.p12:/app/localhost.p12
     healthcheck:
