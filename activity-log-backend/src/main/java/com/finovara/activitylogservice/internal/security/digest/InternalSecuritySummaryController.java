@@ -12,7 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/internal/activity/security/digest/weekly-email")
 @RequiredArgsConstructor
-public class InternalLoginSummaryController {
+public class InternalSecuritySummaryController {
 
     private final InternalSecurityDigestService internalSecurityDigestService;
 
