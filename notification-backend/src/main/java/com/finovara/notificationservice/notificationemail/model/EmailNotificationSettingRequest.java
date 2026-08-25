@@ -1,4 +1,6 @@
-package com.finovara.notificationservice.notificationemail.service.settings.action.wallet.lowbalance;
+package com.finovara.notificationservice.notificationemail.model;
 
 public interface EmailNotificationSettingRequest {
+    Boolean enabled();
+    String authorizationCode();
 }
