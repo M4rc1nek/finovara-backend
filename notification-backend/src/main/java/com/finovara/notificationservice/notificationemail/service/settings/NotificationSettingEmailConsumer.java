@@ -1,13 +1,17 @@
-package com.finovara.notificationservice.notificationemail.service.settings;
+package com.finovara.notificationservice.notificationemail.service;
+
+
 
 import com.finovara.contracts.notification.email.ActionEmailEventType;
 import com.finovara.contracts.notification.event.SendEmailEvent;
-import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
 import com.finovara.contracts.user.event.UserCreatedEvent;
+import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
+import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
+import com.finovara.notificationservice.notificationemail.service.settings.NotificationEmailSettingsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -24,6 +28,7 @@ public class NotificationSettingEmailConsumer {
     private final NotificationEmailSettingsRepository notificationEmailSettingsRepository;
     private final NotificationEmailSettingsService notificationEmailSettingsService;
     private final EmailNotifier emailNotifier;
+    private final AuthBackendClient authBackendClient;
 
     @KafkaListener(topics = "user.created")
     public void handleUserCreated(UserCreatedEvent event) {
@@ -49,6 +54,7 @@ public class NotificationSettingEmailConsumer {
             case PASSWORD_CHANGED -> settings.isNotifyOnPasswordChange();
             case USERNAME_CHANGED -> settings.isNotifyOnUsernameChange();
             case ACCOUNT_DELETED -> settings.isNotifyOnAccountDeleted();
+            case WALLET_LOW_BALANCE -> settings.isNotifyOnWalletLowBalance();
             case LARGE_EXPENSE_DETECTED, PIGGY_BANK_GOAL_ACHIEVED -> true;
         };
     }
