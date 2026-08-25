@@ -45,7 +45,8 @@ class AbstractActionNotificationEmailServiceTest {
 
     private TestActionNotificationEmailService service;
 
-    static class TestActionNotificationEmailService extends AbstractActionNotificationEmailService {
+    static class TestActionNotificationEmailService
+            extends AbstractActionNotificationEmailService<NotificationEmailDto, NotificationEmailDto> {
 
         TestActionNotificationEmailService(NotificationEmailSettingsRepository repository,
                                            AuthBackendClient authBackendClient,
@@ -54,13 +55,8 @@ class AbstractActionNotificationEmailServiceTest {
         }
 
         @Override
-        protected boolean isEnabled(NotificationEmailDto dto) {
-            return dto.enabled();
-        }
-
-        @Override
-        protected void applySetting(NotificationEmailSettings settings, boolean value) {
-            settings.setNotifyOnUsernameChange(value);
+        protected void applySetting(NotificationEmailSettings settings, NotificationEmailDto dto) {
+            settings.setNotifyOnUsernameChange(Boolean.TRUE.equals(dto.enabled()));
         }
 
         @Override
@@ -80,7 +76,6 @@ class AbstractActionNotificationEmailServiceTest {
         @Test
         void shouldConfirmAuthorizationCodeWhenSaving() {
             NotificationEmailDto dto = new NotificationEmailDto(true, AUTH_CODE);
-
             when(notificationEmailSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(notificationEmailSettings));
 
             service.saveEmailNotification(USER_ID, dto);
@@ -92,7 +87,6 @@ class AbstractActionNotificationEmailServiceTest {
         @Test
         void shouldEnableSettingWhenDtoEnabledIsTrue() {
             NotificationEmailDto dto = new NotificationEmailDto(true, AUTH_CODE);
-
             when(notificationEmailSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(notificationEmailSettings));
 
             service.saveEmailNotification(USER_ID, dto);
@@ -103,7 +97,6 @@ class AbstractActionNotificationEmailServiceTest {
         @Test
         void shouldDisableSettingWhenDtoEnabledIsFalse() {
             NotificationEmailDto dto = new NotificationEmailDto(false, AUTH_CODE);
-
             when(notificationEmailSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(notificationEmailSettings));
 
             service.saveEmailNotification(USER_ID, dto);
@@ -114,7 +107,6 @@ class AbstractActionNotificationEmailServiceTest {
         @Test
         void shouldPersistSettingsAfterApplyingChange() {
             NotificationEmailDto dto = new NotificationEmailDto(true, AUTH_CODE);
-
             when(notificationEmailSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(notificationEmailSettings));
 
             service.saveEmailNotification(USER_ID, dto);
@@ -125,7 +117,6 @@ class AbstractActionNotificationEmailServiceTest {
         @Test
         void shouldThrowExceptionWhenSettingsNotFound() {
             NotificationEmailDto dto = new NotificationEmailDto(true, AUTH_CODE);
-
             when(notificationEmailSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.saveEmailNotification(USER_ID, dto));
@@ -134,7 +125,6 @@ class AbstractActionNotificationEmailServiceTest {
         @Test
         void shouldNotSaveSettingsWhenNotFound() {
             NotificationEmailDto dto = new NotificationEmailDto(true, AUTH_CODE);
-
             when(notificationEmailSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.saveEmailNotification(USER_ID, dto));
