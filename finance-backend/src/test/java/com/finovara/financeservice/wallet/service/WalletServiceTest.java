@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -27,6 +28,9 @@ class WalletServiceTest {
 
     @Mock
     private WalletManagerService walletManagerService;
+
+    @Mock
+    private  KafkaTemplate<String, Object> kafkaTemplate;
 
     @InjectMocks
     private WalletService walletService;
@@ -111,6 +115,7 @@ class WalletServiceTest {
 
             WalletDto result = walletService.removeBalanceFromWallet(userId, new BigDecimal("50"));
 
+            verify(kafkaTemplate).send(eq("wallet.balance-changed"), any());
             assertEquals(new BigDecimal("50"), result.balance());
         }
 
