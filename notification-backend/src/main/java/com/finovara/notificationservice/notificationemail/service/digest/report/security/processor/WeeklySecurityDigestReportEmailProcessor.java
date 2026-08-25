@@ -34,19 +34,19 @@ public class WeeklySecurityDigestReportEmailProcessor {
     }
 
     private void sendForUser(WeeklySecurityDigestReportDto report) {
-        UserDataResponse user = authBackendClient.getUserEmailData(report.userId());
-        if (user.email().isEmpty()) {
+        UserDataResponse userDataResponse = authBackendClient.getUserData(report.userId());
+        if (userDataResponse.email().isEmpty()) {
             log.warn("Skipping security digest email - no email found for userId={}", report.userId());
             return;
         }
 
-        Map<String, String> placeholders = buildPlaceholders(report, user);
-        emailNotifier.send(ScheduledEmailNotificationType.WEEKLY_SECURITY_DIGEST_REPORT_EMAIL, user.email().get(), placeholders);
+        Map<String, String> placeholders = buildPlaceholders(report, userDataResponse);
+        emailNotifier.send(ScheduledEmailNotificationType.WEEKLY_SECURITY_DIGEST_REPORT_EMAIL, userDataResponse.email().get(), placeholders);
     }
 
-    private Map<String, String> buildPlaceholders(WeeklySecurityDigestReportDto report, UserDataResponse user) {
+    private Map<String, String> buildPlaceholders(WeeklySecurityDigestReportDto report, UserDataResponse userDataResponse) {
         return Map.ofEntries(
-                Map.entry("userName", user.username().orElse("Użytkowniku")),
+                Map.entry("userName", userDataResponse.username().orElse("Użytkowniku")),
                 Map.entry("weekStart", formatDate(report.weekStart())),
                 Map.entry("weekEnd", formatDate(report.weekEnd())),
                 Map.entry("successfulLogins", String.valueOf(report.successfulLogins())),
