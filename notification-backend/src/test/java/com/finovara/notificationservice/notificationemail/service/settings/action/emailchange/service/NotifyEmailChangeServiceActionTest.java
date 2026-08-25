@@ -57,40 +57,22 @@ class NotifyEmailChangeServiceActionTest {
     }
 
     @Nested
-    class IsEnabled {
-
-        @Test
-        void shouldReturnTrueWhenDtoEnabledIsTrue() {
-            NotificationEmailDto dto = new NotificationEmailDto(true, null);
-
-            boolean result = service.isEnabled(dto);
-
-            assertTrue(result);
-        }
-
-        @Test
-        void shouldReturnFalseWhenDtoEnabledIsFalse() {
-            NotificationEmailDto dto = new NotificationEmailDto(false, null);
-
-            boolean result = service.isEnabled(dto);
-
-            assertFalse(result);
-        }
-    }
-
-    @Nested
     class ApplySetting {
 
         @Test
         void shouldSetNotifyOnEmailChangeToTrue() {
-            service.applySetting(notificationEmailSettings, true);
+            NotificationEmailDto dto = new NotificationEmailDto(true, null);
+
+            service.applySetting(notificationEmailSettings, dto);
 
             verify(notificationEmailSettings).setNotifyOnEmailChange(true);
         }
 
         @Test
         void shouldSetNotifyOnEmailChangeToFalse() {
-            service.applySetting(notificationEmailSettings, false);
+            NotificationEmailDto dto = new NotificationEmailDto(false, null);
+
+            service.applySetting(notificationEmailSettings, dto);
 
             verify(notificationEmailSettings).setNotifyOnEmailChange(false);
         }
