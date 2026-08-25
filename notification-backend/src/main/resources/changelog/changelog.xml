@@ -24,12 +24,18 @@
             <column name="notify_on_account_deleted" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
-
+            <column name="notify_on_wallet_low_balance" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="wallet_low_balance_threshold" type="DECIMAL(19,2)">
+                <constraints nullable="true"/>
+            </column>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" unique="true"/>
             </column>
         </createTable>
     </changeSet>
+
     <changeSet id="create-notifications-table" author="Marcin Parśniak">
         <createTable tableName="notifications">
             <column name="id" type="BIGINT" autoIncrement="true">
