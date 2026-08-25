@@ -58,7 +58,7 @@ scheduler:
     delete-cron: "0 2 0 ? * 1"
   email-notification:
     weekly-finance-digest-report-send: "0 0 23 * * *"
-    weekly-security-digest-report-send: "0 * * * * *" # 5 0 23 * * *
+    weekly-security-digest-report-send: "5 0 23 * * *"
 
 
 auth-backend:
