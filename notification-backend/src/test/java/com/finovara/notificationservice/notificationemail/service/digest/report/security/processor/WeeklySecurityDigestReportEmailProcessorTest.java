@@ -102,7 +102,7 @@ class WeeklySecurityDigestReportEmailProcessorTest {
         void shouldSendEmailWhenUserHasEmail() {
             stubFullReport(report, USER_ID);
             when(activityLogBackendClient.getSecurityDigestReport()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(userDataResponse);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(userDataResponse);
             when(userDataResponse.email()).thenReturn(Optional.of(USER_EMAIL));
             when(userDataResponse.username()).thenReturn(Optional.of("john"));
 
@@ -115,7 +115,7 @@ class WeeklySecurityDigestReportEmailProcessorTest {
         void shouldUseDefaultUsernameWhenUsernameIsEmpty() {
             stubFullReport(report, USER_ID);
             when(activityLogBackendClient.getSecurityDigestReport()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(userDataResponse);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(userDataResponse);
             when(userDataResponse.email()).thenReturn(Optional.of(USER_EMAIL));
             when(userDataResponse.username()).thenReturn(Optional.empty());
 
@@ -130,7 +130,7 @@ class WeeklySecurityDigestReportEmailProcessorTest {
         void shouldFormatDatesUsingConfiguredPatternWhenDatesArePresent() {
             stubFullReport(report, USER_ID);
             when(activityLogBackendClient.getSecurityDigestReport()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(userDataResponse);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(userDataResponse);
             when(userDataResponse.email()).thenReturn(Optional.of(USER_EMAIL));
             when(userDataResponse.username()).thenReturn(Optional.of("john"));
 
@@ -149,7 +149,7 @@ class WeeklySecurityDigestReportEmailProcessorTest {
             stubFullReport(report, USER_ID);
             when(report.lastEmailChangeDate()).thenReturn(null);
             when(activityLogBackendClient.getSecurityDigestReport()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(userDataResponse);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(userDataResponse);
             when(userDataResponse.email()).thenReturn(Optional.of(USER_EMAIL));
             when(userDataResponse.username()).thenReturn(Optional.of("john"));
 
@@ -165,7 +165,7 @@ class WeeklySecurityDigestReportEmailProcessorTest {
             stubFullReport(report, USER_ID);
             when(report.locations()).thenReturn(List.of());
             when(activityLogBackendClient.getSecurityDigestReport()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(userDataResponse);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(userDataResponse);
             when(userDataResponse.email()).thenReturn(Optional.of(USER_EMAIL));
             when(userDataResponse.username()).thenReturn(Optional.of("john"));
 
@@ -180,7 +180,7 @@ class WeeklySecurityDigestReportEmailProcessorTest {
         void shouldJoinListValuesWithCommaWhenListHasMultipleElements() {
             stubFullReport(report, USER_ID);
             when(activityLogBackendClient.getSecurityDigestReport()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(userDataResponse);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(userDataResponse);
             when(userDataResponse.email()).thenReturn(Optional.of(USER_EMAIL));
             when(userDataResponse.username()).thenReturn(Optional.of("john"));
 
@@ -195,7 +195,7 @@ class WeeklySecurityDigestReportEmailProcessorTest {
         void shouldIncludeNumericCountsAsStringsInPlaceholders() {
             stubFullReport(report, USER_ID);
             when(activityLogBackendClient.getSecurityDigestReport()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(userDataResponse);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(userDataResponse);
             when(userDataResponse.email()).thenReturn(Optional.of(USER_EMAIL));
             when(userDataResponse.username()).thenReturn(Optional.of("john"));
 
@@ -214,17 +214,17 @@ class WeeklySecurityDigestReportEmailProcessorTest {
             stubFullReport(report, USER_ID);
             stubFullReport(otherReport, OTHER_USER_ID);
             when(activityLogBackendClient.getSecurityDigestReport()).thenReturn(List.of(report, otherReport));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(userDataResponse);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(userDataResponse);
             when(userDataResponse.email()).thenReturn(Optional.of(USER_EMAIL));
             when(userDataResponse.username()).thenReturn(Optional.of("john"));
-            when(authBackendClient.getUserEmailData(OTHER_USER_ID)).thenReturn(otherUserDataResponse);
+            when(authBackendClient.getUserData(OTHER_USER_ID)).thenReturn(otherUserDataResponse);
             when(otherUserDataResponse.email()).thenReturn(Optional.of("other@finovara.com"));
             when(otherUserDataResponse.username()).thenReturn(Optional.of("jane"));
 
             processor.sendWeeklySecurityDigestEmail();
 
-            verify(authBackendClient, times(1)).getUserEmailData(USER_ID);
-            verify(authBackendClient, times(1)).getUserEmailData(OTHER_USER_ID);
+            verify(authBackendClient, times(1)).getUserData(USER_ID);
+            verify(authBackendClient, times(1)).getUserData(OTHER_USER_ID);
             verify(emailNotifier, times(2)).send(eq(ScheduledEmailNotificationType.WEEKLY_SECURITY_DIGEST_REPORT_EMAIL), anyString(), anyMap());
         }
     }
