@@ -21,7 +21,7 @@ public class GoalAchievedNotificationHandler {
     private final EmailNotifier emailNotifier;
 
     public void handle(GoalAchievedNotificationEvent event) {
-        UserDataResponse triggeredByUser = authBackendClient.getUserEmailData(event.triggeredByUserId());
+        UserDataResponse triggeredByUser = authBackendClient.getUserData(event.triggeredByUserId());
         String triggeredByUsername = triggeredByUser.username().orElse("Nieznany użytkownik");
 
         notifyRecipient(event.ownerId(), event, triggeredByUsername);
@@ -32,7 +32,7 @@ public class GoalAchievedNotificationHandler {
     }
 
     private void notifyRecipient(Long recipientUserId, GoalAchievedNotificationEvent event, String triggeredByUsername) {
-        UserDataResponse recipient = authBackendClient.getUserEmailData(recipientUserId);
+        UserDataResponse recipient = authBackendClient.getUserData(recipientUserId);
 
         if (recipient.email().isEmpty()) {
             log.warn("Skipping goal achieved email - no email found for userId={}, piggyBankId={}", recipientUserId, event.piggyBankId());
@@ -42,7 +42,7 @@ public class GoalAchievedNotificationHandler {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
         emailNotifier.send(
-                ActionEmailNotificationType.PIGGY_BANK_GOAL_ACHIEVED,
+                ActionEmailNotificationType.SHARED_ACCOUNT_PIGGY_BANK_GOAL_ACHIEVED,
                 recipient.email().get(),
                 Map.of(
                         "username", recipient.username().orElse("Użytkowniku"),

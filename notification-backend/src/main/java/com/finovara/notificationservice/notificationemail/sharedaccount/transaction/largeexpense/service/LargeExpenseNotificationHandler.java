@@ -21,7 +21,7 @@ public class LargeExpenseNotificationHandler {
     private final EmailNotifier emailNotifier;
 
     public void handle(LargeExpenseNotificationEvent event) {
-        UserDataResponse triggeredByUser = authBackendClient.getUserEmailData(event.triggeredByUserId());
+        UserDataResponse triggeredByUser = authBackendClient.getUserData(event.triggeredByUserId());
         String triggeredByUsername = triggeredByUser.username().orElse("Nieznany użytkownik");
 
         notifyRecipient(event.ownerId(), event, triggeredByUsername);
@@ -32,7 +32,7 @@ public class LargeExpenseNotificationHandler {
     }
 
     private void notifyRecipient(Long recipientUserId, LargeExpenseNotificationEvent event, String triggeredByUsername) {
-        UserDataResponse recipient = authBackendClient.getUserEmailData(recipientUserId);
+        UserDataResponse recipient = authBackendClient.getUserData(recipientUserId);
 
         if (recipient.email().isEmpty()) {
             log.warn("Skipping large expense email - no email found for userId={}, expenseId={}", recipientUserId, event.expenseId());
@@ -41,7 +41,7 @@ public class LargeExpenseNotificationHandler {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
         emailNotifier.send(
-                ActionEmailNotificationType.LARGE_EXPENSE_DETECTED,
+                ActionEmailNotificationType.SHARED_ACCOUNT_LARGE_EXPENSE_DETECTED,
                 recipient.email().get(),
                 Map.of(
                         "username", recipient.username().orElse("Użytkowniku"),

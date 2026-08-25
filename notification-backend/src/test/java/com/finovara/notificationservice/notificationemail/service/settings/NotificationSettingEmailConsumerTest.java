@@ -4,6 +4,7 @@ import com.finovara.contracts.notification.email.ActionEmailEventType;
 import com.finovara.contracts.notification.event.SendEmailEvent;
 import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
 import com.finovara.contracts.user.event.UserCreatedEvent;
+import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
@@ -44,6 +45,9 @@ class NotificationSettingEmailConsumerTest {
     private EmailNotifier emailNotifier;
 
     @Mock
+    private AuthBackendClient authBackendClient;
+
+    @Mock
     private NotificationEmailSettings settings;
 
     @Mock
@@ -59,7 +63,7 @@ class NotificationSettingEmailConsumerTest {
 
     @BeforeEach
     void setUp() {
-        consumer = new NotificationSettingEmailConsumer(notificationEmailSettingsRepository, notificationEmailSettingsService, emailNotifier);
+        consumer = new NotificationSettingEmailConsumer(notificationEmailSettingsRepository, notificationEmailSettingsService, emailNotifier, authBackendClient);
     }
 
     @Nested
@@ -132,22 +136,22 @@ class NotificationSettingEmailConsumerTest {
 
         @Test
         void shouldAlwaysSendEmailWhenLargeExpenseDetectedRegardlessOfSettings() {
-            when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.LARGE_EXPENSE_DETECTED);
+            when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.SHARED_ACCOUNT_LARGE_EXPENSE_DETECTED);
             when(sendEmailEvent.placeholders()).thenReturn(new HashMap<>());
 
             consumer.sendEmail(sendEmailEvent);
 
-            verify(emailNotifier).send(eq(ActionEmailNotificationType.LARGE_EXPENSE_DETECTED), eq(RECIPIENT_EMAIL), any());
+            verify(emailNotifier).send(eq(ActionEmailNotificationType.SHARED_ACCOUNT_LARGE_EXPENSE_DETECTED), eq(RECIPIENT_EMAIL), any());
         }
 
         @Test
         void shouldAlwaysSendEmailWhenPiggyBankGoalAchievedRegardlessOfSettings() {
-            when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.PIGGY_BANK_GOAL_ACHIEVED);
+            when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.SHARED_ACCOUNT_PIGGY_BANK_GOAL_ACHIEVED);
             when(sendEmailEvent.placeholders()).thenReturn(new HashMap<>());
 
             consumer.sendEmail(sendEmailEvent);
 
-            verify(emailNotifier).send(eq(ActionEmailNotificationType.PIGGY_BANK_GOAL_ACHIEVED), eq(RECIPIENT_EMAIL), any());
+            verify(emailNotifier).send(eq(ActionEmailNotificationType.SHARED_ACCOUNT_PIGGY_BANK_GOAL_ACHIEVED), eq(RECIPIENT_EMAIL), any());
         }
 
         @Test

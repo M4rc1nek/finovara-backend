@@ -53,36 +53,22 @@ class NotifyPasswordChangeServiceActionTest {
     }
 
     @Nested
-    class IsEnabled {
-
-        @Test
-        void shouldReturnTrueWhenDtoEnabledIsTrue() {
-            NotificationEmailDto dto = new NotificationEmailDto(true, AUTH_CODE);
-
-            assertTrue(action.isEnabled(dto));
-        }
-
-        @Test
-        void shouldReturnFalseWhenDtoEnabledIsFalse() {
-            NotificationEmailDto dto = new NotificationEmailDto(false, AUTH_CODE);
-
-            assertFalse(action.isEnabled(dto));
-        }
-    }
-
-    @Nested
     class ApplySetting {
 
         @Test
         void shouldSetNotifyOnPasswordChangeToTrue() {
-            action.applySetting(notificationEmailSettings, true);
+            NotificationEmailDto dto = new NotificationEmailDto(true, null);
+
+            action.applySetting(notificationEmailSettings, dto);
 
             verify(notificationEmailSettings).setNotifyOnPasswordChange(true);
         }
 
         @Test
         void shouldSetNotifyOnPasswordChangeToFalse() {
-            action.applySetting(notificationEmailSettings, false);
+            NotificationEmailDto dto = new NotificationEmailDto(false, null);
+
+            action.applySetting(notificationEmailSettings, dto);
 
             verify(notificationEmailSettings).setNotifyOnPasswordChange(false);
         }
@@ -144,18 +130,5 @@ class NotifyPasswordChangeServiceActionTest {
             verify(kafkaTemplate).send(eq("activity.settings"), any());
         }
 
-        @Test
-        void shouldNotSendKafkaEventWhenSettingsNotFound() {
-            NotificationEmailDto dto = new NotificationEmailDto(true, AUTH_CODE);
-
-            when(notificationEmailSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
-
-            try {
-                action.saveEmailNotification(USER_ID, dto);
-            } catch (RuntimeException ignored) {
-            }
-
-            verify(kafkaTemplate, never()).send(any(), any());
-        }
     }
 }

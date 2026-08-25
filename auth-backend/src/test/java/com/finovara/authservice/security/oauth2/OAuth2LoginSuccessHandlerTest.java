@@ -242,7 +242,6 @@ class OAuth2LoginSuccessHandlerTest {
         @Test
         void shouldNotThrowWhenNoSessionExists() throws Exception {
             OAuth2User oauth2User = mock(OAuth2User.class);
-            // use the standard successful flow setup but simulate no session
             stubSuccessfulFlow(oauth2User);
             when(httpServletRequest.getSession(false)).thenReturn(null);
 
@@ -303,7 +302,6 @@ class OAuth2LoginSuccessHandlerTest {
                     .build();
 
             OAuth2User oauth2User = mock(OAuth2User.class);
-            // reuse helper to configure request/jwt/synchronization for successful flow
             stubSuccessfulFlow(oauth2User);
 
             oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);

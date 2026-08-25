@@ -2,8 +2,8 @@ package com.finovara.notificationservice.notificationemail.service.settings;
 
 import com.finovara.contracts.notification.email.ActionEmailEventType;
 import com.finovara.contracts.notification.event.SendEmailEvent;
-import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
 import com.finovara.contracts.user.event.UserCreatedEvent;
+import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
 import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
@@ -20,7 +20,6 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class NotificationSettingEmailConsumer {
-
     private final NotificationEmailSettingsRepository notificationEmailSettingsRepository;
     private final NotificationEmailSettingsService notificationEmailSettingsService;
     private final EmailNotifier emailNotifier;
@@ -49,7 +48,8 @@ public class NotificationSettingEmailConsumer {
             case PASSWORD_CHANGED -> settings.isNotifyOnPasswordChange();
             case USERNAME_CHANGED -> settings.isNotifyOnUsernameChange();
             case ACCOUNT_DELETED -> settings.isNotifyOnAccountDeleted();
-            case LARGE_EXPENSE_DETECTED, PIGGY_BANK_GOAL_ACHIEVED -> true;
+            case WALLET_LOW_BALANCE -> settings.isNotifyOnWalletLowBalance();
+            case SHARED_ACCOUNT_LARGE_EXPENSE_DETECTED, SHARED_ACCOUNT_PIGGY_BANK_GOAL_ACHIEVED -> true;
         };
     }
 

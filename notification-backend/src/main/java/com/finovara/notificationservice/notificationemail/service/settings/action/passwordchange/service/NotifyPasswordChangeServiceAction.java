@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 @Service
-public class NotifyPasswordChangeServiceAction extends AbstractActionNotificationEmailService {
+public class NotifyPasswordChangeServiceAction
+        extends AbstractActionNotificationEmailService<NotificationEmailDto, NotificationEmailDto> {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -28,13 +29,8 @@ public class NotifyPasswordChangeServiceAction extends AbstractActionNotificatio
     }
 
     @Override
-    protected boolean isEnabled(NotificationEmailDto dto) {
-        return dto.enabled();
-    }
-
-    @Override
-    protected void applySetting(NotificationEmailSettings settings, boolean value) {
-        settings.setNotifyOnPasswordChange(value);
+    protected void applySetting(NotificationEmailSettings settings, NotificationEmailDto dto) {
+        settings.setNotifyOnPasswordChange(Boolean.TRUE.equals(dto.enabled()));
     }
 
     @Override
@@ -44,6 +40,7 @@ public class NotifyPasswordChangeServiceAction extends AbstractActionNotificatio
 
     @Override
     protected void handleActivity(Long userId, boolean enabled) {
-        kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.NOTIFICATION_PASSWORD_CHANGED, enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED, LocalDateTime.now()));
+        kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.NOTIFICATION_PASSWORD_CHANGED,
+                enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED, LocalDateTime.now()));
     }
 }

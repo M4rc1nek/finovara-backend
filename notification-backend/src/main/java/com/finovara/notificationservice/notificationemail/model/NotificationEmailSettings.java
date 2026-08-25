@@ -3,6 +3,8 @@ package com.finovara.notificationservice.notificationemail.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "notification_settings")
 @AllArgsConstructor
@@ -20,6 +22,8 @@ public class NotificationEmailSettings {
     private boolean notifyOnUsernameChange;
     private boolean notifyOnEmailChange;
     private boolean notifyOnAccountDeleted;
+    private boolean notifyOnWalletLowBalance;
+    private BigDecimal walletLowBalanceThreshold;
 
     @Column(nullable = false)
     private Long userId;

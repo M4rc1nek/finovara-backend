@@ -39,7 +39,6 @@ public class SmartReportQuestionService {
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
-            // // Builds lookup map (normalized question -> SmartReportType) from classpath resource files
             reader.lines()
                     .filter(line -> !line.isBlank())
                     .forEach(line -> {

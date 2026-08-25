@@ -113,7 +113,7 @@ class WeeklyFinanceDigestReportEmailProcessorTest {
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.of("john@example.com"));
 
             when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 
@@ -128,7 +128,7 @@ class WeeklyFinanceDigestReportEmailProcessorTest {
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.empty());
 
             when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(user);
 
             processor.sendWeeklyFinanceDigestEmail();
 
@@ -160,8 +160,8 @@ class WeeklyFinanceDigestReportEmailProcessorTest {
             UserDataResponse userTwo = new UserDataResponse(2L, Optional.of("anna"), Optional.of("anna@example.com"));
 
             when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(reportOne, reportTwo));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(userOne);
-            when(authBackendClient.getUserEmailData(2L)).thenReturn(userTwo);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(userOne);
+            when(authBackendClient.getUserData(2L)).thenReturn(userTwo);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 
@@ -176,7 +176,7 @@ class WeeklyFinanceDigestReportEmailProcessorTest {
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.empty(), Optional.of("john@example.com"));
 
             when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 
@@ -194,7 +194,7 @@ class WeeklyFinanceDigestReportEmailProcessorTest {
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.of("john@example.com"));
 
             when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn(null);
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn(null);
 
@@ -217,7 +217,7 @@ class WeeklyFinanceDigestReportEmailProcessorTest {
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.of("john@example.com"));
 
             when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 
@@ -235,7 +235,7 @@ class WeeklyFinanceDigestReportEmailProcessorTest {
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.of("john@example.com"));
 
             when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 
@@ -254,7 +254,7 @@ class WeeklyFinanceDigestReportEmailProcessorTest {
             UserDataResponse user = new UserDataResponse(USER_ID, Optional.of("john"), Optional.of("john@example.com"));
 
             when(financeBackendClient.getWeeklyFinanceDigestReports()).thenReturn(List.of(report));
-            when(authBackendClient.getUserEmailData(USER_ID)).thenReturn(user);
+            when(authBackendClient.getUserData(USER_ID)).thenReturn(user);
             when(categoryLabelResolver.resolveExpenseCategoryName(isNull())).thenReturn("Jedzenie");
             when(categoryLabelResolver.resolveRevenueCategoryName(isNull())).thenReturn("Wynagrodzenie");
 

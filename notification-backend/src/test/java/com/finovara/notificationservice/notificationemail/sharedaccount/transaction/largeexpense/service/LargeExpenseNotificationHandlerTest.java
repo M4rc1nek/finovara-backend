@@ -64,7 +64,7 @@ class LargeExpenseNotificationHandlerTest {
         when(event.amount()).thenReturn(new BigDecimal("2500.50"));
         when(event.threshold()).thenReturn(new BigDecimal("2000.00"));
         when(event.occurredAt()).thenReturn(LocalDateTime.of(2024, 6, 15, 9, 0));
-        when(authBackendClient.getUserEmailData(TRIGGERED_BY_USER_ID)).thenReturn(triggeredByUser);
+        when(authBackendClient.getUserData(TRIGGERED_BY_USER_ID)).thenReturn(triggeredByUser);
     }
 
     @Nested
@@ -73,8 +73,8 @@ class LargeExpenseNotificationHandlerTest {
         @Test
         void shouldSendEmailsToBothRecipientsWhenBothHaveEmail() {
             when(triggeredByUser.username()).thenReturn(Optional.of("trigger-user"));
-            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
-            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(authBackendClient.getUserData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserData(MEMBER_ID)).thenReturn(memberUser);
             when(ownerUser.email()).thenReturn(Optional.of("owner@example.com"));
             when(ownerUser.username()).thenReturn(Optional.of("owner"));
             when(memberUser.email()).thenReturn(Optional.of("member@example.com"));
@@ -82,15 +82,15 @@ class LargeExpenseNotificationHandlerTest {
 
             handler.handle(event);
 
-            verify(emailNotifier).send(eq(ActionEmailNotificationType.LARGE_EXPENSE_DETECTED), eq("owner@example.com"), any());
-            verify(emailNotifier).send(eq(ActionEmailNotificationType.LARGE_EXPENSE_DETECTED), eq("member@example.com"), any());
+            verify(emailNotifier).send(eq(ActionEmailNotificationType.SHARED_ACCOUNT_LARGE_EXPENSE_DETECTED), eq("owner@example.com"), any());
+            verify(emailNotifier).send(eq(ActionEmailNotificationType.SHARED_ACCOUNT_LARGE_EXPENSE_DETECTED), eq("member@example.com"), any());
         }
 
         @Test
         void shouldSkipOwnerEmailWhenOwnerHasNoEmail() {
             when(triggeredByUser.username()).thenReturn(Optional.of("trigger-user"));
-            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
-            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(authBackendClient.getUserData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserData(MEMBER_ID)).thenReturn(memberUser);
             when(ownerUser.email()).thenReturn(Optional.empty());
             when(memberUser.email()).thenReturn(Optional.of("member@example.com"));
             when(memberUser.username()).thenReturn(Optional.of("member"));
@@ -104,8 +104,8 @@ class LargeExpenseNotificationHandlerTest {
         @Test
         void shouldSkipMemberEmailWhenMemberHasNoEmail() {
             when(triggeredByUser.username()).thenReturn(Optional.of("trigger-user"));
-            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
-            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(authBackendClient.getUserData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserData(MEMBER_ID)).thenReturn(memberUser);
             when(ownerUser.email()).thenReturn(Optional.of("owner@example.com"));
             when(ownerUser.username()).thenReturn(Optional.of("owner"));
             when(memberUser.email()).thenReturn(Optional.empty());
@@ -119,8 +119,8 @@ class LargeExpenseNotificationHandlerTest {
         @Test
         void shouldUseDefaultTriggeredByUsernameWhenTriggeredByUsernameMissing() {
             when(triggeredByUser.username()).thenReturn(Optional.empty());
-            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
-            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(authBackendClient.getUserData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserData(MEMBER_ID)).thenReturn(memberUser);
             when(ownerUser.email()).thenReturn(Optional.of("owner@example.com"));
             when(ownerUser.username()).thenReturn(Optional.of("owner"));
             when(memberUser.email()).thenReturn(Optional.empty());
@@ -136,8 +136,8 @@ class LargeExpenseNotificationHandlerTest {
         @Test
         void shouldUseDefaultRecipientUsernameWhenRecipientUsernameMissing() {
             when(triggeredByUser.username()).thenReturn(Optional.of("trigger-user"));
-            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
-            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(authBackendClient.getUserData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserData(MEMBER_ID)).thenReturn(memberUser);
             when(ownerUser.email()).thenReturn(Optional.of("owner@example.com"));
             when(ownerUser.username()).thenReturn(Optional.empty());
             when(memberUser.email()).thenReturn(Optional.empty());
@@ -153,8 +153,8 @@ class LargeExpenseNotificationHandlerTest {
         @Test
         void shouldIncludeCorrectPlaceholdersInEmail() {
             when(triggeredByUser.username()).thenReturn(Optional.of("trigger-user"));
-            when(authBackendClient.getUserEmailData(OWNER_ID)).thenReturn(ownerUser);
-            when(authBackendClient.getUserEmailData(MEMBER_ID)).thenReturn(memberUser);
+            when(authBackendClient.getUserData(OWNER_ID)).thenReturn(ownerUser);
+            when(authBackendClient.getUserData(MEMBER_ID)).thenReturn(memberUser);
             when(ownerUser.email()).thenReturn(Optional.of("owner@example.com"));
             when(ownerUser.username()).thenReturn(Optional.of("owner"));
             when(memberUser.email()).thenReturn(Optional.empty());

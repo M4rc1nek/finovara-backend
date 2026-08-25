@@ -8,6 +8,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,6 +26,8 @@ public class NotificationEmailSettingsService {
                     .notifyOnUsernameChange(false)
                     .notifyOnEmailChange(false)
                     .notifyOnAccountDeleted(false)
+                    .notifyOnWalletLowBalance(false)
+                    .walletLowBalanceThreshold(BigDecimal.ZERO)
                     .build());
             log.info("Notification settings created for userId={}", userId);
         } catch (DataIntegrityViolationException e) {

@@ -57,40 +57,22 @@ class NotifyOnAccountDeletedServiceActionTest {
     }
 
     @Nested
-    class IsEnabled {
-
-        @Test
-        void shouldReturnTrueWhenDtoEnabledIsTrue() {
-            NotificationEmailDto dto = new NotificationEmailDto(true, null);
-
-            boolean result = service.isEnabled(dto);
-
-            assertTrue(result);
-        }
-
-        @Test
-        void shouldReturnFalseWhenDtoEnabledIsFalse() {
-            NotificationEmailDto dto = new NotificationEmailDto(false, null);
-
-            boolean result = service.isEnabled(dto);
-
-            assertFalse(result);
-        }
-    }
-
-    @Nested
     class ApplySetting {
 
         @Test
         void shouldSetNotifyOnAccountDeletedToTrue() {
-            service.applySetting(notificationEmailSettings, true);
+            NotificationEmailDto dto = new NotificationEmailDto(true, null);
+
+            service.applySetting(notificationEmailSettings, dto);
 
             verify(notificationEmailSettings).setNotifyOnAccountDeleted(true);
         }
 
         @Test
         void shouldSetNotifyOnAccountDeletedToFalse() {
-            service.applySetting(notificationEmailSettings, false);
+            NotificationEmailDto dto = new NotificationEmailDto(false, null);
+
+            service.applySetting(notificationEmailSettings, dto);
 
             verify(notificationEmailSettings).setNotifyOnAccountDeleted(false);
         }

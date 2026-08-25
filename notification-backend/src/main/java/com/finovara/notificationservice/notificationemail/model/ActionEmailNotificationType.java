@@ -7,10 +7,6 @@ public enum ActionEmailNotificationType implements EmailNotificationTemplate {
             "email/account-deleted.html",
             EmailNotificationCategory.SYSTEM),
 
-    EMAIL_CHANGED(
-            "Finovara - Zmiana adresu e-mail",
-            "email/email-changed.html",
-            EmailNotificationCategory.SYSTEM),
 
     USERNAME_CHANGED(
             "Finovara - Zmiana nazwy użytkownika",
@@ -22,12 +18,22 @@ public enum ActionEmailNotificationType implements EmailNotificationTemplate {
             "email/password-changed.html",
             EmailNotificationCategory.SYSTEM),
 
-    LARGE_EXPENSE_DETECTED(
+    EMAIL_CHANGED(
+            "Finovara - Zmiana adresu e-mail",
+            "email/email-changed.html",
+            EmailNotificationCategory.SYSTEM),
+
+    WALLET_LOW_BALANCE(
+            "Finovara - Alert niskiego salda",
+            "email/wallet-low-balance.html",
+            EmailNotificationCategory.SYSTEM),
+
+    SHARED_ACCOUNT_LARGE_EXPENSE_DETECTED(
             "Finovara - Wykryto duży wydatek",
             "email/large-expense-detected.html",
             EmailNotificationCategory.PREFERENCE_BASED),
 
-    PIGGY_BANK_GOAL_ACHIEVED(
+    SHARED_ACCOUNT_PIGGY_BANK_GOAL_ACHIEVED(
             "Finovara - Cel skarbonki osiągnięty!",
             "email/piggy-bank-goal-achieved.html",
             EmailNotificationCategory.PREFERENCE_BASED);
