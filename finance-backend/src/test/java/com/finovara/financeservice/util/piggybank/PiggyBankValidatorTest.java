@@ -48,7 +48,6 @@ class PiggyBankValidatorTest {
             );
         }
 
-        // dokoncz prace, testy i przetestuj wszystko!
         @Test
         void shouldNotThrowExceptionWhenGoalAmountIsNull() {
             PiggyBankDto dto = createDto(null);
