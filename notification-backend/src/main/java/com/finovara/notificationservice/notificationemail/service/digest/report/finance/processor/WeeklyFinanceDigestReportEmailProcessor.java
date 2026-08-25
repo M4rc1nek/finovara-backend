@@ -38,7 +38,7 @@ public class WeeklyFinanceDigestReportEmailProcessor {
     }
 
     private void sendForUser(WeeklyFinanceDigestReportDto report) {
-        UserDataResponse user = authBackendClient.getUserEmailData(report.userId());
+        UserDataResponse user = authBackendClient.getUserData(report.userId());
         if (user.email().isEmpty()) {
             log.warn("Skipping digest email - no email found for userId={}", report.userId());
             return;
