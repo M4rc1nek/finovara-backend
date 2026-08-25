@@ -160,8 +160,6 @@ class AdditionalAuthorizationServiceTest {
 
         @Test
         void shouldNotPublishAnyEventWhenEnabledTrue() {
-            // Włączenie 2FA finalizuje się dopiero po potwierdzeniu kodu email
-            // w AdditionalAuthorizationEmailVerificationService — tutaj nic nie powinno się wydarzyć.
             AdditionalAuthorizationRequest request = new AdditionalAuthorizationRequest(true, confirmPasswordDto);
 
             additionalAuthorizationService.saveAdditionalAuthorization(USER_ID, request, httpServletRequest);
