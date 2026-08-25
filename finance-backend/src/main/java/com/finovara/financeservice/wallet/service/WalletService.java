@@ -1,25 +1,30 @@
 package com.finovara.financeservice.wallet.service;
 
 import com.finovara.contracts.datadeletable.UserDataDeletable;
+import com.finovara.contracts.notification.event.wallet.WalletBalanceChangedEvent;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.dto.WalletDto;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class WalletService implements UserDataDeletable {
+
     private final WalletRepository walletRepository;
     private final WalletManagerService walletManagerService;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
     @CacheEvict(value = "wallet:user", key = "#userId")
@@ -37,8 +42,12 @@ public class WalletService implements UserDataDeletable {
     public WalletDto removeBalanceFromWallet(Long userId, BigDecimal amount) {
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
 
+        BigDecimal previousBalance = wallet.getBalance();
         wallet.withdraw(amount);
         log.info("Withdrawing balance from wallet for userId: {}", userId);
+
+        kafkaTemplate.send("wallet.balance-changed",
+                new WalletBalanceChangedEvent(userId, previousBalance, wallet.getBalance(), LocalDateTime.now()));
 
         return returnNewWalletDto(userId, wallet);
     }
@@ -66,5 +75,4 @@ public class WalletService implements UserDataDeletable {
         walletRepository.deleteByUserId(userId);
         log.info("Deleted wallet for userId={}", userId);
     }
-
 }
