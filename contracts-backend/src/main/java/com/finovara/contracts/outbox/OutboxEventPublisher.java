@@ -38,7 +38,7 @@ public class OutboxEventPublisher {
                                 .setHeader(KafkaHeaders.TOPIC, event.getEventType())
                                 .setHeader(KafkaHeaders.KEY, event.getAggregateId())
                                 .build())
-                        .get(5, TimeUnit.SECONDS);   // <- dopisz to, wymusza czekanie na ACK
+                        .get(5, TimeUnit.SECONDS);
 
                 event.markSent();
                 log.debug("Outbox: event {} sent for {}/{}", event.getEventType(), event.getAggregateType(), event.getAggregateId());
