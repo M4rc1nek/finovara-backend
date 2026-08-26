@@ -2,9 +2,8 @@ package com.finovara.notificationservice.notificationemail.service.settings;
 
 import com.finovara.contracts.notification.email.ActionEmailEventType;
 import com.finovara.contracts.notification.event.SendEmailEvent;
-import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
 import com.finovara.contracts.user.event.UserCreatedEvent;
-import com.finovara.notificationservice.feignclient.AuthBackendClient;
+import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
 import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
@@ -45,9 +44,6 @@ class NotificationSettingEmailConsumerTest {
     private EmailNotifier emailNotifier;
 
     @Mock
-    private AuthBackendClient authBackendClient;
-
-    @Mock
     private NotificationEmailSettings settings;
 
     @Mock
@@ -63,7 +59,10 @@ class NotificationSettingEmailConsumerTest {
 
     @BeforeEach
     void setUp() {
-        consumer = new NotificationSettingEmailConsumer(notificationEmailSettingsRepository, notificationEmailSettingsService, emailNotifier, authBackendClient);
+        consumer = new NotificationSettingEmailConsumer(
+                notificationEmailSettingsRepository,
+                notificationEmailSettingsService,
+                emailNotifier);
     }
 
     @Nested
@@ -85,13 +84,13 @@ class NotificationSettingEmailConsumerTest {
         @BeforeEach
         void setUp() {
             when(sendEmailEvent.userId()).thenReturn(USER_ID);
-            when(sendEmailEvent.email()).thenReturn(RECIPIENT_EMAIL);
-            when(sendEmailEvent.username()).thenReturn(USERNAME);
             when(notificationEmailSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(settings));
         }
 
         @Test
         void shouldSendEmailWhenEmailChangedNotificationEnabled() {
+            when(sendEmailEvent.email()).thenReturn(RECIPIENT_EMAIL);
+            when(sendEmailEvent.username()).thenReturn(USERNAME);
             when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.EMAIL_CHANGED);
             when(sendEmailEvent.placeholders()).thenReturn(new HashMap<>());
             when(settings.isNotifyOnEmailChange()).thenReturn(true);
@@ -102,7 +101,19 @@ class NotificationSettingEmailConsumerTest {
         }
 
         @Test
+        void shouldNotSendEmailWhenEmailChangedNotificationDisabled() {
+            when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.EMAIL_CHANGED);
+            when(settings.isNotifyOnEmailChange()).thenReturn(false);
+
+            consumer.sendEmail(sendEmailEvent);
+
+            verify(emailNotifier, never()).send(any(), any(), any());
+        }
+
+        @Test
         void shouldSendEmailWhenPasswordChangedNotificationEnabled() {
+            when(sendEmailEvent.email()).thenReturn(RECIPIENT_EMAIL);
+            when(sendEmailEvent.username()).thenReturn(USERNAME);
             when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.PASSWORD_CHANGED);
             when(sendEmailEvent.placeholders()).thenReturn(new HashMap<>());
             when(settings.isNotifyOnPasswordChange()).thenReturn(true);
@@ -113,7 +124,19 @@ class NotificationSettingEmailConsumerTest {
         }
 
         @Test
+        void shouldNotSendEmailWhenPasswordChangedNotificationDisabled() {
+            when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.PASSWORD_CHANGED);
+            when(settings.isNotifyOnPasswordChange()).thenReturn(false);
+
+            consumer.sendEmail(sendEmailEvent);
+
+            verify(emailNotifier, never()).send(any(), any(), any());
+        }
+
+        @Test
         void shouldSendEmailWhenUsernameChangedNotificationEnabled() {
+            when(sendEmailEvent.email()).thenReturn(RECIPIENT_EMAIL);
+            when(sendEmailEvent.username()).thenReturn(USERNAME);
             when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.USERNAME_CHANGED);
             when(sendEmailEvent.placeholders()).thenReturn(new HashMap<>());
             when(settings.isNotifyOnUsernameChange()).thenReturn(true);
@@ -124,7 +147,19 @@ class NotificationSettingEmailConsumerTest {
         }
 
         @Test
+        void shouldNotSendEmailWhenUsernameChangedNotificationDisabled() {
+            when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.USERNAME_CHANGED);
+            when(settings.isNotifyOnUsernameChange()).thenReturn(false);
+
+            consumer.sendEmail(sendEmailEvent);
+
+            verify(emailNotifier, never()).send(any(), any(), any());
+        }
+
+        @Test
         void shouldSendEmailWhenAccountDeletedNotificationEnabled() {
+            when(sendEmailEvent.email()).thenReturn(RECIPIENT_EMAIL);
+            when(sendEmailEvent.username()).thenReturn(USERNAME);
             when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.ACCOUNT_DELETED);
             when(sendEmailEvent.placeholders()).thenReturn(new HashMap<>());
             when(settings.isNotifyOnAccountDeleted()).thenReturn(true);
@@ -135,7 +170,42 @@ class NotificationSettingEmailConsumerTest {
         }
 
         @Test
+        void shouldNotSendEmailWhenAccountDeletedNotificationDisabled() {
+            when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.ACCOUNT_DELETED);
+            when(settings.isNotifyOnAccountDeleted()).thenReturn(false);
+
+            consumer.sendEmail(sendEmailEvent);
+
+            verify(emailNotifier, never()).send(any(), any(), any());
+        }
+
+        @Test
+        void shouldSendEmailWhenWalletLowBalanceNotificationEnabled() {
+            when(sendEmailEvent.email()).thenReturn(RECIPIENT_EMAIL);
+            when(sendEmailEvent.username()).thenReturn(USERNAME);
+            when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.WALLET_LOW_BALANCE);
+            when(sendEmailEvent.placeholders()).thenReturn(new HashMap<>());
+            when(settings.isNotifyOnWalletLowBalance()).thenReturn(true);
+
+            consumer.sendEmail(sendEmailEvent);
+
+            verify(emailNotifier).send(eq(ActionEmailNotificationType.WALLET_LOW_BALANCE), eq(RECIPIENT_EMAIL), any());
+        }
+
+        @Test
+        void shouldNotSendEmailWhenWalletLowBalanceNotificationDisabled() {
+            when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.WALLET_LOW_BALANCE);
+            when(settings.isNotifyOnWalletLowBalance()).thenReturn(false);
+
+            consumer.sendEmail(sendEmailEvent);
+
+            verify(emailNotifier, never()).send(any(), any(), any());
+        }
+
+        @Test
         void shouldAlwaysSendEmailWhenLargeExpenseDetectedRegardlessOfSettings() {
+            when(sendEmailEvent.email()).thenReturn(RECIPIENT_EMAIL);
+            when(sendEmailEvent.username()).thenReturn(USERNAME);
             when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.SHARED_ACCOUNT_LARGE_EXPENSE_DETECTED);
             when(sendEmailEvent.placeholders()).thenReturn(new HashMap<>());
 
@@ -146,6 +216,8 @@ class NotificationSettingEmailConsumerTest {
 
         @Test
         void shouldAlwaysSendEmailWhenPiggyBankGoalAchievedRegardlessOfSettings() {
+            when(sendEmailEvent.email()).thenReturn(RECIPIENT_EMAIL);
+            when(sendEmailEvent.username()).thenReturn(USERNAME);
             when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.SHARED_ACCOUNT_PIGGY_BANK_GOAL_ACHIEVED);
             when(sendEmailEvent.placeholders()).thenReturn(new HashMap<>());
 
@@ -155,7 +227,18 @@ class NotificationSettingEmailConsumerTest {
         }
 
         @Test
+        void shouldNotSendEmailWhenSettingsNotFoundForUser() {
+            when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.EMAIL_CHANGED);
+
+            consumer.sendEmail(sendEmailEvent);
+
+            verify(emailNotifier, never()).send(any(), any(), any());
+        }
+
+        @Test
         void shouldMergeUsernameAndEmailIntoPlaceholdersWhenAbsent() {
+            when(sendEmailEvent.email()).thenReturn(RECIPIENT_EMAIL);
+            when(sendEmailEvent.username()).thenReturn(USERNAME);
             when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.EMAIL_CHANGED);
             when(sendEmailEvent.placeholders()).thenReturn(new HashMap<>());
             when(settings.isNotifyOnEmailChange()).thenReturn(true);
@@ -173,6 +256,8 @@ class NotificationSettingEmailConsumerTest {
         void shouldNotOverrideExistingPlaceholdersWithDefaults() {
             Map<String, String> existingPlaceholders = new HashMap<>();
             existingPlaceholders.put("username", "custom-username");
+            when(sendEmailEvent.email()).thenReturn(RECIPIENT_EMAIL);
+            when(sendEmailEvent.username()).thenReturn(USERNAME);
             when(sendEmailEvent.eventType()).thenReturn(ActionEmailEventType.EMAIL_CHANGED);
             when(sendEmailEvent.placeholders()).thenReturn(existingPlaceholders);
             when(settings.isNotifyOnEmailChange()).thenReturn(true);
