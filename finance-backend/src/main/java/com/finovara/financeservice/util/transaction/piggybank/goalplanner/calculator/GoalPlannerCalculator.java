@@ -1,4 +1,4 @@
-package com.finovara.financeservice.util.piggybank.goalplanner.calculator;
+package com.finovara.financeservice.util.transaction.piggybank.goalplanner.calculator;
 
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.financeservice.piggybank.goalplanner.model.GoalPlanner;
