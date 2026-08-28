@@ -1,4 +1,4 @@
-package com.finovara.financeservice.util.piggybank;
+package com.finovara.financeservice.util.transaction.piggybank;
 
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
