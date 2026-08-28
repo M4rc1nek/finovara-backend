@@ -1,4 +1,4 @@
-package com.finovara.financeservice.util.expense;
+package com.finovara.financeservice.util.transaction.expense;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.expense.model.Expense;
