@@ -1,4 +1,4 @@
-package com.finovara.financeservice.util.piggybank.manager;
+package com.finovara.financeservice.util.transaction.piggybank.manager;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
