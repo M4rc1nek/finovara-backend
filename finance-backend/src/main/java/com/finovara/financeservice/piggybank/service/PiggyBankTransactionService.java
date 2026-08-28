@@ -83,6 +83,6 @@ public class PiggyBankTransactionService {
 
     private BigDecimal calculatePercentage(PiggyBank piggyBank) {
         Double progress = PiggyBankCalculator.calculateProgress(piggyBank);
-        return BigDecimal.valueOf(progress).multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf(progress).setScale(2, RoundingMode.HALF_UP);
     }
 }
