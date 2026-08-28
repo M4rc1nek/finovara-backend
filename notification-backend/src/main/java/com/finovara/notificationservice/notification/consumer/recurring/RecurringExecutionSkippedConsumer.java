@@ -18,7 +18,7 @@ public class RecurringExecutionSkippedConsumer {
 
     private final NotificationPersistenceService notificationPersistenceService;
 
-    @KafkaListener(topics = "activity.recurring.skipped", groupId = "notification-recurring-skipped")
+    @KafkaListener(topics = "notification.recurring-transaction-skipped", groupId = "notification-recurring-skipped")
     public void handle(RecurringExecutionSkippedEvent event) {
         notificationPersistenceService.save(event.userId(), new RecurringExecutionSkippedDto(
                 NotificationType.RECURRING_EXECUTION_SKIPPED,

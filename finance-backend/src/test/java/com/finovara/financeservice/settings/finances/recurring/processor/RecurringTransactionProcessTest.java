@@ -156,7 +156,7 @@ class RecurringTransactionProcessTest {
 
             recurringTransactionProcess.processSingle(settings, today);
 
-            verify(kafkaTemplate).send(eq("activity.recurring.skipped"), any(RecurringExecutionSkippedEvent.class));
+            verify(kafkaTemplate).send(eq("notification.recurring-transaction-skipped"), any(RecurringExecutionSkippedEvent.class));
         }
 
         @Test
@@ -167,7 +167,7 @@ class RecurringTransactionProcessTest {
             recurringTransactionProcess.processSingle(settings, today);
 
             ArgumentCaptor<RecurringExecutionSkippedEvent> captor = ArgumentCaptor.forClass(RecurringExecutionSkippedEvent.class);
-            verify(kafkaTemplate).send(eq("activity.recurring.skipped"), captor.capture());
+            verify(kafkaTemplate).send(eq("notification.recurring-transaction-skipped"), captor.capture());
 
             RecurringExecutionSkippedEvent event = captor.getValue();
             assertThat(event.userId()).isEqualTo(1L);
@@ -192,7 +192,7 @@ class RecurringTransactionProcessTest {
             recurringTransactionProcess.processSingle(settings, today);
 
             ArgumentCaptor<RecurringExecutionSkippedEvent> captor = ArgumentCaptor.forClass(RecurringExecutionSkippedEvent.class);
-            verify(kafkaTemplate).send(eq("activity.recurring.skipped"), captor.capture());
+            verify(kafkaTemplate).send(eq("notification.recurring-transaction-skipped"), captor.capture());
 
             RecurringExecutionSkippedEvent event = captor.getValue();
             assertThat(event.skippedCount()).isEqualTo(2);

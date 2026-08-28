@@ -60,7 +60,7 @@ public class RecurringTransactionProcess {
             return;
         }
 
-        kafkaTemplate.send("activity.recurring.skipped",
+        kafkaTemplate.send("notification.recurring-transaction-skipped",
                 new RecurringExecutionSkippedEvent(settings.getUserId(), settings.getType(), settings.getId(),
                         settings.getAmount(), lastScheduledDate, skippedCount, LocalDateTime.now()));
 
