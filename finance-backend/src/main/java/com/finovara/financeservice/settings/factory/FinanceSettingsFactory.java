@@ -4,7 +4,7 @@ import com.finovara.contracts.model.PeriodType;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
+import com.finovara.contracts.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
