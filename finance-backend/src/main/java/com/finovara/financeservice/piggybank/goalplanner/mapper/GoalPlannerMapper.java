@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-import static com.finovara.financeservice.util.piggybank.goalplanner.calculator.GoalPlannerCalculator.*;
+import static com.finovara.financeservice.util.transaction.piggybank.goalplanner.calculator.GoalPlannerCalculator.*;
 
 @Component
 public class GoalPlannerMapper {
