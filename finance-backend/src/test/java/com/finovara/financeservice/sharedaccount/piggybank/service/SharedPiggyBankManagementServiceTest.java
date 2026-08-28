@@ -9,7 +9,7 @@ import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDt
 import com.finovara.financeservice.sharedaccount.piggybank.mapper.SharedPiggyBankMapper;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
-import com.finovara.financeservice.util.piggybank.manager.SharedPiggyBankManager;
+import com.finovara.financeservice.util.transaction.piggybank.manager.SharedPiggyBankManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
