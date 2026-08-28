@@ -1,8 +1,9 @@
-package com.finovara.financeservice.util.piggybank.manager;
+package com.finovara.financeservice.util.transaction.piggybank.manager;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
+import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
