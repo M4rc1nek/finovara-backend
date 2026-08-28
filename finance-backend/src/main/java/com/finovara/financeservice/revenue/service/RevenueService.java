@@ -12,7 +12,8 @@ import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.autopayments.service.AutoPaymentsService;
-import com.finovara.financeservice.util.revenue.RevenueManagerService;
+import com.finovara.financeservice.util.transaction.TransactionOrigin;
+import com.finovara.financeservice.util.transaction.revenue.RevenueManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import lombok.RequiredArgsConstructor;
@@ -41,8 +42,10 @@ public class RevenueService implements UserDataDeletable {
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
-    public Long addRevenue(RevenueDto revenueDto, Long userId) {
-        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
+    public Long addRevenue(RevenueDto revenueDto, Long userId, TransactionOrigin origin) {
+        if(origin == TransactionOrigin.USER_MANUAL){
+            authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
+        }
 
         Revenue revenue = Revenue.builder()
                 .amount(revenueDto.amount())
