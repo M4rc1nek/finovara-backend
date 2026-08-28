@@ -3,6 +3,7 @@ package com.finovara.financeservice.settings.finances.recurring.model;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.model.RecurringType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -46,6 +47,9 @@ public class RecurringSettings  {
     private LocalDate startDate;
     private LocalDate endDate;
     private LocalDate nextExecutionDate;
+
+    @Column(nullable = false)
+    private boolean skippedNotificationSent;
 
     @Column(nullable = false)
     private LocalDate createdAt;
