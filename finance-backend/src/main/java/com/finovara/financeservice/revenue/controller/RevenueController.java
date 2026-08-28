@@ -3,6 +3,7 @@ package com.finovara.financeservice.revenue.controller;
 import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.service.RevenueService;
 import com.finovara.financeservice.security.SecurityUtils;
+import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class RevenueController {
 
     @PostMapping
     public ResponseEntity<Long> addRevenue(@RequestBody @Valid RevenueDto revenueDto) {
-        return ResponseEntity.ok(revenueService.addRevenue(revenueDto, SecurityUtils.getCurrentUserId()));
+        return ResponseEntity.ok(revenueService.addRevenue(revenueDto, SecurityUtils.getCurrentUserId(), TransactionOrigin.USER_MANUAL));
     }
 
     @PutMapping("/edit/{revenueId}")

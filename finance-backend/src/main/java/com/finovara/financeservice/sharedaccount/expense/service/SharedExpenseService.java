@@ -20,7 +20,7 @@ import com.finovara.financeservice.sharedaccount.settings.expense.analysis.servi
 import com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.service.LargeExpenseNotificationService;
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.service.SpendControlService;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
-import com.finovara.financeservice.util.expense.SharedExpenseManagerService;
+import com.finovara.financeservice.util.transaction.expense.SharedExpenseManagerService;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

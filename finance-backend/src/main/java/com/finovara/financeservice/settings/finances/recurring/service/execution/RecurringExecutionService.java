@@ -2,6 +2,7 @@ package com.finovara.financeservice.settings.finances.recurring.service.executio
 
 import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
@@ -21,6 +22,7 @@ import com.finovara.financeservice.settings.finances.recurring.service.validator
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
+import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import lombok.RequiredArgsConstructor;
@@ -45,95 +47,115 @@ public class RecurringExecutionService {
     private final WalletManagerService walletManagerService;
     private final LimitManagerService limitManagerService;
 
-    public void execute(RecurringSettings settings, LocalDate date) {
+    public RecurringExecutionResult execute(RecurringSettings settings, LocalDate date) {
         if (settings.getType() == null) {
-            return;
+            return RecurringExecutionResult.EXECUTED;
         }
 
-        switch (settings.getType()) {
+        return switch (settings.getType()) {
             case REVENUE -> createRevenue(settings, date);
             case EXPENSE -> createExpense(settings, date);
             case SAVINGS -> createSavings(settings);
-        }
+        };
     }
 
-    private void createRevenue(RecurringSettings settings, LocalDate date) {
+    private RecurringExecutionResult createRevenue(RecurringSettings settings, LocalDate date) {
         if (settings.getUserId() == null || settings.getRevenueCategory() == null) {
-            return;
+            return RecurringExecutionResult.EXECUTED;
         }
-        recurringRevenueValidator.validate(settings);
-        RevenueDto dto = buildRevenueDto(settings, date);
-        revenueService.addRevenue(dto, settings.getUserId());
+
+        try {
+            recurringRevenueValidator.validate(settings);
+
+            RevenueDto revenueDto = buildRevenueDto(settings, date);
+            revenueService.addRevenue(revenueDto, settings.getUserId(), TransactionOrigin.RECURRING_SYSTEM);
+
+            return RecurringExecutionResult.EXECUTED;
+
+        } catch (InvalidInputException exception) {
+            log.warn("Recurring revenue skipped for settings id={}: {}", settings.getId(), exception.getMessage());
+
+            return RecurringExecutionResult.SKIPPED;
+        }
     }
 
-    private void createExpense(RecurringSettings settings, LocalDate date) {
+    private RecurringExecutionResult createExpense(RecurringSettings settings, LocalDate date) {
         if (settings.getUserId() == null || settings.getExpenseCategory() == null) {
-            return;
+            return RecurringExecutionResult.EXECUTED;
         }
 
         ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(settings.getUserId());
+
         if (expenseSettings == null) {
-            return;
+            return RecurringExecutionResult.EXECUTED;
         }
 
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(settings.getUserId());
         List<Limit> limits = limitManagerService.getLimitsByUserId(settings.getUserId());
-        expenseSettingsValidator.validate(settings, expenseSettings, wallet, limits);
-
-        PeriodType limitPeriodType = resolveLimitPeriodType(settings, expenseSettings);
-        ExpenseDto expenseDto = buildExpenseDto(settings, date);
-
-        ExpenseRequestDto requestDto = new ExpenseRequestDto(expenseDto, new ConfirmPasswordDto(null), new ConfirmAuthorizationCodeDto(null), buildCountQuantityLimitDto(expenseSettings, limitPeriodType));
-
-        expenseService.addExpense(requestDto, settings.getUserId());
-    }
-
-    private void createSavings(RecurringSettings settings) {
-        if (settings.getUserId() == null || settings.getPiggyBankId() == null) {
-            return;
-        }
-        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(settings.getUserId());
-        recurringSavingsValidator.validate(settings, wallet);
 
         try {
-            piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserId(), settings.getPiggyBankId(), settings.getAmount(),
-                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null);
-        } catch (RequestedEntityNotFoundException e) {
-            log.warn("SharedPiggyBank not found for recurring settings id={}, disabling", settings.getId());
-            settings.setEnable(false);
-            settings.setNextExecutionDate(null);
-        }
+            expenseSettingsValidator.validate(settings, expenseSettings, wallet, limits);
+            ExpenseRequestDto requestDto = buildExpenseRequest(settings, expenseSettings, date);
+            expenseService.addExpense(requestDto, settings.getUserId(), TransactionOrigin.RECURRING_SYSTEM);
 
+            settings.setSkippedNotificationSent(false);
+            return RecurringExecutionResult.EXECUTED;
+
+        } catch (InvalidInputException exception) {
+            log.warn("Recurring expense skipped for settings id={}: {}", settings.getId(), exception.getMessage());
+            return RecurringExecutionResult.SKIPPED;
+        }
     }
 
-    private PeriodType resolveLimitPeriodType(RecurringSettings settings, ExpenseSettings expenseSettings) {
+    private RecurringExecutionResult createSavings(RecurringSettings settings) {
+        if (settings.getUserId() == null || settings.getPiggyBankId() == null) {
+            return RecurringExecutionResult.EXECUTED;
+        }
+
+        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(settings.getUserId());
+
+        try {
+            recurringSavingsValidator.validate(settings, wallet);
+            executeSavings(settings);
+            settings.setSkippedNotificationSent(false);
+            return RecurringExecutionResult.EXECUTED;
+
+        } catch (InvalidInputException exception) {
+            log.warn("Recurring savings skipped for settings id={}: {}", settings.getId(), exception.getMessage());
+            return RecurringExecutionResult.SKIPPED;
+
+        } catch (RequestedEntityNotFoundException exception) {
+            log.warn("PiggyBank not found for recurring settings id={}, disabling", settings.getId());
+
+            disableRecurringSettings(settings);
+            return RecurringExecutionResult.EXECUTED;
+        }
+    }
+
+    private void executeSavings(RecurringSettings settings) {
+        piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserId(), settings.getPiggyBankId(), settings.getAmount(), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null, TransactionOrigin.RECURRING_SYSTEM);
+    }
+
+    private void disableRecurringSettings(RecurringSettings settings) {
+        settings.setEnable(false);
+        settings.setNextExecutionDate(null);
+    }
+
+    private ExpenseRequestDto buildExpenseRequest(RecurringSettings settings, ExpenseSettings expenseSettings, LocalDate date) {
+        PeriodType limitPeriodType = getLimitPeriodType(settings, expenseSettings);
+
+        return new ExpenseRequestDto(buildExpenseDto(settings, date), new ConfirmPasswordDto(null), new ConfirmAuthorizationCodeDto(null), new CountQuantityLimitDto(expenseSettings.isCountQuantityLimitEnabled(), limitPeriodType, expenseSettings.getNumberOfQuantityLimit(), null));
+    }
+
+    private PeriodType getLimitPeriodType(RecurringSettings settings, ExpenseSettings expenseSettings) {
         return expenseSettings.getPeriodType() != null ? expenseSettings.getPeriodType() : settings.getPeriodType();
     }
 
-    private CountQuantityLimitDto buildCountQuantityLimitDto(ExpenseSettings expenseSettings, PeriodType limitPeriodType) {
-        return new CountQuantityLimitDto(expenseSettings.isCountQuantityLimitEnabled(), limitPeriodType, expenseSettings.getNumberOfQuantityLimit(), null);
-    }
-
     private ExpenseDto buildExpenseDto(RecurringSettings settings, LocalDate date) {
-        return new ExpenseDto(
-                null,
-                settings.getUserId(),
-                settings.getAmount(),
-                settings.getExpenseCategory(),
-                date,
-                RecurringDescription.EXPENSE.label()
-        );
+        return new ExpenseDto(null, settings.getUserId(), settings.getAmount(), settings.getExpenseCategory(), date, RecurringDescription.EXPENSE.label());
     }
 
     private RevenueDto buildRevenueDto(RecurringSettings settings, LocalDate date) {
-        return new RevenueDto(
-                null,
-                settings.getUserId(),
-                settings.getAmount(),
-                settings.getRevenueCategory(),
-                date,
-                RecurringDescription.REVENUE.label(),
-                null
-        );
+        return new RevenueDto(null, settings.getUserId(), settings.getAmount(), settings.getRevenueCategory(), date, RecurringDescription.REVENUE.label(), null);
     }
 }

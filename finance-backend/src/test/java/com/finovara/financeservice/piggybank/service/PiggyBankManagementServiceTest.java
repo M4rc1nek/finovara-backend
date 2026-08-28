@@ -18,7 +18,7 @@ import com.finovara.financeservice.settings.finances.recurring.model.RecurringSe
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
 import com.finovara.financeservice.settings.piggybank.repository.PiggyBankSettingsRepository;
-import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

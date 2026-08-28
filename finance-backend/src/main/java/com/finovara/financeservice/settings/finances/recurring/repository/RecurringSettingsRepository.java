@@ -1,7 +1,7 @@
 package com.finovara.financeservice.settings.finances.recurring.repository;
 
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
+import com.finovara.contracts.model.RecurringType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -32,15 +32,6 @@ public interface RecurringSettingsRepository extends JpaRepository<RecurringSett
 
     @Query("SELECT rs FROM RecurringSettings rs WHERE rs.enable = true AND rs.userId = :userId")
     List<RecurringSettings> findAllEnabledByUserId(Long userId);
-
-    @Query("""
-            SELECT rs FROM RecurringSettings rs
-            WHERE rs.userId = :userId
-              AND rs.enable = true
-              AND rs.nextExecutionDate IS NOT NULL
-              AND rs.nextExecutionDate BETWEEN :from AND :to
-        """)
-    List<RecurringSettings> findUpcomingByUserId(Long userId, LocalDate from, LocalDate to);
 
     void deleteAllByUserId(Long userId);
 }

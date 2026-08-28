@@ -11,7 +11,7 @@ import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBa
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
 import com.finovara.contracts.percentage.CalculatePercentage;
-import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import org.springframework.transaction.annotation.Transactional;

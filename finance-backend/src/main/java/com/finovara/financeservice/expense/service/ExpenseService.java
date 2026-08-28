@@ -25,7 +25,8 @@ import com.finovara.financeservice.settings.finances.expense.smartscan.dto.Smart
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpService;
-import com.finovara.financeservice.util.expense.ExpenseManagerService;
+import com.finovara.financeservice.util.transaction.TransactionOrigin;
+import com.finovara.financeservice.util.transaction.expense.ExpenseManagerService;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
@@ -62,8 +63,10 @@ public class ExpenseService implements UserDataDeletable {
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
-    public Long addExpense(ExpenseRequestDto expenseRequestDto, Long userId) {
-        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
+    public Long addExpense(ExpenseRequestDto expenseRequestDto,Long userId, TransactionOrigin origin) {
+        if(origin == TransactionOrigin.USER_MANUAL){
+            authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
+        }
         validateLimitOrThrow(userId, expenseRequestDto.expenseDto().category(), expenseRequestDto.expenseDto().category(),
                 BigDecimal.ZERO, expenseRequestDto.expenseDto().amount());
 

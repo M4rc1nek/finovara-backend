@@ -1,6 +1,7 @@
 package com.finovara.financeservice.revenue.service;
 
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.activity.event.revenue.RevenueActivityEvent;
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
@@ -12,7 +13,8 @@ import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.autopayments.service.AutoPaymentsService;
-import com.finovara.financeservice.util.revenue.RevenueManagerService;
+import com.finovara.financeservice.util.transaction.TransactionOrigin;
+import com.finovara.financeservice.util.transaction.revenue.RevenueManagerService;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +78,7 @@ class RevenueServiceTest {
                         return r;
                     });
 
-            revenueService.addRevenue(dto, userId);
+            revenueService.addRevenue(dto, userId, TransactionOrigin.USER_MANUAL);
 
             verify(walletService).addBalanceToWallet(userId, dto.amount());
             verify(revenueRepository).save(any(Revenue.class));
@@ -88,6 +90,39 @@ class RevenueServiceTest {
             assertEquals(RevenueActivityType.ADDED_REVENUE, event.type());
 
             verify(autoPaymentsService).handleRevenuePiggyBankAutomation(userId, dto.amount(), PiggyBankAutomationMode.APPLY);
+        }
+
+        @Test
+        void shouldConfirmAuthorizationCodeWhenOriginIsUserManual() {
+            RevenueDto dto = new RevenueDto(2L, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", "111111");
+
+            when(revenueRepository.save(any(Revenue.class)))
+                    .thenAnswer(invocation -> {
+                        Revenue r = invocation.getArgument(0);
+                        r.setId(1L);
+                        return r;
+                    });
+            when(additionalAuthorizationCodeResolver.resolve("111111")).thenReturn(new ConfirmAuthorizationCodeDto("111111"));
+
+            revenueService.addRevenue(dto, userId, TransactionOrigin.USER_MANUAL);
+
+            verify(authBackendClient).confirmAuthorizationCode(eq(userId), any(ConfirmAuthorizationCodeDto.class));
+        }
+
+        @Test
+        void shouldSkipAuthorizationCodeConfirmationWhenOriginIsRecurringSystem() {
+            RevenueDto dto = new RevenueDto(null, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "recurring", null);
+
+            when(revenueRepository.save(any(Revenue.class)))
+                    .thenAnswer(invocation -> {
+                        Revenue r = invocation.getArgument(0);
+                        r.setId(1L);
+                        return r;
+                    });
+
+            revenueService.addRevenue(dto, userId, TransactionOrigin.RECURRING_SYSTEM);
+
+            verifyNoInteractions(authBackendClient, additionalAuthorizationCodeResolver);
         }
     }
 

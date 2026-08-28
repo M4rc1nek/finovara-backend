@@ -5,6 +5,7 @@ import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.piggybank.service.PiggyBankManagementService;
 import com.finovara.financeservice.piggybank.service.PiggyBankTransactionService;
 import com.finovara.financeservice.security.SecurityUtils;
+import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,7 @@ public class PiggyBankManagementController {
 
     @PostMapping("/{piggyBankId}/deposit")
     public ResponseEntity<Void> addBalanceToPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount, @RequestParam(required = false) String authorizationCode) {
-        piggyBankTransactionService.addBalanceToPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, authorizationCode);
+        piggyBankTransactionService.addBalanceToPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, authorizationCode, TransactionOrigin.USER_MANUAL);
         return ResponseEntity.noContent().build();
     }
 

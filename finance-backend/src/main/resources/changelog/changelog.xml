@@ -320,6 +320,9 @@
             <column name="start_date" type="DATE"/>
             <column name="end_date" type="DATE"/>
             <column name="next_execution_date" type="DATE"/>
+            <column name="skipped_notification_sent" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
             <column name="created_at" type="DATE">
                 <constraints nullable="false"/>
             </column>

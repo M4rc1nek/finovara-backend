@@ -25,7 +25,8 @@ import com.finovara.financeservice.settings.finances.expense.smartscan.dto.Smart
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpService;
-import com.finovara.financeservice.util.expense.ExpenseManagerService;
+import com.finovara.financeservice.util.transaction.TransactionOrigin;
+import com.finovara.financeservice.util.transaction.expense.ExpenseManagerService;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import com.finovara.financeservice.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
@@ -175,7 +176,7 @@ class ExpenseServiceTest {
                 return expense;
             });
 
-            Long result = expenseService.addExpense(requestDto, userId);
+            Long result = expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL);
 
             assertEquals(10L, result);
         }
@@ -190,7 +191,7 @@ class ExpenseServiceTest {
                 return expense;
             });
 
-            expenseService.addExpense(requestDto, userId);
+            expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL);
 
             verify(walletService).removeBalanceFromWallet(userId, BigDecimal.valueOf(50));
         }
@@ -205,7 +206,7 @@ class ExpenseServiceTest {
                 return expense;
             });
 
-            expenseService.addExpense(requestDto, userId);
+            expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL);
 
             verify(expenseRepository).save(any(Expense.class));
         }
@@ -220,7 +221,7 @@ class ExpenseServiceTest {
                 return expense;
             });
 
-            expenseService.addExpense(requestDto, userId);
+            expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL);
 
             verify(smartScanService).handleSmartScan(userId, requestDto.confirmPasswordDto(), BigDecimal.valueOf(50), SmartScanMode.ADD);
         }
@@ -235,7 +236,7 @@ class ExpenseServiceTest {
                 return expense;
             });
 
-            expenseService.addExpense(requestDto, userId);
+            expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL);
 
             verify(roundUpService).handleExpenseForRoundUp(userId, 7L, PiggyBankAutomationMode.APPLY);
         }
@@ -250,7 +251,7 @@ class ExpenseServiceTest {
                 return expense;
             });
 
-            expenseService.addExpense(requestDto, userId);
+            expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL);
 
             verify(controlAmountService).handleExpenseAmountControl(userId, BigDecimal.valueOf(50));
         }
@@ -265,7 +266,7 @@ class ExpenseServiceTest {
                 return expense;
             });
 
-            expenseService.addExpense(requestDto, userId);
+            expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL);
 
             verify(countQuantityLimitService).handleExpenseLimitExceeded(userId, requestDto.countQuantityLimitDto(),
                     requestDto.countQuantityLimitDto().periodType(), requestDto.confirmPasswordDto());
@@ -288,7 +289,7 @@ class ExpenseServiceTest {
             when(limitCalculateService.calculateLimitStats(eq(firstLimit), eq(userId), any(LocalDate.class))).thenReturn(firstStats);
             when(limitCalculateService.calculateLimitStats(eq(secondLimit), eq(userId), any(LocalDate.class))).thenReturn(secondStats);
 
-            expenseService.addExpense(requestDto, userId);
+            expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL);
 
             verify(kafkaTemplate, times(2)).send(eq("limit.calculate-stats"), any());
         }
@@ -298,7 +299,7 @@ class ExpenseServiceTest {
             ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(0.5), category);
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
 
-            assertThrows(InvalidInputException.class, () -> expenseService.addExpense(requestDto, userId));
+            assertThrows(InvalidInputException.class, () -> expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL));
 
             verify(walletService, never()).removeBalanceFromWallet(anyLong(), any());
             verify(expenseRepository, never()).save(any());
@@ -311,7 +312,7 @@ class ExpenseServiceTest {
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(generalLimit));
             when(financialPeriodService.getExpensesSum(userId, periodType, null)).thenReturn(BigDecimal.ZERO);
 
-            assertThrows(MissingRequirementException.class, () -> expenseService.addExpense(requestDto, userId));
+            assertThrows(MissingRequirementException.class, () -> expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL));
 
             verify(walletService, never()).removeBalanceFromWallet(anyLong(), any());
             verify(expenseRepository, never()).save(any());
@@ -324,7 +325,7 @@ class ExpenseServiceTest {
             when(limitRepository.findAllByUserId(userId)).thenReturn(List.of(categoryLimit));
             when(financialPeriodService.getExpensesSum(userId, periodType, category)).thenReturn(BigDecimal.ZERO);
 
-            assertThrows(MissingRequirementException.class, () -> expenseService.addExpense(requestDto, userId));
+            assertThrows(MissingRequirementException.class, () -> expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL));
 
             verify(walletService, never()).removeBalanceFromWallet(anyLong(), any());
         }
@@ -339,9 +340,39 @@ class ExpenseServiceTest {
                 return expense;
             });
 
-            expenseService.addExpense(requestDto, userId);
+            expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL);
 
             verify(outboxService).save(eq("Expense"), eq("7"), eq("activity.expense"), any());
+        }
+
+        @Test
+        void shouldConfirmAuthorizationCodeWhenOriginIsUserManual() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(50), category);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+                Expense expense = invocation.getArgument(0);
+                expense.setId(7L);
+                return expense;
+            });
+
+            expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL);
+
+            verify(authBackendClient).confirmAuthorizationCode(eq(userId), any());
+        }
+
+        @Test
+        void shouldNotConfirmAuthorizationCodeWhenOriginIsNotUserManual() {
+            ExpenseRequestDto requestDto = buildRequestDto(BigDecimal.valueOf(50), category);
+            when(limitRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
+                Expense expense = invocation.getArgument(0);
+                expense.setId(7L);
+                return expense;
+            });
+
+            expenseService.addExpense(requestDto, userId, TransactionOrigin.RECURRING_SYSTEM);
+
+            verifyNoInteractions(authBackendClient);
         }
     }
 

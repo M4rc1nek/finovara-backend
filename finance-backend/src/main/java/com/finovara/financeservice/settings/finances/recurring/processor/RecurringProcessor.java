@@ -2,11 +2,10 @@ package com.finovara.financeservice.settings.finances.recurring.processor;
 
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
-import com.finovara.financeservice.settings.finances.recurring.service.execution.RecurringExecutionService;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,10 +14,9 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class RecurringProcessor {
-    private static final int MAX_ITERATIONS = 100;
 
     private final RecurringSettingsRepository recurringSettingsRepository;
-    private final RecurringExecutionService recurringExecutionService;
+    private final RecurringTransactionProcess recurringTransactionProcess;
 
     @Transactional
     public void generateRecurringTransaction() {
@@ -32,28 +30,12 @@ public class RecurringProcessor {
                 continue;
             }
 
-            processSingle(settings, today);
-        }
-    }
-
-    private void processSingle(RecurringSettings settings, LocalDate today) {
-        int safetyCounter = 0;
-
-        LocalDate nextDate = settings.getNextExecutionDate();
-        LocalDate endDate = settings.getEndDate();
-
-        while (settings.isEnable() && !nextDate.isAfter(today) && (endDate == null ||  !nextDate.isAfter(endDate)) && safetyCounter++ < MAX_ITERATIONS) {
-            recurringExecutionService.execute(settings, nextDate);
-
-            if (!settings.isEnable()) {
-                break;
+            try {
+                recurringTransactionProcess.processSingle(settings, today);
+            } catch (Exception exception) {
+                log.error("Failed to process recurring settings id={} for userId={}", settings.getId(), settings.getUserId(), exception);
             }
-
-            nextDate = settings.getPeriodType().addPeriod(nextDate);
         }
-
-        settings.setNextExecutionDate(settings.isEnable() ? nextDate : null);
-        recurringSettingsRepository.save(settings);
     }
 
 }

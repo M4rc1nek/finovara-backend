@@ -8,10 +8,11 @@ import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
-import com.finovara.financeservice.util.piggybank.PiggyBankCalculator;
-import com.finovara.financeservice.util.piggybank.PiggyBankCheckGoalCompletion;
-import com.finovara.financeservice.util.piggybank.PiggyBankValidator;
-import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.util.transaction.TransactionOrigin;
+import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCalculator;
+import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCheckGoalCompletion;
+import com.finovara.financeservice.util.transaction.piggybank.PiggyBankValidator;
+import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
@@ -34,10 +35,11 @@ public class PiggyBankTransactionService {
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
-    public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, PiggyBankActivityType piggyBankActivityType, String authorizationCode) {
-        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
-
-
+    public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, PiggyBankActivityType
+            piggyBankActivityType, String authorizationCode, TransactionOrigin origin) {
+        if(origin == TransactionOrigin.USER_MANUAL){
+            authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
+        }
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         PiggyBankValidator.validateAmount(amount);

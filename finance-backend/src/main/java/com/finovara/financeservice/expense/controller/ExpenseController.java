@@ -4,6 +4,7 @@ import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.service.ExpenseService;
 import com.finovara.financeservice.security.SecurityUtils;
+import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class ExpenseController {
 
     @PostMapping
     public ResponseEntity<Long> addExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto) {
-        return ResponseEntity.ok(expenseService.addExpense(expenseRequestDto, SecurityUtils.getCurrentUserId()));
+        return ResponseEntity.ok(expenseService.addExpense(expenseRequestDto, SecurityUtils.getCurrentUserId(), TransactionOrigin.USER_MANUAL));
     }
 
     @PutMapping("/edit/{expenseId}")

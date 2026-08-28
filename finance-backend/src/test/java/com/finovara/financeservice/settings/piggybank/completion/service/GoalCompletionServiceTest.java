@@ -8,7 +8,7 @@ import com.finovara.financeservice.settings.piggybank.completion.dto.GoalComplet
 import com.finovara.financeservice.settings.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
-import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;

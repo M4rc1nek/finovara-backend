@@ -8,7 +8,7 @@ import com.finovara.financeservice.piggybank.goalplanner.mapper.GoalPlannerMappe
 import com.finovara.financeservice.piggybank.goalplanner.model.GoalPlanner;
 import com.finovara.financeservice.piggybank.goalplanner.repository.GoalPlannerRepository;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
-import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

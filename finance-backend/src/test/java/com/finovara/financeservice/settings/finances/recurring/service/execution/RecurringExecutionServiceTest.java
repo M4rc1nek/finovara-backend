@@ -1,8 +1,12 @@
 package com.finovara.financeservice.settings.finances.recurring.service.execution;
 
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.model.RecurringType;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.service.ExpenseService;
@@ -11,14 +15,12 @@ import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.service.RevenueService;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.ExpenseSettingsValidator;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
+import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,12 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RecurringExecutionServiceTest {
@@ -93,6 +90,7 @@ class RecurringExecutionServiceTest {
                 walletManagerService,
                 limitManagerService
         );
+
         recurringSettings = mock(RecurringSettings.class);
         executionDate = LocalDate.of(2026, 1, 1);
     }
@@ -101,11 +99,12 @@ class RecurringExecutionServiceTest {
     class ExecuteTests {
 
         @Test
-        void shouldDoNothingWhenTypeIsNull() {
+        void shouldReturnExecutedAndDoNothingWhenTypeIsNull() {
             when(recurringSettings.getType()).thenReturn(null);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
             verifyNoInteractions(revenueService, expenseService, piggyBankTransactionService,
                     expenseSettingsValidator, recurringRevenueValidator, recurringSavingsValidator);
         }
@@ -117,10 +116,11 @@ class RecurringExecutionServiceTest {
             when(recurringSettings.getRevenueCategory()).thenReturn(RevenueCategory.SALARY);
             when(recurringSettings.getAmount()).thenReturn(BigDecimal.valueOf(100));
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
-            verify(recurringRevenueValidator, times(1)).validate(recurringSettings);
-            verify(revenueService, times(1)).addRevenue(any(RevenueDto.class), eq(1L));
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
+            verify(recurringRevenueValidator).validate(recurringSettings);
+            verify(revenueService).addRevenue(any(RevenueDto.class), eq(1L), eq(TransactionOrigin.RECURRING_SYSTEM));
         }
 
         @Test
@@ -130,9 +130,10 @@ class RecurringExecutionServiceTest {
             when(recurringSettings.getExpenseCategory()).thenReturn(ExpenseCategory.FOOD);
             when(expenseSettingsRepository.findByUserId(1L)).thenReturn(null);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
-            verify(expenseSettingsRepository, times(1)).findByUserId(1L);
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
+            verify(expenseSettingsRepository).findByUserId(1L);
             verifyNoInteractions(walletManagerService, limitManagerService, expenseService);
         }
 
@@ -141,8 +142,9 @@ class RecurringExecutionServiceTest {
             when(recurringSettings.getType()).thenReturn(RecurringType.SAVINGS);
             when(recurringSettings.getUserId()).thenReturn(null);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
             verifyNoInteractions(walletManagerService, recurringSavingsValidator, piggyBankTransactionService);
         }
     }
@@ -156,21 +158,23 @@ class RecurringExecutionServiceTest {
         }
 
         @Test
-        void shouldReturnWhenUserIdIsNull() {
+        void shouldReturnExecutedWhenUserIdIsNull() {
             when(recurringSettings.getUserId()).thenReturn(null);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
             verifyNoInteractions(recurringRevenueValidator, revenueService);
         }
 
         @Test
-        void shouldReturnWhenRevenueCategoryIsNull() {
+        void shouldReturnExecutedWhenRevenueCategoryIsNull() {
             when(recurringSettings.getUserId()).thenReturn(1L);
             when(recurringSettings.getRevenueCategory()).thenReturn(null);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
             verifyNoInteractions(recurringRevenueValidator, revenueService);
         }
 
@@ -180,10 +184,11 @@ class RecurringExecutionServiceTest {
             when(recurringSettings.getRevenueCategory()).thenReturn(RevenueCategory.SALARY);
             when(recurringSettings.getAmount()).thenReturn(BigDecimal.valueOf(500));
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
-            verify(recurringRevenueValidator, times(1)).validate(recurringSettings);
-            verify(revenueService, times(1)).addRevenue(any(RevenueDto.class), eq(1L));
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
+            verify(recurringRevenueValidator).validate(recurringSettings);
+            verify(revenueService).addRevenue(any(RevenueDto.class), eq(1L), eq(TransactionOrigin.RECURRING_SYSTEM));
         }
 
         @Test
@@ -195,7 +200,8 @@ class RecurringExecutionServiceTest {
             recurringExecutionService.execute(recurringSettings, executionDate);
 
             ArgumentCaptor<RevenueDto> captor = ArgumentCaptor.forClass(RevenueDto.class);
-            verify(revenueService).addRevenue(captor.capture(), eq(1L));
+            verify(revenueService).addRevenue(captor.capture(), eq(1L), eq(TransactionOrigin.RECURRING_SYSTEM));
+
             RevenueDto capturedDto = captor.getValue();
             assertThat(capturedDto.userId()).isEqualTo(1L);
             assertThat(capturedDto.amount()).isEqualByComparingTo(BigDecimal.valueOf(500));
@@ -204,9 +210,23 @@ class RecurringExecutionServiceTest {
         }
 
         @Test
-        void shouldThrowExceptionWhenValidatorRejectsSettings() {
+        void shouldReturnSkippedWhenValidatorRejectsSettingsWithInvalidInput() {
             when(recurringSettings.getUserId()).thenReturn(1L);
             when(recurringSettings.getRevenueCategory()).thenReturn(RevenueCategory.SALARY);
+
+            doThrow(new InvalidInputException("invalid settings")).when(recurringRevenueValidator).validate(recurringSettings);
+
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
+
+            assertThat(result).isEqualTo(RecurringExecutionResult.SKIPPED);
+            verifyNoInteractions(revenueService);
+        }
+
+        @Test
+        void shouldPropagateExceptionWhenValidatorThrowsUnhandledException() {
+            when(recurringSettings.getUserId()).thenReturn(1L);
+            when(recurringSettings.getRevenueCategory()).thenReturn(RevenueCategory.SALARY);
+
             doThrow(new IllegalStateException("invalid settings")).when(recurringRevenueValidator).validate(recurringSettings);
 
             assertThrows(IllegalStateException.class, () -> recurringExecutionService.execute(recurringSettings, executionDate));
@@ -225,37 +245,41 @@ class RecurringExecutionServiceTest {
         @BeforeEach
         void setUp() {
             when(recurringSettings.getType()).thenReturn(RecurringType.EXPENSE);
+
             expenseSettings = mock(ExpenseSettings.class);
             wallet = mock(Wallet.class);
         }
 
         @Test
-        void shouldReturnWhenUserIdIsNull() {
+        void shouldReturnExecutedWhenUserIdIsNull() {
             when(recurringSettings.getUserId()).thenReturn(null);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
             verifyNoInteractions(expenseSettingsRepository, walletManagerService, limitManagerService, expenseService);
         }
 
         @Test
-        void shouldReturnWhenExpenseCategoryIsNull() {
+        void shouldReturnExecutedWhenExpenseCategoryIsNull() {
             when(recurringSettings.getUserId()).thenReturn(1L);
             when(recurringSettings.getExpenseCategory()).thenReturn(null);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
             verifyNoInteractions(expenseSettingsRepository, walletManagerService, limitManagerService, expenseService);
         }
 
         @Test
-        void shouldReturnWhenExpenseSettingsNotFound() {
+        void shouldReturnExecutedWhenExpenseSettingsNotFound() {
             when(recurringSettings.getUserId()).thenReturn(1L);
             when(recurringSettings.getExpenseCategory()).thenReturn(ExpenseCategory.FOOD);
             when(expenseSettingsRepository.findByUserId(1L)).thenReturn(null);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
             verifyNoInteractions(walletManagerService, limitManagerService, expenseService);
         }
 
@@ -269,10 +293,12 @@ class RecurringExecutionServiceTest {
             when(limitManagerService.getLimitsByUserId(1L)).thenReturn(List.of());
             when(expenseSettings.getPeriodType()).thenReturn(PeriodType.MONTHLY);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
-            verify(expenseSettingsValidator, times(1)).validate(recurringSettings, expenseSettings, wallet, List.of());
-            verify(expenseService, times(1)).addExpense(any(ExpenseRequestDto.class), eq(1L));
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
+            verify(expenseSettingsValidator).validate(recurringSettings, expenseSettings, wallet, List.of());
+            verify(expenseService).addExpense(any(ExpenseRequestDto.class), eq(1L), eq(TransactionOrigin.RECURRING_SYSTEM));
+            verify(recurringSettings).setSkippedNotificationSent(false);
         }
 
         @Test
@@ -290,7 +316,7 @@ class RecurringExecutionServiceTest {
             recurringExecutionService.execute(recurringSettings, executionDate);
 
             ArgumentCaptor<ExpenseRequestDto> captor = ArgumentCaptor.forClass(ExpenseRequestDto.class);
-            verify(expenseService).addExpense(captor.capture(), eq(1L));
+            verify(expenseService).addExpense(captor.capture(), eq(1L), eq(TransactionOrigin.RECURRING_SYSTEM));
             assertThat(captor.getValue().countQuantityLimitDto().periodType()).isEqualTo(PeriodType.WEEKLY);
         }
 
@@ -310,7 +336,7 @@ class RecurringExecutionServiceTest {
             recurringExecutionService.execute(recurringSettings, executionDate);
 
             ArgumentCaptor<ExpenseRequestDto> captor = ArgumentCaptor.forClass(ExpenseRequestDto.class);
-            verify(expenseService).addExpense(captor.capture(), eq(1L));
+            verify(expenseService).addExpense(captor.capture(), eq(1L), eq(TransactionOrigin.RECURRING_SYSTEM));
             assertThat(captor.getValue().countQuantityLimitDto().periodType()).isEqualTo(PeriodType.MONTHLY);
         }
 
@@ -327,7 +353,8 @@ class RecurringExecutionServiceTest {
             recurringExecutionService.execute(recurringSettings, executionDate);
 
             ArgumentCaptor<ExpenseRequestDto> captor = ArgumentCaptor.forClass(ExpenseRequestDto.class);
-            verify(expenseService).addExpense(captor.capture(), eq(1L));
+            verify(expenseService).addExpense(captor.capture(), eq(1L), eq(TransactionOrigin.RECURRING_SYSTEM));
+
             ExpenseDto capturedExpenseDto = captor.getValue().expenseDto();
             assertThat(capturedExpenseDto.userId()).isEqualTo(1L);
             assertThat(capturedExpenseDto.amount()).isEqualByComparingTo(BigDecimal.valueOf(200));
@@ -347,13 +374,16 @@ class RecurringExecutionServiceTest {
             verifyNoInteractions(expenseService);
         }
 
+
+
         @Test
-        void shouldThrowExceptionWhenValidatorRejectsSettings() {
+        void shouldPropagateExceptionWhenValidatorThrowsUnhandledException() {
             when(recurringSettings.getUserId()).thenReturn(1L);
             when(recurringSettings.getExpenseCategory()).thenReturn(ExpenseCategory.FOOD);
             when(expenseSettingsRepository.findByUserId(1L)).thenReturn(expenseSettings);
             when(walletManagerService.getWalletByUserIdOrThrow(1L)).thenReturn(wallet);
             when(limitManagerService.getLimitsByUserId(1L)).thenReturn(List.of());
+
             doThrow(new IllegalStateException("invalid settings")).when(expenseSettingsValidator)
                     .validate(recurringSettings, expenseSettings, wallet, List.of());
 
@@ -375,21 +405,23 @@ class RecurringExecutionServiceTest {
         }
 
         @Test
-        void shouldReturnWhenUserIdIsNull() {
+        void shouldReturnExecutedWhenUserIdIsNull() {
             when(recurringSettings.getUserId()).thenReturn(null);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
             verifyNoInteractions(walletManagerService, recurringSavingsValidator, piggyBankTransactionService);
         }
 
         @Test
-        void shouldReturnWhenPiggyBankIdIsNull() {
+        void shouldReturnExecutedWhenPiggyBankIdIsNull() {
             when(recurringSettings.getUserId()).thenReturn(1L);
             when(recurringSettings.getPiggyBankId()).thenReturn(null);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
             verifyNoInteractions(walletManagerService, recurringSavingsValidator, piggyBankTransactionService);
         }
 
@@ -400,44 +432,31 @@ class RecurringExecutionServiceTest {
             when(recurringSettings.getAmount()).thenReturn(BigDecimal.valueOf(300));
             when(walletManagerService.getWalletByUserIdOrThrow(1L)).thenReturn(wallet);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
 
-            verify(recurringSavingsValidator, times(1)).validate(recurringSettings, wallet);
-            verify(piggyBankTransactionService, times(1))
-                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null);
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
+            verify(recurringSavingsValidator).validate(recurringSettings, wallet);
+            verify(piggyBankTransactionService).addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null, TransactionOrigin.RECURRING_SYSTEM);
+            verify(recurringSettings).setSkippedNotificationSent(false);
         }
 
         @Test
-        void shouldDisableSettingsWhenPiggyBankNotFound() {
-            when(recurringSettings.getUserId()).thenReturn(1L);
-            when(recurringSettings.getPiggyBankId()).thenReturn(10L);
-            when(recurringSettings.getAmount()).thenReturn(BigDecimal.valueOf(300));
-            when(recurringSettings.getId()).thenReturn(99L);
-            when(walletManagerService.getWalletByUserIdOrThrow(1L)).thenReturn(wallet);
-            doThrow(new RequestedEntityNotFoundException("piggy bank not found"))
-                    .when(piggyBankTransactionService)
-                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null);
-
-            recurringExecutionService.execute(recurringSettings, executionDate);
-
-            verify(recurringSettings, times(1)).setEnable(false);
-            verify(recurringSettings, times(1)).setNextExecutionDate(null);
-        }
-
-        @Test
-        void shouldNotThrowExceptionWhenPiggyBankNotFound() {
+        void shouldDisableSettingsAndReturnExecutedWhenPiggyBankNotFound() {
             when(recurringSettings.getUserId()).thenReturn(1L);
             when(recurringSettings.getPiggyBankId()).thenReturn(10L);
             when(recurringSettings.getAmount()).thenReturn(BigDecimal.valueOf(300));
             when(walletManagerService.getWalletByUserIdOrThrow(1L)).thenReturn(wallet);
-            doThrow(new RequestedEntityNotFoundException("piggy bank not found"))
-                    .when(piggyBankTransactionService)
-                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null);
 
-            recurringExecutionService.execute(recurringSettings, executionDate);
+            doThrow(new RequestedEntityNotFoundException("piggy bank not found")).when(piggyBankTransactionService)
+                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300),
+                            PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null, TransactionOrigin.RECURRING_SYSTEM);
 
-            verify(piggyBankTransactionService, times(1))
-                    .addBalanceToPiggyBank(1L, 10L, BigDecimal.valueOf(300), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null);
+            RecurringExecutionResult result = recurringExecutionService.execute(recurringSettings, executionDate);
+
+            assertThat(result).isEqualTo(RecurringExecutionResult.EXECUTED);
+            verify(recurringSettings).setEnable(false);
+            verify(recurringSettings).setNextExecutionDate(null);
         }
 
         @Test
@@ -451,11 +470,13 @@ class RecurringExecutionServiceTest {
             verifyNoInteractions(recurringSavingsValidator, piggyBankTransactionService);
         }
 
+
         @Test
-        void shouldThrowExceptionWhenValidatorRejectsSettings() {
+        void shouldPropagateExceptionWhenValidatorThrowsUnhandledException() {
             when(recurringSettings.getUserId()).thenReturn(1L);
             when(recurringSettings.getPiggyBankId()).thenReturn(10L);
             when(walletManagerService.getWalletByUserIdOrThrow(1L)).thenReturn(wallet);
+
             doThrow(new IllegalStateException("invalid settings")).when(recurringSavingsValidator).validate(recurringSettings, wallet);
 
             assertThrows(IllegalStateException.class, () -> recurringExecutionService.execute(recurringSettings, executionDate));

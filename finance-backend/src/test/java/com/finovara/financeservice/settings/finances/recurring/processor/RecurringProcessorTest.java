@@ -2,8 +2,6 @@ package com.finovara.financeservice.settings.finances.recurring.processor;
 
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
-import com.finovara.financeservice.settings.finances.recurring.service.execution.RecurringExecutionService;
-import com.finovara.contracts.model.PeriodType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,8 +14,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RecurringProcessorTest {
@@ -26,7 +24,7 @@ class RecurringProcessorTest {
     private RecurringSettingsRepository recurringSettingsRepository;
 
     @Mock
-    private RecurringExecutionService executionService;
+    private RecurringTransactionProcess recurringTransactionProcess;
 
     @InjectMocks
     private RecurringProcessor recurringProcessor;
@@ -46,137 +44,79 @@ class RecurringProcessorTest {
         settings.setAmount(BigDecimal.valueOf(100));
         settings.setUserId(1L);
 
-        settings.setPeriodType(PeriodType.DAILY);
-
         return settings;
     }
 
     @Nested
-    class GenerateRecurringTransaction {
+    class GenerateRecurringTransactionTests {
+
         @Test
-        void shouldSkipInvalidSettings() {
-            RecurringSettings settings = new RecurringSettings();
+        void shouldSkipDisabledSettings() {
+            RecurringSettings settings = createValidSettings(today);
             settings.setEnable(false);
 
             when(recurringSettingsRepository.findDueRecurring(today)).thenReturn(List.of(settings));
 
             recurringProcessor.generateRecurringTransaction();
 
-            verifyNoInteractions(executionService);
-            verify(recurringSettingsRepository, never()).save(any());
+            verifyNoInteractions(recurringTransactionProcess);
         }
 
         @Test
-        void shouldProcessValidSettings() {
+        void shouldSkipSettingsWhenNextExecutionDateIsNull() {
+            RecurringSettings settings = createValidSettings(null);
+
+            when(recurringSettingsRepository.findDueRecurring(today)).thenReturn(List.of(settings));
+
+            recurringProcessor.generateRecurringTransaction();
+
+            verifyNoInteractions(recurringTransactionProcess);
+        }
+
+        @Test
+        void shouldSkipSettingsWhenPeriodTypeIsNull() {
             RecurringSettings settings = createValidSettings(today);
+            settings.setPeriodType(null);
 
             when(recurringSettingsRepository.findDueRecurring(today)).thenReturn(List.of(settings));
 
             recurringProcessor.generateRecurringTransaction();
 
-            verify(executionService).execute(settings, today);
-            verify(recurringSettingsRepository).save(settings);
+            verifyNoInteractions(recurringTransactionProcess);
         }
-    }
 
-    @Nested
-    class ProcessSingle {
         @Test
-        void shouldExecuteOnceWhenDateIsToday() {
+        void shouldSkipSettingsWhenAmountIsNull() {
             RecurringSettings settings = createValidSettings(today);
+            settings.setAmount(null);
 
             when(recurringSettingsRepository.findDueRecurring(today)).thenReturn(List.of(settings));
 
             recurringProcessor.generateRecurringTransaction();
 
-            verify(executionService, times(1)).execute(settings, today);
+            verifyNoInteractions(recurringTransactionProcess);
         }
 
         @Test
-        void shouldExecuteMultipleTimesForPastDates() {
-            RecurringSettings settings = createValidSettings(today.minusDays(3));
-
-            when(recurringSettingsRepository.findDueRecurring(today)).thenReturn(List.of(settings));
-
-            recurringProcessor.generateRecurringTransaction();
-
-            verify(executionService, times(4)).execute(eq(settings), any());
-        }
-
-        @Test
-        void shouldStopWhenDisabledDuringExecution() {
-            RecurringSettings settings = createValidSettings(today.minusDays(2));
-
-            doAnswer(invocation -> {
-                settings.setEnable(false);
-                return null;
-            }).when(executionService).execute(eq(settings), any());
-
-            when(recurringSettingsRepository.findDueRecurring(today)).thenReturn(List.of(settings));
-
-            recurringProcessor.generateRecurringTransaction();
-
-            verify(executionService, times(1)).execute(eq(settings), any());
-        }
-
-        @Test
-        void shouldRespectMaxIterationsLimit() {
-            RecurringSettings settings = createValidSettings(today.minusDays(200));
-
-            when(recurringSettingsRepository.findDueRecurring(today)).thenReturn(List.of(settings));
-
-            recurringProcessor.generateRecurringTransaction();
-
-            verify(executionService, atMost(100)).execute(eq(settings), any());
-        }
-
-        @Test
-        void shouldUpdateNextExecutionDate() {
-            RecurringSettings settings = createValidSettings(today.minusDays(1));
-
-            when(recurringSettingsRepository.findDueRecurring(today)).thenReturn(List.of(settings));
-
-            recurringProcessor.generateRecurringTransaction();
-
-            verify(recurringSettingsRepository).save(settings);
-        }
-
-        @Test
-        void shouldSetNextExecutionDateToNullWhenDisabled() {
+        void shouldSkipSettingsWhenUserIdIsNull() {
             RecurringSettings settings = createValidSettings(today);
-
-            doAnswer(invocation -> {
-                settings.setEnable(false);
-                return null;
-            }).when(executionService).execute(eq(settings), any());
+            settings.setUserId(null);
 
             when(recurringSettingsRepository.findDueRecurring(today)).thenReturn(List.of(settings));
 
             recurringProcessor.generateRecurringTransaction();
 
-            assertNull(settings.getNextExecutionDate());
+            verifyNoInteractions(recurringTransactionProcess);
         }
 
         @Test
-        void shouldSkipWhenNextExecutionDateIsNull() {
-            RecurringSettings settings = createValidSettings(today);
-            settings.setNextExecutionDate(null);
-
-            when(recurringSettingsRepository.findDueRecurring(today)).thenReturn(List.of(settings));
+        void shouldDoNothingWhenNoDueSettingsExist() {
+            when(recurringSettingsRepository.findDueRecurring(today)).thenReturn(List.of());
 
             recurringProcessor.generateRecurringTransaction();
 
-            verifyNoInteractions(executionService);
+            verifyNoInteractions(recurringTransactionProcess);
         }
 
-        @Test
-        void shouldSkipWhenEndDateIsNull() {
-            RecurringSettings settings = createValidSettings(today);
-            settings.setEndDate(null);
-
-            recurringProcessor.generateRecurringTransaction();
-
-            verifyNoInteractions(executionService);
-        }
     }
 }
