@@ -2,7 +2,7 @@ package com.finovara.financeservice.settings.finances.recurring.dto;
 
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
+import com.finovara.contracts.model.RecurringType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
