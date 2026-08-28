@@ -4,7 +4,7 @@ import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieved.service.GoalAchievedNotificationService;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
-import com.finovara.financeservice.util.piggybank.manager.SharedPiggyBankManager;
+import com.finovara.financeservice.util.transaction.piggybank.manager.SharedPiggyBankManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
