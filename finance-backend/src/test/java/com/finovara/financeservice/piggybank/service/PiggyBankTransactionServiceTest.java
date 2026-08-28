@@ -1,6 +1,7 @@
 package com.finovara.financeservice.piggybank.service;
 
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.notification.event.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
@@ -9,7 +10,8 @@ import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
-import com.finovara.financeservice.util.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.util.transaction.TransactionOrigin;
+import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +69,8 @@ class PiggyBankTransactionServiceTest {
         void shouldAddBalanceSuccessfully() {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null);
+            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL);
 
             assertEquals(new BigDecimal("100"), piggyBank.getAmount());
             verify(walletService).removeBalanceFromWallet(userId, new BigDecimal("100"));
@@ -78,7 +81,8 @@ class PiggyBankTransactionServiceTest {
         void shouldSaveActivityEventToOutbox() {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null);
+            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL);
 
             ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
             verify(outboxService).save(
@@ -95,7 +99,8 @@ class PiggyBankTransactionServiceTest {
         void shouldSaveProgressEventToOutbox() {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null);
+            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL);
 
             ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
             verify(outboxService).save(
@@ -113,7 +118,8 @@ class PiggyBankTransactionServiceTest {
             piggyBank.setAmount(new BigDecimal("950"));
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("50"), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null);
+            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("50"),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL);
 
             assertEquals(new BigDecimal("1000"), piggyBank.getAmount());
             verify(goalCompletionService).handleGoalCompletion(userId);
@@ -123,7 +129,8 @@ class PiggyBankTransactionServiceTest {
         void shouldNotCallGoalCompletionWhenGoalNotReached() {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null);
+            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL);
 
             verifyNoInteractions(goalCompletionService);
         }
@@ -135,7 +142,8 @@ class PiggyBankTransactionServiceTest {
                     .when(walletService).removeBalanceFromWallet(userId, new BigDecimal("100"));
 
             assertThrows(InvalidInputException.class, () ->
-                    piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null));
+                    piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                            PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL));
 
             verifyNoInteractions(outboxService);
             verifyNoInteractions(goalCompletionService);
@@ -146,10 +154,32 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
             assertThrows(InvalidInputException.class, () ->
-                    piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("-10"), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null));
+                    piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("-10"),
+                            PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL));
 
             verifyNoInteractions(walletService);
             verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldConfirmAuthorizationCodeWhenOriginIsUserManual() {
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(additionalAuthorizationCodeResolver.resolve("123456")).thenReturn(new ConfirmAuthorizationCodeDto("123456"));
+
+            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, "123456", TransactionOrigin.USER_MANUAL);
+
+            verify(authBackendClient).confirmAuthorizationCode(eq(userId), any(ConfirmAuthorizationCodeDto.class));
+        }
+
+        @Test
+        void shouldSkipAuthorizationCodeConfirmationWhenOriginIsRecurringSystem() {
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+
+            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null, TransactionOrigin.RECURRING_SYSTEM);
+
+            verifyNoInteractions(authBackendClient, additionalAuthorizationCodeResolver);
         }
     }
 
@@ -226,6 +256,17 @@ class PiggyBankTransactionServiceTest {
                     piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("-10"), null));
 
             verifyNoInteractions(walletService, outboxService, goalCompletionService);
+        }
+
+        @Test
+        void shouldAlwaysConfirmAuthorizationCode() {
+            piggyBank.setAmount(new BigDecimal("200"));
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(additionalAuthorizationCodeResolver.resolve("654321")).thenReturn(new ConfirmAuthorizationCodeDto("654321"));
+
+            piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), "654321");
+
+            verify(authBackendClient).confirmAuthorizationCode(eq(userId), any(ConfirmAuthorizationCodeDto.class));
         }
     }
 }
