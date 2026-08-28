@@ -6,7 +6,7 @@ import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieved.dto.GoalAchievedNotificationDto;
-import com.finovara.financeservice.util.piggybank.PiggyBankCheckGoalCompletion;
+import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCheckGoalCompletion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
