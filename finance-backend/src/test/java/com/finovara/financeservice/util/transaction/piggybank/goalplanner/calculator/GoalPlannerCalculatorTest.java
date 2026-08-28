@@ -1,7 +1,8 @@
-package com.finovara.financeservice.util.piggybank.goalplanner.calculator;
+package com.finovara.financeservice.util.transaction.piggybank.goalplanner.calculator;
 
 import com.finovara.financeservice.piggybank.goalplanner.model.GoalPlanner;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
+import com.finovara.financeservice.util.transaction.piggybank.goalplanner.calculator.GoalPlannerCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
