@@ -1,8 +1,9 @@
-package com.finovara.financeservice.util.revenue;
+package com.finovara.financeservice.util.transaction.revenue;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
+import com.finovara.financeservice.util.transaction.revenue.SharedRevenueManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
