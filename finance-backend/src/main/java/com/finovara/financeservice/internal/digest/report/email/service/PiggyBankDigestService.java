@@ -3,7 +3,7 @@ package com.finovara.financeservice.internal.digest.report.email.service;
 import com.finovara.contracts.notification.email.digest.report.finance.PiggyBankSummaryDto;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
-import com.finovara.financeservice.util.piggybank.PiggyBankCheckGoalCompletion;
+import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCheckGoalCompletion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
