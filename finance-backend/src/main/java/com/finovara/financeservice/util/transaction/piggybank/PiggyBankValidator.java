@@ -1,4 +1,4 @@
-package com.finovara.financeservice.util.piggybank;
+package com.finovara.financeservice.util.transaction.piggybank;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
