@@ -6,7 +6,7 @@ import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringOccurrenceDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
+import com.finovara.contracts.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
