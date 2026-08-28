@@ -1,8 +1,9 @@
-package com.finovara.financeservice.util.expense;
+package com.finovara.financeservice.util.transaction.expense;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
+import com.finovara.financeservice.util.transaction.expense.SharedExpenseManagerService;
 import org.junit.jupiter.api.Test;
 
 import org.junit.jupiter.api.extension.ExtendWith;
