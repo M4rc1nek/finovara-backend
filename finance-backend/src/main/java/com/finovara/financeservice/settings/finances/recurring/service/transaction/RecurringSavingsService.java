@@ -5,7 +5,7 @@ import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringSavingsDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.financeservice.settings.finances.recurring.model.RecurringType;
+import com.finovara.contracts.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
