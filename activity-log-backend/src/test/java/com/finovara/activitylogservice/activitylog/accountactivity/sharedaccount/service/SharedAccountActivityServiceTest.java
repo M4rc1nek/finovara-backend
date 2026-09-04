@@ -140,7 +140,7 @@ class SharedAccountActivityServiceTest {
             List<SharedAccountActivityDto> result = sharedAccountActivityService.getSharedAccountActivity(userId, sortType);
 
             assertEquals(1, result.size());
-            assertEquals(dto, result.get(0));
+            assertEquals(dto, result.getFirst());
         }
 
         @Test
@@ -245,7 +245,7 @@ class SharedAccountActivityServiceTest {
             List<SharedAccountActivity> result = sharedAccountActivityService.getRepositoryFindByUserId(userId, pageable);
 
             assertEquals(1, result.size());
-            assertEquals(entity, result.get(0));
+            assertEquals(entity, result.getFirst());
         }
 
         @Test
