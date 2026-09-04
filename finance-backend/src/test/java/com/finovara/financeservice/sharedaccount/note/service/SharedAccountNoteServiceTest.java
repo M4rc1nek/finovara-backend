@@ -233,8 +233,8 @@ class SharedAccountNoteServiceTest {
             List<SharedAccountNoteDto> result = sharedAccountNoteService.getNotes(USER_ID);
 
             assertEquals(2, result.size());
-            assertEquals(TOPIC, result.get(0).topic());
-            assertEquals(DESCRIPTION, result.get(0).description());
+            assertEquals(TOPIC, result.getFirst().topic());
+            assertEquals(DESCRIPTION, result.getFirst().description());
         }
 
         @Test
@@ -247,8 +247,8 @@ class SharedAccountNoteServiceTest {
 
             List<SharedAccountNoteDto> result = sharedAccountNoteService.getNotes(USER_ID);
 
-            assertEquals("owner_user", result.get(0).noteCreatorUsername());
-            assertEquals(OWNER_ID, result.get(0).noteCreatorId());
+            assertEquals("owner_user", result.getFirst().noteCreatorUsername());
+            assertEquals(OWNER_ID, result.getFirst().noteCreatorId());
         }
 
         @Test
