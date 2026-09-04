@@ -1,4 +1,8 @@
 package com.finovara.financeservice.wallet.reservation.dto;
 
-public record UnreserveReservationDto() {
+import java.math.BigDecimal;
+
+public record UnreserveReservationDto(
+        BigDecimal amount
+) {
 }
