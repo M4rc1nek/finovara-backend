@@ -51,7 +51,7 @@ logging:
 
 scheduler:
   recurring-settings:
-    frequency: "0 * * * * ?" #0 0 0 * * ?
+    frequency: "0 0 0 * * ?"
     max-occurrence-range-days: 180
   shared-account:
     notes:
