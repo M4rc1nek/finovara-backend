@@ -231,7 +231,7 @@ class SharedLimitManagementServiceTest {
             List<SharedLimitStatsDto> result = sharedLimitManagementService.getSharedLimitStats(USER_ID);
 
             assertEquals(2, result.size());
-            assertEquals(firstStats, result.get(0));
+            assertEquals(firstStats, result.getFirst());
             assertEquals(secondStats, result.get(1));
         }
 
