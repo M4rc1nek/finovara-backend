@@ -24,6 +24,9 @@ public class Wallet {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balance = BigDecimal.ZERO;
 
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal reservedAmount = BigDecimal.ZERO;
+
 
     public Wallet(Long userId) {
         this.userId = userId;
@@ -41,11 +44,26 @@ public class Wallet {
     public void withdraw(BigDecimal amount) {
         validateAmount(amount);
 
-        if (balance.compareTo(amount) < 0) {
-            throw new InvalidInputException("Insufficient funds");
+        BigDecimal available = balance.subtract(reservedAmount);
+        if (available.compareTo(amount) < 0) {
+            throw new InvalidInputException("Insufficient available funds (reserved funds cannot be spent)");
         }
 
         balance = balance.subtract(amount);
+    }
+
+    public void reserve(BigDecimal amount) {
+        validateAmount(amount);
+        BigDecimal available = balance.subtract(reservedAmount);
+        if (available.compareTo(amount) < 0) {
+            throw new InvalidInputException("Insufficient available funds");
+        }
+        reservedAmount = reservedAmount.add(amount);
+    }
+
+    public void unreserve(BigDecimal amount) {
+        validateAmount(amount);
+        reservedAmount = reservedAmount.subtract(amount);
     }
 
     private void validateAmount(BigDecimal amount) {
