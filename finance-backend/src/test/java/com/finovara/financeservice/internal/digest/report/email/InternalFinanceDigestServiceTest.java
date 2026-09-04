@@ -97,7 +97,7 @@ class InternalFinanceDigestServiceTest {
             List<WeeklyFinanceDigestReportDto> result = service.getWeeklyFinanceDigestReports();
 
             assertEquals(1, result.size());
-            assertEquals(dto, result.get(0));
+            assertEquals(dto, result.getFirst());
         }
 
         @Test
