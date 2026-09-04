@@ -116,7 +116,7 @@ class SharedAccountMemberServiceTest {
             List<SharedAccountMemberDto> result = sharedAccountMemberService.getMemberDetails(accountId, userId);
 
             assertEquals(1, result.size());
-            assertEquals(memberDto, result.get(0));
+            assertEquals(memberDto, result.getFirst());
         }
 
         @Test
