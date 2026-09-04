@@ -184,7 +184,7 @@ class RecurringOccurrenceServiceTest {
                     USER_ID, LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 31));
 
             assertThat(result).hasSize(1);
-            RecurringOccurrenceDto occurrence = result.get(0);
+            RecurringOccurrenceDto occurrence = result.getFirst();
             assertThat(occurrence.date()).isEqualTo(LocalDate.of(2026, 8, 5));
             assertThat(occurrence.type()).isEqualTo(RecurringType.EXPENSE);
             assertThat(occurrence.amount()).isEqualByComparingTo(BigDecimal.valueOf(250));

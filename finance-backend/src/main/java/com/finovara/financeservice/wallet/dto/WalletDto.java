@@ -5,7 +5,9 @@ import java.math.BigDecimal;
 public record WalletDto(
         Long id,
         Long userId,
+        BigDecimal balance,
+        BigDecimal reservedAmount,
+        BigDecimal availableAmount
 
-        BigDecimal balance
 ) {
 }

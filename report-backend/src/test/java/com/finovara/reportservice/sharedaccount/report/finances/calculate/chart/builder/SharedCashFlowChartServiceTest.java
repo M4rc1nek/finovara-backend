@@ -60,8 +60,8 @@ class SharedCashFlowChartServiceTest {
             List<SharedCashFlowDto> result = sharedCashFlowChartService.getSharedCashFlowChart(Collections.emptyList(), Collections.emptyList(), today);
 
             assertThat(result).hasSize(11);
-            assertThat(result.get(0).date()).isEqualTo(LocalDate.of(2026, 7, 1));
-            assertThat(result.get(result.size() - 1).date()).isEqualTo(today);
+            assertThat(result.getFirst().date()).isEqualTo(LocalDate.of(2026, 7, 1));
+            assertThat(result.getLast().date()).isEqualTo(today);
         }
 
         @Test
@@ -71,7 +71,7 @@ class SharedCashFlowChartServiceTest {
             List<SharedCashFlowDto> result = sharedCashFlowChartService.getSharedCashFlowChart(Collections.emptyList(), Collections.emptyList(), today);
 
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).date()).isEqualTo(today);
+            assertThat(result.getFirst().date()).isEqualTo(today);
         }
 
         @Test

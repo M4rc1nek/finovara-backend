@@ -4,18 +4,22 @@ import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.notification.event.wallet.WalletBalanceChangedEvent;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.dto.WalletDto;
+import com.finovara.financeservice.wallet.dto.WalletResponse;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
+import com.finovara.financeservice.wallet.reservation.dto.FundReservationDto;
+import com.finovara.financeservice.wallet.reservation.repository.FundReservationRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -24,6 +28,7 @@ public class WalletService implements UserDataDeletable {
 
     private final WalletRepository walletRepository;
     private final WalletManagerService walletManagerService;
+    private final FundReservationRepository fundReservationRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
@@ -54,18 +59,17 @@ public class WalletService implements UserDataDeletable {
 
     @Transactional
     @Cacheable(value = "wallet:user", key = "#userId")
-    public WalletDto getWalletForUser(Long userId) {
+    public WalletResponse getWalletWithReservations(Long userId) {
         Wallet wallet = walletRepository.findByUserId(userId)
                 .orElseGet(() -> walletRepository.save(Wallet.create(userId)));
 
-        return returnNewWalletDto(userId, wallet);
-    }
+        BigDecimal available = wallet.getBalance().subtract(wallet.getReservedAmount());
 
-    private WalletDto returnNewWalletDto(Long userId, Wallet wallet) {
-        return new WalletDto(
-                wallet.getId(),
-                userId,
-                wallet.getBalance());
+        List<FundReservationDto> reservations  = fundReservationRepository.findByWalletId(wallet.getId())
+                .stream()
+                .map(fundReservation -> new FundReservationDto(fundReservation.getId(), fundReservation.getCategory(), fundReservation.getAmount())).toList();
+
+        return new WalletResponse(wallet.getId(), userId, wallet.getBalance(), wallet.getReservedAmount(), available, reservations);
     }
 
     @Override
@@ -74,5 +78,10 @@ public class WalletService implements UserDataDeletable {
     public void deleteByUserId(Long userId) {
         walletRepository.deleteByUserId(userId);
         log.info("Deleted wallet for userId={}", userId);
+    }
+
+    private WalletDto returnNewWalletDto(Long userId, Wallet wallet) {
+        BigDecimal available = wallet.getBalance().subtract(wallet.getReservedAmount());
+        return new WalletDto(wallet.getId(), userId, wallet.getBalance(), wallet.getReservedAmount(), available);
     }
 }

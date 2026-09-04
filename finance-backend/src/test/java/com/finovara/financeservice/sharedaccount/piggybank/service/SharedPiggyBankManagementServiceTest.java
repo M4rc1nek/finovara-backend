@@ -308,7 +308,7 @@ class SharedPiggyBankManagementServiceTest {
             List<SharedPiggyBankDto> result = sharedPiggyBankManagementService.getAllPiggyBanks(userId);
 
             assertEquals(1, result.size());
-            assertEquals(expectedDto, result.get(0));
+            assertEquals(expectedDto, result.getFirst());
         }
 
         @Test

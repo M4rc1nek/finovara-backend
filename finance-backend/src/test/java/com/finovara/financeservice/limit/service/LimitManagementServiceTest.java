@@ -240,7 +240,7 @@ class LimitManagementServiceTest {
             List<LimitStatsDto> result = limitManagementService.getLimitStats(USER_ID);
 
             assertEquals(2, result.size());
-            assertEquals(firstStats, result.get(0));
+            assertEquals(firstStats, result.getFirst());
             assertEquals(secondStats, result.get(1));
         }
 

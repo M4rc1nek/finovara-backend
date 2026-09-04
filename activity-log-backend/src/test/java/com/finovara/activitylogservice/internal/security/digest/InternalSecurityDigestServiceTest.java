@@ -82,7 +82,7 @@ class InternalSecurityDigestServiceTest {
             List<WeeklySecurityDigestReportDto> result = internalSecurityDigestService.getSecurityDigestReport();
 
             assertEquals(1, result.size());
-            assertEquals(weeklySecurityDigestReportDto, result.get(0));
+            assertEquals(weeklySecurityDigestReportDto, result.getFirst());
         }
 
         @Test
