@@ -72,7 +72,7 @@ spring:
             - id: report-backend
               uri: ${REPORT_BACKEND_URL}
               predicates:
-                - Path=/api/reports/**,/api/shared-accounts/reports/financial-report,/api/shared-accounts/report-cache/**,/api/report-cache/**,/api/pdf/**
+                - Path=/api/reports/**,/api/shared-accounts/reports/financial-report,/api/shared-accounts/report-cache/**,/api/report-cache/**,/api/pdf/**,/api/finance-health-score
 
             - id: auth_backend
               uri: ${AUTH_BACKEND_URL}
