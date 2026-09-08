@@ -1,7 +1,7 @@
 package com.finovara.financeservice.revenue.suggestions.service;
 
-import com.finovara.financeservice.expense.repository.ExpenseRepository;
-import com.finovara.financeservice.revenue.suggestions.dto.ExpenseSuggestionDto;
+import com.finovara.financeservice.revenue.repository.RevenueRepository;
+import com.finovara.financeservice.revenue.suggestions.dto.RevenueSuggestionDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
@@ -12,17 +12,16 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ExpenseSuggestionService {
+public class RevenueSuggestionService {
 
-    private final ExpenseRepository expenseRepository;
+    private final RevenueRepository revenueRepository;
 
-    @Value("${expense.suggestion.history-size}")
+    @Value("${revenue.suggestion.history-size}")
     private int pageSize;
 
-    @Cacheable(value = "expense:suggestion", key = "#userId", unless = "#result == null")
-    public ExpenseSuggestionDto getExpenseSuggestion(Long userId) {
-        List<ExpenseSuggestionDto> latest =
-                expenseRepository.findLatestExpensePairsByUserId(userId, PageRequest.of(0, pageSize));
+    @Cacheable(value = "revenue:suggestion", key = "#userId", unless = "#result == null")
+    public RevenueSuggestionDto getRevenueSuggestion(Long userId) {
+        List<RevenueSuggestionDto> latest = revenueRepository.findLatestRevenuePairsByUserId(userId, PageRequest.of(0, pageSize));
 
         if (latest.size() < pageSize) {
             return null;
