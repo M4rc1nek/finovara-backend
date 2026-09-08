@@ -18,6 +18,8 @@ import com.finovara.financeservice.wallet.service.WalletService;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
@@ -42,6 +44,7 @@ public class RevenueService implements UserDataDeletable {
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
+    @CacheEvict(value = "revenue:suggestion", key = "#userId")
     public Long addRevenue(RevenueDto revenueDto, Long userId, TransactionOrigin origin) {
         if(origin == TransactionOrigin.USER_MANUAL){
             authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
@@ -63,6 +66,7 @@ public class RevenueService implements UserDataDeletable {
     }
 
     @Transactional
+    @CacheEvict(value = "revenue:suggestion", key = "#userId")
     public Long editRevenue(RevenueDto revenueDto, Long revenueId, Long userId) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
 
@@ -103,6 +107,7 @@ public class RevenueService implements UserDataDeletable {
     }
 
     @Transactional
+    @CacheEvict(value = "revenue:suggestion", key = "#userId")
     public void deleteRevenue(Long revenueId, Long userId, String authorizationCode) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         
