@@ -2,8 +2,10 @@ package com.finovara.financeservice.revenue.repository;
 
 import com.finovara.contracts.transaction.report.dto.DailyCashDto;
 import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
+import com.finovara.financeservice.expense.suggestions.dto.ExpenseSuggestionDto;
 import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.financeservice.revenue.suggestions.dto.RevenueSuggestionDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,6 +36,17 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
 
     @Query("SELECT r FROM Revenue r WHERE r.userId = :userId AND r.createdAt BETWEEN :from AND :to ORDER BY r.amount DESC")
     List<Revenue> findTopRevenuesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
+
+    @Query("""
+            SELECT new com.finovara.financeservice.revenue.suggestions.dto.RevenueSuggestionDto(
+                r.category,
+                r.amount
+            )
+            FROM Revenue r
+            WHERE r.userId = :userId
+            ORDER BY r.id DESC
+            """)
+    List<RevenueSuggestionDto> findLatestRevenuePairsByUserId(Long userId, Pageable pageable);
 
     @Query("""
             SELECT r.category
