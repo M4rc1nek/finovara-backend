@@ -23,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -72,6 +73,7 @@ class SmartScanServiceTest {
     void setup() {
         expenseSettings = new ExpenseSettings();
         when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(expenseSettings);
+        ReflectionTestUtils.setField(smartScanService, "pageSize", 4);
     }
 
     @Nested
@@ -146,7 +148,7 @@ class SmartScanServiceTest {
 
             smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(100), SmartScanMode.ADD);
 
-            verify(expenseRepository, never()).findFiveLastByUserId(any(), any());
+            verify(expenseRepository, never()).findLatestByUserId(any(), any());
             verifyNoInteractions(authBackendClient, expenseAnomalyDetector);
         }
 
@@ -157,7 +159,7 @@ class SmartScanServiceTest {
             when(expenseRepository.countExpensesByUserId(USER_ID)).thenReturn(4L);
 
             List<Expense> lastExpenses = buildExpenses(BigDecimal.valueOf(100));
-            when(expenseRepository.findFiveLastByUserId(USER_ID, PageRequest.of(0, 4))).thenReturn(lastExpenses);
+            when(expenseRepository.findLatestByUserId(USER_ID, PageRequest.of(0, 4))).thenReturn(lastExpenses);
             when(expenseAnomalyDetector.calculateAnomalyThreshold(any(), any())).thenReturn(BigDecimal.valueOf(500));
 
             smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(300), SmartScanMode.ADD);
@@ -172,7 +174,7 @@ class SmartScanServiceTest {
             when(expenseRepository.countExpensesByUserId(USER_ID)).thenReturn(4L);
 
             List<Expense> lastExpenses = buildExpenses(BigDecimal.valueOf(100));
-            when(expenseRepository.findFiveLastByUserId(USER_ID, PageRequest.of(0, 4))).thenReturn(lastExpenses);
+            when(expenseRepository.findLatestByUserId(USER_ID, PageRequest.of(0, 4))).thenReturn(lastExpenses);
             when(expenseAnomalyDetector.calculateAnomalyThreshold(any(), any())).thenReturn(BigDecimal.valueOf(300));
             doThrow(new ConfirmationRequiredException("Password confirmation required"))
                     .when(expenseAnomalyDetector).requirePasswordConfirmation(USER_ID, null, authBackendClient);
@@ -190,7 +192,7 @@ class SmartScanServiceTest {
             when(expenseRepository.countExpensesByUserId(USER_ID)).thenReturn(4L);
 
             List<Expense> lastExpenses = buildExpenses(BigDecimal.valueOf(100));
-            when(expenseRepository.findFiveLastByUserId(USER_ID, PageRequest.of(0, 4))).thenReturn(lastExpenses);
+            when(expenseRepository.findLatestByUserId(USER_ID, PageRequest.of(0, 4))).thenReturn(lastExpenses);
             when(expenseAnomalyDetector.calculateAnomalyThreshold(any(), any())).thenReturn(BigDecimal.valueOf(300));
 
             BigDecimal newExpense = BigDecimal.valueOf(400);
@@ -209,7 +211,7 @@ class SmartScanServiceTest {
 
             smartScanService.handleSmartScan(USER_ID, null, BigDecimal.valueOf(100), SmartScanMode.EDIT);
 
-            verify(expenseRepository, never()).findFiveLastByUserId(any(), any());
+            verify(expenseRepository, never()).findLatestByUserId(any(), any());
             verifyNoInteractions(authBackendClient, expenseAnomalyDetector);
         }
 
