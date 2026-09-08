@@ -57,6 +57,18 @@ scheduler:
     notes:
       delete-cron: "0 0 1 5 * ?"
 
+
+expense:
+  suggestion:
+    history-size: 5
+  settings:
+    smart-scan:
+      expense-count: 4
+
+revenue:
+  suggestion:
+    history-size: 5
+
 nbp:
   api:
     url: https://api.nbp.pl/api
@@ -69,6 +81,8 @@ cache:
     "[wallet:shared]": 1
     "[expense:historyByCategory]": 10
     "[revenue:historyByCategory]": 10
+    "[expense:suggestion]": 10
+    "[revenue:suggestion]": 10
     "[nbpRates]": 60
 
 
