@@ -1,4 +1,11 @@
 package com.finovara.financeservice.expense.suggestions.dto;
 
-public record ExpenseSuggestionDto() {
+import com.finovara.contracts.model.transaction.ExpenseCategory;
+
+import java.math.BigDecimal;
+
+public record ExpenseSuggestionDto(
+        ExpenseCategory category,
+        BigDecimal amount
+) {
 }
