@@ -32,6 +32,7 @@ import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,6 +64,7 @@ public class ExpenseService implements UserDataDeletable {
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
+    @CacheEvict(value = "expense:suggestion", key = "#userId")
     public Long addExpense(ExpenseRequestDto expenseRequestDto,Long userId, TransactionOrigin origin) {
         if(origin == TransactionOrigin.USER_MANUAL){
             authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
@@ -101,6 +103,7 @@ public class ExpenseService implements UserDataDeletable {
     }
 
     @Transactional
+    @CacheEvict(value = "expense:suggestion", key = "#userId")
     public Long editExpense(ExpenseRequestDto expenseRequestDto, Long userId, Long expenseId) {
         Expense existingExpense = expenseManagerService.getExpenseByIdOrThrow(expenseId);
         if (!existingExpense.getUserId().equals(userId)) {
@@ -143,6 +146,7 @@ public class ExpenseService implements UserDataDeletable {
     }
 
     @Transactional
+    @CacheEvict(value = "expense:suggestion", key = "#userId")
     public void deleteExpense(Long expenseId, Long userId, String authorizationCode) {
         Expense expense = expenseRepository.findByIdAndUserId(expenseId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
