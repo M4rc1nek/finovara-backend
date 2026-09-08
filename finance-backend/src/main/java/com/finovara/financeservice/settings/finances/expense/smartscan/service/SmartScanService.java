@@ -15,6 +15,7 @@ import com.finovara.financeservice.util.settings.ExpenseAnomalyDetector;
 import lombok.RequiredArgsConstructor;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,9 @@ public class SmartScanService {
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ExpenseAnomalyDetector expenseAnomalyDetector;
+
+    @Value("${expense.settings.smart-scan.expense-count}")
+    private int pageSize;
 
     @Transactional
     public void saveSmartScan(Long userId, SmartScanDto smartScanDto) {
@@ -86,7 +90,7 @@ public class SmartScanService {
     }
 
     private BigDecimal calculateAnomalyThreshold(Long userId) {
-        List<Expense> expenses = expenseRepository.findFiveLastByUserId(userId, PageRequest.of(0, 4));
+        List<Expense> expenses = expenseRepository.findLatestByUserId(userId, PageRequest.of(0, pageSize));
 
         List<BigDecimal> amounts = expenses.stream().map(Expense::getAmount).toList();
 
