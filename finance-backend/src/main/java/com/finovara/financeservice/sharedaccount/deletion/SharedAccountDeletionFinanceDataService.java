@@ -105,7 +105,7 @@ public class SharedAccountDeletionFinanceDataService {
             return;
         }
 
-        outboxService.save("User", instruction.userId().toString(), "activity.shared-account",
+        outboxService.save("User", instruction.userId().toString(), "shared-account.changed",
                 new SharedAccountActivityEvent(instruction.userId(), SharedAccountActivityType.REFUND_BALANCE_AFTER_LEFT_SHARED_ACCOUNT,
                         instruction.amount(), instruction.coFounderUsername(), instruction.coFounderEmail(), LocalDateTime.now()));
 
