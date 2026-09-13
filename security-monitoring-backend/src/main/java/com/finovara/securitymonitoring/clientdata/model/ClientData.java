@@ -1,4 +1,4 @@
-package com.finovara.securitymonitoring.clientdata;
+package com.finovara.securitymonitoring.clientdata.model;
 
 import com.finovara.securitymonitoring.login.model.LoginProfile;
 import jakarta.persistence.*;
@@ -20,7 +20,6 @@ public class ClientData {
     private String knownIpAddress;
     private String knownLocation;
     private String knownBrowser;
-
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "login_profile_id", nullable = false)
