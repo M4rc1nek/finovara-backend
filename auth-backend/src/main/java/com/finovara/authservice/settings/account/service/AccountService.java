@@ -47,7 +47,7 @@ public class AccountService {
         userRepository.save(user);
 
         String ipAddress = getClientIpAddress(request);
-        outboxService.save("User", userId.toString(), "activity.account-changes",
+        outboxService.save("User", userId.toString(), "account.changed",
                 new AccountChangesActivityEvent(userId, AccountChangesActivityType.USERNAME_CHANGED, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
         outboxService.save("User", userId.toString(), "notification.email.send",
                 new SendEmailEvent(user.getId(), user.getUsername(), user.getEmail(),
