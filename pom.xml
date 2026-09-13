@@ -8,12 +8,9 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.7</version>
+        <version>4.1.1</version>
         <relativePath/>
     </parent>
-
-
-
     <groupId>com.finovara</groupId>
     <artifactId>finovara</artifactId>
     <version>1.0-SNAPSHOT</version>
@@ -24,7 +21,7 @@
     <!-- ===== PROPERTIES ===== -->
     <properties>
         <java.version>25</java.version>
-        <spring-cloud.version>2025.1.1</spring-cloud.version>
+        <spring-cloud.version>2025.1.2</spring-cloud.version>
         <lombok.version>1.18.42</lombok.version>
         <jjwt.version>0.11.5</jjwt.version>
         <shedlock.version>5.13.0</shedlock.version>
@@ -35,6 +32,7 @@
         <springdoc.version>2.8.8</springdoc.version>
     </properties>
 
+
     <!-- ===== MODULES ===== -->
     <modules>
         <module>api-gateway</module>
@@ -43,6 +41,7 @@
         <module>activity-log-backend</module>
         <module>notification-backend</module>
         <module>report-backend</module>
+        <module>security-monitoring-backend</module>
         <module>finance-backend</module>
     </modules>
 
