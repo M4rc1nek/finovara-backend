@@ -13,8 +13,9 @@ services:
       ACTIVITY_LOG_BACKEND_URL: https://finovara-activity-app:8082
       NOTIFICATION_BACKEND_URL: https://finovara-notification-app:8086
       REPORT_BACKEND_URL: https://finovara-report-app:8083
+      SECURITY_MONITORING_BACKEND_URL: https://finovara-security-monitoring-app:8085
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      SSL_PASSWORD: ${SSL_PASSWORD}
+      DEV_SSL_PASSWORD: ${DEV_SSL_PASSWORD}
       REDIS_HOST: finovara-gateway-redis
       REDIS_PORT: 6381
       REDIS_PASSWORD: ${REDIS_PASSWORD}
