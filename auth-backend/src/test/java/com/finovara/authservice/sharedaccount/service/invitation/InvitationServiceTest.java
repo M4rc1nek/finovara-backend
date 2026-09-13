@@ -227,7 +227,7 @@ class InvitationServiceTest {
 
             invitationService.sendInvitation(INVITER_USER_ID, INVITEE_USER_ID, AUTHORIZATION_CODE);
 
-            verify(outboxService).save(eq("User"), eq(INVITER_USER_ID.toString()), eq("activity.shared-account"), any(SharedAccountActivityEvent.class));
+            verify(outboxService).save(eq("User"), eq(INVITER_USER_ID.toString()), eq("shared-account.changed"), any(SharedAccountActivityEvent.class));
 
             ArgumentCaptor<UserSentSharedAccountInvitationEvent> eventCaptor = ArgumentCaptor.forClass(UserSentSharedAccountInvitationEvent.class);
             verify(outboxService).save(eq("User"), eq(INVITER_USER_ID.toString()), eq("notification.shared-account.invitation-sent"), eventCaptor.capture());
