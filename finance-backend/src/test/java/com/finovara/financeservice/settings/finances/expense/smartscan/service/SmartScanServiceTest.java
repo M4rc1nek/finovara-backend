@@ -88,7 +88,7 @@ class SmartScanServiceTest {
             assertTrue(expenseSettings.isSmartScanEnabled());
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.settings"), eventCaptor.capture());
+            verify(kafkaTemplate).send(eq("settings.changed"), eventCaptor.capture());
             assertEquals(SettingActivityStatus.ENABLED, eventCaptor.getValue().status());
         }
 
@@ -101,7 +101,7 @@ class SmartScanServiceTest {
             assertFalse(expenseSettings.isSmartScanEnabled());
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.settings"), eventCaptor.capture());
+            verify(kafkaTemplate).send(eq("settings.changed"), eventCaptor.capture());
             assertEquals(SettingActivityStatus.DISABLED, eventCaptor.getValue().status());
         }
     }
