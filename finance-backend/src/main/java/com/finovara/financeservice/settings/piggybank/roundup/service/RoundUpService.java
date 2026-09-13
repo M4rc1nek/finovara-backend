@@ -57,9 +57,9 @@ public class RoundUpService {
         PiggyBankSettings settings = piggyBank.getSettings();
         settings.setRoundUpActive(dto.roundUpActive());
         if (settings.isRoundUpActive()) {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_ROUND_UP, SettingActivityStatus.ENABLED, LocalDateTime.now()));
+            kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_ROUND_UP, SettingActivityStatus.ENABLED, LocalDateTime.now()));
         } else {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_ROUND_UP, SettingActivityStatus.DISABLED, LocalDateTime.now()));
+            kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_ROUND_UP, SettingActivityStatus.DISABLED, LocalDateTime.now()));
         }
     }
 
