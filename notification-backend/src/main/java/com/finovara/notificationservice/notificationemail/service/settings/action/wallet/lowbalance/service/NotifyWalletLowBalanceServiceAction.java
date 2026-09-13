@@ -39,7 +39,7 @@ public class NotifyWalletLowBalanceServiceAction extends AbstractActionNotificat
 
     @Override
     protected void handleActivity(Long userId, boolean enabled) {
-        kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.NOTIFICATION_WALLET_LOW_BALANCE,
+        kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.NOTIFICATION_WALLET_LOW_BALANCE,
                 enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED,
                 LocalDateTime.now()));
     }
