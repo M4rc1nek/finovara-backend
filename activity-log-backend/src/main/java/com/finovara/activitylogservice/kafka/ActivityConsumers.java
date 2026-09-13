@@ -40,52 +40,52 @@ public class ActivityConsumers {
 
     private final List<UserDataDeletable> deletableServices;
 
-    @KafkaListener(topics = "activity.settings")
+    @KafkaListener(topics = "settings.changed")
     public void handleSettings(SettingsActivityEvent event) {
         settingsActivityService.handleEvent(event);
     }
 
-    @KafkaListener(topics = "activity.revenue")
+    @KafkaListener(topics = "revenue.created")
     public void handleRevenue(RevenueActivityEvent event) {
         revenueActivityService.handleEvent(event);
     }
 
-    @KafkaListener(topics = "activity.piggybank.lifecycle")
+    @KafkaListener(topics = "piggybank.lifecycle.changed")
     public void handlePiggyBank(PiggyBankActivityEvent event) {
         piggyBankActivityService.handleEvent(event);
     }
 
-    @KafkaListener(topics = "activity.piggybank.edited")
+    @KafkaListener(topics = "piggybank.updated")
     public void handleEditPiggyBank(PiggyBankEditActivityEvent event) {
         piggyBankActivityService.handleEditEvent(event);
     }
 
-    @KafkaListener(topics = "activity.piggybank")
+    @KafkaListener(topics = "piggybank.transaction.created")
     public void handlePiggyBankTransaction(PiggyBankActivityEvent event) {
         piggyBankActivityService.handleEvent(event);
     }
 
-    @KafkaListener(topics = "activity.login")
+    @KafkaListener(topics = "user.logged-in")
     public void handleLogin(LoginActivityEvent event) {
         loginActivityService.handleEvent(event);
     }
 
-    @KafkaListener(topics = "activity.limit")
+    @KafkaListener(topics = "limit.changed")
     public void handleLimit(LimitActivityEvent event) {
         limitActivityService.handleEvent(event);
     }
 
-    @KafkaListener(topics = "activity.expense")
+    @KafkaListener(topics = "expense.created")
     public void handleExpense(ExpenseActivityEvent event) {
         expenseActivityService.handleEvent(event);
     }
 
-    @KafkaListener(topics = "activity.account-changes")
+    @KafkaListener(topics = "account.changed")
     public void handleAccountChanges(AccountChangesActivityEvent event) {
         accountChangesActivityService.handleEvent(event);
     }
 
-    @KafkaListener(topics = "activity.shared-account")
+    @KafkaListener(topics = "shared-account.changed")
     public void handleSharedAccount(SharedAccountActivityEvent event) {
         sharedAccountActivityService.handleEvent(event);
     }
