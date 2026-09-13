@@ -58,7 +58,7 @@ server:
     enabled: true
     key-store: file:/app/localhost.p12
     key-store-type: PKCS12
-    key-store-password: ${SSL_PASSWORD}
+    key-store-password: ${DEV_SSL_PASSWORD}
     key-alias: 1
 
 application:
