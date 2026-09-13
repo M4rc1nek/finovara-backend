@@ -100,7 +100,7 @@ class AccountServiceTest {
             verify(outboxService).save(
                     eq("User"),
                     eq(userId.toString()),
-                    eq("activity.account-changes"),
+                    eq("account.changed"),
                     payloadCaptor.capture()
             );
 
