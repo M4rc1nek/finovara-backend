@@ -79,7 +79,7 @@ public class SharedAccountDeletionService {
         String coFounderUsername = coFounder.map(User::getUsername).orElse(null);
         String coFounderEmail = coFounder.map(User::getEmail).orElse(null);
 
-        outboxService.save("User", actingUserId.toString(), "activity.shared-account",
+        outboxService.save("User", actingUserId.toString(), "shared-account.changed",
                 new SharedAccountActivityEvent(actingUserId, SharedAccountActivityType.LEFT_SHARED_ACCOUNT,
                         null, coFounderUsername, coFounderEmail, LocalDateTime.now()));
     }
