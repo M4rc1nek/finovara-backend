@@ -91,7 +91,7 @@ public class CountQuantityLimitService {
     }
 
     private void createActivity(Long userId, boolean enabled) {
-        kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.EXPENSE_COUNT_LIMIT, enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED, LocalDateTime.now()));
+        kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.EXPENSE_COUNT_LIMIT, enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED, LocalDateTime.now()));
     }
 
     private void handleDisable(ExpenseSettings settings) {
