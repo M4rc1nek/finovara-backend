@@ -1,16 +1,17 @@
 package com.finovara.authservice.security.oauth2;
 
-import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
 import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
 import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+
+import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.authservice.security.jwt.JwtService;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.util.profile.ProfileImageUrlBuilder;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -57,7 +58,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             String ipAddress = getClientIpAddress(request);
 
             String profileImageUrl = ProfileImageUrlBuilder.buildProfileImageUrl(user.getProfileImagePath());
-            kafkaTemplate.send("activity.login", new LoginActivityEvent(user.getId(), LoginActivityStatus.SUCCESSFUL, getBrowser(request), ipAddress , getLocationFromIp(ipAddress), LocalDateTime.now()));
+            kafkaTemplate.send("user.logged-in", new LoginActivityEvent(user.getId(), LoginActivityStatus.SUCCESSFUL, getBrowser(request), ipAddress , getLocationFromIp(ipAddress), LocalDateTime.now()));
 
 
             OAuth2AccessTokenCookie.add(response, token, request.isSecure());
