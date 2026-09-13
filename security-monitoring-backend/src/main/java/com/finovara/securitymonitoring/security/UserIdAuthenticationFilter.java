@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.security;
+package com.finovara.securitymonitoring.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
