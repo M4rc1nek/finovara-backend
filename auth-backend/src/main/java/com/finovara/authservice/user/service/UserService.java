@@ -3,9 +3,9 @@ package com.finovara.authservice.user.service;
 import com.finovara.authservice.exception.conflict.LocalPasswordNotSetException;
 import com.finovara.authservice.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
 import com.finovara.contracts.user.event.UserCreatedEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
 import com.finovara.authservice.security.jwt.JwtService;
 import com.finovara.authservice.user.dto.UserLoginDto;
 import com.finovara.authservice.user.dto.UserRegisterDto;
@@ -116,6 +116,7 @@ public class UserService {
 
     private void publishLoginActivity(Long userId, LoginActivityStatus status, HttpServletRequest request) {
         String ipAddress = getClientIpAddress(request);
-        kafkaTemplate.send("activity.login", new LoginActivityEvent(userId, status, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
+        kafkaTemplate.send("user.logged-in", new LoginActivityEvent(userId, status, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
     }
 }
+
