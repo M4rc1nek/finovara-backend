@@ -40,7 +40,7 @@ public class NotifyPasswordChangeServiceAction
 
     @Override
     protected void handleActivity(Long userId, boolean enabled) {
-        kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.NOTIFICATION_PASSWORD_CHANGED,
+        kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.NOTIFICATION_PASSWORD_CHANGED,
                 enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED, LocalDateTime.now()));
     }
 }
