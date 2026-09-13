@@ -86,7 +86,7 @@ public class AdditionalAuthorizationEmailVerificationService {
         securitySettingsRepository.save(securitySettings);
 
         String ipAddress = getClientIpAddress(httpServletRequest);
-        outboxService.save("User", userId.toString(), "activity.account-changes",
+        outboxService.save("User", userId.toString(), "account.changed",
                 new AccountChangesActivityEvent(userId, AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_ENABLED,
                         getBrowser(httpServletRequest), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
 
