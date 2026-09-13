@@ -124,6 +124,7 @@ public class ProfileImageService {
 
     private void publishActivity(Long userId, AccountChangesActivityType type, HttpServletRequest request) {
         String ipAddress = getClientIpAddress(request);
-        kafkaTemplate.send("activity.account-changes", new AccountChangesActivityEvent(userId, type, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
+        kafkaTemplate.send("account.changed", new AccountChangesActivityEvent(userId, type, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
     }
 }
+
