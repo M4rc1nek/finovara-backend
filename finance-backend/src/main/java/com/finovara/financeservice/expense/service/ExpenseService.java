@@ -92,7 +92,7 @@ public class ExpenseService implements UserDataDeletable {
         walletService.removeBalanceFromWallet(userId, expense.getAmount());
         expenseRepository.save(expense);
 
-        outboxService.save("Expense", expense.getId().toString(), "activity.expense",
+        outboxService.save("Expense", expense.getId().toString(), "expense.created",
                 new ExpenseActivityEvent(userId, ExpenseActivityType.ADDED_EXPENSE, expense.getAmount(), expense.getCategory(), null, null, LocalDateTime.now()));
 
         roundUpService.handleExpenseForRoundUp(userId, expense.getId(), PiggyBankAutomationMode.APPLY);
@@ -126,7 +126,7 @@ public class ExpenseService implements UserDataDeletable {
 
         expenseRepository.save(existingExpense);
 
-        outboxService.save("Expense", expenseId.toString(), "activity.expense",
+        outboxService.save("Expense", expenseId.toString(), "expense.created",
                 new ExpenseActivityEvent(userId, ExpenseActivityType.EDITED_EXPENSE, existingExpense.getAmount(), existingExpense.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
 
         smartScanService.handleSmartScan(userId, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.EDIT);
@@ -153,7 +153,7 @@ public class ExpenseService implements UserDataDeletable {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
         walletService.addBalanceToWallet(userId, expense.getAmount());
-        outboxService.save("Expense", expenseId.toString(), "activity.expense",
+        outboxService.save("Expense", expenseId.toString(), "expense.created",
                 new ExpenseActivityEvent(userId, ExpenseActivityType.DELETED_EXPENSE, expense.getAmount(), expense.getCategory(), null, null, LocalDateTime.now()));
         expenseRepository.delete(expense);
         publishLimitStatsEvents(userId);
