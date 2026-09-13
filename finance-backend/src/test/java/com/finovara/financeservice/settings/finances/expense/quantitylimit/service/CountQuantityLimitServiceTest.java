@@ -75,7 +75,7 @@ class CountQuantityLimitServiceTest {
             assertEquals(5, expenseSettings.getNumberOfQuantityLimit());
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.settings"), eventCaptor.capture());
+            verify(kafkaTemplate).send(eq("settings.changed"), eventCaptor.capture());
             assertEquals(SettingActivityStatus.ENABLED, eventCaptor.getValue().status());
         }
         @Test
@@ -99,7 +99,7 @@ class CountQuantityLimitServiceTest {
             assertFalse(expenseSettings.isQuantityLimitEmergencyModeUsed());
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.settings"), eventCaptor.capture());
+            verify(kafkaTemplate).send(eq("settings.changed"), eventCaptor.capture());
             assertEquals(SettingActivityStatus.DISABLED, eventCaptor.getValue().status());
         }
 
