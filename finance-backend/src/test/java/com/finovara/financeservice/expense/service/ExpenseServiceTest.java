@@ -342,7 +342,7 @@ class ExpenseServiceTest {
 
             expenseService.addExpense(requestDto, userId, TransactionOrigin.USER_MANUAL);
 
-            verify(outboxService).save(eq("Expense"), eq("7"), eq("activity.expense"), any());
+            verify(outboxService).save(eq("Expense"), eq("7"), eq("expense.created"), any());
         }
 
         @Test
@@ -513,7 +513,7 @@ class ExpenseServiceTest {
 
             expenseService.editExpense(requestDto, userId, expenseId);
 
-            verify(outboxService).save(eq("Expense"), eq(expenseId.toString()), eq("activity.expense"), any());
+            verify(outboxService).save(eq("Expense"), eq(expenseId.toString()), eq("expense.created"), any());
         }
 
         @Test
@@ -621,7 +621,7 @@ class ExpenseServiceTest {
 
             expenseService.deleteExpense(expenseId, userId, "authCode");
 
-            verify(outboxService).save(eq("Expense"), eq(expenseId.toString()), eq("activity.expense"), any());
+            verify(outboxService).save(eq("Expense"), eq(expenseId.toString()), eq("expense.created"), any());
         }
 
         @Test
