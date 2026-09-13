@@ -105,7 +105,7 @@ class AutoPaymentsServiceTest {
             autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, BigDecimal.TEN, null));
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.settings"), eventCaptor.capture());
+            verify(kafkaTemplate).send(eq("settings.changed"), eventCaptor.capture());
             assertThat(eventCaptor.getValue().status()).isEqualTo(SettingActivityStatus.ENABLED);
         }
 
