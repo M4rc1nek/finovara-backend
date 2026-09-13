@@ -47,7 +47,7 @@ public class AdditionalAuthorizationService {
         securitySettingsRepository.save(securitySettings);
 
         String ipAddress = getClientIpAddress(httpServletRequest);
-        outboxService.save("User", userId.toString(), "activity.account-changes",
+        outboxService.save("User", userId.toString(), "account.changed",
                 new AccountChangesActivityEvent(userId, AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_DISABLED,
                         getBrowser(httpServletRequest), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
     }
