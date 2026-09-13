@@ -59,7 +59,7 @@ public class RevenueService implements UserDataDeletable {
                 .build();
         walletService.addBalanceToWallet(userId, revenue.getAmount());
         revenueRepository.save(revenue);
-        outboxService.save("Revenue", revenue.getId().toString(), "activity.revenue",
+        outboxService.save("Revenue", revenue.getId().toString(), "revenue.created",
                 new RevenueActivityEvent(userId, RevenueActivityType.ADDED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.APPLY);
         return revenue.getId();
@@ -91,7 +91,7 @@ public class RevenueService implements UserDataDeletable {
 
         revenueRepository.save(existingRevenue);
 
-        outboxService.save("Revenue", revenueId.toString(), "activity.revenue",
+        outboxService.save("Revenue", revenueId.toString(), "revenue.created",
                 new RevenueActivityEvent(userId, RevenueActivityType.EDITED_REVENUE, existingRevenue.getAmount(), existingRevenue.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, newAmount, PiggyBankAutomationMode.APPLY);
 
@@ -115,7 +115,7 @@ public class RevenueService implements UserDataDeletable {
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
         walletService.removeBalanceFromWallet(userId, revenue.getAmount());
-        outboxService.save("Revenue", revenueId.toString(), "activity.revenue",
+        outboxService.save("Revenue", revenueId.toString(), "revenue.created",
                 new RevenueActivityEvent(userId, RevenueActivityType.DELETED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
         revenueRepository.delete(revenue);
     }
