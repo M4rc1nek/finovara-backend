@@ -105,7 +105,7 @@ class LimitManagementServiceTest {
             assertEquals(LIMIT_ID, result);
             verify(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, dto);
             verify(limitRepository).save(any(Limit.class));
-            verify(outboxService).save(eq("Limit"), eq(LIMIT_ID.toString()), eq("activity.limit"), any(LimitActivityEvent.class));
+            verify(outboxService).save(eq("Limit"), eq(LIMIT_ID.toString()), eq("limit.changed"), any(LimitActivityEvent.class));
         }
 
         @Test
@@ -118,7 +118,7 @@ class LimitManagementServiceTest {
             assertEquals(LIMIT_ID, result);
             verify(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, limitDto);
             verify(limitRepository).save(any(Limit.class));
-            verify(outboxService).save(eq("Limit"), eq(LIMIT_ID.toString()), eq("activity.limit"), any(LimitActivityEvent.class));
+            verify(outboxService).save(eq("Limit"), eq(LIMIT_ID.toString()), eq("limit.changed"), any(LimitActivityEvent.class));
         }
 
         @Test
@@ -186,7 +186,7 @@ class LimitManagementServiceTest {
 
             verify(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, limitDto);
             verify(limitRepository).save(limit);
-            verify(outboxService).save(eq("Limit"), eq(LIMIT_ID.toString()), eq("activity.limit"), any(LimitActivityEvent.class));
+            verify(outboxService).save(eq("Limit"), eq(LIMIT_ID.toString()), eq("limit.changed"), any(LimitActivityEvent.class));
         }
 
         @Test
@@ -267,7 +267,7 @@ class LimitManagementServiceTest {
             limitManagementService.deleteLimit(USER_ID, LIMIT_ID, "authCode");
 
             verify(limitRepository).delete(limit);
-            verify(outboxService).save(eq("Limit"), eq(LIMIT_ID.toString()), eq("activity.limit"), any(LimitActivityEvent.class));
+            verify(outboxService).save(eq("Limit"), eq(LIMIT_ID.toString()), eq("limit.changed"), any(LimitActivityEvent.class));
         }
 
         @Test
