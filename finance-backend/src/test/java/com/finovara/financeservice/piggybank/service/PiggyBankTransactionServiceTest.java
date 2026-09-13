@@ -88,7 +88,7 @@ class PiggyBankTransactionServiceTest {
             verify(outboxService).save(
                     eq("PiggyBank"),
                     eq(piggyBankId.toString()),
-                    eq("activity.piggybank"),
+                    eq("piggybank.transaction.created"),
                     payloadCaptor.capture()
             );
             PiggyBankActivityEvent event = (PiggyBankActivityEvent) payloadCaptor.getValue();
@@ -210,7 +210,7 @@ class PiggyBankTransactionServiceTest {
             verify(outboxService).save(
                     eq("PiggyBank"),
                     eq(piggyBankId.toString()),
-                    eq("activity.piggybank"),
+                    eq("piggybank.transaction.created"),
                     payloadCaptor.capture()
             );
             PiggyBankActivityEvent event = (PiggyBankActivityEvent) payloadCaptor.getValue();
