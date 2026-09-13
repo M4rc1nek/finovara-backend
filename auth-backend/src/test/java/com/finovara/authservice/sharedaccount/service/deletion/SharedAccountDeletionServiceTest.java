@@ -192,7 +192,7 @@ class SharedAccountDeletionServiceTest {
             ArgumentCaptor<SharedAccountActivityEvent> activityCaptor =
                     ArgumentCaptor.forClass(SharedAccountActivityEvent.class);
             verify(outboxService).save(eq("User"), eq(ACTING_USER_ID.toString()),
-                    eq("activity.shared-account"), activityCaptor.capture());
+                    eq("shared-account.changed"), activityCaptor.capture());
             assertEquals(ACTING_USER_ID, activityCaptor.getValue().userId());
             assertEquals(SharedAccountActivityType.LEFT_SHARED_ACCOUNT, activityCaptor.getValue().type());
             assertEquals(CO_FOUNDER_USERNAME, activityCaptor.getValue().coFounderUsername());
@@ -212,7 +212,7 @@ class SharedAccountDeletionServiceTest {
             ArgumentCaptor<SharedAccountActivityEvent> activityCaptor =
                     ArgumentCaptor.forClass(SharedAccountActivityEvent.class);
             verify(outboxService).save(eq("User"), eq(ACTING_USER_ID.toString()),
-                    eq("activity.shared-account"), activityCaptor.capture());
+                    eq("shared-account.changed"), activityCaptor.capture());
             assertEquals(ACTING_USER_ID, activityCaptor.getValue().userId());
             assertNull(activityCaptor.getValue().coFounderUsername());
             assertNull(activityCaptor.getValue().coFounderEmail());
