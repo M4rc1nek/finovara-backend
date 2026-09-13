@@ -133,7 +133,7 @@ class ProfileImageServiceTest {
             ArgumentCaptor<AccountChangesActivityEvent> captor =
                     ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
 
-            verify(kafkaTemplate).send(eq("activity.account-changes"), captor.capture());
+            verify(kafkaTemplate).send(eq("account.changed"), captor.capture());
             assertThat(captor.getValue().type()).isEqualTo(AccountChangesActivityType.PROFILE_IMG_CHANGED);
         }
 
@@ -311,7 +311,7 @@ class ProfileImageServiceTest {
 
             ArgumentCaptor<AccountChangesActivityEvent> captor =
                     ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.account-changes"), captor.capture());
+            verify(kafkaTemplate).send(eq("account.changed"), captor.capture());
             assertThat(captor.getValue().type()).isEqualTo(AccountChangesActivityType.PROFILE_IMG_DELETED);
         }
 
