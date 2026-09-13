@@ -52,7 +52,7 @@ class AutoPaymentsCoreTest {
         assertThat(wallet.getBalance()).isEqualByComparingTo("300");
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertThat(eventCaptor.getValue().type()).isEqualTo(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
     }
 
@@ -66,7 +66,7 @@ class AutoPaymentsCoreTest {
         assertThat(wallet.getBalance()).isEqualByComparingTo("0");
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertThat(eventCaptor.getValue().type()).isEqualTo(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
     }
 
@@ -80,7 +80,7 @@ class AutoPaymentsCoreTest {
         assertThat(wallet.getBalance()).isEqualByComparingTo("0");
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertThat(eventCaptor.getValue().type()).isEqualTo(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING);
     }
 
@@ -93,7 +93,7 @@ class AutoPaymentsCoreTest {
         assertThat(wallet.getBalance()).isEqualByComparingTo("550");
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertThat(eventCaptor.getValue().type()).isEqualTo(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING);
     }
 
@@ -105,7 +105,7 @@ class AutoPaymentsCoreTest {
         assertThat(wallet.getBalance()).isEqualByComparingTo("600");
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertThat(eventCaptor.getValue().type()).isEqualTo(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING);
     }
 
@@ -119,7 +119,7 @@ class AutoPaymentsCoreTest {
         assertThat(wallet.getBalance()).isEqualByComparingTo("500");
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertThat(eventCaptor.getValue().type()).isEqualTo(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING);
     }
 }
