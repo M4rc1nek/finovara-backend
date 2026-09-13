@@ -84,7 +84,7 @@ class RevenueServiceTest {
             verify(revenueRepository).save(any(Revenue.class));
 
             ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
-            verify(outboxService).save(eq("Revenue"), any(), eq("activity.revenue"), payloadCaptor.capture());
+            verify(outboxService).save(eq("Revenue"), any(), eq("revenue.created"), payloadCaptor.capture());
 
             RevenueActivityEvent event = (RevenueActivityEvent) payloadCaptor.getValue();
             assertEquals(RevenueActivityType.ADDED_REVENUE, event.type());
@@ -150,7 +150,7 @@ class RevenueServiceTest {
             verify(outboxService).save(
                     eq("Revenue"),
                     eq("10"),
-                    eq("activity.revenue"),
+                    eq("revenue.created"),
                     payloadCaptor.capture()
             );
             RevenueActivityEvent event = (RevenueActivityEvent) payloadCaptor.getValue();
@@ -224,7 +224,7 @@ class RevenueServiceTest {
             verify(outboxService).save(
                     eq("Revenue"),
                     eq("1"),
-                    eq("activity.revenue"),
+                    eq("revenue.created"),
                     payloadCaptor.capture()
             );
             RevenueActivityEvent event = (RevenueActivityEvent) payloadCaptor.getValue();
