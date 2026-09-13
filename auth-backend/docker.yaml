@@ -34,10 +34,12 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
       SPRING_PROFILES_ACTIVE: default
-      SSL_PASSWORD: ${SSL_PASSWORD}
       REDIS_HOST: finovara-auth-redis
       REDIS_PORT: 6382
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+      DEV_SSL_PASSWORD: ${DEV_SSL_PASSWORD}
+      DEV_IP_OVERRIDE_ENABLED: "true"
+      DEV_IP_RANDOM_ENABLED: "true"
     volumes:
       - ./uploads:/app/uploads
       - ../localhost.p12:/app/localhost.p12
