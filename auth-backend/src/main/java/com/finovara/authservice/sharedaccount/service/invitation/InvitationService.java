@@ -89,7 +89,7 @@ public class InvitationService {
 
         sharedAccountInvitationRepository.save(invitation);
 
-        outboxService.save("User", inviterUserId.toString(), "activity.shared-account",
+        outboxService.save("User", inviterUserId.toString(), "shared-account.changed",
                 new SharedAccountActivityEvent(inviterUserId, SharedAccountActivityType.SENT_INVITATION, null, invitee.username(), invitee.email(), LocalDateTime.now()));
 
         outboxService.save("User", inviterUserId.toString(), "notification.shared-account.invitation-sent",
