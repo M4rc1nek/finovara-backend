@@ -213,8 +213,8 @@ class SharedAccountDeletionFinanceDataServiceTest {
 
             financeDataService.deleteData(event);
 
-            verify(outboxService).save(eq("User"), eq(ownerId.toString()), eq("activity.shared-account"), any(SharedAccountActivityEvent.class));
-            verify(outboxService).save(eq("User"), eq(memberId.toString()), eq("activity.shared-account"), any(SharedAccountActivityEvent.class));
+            verify(outboxService).save(eq("User"), eq(ownerId.toString()), eq("shared-account.changed"), any(SharedAccountActivityEvent.class));
+            verify(outboxService).save(eq("User"), eq(memberId.toString()), eq("shared-account.changed"), any(SharedAccountActivityEvent.class));
         }
 
         @Test
