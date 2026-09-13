@@ -103,14 +103,14 @@ class NotifyUsernameChangeServiceActionTest {
         void shouldSendKafkaEventWhenHandlingActivity() {
             action.handleActivity(USER_ID, true);
 
-            verify(kafkaTemplate).send(eq("activity.settings"), any());
+            verify(kafkaTemplate).send(eq("settings.changed"), any());
         }
 
         @Test
         void shouldSendKafkaEventWhenDisabled() {
             action.handleActivity(USER_ID, false);
 
-            verify(kafkaTemplate).send(eq("activity.settings"), any());
+            verify(kafkaTemplate).send(eq("settings.changed"), any());
         }
     }
 
@@ -127,7 +127,7 @@ class NotifyUsernameChangeServiceActionTest {
 
             verify(notificationEmailSettings).setNotifyOnUsernameChange(true);
             verify(notificationEmailSettingsRepository).save(notificationEmailSettings);
-            verify(kafkaTemplate).send(eq("activity.settings"), any());
+            verify(kafkaTemplate).send(eq("settings.changed"), any());
         }
     }
 }
