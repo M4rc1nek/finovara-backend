@@ -33,7 +33,7 @@ public class RoundUpCore {
         piggyBank.setAmount(piggyBank.getAmount().add(roundUpAmount));
         wallet.withdraw(roundUpAmount);
 
-        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), roundUpAmount, LocalDateTime.now()));
+        kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), roundUpAmount, LocalDateTime.now()));
     }
 
     private void rollback(Long userId, PiggyBank piggyBank, Wallet wallet, BigDecimal roundUpAmount) {
@@ -45,6 +45,6 @@ public class RoundUpCore {
         piggyBank.setAmount(piggyBank.getAmount().subtract(amountToRollback));
         wallet.deposit(amountToRollback);
 
-        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amountToRollback, LocalDateTime.now()));
+        kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amountToRollback, LocalDateTime.now()));
     }
 }
