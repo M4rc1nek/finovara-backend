@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -41,7 +42,7 @@ public class LoginProfile {
     @Column(nullable = false, unique = true)
     private Long userId;
 
-    @OneToMany(mappedBy = "loginProfile", cascade =  CascadeType.ALL)
-    private List<ClientData> clientData;
+    @OneToMany(mappedBy = "loginProfile", cascade = CascadeType.ALL)
+    private List<ClientData> clientData = new ArrayList<>();
 
 }
