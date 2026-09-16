@@ -1,137 +1,110 @@
-package com.finovara.securitymonitoring.transaction.config;
+package com.finovara.securitymonitoring.transaction.service;
 
-import com.finovara.securitymonitoring.riskengine.model.RiskContext;
-import com.finovara.securitymonitoring.riskengine.model.RiskRuleCode;
+import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
+import com.finovara.securitymonitoring.riskengine.model.RiskRule;
 import com.finovara.securitymonitoring.riskengine.model.RiskTriggerType;
-import com.finovara.securitymonitoring.riskengine.model.RiskType;
-import com.finovara.securitymonitoring.riskengine.model.RuleResult;
 import com.finovara.securitymonitoring.transaction.config.TransactionRiskProperties;
 import com.finovara.securitymonitoring.transaction.model.TransactionProfile;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TransactionRiskService {
 
     private final TransactionRiskProperties properties;
 
-    public List<RuleResult> evaluate(RiskContext ctx) {
-        TransactionProfile profile = ctx.transactionProfile();
+    public int evaluate(RiskContext context) {
+        TransactionProfile profile = context.transactionProfile();
         if (profile == null) {
-            return List.of();
+            return 0;
         }
 
-        return Stream.of(
-                        checkExpenseAboveAverage(ctx, profile),
-                        checkExpenseNewAboveHighestRecord(ctx, profile),
-                        checkFirstTransactionHighAmount(ctx, profile),
-                        checkExpenseNewCategory(ctx, profile),
-                        checkRevenueAboveAverage(ctx, profile),
-                        checkRevenueBelowAverage(ctx, profile),
-                        checkPiggyBankLargeDeposit(ctx, profile),
-                        checkPiggyBankDepositDiffersFromLast(ctx, profile)
-                )
-                .flatMap(Optional::stream)
-                .toList();
+        log.info("Checking transaction risk for userId={}", context.userId());
+
+        int totalPoints = addPoints(context, RiskRule.EXPENSE_HIGH, isExpenseHigh(context), properties.getExpenseHighPoints())
+                + addPoints(context, RiskRule.EXPENSE_RECORD, isExpenseRecord(context, profile), properties.getExpenseRecordPoints())
+                + addPoints(context, RiskRule.FIRST_TRANSACTION_HIGH, isFirstTransactionHigh(context, profile), properties.getFirstTransactionPoints())
+                + addPoints(context, RiskRule.EXPENSE_NEW_CATEGORY, isExpenseNewCategory(context, profile), properties.getExpenseCategoryPoints())
+                + addPoints(context, RiskRule.REVENUE_HIGH, isRevenueHigh(context), properties.getRevenueHighPoints())
+                + addPoints(context, RiskRule.REVENUE_LOW, isRevenueLow(context), properties.getRevenueLowPoints())
+                + addPoints(context, RiskRule.PIGGY_BANK_HIGH, isPiggyBankHigh(context), properties.getPiggyBankHighPoints())
+                + addPoints(context, RiskRule.PIGGY_BANK_DIFFERENT, isPiggyBankDifferent(context, profile), properties.getPiggyBankDiffPoints());
+
+        log.info("Transaction risk points for userId={} is {}", context.userId(), totalPoints);
+        return totalPoints;
     }
 
-    // 1. Wydatek znacznie powyzej sredniej
-    private Optional<RuleResult> checkExpenseAboveAverage(RiskContext ctx, TransactionProfile profile) {
-        boolean triggered = ctx.triggerType() == RiskTriggerType.EXPENSE
-                && ctx.amount() != null
-                && profile.getAverageExpenseAmount() != null
-                && exceedsMultiplier(ctx.amount(), profile.getAverageExpenseAmount(), properties.expenseAboveAverageMultiplier());
-        return ruleResultIf(triggered, RiskType.EXPENSE_ABOVE_AVERAGE);
+    private boolean isExpenseHigh(RiskContext context) {
+        return isExpense(context) && context.amount() != null
+                && context.amount().compareTo(properties.getExpenseHighAmount()) > 0;
     }
 
-    // 2. Nowy rekord wydatku
-    private Optional<RuleResult> checkExpenseNewAboveHighestRecord(RiskContext ctx, TransactionProfile profile) {
-        boolean triggered = ctx.triggerType() == RiskTriggerType.EXPENSE
-                && ctx.amount() != null
-                && profile.getLargestExpenseAmount() != null
-                && exceedsMultiplier(ctx.amount(), profile.getLargestExpenseAmount(), properties.expenseNewRecordMultiplier());
-        return ruleResultIf(triggered, RiskType.EXPENSE_NEW_ABOVE_HIGHEST_RECORD);
+    private boolean isExpenseRecord(RiskContext context, TransactionProfile profile) {
+        return isExpense(context) && context.amount() != null && profile.getLargestExpenseAmount() != null
+                && context.amount().compareTo(profile.getLargestExpenseAmount()) > 0;
     }
 
-    // 3. Pierwsza transakcja danego typu, a kwota wysoka
-    private Optional<RuleResult> checkFirstTransactionHighAmount(RiskContext ctx, TransactionProfile profile) {
-        boolean isTrackedType = ctx.triggerType() == RiskTriggerType.EXPENSE || ctx.triggerType() == RiskTriggerType.REVENUE;
-        if (!isTrackedType || ctx.amount() == null) {
-            return Optional.empty();
+    private boolean isFirstTransactionHigh(RiskContext context, TransactionProfile profile) {
+        boolean isTrackedType = isExpense(context) || isRevenue(context);
+        if (!isTrackedType || context.amount() == null) {
+            return false;
         }
-
-        long historyCount = ctx.triggerType() == RiskTriggerType.EXPENSE ? profile.getExpenseCount() : profile.getRevenueCount();
-        boolean triggered = historyCount == 0 && ctx.amount().compareTo(properties.firstTransactionThreshold()) > 0;
-        return ruleResultIf(triggered, RiskType.FIRST_TRANSACTION_HIGH_AMOUNT);
+        long historyCount = isExpense(context) ? profile.getExpenseCount() : profile.getRevenueCount();
+        return historyCount == 0 && context.amount().compareTo(properties.getFirstTransactionAmount()) > 0;
     }
 
-    // 4. Nowa kategoria wydatku (inna niz ostatnio uzywana)
-    private Optional<RuleResult> checkExpenseNewCategory(RiskContext ctx, TransactionProfile profile) {
-        boolean triggered = ctx.triggerType() == RiskTriggerType.EXPENSE
-                && ctx.category() != null
-                && profile.getLastExpenseCategory() != null
-                && !ctx.category().equals(profile.getLastExpenseCategory().name());
-        return ruleResultIf(triggered, RiskType.EXPENSE_NEW_CATEGORY);
+    private boolean isExpenseNewCategory(RiskContext context, TransactionProfile profile) {
+        return isExpense(context) && context.category() != null && profile.getLastExpenseCategory() != null
+                && !context.category().equals(profile.getLastExpenseCategory().name());
     }
 
-    // 5. Przychod znacznie powyzej sredniej
-    private Optional<RuleResult> checkRevenueAboveAverage(RiskContext ctx, TransactionProfile profile) {
-        boolean triggered = ctx.triggerType() == RiskTriggerType.REVENUE
-                && ctx.amount() != null
-                && profile.getAverageRevenueAmount() != null
-                && exceedsMultiplier(ctx.amount(), profile.getAverageRevenueAmount(), properties.revenueAboveAverageMultiplier());
-        return ruleResultIf(triggered, RiskType.REVENUE_ABOVE_AVERAGE);
+    private boolean isRevenueHigh(RiskContext context) {
+        return isRevenue(context) && context.amount() != null
+                && context.amount().compareTo(properties.getRevenueHighAmount()) > 0;
     }
 
-    // 6. Przychod podejrzanie niski - typowe dla "transakcji testowej" skradzionych danych
-    private Optional<RuleResult> checkRevenueBelowAverage(RiskContext ctx, TransactionProfile profile) {
-        boolean triggered = ctx.triggerType() == RiskTriggerType.REVENUE
-                && ctx.amount() != null
-                && ctx.amount().compareTo(BigDecimal.ZERO) > 0
-                && profile.getAverageRevenueAmount() != null
-                && profile.getRevenueCount() > 0
-                && belowRatio(ctx.amount(), profile.getAverageRevenueAmount(), properties.revenueBelowAverageRatio());
-        return ruleResultIf(triggered, RiskType.REVENUE_BELOW_AVERAGE);
+    private boolean isRevenueLow(RiskContext context) {
+        return isRevenue(context) && context.amount() != null && context.amount().compareTo(BigDecimal.ZERO) > 0
+                && context.amount().compareTo(properties.getRevenueLowAmount()) < 0;
     }
 
-    // 7. Duza wplata do skarbonki
-    private Optional<RuleResult> checkPiggyBankLargeDeposit(RiskContext ctx, TransactionProfile profile) {
-        boolean triggered = ctx.triggerType() == RiskTriggerType.PIGGY_BANK
-                && ctx.amount() != null
-                && profile.getLargestPiggyBankDeposit() != null
-                && exceedsMultiplier(ctx.amount(), profile.getLargestPiggyBankDeposit(), properties.piggyBankLargeDepositMultiplier());
-        return ruleResultIf(triggered, RiskType.PIGGY_BANK_LARGE_DEPOSIT);
+    private boolean isPiggyBankHigh(RiskContext context) {
+        return isPiggyBank(context) && context.amount() != null
+                && context.amount().compareTo(properties.getPiggyBankHighAmount()) > 0;
     }
 
-    // 8. Wplata mocno odbiegajaca (w gore lub w dol) od poprzedniej
-    private Optional<RuleResult> checkPiggyBankDepositDiffersFromLast(RiskContext ctx, TransactionProfile profile) {
+    private boolean isPiggyBankDifferent(RiskContext context, TransactionProfile profile) {
         BigDecimal lastDeposit = profile.getLastPiggyBankDepositAmount();
-        boolean applicable = ctx.triggerType() == RiskTriggerType.PIGGY_BANK
-                && ctx.amount() != null
-                && lastDeposit != null
-                && lastDeposit.compareTo(BigDecimal.ZERO) > 0;
-
-        boolean triggered = applicable
-                && (exceedsMultiplier(ctx.amount(), lastDeposit, properties.piggyBankDepositHigherMultiplier())
-                || belowRatio(ctx.amount(), lastDeposit, properties.piggyBankDepositLowerRatio()));
-        return ruleResultIf(triggered, RiskType.PIGGY_BANK_DEPOSIT_DIFFERS_FROM_LAST);
+        boolean applicable = isPiggyBank(context) && context.amount() != null
+                && lastDeposit != null && lastDeposit.compareTo(BigDecimal.ZERO) > 0;
+        if (!applicable) {
+            return false;
+        }
+        BigDecimal diff = context.amount().subtract(lastDeposit).abs();
+        return diff.compareTo(properties.getPiggyBankDiffAmount()) > 0;
     }
 
-    private Optional<RuleResult> ruleResultIf(boolean triggered, RiskType type) {
-        return triggered ? Optional.of(new RuleResult(RiskRuleCode.of(type), type.points())) : Optional.empty();
+    private boolean isExpense(RiskContext context) {
+        return context.triggerType() == RiskTriggerType.EXPENSE;
     }
 
-    private boolean exceedsMultiplier(BigDecimal value, BigDecimal base, BigDecimal multiplier) {
-        return value.compareTo(base.multiply(multiplier)) > 0;
+    private boolean isRevenue(RiskContext context) {
+        return context.triggerType() == RiskTriggerType.REVENUE;
     }
 
-    private boolean belowRatio(BigDecimal value, BigDecimal base, BigDecimal ratio) {
-        return value.compareTo(base.multiply(ratio)) < 0;
+    private boolean isPiggyBank(RiskContext context) {
+        return context.triggerType() == RiskTriggerType.PIGGY_BANK;
+    }
+
+    private int addPoints(RiskContext context, RiskRule riskRule, boolean triggered, int points) {
+        if (triggered) {
+            log.info("Transaction Risk: Rule triggered for userId={}: {} (+{} points)", context.userId(), riskRule, points);
+        }
+        return triggered ? points : 0;
     }
 }
