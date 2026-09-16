@@ -12,5 +12,4 @@ public class SecurityMonitoringBackendApplication {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         SpringApplication.run(SecurityMonitoringBackendApplication.class, args);
 	}
-
 }
