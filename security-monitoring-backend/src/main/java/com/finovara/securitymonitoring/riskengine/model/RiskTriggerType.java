@@ -4,6 +4,7 @@ public enum RiskTriggerType {
     LOGIN,
     EXPENSE,
     REVENUE,
+    PIGGY_BANK,
     PASSWORD_CHANGED,
     EMAIL_CHANGED,
     USERNAME_CHANGED,
