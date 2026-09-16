@@ -1,4 +1,16 @@
 package com.finovara.securitymonitoring.riskengine.dto;
 
-public record RiskEvaluationRequest() {
-}
+import com.finovara.securitymonitoring.riskengine.model.RiskTriggerType;
+
+import java.math.BigDecimal;
+
+public record RiskEvaluationRequest(
+        Long userId,
+        RiskTriggerType triggerType,
+        String sourceEventId,
+        BigDecimal amount,
+        String category,
+        String ipAddress,
+        String location,
+        String browser
+) {}
