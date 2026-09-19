@@ -147,6 +147,14 @@
             <column name="action" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
+            <column name="password_confirmed" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_code_confirmed" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_code" type="VARCHAR(255)"/>
+            <column name="email_code_expires_at" type="TIMESTAMP"/>
             <column name="operation_date" type="DATE">
                 <constraints nullable="false"/>
             </column>
@@ -157,24 +165,6 @@
         <createIndex tableName="risk_operation" indexName="idx_risk_operation_user_date">
             <column name="user_id"/>
             <column name="operation_date"/>
-        </createIndex>
-    </changeSet>
-
-    <changeSet id="create-triggered-rule" author="Marcin Parśniak">
-        <createTable tableName="triggered_rule">
-            <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="rule_code" type="VARCHAR(100)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="risk_operation_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-        <addForeignKeyConstraint baseTableName="triggered_rule" baseColumnNames="risk_operation_id" referencedTableName="risk_operation" referencedColumnNames="id" constraintName="fk_triggered_rule_risk_operation" onDelete="CASCADE"/>
-        <createIndex tableName="triggered_rule" indexName="idx_triggered_rule_risk_operation">
-            <column name="risk_operation_id"/>
         </createIndex>
     </changeSet>
 
