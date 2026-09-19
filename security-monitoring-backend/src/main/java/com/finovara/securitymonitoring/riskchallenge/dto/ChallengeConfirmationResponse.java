@@ -1,4 +1,4 @@
-package com.finovara.securitymonitoring.riskengine.dto;
+package com.finovara.securitymonitoring.riskchallenge.dto;
 
 public record ChallengeConfirmationResponse(
         Long riskOperationId,
