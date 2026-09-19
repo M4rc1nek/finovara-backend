@@ -4,11 +4,12 @@ import com.finovara.securitymonitoring.accountchange.repository.AccountChangePro
 import com.finovara.securitymonitoring.accountchange.service.AccountChangeRiskService;
 import com.finovara.securitymonitoring.login.repository.LoginProfileRepository;
 import com.finovara.securitymonitoring.login.service.LoginRiskService;
+import com.finovara.securitymonitoring.riskchallenge.service.RiskChallengeService;
 import com.finovara.securitymonitoring.riskengine.config.RiskActionThresholds;
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
-import com.finovara.securitymonitoring.riskengine.dto.RiskEvaluationRequest;
-import com.finovara.securitymonitoring.riskengine.dto.RiskEvaluationResponse;
-import com.finovara.securitymonitoring.riskengine.model.RiskAction;
+import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationRequest;
+import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationResponse;
+import com.finovara.contracts.securitymonitoring.dto.RiskAction;
 import com.finovara.securitymonitoring.riskengine.model.RiskOperation;
 import com.finovara.securitymonitoring.riskengine.repository.RiskOperationRepository;
 import com.finovara.securitymonitoring.transaction.repository.TransactionProfileRepository;
@@ -35,6 +36,7 @@ public class RiskEngineService {
     private final AccountChangeProfileRepository accountChangeProfileRepository;
     private final RiskOperationRepository riskOperationRepository;
     private final RiskActionThresholds thresholds;
+    private final RiskChallengeService riskChallengeService;
 
     @Transactional
     public RiskEvaluationResponse evaluate(RiskEvaluationRequest request) {
@@ -53,7 +55,6 @@ public class RiskEngineService {
         int accountChangePoints = accountChangeRiskService.evaluate(context);
 
         int totalScore = Math.clamp(transactionPoints + loginPoints + accountChangePoints, 0, 100);
-
         RiskAction action = resolveAction(totalScore);
 
         log.info("Risk check finished for userId={} score={} action={}", request.userId(), totalScore, action);
@@ -68,13 +69,17 @@ public class RiskEngineService {
                 .userId(request.userId())
                 .build());
 
+        if (operation.requiresEmailCode()) {
+            riskChallengeService.generateAndSendEmailCode(operation, request.email());
+        }
+
         return toResponse(operation);
     }
 
     private RiskAction resolveAction(int score) {
-        if (score >= thresholds.getBlockPoints()) return RiskAction.BLOCK_AND_REVIEW;
+        if (score >= thresholds.getFullVerificationPoints()) return RiskAction.FULL_VERIFICATION_REQUIRED;
         if (score >= thresholds.getAuthorizationPoints()) return RiskAction.AUTHORIZATION_REQUIRED;
-        if (score >= thresholds.getChallengePoints()) return RiskAction.SOFT_CHALLENGE;
+        if (score >= thresholds.getSoftChallengePoints()) return RiskAction.SOFT_CHALLENGE;
         return RiskAction.LOG_ONLY;
     }
 
@@ -94,6 +99,12 @@ public class RiskEngineService {
     }
 
     private RiskEvaluationResponse toResponse(RiskOperation operation) {
-        return new RiskEvaluationResponse(operation.getId(), operation.getScore(), operation.getAction());
+        return new RiskEvaluationResponse(
+                operation.getId(),
+                operation.getScore(),
+                operation.getAction(),
+                operation.requiresPassword(),
+                operation.requiresEmailCode()
+        );
     }
 }
