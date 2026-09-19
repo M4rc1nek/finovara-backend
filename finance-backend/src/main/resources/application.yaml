@@ -42,6 +42,9 @@ server:
 auth-backend:
   url: ${AUTH_BACKEND_URL}
 
+security-monitoring-backend:
+  url: ${SECURITY_MONITORING_URL}
+
 logging:
   level:
     root: INFO
