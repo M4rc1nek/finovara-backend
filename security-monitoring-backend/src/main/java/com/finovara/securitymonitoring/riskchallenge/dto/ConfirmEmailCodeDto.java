@@ -1,4 +1,6 @@
 package com.finovara.securitymonitoring.riskchallenge.dto;
 
-public record ConfirmEmailCodeDto() {
+public record ConfirmEmailCodeDto(
+        String code
+) {
 }
