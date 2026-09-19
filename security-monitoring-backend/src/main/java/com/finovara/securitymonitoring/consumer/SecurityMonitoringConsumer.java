@@ -3,13 +3,10 @@ package com.finovara.securitymonitoring.consumer;
 import com.finovara.contracts.user.event.UserCreatedEvent;
 import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
 import com.finovara.securitymonitoring.accountchange.factory.AccountChangeProfileFactory;
-import com.finovara.securitymonitoring.accountchange.repository.AccountChangeProfileRepository;
 import com.finovara.securitymonitoring.accountchange.service.AccountChangeProfileUpdateService;
 import com.finovara.securitymonitoring.clientdata.factory.ClientDataFactory;
-import com.finovara.securitymonitoring.clientdata.repository.ClientDataRepository;
 import com.finovara.securitymonitoring.login.service.LoginProfileUpdateService;
 import com.finovara.securitymonitoring.transaction.factory.TransactionProfileFactory;
-import com.finovara.securitymonitoring.transaction.repository.TransactionProfileRepository;
 import com.finovara.securitymonitoring.transaction.service.TransactionProfileUpdateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -23,7 +20,7 @@ public class SecurityMonitoringConsumer {
     private final TransactionProfileFactory transactionProfileFactory;
     private final AccountChangeProfileFactory accountChangeProfileFactory;
     private final TransactionProfileUpdateService transactionProfileUpdateService;
-    private final AccountChangeProfileUpdateService  accountChangeProfileUpdateService;
+    private final AccountChangeProfileUpdateService accountChangeProfileUpdateService;
     private final LoginProfileUpdateService loginProfileUpdateService;
 
     @KafkaListener(topics = "user.created")
@@ -39,6 +36,5 @@ public class SecurityMonitoringConsumer {
         accountChangeProfileUpdateService.deleteByUserId(event.userId());
         transactionProfileUpdateService.deleteByUserId(event.userId());
     }
-
 
 }
