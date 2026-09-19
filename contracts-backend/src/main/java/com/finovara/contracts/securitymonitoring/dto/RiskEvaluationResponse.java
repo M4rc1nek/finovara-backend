@@ -5,5 +5,7 @@ import com.finovara.securitymonitoring.riskengine.model.RiskAction;
 public record RiskEvaluationResponse(
         Long riskOperationId,
         int score,
-        RiskAction action
+        RiskAction action,
+        boolean passwordRequired,
+        boolean emailCodeRequired
 ) {}

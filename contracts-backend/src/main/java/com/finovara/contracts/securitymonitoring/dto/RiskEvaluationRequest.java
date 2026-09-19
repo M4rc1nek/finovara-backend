@@ -12,5 +12,6 @@ public record RiskEvaluationRequest(
         String category,
         String ipAddress,
         String location,
-        String browser
+        String browser,
+        String email
 ) {}
