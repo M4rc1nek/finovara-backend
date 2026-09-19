@@ -1,11 +1,11 @@
-package com.finovara.securitymonitoring.riskengine.service;
+package com.finovara.securitymonitoring.riskchallenge.service;
 
 import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.securitymonitoring.exception.badrequest.InvalidChallengeException;
 import com.finovara.securitymonitoring.exception.conflict.RiskOperationStateException;
 import com.finovara.securitymonitoring.feignclient.AuthBackendClient;
-import com.finovara.securitymonitoring.riskengine.dto.ChallengeConfirmationResponse;
+import com.finovara.securitymonitoring.riskchallenge.dto.ChallengeConfirmationResponse;
 import com.finovara.securitymonitoring.riskengine.model.RiskOperation;
 import com.finovara.securitymonitoring.riskengine.repository.RiskOperationRepository;
 import com.finovara.securitymonitoring.util.email.EmailTemplateService;
@@ -15,9 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.DigestUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Map;
