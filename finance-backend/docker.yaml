@@ -35,6 +35,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
       DEV_SSL_PASSWORD: ${DEV_SSL_PASSWORD}
       AUTH_BACKEND_URL: https://finovara-auth-app:8443
+      SECURITY_MONITORING_BACKEND_URL: https://finovara-security-monitoring-app:8085
       REDIS_HOST: finovara-finance-redis
       REDIS_PORT: 6380
       REDIS_PASSWORD: ${REDIS_PASSWORD}
