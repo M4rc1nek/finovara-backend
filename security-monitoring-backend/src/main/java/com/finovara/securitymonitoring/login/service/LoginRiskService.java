@@ -5,7 +5,7 @@ import com.finovara.securitymonitoring.login.config.LoginRiskProperties;
 import com.finovara.securitymonitoring.login.model.LoginProfile;
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
 import com.finovara.securitymonitoring.riskengine.model.RiskRule;
-import com.finovara.securitymonitoring.riskengine.model.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,11 +33,11 @@ public class LoginRiskService {
         List<ClientData> knownDevices = profile.getClientData();
 
         int totalPoints =
-                addPoints(context, RiskRule.UNKNOWN_DEVICE, isUnknownDevice(context, knownDevices), properties.getUnknownDeviceWeight())
-                        + addPoints(context, RiskRule.UNKNOWN_LOCATION, isUnknownLocation(context, knownDevices), properties.getUnknownLocationWeight())
-                        + addPoints(context, RiskRule.IMPOSSIBLE_TRAVEL, isImpossibleTravel(context, profile), properties.getImpossibleTravelWeight())
-                        + addPoints(context, RiskRule.MANY_KNOWN_DEVICES, hasManyKnownDevices(knownDevices), properties.getManyKnownDevicesWeight())
-                        + addPoints(context, RiskRule.PARTIAL_DEVICE_MATCH, isPartialDeviceMatch(context, knownDevices), properties.getPartialDeviceMatchWeight());
+                addPoints(context, RiskRule.UNKNOWN_DEVICE, isUnknownDevice(context, knownDevices), properties.getUnknownDevicePoints())
+                        + addPoints(context, RiskRule.UNKNOWN_LOCATION, isUnknownLocation(context, knownDevices), properties.getUnknownLocationPoints())
+                        + addPoints(context, RiskRule.IMPOSSIBLE_TRAVEL, isImpossibleTravel(context, profile), properties.getImpossibleTravelPoints())
+                        + addPoints(context, RiskRule.MANY_KNOWN_DEVICES, hasManyKnownDevices(knownDevices), properties.getManyKnownDevicesPoints())
+                        + addPoints(context, RiskRule.PARTIAL_DEVICE_MATCH, isPartialDeviceMatch(context, knownDevices), properties.getPartialDeviceMatchPoints());
 
         log.info("Login risk points for userId={} is {}", context.userId(), totalPoints);
 
