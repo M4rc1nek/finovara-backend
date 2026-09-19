@@ -5,7 +5,7 @@ import com.finovara.securitymonitoring.accountchange.config.AccountChangeRiskPro
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
 import com.finovara.securitymonitoring.riskengine.model.RiskRule;
-import com.finovara.securitymonitoring.riskengine.model.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
