@@ -1,6 +1,5 @@
-package com.finovara.securitymonitoring.riskengine.dto;
+package com.finovara.contracts.securitymonitoring.dto;
 
-import com.finovara.securitymonitoring.riskengine.model.RiskTriggerType;
 
 import java.math.BigDecimal;
 
