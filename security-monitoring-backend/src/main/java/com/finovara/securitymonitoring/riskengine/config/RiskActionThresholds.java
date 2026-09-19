@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Setter
 @ConfigurationProperties(prefix = "risk.action")
 public class RiskActionThresholds {
-    private int challengePoints;
+    private int softChallengePoints;
     private int authorizationPoints;
-    private int blockPoints;
+    private int fullVerificationPoints;
 }
