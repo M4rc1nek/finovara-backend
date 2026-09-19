@@ -1,5 +1,7 @@
 package com.finovara.securitymonitoring.riskengine.model;
 
+import com.finovara.contracts.securitymonitoring.dto.RiskAction;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +11,6 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "risk_operation")
@@ -39,14 +40,34 @@ public class RiskOperation {
     private RiskAction action;
 
     @Column(nullable = false)
+    private boolean passwordConfirmed;
+
+    @Column(nullable = false)
+    private boolean emailCodeConfirmed;
+
+    private String emailCode;
+    private LocalDateTime emailCodeExpiresAt;
+
+    @Column(nullable = false)
     private LocalDate operationDate;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "riskOperation", cascade = CascadeType.ALL)
-    private List<TriggeredRule> triggeredRules;
-
     @Column(nullable = false)
     private Long userId;
+
+    public boolean requiresPassword() {
+        return action == RiskAction.SOFT_CHALLENGE || action == RiskAction.FULL_VERIFICATION_REQUIRED;
+    }
+
+    public boolean requiresEmailCode() {
+        return action == RiskAction.AUTHORIZATION_REQUIRED || action == RiskAction.FULL_VERIFICATION_REQUIRED;
+    }
+
+    public boolean isFullyVerified() {
+        boolean passwordVerificationComplete = !requiresPassword() || passwordConfirmed;
+        boolean emailVerificationComplete = !requiresEmailCode() || emailCodeConfirmed;
+        return passwordVerificationComplete && emailVerificationComplete;
+    }
 }
