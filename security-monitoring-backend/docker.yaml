@@ -30,9 +30,11 @@ services:
     environment:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
       SPRING_DATASOURCE_URL: jdbc:postgresql://finovara-security-monitoring-db:5432/finovara_security_monitoring
       SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
       DEV_SSL_PASSWORD: ${DEV_SSL_PASSWORD}
+      AUTH_BACKEND_URL: https://finovara-auth-app:8443
     volumes:
       - ../localhost.p12:/app/localhost.p12
     healthcheck:
