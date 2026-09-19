@@ -17,6 +17,20 @@ spring:
   liquibase:
     change-log: classpath:changelog/changelog.xml
     enabled: true
+  mail:
+    host: smtp.gmail.com
+    port: 465
+    username: finovaracenter@gmail.com
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: false
+          ssl:
+            enable: true
+            trust: smtp.gmail.com
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
 
@@ -30,12 +44,19 @@ server:
     key-store-password: ${DEV_SSL_PASSWORD}
     key-alias: 1
 
-logging:
-  level:
-    root: INFO
-    org.hibernate.SQL: WARN
-    org.hibernate.type.descriptor.sql.BasicBinder: WARN
-    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
+auth-backend:
+  url: ${AUTH_BACKEND_URL}
+
+jwt:
+  secret: ${JWT_KEY}
+
+mail:
+  recipient:
+    address: ${MAIL_FROM_ADDRESS:finovaracenter@gmail.com}
+
+email:
+  secure-code:
+    expires-at-minutes: 15
 
 risk:
   transaction:
@@ -59,11 +80,11 @@ risk:
     many-known-devices-threshold: 15
     impossible-travel-hours: 2
 
-    unknown-device-weight: 20
-    unknown-location-weight: 15
-    impossible-travel-weight: 40
-    many-known-devices-weight: 5
-    partial-device-match-weight: 15
+    unknown-device-points: 20
+    unknown-location-points: 15
+    impossible-travel-points: 40
+    many-known-devices-points: 5
+    partial-device-match-points: 15
 
   account-change:
     repeat-change-minutes: 15
@@ -76,9 +97,16 @@ risk:
     new-account-points: 30
 
   action:
-    challenge-points: 30
+    soft-challenge-points: 30
     authorization-points: 60
-    block-points: 85
+    full-verification-points: 85
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
 
 management:
   server:
