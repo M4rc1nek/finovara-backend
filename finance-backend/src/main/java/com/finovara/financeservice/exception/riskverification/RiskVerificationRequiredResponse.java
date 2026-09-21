@@ -1,4 +1,10 @@
 package com.finovara.financeservice.exception.riskverification;
 
-public record RiskVerificationRequiredResponse() {
-}
+import com.finovara.contracts.securitymonitoring.dto.RiskAction;
+
+public record RiskVerificationRequiredResponse(
+        Long riskOperationId,
+        RiskAction action,
+        boolean requiresPassword,
+        boolean requiresEmailCode
+) {}
