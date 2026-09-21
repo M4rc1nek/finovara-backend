@@ -68,7 +68,7 @@ public class RecurringExecutionService {
             recurringRevenueValidator.validate(settings);
 
             RevenueDto revenueDto = buildRevenueDto(settings, date);
-            revenueService.addRevenue(revenueDto, settings.getUserId(), TransactionOrigin.RECURRING_SYSTEM);
+            revenueService.addRevenue(revenueDto, settings.getUserId(), null, TransactionOrigin.RECURRING_SYSTEM);
 
             return RecurringExecutionResult.EXECUTED;
 
@@ -96,7 +96,7 @@ public class RecurringExecutionService {
         try {
             expenseSettingsValidator.validate(settings, expenseSettings, wallet, limits);
             ExpenseRequestDto requestDto = buildExpenseRequest(settings, expenseSettings, date);
-            expenseService.addExpense(requestDto, settings.getUserId(), TransactionOrigin.RECURRING_SYSTEM);
+            expenseService.addExpense(requestDto, settings.getUserId(), null, TransactionOrigin.RECURRING_SYSTEM);
 
             settings.setSkippedNotificationSent(false);
             return RecurringExecutionResult.EXECUTED;
@@ -133,7 +133,7 @@ public class RecurringExecutionService {
     }
 
     private void executeSavings(RecurringSettings settings) {
-        piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserId(), settings.getPiggyBankId(), settings.getAmount(), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null, TransactionOrigin.RECURRING_SYSTEM);
+        piggyBankTransactionService.addBalanceToPiggyBank(settings.getUserId(), settings.getPiggyBankId(), settings.getAmount(), PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null, null, null, TransactionOrigin.RECURRING_SYSTEM);
     }
 
     private void disableRecurringSettings(RecurringSettings settings) {
@@ -144,7 +144,7 @@ public class RecurringExecutionService {
     private ExpenseRequestDto buildExpenseRequest(RecurringSettings settings, ExpenseSettings expenseSettings, LocalDate date) {
         PeriodType limitPeriodType = getLimitPeriodType(settings, expenseSettings);
 
-        return new ExpenseRequestDto(buildExpenseDto(settings, date), new ConfirmPasswordDto(null), new ConfirmAuthorizationCodeDto(null), new CountQuantityLimitDto(expenseSettings.isCountQuantityLimitEnabled(), limitPeriodType, expenseSettings.getNumberOfQuantityLimit(), null));
+        return new ExpenseRequestDto(buildExpenseDto(settings, date), new ConfirmPasswordDto(null), new ConfirmAuthorizationCodeDto(null), new CountQuantityLimitDto(expenseSettings.isCountQuantityLimitEnabled(), limitPeriodType, expenseSettings.getNumberOfQuantityLimit(), null), null);
     }
 
     private PeriodType getLimitPeriodType(RecurringSettings settings, ExpenseSettings expenseSettings) {
@@ -156,6 +156,6 @@ public class RecurringExecutionService {
     }
 
     private RevenueDto buildRevenueDto(RecurringSettings settings, LocalDate date) {
-        return new RevenueDto(null, settings.getUserId(), settings.getAmount(), settings.getRevenueCategory(), date, RecurringDescription.REVENUE.label(), null);
+        return new RevenueDto(null, settings.getUserId(), settings.getAmount(), settings.getRevenueCategory(), date, RecurringDescription.REVENUE.label(), null, null);
     }
 }
