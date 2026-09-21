@@ -61,28 +61,28 @@ email:
 risk:
   transaction:
     expense-high-amount: 5000
-    first-transaction-amount: 10000
-    revenue-high-amount: 20000
+    first-transaction-amount: 8000
+    revenue-high-amount: 15000
     revenue-low-amount: 50
-    piggy-bank-high-amount: 10000
-    piggy-bank-diff-amount: 5000
+    piggy-bank-high-amount: 5000
+    piggy-bank-diff-amount: 1000
 
-    expense-high-points: 15
+    expense-high-points: 20
     expense-record-points: 20
-    first-transaction-points: 25
+    first-transaction-points: 30
     expense-category-points: 5
-    revenue-high-points: 10
-    revenue-low-points: 10
-    piggy-bank-high-points: 15
-    piggy-bank-diff-points: 10
+    revenue-high-points: 15
+    revenue-low-points: 5
+    piggy-bank-high-points: 50
+    piggy-bank-diff-points: 31
 
   login:
-    many-known-devices-threshold: 15
+    many-known-devices-threshold: 5
     impossible-travel-hours: 2
 
     unknown-device-points: 20
     unknown-location-points: 15
-    impossible-travel-points: 40
+    impossible-travel-points: 35
     many-known-devices-points: 5
     partial-device-match-points: 15
 
@@ -92,7 +92,7 @@ risk:
     new-account-days: 7
     new-account-change-count: 3
 
-    repeat-change-points: 25
+    repeat-change-points: 20
     identity-change-points: 35
     new-account-points: 30
 
@@ -100,6 +100,7 @@ risk:
     soft-challenge-points: 30
     authorization-points: 60
     full-verification-points: 85
+    login-log-only-max-points: 40
 
 logging:
   level:
