@@ -13,4 +13,5 @@ public class RiskActionThresholds {
     private int softChallengePoints;
     private int authorizationPoints;
     private int fullVerificationPoints;
+    private int loginLogOnlyMaxPoints;
 }
