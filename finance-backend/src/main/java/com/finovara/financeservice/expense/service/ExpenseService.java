@@ -1,14 +1,16 @@
 package com.finovara.financeservice.expense.service;
 
-import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.activity.event.expense.ExpenseActivityEvent;
-import com.finovara.contracts.notification.event.limit.LimitStatsEvent;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.datadeletable.UserDataDeletable;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.contracts.model.activity.ExpenseActivityType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.notification.event.limit.LimitStatsEvent;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.mapper.ExpenseMapper;
@@ -19,19 +21,21 @@ import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.limit.service.LimitCalculateService;
+import com.finovara.financeservice.riskverification.service.RiskGuardService;
 import com.finovara.financeservice.settings.finances.expense.controlamount.service.ControlAmountService;
 import com.finovara.financeservice.settings.finances.expense.quantitylimit.service.CountQuantityLimitService;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpService;
+import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.expense.ExpenseManagerService;
-import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import com.finovara.financeservice.wallet.service.WalletService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.micrometer.observation.autoconfigure.ObservationProperties;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -62,13 +66,17 @@ public class ExpenseService implements UserDataDeletable {
     private final FinancialPeriodService financialPeriodService;
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    private final RiskGuardService riskGuardService;
 
     @Transactional
     @CacheEvict(value = "expense:suggestion", key = "#userId")
-    public Long addExpense(ExpenseRequestDto expenseRequestDto,Long userId, TransactionOrigin origin) {
-        if(origin == TransactionOrigin.USER_MANUAL){
+    public Long addExpense(ExpenseRequestDto expenseRequestDto, Long userId, HttpServletRequest servletRequest, TransactionOrigin origin) {
+        if (origin == TransactionOrigin.USER_MANUAL) {
             authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
+            riskGuardService.guard(userId, RiskTriggerType.EXPENSE, expenseRequestDto.expenseDto().amount(), expenseRequestDto.expenseDto().category().name(), authBackendClient.getUserEmail(userId),
+                    expenseRequestDto.riskVerificationSourceEventId(), servletRequest);
         }
+
         validateLimitOrThrow(userId, expenseRequestDto.expenseDto().category(), expenseRequestDto.expenseDto().category(),
                 BigDecimal.ZERO, expenseRequestDto.expenseDto().amount());
 
@@ -104,12 +112,14 @@ public class ExpenseService implements UserDataDeletable {
 
     @Transactional
     @CacheEvict(value = "expense:suggestion", key = "#userId")
-    public Long editExpense(ExpenseRequestDto expenseRequestDto, Long userId, Long expenseId) {
+    public Long editExpense(ExpenseRequestDto expenseRequestDto, Long userId, Long expenseId, HttpServletRequest servletRequest) {
         Expense existingExpense = expenseManagerService.getExpenseByIdOrThrow(expenseId);
         if (!existingExpense.getUserId().equals(userId)) {
             throw new RequestedEntityNotFoundException("Expense not found for this user");
         }
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
+        riskGuardService.guard(userId, RiskTriggerType.EXPENSE, expenseRequestDto.expenseDto().amount(), expenseRequestDto.expenseDto().category().name(), authBackendClient.getUserEmail(userId),
+                expenseRequestDto.riskVerificationSourceEventId(), servletRequest);
         validateLimitOrThrow(userId, existingExpense.getCategory(), expenseRequestDto.expenseDto().category(),
                 existingExpense.getAmount(), expenseRequestDto.expenseDto().amount());
 
