@@ -1,5 +1,6 @@
 package com.finovara.securitymonitoring.riskengine.service;
 
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import com.finovara.securitymonitoring.accountchange.repository.AccountChangeProfileRepository;
 import com.finovara.securitymonitoring.accountchange.service.AccountChangeRiskService;
 import com.finovara.securitymonitoring.login.repository.LoginProfileRepository;
@@ -55,7 +56,7 @@ public class RiskEngineService {
         int accountChangePoints = accountChangeRiskService.evaluate(context);
 
         int totalScore = Math.clamp(transactionPoints + loginPoints + accountChangePoints, 0, 100);
-        RiskAction action = resolveAction(totalScore);
+        RiskAction action = resolveAction(request.triggerType(), totalScore);
 
         log.info("Risk check finished for userId={} score={} action={}", request.userId(), totalScore, action);
 
@@ -76,7 +77,11 @@ public class RiskEngineService {
         return toResponse(operation);
     }
 
-    private RiskAction resolveAction(int score) {
+    private RiskAction resolveAction(RiskTriggerType triggerType, int score) {
+        if (triggerType == RiskTriggerType.LOGIN) {
+            return score > thresholds.getLoginLogOnlyMaxPoints() ? RiskAction.AUTHORIZATION_REQUIRED : RiskAction.LOG_ONLY;
+        }
+
         if (score >= thresholds.getFullVerificationPoints()) return RiskAction.FULL_VERIFICATION_REQUIRED;
         if (score >= thresholds.getAuthorizationPoints()) return RiskAction.AUTHORIZATION_REQUIRED;
         if (score >= thresholds.getSoftChallengePoints()) return RiskAction.SOFT_CHALLENGE;
@@ -104,7 +109,8 @@ public class RiskEngineService {
                 operation.getScore(),
                 operation.getAction(),
                 operation.requiresPassword(),
-                operation.requiresEmailCode()
+                operation.requiresEmailCode(),
+                operation.isFullyVerified()
         );
     }
 }
