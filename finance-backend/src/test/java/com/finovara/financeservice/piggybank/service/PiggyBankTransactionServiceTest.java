@@ -7,13 +7,16 @@ import com.finovara.contracts.notification.event.piggybank.PiggyBankProgressEven
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
+import com.finovara.financeservice.riskverification.service.RiskGuardService;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.wallet.service.WalletService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -49,11 +52,18 @@ class PiggyBankTransactionServiceTest {
     private AuthBackendClient authBackendClient;
     @Mock
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    @Mock
+    private RiskGuardService riskGuardService;
+    @Mock
+    private HttpServletRequest servletRequest;
 
     private PiggyBank piggyBank;
 
     private final Long userId = 1L;
     private final Long piggyBankId = 10L;
+
+    private static final String USER_EMAIL = "user@test.com";
+    private static final String SOURCE_EVENT_ID = "risk-source-event-id";
 
     @BeforeEach
     void setUp() {
@@ -70,7 +80,7 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
             piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
-                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL);
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, SOURCE_EVENT_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
             assertEquals(new BigDecimal("100"), piggyBank.getAmount());
             verify(walletService).removeBalanceFromWallet(userId, new BigDecimal("100"));
@@ -82,7 +92,7 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
             piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
-                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL);
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, SOURCE_EVENT_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
             ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
             verify(outboxService).save(
@@ -100,7 +110,7 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
             piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
-                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL);
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, SOURCE_EVENT_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
             ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
             verify(outboxService).save(
@@ -119,7 +129,7 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
             piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("50"),
-                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL);
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, SOURCE_EVENT_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
             assertEquals(new BigDecimal("1000"), piggyBank.getAmount());
             verify(goalCompletionService).handleGoalCompletion(userId);
@@ -130,7 +140,7 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
             piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
-                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL);
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, SOURCE_EVENT_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
             verifyNoInteractions(goalCompletionService);
         }
@@ -143,7 +153,7 @@ class PiggyBankTransactionServiceTest {
 
             assertThrows(InvalidInputException.class, () ->
                     piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
-                            PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL));
+                            PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, SOURCE_EVENT_ID, servletRequest, TransactionOrigin.USER_MANUAL));
 
             verifyNoInteractions(outboxService);
             verifyNoInteractions(goalCompletionService);
@@ -155,7 +165,7 @@ class PiggyBankTransactionServiceTest {
 
             assertThrows(InvalidInputException.class, () ->
                     piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("-10"),
-                            PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, TransactionOrigin.USER_MANUAL));
+                            PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, SOURCE_EVENT_ID, servletRequest, TransactionOrigin.USER_MANUAL));
 
             verifyNoInteractions(walletService);
             verifyNoInteractions(outboxService);
@@ -167,9 +177,20 @@ class PiggyBankTransactionServiceTest {
             when(additionalAuthorizationCodeResolver.resolve("123456")).thenReturn(new ConfirmAuthorizationCodeDto("123456"));
 
             piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
-                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, "123456", TransactionOrigin.USER_MANUAL);
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, "123456", SOURCE_EVENT_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
             verify(authBackendClient).confirmAuthorizationCode(eq(userId), any(ConfirmAuthorizationCodeDto.class));
+        }
+
+        @Test
+        void shouldGuardAgainstRiskWhenOriginIsUserManual() {
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(authBackendClient.getUserEmail(userId)).thenReturn(USER_EMAIL);
+
+            piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, null, SOURCE_EVENT_ID, servletRequest, TransactionOrigin.USER_MANUAL);
+
+            verify(riskGuardService).guard(userId, RiskTriggerType.PIGGY_BANK, new BigDecimal("100"), null, USER_EMAIL, SOURCE_EVENT_ID, servletRequest);
         }
 
         @Test
@@ -177,9 +198,9 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
             piggyBankTransactionService.addBalanceToPiggyBank(userId, piggyBankId, new BigDecimal("100"),
-                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null, TransactionOrigin.RECURRING_SYSTEM);
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, null, SOURCE_EVENT_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
 
-            verifyNoInteractions(authBackendClient, additionalAuthorizationCodeResolver);
+            verifyNoInteractions(authBackendClient, additionalAuthorizationCodeResolver, riskGuardService);
         }
     }
 
@@ -191,7 +212,7 @@ class PiggyBankTransactionServiceTest {
             piggyBank.setAmount(new BigDecimal("200"));
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-            piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), null);
+            piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), null, SOURCE_EVENT_ID, servletRequest);
 
             assertEquals(new BigDecimal("100"), piggyBank.getAmount());
             verify(walletService).addBalanceToWallet(userId, new BigDecimal("100"));
@@ -204,7 +225,7 @@ class PiggyBankTransactionServiceTest {
             piggyBank.setAmount(new BigDecimal("200"));
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-            piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), null);
+            piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), null, SOURCE_EVENT_ID, servletRequest);
 
             ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
             verify(outboxService).save(
@@ -222,7 +243,7 @@ class PiggyBankTransactionServiceTest {
             piggyBank.setAmount(new BigDecimal("200"));
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
-            piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), null);
+            piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), null, SOURCE_EVENT_ID, servletRequest);
 
             ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
             verify(outboxService).save(
@@ -241,7 +262,7 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
             assertThrows(InvalidInputException.class, () ->
-                    piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), null));
+                    piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), null, SOURCE_EVENT_ID, servletRequest));
 
             assertEquals(new BigDecimal("50"), piggyBank.getAmount());
             verifyNoInteractions(walletService, outboxService, goalCompletionService);
@@ -253,7 +274,7 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
 
             assertThrows(InvalidInputException.class, () ->
-                    piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("-10"), null));
+                    piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("-10"), null, SOURCE_EVENT_ID, servletRequest));
 
             verifyNoInteractions(walletService, outboxService, goalCompletionService);
         }
@@ -264,9 +285,20 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
             when(additionalAuthorizationCodeResolver.resolve("654321")).thenReturn(new ConfirmAuthorizationCodeDto("654321"));
 
-            piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), "654321");
+            piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), "654321", SOURCE_EVENT_ID, servletRequest);
 
             verify(authBackendClient).confirmAuthorizationCode(eq(userId), any(ConfirmAuthorizationCodeDto.class));
+        }
+
+        @Test
+        void shouldAlwaysGuardAgainstRisk() {
+            piggyBank.setAmount(new BigDecimal("200"));
+            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(authBackendClient.getUserEmail(userId)).thenReturn(USER_EMAIL);
+
+            piggyBankTransactionService.removeBalanceFromPiggyBank(userId, piggyBankId, new BigDecimal("100"), null, SOURCE_EVENT_ID, servletRequest);
+
+            verify(riskGuardService).guard(userId, RiskTriggerType.PIGGY_BANK, new BigDecimal("100"), null, USER_EMAIL, SOURCE_EVENT_ID, servletRequest);
         }
     }
 }
