@@ -2,6 +2,8 @@ package com.finovara.authservice.exception;
 
 import com.finovara.authservice.exception.badrequest.InvalidVerificationCodeException;
 import com.finovara.authservice.exception.conflict.LocalPasswordNotSetException;
+import com.finovara.authservice.exception.riskverification.RiskVerificationRequiredResponse;
+import com.finovara.authservice.exception.riskverification.precondition.RiskVerificationRequiredException;
 import com.finovara.authservice.exception.tomanyrequest.VerificationAttemptsExceededException;
 import com.finovara.authservice.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.contracts.exception.ErrorResponseDto;
@@ -134,6 +136,18 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler(RiskVerificationRequiredException.class)
+    public ResponseEntity<RiskVerificationRequiredResponse> handleRiskVerification(RiskVerificationRequiredException ex) {
+        return ResponseEntity
+                .status(HttpStatus.PRECONDITION_REQUIRED)
+                .body(new RiskVerificationRequiredResponse(
+                        ex.getRiskOperationId(),
+                        ex.getAction(),
+                        ex.isRequiresPassword(),
+                        ex.isRequiresEmailCode()));
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleAll(WebRequest webRequest) {
