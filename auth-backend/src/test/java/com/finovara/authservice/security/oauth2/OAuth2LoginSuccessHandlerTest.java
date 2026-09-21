@@ -1,12 +1,8 @@
 package com.finovara.authservice.security.oauth2;
 
-import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.authservice.user.model.User;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.authservice.security.jwt.JwtService;
-import com.finovara.authservice.user.model.User;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -18,17 +14,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
-import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,14 +31,10 @@ class OAuth2LoginSuccessHandlerTest {
     private GoogleOAuth2UserService googleOAuth2UserService;
 
     @Mock
-    private JwtService jwtService;
-
-    @Mock
     private OAuth2AuthorizationRequestCookieStore authorizationRequestRepository;
 
-
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private OAuth2PendingLoginCookie pendingLoginCookie;
 
     @Mock
     private HttpServletRequest httpServletRequest;
@@ -75,14 +64,11 @@ class OAuth2LoginSuccessHandlerTest {
                 .build();
     }
 
-    private void stubSuccessfulFlow(Object principal) throws IOException {
+    private void stubSuccessfulFlow(Object principal) {
         when(authentication.getPrincipal()).thenReturn(principal);
         when(googleOAuth2UserService.synchronize(any(OAuth2User.class))).thenReturn(mockUser);
-        when(jwtService.generateToken(mockUser)).thenReturn("mock-jwt-token");
         when(httpServletRequest.getSession(false)).thenReturn(httpSession);
-        when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
-        when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn(null);
-        when(httpServletRequest.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0");
+        when(httpServletRequest.isSecure()).thenReturn(true);
     }
 
     @Nested
@@ -118,111 +104,66 @@ class OAuth2LoginSuccessHandlerTest {
             verify(httpServletResponse).sendRedirect(urlCaptor.capture());
             assertThat(urlCaptor.getValue()).contains("error=oauth2_authentication_failed");
         }
+
+        @Test
+        void shouldNotSynchronizeUserWhenPrincipalTypeIsUnsupported() throws Exception {
+            when(authentication.getPrincipal()).thenReturn("unsupported-principal");
+
+            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
+
+            verifyNoInteractions(googleOAuth2UserService, pendingLoginCookie);
+        }
+    }
+
+    @Nested
+    class PendingLoginCookieHandling {
+
+        @Test
+        void shouldAddPendingLoginCookieWithUserIdWhenAuthenticationSucceeds() throws Exception {
+            OAuth2User oauth2User = mock(OAuth2User.class);
+            stubSuccessfulFlow(oauth2User);
+
+            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
+
+            verify(pendingLoginCookie).add(eq(httpServletResponse), eq(1L), anyString(), eq(true));
+        }
+
+        @Test
+        void shouldAddPendingLoginCookieWithSecureFlagMatchingRequestWhenRequestIsNotSecure() throws Exception {
+            OAuth2User oauth2User = mock(OAuth2User.class);
+            when(authentication.getPrincipal()).thenReturn(oauth2User);
+            when(googleOAuth2UserService.synchronize(any(OAuth2User.class))).thenReturn(mockUser);
+            when(httpServletRequest.getSession(false)).thenReturn(httpSession);
+            when(httpServletRequest.isSecure()).thenReturn(false);
+
+            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
+
+            verify(pendingLoginCookie).add(eq(httpServletResponse), eq(1L), anyString(), eq(false));
+        }
+
+        @Test
+        void shouldNotAddPendingLoginCookieWhenSynchronizeFails() throws Exception {
+            OAuth2User oauth2User = mock(OAuth2User.class);
+            when(authentication.getPrincipal()).thenReturn(oauth2User);
+            when(googleOAuth2UserService.synchronize(any())).thenThrow(new RuntimeException("unexpected"));
+
+            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
+
+            verifyNoInteractions(pendingLoginCookie);
+        }
     }
 
     @Nested
     class RedirectUrlConstruction {
 
         @Test
-        void shouldSetJwtTokenInHttpOnlyCookie() throws Exception {
+        void shouldRedirectToOAuth2VerifyEndpointOnSuccess() throws Exception {
             OAuth2User oauth2User = mock(OAuth2User.class);
             stubSuccessfulFlow(oauth2User);
 
             oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
 
-            ArgumentCaptor<Cookie> cookieCaptor = ArgumentCaptor.forClass(Cookie.class);
-            verify(httpServletResponse).addCookie(cookieCaptor.capture());
-
-            Cookie cookie = cookieCaptor.getValue();
-            assertThat(cookie.getName()).isEqualTo(OAuth2AccessTokenCookie.COOKIE_NAME);
-            assertThat(cookie.getValue()).isEqualTo("mock-jwt-token");
-            assertThat(cookie.isHttpOnly()).isTrue();
-            assertThat(cookie.getMaxAge()).isEqualTo(86400);
-        }
-
-        @Test
-        void shouldNotIncludeJwtTokenInRedirectUrl() throws Exception {
-            OAuth2User oauth2User = mock(OAuth2User.class);
-            stubSuccessfulFlow(oauth2User);
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-            verify(httpServletResponse).sendRedirect(urlCaptor.capture());
-            assertThat(urlCaptor.getValue()).doesNotContain("token=");
-        }
-
-        @Test
-        void shouldIncludeUserIdInRedirectUrl() throws Exception {
-            OAuth2User oauth2User = mock(OAuth2User.class);
-            stubSuccessfulFlow(oauth2User);
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-            verify(httpServletResponse).sendRedirect(urlCaptor.capture());
-            assertThat(urlCaptor.getValue()).contains("id=1");
-        }
-
-        @Test
-        void shouldIncludeUsernameInRedirectUrl() throws Exception {
-            OAuth2User oauth2User = mock(OAuth2User.class);
-            stubSuccessfulFlow(oauth2User);
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-            verify(httpServletResponse).sendRedirect(urlCaptor.capture());
-            assertThat(urlCaptor.getValue()).contains("username=testuser");
-        }
-
-        @Test
-        void shouldIncludeEmailInRedirectUrl() throws Exception {
-            OAuth2User oauth2User = mock(OAuth2User.class);
-            stubSuccessfulFlow(oauth2User);
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-            verify(httpServletResponse).sendRedirect(urlCaptor.capture());
-            assertThat(urlCaptor.getValue()).contains("email=test@example.com");
-        }
-
-        @Test
-        void shouldIncludePasswordSetInRedirectUrl() throws Exception {
-            OAuth2User oauth2User = mock(OAuth2User.class);
-            stubSuccessfulFlow(oauth2User);
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-            verify(httpServletResponse).sendRedirect(urlCaptor.capture());
-            assertThat(urlCaptor.getValue()).contains("passwordSet=false");
-        }
-
-        @Test
-        void shouldIncludeEmptyProfileImageUrlWhenPathIsNull() throws Exception {
-            OAuth2User oauth2User = mock(OAuth2User.class);
-            mockUser.setProfileImagePath(null);
-            stubSuccessfulFlow(oauth2User);
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-            verify(httpServletResponse).sendRedirect(urlCaptor.capture());
-            assertThat(urlCaptor.getValue()).contains("profileImageUrl=");
-        }
-
-        @Test
-        void shouldRedirectToOAuth2SuccessEndpoint() throws Exception {
-            OAuth2User oauth2User = mock(OAuth2User.class);
-            stubSuccessfulFlow(oauth2User);
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
-            verify(httpServletResponse).sendRedirect(urlCaptor.capture());
-            assertThat(urlCaptor.getValue()).startsWith("https://localhost:5173/oauth2/success");
+            verify(httpServletResponse).sendRedirect("https://localhost:5173/oauth2/verify");
         }
     }
 
@@ -273,75 +214,6 @@ class OAuth2LoginSuccessHandlerTest {
             assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
 
             SecurityContextHolder.clearContext();
-        }
-    }
-
-    @Nested
-    class LoginActivityRecording {
-
-        @Test
-        void shouldRecordSuccessfulLoginActivityOnSuccess() throws Exception {
-            OAuth2User oauth2User = mock(OAuth2User.class);
-            stubSuccessfulFlow(oauth2User);
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            ArgumentCaptor<LoginActivityEvent> eventCaptor = ArgumentCaptor.forClass(LoginActivityEvent.class);
-            verify(kafkaTemplate).send(eq("user.logged-in"), eventCaptor.capture());
-            assertThat(eventCaptor.getValue().status()).isEqualTo(LoginActivityStatus.SUCCESSFUL);
-        }
-
-        @Test
-        void shouldRecordLoginActivityWithCorrectUserId() throws Exception {
-            mockUser = User.builder()
-                    .id(42L)
-                    .username("anotheruser")
-                    .email("another@example.com")
-                    .profileImagePath(null)
-                    .passwordSet(true)
-                    .build();
-
-            OAuth2User oauth2User = mock(OAuth2User.class);
-            stubSuccessfulFlow(oauth2User);
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            ArgumentCaptor<LoginActivityEvent> eventCaptor = ArgumentCaptor.forClass(LoginActivityEvent.class);
-            verify(kafkaTemplate).send(eq("user.logged-in"), eventCaptor.capture());
-            assertThat(eventCaptor.getValue().userId()).isEqualTo(42L);
-        }
-
-        @Test
-        void shouldNotRecordLoginActivityOnBusinessException() throws Exception {
-            OAuth2User oauth2User = mock(OAuth2User.class);
-            when(authentication.getPrincipal()).thenReturn(oauth2User);
-            when(googleOAuth2UserService.synchronize(any()))
-                    .thenThrow(new EntityAlreadyExistsException("email_already_exists"));
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            verifyNoInteractions(kafkaTemplate);
-        }
-
-        @Test
-        void shouldNotRecordLoginActivityOnRuntimeException() throws Exception {
-            OAuth2User oauth2User = mock(OAuth2User.class);
-            when(authentication.getPrincipal()).thenReturn(oauth2User);
-            when(googleOAuth2UserService.synchronize(any()))
-                    .thenThrow(new RuntimeException("unexpected"));
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            verifyNoInteractions(kafkaTemplate);
-        }
-
-        @Test
-        void shouldNotRecordLoginActivityOnUnsupportedPrincipal() throws Exception {
-            when(authentication.getPrincipal()).thenReturn("unsupported-principal");
-
-            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
-
-            verifyNoInteractions(kafkaTemplate);
         }
     }
 
@@ -401,6 +273,17 @@ class OAuth2LoginSuccessHandlerTest {
             ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
             verify(httpServletResponse).sendRedirect(urlCaptor.capture());
             assertThat(urlCaptor.getValue()).startsWith("https://localhost:5173/auth");
+        }
+
+        @Test
+        void shouldNotRemoveAuthorizationRequestCookieWhenSynchronizeFailsWithBusinessException() throws Exception {
+            OAuth2User oauth2User = mock(OAuth2User.class);
+            when(authentication.getPrincipal()).thenReturn(oauth2User);
+            when(googleOAuth2UserService.synchronize(any())).thenThrow(new EntityAlreadyExistsException("err"));
+
+            oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
+
+            verifyNoInteractions(authorizationRequestRepository);
         }
     }
 
