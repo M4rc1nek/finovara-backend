@@ -6,6 +6,7 @@ import com.finovara.financeservice.piggybank.service.PiggyBankManagementService;
 import com.finovara.financeservice.piggybank.service.PiggyBankTransactionService;
 import com.finovara.financeservice.security.SecurityUtils;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -43,14 +44,14 @@ public class PiggyBankManagementController {
     }
 
     @PostMapping("/{piggyBankId}/deposit")
-    public ResponseEntity<Void> addBalanceToPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount, @RequestParam(required = false) String authorizationCode) {
-        piggyBankTransactionService.addBalanceToPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, authorizationCode, TransactionOrigin.USER_MANUAL);
+    public ResponseEntity<Void> addBalanceToPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount, @RequestParam(required = false) String authorizationCode, @RequestParam String sourceEventId, HttpServletRequest servletRequest) {
+        piggyBankTransactionService.addBalanceToPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, authorizationCode, sourceEventId, servletRequest, TransactionOrigin.USER_MANUAL);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{piggyBankId}/withdraw")
-    public ResponseEntity<PiggyBankDto> removeBalanceFromPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount, @RequestParam(required = false) String authorizationCode) {
-        piggyBankTransactionService.removeBalanceFromPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, authorizationCode);
+    public ResponseEntity<Void> removeBalanceFromPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount, @RequestParam(required = false) String authorizationCode, @RequestParam String sourceEventId, HttpServletRequest servletRequest) {
+        piggyBankTransactionService.removeBalanceFromPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, authorizationCode, sourceEventId, servletRequest);
         return ResponseEntity.noContent().build();
     }
 
