@@ -5,6 +5,7 @@ import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.service.ExpenseService;
 import com.finovara.financeservice.security.SecurityUtils;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +21,13 @@ public class ExpenseController {
     private final ExpenseService expenseService;
 
     @PostMapping
-    public ResponseEntity<Long> addExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto) {
-        return ResponseEntity.ok(expenseService.addExpense(expenseRequestDto, SecurityUtils.getCurrentUserId(), TransactionOrigin.USER_MANUAL));
+    public ResponseEntity<Long> addExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto, HttpServletRequest servletRequest) {
+        return ResponseEntity.ok(expenseService.addExpense(expenseRequestDto, SecurityUtils.getCurrentUserId(), servletRequest,TransactionOrigin.USER_MANUAL));
     }
 
     @PutMapping("/edit/{expenseId}")
-    public ResponseEntity<Long> editExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto, @PathVariable Long expenseId) {
-        return ResponseEntity.ok(expenseService.editExpense(expenseRequestDto, SecurityUtils.getCurrentUserId(), expenseId));
+    public ResponseEntity<Long> editExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto, @PathVariable Long expenseId, HttpServletRequest servletRequest) {
+        return ResponseEntity.ok(expenseService.editExpense(expenseRequestDto, SecurityUtils.getCurrentUserId(), expenseId, servletRequest));
     }
 
     @GetMapping
