@@ -4,13 +4,13 @@ import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.service.RevenueService;
 import com.finovara.financeservice.security.SecurityUtils;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
 
 @RestController
 @RequestMapping("/api/transactions/revenue")
@@ -19,13 +19,13 @@ public class RevenueController {
     private final RevenueService revenueService;
 
     @PostMapping
-    public ResponseEntity<Long> addRevenue(@RequestBody @Valid RevenueDto revenueDto) {
-        return ResponseEntity.ok(revenueService.addRevenue(revenueDto, SecurityUtils.getCurrentUserId(), TransactionOrigin.USER_MANUAL));
+    public ResponseEntity<Long> addRevenue(@RequestBody @Valid RevenueDto revenueDto, HttpServletRequest servletRequest) {
+        return ResponseEntity.ok(revenueService.addRevenue(revenueDto, SecurityUtils.getCurrentUserId(), servletRequest, TransactionOrigin.USER_MANUAL));
     }
 
     @PutMapping("/edit/{revenueId}")
-    public ResponseEntity<Long> editRevenue(@RequestBody @Valid RevenueDto revenueDto, @PathVariable Long revenueId) {
-        return ResponseEntity.ok(revenueService.editRevenue(revenueDto, revenueId, SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<Long> editRevenue(@RequestBody @Valid RevenueDto revenueDto, @PathVariable Long revenueId, HttpServletRequest servletRequest) {
+        return ResponseEntity.ok(revenueService.editRevenue(revenueDto, revenueId, SecurityUtils.getCurrentUserId(), servletRequest));
     }
 
     @GetMapping
