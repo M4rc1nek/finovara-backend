@@ -1,4 +1,4 @@
-package com.finovara.financeservice.exception.riskverification;
+package com.finovara.authservice.exception.riskverification;
 
 import com.finovara.contracts.securitymonitoring.dto.RiskAction;
 
