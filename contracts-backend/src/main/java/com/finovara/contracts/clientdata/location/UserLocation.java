@@ -1,15 +1,29 @@
 package com.finovara.contracts.clientdata.location;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @UtilityClass
 public class UserLocation {
 
-    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
+    private static final int CONNECT_TIMEOUT_MS = 300;
+    private static final int READ_TIMEOUT_MS = 500;
+
+    private static final RestTemplate REST_TEMPLATE = buildRestTemplate();
+
+    private static RestTemplate buildRestTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        factory.setReadTimeout(READ_TIMEOUT_MS);
+        return new RestTemplate(factory);
+    }
 
     public static String getLocationFromIp(String ip) {
         if (ip == null) {
@@ -27,8 +41,7 @@ public class UserLocation {
         try {
             String url = "http://ip-api.com/json/" + ip;
 
-            Map<String, Object> response =
-                    REST_TEMPLATE.getForObject(url, Map.class);
+            Map<String, Object> response = REST_TEMPLATE.getForObject(url, Map.class);
 
             if (response == null) {
                 return "Unknown";
@@ -43,19 +56,12 @@ public class UserLocation {
 
             return city + ", " + country;
 
-        } catch (Exception e) {
+        } catch (RestClientException exception) {
+            log.warn("Failed to resolve location for ip={}: {}", ip, exception.getMessage());
+            return "Unknown";
+        } catch (Exception exception) {
+            log.error("Unexpected error while resolving location for ip={}", ip, exception);
             return "Unknown";
         }
-    }
-
-    public static List<String> getLocationsFromIps(List<String> ips) {
-        if (ips == null || ips.isEmpty()) {
-            return List.of();
-        }
-
-        return ips.stream()
-                .map(UserLocation::getLocationFromIp)
-                .distinct()
-                .toList();
     }
 }
