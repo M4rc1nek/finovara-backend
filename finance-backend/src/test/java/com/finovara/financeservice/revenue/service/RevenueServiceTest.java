@@ -7,16 +7,19 @@ import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.mapper.RevenueMapper;
 import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
+import com.finovara.financeservice.riskverification.service.RiskGuardService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.autopayments.service.AutoPaymentsService;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.revenue.RevenueManagerService;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.wallet.service.WalletService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -53,11 +56,18 @@ class RevenueServiceTest {
     private AuthBackendClient authBackendClient;
     @Mock
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    @Mock
+    private RiskGuardService riskGuardService;
+    @Mock
+    private HttpServletRequest servletRequest;
 
     @InjectMocks
     private RevenueService revenueService;
 
     private Long userId;
+
+    private static final String USER_EMAIL = "user@test.com";
+    private static final String RISK_SOURCE_EVENT_ID = "risk-source-event-id";
 
     @BeforeEach
     void setUp() {
@@ -69,7 +79,7 @@ class RevenueServiceTest {
 
         @Test
         void shouldAddRevenueSuccessfully() {
-            RevenueDto dto = new RevenueDto(2L, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", null);
+            RevenueDto dto = new RevenueDto(2L, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", null, RISK_SOURCE_EVENT_ID);
 
             when(revenueRepository.save(any(Revenue.class)))
                     .thenAnswer(invocation -> {
@@ -78,7 +88,7 @@ class RevenueServiceTest {
                         return r;
                     });
 
-            revenueService.addRevenue(dto, userId, TransactionOrigin.USER_MANUAL);
+            revenueService.addRevenue(dto, userId, servletRequest, TransactionOrigin.USER_MANUAL);
 
             verify(walletService).addBalanceToWallet(userId, dto.amount());
             verify(revenueRepository).save(any(Revenue.class));
@@ -94,7 +104,7 @@ class RevenueServiceTest {
 
         @Test
         void shouldConfirmAuthorizationCodeWhenOriginIsUserManual() {
-            RevenueDto dto = new RevenueDto(2L, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", "111111");
+            RevenueDto dto = new RevenueDto(2L, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", "111111", RISK_SOURCE_EVENT_ID);
 
             when(revenueRepository.save(any(Revenue.class)))
                     .thenAnswer(invocation -> {
@@ -104,14 +114,43 @@ class RevenueServiceTest {
                     });
             when(additionalAuthorizationCodeResolver.resolve("111111")).thenReturn(new ConfirmAuthorizationCodeDto("111111"));
 
-            revenueService.addRevenue(dto, userId, TransactionOrigin.USER_MANUAL);
+            revenueService.addRevenue(dto, userId, servletRequest, TransactionOrigin.USER_MANUAL);
 
             verify(authBackendClient).confirmAuthorizationCode(eq(userId), any(ConfirmAuthorizationCodeDto.class));
         }
 
         @Test
+        void shouldGuardAgainstRiskWhenOriginIsUserManual() {
+            RevenueDto dto = new RevenueDto(2L, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", null, RISK_SOURCE_EVENT_ID);
+
+            when(revenueRepository.save(any(Revenue.class)))
+                    .thenAnswer(invocation -> {
+                        Revenue r = invocation.getArgument(0);
+                        r.setId(1L);
+                        return r;
+                    });
+            when(authBackendClient.getUserEmail(userId)).thenReturn(USER_EMAIL);
+
+            revenueService.addRevenue(dto, userId, servletRequest, TransactionOrigin.USER_MANUAL);
+
+            verify(riskGuardService).guard(userId, RiskTriggerType.REVENUE, dto.amount(), RevenueCategory.INVESTMENT.name(), USER_EMAIL, RISK_SOURCE_EVENT_ID, servletRequest);
+        }
+
+        @Test
+        void shouldNotAddRevenueWhenRiskGuardFails() {
+            RevenueDto dto = new RevenueDto(2L, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", null, RISK_SOURCE_EVENT_ID);
+            doThrow(new RuntimeException("Risk detected"))
+                    .when(riskGuardService).guard(eq(userId), eq(RiskTriggerType.REVENUE), any(), any(), any(), any(), eq(servletRequest));
+
+            assertThrows(RuntimeException.class, () -> revenueService.addRevenue(dto, userId, servletRequest, TransactionOrigin.USER_MANUAL));
+
+            verifyNoInteractions(walletService);
+            verify(revenueRepository, never()).save(any());
+        }
+
+        @Test
         void shouldSkipAuthorizationCodeConfirmationWhenOriginIsRecurringSystem() {
-            RevenueDto dto = new RevenueDto(null, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "recurring", null);
+            RevenueDto dto = new RevenueDto(null, userId, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "recurring", null, RISK_SOURCE_EVENT_ID);
 
             when(revenueRepository.save(any(Revenue.class)))
                     .thenAnswer(invocation -> {
@@ -120,9 +159,9 @@ class RevenueServiceTest {
                         return r;
                     });
 
-            revenueService.addRevenue(dto, userId, TransactionOrigin.RECURRING_SYSTEM);
+            revenueService.addRevenue(dto, userId, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
 
-            verifyNoInteractions(authBackendClient, additionalAuthorizationCodeResolver);
+            verifyNoInteractions(authBackendClient, additionalAuthorizationCodeResolver, riskGuardService);
         }
     }
 
@@ -137,11 +176,11 @@ class RevenueServiceTest {
             revenue.setAmount(new BigDecimal("50"));
             revenue.setCategory(RevenueCategory.SALARY);
 
-            RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", null);
+            RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", null, RISK_SOURCE_EVENT_ID);
 
             when(revenueManagerService.getRevenueOrThrow(10L)).thenReturn(revenue);
 
-            revenueService.editRevenue(dto, 10L, userId);
+            revenueService.editRevenue(dto, 10L, userId, servletRequest);
 
             verify(autoPaymentsService).handleRevenuePiggyBankAutomation(userId, new BigDecimal("50"), PiggyBankAutomationMode.ROLLBACK);
             verify(autoPaymentsService).handleRevenuePiggyBankAutomation(userId, new BigDecimal("100"), PiggyBankAutomationMode.APPLY);
@@ -160,6 +199,43 @@ class RevenueServiceTest {
         }
 
         @Test
+        void shouldGuardAgainstRiskWhenEditingRevenue() {
+            Revenue revenue = new Revenue();
+            revenue.setId(10L);
+            revenue.setUserId(userId);
+            revenue.setAmount(new BigDecimal("50"));
+            revenue.setCategory(RevenueCategory.SALARY);
+
+            RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", null, RISK_SOURCE_EVENT_ID);
+
+            when(revenueManagerService.getRevenueOrThrow(10L)).thenReturn(revenue);
+            when(authBackendClient.getUserEmail(userId)).thenReturn(USER_EMAIL);
+
+            revenueService.editRevenue(dto, 10L, userId, servletRequest);
+
+            verify(riskGuardService).guard(userId, RiskTriggerType.REVENUE, dto.amount(), RevenueCategory.INVESTMENT.name(), USER_EMAIL, RISK_SOURCE_EVENT_ID, servletRequest);
+        }
+
+        @Test
+        void shouldNotEditRevenueWhenRiskGuardFails() {
+            Revenue revenue = new Revenue();
+            revenue.setId(10L);
+            revenue.setUserId(userId);
+            revenue.setAmount(new BigDecimal("50"));
+            revenue.setCategory(RevenueCategory.SALARY);
+
+            RevenueDto dto = new RevenueDto(null, null, new BigDecimal("100"), RevenueCategory.INVESTMENT, null, "edit", null, RISK_SOURCE_EVENT_ID);
+
+            when(revenueManagerService.getRevenueOrThrow(10L)).thenReturn(revenue);
+            doThrow(new RuntimeException("Risk detected"))
+                    .when(riskGuardService).guard(eq(userId), eq(RiskTriggerType.REVENUE), any(), any(), any(), any(), eq(servletRequest));
+
+            assertThrows(RuntimeException.class, () -> revenueService.editRevenue(dto, 10L, userId, servletRequest));
+
+            verify(revenueRepository, never()).save(any());
+        }
+
+        @Test
         void shouldThrowExceptionWhenRevenueBelongsToOtherUser() {
             Revenue revenue = new Revenue();
             revenue.setId(10L);
@@ -167,11 +243,14 @@ class RevenueServiceTest {
 
             when(revenueManagerService.getRevenueOrThrow(10L)).thenReturn(revenue);
 
+            RevenueDto dto = new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x", null, RISK_SOURCE_EVENT_ID);
+
             assertThrows(RequestedEntityNotFoundException.class, () ->
-                    revenueService.editRevenue(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x", null), 10L, userId));
+                    revenueService.editRevenue(dto, 10L, userId, servletRequest));
 
             verify(revenueRepository, never()).save(any());
             verify(outboxService, never()).save(any(), any(), any(), any());
+            verifyNoInteractions(riskGuardService);
         }
     }
 
@@ -183,7 +262,7 @@ class RevenueServiceTest {
             Revenue revenue1 = new Revenue();
             Revenue revenue2 = new Revenue();
             when(revenueRepository.findAllByUserId(userId)).thenReturn(List.of(revenue1, revenue2));
-            when(revenueMapper.mapRevenueToDto(any())).thenReturn(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x", null));
+            when(revenueMapper.mapRevenueToDto(any())).thenReturn(new RevenueDto(null, null, BigDecimal.TEN, RevenueCategory.SALARY, null, "x", null, RISK_SOURCE_EVENT_ID));
 
             List<RevenueDto> result = revenueService.getRevenue(userId);
 
