@@ -6,5 +6,6 @@ public record RiskEvaluationResponse(
         int score,
         RiskAction action,
         boolean passwordRequired,
-        boolean emailCodeRequired
+        boolean emailCodeRequired,
+        boolean isFullyVerified
 ) {}

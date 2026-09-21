@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth/set-password")
 @RequiredArgsConstructor
-public class OAuth2PasswordController {
+public class OAuth2Controller {
 
     private final OAuth2PasswordSetter oAuth2PasswordSetter;
 
