@@ -3,8 +3,6 @@ package com.finovara.contracts.clientdata.ip;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 
 @UtilityClass
