@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/internal/risk")
+@RequestMapping("/api/security-monitoring/")
 @RequiredArgsConstructor
 public class RiskChallengeController {
 
