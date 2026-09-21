@@ -15,6 +15,7 @@ public record UserLoginDto(
         String password,
         String userProfileImage,
 
-        String jwtToken
+        String jwtToken,
+        String riskVerificationSourceEventId
 ) {
 }
