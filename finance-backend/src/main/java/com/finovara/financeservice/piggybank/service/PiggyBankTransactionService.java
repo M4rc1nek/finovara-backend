@@ -4,9 +4,11 @@ import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.notification.event.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
+import com.finovara.financeservice.riskverification.service.RiskGuardService;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCalculator;
@@ -14,8 +16,9 @@ import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCheckGoal
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankValidator;
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
-import lombok.RequiredArgsConstructor;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,13 +36,17 @@ public class PiggyBankTransactionService {
     private final WalletService walletService;
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    private final RiskGuardService riskGuardService;
 
     @Transactional
-    public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, PiggyBankActivityType
-            piggyBankActivityType, String authorizationCode, TransactionOrigin origin) {
-        if(origin == TransactionOrigin.USER_MANUAL){
+    public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, PiggyBankActivityType piggyBankActivityType, String authorizationCode, String sourceEventId,
+                                      HttpServletRequest servletRequest, TransactionOrigin origin) {
+        if (origin == TransactionOrigin.USER_MANUAL) {
             authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
+            riskGuardService.guard(userId, RiskTriggerType.PIGGY_BANK, amount, null,
+                    authBackendClient.getUserEmail(userId), sourceEventId, servletRequest);
         }
+
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
         PiggyBankValidator.validateAmount(amount);
@@ -61,8 +68,11 @@ public class PiggyBankTransactionService {
     }
 
     @Transactional
-    public void removeBalanceFromPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, String authorizationCode) {
+    public void removeBalanceFromPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, String authorizationCode,
+                                           String sourceEventId, HttpServletRequest servletRequest) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
+        riskGuardService.guard(userId, RiskTriggerType.PIGGY_BANK, amount, null,
+                authBackendClient.getUserEmail(userId), sourceEventId, servletRequest);
 
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
 
