@@ -14,6 +14,7 @@ public class RevenueMapper {
                 revenue.getCategory(),
                 revenue.getCreatedAt(),
                 revenue.getDescription(),
+                null,
                 null
         );
     }
