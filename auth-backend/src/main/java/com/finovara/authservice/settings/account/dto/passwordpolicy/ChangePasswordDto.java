@@ -6,7 +6,8 @@ public record ChangePasswordDto(
         @Size(min = 8, max = 55, message = "Hasło musi mieć od 8 do 55 znaków")
         String newPassword,
         String confirmNewPassword,
-        String authorizationCode
+        String authorizationCode,
+        String riskVerificationSourceEventId
 ) {
 }
 
