@@ -1,5 +1,6 @@
 package com.finovara.authservice.settings.account.service;
 
+import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.authservice.settings.account.dto.AccountSettingsDto;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.authservice.user.model.User;
@@ -12,6 +13,7 @@ import com.finovara.contracts.notification.event.SendEmailEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import java.util.Map;
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
 import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
 import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ public class AccountService {
     private final OutboxService outboxService;
     private final AdditionalAuthorizationService additionalAuthorizationService;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    private final RiskGuardService riskGuardService;
 
     @Transactional
     public AccountSettingsDto updateUsername(AccountSettingsDto accountSettingsDto, Long userId, HttpServletRequest request) {
@@ -42,6 +46,8 @@ public class AccountService {
         if (userRepository.existsByUsername(accountSettingsDto.username())) {
             throw new EntityAlreadyExistsException("Username is already taken");
         }
+
+        riskGuardService.guard(userId, RiskTriggerType.USERNAME_CHANGED, user.getEmail(), accountSettingsDto.riskVerificationSourceEventId(), request);
 
         user.setUsername(accountSettingsDto.username());
         userRepository.save(user);
@@ -61,6 +67,6 @@ public class AccountService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         String profileImageUrl = user.getProfileImageUrl();
 
-        return new AccountSettingsDto(user.getUsername(), user.getEmail(), user.getCreatedAt(), profileImageUrl, null);
+        return new AccountSettingsDto(user.getUsername(), user.getEmail(), user.getCreatedAt(), profileImageUrl, null, null);
     }
 }
