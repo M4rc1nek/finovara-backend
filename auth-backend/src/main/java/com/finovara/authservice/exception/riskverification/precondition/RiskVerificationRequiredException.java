@@ -1,4 +1,4 @@
-package com.finovara.financeservice.exception.riskverification.precondition;
+package com.finovara.authservice.exception.riskverification.precondition;
 
 import com.finovara.contracts.securitymonitoring.dto.RiskAction;
 import lombok.Getter;
