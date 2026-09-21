@@ -1,14 +1,15 @@
-/*
 package com.finovara.authservice.settings.account.service.passwordpolicy.change;
 
+import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.authservice.settings.account.dto.passwordpolicy.ChangePasswordDto;
 import com.finovara.authservice.settings.account.service.verification.CredentialValidationService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.authservice.user.model.User;
-import com.finovara.authservice.util.authorization.AdditionalAuthorizationCodeResolver;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.auth.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -48,6 +49,9 @@ class ChangePasswordServiceTest {
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Mock
+    private RiskGuardService riskGuardService;
+
+    @Mock
     private HttpServletRequest request;
 
     @InjectMocks
@@ -57,7 +61,9 @@ class ChangePasswordServiceTest {
     private static final String NEW_PASSWORD = "newPass123";
     private static final String CONFIRM_NEW_PASSWORD = "newPass123";
     private static final String OLD_PASSWORD = "oldPass123";
+    private static final String USER_EMAIL = "user@test.com";
     private static final String AUTHORIZATION_CODE = "auth-code";
+    private static final String RISK_SOURCE_EVENT_ID = "risk-event-id";
 
     private ChangePasswordDto changePasswordDto;
     private User user;
@@ -65,10 +71,11 @@ class ChangePasswordServiceTest {
 
     @BeforeEach
     void setUp() {
-        changePasswordDto = new ChangePasswordDto(NEW_PASSWORD, CONFIRM_NEW_PASSWORD, AUTHORIZATION_CODE);
+        changePasswordDto = new ChangePasswordDto(NEW_PASSWORD, CONFIRM_NEW_PASSWORD, AUTHORIZATION_CODE, RISK_SOURCE_EVENT_ID);
         user = new User();
         user.setId(USER_ID);
         user.setPassword(OLD_PASSWORD);
+        user.setEmail(USER_EMAIL);
         resolvedAuthorizationCode = mock(ConfirmAuthorizationCodeDto.class);
     }
 
@@ -120,12 +127,22 @@ class ChangePasswordServiceTest {
         }
 
         @Test
+        void shouldGuardAgainstRiskWithUserEmailAndSourceEventIdWhenChangingPassword() {
+            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+
+            changePasswordService.changePassword(USER_ID, changePasswordDto, request);
+
+            verify(riskGuardService).guard(USER_ID, RiskTriggerType.PASSWORD_CHANGED, USER_EMAIL, RISK_SOURCE_EVENT_ID, request);
+        }
+
+        @Test
         void shouldThrowExceptionWhenUserNotFound() {
             when(userManagerService.getUserByIdOrThrow(USER_ID)).thenThrow(new RequestedEntityNotFoundException("User not found"));
 
             assertThrows(RequestedEntityNotFoundException.class, () -> changePasswordService.changePassword(USER_ID, changePasswordDto, request));
 
             verifyNoInteractions(credentialValidationService);
+            verifyNoInteractions(riskGuardService);
             verifyNoInteractions(passwordUpdateService);
         }
 
@@ -137,6 +154,7 @@ class ChangePasswordServiceTest {
 
             assertThrows(IllegalArgumentException.class, () -> changePasswordService.changePassword(USER_ID, changePasswordDto, request));
 
+            verifyNoInteractions(riskGuardService);
             verify(passwordUpdateService, never()).updatePassword(any(), anyString(), any());
         }
 
@@ -149,7 +167,19 @@ class ChangePasswordServiceTest {
 
             verifyNoInteractions(userManagerService);
             verifyNoInteractions(credentialValidationService);
+            verifyNoInteractions(riskGuardService);
             verifyNoInteractions(passwordUpdateService);
+        }
+
+        @Test
+        void shouldNotUpdatePasswordWhenRiskGuardFails() {
+            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+            doThrow(new IllegalStateException("Risk detected"))
+                    .when(riskGuardService).guard(USER_ID, RiskTriggerType.PASSWORD_CHANGED, USER_EMAIL, RISK_SOURCE_EVENT_ID, request);
+
+            assertThrows(IllegalStateException.class, () -> changePasswordService.changePassword(USER_ID, changePasswordDto, request));
+
+            verify(passwordUpdateService, never()).updatePassword(any(), anyString(), any());
         }
 
         @Test
@@ -161,6 +191,7 @@ class ChangePasswordServiceTest {
             assertThrows(IllegalStateException.class, () -> changePasswordService.changePassword(USER_ID, changePasswordDto, request));
 
             verify(credentialValidationService).validateNewPassword(NEW_PASSWORD, CONFIRM_NEW_PASSWORD, OLD_PASSWORD);
+            verify(riskGuardService).guard(USER_ID, RiskTriggerType.PASSWORD_CHANGED, USER_EMAIL, RISK_SOURCE_EVENT_ID, request);
         }
     }
 
@@ -177,19 +208,8 @@ class ChangePasswordServiceTest {
             verifyNoInteractions(additionalAuthorizationService);
             verifyNoInteractions(userManagerService);
             verifyNoInteractions(credentialValidationService);
+            verifyNoInteractions(riskGuardService);
             verifyNoInteractions(passwordUpdateService);
         }
-
-        @Test
-        void shouldResolveNullAuthorizationCodeWhenAuthorizationCodeIsNull() {
-            ChangePasswordDto dtoWithNullCode = new ChangePasswordDto(NEW_PASSWORD, CONFIRM_NEW_PASSWORD, null);
-            when(additionalAuthorizationCodeResolver.resolve(null)).thenReturn(resolvedAuthorizationCode);
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
-
-            changePasswordService.changePassword(USER_ID, dtoWithNullCode, request);
-
-            verify(additionalAuthorizationCodeResolver).resolve(null);
-            verify(additionalAuthorizationService).confirmAdditionalAuthorizationCode(USER_ID, resolvedAuthorizationCode);
-        }
     }
-}*/
+}
