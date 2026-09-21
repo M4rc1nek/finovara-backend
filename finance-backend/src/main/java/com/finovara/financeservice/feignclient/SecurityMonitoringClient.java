@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "security-monitoring-backend")
+@FeignClient(name = "security-monitoring-backend", url = "${security-monitoring-backend.url}")
 public interface SecurityMonitoringClient {
 
     @PostMapping("/internal/risk/evaluate")
