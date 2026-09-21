@@ -130,6 +130,7 @@ security:
     - /api/contact
     - /oauth2/**
     - /login/oauth2/**
+    - /api/security-monitoring/confirm-email-code/**
     - /internal/**
 
 
@@ -177,3 +178,6 @@ rate-limit:
     - path: /api/security-settings/additional-authorization/request-email-code
       max-requests: 66346 #3
       window-hours: 1
+    - path: /api/security-monitoring/confirm-email-code/**
+      max-requests: 10
+      window-minutes: 15
