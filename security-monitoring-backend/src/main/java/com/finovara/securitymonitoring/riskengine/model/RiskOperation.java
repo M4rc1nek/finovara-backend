@@ -11,6 +11,8 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "risk_operation")
@@ -56,6 +58,9 @@ public class RiskOperation {
 
     @Column(nullable = false)
     private Long userId;
+
+    @OneToMany(mappedBy = "riskOperation", cascade = CascadeType.ALL)
+    private List<RiskRuleCollection> riskRuleCollections = new ArrayList<>();
 
     public boolean requiresPassword() {
         return action == RiskAction.SOFT_CHALLENGE || action == RiskAction.FULL_VERIFICATION_REQUIRED;
