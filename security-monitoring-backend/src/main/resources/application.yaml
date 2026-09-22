@@ -67,12 +67,12 @@ risk:
     piggy-bank-high-amount: 5000
     piggy-bank-diff-amount: 1000
 
-    expense-high-points: 20
-    expense-record-points: 20
+    expense-high-points: 95 #29
+    expense-record-points: 29
     first-transaction-points: 30
-    expense-category-points: 5
-    revenue-high-points: 15
-    revenue-low-points: 5
+    expense-category-points: 10
+    revenue-high-points: 29
+    revenue-low-points: 10
     piggy-bank-high-points: 50
     piggy-bank-diff-points: 31
 
@@ -92,15 +92,20 @@ risk:
     new-account-days: 7
     new-account-change-count: 3
 
-    repeat-change-points: 20
-    identity-change-points: 35
+    repeat-change-points: 40
+    identity-change-points: 40
     new-account-points: 30
 
   action:
     soft-challenge-points: 30
     authorization-points: 60
-    full-verification-points: 85
+    full-verification-points: 80
     login-log-only-max-points: 40
+
+
+scheduler:
+  risk-operation:
+    delete-cron: "0 0 0 ? * 1"
 
 logging:
   level:
