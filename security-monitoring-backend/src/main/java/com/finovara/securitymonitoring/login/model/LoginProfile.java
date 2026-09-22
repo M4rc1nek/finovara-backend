@@ -2,11 +2,7 @@ package com.finovara.securitymonitoring.login.model;
 
 import com.finovara.securitymonitoring.clientdata.model.ClientData;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
