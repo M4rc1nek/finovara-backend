@@ -12,6 +12,8 @@ import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationRequest;
 import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationResponse;
 import com.finovara.contracts.securitymonitoring.dto.RiskAction;
 import com.finovara.securitymonitoring.riskengine.model.RiskOperation;
+import com.finovara.securitymonitoring.riskengine.model.RiskRuleCollection;
+import com.finovara.securitymonitoring.riskengine.model.TriggeredRule;
 import com.finovara.securitymonitoring.riskengine.repository.RiskOperationRepository;
 import com.finovara.securitymonitoring.transaction.repository.TransactionProfileRepository;
 import com.finovara.securitymonitoring.transaction.service.TransactionRiskService;
@@ -22,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -51,16 +55,17 @@ public class RiskEngineService {
     private RiskEvaluationResponse computeAndSave(RiskEvaluationRequest request) {
         RiskContext context = buildContext(request);
 
-        int transactionPoints = transactionRiskService.evaluate(context);
-        int loginPoints = loginRiskService.evaluate(context);
-        int accountChangePoints = accountChangeRiskService.evaluate(context);
+        List<TriggeredRule> triggered = new ArrayList<>();
+        triggered.addAll(transactionRiskService.evaluate(context));
+        triggered.addAll(loginRiskService.evaluate(context));
+        triggered.addAll(accountChangeRiskService.evaluate(context));
 
-        int totalScore = Math.clamp(transactionPoints + loginPoints + accountChangePoints, 0, 100);
+        int totalScore = Math.clamp(triggered.stream().mapToInt(TriggeredRule::points).sum(), 0, 100);
         RiskAction action = resolveAction(request.triggerType(), totalScore);
 
         log.info("Risk check finished for userId={} score={} action={}", request.userId(), totalScore, action);
 
-        RiskOperation operation = riskOperationRepository.save(RiskOperation.builder()
+        RiskOperation operation = RiskOperation.builder()
                 .sourceEventId(request.sourceEventId())
                 .triggerType(request.triggerType())
                 .score(totalScore)
@@ -68,13 +73,27 @@ public class RiskEngineService {
                 .operationDate(LocalDate.now())
                 .createdAt(LocalDateTime.now())
                 .userId(request.userId())
-                .build());
+                .build();
+
+        operation.setRiskRuleCollections(buildRuleCollections(triggered, operation));
+
+        riskOperationRepository.save(operation);
 
         if (operation.requiresEmailCode()) {
             riskChallengeService.generateAndSendEmailCode(operation, request.email());
         }
 
         return toResponse(operation);
+    }
+
+    private List<RiskRuleCollection> buildRuleCollections(List<TriggeredRule> triggered, RiskOperation operation) {
+        return triggered.stream()
+                .map(triggeredRule -> RiskRuleCollection.builder()
+                        .riskRule(triggeredRule.rule())
+                        .scorePerRule(triggeredRule.points())
+                        .riskOperation(operation)
+                        .build())
+                .toList();
     }
 
     private RiskAction resolveAction(RiskTriggerType triggerType, int score) {
