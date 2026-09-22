@@ -75,6 +75,19 @@
             <optional>true</optional>
         </dependency>
 
+
+        <!-- SHEDLOCK -->
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-provider-jdbc-template</artifactId>
+            <version>${shedlock.version}</version>
+        </dependency>
+
         <!-- MONITORING -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
