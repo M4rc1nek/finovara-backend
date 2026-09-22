@@ -5,6 +5,7 @@ import com.finovara.securitymonitoring.login.config.LoginRiskProperties;
 import com.finovara.securitymonitoring.login.model.LoginProfile;
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
 import com.finovara.securitymonitoring.riskengine.model.RiskRule;
+import com.finovara.securitymonitoring.riskengine.model.TriggeredRule;
 import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,9 +24,9 @@ public class LoginRiskService {
 
     private final LoginRiskProperties properties;
 
-    public int evaluate(RiskContext context) {
+    public List<TriggeredRule> evaluate(RiskContext context) {
         if (context.triggerType() != RiskTriggerType.LOGIN || context.loginProfile() == null) {
-            return 0;
+            return List.of();
         }
 
         log.info("Checking login risk for userId={}", context.userId());
@@ -32,48 +34,54 @@ public class LoginRiskService {
         LoginProfile profile = context.loginProfile();
         List<ClientData> knownDevices = profile.getClientData();
 
-        int totalPoints =
-                addPoints(context, RiskRule.UNKNOWN_DEVICE, isUnknownDevice(context, knownDevices), properties.getUnknownDevicePoints())
-                        + addPoints(context, RiskRule.UNKNOWN_LOCATION, isUnknownLocation(context, knownDevices), properties.getUnknownLocationPoints())
-                        + addPoints(context, RiskRule.IMPOSSIBLE_TRAVEL, isImpossibleTravel(context, profile), properties.getImpossibleTravelPoints())
-                        + addPoints(context, RiskRule.MANY_KNOWN_DEVICES, hasManyKnownDevices(knownDevices), properties.getManyKnownDevicesPoints())
-                        + addPoints(context, RiskRule.PARTIAL_DEVICE_MATCH, isPartialDeviceMatch(context, knownDevices), properties.getPartialDeviceMatchPoints());
+        List<TriggeredRule> triggered = new ArrayList<>();
+        triggered.addAll(evaluateDeviceRules(context, knownDevices));
+        triggered.addAll(evaluateLocationRules(context, profile, knownDevices));
 
-        log.info("Login risk points for userId={} is {}", context.userId(), totalPoints);
+        log.info("Login risk points for userId={} is {}", context.userId(), triggered.stream().mapToInt(TriggeredRule::points).sum());
 
-        return totalPoints;
+        return triggered;
     }
 
-    private boolean isUnknownDevice(RiskContext context, List<ClientData> knownDevices) {
-        return !knownDevices.isEmpty()
-                && knownDevices.stream()
-                .noneMatch(device -> isFullDeviceMatch(device, context));
+    private List<TriggeredRule> evaluateDeviceRules(RiskContext context, List<ClientData> knownDevices) {
+        List<TriggeredRule> rules = new ArrayList<>();
+
+        boolean hasFullMatch = knownDevices.stream().anyMatch(device -> isFullDeviceMatch(device, context));
+
+        if (!knownDevices.isEmpty() && !hasFullMatch) {
+            rules.add(trigger(context, RiskRule.UNKNOWN_DEVICE, properties.getUnknownDevicePoints()));
+
+            boolean hasPartialMatch = knownDevices.stream().anyMatch(device -> isPartialDeviceMatch(device, context));
+            if (hasPartialMatch) {
+                rules.add(trigger(context, RiskRule.PARTIAL_DEVICE_MATCH, properties.getPartialDeviceMatchPoints()));
+            }
+        }
+
+        if (knownDevices.size() >= properties.getManyKnownDevicesThreshold()) {
+            rules.add(trigger(context, RiskRule.MANY_KNOWN_DEVICES, properties.getManyKnownDevicesPoints()));
+        }
+
+        return rules;
     }
 
-    private boolean isUnknownLocation(RiskContext context, List<ClientData> knownDevices) {
-        return !knownDevices.isEmpty()
-                && knownDevices.stream()
-                .noneMatch(device -> Objects.equals(device.getKnownLocation(), context.location()));
-    }
+    private List<TriggeredRule> evaluateLocationRules(RiskContext context, LoginProfile profile, List<ClientData> knownDevices) {
+        List<TriggeredRule> rules = new ArrayList<>();
 
-    private boolean isImpossibleTravel(RiskContext context, LoginProfile profile) {
-        return profile.getLastLoginAt() != null
+        boolean isKnownLocation = knownDevices.stream()
+                .anyMatch(device -> Objects.equals(device.getKnownLocation(), context.location()));
+        if (!knownDevices.isEmpty() && !isKnownLocation) {
+            rules.add(trigger(context, RiskRule.UNKNOWN_LOCATION, properties.getUnknownLocationPoints()));
+        }
+
+        boolean isImpossibleTravel = profile.getLastLoginAt() != null
                 && profile.getLastLoginLocation() != null
                 && !Objects.equals(profile.getLastLoginLocation(), context.location())
-                && isWithinTravelWindow(
-                profile.getLastLoginAt(),
-                Duration.ofHours(properties.getImpossibleTravelHours())
-        );
-    }
+                && isWithinTravelWindow(profile.getLastLoginAt(), Duration.ofHours(properties.getImpossibleTravelHours()));
+        if (isImpossibleTravel) {
+            rules.add(trigger(context, RiskRule.IMPOSSIBLE_TRAVEL, properties.getImpossibleTravelPoints()));
+        }
 
-    private boolean hasManyKnownDevices(List<ClientData> knownDevices) {
-        return knownDevices.size() >= properties.getManyKnownDevicesThreshold();
-    }
-
-    private boolean isPartialDeviceMatch(RiskContext context, List<ClientData> knownDevices) {
-        return !knownDevices.isEmpty()
-                && knownDevices.stream().noneMatch(device -> isFullDeviceMatch(device, context))
-                && knownDevices.stream().anyMatch(device -> isPartialDeviceMatch(device, context));
+        return rules;
     }
 
     private boolean isFullDeviceMatch(ClientData device, RiskContext context) {
@@ -92,11 +100,8 @@ public class LoginRiskService {
         return Duration.between(since, LocalDateTime.now()).compareTo(window) < 0;
     }
 
-    private int addPoints(RiskContext context, RiskRule riskRule, boolean triggered, int points) {
-        if (triggered) {
-            log.info("Login Risk: Rule triggered for userId={}: {} (+{} points)", context.userId(), riskRule, points);
-        }
-
-        return triggered ? points : 0;
+    private TriggeredRule trigger(RiskContext context, RiskRule rule, int points) {
+        log.info("Login Risk: Rule triggered for userId={}: {} (+{} points)", context.userId(), rule, points);
+        return new TriggeredRule(rule, points);
     }
 }
