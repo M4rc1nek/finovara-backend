@@ -18,6 +18,5 @@ public class InvitationExpirationScheduler {
     @SchedulerLock(name = "expireOverdueInvitations", lockAtMostFor = "10m", lockAtLeastFor = "30s")
     public void expireOverdueInvitations() {
         invitationExpirationProcessor.expireOverdueInvitations();
-        log.info("Invitations have expired and have been deleted");
     }
 }
