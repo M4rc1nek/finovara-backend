@@ -42,9 +42,9 @@ public class PiggyBankTransactionService {
     public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, PiggyBankActivityType piggyBankActivityType, String authorizationCode, String sourceEventId,
                                       HttpServletRequest servletRequest, TransactionOrigin origin) {
         if (origin == TransactionOrigin.USER_MANUAL) {
-            authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
             riskGuardService.guard(userId, RiskTriggerType.PIGGY_BANK, amount, null,
                     authBackendClient.getUserEmail(userId), sourceEventId, servletRequest);
+            authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         }
 
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
