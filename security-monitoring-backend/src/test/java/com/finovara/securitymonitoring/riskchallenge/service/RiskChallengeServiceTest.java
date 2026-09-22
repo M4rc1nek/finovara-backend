@@ -1,4 +1,3 @@
-// RiskChallengeServiceTest.java
 package com.finovara.securitymonitoring.riskchallenge.service;
 
 import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
