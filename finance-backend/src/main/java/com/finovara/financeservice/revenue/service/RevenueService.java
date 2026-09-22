@@ -50,9 +50,9 @@ public class RevenueService implements UserDataDeletable {
     @CacheEvict(value = "revenue:suggestion", key = "#userId")
     public Long addRevenue(RevenueDto revenueDto, Long userId, HttpServletRequest servletRequest, TransactionOrigin origin) {
         if (origin == TransactionOrigin.USER_MANUAL) {
-            authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
             riskGuardService.guard(userId, RiskTriggerType.REVENUE, revenueDto.amount(), revenueDto.category().name(),
                     authBackendClient.getUserEmail(userId), revenueDto.riskVerificationSourceEventId(), servletRequest);
+            authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
         }
 
         Revenue revenue = Revenue.builder()
