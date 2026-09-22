@@ -42,7 +42,9 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addForeignKeyConstraint baseTableName="client_data" baseColumnNames="login_profile_id" referencedTableName="login_profile" referencedColumnNames="id" constraintName="fk_client_data_login_profile" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="client_data" baseColumnNames="login_profile_id"
+                                 referencedTableName="login_profile" referencedColumnNames="id"
+                                 constraintName="fk_client_data_login_profile" onDelete="CASCADE"/>
         <createIndex tableName="client_data" indexName="idx_client_data_login_profile">
             <column name="login_profile_id"/>
         </createIndex>
@@ -132,9 +134,6 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="user_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
             <column name="source_event_id" type="VARCHAR(255)">
                 <constraints nullable="false" unique="true"/>
             </column>
@@ -147,10 +146,10 @@
             <column name="action" type="VARCHAR(50)">
                 <constraints nullable="false"/>
             </column>
-            <column name="password_confirmed" type="BOOLEAN" defaultValueBoolean="false">
+            <column name="password_confirmed" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
-            <column name="email_code_confirmed" type="BOOLEAN" defaultValueBoolean="false">
+            <column name="email_code_confirmed" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
             <column name="email_code" type="VARCHAR(255)"/>
@@ -161,11 +160,46 @@
             <column name="created_at" type="TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
-        <createIndex tableName="risk_operation" indexName="idx_risk_operation_user_date">
-            <column name="user_id"/>
-            <column name="operation_date"/>
-        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-risk-rule-collection" author="Marcin Parśniak">
+        <createTable tableName="risk_rule_collection">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="risk_rule" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score_per_rule" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="risk_operation_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="risk_rule_collection" baseColumnNames="risk_operation_id" referencedTableName="risk_operation" referencedColumnNames="id" constraintName="fk_risk_rule_collection_risk_operation" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-shedlock-table" author="Marcin Parśniak">
+        <createTable tableName="shedlock">
+            <column name="name" type="varchar(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="lock_until" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_at" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_by" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
     </changeSet>
 
 </databaseChangeLog>
