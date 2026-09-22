@@ -2,7 +2,7 @@ package com.finovara.securitymonitoring.transaction.service;
 
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
 import com.finovara.securitymonitoring.riskengine.model.RiskRule;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.securitymonitoring.riskengine.model.TriggeredRule;
 import com.finovara.securitymonitoring.transaction.config.TransactionRiskProperties;
 import com.finovara.securitymonitoring.transaction.model.TransactionProfile;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -18,93 +20,97 @@ public class TransactionRiskService {
 
     private final TransactionRiskProperties properties;
 
-    public int evaluate(RiskContext context) {
+    public List<TriggeredRule> evaluate(RiskContext context) {
         TransactionProfile profile = context.transactionProfile();
         if (profile == null) {
-            return 0;
+            return List.of();
         }
 
         log.info("Checking transaction risk for userId={}", context.userId());
 
-        int totalPoints = addPoints(context, RiskRule.EXPENSE_HIGH, isExpenseHigh(context), properties.getExpenseHighPoints())
-                + addPoints(context, RiskRule.EXPENSE_RECORD, isExpenseRecord(context, profile), properties.getExpenseRecordPoints())
-                + addPoints(context, RiskRule.FIRST_TRANSACTION_HIGH, isFirstTransactionHigh(context, profile), properties.getFirstTransactionPoints())
-                + addPoints(context, RiskRule.EXPENSE_NEW_CATEGORY, isExpenseNewCategory(context, profile), properties.getExpenseCategoryPoints())
-                + addPoints(context, RiskRule.REVENUE_HIGH, isRevenueHigh(context), properties.getRevenueHighPoints())
-                + addPoints(context, RiskRule.REVENUE_LOW, isRevenueLow(context), properties.getRevenueLowPoints())
-                + addPoints(context, RiskRule.PIGGY_BANK_HIGH, isPiggyBankHigh(context), properties.getPiggyBankHighPoints())
-                + addPoints(context, RiskRule.PIGGY_BANK_DIFFERENT, isPiggyBankDifferent(context, profile), properties.getPiggyBankDiffPoints());
+        List<TriggeredRule> triggered = switch (context.triggerType()) {
+            case EXPENSE -> evaluateExpenseRules(context, profile);
+            case REVENUE -> evaluateRevenueRules(context, profile);
+            case PIGGY_BANK -> evaluatePiggyBankRules(context, profile);
+            default -> List.of();
+        };
 
-        log.info("Transaction risk points for userId={} is {}", context.userId(), totalPoints);
-        return totalPoints;
+        log.info("Transaction risk points for userId={} is {}",
+                context.userId(), triggered.stream().mapToInt(TriggeredRule::points).sum());
+
+        return triggered;
     }
 
-    private boolean isExpenseHigh(RiskContext context) {
-        return isExpense(context) && context.amount() != null
-                && context.amount().compareTo(properties.getExpenseHighAmount()) > 0;
-    }
+    private List<TriggeredRule> evaluateExpenseRules(RiskContext context, TransactionProfile profile) {
+        BigDecimal amount = context.amount();
+        List<TriggeredRule> rules = new ArrayList<>();
 
-    private boolean isExpenseRecord(RiskContext context, TransactionProfile profile) {
-        return isExpense(context) && context.amount() != null && profile.getLargestExpenseAmount() != null
-                && context.amount().compareTo(profile.getLargestExpenseAmount()) > 0;
-    }
-
-    private boolean isFirstTransactionHigh(RiskContext context, TransactionProfile profile) {
-        boolean isTrackedType = isExpense(context) || isRevenue(context);
-        if (!isTrackedType || context.amount() == null) {
-            return false;
+        if (amount != null) {
+            if (amount.compareTo(properties.getExpenseHighAmount()) > 0) {
+                rules.add(trigger(context, RiskRule.EXPENSE_HIGH, properties.getExpenseHighPoints()));
+            }
+            if (profile.getLargestExpenseAmount() != null && amount.compareTo(profile.getLargestExpenseAmount()) > 0) {
+                rules.add(trigger(context, RiskRule.EXPENSE_RECORD, properties.getExpenseRecordPoints()));
+            }
+            if (profile.getExpenseCount() == 0 && amount.compareTo(properties.getFirstTransactionAmount()) > 0) {
+                rules.add(trigger(context, RiskRule.FIRST_TRANSACTION_HIGH, properties.getFirstTransactionPoints()));
+            }
         }
-        long historyCount = isExpense(context) ? profile.getExpenseCount() : profile.getRevenueCount();
-        return historyCount == 0 && context.amount().compareTo(properties.getFirstTransactionAmount()) > 0;
+
+        if (context.category() != null && profile.getLastExpenseCategory() != null
+                && !context.category().equals(profile.getLastExpenseCategory().name())) {
+            rules.add(trigger(context, RiskRule.EXPENSE_NEW_CATEGORY, properties.getExpenseCategoryPoints()));
+        }
+
+        return rules;
     }
 
-    private boolean isExpenseNewCategory(RiskContext context, TransactionProfile profile) {
-        return isExpense(context) && context.category() != null && profile.getLastExpenseCategory() != null
-                && !context.category().equals(profile.getLastExpenseCategory().name());
+    private List<TriggeredRule> evaluateRevenueRules(RiskContext context, TransactionProfile profile) {
+        BigDecimal amount = context.amount();
+        if (amount == null) {
+            return List.of();
+        }
+        List<TriggeredRule> rules = new ArrayList<>();
+
+        if (amount.compareTo(properties.getRevenueHighAmount()) > 0) {
+            rules.add(trigger(context, RiskRule.REVENUE_HIGH, properties.getRevenueHighPoints()));
+        }
+
+        if (amount.compareTo(BigDecimal.ZERO) > 0 && amount.compareTo(properties.getRevenueLowAmount()) < 0) {
+            rules.add(trigger(context, RiskRule.REVENUE_LOW, properties.getRevenueLowPoints()));
+        }
+
+        if (profile.getRevenueCount() == 0 && amount.compareTo(properties.getFirstTransactionAmount()) > 0) {
+            rules.add(trigger(context, RiskRule.FIRST_TRANSACTION_HIGH, properties.getFirstTransactionPoints()));
+        }
+
+        return rules;
     }
 
-    private boolean isRevenueHigh(RiskContext context) {
-        return isRevenue(context) && context.amount() != null
-                && context.amount().compareTo(properties.getRevenueHighAmount()) > 0;
-    }
+    private List<TriggeredRule> evaluatePiggyBankRules(RiskContext context, TransactionProfile profile) {
+        BigDecimal amount = context.amount();
+        if (amount == null) {
+            return List.of();
+        }
+        List<TriggeredRule> rules = new ArrayList<>();
 
-    private boolean isRevenueLow(RiskContext context) {
-        return isRevenue(context) && context.amount() != null && context.amount().compareTo(BigDecimal.ZERO) > 0
-                && context.amount().compareTo(properties.getRevenueLowAmount()) < 0;
-    }
+        if (amount.compareTo(properties.getPiggyBankHighAmount()) > 0) {
+            rules.add(trigger(context, RiskRule.PIGGY_BANK_HIGH, properties.getPiggyBankHighPoints()));
+        }
 
-    private boolean isPiggyBankHigh(RiskContext context) {
-        return isPiggyBank(context) && context.amount() != null
-                && context.amount().compareTo(properties.getPiggyBankHighAmount()) > 0;
-    }
-
-    private boolean isPiggyBankDifferent(RiskContext context, TransactionProfile profile) {
         BigDecimal lastDeposit = profile.getLastPiggyBankDepositAmount();
-        boolean applicable = isPiggyBank(context) && context.amount() != null
-                && lastDeposit != null && lastDeposit.compareTo(BigDecimal.ZERO) > 0;
-        if (!applicable) {
-            return false;
+        if (lastDeposit != null && lastDeposit.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal diff = amount.subtract(lastDeposit).abs();
+            if (diff.compareTo(properties.getPiggyBankDiffAmount()) > 0) {
+                rules.add(trigger(context, RiskRule.PIGGY_BANK_DIFFERENT, properties.getPiggyBankDiffPoints()));
+            }
         }
-        BigDecimal diff = context.amount().subtract(lastDeposit).abs();
-        return diff.compareTo(properties.getPiggyBankDiffAmount()) > 0;
+
+        return rules;
     }
 
-    private boolean isExpense(RiskContext context) {
-        return context.triggerType() == RiskTriggerType.EXPENSE;
-    }
-
-    private boolean isRevenue(RiskContext context) {
-        return context.triggerType() == RiskTriggerType.REVENUE;
-    }
-
-    private boolean isPiggyBank(RiskContext context) {
-        return context.triggerType() == RiskTriggerType.PIGGY_BANK;
-    }
-
-    private int addPoints(RiskContext context, RiskRule riskRule, boolean triggered, int points) {
-        if (triggered) {
-            log.info("Transaction Risk: Rule triggered for userId={}: {} (+{} points)", context.userId(), riskRule, points);
-        }
-        return triggered ? points : 0;
+    private TriggeredRule trigger(RiskContext context, RiskRule rule, int points) {
+        log.info("Transaction Risk: Rule triggered for userId={}: {} (+{} points)", context.userId(), rule, points);
+        return new TriggeredRule(rule, points);
     }
 }
