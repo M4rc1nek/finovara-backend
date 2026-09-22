@@ -5,6 +5,7 @@ import com.finovara.securitymonitoring.accountchange.config.AccountChangeRiskPro
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
 import com.finovara.securitymonitoring.riskengine.model.RiskRule;
+import com.finovara.securitymonitoring.riskengine.model.TriggeredRule;
 import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -20,20 +23,32 @@ public class AccountChangeRiskService {
 
     private final AccountChangeRiskProperties properties;
 
-    public int evaluate(RiskContext context) {
+    public List<TriggeredRule> evaluate(RiskContext context) {
         AccountChangeProfile profile = context.accountChangeProfile();
         if (profile == null) {
-            return 0;
+            return List.of();
         }
 
         log.info("Checking account change risk for userId={}", context.userId());
 
-        int totalPoints = addPoints(context, RiskRule.REPEAT_CHANGE, isRepeatChange(context, profile), properties.getRepeatChangePoints())
-                + addPoints(context, RiskRule.IDENTITY_REPAINT, isIdentityRepaint(context, profile), properties.getIdentityChangePoints())
-                + addPoints(context, RiskRule.NEW_ACCOUNT_MANY_CHANGES, isNewAccountWithManyChanges(profile), properties.getNewAccountPoints());
+        List<TriggeredRule> triggered = new ArrayList<>();
 
-        log.info("Account change risk points for userId={} is {}", context.userId(), totalPoints);
-        return totalPoints;
+        if (isRepeatChange(context, profile)) {
+            triggered.add(trigger(context, RiskRule.REPEAT_CHANGE, properties.getRepeatChangePoints()));
+        }
+
+        if (isIdentityRepaint(context, profile)) {
+            triggered.add(trigger(context, RiskRule.IDENTITY_REPAINT, properties.getIdentityChangePoints()));
+        }
+
+        if (isNewAccountWithManyChanges(profile)) {
+            triggered.add(trigger(context, RiskRule.NEW_ACCOUNT_MANY_CHANGES, properties.getNewAccountPoints()));
+        }
+
+        log.info("Account change risk points for userId={} is {}",
+                context.userId(), triggered.stream().mapToInt(TriggeredRule::points).sum());
+
+        return triggered;
     }
 
     private boolean isRepeatChange(RiskContext context, AccountChangeProfile profile) {
@@ -76,10 +91,8 @@ public class AccountChangeRiskService {
         return Duration.between(since, LocalDateTime.now()).compareTo(window) < 0;
     }
 
-    private int addPoints(RiskContext context, RiskRule riskRule, boolean triggered, int points) {
-        if (triggered) {
-            log.info("AccountChange Risk: Rule triggered for userId={}: {} (+{} points)", context.userId(), riskRule, points);
-        }
-        return triggered ? points : 0;
+    private TriggeredRule trigger(RiskContext context, RiskRule rule, int points) {
+        log.info("AccountChange Risk: Rule triggered for userId={}: {} (+{} points)", context.userId(), rule, points);
+        return new TriggeredRule(rule, points);
     }
 }
