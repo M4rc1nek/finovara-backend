@@ -72,9 +72,9 @@ public class ExpenseService implements UserDataDeletable {
     @CacheEvict(value = "expense:suggestion", key = "#userId")
     public Long addExpense(ExpenseRequestDto expenseRequestDto, Long userId, HttpServletRequest servletRequest, TransactionOrigin origin) {
         if (origin == TransactionOrigin.USER_MANUAL) {
-            authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
             riskGuardService.guard(userId, RiskTriggerType.EXPENSE, expenseRequestDto.expenseDto().amount(), expenseRequestDto.expenseDto().category().name(), authBackendClient.getUserEmail(userId),
                     expenseRequestDto.riskVerificationSourceEventId(), servletRequest);
+            authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
         }
 
         validateLimitOrThrow(userId, expenseRequestDto.expenseDto().category(), expenseRequestDto.expenseDto().category(),
