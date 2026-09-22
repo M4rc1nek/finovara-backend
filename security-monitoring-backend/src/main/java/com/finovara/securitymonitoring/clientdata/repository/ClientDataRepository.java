@@ -1,4 +1,7 @@
 package com.finovara.securitymonitoring.clientdata.repository;
 
-public interface ClientDataRepository {
+import com.finovara.securitymonitoring.clientdata.model.ClientData;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ClientDataRepository extends JpaRepository<ClientData, Long> {
 }
