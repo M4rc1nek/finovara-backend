@@ -74,7 +74,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
                 .build();
 
         PiggyBank saved = piggyBankRepository.save(piggyBank);
-        outboxService.save("PiggyBank", saved.getId().toString(), "activity.piggybank.lifecycle",
+        outboxService.save("PiggyBank", saved.getId().toString(), "piggybank.lifecycle.changed",
                 new PiggyBankActivityEvent(userId, PiggyBankActivityType.ADDED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
         PiggyBankSettings settings = piggyBankSettingsFactory.createDefaultPiggyBankSettings(saved);
         piggyBankSettingsRepository.save(settings);
@@ -106,7 +106,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
 
         PiggyBank saved = piggyBankRepository.save(piggyBank);
         goalPlannerService.checkAndMarkGoalCompletion(saved.getGoalPlanner());
-        outboxService.save("PiggyBank", saved.getId().toString(), "activity.piggybank.edited",
+        outboxService.save("PiggyBank", saved.getId().toString(), "piggybank.updated",
                 new PiggyBankEditActivityEvent(userId, PiggyBankActivityType.EDITED_PIGGY_BANK, piggyBank.getName(), previousName,
                         piggyBank.getGoalType(), previousGoalType, piggyBank.getGoalAmount(), previousGoalAmount, LocalDateTime.now()));
 
@@ -142,7 +142,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
                     settings.setNextExecutionDate(null);
                 });
 
-        outboxService.save("PiggyBank", piggyBankId.toString(), "activity.piggybank.lifecycle",
+        outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.lifecycle.changed",
                 new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
         piggyBankRepository.delete(piggyBank);
         log.info("Manual deleted piggyBank for userId={}", userId);

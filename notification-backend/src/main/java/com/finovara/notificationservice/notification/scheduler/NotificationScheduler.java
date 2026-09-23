@@ -17,7 +17,5 @@ public class NotificationScheduler {
     @SchedulerLock(name = "deleteNotifications", lockAtMostFor = "10m", lockAtLeastFor = "30s")
     public void deleteNotifications(){
         notificationProcessor.deleteNotifications();
-        log.info("Notifications deleted");
-
     }
 }

@@ -85,7 +85,7 @@ class EmailUpdateServiceTest {
         verify(outboxService).save(
                 eq("User"),
                 eq(USER_ID.toString()),
-                eq("activity.account-changes"),
+                eq("account.changed"),
                 payloadCaptor.capture()
         );
 

@@ -50,9 +50,9 @@ public class SmartScanService {
 
         expenseSettings.setSmartScanEnabled(smartScanDto.smartScanEnabled());
         if (expenseSettings.isSmartScanEnabled()) {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.EXPENSE_SMART_SCAN, SettingActivityStatus.ENABLED, LocalDateTime.now()));
+            kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.EXPENSE_SMART_SCAN, SettingActivityStatus.ENABLED, LocalDateTime.now()));
         } else {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.EXPENSE_SMART_SCAN, SettingActivityStatus.DISABLED, LocalDateTime.now()));
+            kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.EXPENSE_SMART_SCAN, SettingActivityStatus.DISABLED, LocalDateTime.now()));
         }
     }
 

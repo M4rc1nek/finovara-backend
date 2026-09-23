@@ -1,5 +1,6 @@
 package com.finovara.authservice.settings.account.service.emailpolicy.change;
 
+import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.authservice.settings.account.dto.AttemptsDto;
 import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeConfirmDto;
 import com.finovara.authservice.settings.account.dto.emailpolicy.EmailChangeRequestDto;
@@ -13,6 +14,7 @@ import com.finovara.authservice.util.confirmationpassword.service.PasswordValida
 import com.finovara.authservice.util.email.EmailDomainValidator;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -33,9 +35,11 @@ class EmailChangeServiceTest {
 
     private static final Long USER_ID = 1L;
     private static final String NEW_EMAIL = "new@test.com";
+    private static final String USER_EMAIL = "current@test.com";
     private static final String PASSWORD = "password";
     private static final String AUTH_CODE = "1563292";
     private static final int VERIFICATION_CODE = 123456;
+    private static final String RISK_SOURCE_EVENT_ID = "risk-event-id";
 
     @Mock
     private UserManagerService userManagerService;
@@ -62,6 +66,9 @@ class EmailChangeServiceTest {
     private AdditionalAuthorizationService additionalAuthorizationService;
 
     @Mock
+    private RiskGuardService riskGuardService;
+
+    @Mock
     private HttpServletRequest request;
 
     private EmailChangeService emailChangeService;
@@ -73,7 +80,8 @@ class EmailChangeServiceTest {
     @BeforeEach
     void setUp() {
         emailChangeService = new EmailChangeService(userManagerService, credentialValidationService, emailChangeVerificationService,
-                verificationCodeEmailSender, passwordValidator, emailUpdateService, emailDomainValidator, additionalAuthorizationService, new AdditionalAuthorizationCodeResolver());
+                verificationCodeEmailSender, passwordValidator, emailUpdateService, emailDomainValidator, additionalAuthorizationService,
+                new AdditionalAuthorizationCodeResolver(), riskGuardService);
         user = mock(User.class);
         settings = mock(AccountSettings.class);
     }
@@ -120,9 +128,10 @@ class EmailChangeServiceTest {
 
         @Test
         void shouldUpdateEmailWhenCodeAndPasswordAreValid() {
-            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(VERIFICATION_CODE, AUTH_CODE);
+            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(VERIFICATION_CODE, AUTH_CODE, RISK_SOURCE_EVENT_ID);
             when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
             when(user.getAccountSettings()).thenReturn(settings);
+            when(user.getEmail()).thenReturn(USER_EMAIL);
             when(settings.getPendingEmail()).thenReturn(NEW_EMAIL);
             when(emailChangeVerificationService.getCurrentAttempts(USER_ID)).thenReturn(new AttemptsDto(0, 5, 5));
 
@@ -130,13 +139,39 @@ class EmailChangeServiceTest {
 
             assertThat(result.remaining()).isEqualTo(5);
             verify(emailChangeVerificationService).verifyCodeOrThrow(USER_ID, settings, VERIFICATION_CODE);
+            verify(riskGuardService).guard(USER_ID, RiskTriggerType.EMAIL_CHANGED, USER_EMAIL, RISK_SOURCE_EVENT_ID, request);
             verify(emailChangeVerificationService).removeCode(settings);
             verify(emailUpdateService).updateEmail(user, NEW_EMAIL, request);
         }
 
         @Test
         void shouldThrowExceptionWhenVerificationFails() {
-            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(VERIFICATION_CODE, AUTH_CODE);
+            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(VERIFICATION_CODE, AUTH_CODE, RISK_SOURCE_EVENT_ID);
+            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+            when(user.getAccountSettings()).thenReturn(settings);
+            doThrow(new RuntimeException("invalid code"))
+                    .when(emailChangeVerificationService)
+                    .verifyCodeOrThrow(USER_ID, settings, VERIFICATION_CODE);
+
+            assertThrows(RuntimeException.class, () -> emailChangeService.confirmEmailChange(USER_ID, dto, request));
+            verifyNoInteractions(riskGuardService);
+            verify(emailUpdateService, never()).updateEmail(any(), any(), any());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenAdditionalAuthorizationFails() {
+            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(VERIFICATION_CODE, AUTH_CODE, RISK_SOURCE_EVENT_ID);
+            doThrow(new RuntimeException("invalid authorization"))
+                    .when(additionalAuthorizationService)
+                    .confirmAdditionalAuthorizationCode(eq(USER_ID), any());
+
+            assertThrows(RuntimeException.class, () -> emailChangeService.confirmEmailChange(USER_ID, dto, request));
+            verify(userManagerService, never()).getUserByIdOrThrow(any());
+        }
+
+        @Test
+        void shouldNotUpdateEmailWhenVerificationFails() {
+            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(VERIFICATION_CODE, AUTH_CODE, RISK_SOURCE_EVENT_ID);
             when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
             when(user.getAccountSettings()).thenReturn(settings);
             doThrow(new RuntimeException("invalid code"))
@@ -148,26 +183,17 @@ class EmailChangeServiceTest {
         }
 
         @Test
-        void shouldThrowExceptionWhenAdditionalAuthorizationFails() {
-            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(VERIFICATION_CODE, AUTH_CODE);
-            doThrow(new RuntimeException("invalid authorization"))
-                    .when(additionalAuthorizationService)
-                    .confirmAdditionalAuthorizationCode(eq(USER_ID), any());
-
-            assertThrows(RuntimeException.class, () -> emailChangeService.confirmEmailChange(USER_ID, dto, request));
-            verify(userManagerService, never()).getUserByIdOrThrow(any());
-        }
-
-        @Test
-        void shouldNotUpdateEmailWhenVerificationFails() {
-            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(VERIFICATION_CODE, AUTH_CODE);
+        void shouldNotUpdateEmailWhenRiskGuardFails() {
+            EmailChangeConfirmDto dto = new EmailChangeConfirmDto(VERIFICATION_CODE, AUTH_CODE, RISK_SOURCE_EVENT_ID);
             when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
             when(user.getAccountSettings()).thenReturn(settings);
-            doThrow(new RuntimeException("invalid code"))
-                    .when(emailChangeVerificationService)
-                    .verifyCodeOrThrow(USER_ID, settings, VERIFICATION_CODE);
+            when(user.getEmail()).thenReturn(USER_EMAIL);
+            doThrow(new RuntimeException("risk detected"))
+                    .when(riskGuardService)
+                    .guard(USER_ID, RiskTriggerType.EMAIL_CHANGED, USER_EMAIL, RISK_SOURCE_EVENT_ID, request);
 
             assertThrows(RuntimeException.class, () -> emailChangeService.confirmEmailChange(USER_ID, dto, request));
+            verify(emailChangeVerificationService, never()).removeCode(any());
             verify(emailUpdateService, never()).updateEmail(any(), any(), any());
         }
     }

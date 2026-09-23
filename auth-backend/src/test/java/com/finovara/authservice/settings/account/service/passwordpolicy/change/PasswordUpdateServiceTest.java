@@ -82,7 +82,7 @@ class PasswordUpdateServiceTest {
         verify(outboxService).save(
                 eq("User"),
                 eq(USER_ID.toString()),
-                eq("activity.account-changes"),
+                eq("account.changed"),
                 payloadCaptor.capture()
         );
 
@@ -125,7 +125,7 @@ class PasswordUpdateServiceTest {
 
         inOrder.verify(passwordEncoder).encode(NEW_PASSWORD);
         inOrder.verify(userRepository).save(user);
-        inOrder.verify(outboxService).save(eq("User"), any(), eq("activity.account-changes"), any());
+        inOrder.verify(outboxService).save(eq("User"), any(), eq("account.changed"), any());
         inOrder.verify(outboxService).save(eq("User"), any(), eq("notification.email.send"), any());
     }
 }

@@ -38,7 +38,7 @@ public class EmailUpdateService {
 
     private void createActivity(User user, HttpServletRequest request) {
         String ipAddress = getClientIpAddress(request);
-        outboxService.save("User", user.getId().toString(), "activity.account-changes",
+        outboxService.save("User", user.getId().toString(), "account.changed",
                 new AccountChangesActivityEvent(user.getId(), AccountChangesActivityType.EMAIL_CHANGED, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
     }
 }

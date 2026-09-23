@@ -97,7 +97,7 @@ class RoundUpServiceTest {
             assertEquals(active, piggyBank.getSettings().isRoundUpActive());
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.settings"), eventCaptor.capture());
+            verify(kafkaTemplate).send(eq("settings.changed"), eventCaptor.capture());
             assertEquals(active ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED, eventCaptor.getValue().status());
         }
     }

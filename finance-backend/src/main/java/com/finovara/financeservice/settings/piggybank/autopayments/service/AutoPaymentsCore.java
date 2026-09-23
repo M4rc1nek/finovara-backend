@@ -32,7 +32,7 @@ public class AutoPaymentsCore {
             wallet.withdraw(availableToTransfer);
         }
 
-        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), availableToTransfer, LocalDateTime.now()));
+        kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), availableToTransfer, LocalDateTime.now()));
     }
 
     private void rollback(Long userId, PiggyBank piggyBank, Wallet wallet, BigDecimal automationAmount) {
@@ -43,6 +43,6 @@ public class AutoPaymentsCore {
             wallet.deposit(amountToRollback);
         }
 
-        kafkaTemplate.send("activity.piggybank", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amountToRollback, LocalDateTime.now()));
+        kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amountToRollback, LocalDateTime.now()));
     }
 }

@@ -8,6 +8,8 @@ import com.finovara.contracts.exception.unprocessablecontent.InvalidOperationExc
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
 import com.finovara.financeservice.exception.conflict.ConfirmationRequiredException;
+import com.finovara.financeservice.exception.riskverification.RiskVerificationRequiredResponse;
+import com.finovara.financeservice.exception.riskverification.precondition.RiskVerificationRequiredException;
 import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -83,6 +85,17 @@ public class GlobalExceptionHandler {
                 webRequest.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(body, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @ExceptionHandler(RiskVerificationRequiredException.class)
+    public ResponseEntity<RiskVerificationRequiredResponse> handleRiskVerification(RiskVerificationRequiredException ex) {
+        return ResponseEntity
+                .status(HttpStatus.PRECONDITION_REQUIRED)
+                .body(new RiskVerificationRequiredResponse(
+                        ex.getRiskOperationId(),
+                        ex.getAction(),
+                        ex.isRequiresPassword(),
+                        ex.isRequiresEmailCode()));
     }
 
 

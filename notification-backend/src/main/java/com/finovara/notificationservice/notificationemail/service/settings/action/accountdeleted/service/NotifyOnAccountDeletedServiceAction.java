@@ -40,7 +40,7 @@ public class NotifyOnAccountDeletedServiceAction
 
     @Override
     protected void handleActivity(Long userId, boolean enabled) {
-        kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.NOTIFICATION_ACCOUNT_DELETED,
+        kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.NOTIFICATION_ACCOUNT_DELETED,
                 enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED, LocalDateTime.now()));
     }
 }

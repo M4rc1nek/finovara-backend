@@ -9,7 +9,7 @@ services:
       - "9105:9105"
     environment:
       FINANCE_BACKEND_URL: https://finovara-finance-app:8087
-      SSL_PASSWORD: ${SSL_PASSWORD}
+      DEV_SSL_PASSWORD: ${DEV_SSL_PASSWORD}
       REDIS_HOST: finovara-report-redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}

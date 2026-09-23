@@ -22,6 +22,7 @@ public class InvitationExpirationProcessor {
         List<SharedAccountInvitation> invitations = sharedAccountInvitationRepository.findAllExpired(LocalDateTime.now());
 
         invitations.forEach(invitationExpirationService::expireInvitation);
+        log.info("Invitations have expired and have been deleted");
 
         if (!invitations.isEmpty()) {
             log.info("Expired {} overdue shared account invitations", invitations.size());

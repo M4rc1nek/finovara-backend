@@ -33,8 +33,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserLoginDto> loginUser(@RequestBody @Valid UserLoginDto userLogin, HttpServletRequest request) {
-        return ResponseEntity.ok(userService.loginUser(userLogin.email(), userLogin.password(), request));
+    public ResponseEntity<UserLoginDto> loginUser(@RequestBody @Valid UserLoginDto userLoginDto, HttpServletRequest request) {
+        return ResponseEntity.ok(userService.loginUser(userLoginDto.email(), userLoginDto.password(), userLoginDto.riskVerificationSourceEventId(), request));
     }
 
     @GetMapping("/google")

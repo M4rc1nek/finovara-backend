@@ -77,7 +77,7 @@ class GoalCompletionCoreTest {
         assertEquals(BigDecimal.ZERO, piggyBank.getAmount());
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertEquals(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, eventCaptor.getValue().type());
 
         verifyNoInteractions(outboxService, recurringSettingsRepository, piggyBankRepository);
@@ -94,14 +94,14 @@ class GoalCompletionCoreTest {
         assertEquals(BigDecimal.ZERO, piggyBank.getAmount());
 
         ArgumentCaptor<PiggyBankActivityEvent> kafkaCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), kafkaCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), kafkaCaptor.capture());
         assertEquals(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, kafkaCaptor.getValue().type());
 
         ArgumentCaptor<Object> outboxCaptor = ArgumentCaptor.forClass(Object.class);
         verify(outboxService).save(
                 eq("SharedPiggyBank"),
                 eq(piggyBank.getId().toString()),
-                eq("activity.piggybank"),
+                eq("piggybank.transaction.created"),
                 outboxCaptor.capture()
         );
         PiggyBankActivityEvent deletedEvent = (PiggyBankActivityEvent) outboxCaptor.getValue();
@@ -138,7 +138,7 @@ class GoalCompletionCoreTest {
         assertEquals(BigDecimal.ZERO, piggyBank.getAmount());
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertEquals(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, eventCaptor.getValue().type());
     }
 
@@ -152,7 +152,7 @@ class GoalCompletionCoreTest {
         assertNull(piggyBank.getAmount());
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertEquals(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, eventCaptor.getValue().type());
     }
 }

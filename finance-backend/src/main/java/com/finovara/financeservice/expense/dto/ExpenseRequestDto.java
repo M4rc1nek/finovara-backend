@@ -9,6 +9,7 @@ public record ExpenseRequestDto(
         @Valid ExpenseDto expenseDto,
         ConfirmPasswordDto confirmPasswordDto,
         ConfirmAuthorizationCodeDto confirmAuthorizationCodeDto,
-        @Valid CountQuantityLimitDto countQuantityLimitDto
+        @Valid CountQuantityLimitDto countQuantityLimitDto,
+        String riskVerificationSourceEventId
 ) {
 }

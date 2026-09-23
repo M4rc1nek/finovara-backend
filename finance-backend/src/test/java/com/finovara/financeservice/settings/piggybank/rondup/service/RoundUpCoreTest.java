@@ -49,7 +49,7 @@ class RoundUpCoreTest {
         assertEquals(new BigDecimal("45.00"), wallet.getBalance());
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertEquals(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, eventCaptor.getValue().type());
     }
 
@@ -69,7 +69,7 @@ class RoundUpCoreTest {
         assertEquals(new BigDecimal("15.00"), wallet.getBalance());
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertEquals(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, eventCaptor.getValue().type());
     }
 
@@ -89,7 +89,7 @@ class RoundUpCoreTest {
         assertThat(wallet.getBalance()).isEqualByComparingTo(BigDecimal.valueOf(13));
 
         ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.piggybank"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("piggybank.transaction.created"), eventCaptor.capture());
         assertEquals(PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, eventCaptor.getValue().type());
     }
 

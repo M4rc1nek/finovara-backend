@@ -61,7 +61,7 @@ public class LimitManagementService implements UserDataDeletable {
                 .build();
 
         Limit savedLimit = limitRepository.save(limit);
-        outboxService.save("Limit", savedLimit.getId().toString(), "activity.limit",
+        outboxService.save("Limit", savedLimit.getId().toString(), "limit.changed",
                 new LimitActivityEvent(userId, LimitActivityType.ADDED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
 
         return savedLimit.getId();
@@ -87,7 +87,7 @@ public class LimitManagementService implements UserDataDeletable {
         limit.setAmount(limitDto.amount());
 
         limitRepository.save(limit);
-        outboxService.save("Limit", limitId.toString(), "activity.limit",
+        outboxService.save("Limit", limitId.toString(), "limit.changed",
                 new LimitActivityEvent(userId, LimitActivityType.EDITED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), oldLimitAmount, LocalDateTime.now()));
 
         return limitId;
@@ -110,7 +110,7 @@ public class LimitManagementService implements UserDataDeletable {
         Limit limit = limitRepository.findByIdAndUserId(userId, limitId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Active limit not found"));
 
-        outboxService.save("Limit", limitId.toString(), "activity.limit",
+        outboxService.save("Limit", limitId.toString(), "limit.changed",
                 new LimitActivityEvent(userId, LimitActivityType.DELETED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
         limitRepository.delete(limit);
     }

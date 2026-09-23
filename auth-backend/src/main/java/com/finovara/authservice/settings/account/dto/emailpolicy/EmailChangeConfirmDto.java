@@ -4,7 +4,8 @@ import jakarta.validation.constraints.NotNull;
 
 public record EmailChangeConfirmDto(
         @NotNull Integer code,
-        String authorizationCode
+        String authorizationCode,
+        String riskVerificationSourceEventId
 ) {
 }
 

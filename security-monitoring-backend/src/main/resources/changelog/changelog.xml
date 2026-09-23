@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+        http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
+
+    <changeSet id="create-login-profile" author="Marcin Parśniak">
+        <createTable tableName="login_profile">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="last_login_ip" type="VARCHAR(45)"/>
+            <column name="last_login_location" type="VARCHAR(255)"/>
+            <column name="last_login_browser" type="VARCHAR(255)"/>
+            <column name="last_login_at" type="TIMESTAMP"/>
+            <column name="login_count" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-client-data" author="Marcin Parśniak">
+        <createTable tableName="client_data">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="known_ip_address" type="VARCHAR(45)"/>
+            <column name="known_location" type="VARCHAR(255)"/>
+            <column name="known_browser" type="VARCHAR(255)"/>
+            <column name="login_profile_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="client_data" baseColumnNames="login_profile_id"
+                                 referencedTableName="login_profile" referencedColumnNames="id"
+                                 constraintName="fk_client_data_login_profile" onDelete="CASCADE"/>
+        <createIndex tableName="client_data" indexName="idx_client_data_login_profile">
+            <column name="login_profile_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-account-change-profile" author="Marcin Parśniak">
+        <createTable tableName="account_change_profile">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password_change_count" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_password_change_at" type="TIMESTAMP"/>
+            <column name="email_change_count" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_email_change_at" type="TIMESTAMP"/>
+            <column name="username_change_count" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_username_change_at" type="TIMESTAMP"/>
+            <column name="profile_image_change_count" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_profile_image_change_at" type="TIMESTAMP"/>
+            <column name="total_change_count" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_change_type" type="VARCHAR(50)"/>
+            <column name="last_change_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-transaction-profile" author="Marcin Parśniak">
+        <createTable tableName="transaction_profile">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="average_expense_amount" type="DECIMAL(19,2)"/>
+            <column name="expense_count" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="largest_expense_amount" type="DECIMAL(19,2)"/>
+            <column name="last_expense_amount" type="DECIMAL(19,2)"/>
+            <column name="last_expense_category" type="VARCHAR(50)"/>
+            <column name="last_expense_at" type="TIMESTAMP"/>
+
+            <column name="average_revenue_amount" type="DECIMAL(19,2)"/>
+            <column name="revenue_count" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_revenue_amount" type="DECIMAL(19,2)"/>
+            <column name="last_revenue_category" type="VARCHAR(50)"/>
+            <column name="last_revenue_at" type="TIMESTAMP"/>
+
+            <column name="largest_piggy_bank_deposit" type="DECIMAL(19,2)"/>
+            <column name="last_piggy_bank_deposit_amount" type="DECIMAL(19,2)"/>
+            <column name="last_piggy_bank_deposit_at" type="TIMESTAMP"/>
+
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+
+    <changeSet id="create-risk-operation" author="Marcin Parśniak">
+        <createTable tableName="risk_operation">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="source_event_id" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="trigger_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="action" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password_confirmed" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_code_confirmed" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email_code" type="VARCHAR(255)"/>
+            <column name="email_code_expires_at" type="TIMESTAMP"/>
+            <column name="operation_date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-risk-rule-collection" author="Marcin Parśniak">
+        <createTable tableName="risk_rule_collection">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="risk_rule" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="score_per_rule" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="risk_operation_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="risk_rule_collection" baseColumnNames="risk_operation_id" referencedTableName="risk_operation" referencedColumnNames="id" constraintName="fk_risk_rule_collection_risk_operation" onDelete="CASCADE"/>
+    </changeSet>
+
+    <changeSet id="create-shedlock-table" author="Marcin Parśniak">
+        <createTable tableName="shedlock">
+            <column name="name" type="varchar(64)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="lock_until" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_at" type="timestamp(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="locked_by" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

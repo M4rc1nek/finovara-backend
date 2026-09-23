@@ -15,7 +15,8 @@ public record RevenueDto(
         RevenueCategory category,
         LocalDate createdAt,
         String description,
-        String authorizationCode
+        String authorizationCode,
+        String riskVerificationSourceEventId
 
 
 ) {

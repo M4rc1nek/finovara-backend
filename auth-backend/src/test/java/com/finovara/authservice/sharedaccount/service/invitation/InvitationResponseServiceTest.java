@@ -177,7 +177,7 @@ class InvitationResponseServiceTest {
                     eq("finance.shared-account.create-default-settings"), any(SharedAccountCreateDefaultSettingsEvent.class));
 
             verify(outboxService).save(eq("User"), eq(INVITEE_USER_ID.toString()),
-                    eq("activity.shared-account"), any(SharedAccountActivityEvent.class));
+                    eq("shared-account.changed"), any(SharedAccountActivityEvent.class));
 
             ArgumentCaptor<UserAcceptSharedAccountInvitationEvent> acceptedCaptor =
                     ArgumentCaptor.forClass(UserAcceptSharedAccountInvitationEvent.class);
@@ -310,7 +310,7 @@ class InvitationResponseServiceTest {
             assertThat(rejectCaptor.getValue().inviteeUsername()).isEqualTo("inviteeName");
 
             verify(outboxService).save(eq("User"), eq(INVITEE_USER_ID.toString()),
-                    eq("activity.shared-account"), any(SharedAccountActivityEvent.class));
+                    eq("shared-account.changed"), any(SharedAccountActivityEvent.class));
         }
 
         @Test

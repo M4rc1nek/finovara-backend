@@ -1,18 +1,20 @@
 package com.finovara.authservice.settings.account.service;
 
+import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.authservice.settings.account.dto.AccountSettingsDto;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.notification.event.SendEmailEvent;
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.notification.event.SendEmailEvent;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -48,6 +50,8 @@ class AccountServiceTest {
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     @Mock
     private HttpServletRequest request;
+    @Mock
+    private RiskGuardService riskGuardService;
 
     @InjectMocks
     private AccountService accountService;
@@ -64,7 +68,7 @@ class AccountServiceTest {
         testUser.setCreatedAt(LocalDateTime.of(2024, 1, 10, 12, 0));
         testUser.setProfileImagePath(null);
 
-        testDto = new AccountSettingsDto("testUser", "test@test.com", LocalDateTime.of(2024, 1, 10, 12, 0), null, null);
+        testDto = new AccountSettingsDto("testUser", "test@test.com", LocalDateTime.of(2024, 1, 10, 12, 0), null, null, null);
     }
 
     @Nested
@@ -73,7 +77,7 @@ class AccountServiceTest {
         @Test
         void shouldUpdateUsernameSuccessfully() {
             Long userId = 1L;
-            AccountSettingsDto dto = new AccountSettingsDto("newUsername", testUser.getEmail(), LocalDateTime.now(), null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("newUsername", testUser.getEmail(), LocalDateTime.now(), null, null, null);
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(testUser);
             doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());
@@ -82,13 +86,14 @@ class AccountServiceTest {
             AccountSettingsDto result = accountService.updateUsername(dto, userId, request);
 
             assertThat(result.username()).isEqualTo("newUsername");
+            verify(riskGuardService).guard(userId, RiskTriggerType.USERNAME_CHANGED, testUser.getEmail(), dto.riskVerificationSourceEventId(), request);
             verify(userRepository).save(testUser);
         }
 
         @Test
         void shouldSaveActivityEventToOutboxWhenUsernameUpdated() {
             Long userId = 1L;
-            AccountSettingsDto dto = new AccountSettingsDto("newUsername", testUser.getEmail(), LocalDateTime.now(), null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("newUsername", testUser.getEmail(), LocalDateTime.now(), null, null, null);
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(testUser);
             doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());
@@ -100,7 +105,7 @@ class AccountServiceTest {
             verify(outboxService).save(
                     eq("User"),
                     eq(userId.toString()),
-                    eq("activity.account-changes"),
+                    eq("account.changed"),
                     payloadCaptor.capture()
             );
 
@@ -113,7 +118,7 @@ class AccountServiceTest {
         @Test
         void shouldSaveEmailNotificationToOutboxWhenUsernameUpdated() {
             Long userId = 1L;
-            AccountSettingsDto dto = new AccountSettingsDto("newUsername", testUser.getEmail(), LocalDateTime.now(), null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("newUsername", testUser.getEmail(), LocalDateTime.now(), null, null, null);
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(testUser);
             doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());
@@ -137,7 +142,7 @@ class AccountServiceTest {
         @Test
         void shouldThrowEntityAlreadyExistsExceptionWhenUsernameAlreadyExists() {
             Long userId = 1L;
-            AccountSettingsDto dto = new AccountSettingsDto("existingUsername", testUser.getEmail(), LocalDateTime.now(), null, null);
+            AccountSettingsDto dto = new AccountSettingsDto("existingUsername", testUser.getEmail(), LocalDateTime.now(), null, null, null);
 
             when(userManagerService.getUserByIdOrThrow(userId)).thenReturn(testUser);
             doNothing().when(additionalAuthorizationService).confirmAdditionalAuthorizationCode(eq(userId), any());

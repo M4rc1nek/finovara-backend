@@ -2,10 +2,12 @@ package com.finovara.authservice.user.service;
 
 import com.finovara.authservice.exception.conflict.LocalPasswordNotSetException;
 import com.finovara.authservice.exception.unauthorized.InvalidCredentialsException;
+import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import com.finovara.contracts.user.event.UserCreatedEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
 import com.finovara.authservice.security.jwt.JwtService;
 import com.finovara.authservice.user.dto.UserLoginDto;
 import com.finovara.authservice.user.dto.UserRegisterDto;
@@ -47,6 +49,7 @@ public class UserService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final OutboxService outboxService;
     private final EmailDomainValidator emailDomainValidator;
+    private final RiskGuardService riskGuardService;
 
     @Value("${application.upload.profile-images-default-directory}")
     private String profileImagesDefaultDirectory;
@@ -85,7 +88,7 @@ public class UserService {
         return new UserRegisterDto(savedUser.getId(), savedUser.getUsername(), null, userProfileImage, savedUser.getEmail(), jwtToken);
     }
 
-    public UserLoginDto loginUser(String email, String rawPassword, HttpServletRequest request) {
+    public UserLoginDto loginUser(String email, String rawPassword, String sourceEventId, HttpServletRequest request) {
         User user = userRepository.findByEmail(email).orElse(null);
 
         if (user != null && !user.isPasswordSet()) {
@@ -99,12 +102,13 @@ public class UserService {
             if (user == null) {
                 throw new InvalidCredentialsException("Incorrect email or password");
             }
+            riskGuardService.guard(user.getId(), RiskTriggerType.LOGIN, user.getEmail(), sourceEventId, request);
 
             publishLoginActivity(user.getId(), LoginActivityStatus.SUCCESSFUL, request);
             String jwtToken = jwtService.generateToken(user);
             String userProfileImage = user.getProfileImageUrl();
 
-            return new UserLoginDto(user.getId(), user.getUsername(), user.getEmail(), null, userProfileImage, jwtToken);
+            return new UserLoginDto(user.getId(), user.getUsername(), user.getEmail(), null, userProfileImage, jwtToken, sourceEventId);
 
         } catch (AuthenticationException exception) {
             if (user != null) {
@@ -116,6 +120,6 @@ public class UserService {
 
     private void publishLoginActivity(Long userId, LoginActivityStatus status, HttpServletRequest request) {
         String ipAddress = getClientIpAddress(request);
-        kafkaTemplate.send("activity.login", new LoginActivityEvent(userId, status, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
+        kafkaTemplate.send("user.logged-in", new LoginActivityEvent(userId, status, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
     }
 }

@@ -58,7 +58,7 @@ server:
     enabled: true
     key-store: file:/app/localhost.p12
     key-store-type: PKCS12
-    key-store-password: ${SSL_PASSWORD}
+    key-store-password: ${DEV_SSL_PASSWORD}
     key-alias: 1
 
 application:
@@ -81,12 +81,19 @@ logging:
     org.springframework.cache: TRACE
     org.springframework.data.redis: DEBUG
 
+oauth2:
+  pending-login:
+    secret: ${OAUTH2_PENDING_LOGIN_SECRET}
+    ttl-seconds: 600
+
 mail:
   recipient:
     address: finovaracenter@gmail.com
   from:
     address: support@finovara.pl
 
+security-monitoring-backend:
+  url: ${SECURITY_MONITORING_BACKEND_URL}
 
 verification-code-manager:
   code-expiration-minutes: 15
@@ -124,6 +131,7 @@ security:
     - /api/contact
     - /oauth2/**
     - /login/oauth2/**
+    - /api/auth/oauth2/complete
     - /internal/**
   cors:
     allowed-origins:

@@ -1,5 +1,6 @@
 package com.finovara.authservice.settings.account.service.emailpolicy.change;
 
+import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.authservice.settings.account.service.emailpolicy.attempts.EmailChangeVerificationService;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.settings.account.dto.AttemptsDto;
@@ -10,6 +11,7 @@ import com.finovara.authservice.settings.account.service.verification.Credential
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.email.EmailDomainValidator;
 import com.finovara.authservice.util.user.service.UserManagerService;
@@ -32,11 +34,12 @@ public class EmailChangeService {
     private final EmailDomainValidator emailDomainValidator;
     private final AdditionalAuthorizationService additionalAuthorizationService;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    private final RiskGuardService riskGuardService;
 
     @Transactional
     public void requestEmailChange(Long userId, EmailChangeRequestDto dto) {
         additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
-        
+
         User user = userManagerService.getUserByIdOrThrow(userId);
 
         validateEmailChangeRequest(user, dto);
@@ -44,17 +47,19 @@ public class EmailChangeService {
     }
 
     @Transactional
-    public AttemptsDto confirmEmailChange(Long userId, EmailChangeConfirmDto dto, HttpServletRequest request) {
-        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
-        
+    public AttemptsDto confirmEmailChange(Long userId, EmailChangeConfirmDto emailChangeConfirmDto, HttpServletRequest request) {
+        additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(emailChangeConfirmDto.authorizationCode()));
+
         User user = userManagerService.getUserByIdOrThrow(userId);
         AccountSettings settings = user.getAccountSettings();
 
-        emailChangeVerificationService.verifyCodeOrThrow(userId, settings, dto.code());
+        emailChangeVerificationService.verifyCodeOrThrow(userId, settings, emailChangeConfirmDto.code());
 
         AttemptsDto attemptsDto = emailChangeVerificationService.getCurrentAttempts(userId);
 
         String newEmail = settings.getPendingEmail();
+
+        riskGuardService.guard(userId, RiskTriggerType.EMAIL_CHANGED, user.getEmail(), emailChangeConfirmDto.riskVerificationSourceEventId(), request);
 
         emailChangeVerificationService.removeCode(settings);
 

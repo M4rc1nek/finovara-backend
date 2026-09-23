@@ -39,9 +39,9 @@ public class ControlAmountService {
         expenseSettings.setAmountThresholdEnabled(controlAmountDto.expenseAmountThresholdEnabled());
         expenseSettings.setBlockedAmount(blockedAmount);
         if (expenseSettings.isAmountThresholdEnabled()) {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.EXPENSE_CONTROL_AMOUNT, SettingActivityStatus.ENABLED, LocalDateTime.now()));
+            kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.EXPENSE_CONTROL_AMOUNT, SettingActivityStatus.ENABLED, LocalDateTime.now()));
         } else {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.EXPENSE_CONTROL_AMOUNT, SettingActivityStatus.DISABLED, LocalDateTime.now()));
+            kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.EXPENSE_CONTROL_AMOUNT, SettingActivityStatus.DISABLED, LocalDateTime.now()));
         }
     }
 

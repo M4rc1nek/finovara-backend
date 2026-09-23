@@ -137,7 +137,7 @@ class AdditionalAuthorizationServiceTest {
             additionalAuthorizationService.saveAdditionalAuthorization(USER_ID, request, httpServletRequest);
 
             ArgumentCaptor<AccountChangesActivityEvent> eventCaptor = ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
-            verify(outboxService, times(1)).save(eq("User"), eq(USER_ID.toString()), eq("activity.account-changes"), eventCaptor.capture());
+            verify(outboxService, times(1)).save(eq("User"), eq(USER_ID.toString()), eq("account.changed"), eventCaptor.capture());
 
             AccountChangesActivityEvent publishedEvent = eventCaptor.getValue();
             assertEquals(AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_DISABLED, publishedEvent.type());

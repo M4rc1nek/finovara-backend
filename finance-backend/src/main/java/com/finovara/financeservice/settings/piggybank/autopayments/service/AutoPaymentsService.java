@@ -53,9 +53,9 @@ public class AutoPaymentsService {
         piggyBankSettings.setAutomationActive(autoPaymentsDto.isAutomationActive());
         piggyBankSettings.setAutomationPercentage(autoPaymentsDto.isAutomationActive() ? autoPaymentsDto.percentage() : BigDecimal.ZERO);
         if (piggyBankSettings.isAutomationActive()) {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_AUTO_PAYMENTS, SettingActivityStatus.ENABLED, LocalDateTime.now()));
+            kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_AUTO_PAYMENTS, SettingActivityStatus.ENABLED, LocalDateTime.now()));
         } else {
-            kafkaTemplate.send("activity.settings", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_AUTO_PAYMENTS, SettingActivityStatus.DISABLED, LocalDateTime.now()));
+            kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.PIGGY_BANK_AUTO_PAYMENTS, SettingActivityStatus.DISABLED, LocalDateTime.now()));
         }
     }
 

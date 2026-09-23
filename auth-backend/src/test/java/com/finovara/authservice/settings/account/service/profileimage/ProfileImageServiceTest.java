@@ -1,5 +1,6 @@
 package com.finovara.authservice.settings.account.service.profileimage;
 
+import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
@@ -8,6 +9,7 @@ import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAu
 import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -26,7 +28,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -45,6 +47,8 @@ class ProfileImageServiceTest {
     @Mock
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     @Mock
+    private RiskGuardService riskGuardService;
+    @Mock
     private HttpServletRequest request;
 
     @InjectMocks
@@ -58,13 +62,15 @@ class ProfileImageServiceTest {
     private User user;
     private ConfirmAuthorizationCodeDto resolvedAuthorizationCode;
     private static final Long USER_ID = 1L;
+    private static final String USER_EMAIL = "test@test.com";
     private static final String AUTHORIZATION_CODE = "auth";
+    private static final String SOURCE_EVENT_ID = "risk-event-id";
 
     @BeforeEach
     void setUp() throws Exception {
         user = new User();
         user.setId(USER_ID);
-        user.setEmail("test@test.com");
+        user.setEmail(USER_EMAIL);
         resolvedAuthorizationCode = mock(ConfirmAuthorizationCodeDto.class);
 
         Files.createFile(defaultDir.resolve("UserProf.png"));
@@ -96,7 +102,7 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             assertThat(user.getProfileImagePath()).isNotNull();
             assertThat(Files.exists(Path.of(user.getProfileImagePath()))).isTrue();
@@ -107,7 +113,7 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             verify(userRepository).save(user);
         }
@@ -117,10 +123,20 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             verify(additionalAuthorizationCodeResolver).resolve(AUTHORIZATION_CODE);
             verify(additionalAuthorizationService).confirmAdditionalAuthorizationCode(USER_ID, resolvedAuthorizationCode);
+        }
+
+        @Test
+        void shouldGuardAgainstRiskWhenUploadingValidFile() {
+            stubUserFound();
+            stubValidRequest();
+
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
+
+            verify(riskGuardService).guard(USER_ID, RiskTriggerType.PROFILE_IMAGE_CHANGED, USER_EMAIL, SOURCE_EVENT_ID, request);
         }
 
         @Test
@@ -128,12 +144,12 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             ArgumentCaptor<AccountChangesActivityEvent> captor =
                     ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
 
-            verify(kafkaTemplate).send(eq("activity.account-changes"), captor.capture());
+            verify(kafkaTemplate).send(eq("account.changed"), captor.capture());
             assertThat(captor.getValue().type()).isEqualTo(AccountChangesActivityType.PROFILE_IMG_CHANGED);
         }
 
@@ -142,7 +158,7 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             assertThat(user.getProfileImagePath()).contains("avatar.png");
         }
@@ -154,7 +170,7 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             assertThat(Files.exists(oldFile)).isFalse();
         }
@@ -165,7 +181,7 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             verify(userRepository).save(user);
         }
@@ -177,7 +193,7 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.uploadProfileImage(jpeg, USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.uploadProfileImage(jpeg, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             assertThat(user.getProfileImagePath()).contains("photo.jpg");
         }
@@ -189,73 +205,85 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.uploadProfileImage(exact, USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.uploadProfileImage(exact, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             verify(userRepository).save(user);
         }
 
         @Test
-        void shouldThrowExceptionWhenFileIsEmpty() {
+        void shouldThrowIllegalArgumentExceptionWhenFileIsEmpty() {
             MockMultipartFile empty =
                     new MockMultipartFile("file", "avatar.png", "image/png", new byte[0]);
             stubUserFound();
 
-            assertThatThrownBy(() ->
-                    profileImageService.uploadProfileImage(empty, USER_ID, request, AUTHORIZATION_CODE))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessage("File is empty");
+            assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.uploadProfileImage(empty, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID));
 
+            verifyNoInteractions(riskGuardService);
             verify(userRepository, never()).save(any());
         }
 
         @Test
-        void shouldThrowExceptionWhenFileIsNotAnImage() {
+        void shouldThrowIllegalArgumentExceptionWhenFileIsNotAnImage() {
             MockMultipartFile pdf =
                     new MockMultipartFile("file", "document.pdf", "application/pdf", "data".getBytes());
             stubUserFound();
 
-            assertThatThrownBy(() ->
-                    profileImageService.uploadProfileImage(pdf, USER_ID, request, AUTHORIZATION_CODE))
-                    .isInstanceOf(IllegalArgumentException.class);
+            assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.uploadProfileImage(pdf, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID));
 
+            verifyNoInteractions(riskGuardService);
             verify(userRepository, never()).save(any());
         }
 
         @Test
-        void shouldThrowExceptionWhenContentTypeIsNull() {
+        void shouldThrowIllegalArgumentExceptionWhenContentTypeIsNull() {
             MockMultipartFile noContentType =
                     new MockMultipartFile("file", "avatar.png", null, "data".getBytes());
             stubUserFound();
 
-            assertThatThrownBy(() ->
-                    profileImageService.uploadProfileImage(noContentType, USER_ID, request, AUTHORIZATION_CODE))
-                    .isInstanceOf(IllegalArgumentException.class);
+            assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.uploadProfileImage(noContentType, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID));
 
+            verifyNoInteractions(riskGuardService);
             verify(userRepository, never()).save(any());
         }
 
         @Test
-        void shouldThrowExceptionWhenFileSizeExceeds5MB() {
+        void shouldThrowIllegalArgumentExceptionWhenFileSizeExceeds5MB() {
             MockMultipartFile large =
                     new MockMultipartFile("file", "large.png", "image/png", new byte[6 * 1024 * 1024]);
             stubUserFound();
 
-            assertThatThrownBy(() ->
-                    profileImageService.uploadProfileImage(large, USER_ID, request, AUTHORIZATION_CODE))
-                    .isInstanceOf(IllegalArgumentException.class);
+            assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.uploadProfileImage(large, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID));
 
+            verifyNoInteractions(riskGuardService);
             verify(userRepository, never()).save(any());
         }
 
         @Test
-        void shouldNotSaveUserWhenAdditionalAuthorizationCodeConfirmationFails() {
+        void shouldThrowIllegalArgumentExceptionWhenAdditionalAuthorizationCodeConfirmationFails() {
             doThrow(new IllegalArgumentException("Invalid authorization code"))
                     .when(additionalAuthorizationService)
                     .confirmAdditionalAuthorizationCode(USER_ID, resolvedAuthorizationCode);
 
-            assertThatThrownBy(() ->
-                    profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE))
-                    .isInstanceOf(IllegalArgumentException.class);
+            assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID));
+
+            verifyNoInteractions(riskGuardService);
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldThrowIllegalStateExceptionWhenRiskGuardFails() {
+            stubUserFound();
+            doThrow(new IllegalStateException("Risk detected"))
+                    .when(riskGuardService)
+                    .guard(USER_ID, RiskTriggerType.PROFILE_IMAGE_CHANGED, USER_EMAIL, SOURCE_EVENT_ID, request);
+
+            assertThrows(IllegalStateException.class, () ->
+                    profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID));
 
             verify(userRepository, never()).save(any());
         }
@@ -271,7 +299,7 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             assertThat(Files.exists(image)).isFalse();
         }
@@ -283,7 +311,7 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             assertThat(user.getProfileImagePath()).contains("UserProf.png");
         }
@@ -295,7 +323,7 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             verify(userRepository).save(user);
         }
@@ -307,12 +335,24 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             ArgumentCaptor<AccountChangesActivityEvent> captor =
                     ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.account-changes"), captor.capture());
+            verify(kafkaTemplate).send(eq("account.changed"), captor.capture());
             assertThat(captor.getValue().type()).isEqualTo(AccountChangesActivityType.PROFILE_IMG_DELETED);
+        }
+
+        @Test
+        void shouldGuardAgainstRiskWhenDeletingExistingImage() throws Exception {
+            Path image = Files.createTempFile(uploadDir, "avatar", ".png");
+            user.setProfileImagePath(image.toString());
+            stubUserFound();
+            stubValidRequest();
+
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
+
+            verify(riskGuardService).guard(USER_ID, RiskTriggerType.PROFILE_IMAGE_CHANGED, USER_EMAIL, SOURCE_EVENT_ID, request);
         }
 
         @Test
@@ -321,7 +361,7 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             assertThat(user.getProfileImagePath()).contains("UserProf.png");
             verify(userRepository).save(user);
@@ -334,46 +374,61 @@ class ProfileImageServiceTest {
             stubUserFound();
             stubValidRequest();
 
-            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE);
+            profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
             verify(additionalAuthorizationCodeResolver).resolve(AUTHORIZATION_CODE);
             verify(additionalAuthorizationService).confirmAdditionalAuthorizationCode(USER_ID, resolvedAuthorizationCode);
         }
 
         @Test
-        void shouldThrowExceptionWhenPathIsNull() {
+        void shouldThrowIllegalArgumentExceptionWhenPathIsNull() {
             user.setProfileImagePath(null);
             stubUserFound();
 
-            assertThatThrownBy(() ->
-                    profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE))
-                    .isInstanceOf(IllegalArgumentException.class);
+            assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID));
 
+            verifyNoInteractions(riskGuardService);
             verify(userRepository, never()).save(any());
         }
 
         @Test
-        void shouldThrowExceptionWhenPathIsAlreadyDefault() {
+        void shouldThrowIllegalArgumentExceptionWhenPathIsAlreadyDefault() {
             String defaultPath = defaultDir.resolve("UserProf.png").toString();
             user.setProfileImagePath(defaultPath);
             stubUserFound();
 
-            assertThatThrownBy(() ->
-                    profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE))
-                    .isInstanceOf(IllegalArgumentException.class);
+            assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID));
 
+            verifyNoInteractions(riskGuardService);
             verify(userRepository, never()).save(any());
         }
 
         @Test
-        void shouldNotSaveUserWhenAdditionalAuthorizationCodeConfirmationFails() {
+        void shouldThrowIllegalArgumentExceptionWhenAdditionalAuthorizationCodeConfirmationFails() {
             doThrow(new IllegalArgumentException("Invalid authorization code"))
                     .when(additionalAuthorizationService)
                     .confirmAdditionalAuthorizationCode(USER_ID, resolvedAuthorizationCode);
 
-            assertThatThrownBy(() ->
-                    profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE))
-                    .isInstanceOf(IllegalArgumentException.class);
+            assertThrows(IllegalArgumentException.class, () ->
+                    profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID));
+
+            verifyNoInteractions(riskGuardService);
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        void shouldThrowIllegalStateExceptionWhenRiskGuardFails() throws Exception {
+            Path image = Files.createTempFile(uploadDir, "avatar", ".png");
+            user.setProfileImagePath(image.toString());
+            stubUserFound();
+            doThrow(new IllegalStateException("Risk detected"))
+                    .when(riskGuardService)
+                    .guard(USER_ID, RiskTriggerType.PROFILE_IMAGE_CHANGED, USER_EMAIL, SOURCE_EVENT_ID, request);
+
+            assertThrows(IllegalStateException.class, () ->
+                    profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID));
 
             verify(userRepository, never()).save(any());
         }

@@ -79,7 +79,7 @@ class RecurringSettingsSupportTest {
         assertEquals(LocalDate.of(2025, 1, 1), settings.getNextExecutionDate());
 
         ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.settings"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("settings.changed"), eventCaptor.capture());
         assertEquals(SettingActivityStatus.ENABLED, eventCaptor.getValue().status());
     }
 
@@ -101,7 +101,7 @@ class RecurringSettingsSupportTest {
         assertNull(settings.getNextExecutionDate());
 
         ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-        verify(kafkaTemplate).send(eq("activity.settings"), eventCaptor.capture());
+        verify(kafkaTemplate).send(eq("settings.changed"), eventCaptor.capture());
         assertEquals(SettingActivityStatus.DISABLED, eventCaptor.getValue().status());
     }
 

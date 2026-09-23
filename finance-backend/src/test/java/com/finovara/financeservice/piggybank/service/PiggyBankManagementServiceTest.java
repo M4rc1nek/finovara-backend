@@ -101,7 +101,7 @@ class PiggyBankManagementServiceTest {
             verify(piggyBankRepository).save(any());
 
             ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank.lifecycle"), eventCaptor.capture());
+            verify(outboxService).save(eq("PiggyBank"), any(), eq("piggybank.lifecycle.changed"), eventCaptor.capture());
             assertEquals(PiggyBankActivityType.ADDED_PIGGY_BANK, eventCaptor.getValue().type());
 
             verify(piggyBankSettingsRepository).save(any());
@@ -146,7 +146,7 @@ class PiggyBankManagementServiceTest {
             assertEquals("Piggy", piggyBank.getName());
 
             ArgumentCaptor<PiggyBankEditActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankEditActivityEvent.class);
-            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank.edited"), eventCaptor.capture());
+            verify(outboxService).save(eq("PiggyBank"), any(), eq("piggybank.updated"), eventCaptor.capture());
             verify(goalPlannerService).checkAndMarkGoalCompletion(any());
             assertEquals(PiggyBankActivityType.EDITED_PIGGY_BANK, eventCaptor.getValue().type());
         }
@@ -221,7 +221,7 @@ class PiggyBankManagementServiceTest {
             verify(piggyBankRepository).delete(piggyBank);
 
             ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-            verify(outboxService).save(eq("PiggyBank"), any(), eq("activity.piggybank.lifecycle"), eventCaptor.capture());
+            verify(outboxService).save(eq("PiggyBank"), any(), eq("piggybank.lifecycle.changed"), eventCaptor.capture());
             assertEquals(PiggyBankActivityType.DELETED_PIGGY_BANK, eventCaptor.getValue().type());
         }
 

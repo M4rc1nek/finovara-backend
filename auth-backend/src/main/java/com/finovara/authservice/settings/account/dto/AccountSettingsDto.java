@@ -11,7 +11,8 @@ public record AccountSettingsDto(
         String email,
         LocalDateTime createdAt,
         String profileImageUrl,
-        String authorizationCode
+        String authorizationCode,
+        String riskVerificationSourceEventId
 
 ) {
 }

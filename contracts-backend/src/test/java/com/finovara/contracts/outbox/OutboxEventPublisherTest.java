@@ -45,7 +45,7 @@ class OutboxEventPublisherTest {
     class PublishPendingEventsTest {
         @Test
         void shouldMarkEventAsSentWhenKafkaSendSucceeds() throws Exception {
-            OutboxEvent event = pendingEvent("activity.piggybank", "123");
+            OutboxEvent event = pendingEvent("piggybank.transaction.created", "123");
             when(outboxEventRepository.findPendingEvents(OutboxStatus.PENDING)).thenReturn(List.of(event));
             when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new Object());
             stubSuccessfulSend();
@@ -59,7 +59,7 @@ class OutboxEventPublisherTest {
 
         @Test
         void shouldMarkEventAsFailedWhenKafkaThrows() throws Exception {
-            OutboxEvent event = pendingEvent("activity.piggybank", "123");
+            OutboxEvent event = pendingEvent("piggybank.transaction.created", "123");
             when(outboxEventRepository.findPendingEvents(OutboxStatus.PENDING)).thenReturn(List.of(event));
             when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new Object());
             when(kafkaTemplate.send(any(Message.class))).thenThrow(new RuntimeException("Kafka down"));
@@ -72,7 +72,7 @@ class OutboxEventPublisherTest {
 
         @Test
         void shouldMarkEventAsFailedWhenKafkaFutureCompletesExceptionally() throws Exception {
-            OutboxEvent event = pendingEvent("activity.piggybank", "123");
+            OutboxEvent event = pendingEvent("piggybank.transaction.created", "123");
             when(outboxEventRepository.findPendingEvents(OutboxStatus.PENDING)).thenReturn(List.of(event));
             when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new Object());
 
@@ -88,7 +88,7 @@ class OutboxEventPublisherTest {
 
         @Test
         void shouldMarkEventAsFailedWhenDeserializationFails() throws Exception {
-            OutboxEvent event = pendingEvent("activity.piggybank", "123");
+            OutboxEvent event = pendingEvent("piggybank.transaction.created", "123");
             when(outboxEventRepository.findPendingEvents(OutboxStatus.PENDING)).thenReturn(List.of(event));
             when(objectMapper.readValue(anyString(), any(Class.class))).thenThrow(new RuntimeException("bad json"));
 
@@ -100,8 +100,8 @@ class OutboxEventPublisherTest {
 
         @Test
         void shouldProcessAllEventsEvenIfOneFails() throws Exception {
-            OutboxEvent failingEvent = pendingEvent("activity.piggybank", "111");
-            OutboxEvent successEvent = pendingEvent("activity.piggybank", "222");
+            OutboxEvent failingEvent = pendingEvent("piggybank.transaction.created", "111");
+            OutboxEvent successEvent = pendingEvent("piggybank.transaction.created", "222");
 
             when(outboxEventRepository.findPendingEvents(OutboxStatus.PENDING)).thenReturn(List.of(failingEvent, successEvent));
             when(objectMapper.readValue(anyString(), any(Class.class)))
@@ -127,7 +127,7 @@ class OutboxEventPublisherTest {
 
         @Test
         void shouldSendToCorrectTopicAndWithCorrectKey() throws Exception {
-            OutboxEvent event = pendingEvent("activity.piggybank", "abc-123");
+            OutboxEvent event = pendingEvent("piggybank.transaction.created", "abc-123");
             when(outboxEventRepository.findPendingEvents(OutboxStatus.PENDING)).thenReturn(List.of(event));
             when(objectMapper.readValue(anyString(), any(Class.class))).thenReturn(new Object());
             stubSuccessfulSend();
@@ -138,7 +138,7 @@ class OutboxEventPublisherTest {
 
             verify(kafkaTemplate).send(messageCaptor.capture());
             Message<?> sent = messageCaptor.getValue();
-            assertThat(sent.getHeaders().get("kafka_topic")).isEqualTo("activity.piggybank");
+            assertThat(sent.getHeaders().get("kafka_topic")).isEqualTo("piggybank.transaction.created");
             assertThat(sent.getHeaders().get("kafka_messageKey")).isEqualTo("abc-123");
         }
     }

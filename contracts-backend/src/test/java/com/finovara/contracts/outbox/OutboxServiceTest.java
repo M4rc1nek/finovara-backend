@@ -33,7 +33,7 @@ class OutboxServiceTest {
             TestPayload payload = new TestPayload("hello");
             when(objectMapper.writeValueAsString(payload)).thenReturn("{\"value\":\"hello\"}");
 
-            outboxService.save("PiggyBank", "123", "activity.piggybank", payload);
+            outboxService.save("PiggyBank", "123", "piggybank.transaction.created", payload);
 
             ArgumentCaptor<OutboxEvent> captor = ArgumentCaptor.forClass(OutboxEvent.class);
             verify(outboxEventRepository).save(captor.capture());
@@ -41,7 +41,7 @@ class OutboxServiceTest {
             OutboxEvent saved = captor.getValue();
             assertThat(saved.getAggregateType()).isEqualTo("PiggyBank");
             assertThat(saved.getAggregateId()).isEqualTo("123");
-            assertThat(saved.getEventType()).isEqualTo("activity.piggybank");
+            assertThat(saved.getEventType()).isEqualTo("piggybank.transaction.created");
             assertThat(saved.getPayload()).isEqualTo("{\"value\":\"hello\"}");
             assertThat(saved.getPayloadType()).isEqualTo(TestPayload.class.getName());
             assertThat(saved.getStatus()).isEqualTo(OutboxStatus.PENDING);
@@ -52,17 +52,17 @@ class OutboxServiceTest {
             TestPayload payload = new TestPayload("hello");
             when(objectMapper.writeValueAsString(payload)).thenThrow(new RuntimeException("json error"));
 
-            assertThatThrownBy(() -> outboxService.save("PiggyBank", "123", "activity.piggybank", payload))
+            assertThatThrownBy(() -> outboxService.save("PiggyBank", "123", "piggybank.transaction.created", payload))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("Cannot serialize event")
-                    .hasMessageContaining("activity.piggybank");
+                    .hasMessageContaining("piggybank.transaction.created");
         }
 
         @Test
         void shouldNotCallRepositoryWhenSerializationFails() throws Exception {
             when(objectMapper.writeValueAsString(any())).thenThrow(new RuntimeException());
 
-            assertThatThrownBy(() -> outboxService.save("PiggyBank", "123", "activity.piggybank", new TestPayload("x")))
+            assertThatThrownBy(() -> outboxService.save("PiggyBank", "123", "piggybank.transaction.created", new TestPayload("x")))
                     .isInstanceOf(IllegalArgumentException.class);
 
             verifyNoInteractions(outboxEventRepository);

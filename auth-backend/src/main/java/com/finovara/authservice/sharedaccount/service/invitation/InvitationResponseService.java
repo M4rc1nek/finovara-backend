@@ -73,7 +73,7 @@ public class InvitationResponseService {
                 "finance.shared-account.create-default-settings",
                 new SharedAccountCreateDefaultSettingsEvent(inviterUserId, inviteeUserId));
 
-        outboxService.save("User", inviteeUserId.toString(), "activity.shared-account",
+        outboxService.save("User", inviteeUserId.toString(), "shared-account.changed",
                 new SharedAccountActivityEvent(
                         inviteeUserId, SharedAccountActivityType.ACCEPTED_INVITATION, null,
                         inviter.username(), inviter.email(),
@@ -100,7 +100,7 @@ public class InvitationResponseService {
         outboxService.save("User", inviterUserId.toString(), "user.shared-account.reject-invitation",
                 new UserRejectSharedAccountInvitationEvent(inviterUserId, invitee.username()));
 
-        outboxService.save("User", inviteeUserId.toString(), "activity.shared-account",
+        outboxService.save("User", inviteeUserId.toString(), "shared-account.changed",
                 new SharedAccountActivityEvent(
                         inviteeUserId, SharedAccountActivityType.REJECTED_INVITATION, null,
                         inviter.username(), inviter.email(),

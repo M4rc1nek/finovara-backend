@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 class NotifyOnAccountDeletedServiceActionTest {
 
     private static final Long USER_ID = 42L;
-    private static final String TOPIC = "activity.settings";
+    private static final String TOPIC = "settings.changed";
 
     @Mock
     private NotificationEmailSettingsRepository notificationEmailSettingsRepository;

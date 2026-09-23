@@ -1,8 +1,10 @@
 package com.finovara.authservice.settings.account.service.profileimage;
 
+import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
 import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
@@ -36,6 +38,7 @@ public class ProfileImageService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final AdditionalAuthorizationService additionalAuthorizationService;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    private final RiskGuardService riskGuardService;
 
     @Value("${application.upload.profile-images-directory}")
     private String profileImagesDirectory;
@@ -44,11 +47,14 @@ public class ProfileImageService {
     private String profileImagesDefaultDirectory;
 
     @Transactional
-    public void uploadProfileImage(MultipartFile file, Long userId, HttpServletRequest request, String authorizationCode) {
+    public void uploadProfileImage(MultipartFile file, Long userId, HttpServletRequest request,
+                                   String authorizationCode, String sourceEventId) {
         additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
-        
+
         User user = userManagerService.getUserByIdOrThrow(userId);
         validateFile(file);
+
+        riskGuardService.guard(userId, RiskTriggerType.PROFILE_IMAGE_CHANGED, user.getEmail(), sourceEventId, request);
 
         String oldFilePath = user.getProfileImagePath();
 
@@ -75,15 +81,17 @@ public class ProfileImageService {
     }
 
     @Transactional
-    public void deleteProfileImage(Long userId, HttpServletRequest request, String authorizationCode) {
+    public void deleteProfileImage(Long userId, HttpServletRequest request, String authorizationCode, String sourceEventId) {
         additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
-        
+
         User user = userManagerService.getUserByIdOrThrow(userId);
         String currentPath = user.getProfileImagePath();
 
         if (currentPath == null || isDefaultProfileImage(currentPath)) {
             throw new IllegalArgumentException("Profile image does not exist or is already default");
         }
+
+        riskGuardService.guard(userId, RiskTriggerType.PROFILE_IMAGE_CHANGED, user.getEmail(), sourceEventId, request);
 
         try {
             if (isLocalProfileImagePath(currentPath)) {
@@ -124,6 +132,6 @@ public class ProfileImageService {
 
     private void publishActivity(Long userId, AccountChangesActivityType type, HttpServletRequest request) {
         String ipAddress = getClientIpAddress(request);
-        kafkaTemplate.send("activity.account-changes", new AccountChangesActivityEvent(userId, type, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
+        kafkaTemplate.send("account.changed", new AccountChangesActivityEvent(userId, type, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
     }
 }

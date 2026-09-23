@@ -138,7 +138,7 @@ class ControlAmountServiceTest {
             assertEquals(BigDecimal.valueOf(100), expenseSettings.getBlockedAmount());
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.settings"), eventCaptor.capture());
+            verify(kafkaTemplate).send(eq("settings.changed"), eventCaptor.capture());
             assertEquals(SettingActivityStatus.ENABLED, eventCaptor.getValue().status());
         }
 
@@ -152,7 +152,7 @@ class ControlAmountServiceTest {
             assertEquals(BigDecimal.valueOf(50), expenseSettings.getBlockedAmount());
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-            verify(kafkaTemplate).send(eq("activity.settings"), eventCaptor.capture());
+            verify(kafkaTemplate).send(eq("settings.changed"), eventCaptor.capture());
             assertEquals(SettingActivityStatus.DISABLED, eventCaptor.getValue().status());
         }
 

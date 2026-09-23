@@ -4,7 +4,7 @@ server:
     enabled: true
     key-store: file:/app/localhost.p12
     key-store-type: PKCS12
-    key-store-password: ${SSL_PASSWORD}
+    key-store-password: ${DEV_SSL_PASSWORD}
     key-alias: 1
 
 application:
@@ -79,6 +79,11 @@ spring:
               predicates:
                 - Path=/api/auth/**,/api/account-management/**,/api/profile-image/**,/profile-images/**,/api/password-reset/**,/api/contact,/oauth2/**,/login/oauth2/**,/api/account-settings/**,/api/security-settings/**,/api/email-change/**,/api/shared-accounts/users/**
 
+            - id: security-monitoring-backend
+              uri: ${SECURITY_MONITORING_BACKEND_URL}
+              predicates:
+                - Path=/api/security-monitoring/**
+
             - id: finance_backend
               uri: ${FINANCE_BACKEND_URL}
               predicates:
@@ -125,6 +130,7 @@ security:
     - /api/contact
     - /oauth2/**
     - /login/oauth2/**
+    - /api/security-monitoring/confirm-email-code/**
     - /internal/**
 
 
@@ -172,3 +178,6 @@ rate-limit:
     - path: /api/security-settings/additional-authorization/request-email-code
       max-requests: 66346 #3
       window-hours: 1
+    - path: /api/security-monitoring/confirm-email-code/**
+      max-requests: 10
+      window-minutes: 15
