@@ -1,5 +1,6 @@
 package com.finovara.securitymonitoring.riskengine.model;
 
+import com.finovara.contracts.securitymonitoring.model.RiskRule;
 import jakarta.persistence.*;
 import lombok.*;
 
