@@ -67,7 +67,7 @@ risk:
     piggy-bank-high-amount: 5000
     piggy-bank-diff-amount: 1000
 
-    expense-high-points: 95 #29
+    expense-high-points: 29
     expense-record-points: 29
     first-transaction-points: 30
     expense-category-points: 10
