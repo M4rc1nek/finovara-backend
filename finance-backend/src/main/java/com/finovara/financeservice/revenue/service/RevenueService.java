@@ -6,7 +6,7 @@ import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundExceptio
 import com.finovara.contracts.model.activity.RevenueActivityType;
 import com.finovara.contracts.model.transaction.RevenueCategory;
 import com.finovara.contracts.outbox.OutboxService;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.mapper.RevenueMapper;
