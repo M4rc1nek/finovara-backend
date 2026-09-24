@@ -1,7 +1,9 @@
 package com.finovara.financeservice.wallet.reservation.service;
 
+import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.reservation.dto.FundReservationDto;
@@ -21,12 +23,15 @@ public class FundReservationService {
 
     private final WalletManagerService walletManagerService;
     private final FundReservationRepository fundReservationRepository;
+    private final AuthBackendClient authBackendClient;
+    private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     @CacheEvict(value = "wallet:user", key = "#userId")
     public Long createReservation(Long userId, FundReservationDto dto) {
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
 
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
         wallet.reserve(dto.amount());
 
         FundReservation reservation = FundReservation.builder()
@@ -42,17 +47,18 @@ public class FundReservationService {
 
     @Transactional
     @CacheEvict(value = "wallet:user", key = "#userId")
-    public void unreserveReservation(Long userId, Long reservationId, UnreserveReservationDto unreserveReservationDto) {
+    public void unreserveReservation(Long userId, Long reservationId, UnreserveReservationDto dto) {
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
         FundReservation reservation = getOwnedReservationOrThrow(reservationId, wallet.getId());
 
-        if (unreserveReservationDto.amount().compareTo(reservation.getAmount()) > 0) {
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
+        if (dto.amount().compareTo(reservation.getAmount()) > 0) {
             throw new InvalidInputException("Cannot unreserve more than reserved amount");
         }
 
-        wallet.unreserve(unreserveReservationDto.amount());
+        wallet.unreserve(dto.amount());
 
-        BigDecimal remaining = reservation.getAmount().subtract(unreserveReservationDto.amount());
+        BigDecimal remaining = reservation.getAmount().subtract(dto.amount());
         reservation.setAmount(remaining);
 
         fundReservationRepository.save(reservation);
@@ -60,10 +66,11 @@ public class FundReservationService {
 
     @Transactional
     @CacheEvict(value = "wallet:user", key = "#userId")
-    public void cancelReservation(Long userId, Long reservationId) {
+    public void cancelReservation(Long userId, Long reservationId, String authorizationCode) {
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
         FundReservation reservation = getOwnedReservationOrThrow(reservationId, wallet.getId());
 
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         wallet.unreserve(reservation.getAmount());
 
         fundReservationRepository.delete(reservation);
