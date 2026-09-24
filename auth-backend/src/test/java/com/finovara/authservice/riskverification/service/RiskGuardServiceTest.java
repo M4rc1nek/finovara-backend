@@ -4,10 +4,10 @@ import com.finovara.authservice.exception.riskverification.precondition.RiskVeri
 import com.finovara.authservice.feignclient.SecurityMonitoringClient;
 import com.finovara.contracts.clientdata.browser.UserBrowser;
 import com.finovara.contracts.clientdata.location.UserLocation;
-import com.finovara.contracts.securitymonitoring.dto.RiskAction;
+import com.finovara.contracts.securitymonitoring.model.RiskAction;
 import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationRequest;
 import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationResponse;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

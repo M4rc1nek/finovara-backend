@@ -1,7 +1,7 @@
 package com.finovara.securitymonitoring.riskengine.model;
 
-import com.finovara.contracts.securitymonitoring.dto.RiskAction;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskAction;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

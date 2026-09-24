@@ -7,7 +7,7 @@ import com.finovara.authservice.settings.account.service.verification.Credential
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

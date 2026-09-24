@@ -5,7 +5,7 @@ import com.finovara.authservice.exception.unauthorized.InvalidCredentialsExcepti
 import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.contracts.user.event.UserCreatedEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.authservice.security.jwt.JwtService;

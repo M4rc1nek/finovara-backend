@@ -1,6 +1,11 @@
 package com.finovara.securitymonitoring.riskengine.service;
 
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.activity.event.securitymonitoring.RiskOperationCreatedEvent;
+import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.securitymonitoring.dto.*;
+import com.finovara.contracts.securitymonitoring.model.RiskAction;
+import com.finovara.contracts.securitymonitoring.model.RiskRule;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.securitymonitoring.accountchange.repository.AccountChangeProfileRepository;
 import com.finovara.securitymonitoring.accountchange.service.AccountChangeRiskService;
 import com.finovara.securitymonitoring.login.repository.LoginProfileRepository;
@@ -8,12 +13,9 @@ import com.finovara.securitymonitoring.login.service.LoginRiskService;
 import com.finovara.securitymonitoring.riskchallenge.service.RiskChallengeService;
 import com.finovara.securitymonitoring.riskengine.config.RiskActionThresholds;
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
-import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationRequest;
-import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationResponse;
-import com.finovara.contracts.securitymonitoring.dto.RiskAction;
 import com.finovara.securitymonitoring.riskengine.model.RiskOperation;
 import com.finovara.securitymonitoring.riskengine.model.RiskRuleCollection;
-import com.finovara.securitymonitoring.riskengine.model.TriggeredRule;
+import com.finovara.contracts.securitymonitoring.dto.TriggeredRule;
 import com.finovara.securitymonitoring.riskengine.repository.RiskOperationRepository;
 import com.finovara.securitymonitoring.transaction.repository.TransactionProfileRepository;
 import com.finovara.securitymonitoring.transaction.service.TransactionRiskService;
@@ -42,6 +44,7 @@ public class RiskEngineService {
     private final RiskOperationRepository riskOperationRepository;
     private final RiskActionThresholds thresholds;
     private final RiskChallengeService riskChallengeService;
+    private final OutboxService outboxService;
 
     @Transactional
     public RiskEvaluationResponse evaluate(RiskEvaluationRequest request) {
@@ -75,7 +78,13 @@ public class RiskEngineService {
                 .userId(request.userId())
                 .build();
 
-        operation.setRiskRuleCollections(buildRuleCollections(triggered, operation));
+        List<RiskRuleCollection> ruleCollections = buildRuleCollections(triggered, operation);
+
+        operation.setRiskRuleCollections(ruleCollections);
+
+        outboxService.save("User", operation.getUserId().toString(), "risk-operation.created",
+                new RiskOperationCreatedEvent(operation.getUserId(), request.sourceEventId(), request.triggerType(), totalScore, action,
+                        LocalDate.now(), LocalDateTime.now(), extractRiskRules(ruleCollections)));
 
         riskOperationRepository.save(operation);
 
@@ -93,6 +102,12 @@ public class RiskEngineService {
                         .scorePerRule(triggeredRule.points())
                         .riskOperation(operation)
                         .build())
+                .toList();
+    }
+
+    private List<RiskRule> extractRiskRules(List<RiskRuleCollection> collections) {
+        return collections.stream()
+                .map(RiskRuleCollection::getRiskRule)
                 .toList();
     }
 

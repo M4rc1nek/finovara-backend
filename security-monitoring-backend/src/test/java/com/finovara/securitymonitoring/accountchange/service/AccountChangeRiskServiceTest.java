@@ -1,12 +1,12 @@
 package com.finovara.securitymonitoring.accountchange.service;
 
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.securitymonitoring.accountchange.config.AccountChangeRiskProperties;
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
-import com.finovara.securitymonitoring.riskengine.model.RiskRule;
-import com.finovara.securitymonitoring.riskengine.model.TriggeredRule;
+import com.finovara.contracts.securitymonitoring.model.RiskRule;
+import com.finovara.contracts.securitymonitoring.dto.TriggeredRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

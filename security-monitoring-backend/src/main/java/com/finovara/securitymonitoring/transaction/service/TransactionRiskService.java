@@ -1,8 +1,8 @@
 package com.finovara.securitymonitoring.transaction.service;
 
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
-import com.finovara.securitymonitoring.riskengine.model.RiskRule;
-import com.finovara.securitymonitoring.riskengine.model.TriggeredRule;
+import com.finovara.contracts.securitymonitoring.model.RiskRule;
+import com.finovara.contracts.securitymonitoring.dto.TriggeredRule;
 import com.finovara.securitymonitoring.transaction.config.TransactionRiskProperties;
 import com.finovara.securitymonitoring.transaction.model.TransactionProfile;
 import lombok.RequiredArgsConstructor;

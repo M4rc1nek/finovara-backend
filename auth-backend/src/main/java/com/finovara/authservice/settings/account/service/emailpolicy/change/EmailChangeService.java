@@ -11,7 +11,7 @@ import com.finovara.authservice.settings.account.service.verification.Credential
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.email.EmailDomainValidator;
 import com.finovara.authservice.util.user.service.UserManagerService;

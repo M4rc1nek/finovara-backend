@@ -4,7 +4,7 @@ import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.notification.event.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.outbox.OutboxService;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;

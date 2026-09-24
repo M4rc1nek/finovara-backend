@@ -1,9 +1,13 @@
 package com.finovara.securitymonitoring.riskengine.service;
 
-import com.finovara.contracts.securitymonitoring.dto.RiskAction;
+import com.finovara.contracts.activity.event.securitymonitoring.RiskOperationCreatedEvent;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationRequest;
 import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationResponse;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.dto.TriggeredRule;
+import com.finovara.contracts.securitymonitoring.model.RiskAction;
+import com.finovara.contracts.securitymonitoring.model.RiskRule;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;
 import com.finovara.securitymonitoring.accountchange.repository.AccountChangeProfileRepository;
 import com.finovara.securitymonitoring.accountchange.service.AccountChangeRiskService;
@@ -14,9 +18,7 @@ import com.finovara.securitymonitoring.riskchallenge.service.RiskChallengeServic
 import com.finovara.securitymonitoring.riskengine.config.RiskActionThresholds;
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
 import com.finovara.securitymonitoring.riskengine.model.RiskOperation;
-import com.finovara.securitymonitoring.riskengine.model.RiskRule;
 import com.finovara.securitymonitoring.riskengine.model.RiskRuleCollection;
-import com.finovara.securitymonitoring.riskengine.model.TriggeredRule;
 import com.finovara.securitymonitoring.riskengine.repository.RiskOperationRepository;
 import com.finovara.securitymonitoring.transaction.model.TransactionProfile;
 import com.finovara.securitymonitoring.transaction.repository.TransactionProfileRepository;
@@ -67,6 +69,9 @@ class RiskEngineServiceTest {
     private static final int AUTHORIZATION_POINTS = 60;
     private static final int FULL_VERIFICATION_POINTS = 90;
 
+    private static final String OUTBOX_AGGREGATE_TYPE = "User";
+    private static final String OUTBOX_EVENT_TYPE = "risk-operation.created";
+
     @Mock
     private TransactionRiskService transactionRiskService;
 
@@ -95,6 +100,9 @@ class RiskEngineServiceTest {
     private RiskChallengeService riskChallengeService;
 
     @Mock
+    private OutboxService outboxService;
+
+    @Mock
     private TransactionProfile transactionProfile;
 
     @Mock
@@ -108,6 +116,9 @@ class RiskEngineServiceTest {
 
     @Captor
     private ArgumentCaptor<RiskContext> contextCaptor;
+
+    @Captor
+    private ArgumentCaptor<RiskOperationCreatedEvent> eventCaptor;
 
     @InjectMocks
     private RiskEngineService riskEngineService;
@@ -136,6 +147,12 @@ class RiskEngineServiceTest {
         when(transactionRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
         when(loginRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
         when(accountChangeRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
+    }
+
+    private void stubNonLoginThresholds() {
+        when(thresholds.getFullVerificationPoints()).thenReturn(FULL_VERIFICATION_POINTS);
+        when(thresholds.getAuthorizationPoints()).thenReturn(AUTHORIZATION_POINTS);
+        when(thresholds.getSoftChallengePoints()).thenReturn(SOFT_CHALLENGE_POINTS);
     }
 
     @Nested
@@ -200,6 +217,24 @@ class RiskEngineServiceTest {
             riskEngineService.evaluate(request);
 
             verifyNoInteractions(transactionRiskService, loginRiskService, accountChangeRiskService, riskChallengeService);
+        }
+
+        @Test
+        void shouldNotSaveOutboxEventWhenSourceEventIdAlreadyProcessed() {
+            RiskEvaluationRequest request = requestWithTriggerType(RiskTriggerType.EXPENSE);
+            RiskOperation existingOperation = RiskOperation.builder()
+                    .id(1L)
+                    .sourceEventId(SOURCE_EVENT_ID)
+                    .triggerType(RiskTriggerType.EXPENSE)
+                    .score(10)
+                    .action(RiskAction.LOG_ONLY)
+                    .userId(USER_ID)
+                    .build();
+            when(riskOperationRepository.findBySourceEventId(SOURCE_EVENT_ID)).thenReturn(Optional.of(existingOperation));
+
+            riskEngineService.evaluate(request);
+
+            verifyNoInteractions(outboxService);
         }
     }
 
@@ -267,9 +302,7 @@ class RiskEngineServiceTest {
 
         @Test
         void shouldResolveSoftChallengeWhenNonLoginScoreReachesSoftChallengeThreshold() {
-            when(thresholds.getFullVerificationPoints()).thenReturn(FULL_VERIFICATION_POINTS);
-            when(thresholds.getAuthorizationPoints()).thenReturn(AUTHORIZATION_POINTS);
-            when(thresholds.getSoftChallengePoints()).thenReturn(SOFT_CHALLENGE_POINTS);
+            stubNonLoginThresholds();
             when(transactionRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of(new TriggeredRule(RiskRule.EXPENSE_RECORD, SOFT_CHALLENGE_POINTS)));
             when(loginRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
             when(accountChangeRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
@@ -282,9 +315,7 @@ class RiskEngineServiceTest {
 
         @Test
         void shouldResolveLogOnlyWhenNonLoginScoreIsBelowAllThresholds() {
-            when(thresholds.getFullVerificationPoints()).thenReturn(FULL_VERIFICATION_POINTS);
-            when(thresholds.getAuthorizationPoints()).thenReturn(AUTHORIZATION_POINTS);
-            when(thresholds.getSoftChallengePoints()).thenReturn(SOFT_CHALLENGE_POINTS);
+            stubNonLoginThresholds();
             when(transactionRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of(new TriggeredRule(RiskRule.EXPENSE_NEW_CATEGORY, SOFT_CHALLENGE_POINTS - 1)));
             when(loginRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
             when(accountChangeRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
@@ -297,9 +328,7 @@ class RiskEngineServiceTest {
 
         @Test
         void shouldResolveNonLoginActionWhenTriggerTypeIsNull() {
-            when(thresholds.getFullVerificationPoints()).thenReturn(FULL_VERIFICATION_POINTS);
-            when(thresholds.getAuthorizationPoints()).thenReturn(AUTHORIZATION_POINTS);
-            when(thresholds.getSoftChallengePoints()).thenReturn(SOFT_CHALLENGE_POINTS);
+            stubNonLoginThresholds();
             stubNoRiskRulesTriggered();
             RiskEvaluationRequest request = requestWithTriggerType(null);
 
@@ -316,9 +345,7 @@ class RiskEngineServiceTest {
         void setUp() {
             when(riskOperationRepository.findBySourceEventId(SOURCE_EVENT_ID)).thenReturn(Optional.empty());
             stubEmptyProfiles();
-            when(thresholds.getFullVerificationPoints()).thenReturn(FULL_VERIFICATION_POINTS);
-            when(thresholds.getAuthorizationPoints()).thenReturn(AUTHORIZATION_POINTS);
-            when(thresholds.getSoftChallengePoints()).thenReturn(SOFT_CHALLENGE_POINTS);
+            stubNonLoginThresholds();
         }
 
         @Test
@@ -333,6 +360,7 @@ class RiskEngineServiceTest {
             assertEquals(0, response.score());
         }
 
+        @Test
         void shouldReturnZeroScoreWhenNoRulesAreTriggered() {
             stubNoRiskRulesTriggered();
             RiskEvaluationRequest request = requestWithTriggerType(RiskTriggerType.EXPENSE);
@@ -406,9 +434,7 @@ class RiskEngineServiceTest {
 
         @Test
         void shouldNotSendEmailCodeWhenActionIsSoftChallenge() {
-            when(thresholds.getFullVerificationPoints()).thenReturn(FULL_VERIFICATION_POINTS);
-            when(thresholds.getAuthorizationPoints()).thenReturn(AUTHORIZATION_POINTS);
-            when(thresholds.getSoftChallengePoints()).thenReturn(SOFT_CHALLENGE_POINTS);
+            stubNonLoginThresholds();
             when(transactionRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of(new TriggeredRule(RiskRule.EXPENSE_RECORD, SOFT_CHALLENGE_POINTS)));
             when(loginRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
             when(accountChangeRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
@@ -426,9 +452,7 @@ class RiskEngineServiceTest {
         @BeforeEach
         void setUp() {
             when(riskOperationRepository.findBySourceEventId(SOURCE_EVENT_ID)).thenReturn(Optional.empty());
-            when(thresholds.getFullVerificationPoints()).thenReturn(FULL_VERIFICATION_POINTS);
-            when(thresholds.getAuthorizationPoints()).thenReturn(AUTHORIZATION_POINTS);
-            when(thresholds.getSoftChallengePoints()).thenReturn(SOFT_CHALLENGE_POINTS);
+            stubNonLoginThresholds();
             stubNoRiskRulesTriggered();
         }
 
@@ -490,9 +514,7 @@ class RiskEngineServiceTest {
         void setUp() {
             when(riskOperationRepository.findBySourceEventId(SOURCE_EVENT_ID)).thenReturn(Optional.empty());
             stubEmptyProfiles();
-            when(thresholds.getFullVerificationPoints()).thenReturn(FULL_VERIFICATION_POINTS);
-            when(thresholds.getAuthorizationPoints()).thenReturn(AUTHORIZATION_POINTS);
-            when(thresholds.getSoftChallengePoints()).thenReturn(SOFT_CHALLENGE_POINTS);
+            stubNonLoginThresholds();
         }
 
         @Test
@@ -563,6 +585,74 @@ class RiskEngineServiceTest {
     }
 
     @Nested
+    class EvaluateOutbox {
+
+        @BeforeEach
+        void setUp() {
+            when(riskOperationRepository.findBySourceEventId(SOURCE_EVENT_ID)).thenReturn(Optional.empty());
+            stubEmptyProfiles();
+            stubNonLoginThresholds();
+        }
+
+        @Test
+        void shouldSaveOutboxEventWithOperationDataWhenNewSourceEventId() {
+            when(transactionRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of(new TriggeredRule(RiskRule.EXPENSE_HIGH, 25)));
+            when(loginRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
+            when(accountChangeRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
+            RiskEvaluationRequest request = requestWithTriggerType(RiskTriggerType.EXPENSE);
+
+            riskEngineService.evaluate(request);
+
+            verify(outboxService, times(1)).save(
+                    eq(OUTBOX_AGGREGATE_TYPE),
+                    eq(USER_ID.toString()),
+                    eq(OUTBOX_EVENT_TYPE),
+                    eventCaptor.capture()
+            );
+            RiskOperationCreatedEvent event = eventCaptor.getValue();
+            assertEquals(USER_ID, event.userId());
+            assertEquals(SOURCE_EVENT_ID, event.sourceEventId());
+            assertEquals(RiskTriggerType.EXPENSE, event.triggerType());
+            assertEquals(25, event.score());
+            assertEquals(RiskAction.LOG_ONLY, event.action());
+        }
+
+        @Test
+        void shouldIncludeTriggeredRulesInOutboxEventWhenRulesAreTriggered() {
+            when(transactionRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of(new TriggeredRule(RiskRule.EXPENSE_HIGH, 10)));
+            when(loginRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of(new TriggeredRule(RiskRule.UNKNOWN_DEVICE, 15)));
+            when(accountChangeRiskService.evaluate(any(RiskContext.class))).thenReturn(List.of());
+            RiskEvaluationRequest request = requestWithTriggerType(RiskTriggerType.EXPENSE);
+
+            riskEngineService.evaluate(request);
+
+            verify(outboxService).save(anyString(), anyString(), anyString(), eventCaptor.capture());
+            assertEquals(List.of(RiskRule.EXPENSE_HIGH, RiskRule.UNKNOWN_DEVICE), eventCaptor.getValue().riskRules());
+        }
+
+        @Test
+        void shouldSaveOutboxEventWithEmptyRulesWhenNoRulesAreTriggered() {
+            stubNoRiskRulesTriggered();
+            RiskEvaluationRequest request = requestWithTriggerType(RiskTriggerType.EXPENSE);
+
+            riskEngineService.evaluate(request);
+
+            verify(outboxService).save(anyString(), anyString(), anyString(), eventCaptor.capture());
+            assertEquals(0, eventCaptor.getValue().score());
+            assertTrue(eventCaptor.getValue().riskRules().isEmpty());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenOutboxServiceThrowsException() {
+            stubNoRiskRulesTriggered();
+            doThrow(new RuntimeException("outbox failure")).when(outboxService).save(anyString(), anyString(), anyString(), any());
+            RiskEvaluationRequest request = requestWithTriggerType(RiskTriggerType.EXPENSE);
+
+            assertThrows(RuntimeException.class, () -> riskEngineService.evaluate(request));
+        }
+    }
+
+    @Nested
     class EvaluateExceptionPropagation {
 
         @BeforeEach
@@ -581,9 +671,7 @@ class RiskEngineServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRiskOperationRepositorySaveThrowsException() {
-            when(thresholds.getFullVerificationPoints()).thenReturn(FULL_VERIFICATION_POINTS);
-            when(thresholds.getAuthorizationPoints()).thenReturn(AUTHORIZATION_POINTS);
-            when(thresholds.getSoftChallengePoints()).thenReturn(SOFT_CHALLENGE_POINTS);
+            stubNonLoginThresholds();
             stubNoRiskRulesTriggered();
             doThrow(new RuntimeException("persistence failure")).when(riskOperationRepository).save(any(RiskOperation.class));
             RiskEvaluationRequest request = requestWithTriggerType(RiskTriggerType.EXPENSE);

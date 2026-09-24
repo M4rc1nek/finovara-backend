@@ -9,7 +9,7 @@ import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementE
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
 import com.finovara.contracts.outbox.OutboxService;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.mapper.ExpenseMapper;

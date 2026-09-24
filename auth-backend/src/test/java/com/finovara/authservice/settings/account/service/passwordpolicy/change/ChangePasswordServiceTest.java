@@ -9,7 +9,7 @@ import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

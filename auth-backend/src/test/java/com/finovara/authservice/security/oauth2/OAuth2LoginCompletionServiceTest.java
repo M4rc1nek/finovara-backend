@@ -10,7 +10,7 @@ import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

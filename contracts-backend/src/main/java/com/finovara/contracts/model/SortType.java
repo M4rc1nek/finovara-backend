@@ -28,6 +28,21 @@ public enum SortType {
         public Pageable getPageable(int pageSize) {
             return PageRequest.of(0, pageSize, Sort.by("amount").ascending());
         }
+    },
+    SCORE_ASC {
+        @Override
+        public Pageable getPageable(int pageSize){
+            return PageRequest.of(0, pageSize, Sort.by("score").ascending());
+
+        }
+    },
+
+    SCORE_DESC {
+        @Override
+        public Pageable getPageable(int pageSize) {
+            return PageRequest.of(0, pageSize, Sort.by("score").descending());
+
+        }
     };
 
     public abstract Pageable getPageable(int pageSize);

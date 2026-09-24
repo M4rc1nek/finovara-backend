@@ -1,6 +1,6 @@
 package com.finovara.authservice.exception.riskverification.precondition;
 
-import com.finovara.contracts.securitymonitoring.dto.RiskAction;
+import com.finovara.contracts.securitymonitoring.model.RiskAction;
 import lombok.Getter;
 
 @Getter

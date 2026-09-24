@@ -4,7 +4,7 @@ import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 
 import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
 import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;

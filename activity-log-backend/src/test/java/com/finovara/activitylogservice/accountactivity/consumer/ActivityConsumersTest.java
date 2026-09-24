@@ -1,5 +1,6 @@
-package com.finovara.activitylogservice.kafka;
+package com.finovara.activitylogservice.accountactivity.consumer;
 
+import com.finovara.activitylogservice.activitylog.accountactivity.consumer.ActivityConsumers;
 import com.finovara.activitylogservice.activitylog.accountactivity.expense.service.ExpenseActivityService;
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.service.LimitActivityService;
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.service.PiggyBankActivityService;
