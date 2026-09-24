@@ -1,6 +1,8 @@
 package com.finovara.contracts.securitymonitoring.dto;
 
 
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
+
 import java.math.BigDecimal;
 
 public record RiskEvaluationRequest(
