@@ -1,6 +1,6 @@
-package com.finovara.securitymonitoring.riskengine.model;
+package com.finovara.contracts.securitymonitoring.dto;
 
-import com.finovara.contracts.securitymonitoring.dto.RiskRule;
+import com.finovara.contracts.securitymonitoring.model.RiskRule;
 
 public record TriggeredRule(
         RiskRule rule,
