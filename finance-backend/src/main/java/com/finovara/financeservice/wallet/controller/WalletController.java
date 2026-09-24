@@ -33,8 +33,8 @@ public class WalletController {
     }
 
     @PatchMapping("/fund-reservation/cancel/{reservationId}")
-    public ResponseEntity<Void> cancelReservation(@PathVariable Long reservationId) {
-        fundReservationService.cancelReservation(SecurityUtils.getCurrentUserId(), reservationId);
+    public ResponseEntity<Void> cancelReservation(@PathVariable Long reservationId, @RequestParam(required = false) String authorizationCode) {
+        fundReservationService.cancelReservation(SecurityUtils.getCurrentUserId(), reservationId, authorizationCode);
         return ResponseEntity.noContent().build();
     }
 }
