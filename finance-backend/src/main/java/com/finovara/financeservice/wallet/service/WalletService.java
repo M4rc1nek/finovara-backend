@@ -67,7 +67,7 @@ public class WalletService implements UserDataDeletable {
 
         List<FundReservationDto> reservations  = fundReservationRepository.findByWalletId(wallet.getId())
                 .stream()
-                .map(fundReservation -> new FundReservationDto(fundReservation.getId(), fundReservation.getCategory(), fundReservation.getAmount())).toList();
+                .map(fundReservation -> new FundReservationDto(fundReservation.getId(), fundReservation.getCategory(), fundReservation.getAmount(),null)).toList();
 
         return new WalletResponse(wallet.getId(), userId, wallet.getBalance(), wallet.getReservedAmount(), available, reservations);
     }
