@@ -7,7 +7,7 @@ import com.finovara.contracts.notification.event.piggybank.PiggyBankProgressEven
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.model.activity.PiggyBankActivityType;
 import com.finovara.contracts.outbox.OutboxService;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.riskverification.service.RiskGuardService;
