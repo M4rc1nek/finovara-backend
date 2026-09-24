@@ -1,4 +1,4 @@
-package com.finovara.contracts.securitymonitoring.dto;
+package com.finovara.contracts.securitymonitoring.model;
 
 public enum RiskRule {
 
