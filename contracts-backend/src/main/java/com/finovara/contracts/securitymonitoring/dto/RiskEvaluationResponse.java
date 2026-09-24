@@ -1,5 +1,6 @@
 package com.finovara.contracts.securitymonitoring.dto;
 
+import com.finovara.contracts.securitymonitoring.model.RiskAction;
 
 public record RiskEvaluationResponse(
         Long riskOperationId,
