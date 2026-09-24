@@ -14,7 +14,7 @@ import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundExceptio
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.contracts.notification.event.SendEmailEvent;
 import com.finovara.contracts.outbox.OutboxService;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
