@@ -52,6 +52,8 @@ scheduler:
       delete-cron: "0 25 0 1 * ?"
     shared-account:
       delete-cron: "0 30 0 1 * ?"
+    risk-operation:
+      delete-cron: "0 5 0 ? * 1"
 
 user-activity:
   login:
@@ -70,6 +72,8 @@ user-activity:
     page-size: 100
   shared-account:
     page-size: 50
+  risk-operation:
+    page-size: 30
 
 management:
   server:
