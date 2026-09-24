@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 public record FundReservationDto(
         Long id,
         ExpenseCategory category,
-        BigDecimal amount
+        BigDecimal amount,
+        String authorizationCode
 ) {
 }
