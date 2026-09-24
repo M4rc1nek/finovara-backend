@@ -2,7 +2,7 @@ package com.finovara.securitymonitoring.riskengine.dto;
 
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;
 import com.finovara.securitymonitoring.login.model.LoginProfile;
-import com.finovara.contracts.securitymonitoring.dto.RiskTriggerType;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.securitymonitoring.transaction.model.TransactionProfile;
 
 import java.math.BigDecimal;
