@@ -83,4 +83,3 @@ The platform is built as a set of independent services, each responsible for a s
 - **Docker** and **Docker Compose** - containerization and local infrastructure
 - **Prometheus** - metrics collection
 - **Grafana** - dashboards and visualization
-- **SpringDoc OpenAPI** - API documentation with Swagger UI
