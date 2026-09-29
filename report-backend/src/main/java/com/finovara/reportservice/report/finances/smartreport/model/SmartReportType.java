@@ -1,4 +1,4 @@
-package com.finovara.reportservice.report.smartreport.model;
+package com.finovara.reportservice.report.finances.smartreport.model;
 
 public enum SmartReportType {
     MONTH_SPENDING,

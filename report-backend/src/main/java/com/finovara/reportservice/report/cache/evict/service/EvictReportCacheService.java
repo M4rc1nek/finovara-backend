@@ -14,16 +14,25 @@ public class EvictReportCacheService {
 
     private final RedisCacheEvictor redisCacheEvictor;
 
-    public void evictDataForUser(Long userId) {
+    public void evictFinancialDataForUser(Long userId) {
         redisCacheEvictor.evictByPatterns(List.of(
-                "report:*:" + userId + "*",
-                "report:*::" + userId
+                "financial-report:*:" + userId + "*",
+                "financial-report:*::" + userId
+        ));
+    }
+
+    public void evictSecurityDataForUser(Long userId) {
+        redisCacheEvictor.evictByPatterns(List.of(
+                "security-report:*:" + userId + "*",
+                "security-report:*:" + userId
+
         ));
     }
 
     @KafkaListener(topics = "user-account.deleted")
-    public void deleteReportHistoryCache(UserAccountDeletedEvent event){
-        evictDataForUser(event.userId());
+    public void deleteReportHistoryCache(UserAccountDeletedEvent event) {
+        evictFinancialDataForUser(event.userId());
+        evictSecurityDataForUser(event.userId());
     }
 
 }

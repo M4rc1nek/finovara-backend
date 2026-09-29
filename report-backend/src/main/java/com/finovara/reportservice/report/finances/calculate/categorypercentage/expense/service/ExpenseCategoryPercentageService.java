@@ -18,7 +18,7 @@ public class ExpenseCategoryPercentageService {
 
     private final FinanceBackendReportClient reportClient;
 
-    @Cacheable(value = "report:expensePercentageByCategory", key = "#userId + ':' + #category + ':' + #periodType")
+    @Cacheable(value = "financial-report:expensePercentageByCategory", key = "#userId + ':' + #category + ':' + #periodType")
     public ExpenseCategoryPercentageDto getExpensePercentageByCategoryReport(Long userId, ExpenseCategory category, PeriodType periodType) {
 
         LocalDate to = LocalDate.now();

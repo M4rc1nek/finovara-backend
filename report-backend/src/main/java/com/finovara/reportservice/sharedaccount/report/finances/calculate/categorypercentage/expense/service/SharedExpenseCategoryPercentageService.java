@@ -18,7 +18,7 @@ public class SharedExpenseCategoryPercentageService {
 
     private final FinanceBackendSharedReportClient reportClient;
 
-    @Cacheable(value = "report:sharedExpensePercentageByCategory", key = "#ownerId + ':' + #memberId + ':' + #category + ':' + #periodType")
+    @Cacheable(value = "financial-report:sharedExpensePercentageByCategory", key = "#ownerId + ':' + #memberId + ':' + #category + ':' + #periodType")
     public SharedExpenseCategoryPercentageDto getExpensePercentageByCategoryReport(Long ownerId, Long memberId, ExpenseCategory category, PeriodType periodType) {
 
         LocalDate to = LocalDate.now();

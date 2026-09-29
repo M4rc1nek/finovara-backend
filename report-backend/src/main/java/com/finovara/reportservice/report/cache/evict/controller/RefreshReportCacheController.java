@@ -15,9 +15,15 @@ public class RefreshReportCacheController {
 
     private final EvictReportCacheService evictReportCacheService;
 
-    @PostMapping("/refresh")
-    public ResponseEntity<Void> refreshReportData(@RequestHeader("X-User-Id") Long userId) {
-        evictReportCacheService.evictDataForUser(userId);
+    @PostMapping("/refresh-financial")
+    public ResponseEntity<Void> refreshFinancialReportData(@RequestHeader("X-User-Id") Long userId) {
+        evictReportCacheService.evictFinancialDataForUser(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/refresh-security")
+    public ResponseEntity<Void> refreshSecurityReportData(@RequestHeader("X-User-Id") Long userId) {
+        evictReportCacheService.evictSecurityDataForUser(userId);
         return ResponseEntity.ok().build();
     }
 }

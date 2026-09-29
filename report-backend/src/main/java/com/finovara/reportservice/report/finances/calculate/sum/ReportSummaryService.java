@@ -18,7 +18,7 @@ public class ReportSummaryService {
     private final FinanceBackendReportClient reportClient;
     private final Clock clock;
 
-    @Cacheable(value = "report:sumExpense", key = "#userId + ':' + #periodType")
+    @Cacheable(value = "financial-report:sumExpense", key = "#userId + ':' + #periodType")
     public ReportDto sumExpense(Long userId, PeriodType periodType) {
         LocalDate to = LocalDate.now(clock);
         LocalDate from = periodType.getStartDate(to);
@@ -26,7 +26,7 @@ public class ReportSummaryService {
         return new ReportDto(periodType, amount);
     }
 
-    @Cacheable(value = "report:sumRevenue", key = "#userId + ':' + #periodType")
+    @Cacheable(value = "financial-report:sumRevenue", key = "#userId + ':' + #periodType")
     public ReportDto sumRevenue(Long userId, PeriodType periodType) {
         LocalDate to = LocalDate.now(clock);
         LocalDate from = periodType.getStartDate(to);
@@ -34,12 +34,12 @@ public class ReportSummaryService {
         return new ReportDto(periodType, amount);
     }
 
-    @Cacheable(value = "report:sumAllExpense", key = "#userId")
+    @Cacheable(value = "financial-report:sumAllExpense", key = "#userId")
     public BigDecimal sumAllExpenses(Long userId) {
         return reportClient.sumAllExpenses(userId);
     }
 
-    @Cacheable(value = "report:sumAllRevenue", key = "#userId")
+    @Cacheable(value = "financial-report:sumAllRevenue", key = "#userId")
     public BigDecimal sumAllRevenues(Long userId) {
         return reportClient.sumAllRevenues(userId);
     }

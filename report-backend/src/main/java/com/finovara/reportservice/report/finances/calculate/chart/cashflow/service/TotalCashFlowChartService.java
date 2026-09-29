@@ -17,7 +17,7 @@ public class TotalCashFlowChartService {
     private final FinanceBackendReportClient reportClient;
     private final CashFlowChartService cashFlowChartService;
 
-    @Cacheable(value = "report:totalCashFlowChart", key = "#userId")
+    @Cacheable(value = "financial-report:totalCashFlowChart", key = "#userId")
     public List<CashFlowDto> getCashFlowChart(Long userId) {
         return getCashFlowChart(userId, null);
     }

@@ -23,7 +23,7 @@ public class HighestRevenueService {
     @Value("${revenues.highest.page-size}")
     private int pageSize;
 
-    @Cacheable(value = "report:highestRevenue", key = "#userId + ':' + #periodType")
+    @Cacheable(value = "financial-report:highestRevenue", key = "#userId + ':' + #periodType")
     public List<HighestRevenueDto> getHighestRevenue(Long userId, PeriodType periodType) {
         if (periodType == null) {
             throw new InvalidInputException("Unsupported report period type.");

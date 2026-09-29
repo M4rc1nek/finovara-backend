@@ -1,10 +1,10 @@
-package com.finovara.reportservice.report.smartreport.service.handler;
+package com.finovara.reportservice.report.finances.smartreport.service.handler;
 
 import com.finovara.contracts.percentage.CalculatePercentage;
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
-import com.finovara.reportservice.report.smartreport.model.SmartReportType;
-import com.finovara.reportservice.report.smartreport.service.SmartReportHandler;
-import com.finovara.reportservice.report.smartreport.service.loader.SmartReportTemplateService;
+import com.finovara.reportservice.report.finances.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.finances.smartreport.service.SmartReportHandler;
+import com.finovara.reportservice.report.finances.smartreport.service.loader.SmartReportTemplateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

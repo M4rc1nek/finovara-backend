@@ -120,8 +120,6 @@ scheduler:
     invitation:
       expire-cron: "0 0 * * * ?"
 
-
-
 security:
   whitelist:
     - /api/auth/**
@@ -136,7 +134,6 @@ security:
   cors:
     allowed-origins:
       - https://localhost:5173
-
 
 management:
   server:

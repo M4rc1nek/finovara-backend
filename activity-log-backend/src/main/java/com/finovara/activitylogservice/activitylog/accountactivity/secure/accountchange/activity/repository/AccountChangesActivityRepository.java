@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AccountChangesActivityRepository extends JpaRepository<AccountChangesActivity, Long> {
@@ -45,6 +46,39 @@ public interface AccountChangesActivityRepository extends JpaRepository<AccountC
               AND u.createdAt <= :to
             """)
     LocalDateTime findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(Long userId, AccountChangesActivityType type, LocalDateTime from, LocalDateTime to);
+
+    @Query("""
+        SELECT COUNT(a)
+        FROM AccountChangesActivity a
+        WHERE a.userId = :userId
+          AND a.type = :type
+          AND a.createdAt >= :from
+          AND a.createdAt < :to
+        """)
+    long countByUserIdAndTypeAndCreatedAtBetween(Long userId, AccountChangesActivityType type, LocalDateTime from, LocalDateTime to);
+
+    @Query("""
+        SELECT a
+        FROM AccountChangesActivity a
+        WHERE a.userId = :userId
+          AND a.type = :type
+          AND a.createdAt >= :from
+          AND a.createdAt < :to
+        ORDER BY a.createdAt DESC
+        """)
+    List<AccountChangesActivity> findActivities(Long userId, AccountChangesActivityType type, LocalDateTime from, LocalDateTime to, Pageable pageable);
+
+    @Query("""
+        SELECT a
+        FROM AccountChangesActivity a
+        WHERE a.userId = :userId
+          AND a.type IN (
+              com.finovara.contracts.model.activity.AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_ENABLED,
+              com.finovara.contracts.model.activity.AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_DISABLED
+          )
+        ORDER BY a.createdAt DESC
+        """)
+    List<AccountChangesActivity> findAuthorizationStatusChanges(Long userId, Pageable pageable);
 
     @Query("SELECT u FROM AccountChangesActivity u WHERE u.userId = :userId ORDER BY u.id")
     List<AccountChangesActivity> findFewByUserId(Long userId, Pageable pageable);

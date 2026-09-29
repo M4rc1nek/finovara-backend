@@ -16,7 +16,7 @@ public class ReportAverageService {
 
     private final FinanceBackendReportClient reportClient;
 
-    @Cacheable(value = "report:avgExpense", key = "#userId + ':' + #periodType")
+    @Cacheable(value = "financial-report:avgExpense", key = "#userId + ':' + #periodType")
     public ReportDto calculateAverageExpense(Long userId, PeriodType periodType) {
         LocalDate to = LocalDate.now();
         LocalDate from = periodType.getStartDate(to);
@@ -24,7 +24,7 @@ public class ReportAverageService {
         return new ReportDto(periodType, amount);
     }
 
-    @Cacheable(value = "report:avgRevenue", key = "#userId + ':' + #periodType")
+    @Cacheable(value = "financial-report:avgRevenue", key = "#userId + ':' + #periodType")
     public ReportDto calculateAverageRevenue(Long userId, PeriodType periodType) {
         LocalDate to = LocalDate.now();
         LocalDate from = periodType.getStartDate(to);

@@ -18,7 +18,7 @@ public class SharedReportSummaryService {
     private final FinanceBackendSharedReportClient reportClient;
     private final Clock clock;
 
-    @Cacheable(value = "report:sharedSumExpense", key = "#ownerId + ':' + #memberId + ':' + #periodType")
+    @Cacheable(value = "financial-report:sharedSumExpense", key = "#ownerId + ':' + #memberId + ':' + #periodType")
     public ReportDto sumExpense(Long ownerId, Long memberId, PeriodType periodType) {
         LocalDate to = LocalDate.now(clock);
         LocalDate from = periodType.getStartDate(to);
@@ -26,7 +26,7 @@ public class SharedReportSummaryService {
         return new ReportDto(periodType, amount);
     }
 
-    @Cacheable(value = "report:sharedSumRevenue", key = "#ownerId + ':' + #memberId + ':' + #periodType")
+    @Cacheable(value = "financial-report:sharedSumRevenue", key = "#ownerId + ':' + #memberId + ':' + #periodType")
     public ReportDto sumRevenue(Long ownerId, Long memberId, PeriodType periodType) {
         LocalDate to = LocalDate.now(clock);
         LocalDate from = periodType.getStartDate(to);
@@ -34,12 +34,12 @@ public class SharedReportSummaryService {
         return new ReportDto(periodType, amount);
     }
 
-    @Cacheable(value = "report:sharedSumAllExpense", key = "#ownerId + ':' + #memberId")
+    @Cacheable(value = "financial-report:sharedSumAllExpense", key = "#ownerId + ':' + #memberId")
     public BigDecimal sumAllExpenses(Long ownerId, Long memberId) {
         return reportClient.sumAllExpenses(ownerId, memberId);
     }
 
-    @Cacheable(value = "report:sharedSumAllRevenue", key = "#ownerId + ':' + #memberId")
+    @Cacheable(value = "financial-report:sharedSumAllRevenue", key = "#ownerId + ':' + #memberId")
     public BigDecimal sumAllRevenues(Long ownerId, Long memberId) {
         return reportClient.sumAllRevenues(ownerId, memberId);
     }
