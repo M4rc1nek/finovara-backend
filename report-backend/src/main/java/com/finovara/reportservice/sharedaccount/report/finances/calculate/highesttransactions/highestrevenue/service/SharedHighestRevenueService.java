@@ -23,7 +23,7 @@ public class SharedHighestRevenueService {
     @Value("${shared.revenues.highest.page-size}")
     private int pageSize;
 
-    @Cacheable(value = "report:sharedHighestRevenue", key = "#ownerId + ':' + #memberId + ':' + #periodType")
+    @Cacheable(value = "financial-report:sharedHighestRevenue", key = "#ownerId + ':' + #memberId + ':' + #periodType")
     public List<HighestRevenueDto> getHighestRevenue(Long ownerId, Long memberId, PeriodType periodType) {
         if (periodType == null) {
             throw new InvalidInputException("Unsupported report period type.");
