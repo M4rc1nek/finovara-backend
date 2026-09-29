@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.internal.security.report.dto.countchart;
+package com.finovara.contracts.report.dto;
 
 import java.math.BigDecimal;
 
