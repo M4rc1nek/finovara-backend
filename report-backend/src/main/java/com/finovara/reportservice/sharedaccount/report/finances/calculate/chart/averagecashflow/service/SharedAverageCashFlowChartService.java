@@ -17,7 +17,7 @@ public class SharedAverageCashFlowChartService {
     private final FinanceBackendSharedReportClient reportClient;
     private final SharedCashFlowChartService cashFlowChartService;
 
-    @Cacheable(value = "report:sharedAverageCashFlowChart", key = "#ownerId + ':' + #memberId")
+    @Cacheable(value = "financial-report:sharedAverageCashFlowChart", key = "#ownerId + ':' + #memberId")
     public List<SharedCashFlowDto> getAverageCashFlowChart(Long ownerId, Long memberId) {
         List<DailyCashDto> expenses = reportClient.expensesAvgGroupedByDate(ownerId, memberId);
         List<DailyCashDto> revenues = reportClient.revenuesAvgGroupedByDate(ownerId, memberId);
