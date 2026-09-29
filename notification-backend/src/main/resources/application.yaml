@@ -70,10 +70,6 @@ finance-backend:
 activity-log-backend:
   url: ${ACTIVITY_LOG_BACKEND_URL}
 
-
-
-
-
 logging:
   level:
     root: INFO
