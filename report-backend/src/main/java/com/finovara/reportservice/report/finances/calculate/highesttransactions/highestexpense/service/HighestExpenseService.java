@@ -23,7 +23,7 @@ public class HighestExpenseService {
     @Value("${expenses.highest.page-size}")
     private int pageSize;
 
-    @Cacheable(value = "report:highestExpense", key = "#userId + ':' + #periodType")
+    @Cacheable(value = "financial-report:highestExpense", key = "#userId + ':' + #periodType")
     public List<HighestExpenseDto> getHighestExpense(Long userId, PeriodType periodType) {
         if (periodType == null) {
             throw new InvalidInputException("Unsupported report period type.");
