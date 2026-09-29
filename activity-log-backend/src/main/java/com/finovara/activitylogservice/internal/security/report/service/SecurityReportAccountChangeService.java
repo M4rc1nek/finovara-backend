@@ -1,18 +1,21 @@
 package com.finovara.activitylogservice.internal.security.report.service;
 
+import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.repository.AccountChangesActivityRepository;
 import com.finovara.activitylogservice.internal.security.report.dto.ReportAccountChangeDto;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class SecurityReportCredentialsService {
+public class SecurityReportAccountChangeService {
 
     private final AccountChangesActivityRepository accountChangesActivityRepository;
 
@@ -36,14 +39,24 @@ public class SecurityReportCredentialsService {
     }
 
     private LocalDate findLastChangeDate(Long userId, AccountChangesActivityType type, LocalDateTime from, LocalDateTime to) {
-        return accountChangesActivityRepository.findFirstActivity(userId, type, from, to)
+        return findLastActivity(userId, type, from, to)
                 .map(activity -> activity.getCreatedAt().toLocalDate())
                 .orElse(null);
     }
 
+    private Optional<AccountChangesActivity> findLastActivity(Long userId, AccountChangesActivityType type, LocalDateTime from, LocalDateTime to) {
+        return accountChangesActivityRepository.findActivities(userId, type, from, to, PageRequest.of(0, 1))
+                .stream().findFirst();
+    }
+
     private boolean isAdditionalAuthorizationEnabled(Long userId) {
-        return accountChangesActivityRepository.findFirstAuthorizationStatusChange(userId)
+        return findLastAuthorizationStatusChange(userId)
                 .map(activity -> activity.getType() == AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_ENABLED)
                 .orElse(false);
+    }
+
+    private Optional<AccountChangesActivity> findLastAuthorizationStatusChange(Long userId) {
+        return accountChangesActivityRepository.findAuthorizationStatusChanges(userId, PageRequest.of(0, 1))
+                .stream().findFirst();
     }
 }
