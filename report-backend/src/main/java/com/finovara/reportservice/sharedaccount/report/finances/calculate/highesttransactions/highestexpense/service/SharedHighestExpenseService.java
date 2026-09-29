@@ -23,7 +23,7 @@ public class SharedHighestExpenseService {
     @Value("${shared.expenses.highest.page-size}")
     private int pageSize;
 
-    @Cacheable(value = "report:sharedHighestExpense", key = "#ownerId + ':' + #memberId + ':' + #periodType")
+    @Cacheable(value = "financial-report:sharedHighestExpense", key = "#ownerId + ':' + #memberId + ':' + #periodType")
     public List<HighestExpenseDto> getHighestExpense(Long ownerId, Long memberId, PeriodType periodType) {
         if (periodType == null) {
             throw new InvalidInputException("Unsupported report period type.");
