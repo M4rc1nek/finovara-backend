@@ -1,17 +1,24 @@
-package com.finovara.activitylogservice.internal.security.report.dto;
+package com.finovara.contracts.report.dto;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 public record SecurityReportDto(
         Long userId,
         long successfulLogins,
         long failedLogins,
-        List<String> locations,
-        List<String> browsers,
+        long knownDevicesCount,
+        String firstLoginFrom,
+        LocalDate firstLoginAt,
+        String lastLoginFrom,
+        LocalDate lastLoginAt,
+        int distinctLocationsCount,
+        List<ShareStatDto> locationShares,
+        List<ShareStatDto> browserShares,
         long passwordChanges,
-        LocalDateTime lastPasswordChangeDate,
+        LocalDate lastPasswordChangeDate,
         long emailChanges,
-        LocalDateTime lastEmailChangeDate
+        LocalDate lastEmailChangeDate,
+        boolean additionalAuthorizationEnabled
 ) {
 }
