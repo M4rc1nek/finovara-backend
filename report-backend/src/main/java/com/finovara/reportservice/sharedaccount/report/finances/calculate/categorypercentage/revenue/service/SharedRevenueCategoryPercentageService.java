@@ -18,7 +18,7 @@ public class SharedRevenueCategoryPercentageService {
 
     private final FinanceBackendSharedReportClient reportClient;
 
-    @Cacheable(value = "report:sharedRevenuePercentageByCategory", key = "#ownerId + ':' + #memberId + ':' + #category + ':' + #periodType")
+    @Cacheable(value = "financial-report:sharedRevenuePercentageByCategory", key = "#ownerId + ':' + #memberId + ':' + #category + ':' + #periodType")
     public SharedRevenueCategoryPercentageDto getRevenuePercentageByCategoryReport(Long ownerId, Long memberId, RevenueCategory category, PeriodType periodType) {
 
         LocalDate to = LocalDate.now();
