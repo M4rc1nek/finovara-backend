@@ -1,8 +1,9 @@
 package com.finovara.reportservice.report.smartreport.service.handler;
 
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
-import com.finovara.reportservice.report.smartreport.model.SmartReportType;
-import com.finovara.reportservice.report.smartreport.service.loader.SmartReportTemplateService;
+import com.finovara.reportservice.report.finances.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.finances.smartreport.service.handler.SavingsRateHandler;
+import com.finovara.reportservice.report.finances.smartreport.service.loader.SmartReportTemplateService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
