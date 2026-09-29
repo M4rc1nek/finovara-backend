@@ -19,13 +19,16 @@ spring:
   cache:
     type: redis
     redis:
-      time-to-live: 180000  # 3 minutes
+      time-to-live: 1200000  # 20 minutes
       cache-null-values: false
   kafka:
     bootstrap-servers: finovara-kafka:9092
 
 finance-backend:
-  url: ${FINANCE_BACKEND_URL:https://finovara-finance-app:8087}
+  url: ${FINANCE_BACKEND_URL}
+
+activity-log-backend:
+  url: ${ACTIVITY_LOG_BACKEND_URL}
 
 expenses:
   highest:
