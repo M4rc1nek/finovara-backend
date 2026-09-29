@@ -88,8 +88,6 @@ spring:
               uri: ${FINANCE_BACKEND_URL}
               predicates:
                 - Path=/**
-
-
 management:
   server:
     port: 9100
@@ -157,7 +155,10 @@ rate-limit:
     - path: /api/auth/login
       max-requests: 555 # 5
       window-hours: 1
-    - path: /api/report-cache/refresh
+    - path: /api/report-cache/refresh-financial
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/report-cache/refresh-security
       max-requests: 1
       window-minutes: 5
     - path: /api/revenue-history-cache/refresh
@@ -176,7 +177,7 @@ rate-limit:
       max-requests: 1
       window-hours: 24
     - path: /api/security-settings/additional-authorization/request-email-code
-      max-requests: 66346 #3
+      max-requests: 3
       window-hours: 1
     - path: /api/security-monitoring/confirm-email-code/**
       max-requests: 10
