@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.internal.security.digest.dto;
+package com.finovara.activitylogservice.internal.security.mainaccount.digest.dto;
 
 import java.util.List;
 
