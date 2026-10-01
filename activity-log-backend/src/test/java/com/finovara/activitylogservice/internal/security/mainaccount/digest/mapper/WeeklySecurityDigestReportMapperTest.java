@@ -1,7 +1,8 @@
-package com.finovara.activitylogservice.internal.security.digest.mapper;
+package com.finovara.activitylogservice.internal.security.mainaccount.digest.mapper;
 
-import com.finovara.activitylogservice.internal.security.digest.dto.AccountChangesDigestSummaryDto;
-import com.finovara.activitylogservice.internal.security.digest.dto.LoginDigestSummaryDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangesDigestSummaryDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.LoginDigestSummaryDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.digest.mapper.WeeklySecurityDigestReportMapper;
 import com.finovara.contracts.notification.email.digest.report.security.WeeklySecurityDigestReportDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
