@@ -1,4 +1,4 @@
-package com.finovara.contracts.report.dto;
+package com.finovara.contracts.report.dto.security;
 
 import java.time.LocalDate;
 import java.util.List;
