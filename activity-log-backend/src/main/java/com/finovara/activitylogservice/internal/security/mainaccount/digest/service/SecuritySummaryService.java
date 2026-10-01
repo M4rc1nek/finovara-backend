@@ -1,9 +1,9 @@
-package com.finovara.activitylogservice.internal.security.digest.service;
+package com.finovara.activitylogservice.internal.security.mainaccount.digest.service;
 
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.repository.AccountChangesActivityRepository;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
-import com.finovara.activitylogservice.internal.security.digest.dto.AccountChangesDigestSummaryDto;
-import com.finovara.activitylogservice.internal.security.digest.dto.LoginDigestSummaryDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangesDigestSummaryDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.LoginDigestSummaryDto;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
 import lombok.RequiredArgsConstructor;
