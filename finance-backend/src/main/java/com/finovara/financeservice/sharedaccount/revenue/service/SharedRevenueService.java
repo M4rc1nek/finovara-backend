@@ -1,6 +1,8 @@
 package com.finovara.financeservice.sharedaccount.revenue.service;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.finance.event.sharedaccount.finance.SharedAccountRevenueActivityEvent;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,8 +35,9 @@ public class SharedRevenueService {
     private final SharedWalletService sharedWalletService;
     private final SharedRevenueManagerService sharedRevenueManagerService;
     private final AuthBackendClient authBackendClient;
+    private final OutboxService outboxService;
     @Transactional
-    public SharedRevenueResponse addSharedRevenue(SharedRevenueDto sharedRevenueDto, Long userId) {
+    public SharedRevenueResponse addSharedRevenue(SharedRevenueDto sharedRevenueDto, Long userId)  {
         SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
         String createdByUsername = authBackendClient.getUsername(userId);
 
@@ -48,8 +52,12 @@ public class SharedRevenueService {
                 .build();
 
         sharedWalletService.addBalanceToWallet(userId, revenue.getAmount());
-        sharedRevenueRepository.save(revenue);
+        SharedRevenue saved = sharedRevenueRepository.save(revenue);
 
+        outboxService.save("SharedAccountRevenue", saved.getId().toString(), "shared-account.revenue.created",
+                new SharedAccountRevenueActivityEvent(
+                        sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId,
+                        saved.getId(), saved.getAmount(), sharedRevenueDto.category().name(), LocalDateTime.now()));
         return new SharedRevenueResponse(revenue.getId(), userId, createdByUsername);
     }
 

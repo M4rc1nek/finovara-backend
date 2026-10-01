@@ -1,7 +1,9 @@
 package com.finovara.reportservice.feignclient;
 
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.report.dto.SecurityReportDto;
+import com.finovara.contracts.report.dto.security.SecurityReportDto;
+import com.finovara.contracts.report.dto.security.SharedAccountSecurityOverviewDto;
+import com.finovara.contracts.report.dto.security.SharedAccountSecurityReportDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -12,4 +14,7 @@ public interface ActivityLogBackendClient {
 
     @GetMapping("/internal/activity/security/report")
     SecurityReportDto getSecurityReport(@RequestHeader("X-User-Id") Long userId, @RequestParam PeriodType periodType);
+
+    @GetMapping("/internal/shared-accounts/reports/security")
+    SharedAccountSecurityOverviewDto getSharedAccountSecurityReport(@RequestHeader("X-User-Id") Long userId, @RequestParam PeriodType periodType);
 }

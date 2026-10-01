@@ -4,6 +4,8 @@ import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.finance.event.sharedaccount.finance.SharedAccountExpenseActivityEvent;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseDto;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseRequest;
@@ -29,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -49,6 +52,7 @@ public class SharedExpenseService {
     private final LargeExpenseNotificationService largeExpenseNotificationService;
     private final SharedExpenseMapper sharedExpenseMapper;
     private final AuthBackendClient authBackendClient;
+    private final OutboxService outboxService;
 
     @Transactional
     public SharedExpenseResponse addExpense(SharedExpenseRequest sharedExpenseRequest, Long userId) {
@@ -78,7 +82,10 @@ public class SharedExpenseService {
                 .build();
 
         sharedWalletService.removeBalanceFromWallet(userId, expense.getAmount());
-        sharedExpenseRepository.save(expense);
+        SharedExpense saved = sharedExpenseRepository.save(expense);
+
+        outboxService.save("SharedAccountExpense", saved.getId().toString(), "shared-account.expense.created",
+                new SharedAccountExpenseActivityEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), saved.getAmount(), category.name(), LocalDateTime.now()));
 
         largeExpenseNotificationService.handleLargeNotification(userId, expense);
 

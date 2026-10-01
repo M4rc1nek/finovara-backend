@@ -1,6 +1,6 @@
 package com.finovara.authservice.sharedaccount.model;
 
-import com.finovara.authservice.sharedaccount.model.role.SharedRole;
+import com.finovara.contracts.sharedaccount.SharedRole;
 import jakarta.persistence.*;
 import lombok.*;
 

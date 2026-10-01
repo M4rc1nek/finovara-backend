@@ -2,8 +2,8 @@ package com.finovara.activitylogservice.activitylog.accountactivity.secure.login
 
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.dto.LoginActivityDto;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.model.LoginActivity;
-import com.finovara.activitylogservice.internal.security.report.dto.countchart.BrowserCountDto;
-import com.finovara.activitylogservice.internal.security.report.dto.countchart.LocationCountDto;
+import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.BrowserCountDto;
+import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.LocationCountDto;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface LoginActivityRepository extends JpaRepository<LoginActivity, Long> {
@@ -104,7 +103,7 @@ public interface LoginActivityRepository extends JpaRepository<LoginActivity, Lo
     long countDistinctDevices(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to);
 
     @Query("""
-        SELECT new com.finovara.activitylogservice.internal.security.report.dto.countchart.LocationCountDto(l.location, COUNT(l))
+        SELECT new com.finovara.activitylogservice.internal.security.util.clientinfo.dto.LocationCountDto(l.location, COUNT(l))
         FROM LoginActivity l
         WHERE l.userId = :userId
           AND l.status = :status
@@ -116,7 +115,7 @@ public interface LoginActivityRepository extends JpaRepository<LoginActivity, Lo
     List<LocationCountDto> findLocationCounts(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to);
 
     @Query("""
-        SELECT new com.finovara.activitylogservice.internal.security.report.dto.countchart.BrowserCountDto(l.browser, COUNT(l))
+        SELECT new com.finovara.activitylogservice.internal.security.util.clientinfo.dto.BrowserCountDto(l.browser, COUNT(l))
         FROM LoginActivity l
         WHERE l.userId = :userId
           AND l.status = :status

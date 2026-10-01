@@ -2,7 +2,7 @@ package com.finovara.reportservice.report.security.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.report.dto.SecurityReportDto;
+import com.finovara.contracts.report.dto.security.SecurityReportDto;
 import com.finovara.reportservice.feignclient.ActivityLogBackendClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
