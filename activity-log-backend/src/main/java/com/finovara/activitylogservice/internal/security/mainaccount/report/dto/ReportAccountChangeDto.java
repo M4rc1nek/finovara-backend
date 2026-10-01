@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.internal.security.report.dto;
+package com.finovara.activitylogservice.internal.security.mainaccount.report.dto;
 
 import java.time.LocalDate;
 
