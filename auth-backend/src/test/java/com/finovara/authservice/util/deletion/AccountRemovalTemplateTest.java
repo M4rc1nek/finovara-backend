@@ -5,7 +5,7 @@ import com.finovara.authservice.sharedaccount.context.UserContextLoader;
 import com.finovara.authservice.sharedaccount.dto.SharedAccountDetailsDto;
 import com.finovara.authservice.sharedaccount.model.SharedAccount;
 import com.finovara.authservice.sharedaccount.model.SharedAccountMember;
-import com.finovara.authservice.sharedaccount.model.role.SharedRole;
+import com.finovara.contracts.sharedaccount.SharedRole;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountRepository;
 import com.finovara.authservice.user.model.User;
