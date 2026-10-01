@@ -1,14 +1,14 @@
-package com.finovara.activitylogservice.internal.security.report.service;
+package com.finovara.activitylogservice.internal.security.mainaccount.report.service;
 
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.model.LoginActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
-import com.finovara.activitylogservice.internal.security.report.dto.ReportLoginDto;
-import com.finovara.activitylogservice.internal.security.report.dto.countchart.BrowserCountDto;
-import com.finovara.activitylogservice.internal.security.report.dto.countchart.LocationCountDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.ReportLoginDto;
+import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.BrowserCountDto;
+import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.LocationCountDto;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
 import com.finovara.contracts.percentage.CalculatePercentage;
-import com.finovara.contracts.report.dto.ShareStatDto;
+import com.finovara.contracts.report.dto.security.ShareStatDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
