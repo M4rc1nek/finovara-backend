@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.internal.security.report;
+package com.finovara.activitylogservice.internal.security.mainaccount.report;
 
 import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.report.dto.SecurityReportDto;
+import com.finovara.contracts.report.dto.security.SecurityReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
