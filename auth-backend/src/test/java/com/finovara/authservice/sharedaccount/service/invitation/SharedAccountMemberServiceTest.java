@@ -3,7 +3,7 @@ package com.finovara.authservice.sharedaccount.service.invitation;
 import com.finovara.authservice.sharedaccount.dto.SharedAccountMemberDto;
 import com.finovara.authservice.sharedaccount.model.SharedAccount;
 import com.finovara.authservice.sharedaccount.model.SharedAccountMember;
-import com.finovara.authservice.sharedaccount.model.role.SharedRole;
+import com.finovara.contracts.sharedaccount.SharedRole;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
 import com.finovara.authservice.user.mapper.UserDataMapper;
 import com.finovara.authservice.user.model.User;
