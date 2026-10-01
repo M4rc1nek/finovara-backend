@@ -16,9 +16,15 @@ public class EvictSharedReportCacheService {
 
     public void evictDataForUser(Long userId) {
         redisCacheEvictor.evictByPatterns(List.of(
-                "report:shared*:" + userId + ":*",
-                "report:shared*:*:" + userId + ":*",
-                "report:shared*::" + userId
+                "financial-report:shared*:" + userId + ":*",
+                "financial-report:shared*:*:" + userId + ":*",
+                "financial-report:shared*::" + userId
+        ));
+    }
+
+    public void evictSharedAccountSecurityDataForUser(Long userId) {
+        redisCacheEvictor.evictByPatterns(List.of(
+                "security-report:shared:*:" + userId + "*"
         ));
     }
 
@@ -26,5 +32,7 @@ public class EvictSharedReportCacheService {
     public void deleteSharedReportHistoryCache(SharedAccountDeletedEvent event) {
         evictDataForUser(event.ownerId());
         evictDataForUser(event.memberId());
+        evictSharedAccountSecurityDataForUser(event.ownerId());
+        evictSharedAccountSecurityDataForUser(event.memberId());
     }
 }
