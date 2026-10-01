@@ -11,7 +11,6 @@ import com.finovara.contracts.report.dto.security.SharedAccountSecurityReportDto
 import com.finovara.contracts.sharedaccount.SharedAccountMemberInfoDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -25,7 +24,6 @@ public class SharedAccountSecurityReportService {
     private final AuthBackendClient authBackendClient;
     private final SharedAccountFinanceActivityRepository financeActivityRepository;
 
-    @Transactional(readOnly = true)
     public SharedAccountSecurityOverviewDto getSecurityOverview(Long callerId, PeriodType periodType) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime from = periodType.getStartDate(now.toLocalDate()).atStartOfDay();
