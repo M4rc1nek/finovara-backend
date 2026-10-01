@@ -1,31 +1,26 @@
-package com.finovara.activitylogservice.internal.security.report.service;
+package com.finovara.activitylogservice.internal.security.mainaccount.report.service;
 
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.model.LoginActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
-import com.finovara.activitylogservice.internal.security.report.dto.ReportLoginDto;
-import com.finovara.activitylogservice.internal.security.report.dto.countchart.BrowserCountDto;
-import com.finovara.activitylogservice.internal.security.report.dto.countchart.LocationCountDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.ReportLoginDto;
+import com.finovara.activitylogservice.internal.security.util.clientinfo.ClientInfoResolver;
+import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.ClientInfoDto;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
-import com.finovara.contracts.percentage.CalculatePercentage;
-import com.finovara.contracts.report.dto.ShareStatDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.ToLongFunction;
 
 @Service
 @RequiredArgsConstructor
 public class SecurityReportLoginService {
 
     private final LoginActivityRepository loginActivityRepository;
+    private final ClientInfoResolver clientInfoResolver;
 
     public ReportLoginDto getLoginSummary(Long userId, PeriodType periodType) {
         LocalDateTime from = periodType.getStartDate(LocalDate.now()).atStartOfDay();
@@ -38,8 +33,7 @@ public class SecurityReportLoginService {
         LoginActivity firstLogin = findFirstLogin(userId, LoginActivityStatus.SUCCESSFUL, from, to).orElse(null);
         LoginActivity lastLogin = findLastLogin(userId, LoginActivityStatus.SUCCESSFUL, from, to).orElse(null);
 
-        List<LocationCountDto> locationCounts = loginActivityRepository.findLocationCounts(userId, LoginActivityStatus.SUCCESSFUL, from, to);
-        List<BrowserCountDto> browserCounts = loginActivityRepository.findBrowserCounts(userId, LoginActivityStatus.SUCCESSFUL, from, to);
+        ClientInfoDto clientInfoDto = clientInfoResolver.getClientContext(userId, from, to);
 
         return new ReportLoginDto(
                 successfulLogins,
@@ -49,9 +43,9 @@ public class SecurityReportLoginService {
                 extractDate(firstLogin),
                 extractLocation(lastLogin),
                 extractDate(lastLogin),
-                locationCounts.size(),
-                toShares(locationCounts, LocationCountDto::location, LocationCountDto::count),
-                toShares(browserCounts, BrowserCountDto::browser, BrowserCountDto::count)
+                clientInfoDto.locationShares().size(),
+                clientInfoDto.locationShares(),
+                clientInfoDto.browserShares()
         );
     }
 
@@ -71,15 +65,5 @@ public class SecurityReportLoginService {
 
     private LocalDate extractDate(LoginActivity loginActivity) {
         return loginActivity != null ? loginActivity.getCreatedAt().toLocalDate() : null;
-    }
-
-    private <T> List<ShareStatDto> toShares(List<T> entries, Function<T, String> labelExtractor, ToLongFunction<T> countExtractor) {
-        long totalCount = entries.stream().mapToLong(countExtractor).sum();
-
-        return entries.stream()
-                .map(entry -> new ShareStatDto(
-                        labelExtractor.apply(entry),
-                        CalculatePercentage.calculatePercentage(BigDecimal.valueOf(countExtractor.applyAsLong(entry)), BigDecimal.valueOf(totalCount))))
-                .toList();
     }
 }
