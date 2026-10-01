@@ -1,8 +1,9 @@
-package com.finovara.activitylogservice.internal.security.report.service;
+package com.finovara.activitylogservice.internal.security.mainaccount.report.service;
 
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.repository.AccountChangesActivityRepository;
-import com.finovara.activitylogservice.internal.security.report.dto.ReportAccountChangeDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.ReportAccountChangeDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.report.service.SecurityReportAccountChangeService;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.AccountChangesActivityType;
 import org.junit.jupiter.api.BeforeEach;
