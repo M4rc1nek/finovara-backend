@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SharedAccountFinanceActivityFactory {
+public class SharedAccountActivityFactory {
 
     private final SharedAccountFinanceActivityRepository financeActivityRepository;
 
