@@ -1,8 +1,8 @@
-package com.finovara.activitylogservice.internal.security.report.mapper;
+package com.finovara.activitylogservice.internal.security.mainaccount.report.mapper;
 
-import com.finovara.activitylogservice.internal.security.report.dto.ReportAccountChangeDto;
-import com.finovara.activitylogservice.internal.security.report.dto.ReportLoginDto;
-import com.finovara.contracts.report.dto.SecurityReportDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.ReportAccountChangeDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.ReportLoginDto;
+import com.finovara.contracts.report.dto.security.SecurityReportDto;
 import org.springframework.stereotype.Component;
 
 @Component
