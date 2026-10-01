@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.internal.security.digest;
+package com.finovara.activitylogservice.internal.security.mainaccount.digest;
 
 import com.finovara.contracts.notification.email.digest.report.security.WeeklySecurityDigestReportDto;
 import lombok.RequiredArgsConstructor;
