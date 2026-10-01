@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SharedAccountActivityDataModifier {
+public class SharedAccountActivityDataDeleter {
 
     private final SharedAccountFinanceActivityRepository financeActivityRepository;
 
