@@ -1,9 +1,10 @@
 package com.finovara.financeservice.sharedaccount.piggybank.service;
 
 import com.finovara.contracts.finance.event.sharedaccount.finance.SharedAccountPiggyBankDepositActivityEvent;
+import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
-import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieved.service.GoalAchievedNotificationService;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCalculator;
@@ -30,7 +31,7 @@ public class SharedPiggyBankTransactionService {
     @Transactional
     public BigDecimal addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount) {
         SharedPiggyBank piggyBank = sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId);
-        var sharedAccountParticipants = sharedAccountParticipantsService.getParticipants(userId);
+        SharedAccountParticipantsResponse sharedAccountParticipants = sharedAccountParticipantsService.getParticipants(userId);
 
         PiggyBankValidator.validateAmount(amount);
         sharedWalletService.removeBalanceFromWallet(userId, amount);
