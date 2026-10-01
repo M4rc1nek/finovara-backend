@@ -3,11 +3,10 @@ package com.finovara.activitylogservice.internal.security.mainaccount.report.ser
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.model.LoginActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
 import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.ReportLoginDto;
-import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.BrowserCountDto;
-import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.LocationCountDto;
+import com.finovara.activitylogservice.internal.security.util.clientinfo.ClientInfoResolver;
+import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.ClientInfoDto;
 import com.finovara.contracts.model.PeriodType;
 import com.finovara.contracts.model.activity.LoginActivityStatus;
-import com.finovara.contracts.percentage.CalculatePercentage;
 import com.finovara.contracts.report.dto.security.ShareStatDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -27,14 +26,17 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.finovara.contracts.percentage.CalculatePercentage.calculatePercentage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +49,12 @@ class SecurityReportLoginServiceTest {
 
     @Mock
     private LoginActivityRepository loginActivityRepository;
+
+    @Mock
+    private ClientInfoResolver clientInfoResolver;
+
+    @Mock
+    private ClientInfoDto clientInfoDto;
 
     @Mock
     private LoginActivity firstLogin;
@@ -73,13 +81,42 @@ class SecurityReportLoginServiceTest {
     @Nested
     class LoginCounts {
 
+        @BeforeEach
+        void setUp() {
+            when(clientInfoResolver.getClientContext(eq(USER_ID), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(clientInfoDto);
+            when(clientInfoDto.locationShares()).thenReturn(List.of());
+            when(clientInfoDto.browserShares()).thenReturn(List.of());
+        }
+
         @Test
         void shouldReturnSuccessfulLoginsCountWhenLoginsExist() {
             when(loginActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(10L);
+            when(loginActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.UNSUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(0L);
 
             ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
 
             assertEquals(10L, result.successfulLogins());
+        }
+
+        @Test
+        void shouldReturnFailedLoginsCountWhenFailedLoginsExist() {
+            when(loginActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(0L);
+            when(loginActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.UNSUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(4L);
+
+            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            assertEquals(4L, result.failedLogins());
+        }
+
+        @Test
+        void shouldKeepSuccessfulAndFailedCountsSeparateWhenBothExist() {
+            when(loginActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(7L);
+            when(loginActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.UNSUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(2L);
+
+            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            assertEquals(7L, result.successfulLogins());
+            assertEquals(2L, result.failedLogins());
         }
 
         @Test
@@ -91,6 +128,16 @@ class SecurityReportLoginServiceTest {
         }
 
         @Test
+        void shouldReturnMaxLongCountWhenCountIsAtUpperBound() {
+            when(loginActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(Long.MAX_VALUE);
+            when(loginActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.UNSUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(0L);
+
+            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            assertEquals(Long.MAX_VALUE, result.successfulLogins());
+        }
+
+        @Test
         void shouldReturnKnownDevicesCountWhenDevicesExist() {
             when(loginActivityRepository.countDistinctDevices(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(3L);
 
@@ -98,10 +145,24 @@ class SecurityReportLoginServiceTest {
 
             assertEquals(3L, result.knownDevicesCount());
         }
+
+        @Test
+        void shouldReturnZeroKnownDevicesCountWhenNoDevicesExist() {
+            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            assertEquals(0L, result.knownDevicesCount());
+        }
     }
 
     @Nested
     class FirstAndLastLogin {
+
+        @BeforeEach
+        void setUp() {
+            when(clientInfoResolver.getClientContext(eq(USER_ID), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(clientInfoDto);
+            when(clientInfoDto.locationShares()).thenReturn(List.of());
+            when(clientInfoDto.browserShares()).thenReturn(List.of());
+        }
 
         @Test
         void shouldReturnFirstLoginLocationAndDateWhenFirstLoginExists() {
@@ -144,7 +205,7 @@ class SecurityReportLoginServiceTest {
         }
 
         @Test
-        void shouldReturnNullLocationWhenLoginHasNoLocation() {
+        void shouldReturnNullFirstLoginLocationWhenFirstLoginHasNoLocation() {
             when(firstLogin.getLocation()).thenReturn(null);
             when(firstLogin.getCreatedAt()).thenReturn(FIRST_LOGIN_AT);
             when(loginActivityRepository.findFirstLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(firstLogin));
@@ -156,6 +217,18 @@ class SecurityReportLoginServiceTest {
         }
 
         @Test
+        void shouldReturnNullLastLoginLocationWhenLastLoginHasNoLocation() {
+            when(lastLogin.getLocation()).thenReturn(null);
+            when(lastLogin.getCreatedAt()).thenReturn(LAST_LOGIN_AT);
+            when(loginActivityRepository.findLastLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(lastLogin));
+
+            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            assertNull(result.lastLoginFrom());
+            assertEquals(LAST_LOGIN_AT.toLocalDate(), result.lastLoginAt());
+        }
+
+        @Test
         void shouldKeepFirstAndLastLoginIndependentWhenOnlyLastLoginExists() {
             when(lastLogin.getLocation()).thenReturn("Krakow");
             when(lastLogin.getCreatedAt()).thenReturn(LAST_LOGIN_AT);
@@ -164,17 +237,79 @@ class SecurityReportLoginServiceTest {
             ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
 
             assertNull(result.firstLoginFrom());
+            assertNull(result.firstLoginAt());
             assertEquals("Krakow", result.lastLoginFrom());
+        }
+
+        @Test
+        void shouldKeepFirstAndLastLoginIndependentWhenOnlyFirstLoginExists() {
+            when(firstLogin.getLocation()).thenReturn("Warsaw");
+            when(firstLogin.getCreatedAt()).thenReturn(FIRST_LOGIN_AT);
+            when(loginActivityRepository.findFirstLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(firstLogin));
+
+            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            assertEquals("Warsaw", result.firstLoginFrom());
+            assertNull(result.lastLoginFrom());
+            assertNull(result.lastLoginAt());
+        }
+
+        @Test
+        void shouldUseFirstElementWhenRepositoryReturnsMultipleFirstLogins() {
+            LoginActivity secondLogin = org.mockito.Mockito.mock(LoginActivity.class);
+            when(firstLogin.getLocation()).thenReturn("Warsaw");
+            when(firstLogin.getCreatedAt()).thenReturn(FIRST_LOGIN_AT);
+            when(loginActivityRepository.findFirstLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(firstLogin, secondLogin));
+
+            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            assertEquals("Warsaw", result.firstLoginFrom());
         }
     }
 
     @Nested
-    class LocationShares {
+    class ClientInfoShares {
+
+        private List<ShareStatDto> locationShares;
+        private List<ShareStatDto> browserShares;
+
+        @BeforeEach
+        void setUp() {
+            locationShares = List.of(
+                    new ShareStatDto("Warsaw", calculatePercentage(BigDecimal.valueOf(3L), BigDecimal.valueOf(4L))),
+                    new ShareStatDto("Krakow", calculatePercentage(BigDecimal.valueOf(1L), BigDecimal.valueOf(4L)))
+            );
+            browserShares = List.of(
+                    new ShareStatDto("Chrome", calculatePercentage(BigDecimal.valueOf(6L), BigDecimal.valueOf(8L))),
+                    new ShareStatDto("Firefox", calculatePercentage(BigDecimal.valueOf(2L), BigDecimal.valueOf(8L)))
+            );
+            when(clientInfoResolver.getClientContext(eq(USER_ID), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(clientInfoDto);
+        }
+
+        @Test
+        void shouldReturnLocationSharesFromClientInfoWhenLocationsExist() {
+            when(clientInfoDto.locationShares()).thenReturn(locationShares);
+            when(clientInfoDto.browserShares()).thenReturn(List.of());
+
+            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            assertEquals(locationShares, result.locationShares());
+        }
+
+        @Test
+        void shouldReturnBrowserSharesFromClientInfoWhenBrowsersExist() {
+            when(clientInfoDto.locationShares()).thenReturn(List.of());
+            when(clientInfoDto.browserShares()).thenReturn(browserShares);
+
+            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            assertEquals(browserShares, result.browserShares());
+        }
 
         @Test
         void shouldReturnDistinctLocationsCountWhenLocationsExist() {
-            when(loginActivityRepository.findLocationCounts(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class)))
-                    .thenReturn(List.of(new LocationCountDto("Warsaw", 3L), new LocationCountDto("Krakow", 1L)));
+            when(clientInfoDto.locationShares()).thenReturn(locationShares);
+            when(clientInfoDto.browserShares()).thenReturn(List.of());
 
             ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
 
@@ -182,92 +317,59 @@ class SecurityReportLoginServiceTest {
         }
 
         @Test
-        void shouldReturnEmptySharesAndZeroDistinctLocationsWhenNoLocationsExist() {
+        void shouldReturnEmptySharesAndZeroDistinctLocationsWhenNoClientDataExists() {
+            when(clientInfoDto.locationShares()).thenReturn(List.of());
+            when(clientInfoDto.browserShares()).thenReturn(List.of());
+
             ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
 
             assertEquals(0, result.distinctLocationsCount());
             assertTrue(result.locationShares().isEmpty());
+            assertTrue(result.browserShares().isEmpty());
         }
 
         @Test
-        void shouldCalculateLocationSharesWhenMultipleLocationsExist() {
-            when(loginActivityRepository.findLocationCounts(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class)))
-                    .thenReturn(List.of(new LocationCountDto("Warsaw", 3L), new LocationCountDto("Krakow", 1L)));
-            List<ShareStatDto> expected = List.of(
-                    new ShareStatDto("Warsaw", CalculatePercentage.calculatePercentage(BigDecimal.valueOf(3L), BigDecimal.valueOf(4L))),
-                    new ShareStatDto("Krakow", CalculatePercentage.calculatePercentage(BigDecimal.valueOf(1L), BigDecimal.valueOf(4L)))
-            );
+        void shouldNotAffectLocationSharesWhenOnlyBrowsersExist() {
+            when(clientInfoDto.locationShares()).thenReturn(List.of());
+            when(clientInfoDto.browserShares()).thenReturn(browserShares);
 
             ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
 
-            assertEquals(expected, result.locationShares());
+            assertTrue(result.locationShares().isEmpty());
+            assertEquals(0, result.distinctLocationsCount());
         }
 
         @Test
-        void shouldCalculateFullShareWhenSingleLocationExists() {
-            when(loginActivityRepository.findLocationCounts(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class)))
-                    .thenReturn(List.of(new LocationCountDto("Warsaw", 5L)));
-            List<ShareStatDto> expected = List.of(
-                    new ShareStatDto("Warsaw", CalculatePercentage.calculatePercentage(BigDecimal.valueOf(5L), BigDecimal.valueOf(5L)))
-            );
+        void shouldNotAffectBrowserSharesWhenOnlyLocationsExist() {
+            when(clientInfoDto.locationShares()).thenReturn(locationShares);
+            when(clientInfoDto.browserShares()).thenReturn(List.of());
 
-            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
-
-            assertEquals(expected, result.locationShares());
-        }
-    }
-
-    @Nested
-    class BrowserShares {
-
-        @Test
-        void shouldCalculateBrowserSharesWhenMultipleBrowsersExist() {
-            when(loginActivityRepository.findBrowserCounts(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class)))
-                    .thenReturn(List.of(new BrowserCountDto("Chrome", 6L), new BrowserCountDto("Firefox", 2L)));
-            List<ShareStatDto> expected = List.of(
-                    new ShareStatDto("Chrome", CalculatePercentage.calculatePercentage(BigDecimal.valueOf(6L), BigDecimal.valueOf(8L))),
-                    new ShareStatDto("Firefox", CalculatePercentage.calculatePercentage(BigDecimal.valueOf(2L), BigDecimal.valueOf(8L)))
-            );
-
-            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
-
-            assertEquals(expected, result.browserShares());
-        }
-
-        @Test
-        void shouldReturnEmptyBrowserSharesWhenNoBrowsersExist() {
             ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
 
             assertTrue(result.browserShares().isEmpty());
         }
 
         @Test
-        void shouldCalculateFullShareWhenSingleBrowserExists() {
-            when(loginActivityRepository.findBrowserCounts(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class)))
-                    .thenReturn(List.of(new BrowserCountDto("Chrome", 7L)));
-            List<ShareStatDto> expected = List.of(
-                    new ShareStatDto("Chrome", CalculatePercentage.calculatePercentage(BigDecimal.valueOf(7L), BigDecimal.valueOf(7L)))
-            );
+        void shouldReturnSameShareInstancesWhenClientInfoProvidesShares() {
+            when(clientInfoDto.locationShares()).thenReturn(locationShares);
+            when(clientInfoDto.browserShares()).thenReturn(browserShares);
 
             ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
 
-            assertEquals(expected, result.browserShares());
-        }
-
-        @Test
-        void shouldNotAffectLocationSharesWhenOnlyBrowsersExist() {
-            when(loginActivityRepository.findBrowserCounts(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class)))
-                    .thenReturn(List.of(new BrowserCountDto("Chrome", 7L)));
-
-            ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
-
-            assertTrue(result.locationShares().isEmpty());
-            assertEquals(0, result.distinctLocationsCount());
+            assertSame(locationShares, result.locationShares());
+            assertSame(browserShares, result.browserShares());
         }
     }
 
     @Nested
     class DateRange {
+
+        @BeforeEach
+        void setUp() {
+            when(clientInfoResolver.getClientContext(eq(USER_ID), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(clientInfoDto);
+            when(clientInfoDto.locationShares()).thenReturn(List.of());
+            when(clientInfoDto.browserShares()).thenReturn(List.of());
+        }
 
         @Test
         void shouldQueryFromStartOfPeriodWhenSummaryIsRequested() {
@@ -275,7 +377,7 @@ class SecurityReportLoginServiceTest {
 
             securityReportLoginService.getLoginSummary(USER_ID, periodType);
 
-            verify(loginActivityRepository).findLocationCounts(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), fromCaptor.capture(), toCaptor.capture());
+            verify(loginActivityRepository).countDistinctDevices(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), fromCaptor.capture(), toCaptor.capture());
             assertEquals(expectedFrom, fromCaptor.getValue());
         }
 
@@ -286,8 +388,25 @@ class SecurityReportLoginServiceTest {
             securityReportLoginService.getLoginSummary(USER_ID, periodType);
 
             LocalDateTime after = LocalDateTime.now();
-            verify(loginActivityRepository).findBrowserCounts(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), fromCaptor.capture(), toCaptor.capture());
+            verify(loginActivityRepository).countDistinctDevices(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), fromCaptor.capture(), toCaptor.capture());
             assertTrue(!toCaptor.getValue().isBefore(before) && !toCaptor.getValue().isAfter(after));
+        }
+
+        @Test
+        void shouldPassSameDateRangeToClientInfoResolverWhenSummaryIsRequested() {
+            securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            verify(loginActivityRepository).countDistinctDevices(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), fromCaptor.capture(), toCaptor.capture());
+            verify(clientInfoResolver).getClientContext(USER_ID, fromCaptor.getValue(), toCaptor.getValue());
+        }
+
+        @Test
+        void shouldPassSameDateRangeToFirstAndLastLoginQueriesWhenSummaryIsRequested() {
+            securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            verify(loginActivityRepository).countDistinctDevices(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), fromCaptor.capture(), toCaptor.capture());
+            verify(loginActivityRepository).findFirstLogins(USER_ID, LoginActivityStatus.SUCCESSFUL, fromCaptor.getValue(), toCaptor.getValue(), FIRST_ELEMENT);
+            verify(loginActivityRepository).findLastLogins(USER_ID, LoginActivityStatus.SUCCESSFUL, fromCaptor.getValue(), toCaptor.getValue(), FIRST_ELEMENT);
         }
 
         @Test
@@ -297,10 +416,67 @@ class SecurityReportLoginServiceTest {
             verify(loginActivityRepository).findFirstLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT));
             verify(loginActivityRepository).findLastLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT));
         }
+
+        @ParameterizedTest
+        @EnumSource(PeriodType.class)
+        void shouldQueryFromStartOfPeriodWhenPeriodTypeIsAnySupportedValue(PeriodType type) {
+            LocalDateTime expectedFrom = type.getStartDate(LocalDate.now()).atStartOfDay();
+
+            securityReportLoginService.getLoginSummary(USER_ID, type);
+
+            verify(loginActivityRepository).countDistinctDevices(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), fromCaptor.capture(), toCaptor.capture());
+            assertEquals(expectedFrom, fromCaptor.getValue());
+        }
+    }
+
+    @Nested
+    class RepositoryInteractions {
+
+        @BeforeEach
+        void setUp() {
+            when(clientInfoResolver.getClientContext(eq(USER_ID), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(clientInfoDto);
+            when(clientInfoDto.locationShares()).thenReturn(List.of());
+            when(clientInfoDto.browserShares()).thenReturn(List.of());
+        }
+
+        @Test
+        void shouldQueryEachStatusCountOnceWhenSummaryIsRequested() {
+            securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            verify(loginActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class));
+            verify(loginActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.UNSUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class));
+        }
+
+        @Test
+        void shouldCallOnlyExpectedRepositoryMethodsWhenSummaryIsRequested() {
+            securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            verify(loginActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class));
+            verify(loginActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.UNSUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class));
+            verify(loginActivityRepository).countDistinctDevices(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class));
+            verify(loginActivityRepository).findFirstLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT));
+            verify(loginActivityRepository).findLastLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT));
+            verifyNoMoreInteractions(loginActivityRepository);
+        }
+
+        @Test
+        void shouldResolveClientContextOnceForUserWhenSummaryIsRequested() {
+            securityReportLoginService.getLoginSummary(USER_ID, periodType);
+
+            verify(clientInfoResolver).getClientContext(eq(USER_ID), any(LocalDateTime.class), any(LocalDateTime.class));
+            verifyNoMoreInteractions(clientInfoResolver);
+        }
     }
 
     @Nested
     class GetLoginSummary {
+
+        @BeforeEach
+        void setUp() {
+            when(clientInfoResolver.getClientContext(eq(USER_ID), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(clientInfoDto);
+            when(clientInfoDto.locationShares()).thenReturn(List.of());
+            when(clientInfoDto.browserShares()).thenReturn(List.of());
+        }
 
         @ParameterizedTest
         @EnumSource(PeriodType.class)
@@ -321,6 +497,13 @@ class SecurityReportLoginServiceTest {
 
         @Test
         void shouldReturnCompleteSummaryWhenAllActivitiesExist() {
+            List<ShareStatDto> locationShares = List.of(
+                    new ShareStatDto("Warsaw", calculatePercentage(BigDecimal.valueOf(6L), BigDecimal.valueOf(8L))),
+                    new ShareStatDto("Krakow", calculatePercentage(BigDecimal.valueOf(2L), BigDecimal.valueOf(8L)))
+            );
+            List<ShareStatDto> browserShares = List.of(
+                    new ShareStatDto("Chrome", calculatePercentage(BigDecimal.valueOf(8L), BigDecimal.valueOf(8L)))
+            );
             when(loginActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(8L);
             when(loginActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.UNSUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(2L);
             when(loginActivityRepository.countDistinctDevices(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(3L);
@@ -330,19 +513,18 @@ class SecurityReportLoginServiceTest {
             when(lastLogin.getCreatedAt()).thenReturn(LAST_LOGIN_AT);
             when(loginActivityRepository.findFirstLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(firstLogin));
             when(loginActivityRepository.findLastLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(lastLogin));
-            when(loginActivityRepository.findLocationCounts(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class)))
-                    .thenReturn(List.of(new LocationCountDto("Warsaw", 6L), new LocationCountDto("Krakow", 2L)));
-            when(loginActivityRepository.findBrowserCounts(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class)))
-                    .thenReturn(List.of(new BrowserCountDto("Chrome", 8L)));
-            ReportLoginDto expected = new ReportLoginDto(8L, 2L, 3L, "Warsaw", FIRST_LOGIN_AT.toLocalDate(), "Krakow", LAST_LOGIN_AT.toLocalDate(), 2,
-                    List.of(new ShareStatDto("Warsaw", CalculatePercentage.calculatePercentage(BigDecimal.valueOf(6L), BigDecimal.valueOf(8L))), new ShareStatDto("Krakow", CalculatePercentage.calculatePercentage(BigDecimal.valueOf(2L), BigDecimal.valueOf(8L)))),
-                    List.of(new ShareStatDto("Chrome", CalculatePercentage.calculatePercentage(BigDecimal.valueOf(8L), BigDecimal.valueOf(8L))))
-            );
+            when(clientInfoDto.locationShares()).thenReturn(locationShares);
+            when(clientInfoDto.browserShares()).thenReturn(browserShares);
+            ReportLoginDto expected = new ReportLoginDto(8L, 2L, 3L, "Warsaw", FIRST_LOGIN_AT.toLocalDate(), "Krakow", LAST_LOGIN_AT.toLocalDate(), 2, locationShares, browserShares);
 
             ReportLoginDto result = securityReportLoginService.getLoginSummary(USER_ID, periodType);
 
             assertEquals(expected, result);
         }
+    }
+
+    @Nested
+    class Exceptions {
 
         @Test
         void shouldThrowExceptionWhenPeriodTypeIsNull() {
@@ -350,10 +532,50 @@ class SecurityReportLoginServiceTest {
         }
 
         @Test
-        void shouldThrowExceptionWhenRepositoryFails() {
+        void shouldThrowExceptionWhenSuccessfulLoginsCountFails() {
             when(loginActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenThrow(new IllegalStateException());
 
             assertThrows(IllegalStateException.class, () -> securityReportLoginService.getLoginSummary(USER_ID, periodType));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenKnownDevicesCountFails() {
+            when(loginActivityRepository.countDistinctDevices(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class))).thenThrow(new IllegalStateException());
+
+            assertThrows(IllegalStateException.class, () -> securityReportLoginService.getLoginSummary(USER_ID, periodType));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenFindingFirstLoginFails() {
+            when(loginActivityRepository.findFirstLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenThrow(new IllegalStateException());
+
+            assertThrows(IllegalStateException.class, () -> securityReportLoginService.getLoginSummary(USER_ID, periodType));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenFindingLastLoginFails() {
+            when(loginActivityRepository.findLastLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenThrow(new IllegalStateException());
+
+            assertThrows(IllegalStateException.class, () -> securityReportLoginService.getLoginSummary(USER_ID, periodType));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenClientInfoResolverFails() {
+            when(clientInfoResolver.getClientContext(eq(USER_ID), any(LocalDateTime.class), any(LocalDateTime.class))).thenThrow(new IllegalStateException());
+
+            assertThrows(IllegalStateException.class, () -> securityReportLoginService.getLoginSummary(USER_ID, periodType));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenClientInfoIsNull() {
+            assertThrows(NullPointerException.class, () -> securityReportLoginService.getLoginSummary(USER_ID, periodType));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenFirstLoginHasNoCreationDate() {
+            when(loginActivityRepository.findFirstLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(firstLogin));
+
+            assertThrows(NullPointerException.class, () -> securityReportLoginService.getLoginSummary(USER_ID, periodType));
         }
     }
 }
