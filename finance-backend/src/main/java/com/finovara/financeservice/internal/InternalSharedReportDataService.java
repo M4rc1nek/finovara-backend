@@ -1,10 +1,10 @@
 package com.finovara.financeservice.internal;
 
-import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.contracts.transaction.report.dto.DailyCashDto;
-import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
-import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
+import com.finovara.contracts.util.model.ExpenseCategory;
+import com.finovara.contracts.util.model.RevenueCategory;
+import com.finovara.contracts.mainaccount.report.dto.DailyCashDto;
+import com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto;
+import com.finovara.contracts.mainaccount.report.dto.HighestRevenueDto;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
 import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
