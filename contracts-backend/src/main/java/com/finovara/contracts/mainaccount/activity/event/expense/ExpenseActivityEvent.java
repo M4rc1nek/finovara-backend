@@ -1,8 +1,8 @@
 package com.finovara.contracts.mainaccount.activity.event.expense;
 
 
-import com.finovara.contracts.model.activity.ExpenseActivityType;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.mainaccount.activity.model.ExpenseActivityType;
+import com.finovara.contracts.util.model.ExpenseCategory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
