@@ -4,9 +4,8 @@ import com.finovara.activitylogservice.activitylog.accountactivity.secure.accoun
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangesDigestSummaryDto;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.LoginDigestSummaryDto;
-import com.finovara.activitylogservice.internal.security.mainaccount.digest.service.SecuritySummaryService;
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
