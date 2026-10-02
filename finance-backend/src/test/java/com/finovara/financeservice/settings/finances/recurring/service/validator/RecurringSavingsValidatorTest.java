@@ -3,7 +3,7 @@ package com.finovara.financeservice.settings.finances.recurring.service.validato
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.util.RecurringBasicValidator;
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.util.PeriodType;
 import com.finovara.financeservice.wallet.model.Wallet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
