@@ -1,4 +1,4 @@
-package com.finovara.contracts.notification.event.limit;
+package com.finovara.contracts.mainaccount.transaction.event.limit;
 
 import com.finovara.contracts.util.PeriodType;
 
