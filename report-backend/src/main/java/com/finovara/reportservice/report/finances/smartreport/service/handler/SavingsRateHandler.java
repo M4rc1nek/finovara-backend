@@ -1,6 +1,6 @@
 package com.finovara.reportservice.report.finances.smartreport.service.handler;
 
-import com.finovara.contracts.percentage.CalculatePercentage;
+import com.finovara.contracts.util.calculate.CalculatePercentage;
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.finances.smartreport.model.SmartReportType;
 import com.finovara.reportservice.report.finances.smartreport.service.SmartReportHandler;
