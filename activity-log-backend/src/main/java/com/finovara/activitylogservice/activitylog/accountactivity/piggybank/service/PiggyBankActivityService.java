@@ -5,10 +5,10 @@ import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.dto
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.mapper.PiggyBankActivityMapper;
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.repository.PiggyBankActivityRepository;
-import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.activity.event.piggybank.PiggyBankEditActivityEvent;
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankEditActivityEvent;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
