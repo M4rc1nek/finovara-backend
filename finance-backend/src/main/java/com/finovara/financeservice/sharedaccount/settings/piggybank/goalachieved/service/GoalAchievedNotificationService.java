@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieved.service;
 
-import com.finovara.contracts.finance.event.sharedaccount.GoalAchievedNotificationEvent;
+import com.finovara.contracts.sharedaccount.event.notification.GoalAchievedNotificationEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
