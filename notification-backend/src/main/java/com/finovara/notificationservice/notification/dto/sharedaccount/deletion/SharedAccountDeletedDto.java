@@ -1,7 +1,7 @@
 package com.finovara.notificationservice.notification.dto.sharedaccount.deletion;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.finovara.contracts.model.NotificationType;
+import com.finovara.contracts.mainaccount.notification.NotificationType;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
 
 import java.time.LocalDateTime;
