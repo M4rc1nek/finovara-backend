@@ -1,7 +1,7 @@
 package com.finovara.contracts.mainaccount.activity.event.settings;
 
-import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
+import com.finovara.contracts.mainaccount.activity.model.SettingType;
 
 import java.time.LocalDateTime;
 
