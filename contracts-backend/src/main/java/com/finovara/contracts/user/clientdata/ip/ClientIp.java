@@ -1,4 +1,4 @@
-package com.finovara.contracts.clientdata.ip;
+package com.finovara.contracts.user.clientdata.ip;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
