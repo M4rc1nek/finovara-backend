@@ -2,8 +2,8 @@ package com.finovara.notificationservice.notification.dto.recurring;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
-import com.finovara.contracts.model.NotificationType;
-import com.finovara.contracts.model.RecurringType;
+import com.finovara.contracts.mainaccount.notification.NotificationType;
+import com.finovara.contracts.util.model.RecurringType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
