@@ -1,6 +1,6 @@
 package com.finovara.reportservice.util.dto;
 
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.util.PeriodType;
 
 import java.math.BigDecimal;
 
