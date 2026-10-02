@@ -1,4 +1,4 @@
-package com.finovara.contracts.report.dto.security;
+package com.finovara.contracts.mainaccount.report.security.dto;
 
 import java.math.BigDecimal;
 
