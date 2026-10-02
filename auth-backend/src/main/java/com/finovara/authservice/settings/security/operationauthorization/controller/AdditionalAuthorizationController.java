@@ -7,7 +7,7 @@ import com.finovara.authservice.settings.security.operationauthorization.dto.Add
 import com.finovara.authservice.settings.security.operationauthorization.dto.AdditionalAuthorizationSettingsResponse;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationEmailVerificationService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
