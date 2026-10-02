@@ -5,10 +5,10 @@ import com.finovara.authservice.settings.security.operationauthorization.service
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
