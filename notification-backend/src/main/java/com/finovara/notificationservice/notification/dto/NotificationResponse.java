@@ -2,7 +2,7 @@ package com.finovara.notificationservice.notification.dto;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.finovara.contracts.model.NotificationType;
+import com.finovara.contracts.mainaccount.notification.NotificationType;
 import com.finovara.notificationservice.notification.dto.limit.LimitExceededDto;
 import com.finovara.notificationservice.notification.dto.limit.LimitWarningDto;
 import com.finovara.notificationservice.notification.dto.piggybank.PiggyBankReachedDto;
