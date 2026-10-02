@@ -1,4 +1,4 @@
-package com.finovara.contracts.notification.event.wallet;
+package com.finovara.contracts.mainaccount.transaction.event.wallet;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
