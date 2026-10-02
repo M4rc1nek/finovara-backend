@@ -1,4 +1,4 @@
-package com.finovara.contracts.report.dto.security;
+package com.finovara.contracts.sharedaccount.report.security.dto;
 
 import java.util.List;
 
