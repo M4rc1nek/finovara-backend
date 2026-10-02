@@ -4,7 +4,7 @@ import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.document.PdfReportDocumentFactory;
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.util.PeriodType;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
