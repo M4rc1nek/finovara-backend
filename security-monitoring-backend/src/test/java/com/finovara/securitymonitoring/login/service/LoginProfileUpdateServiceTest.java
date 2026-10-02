@@ -1,8 +1,8 @@
 package com.finovara.securitymonitoring.login.service;
 
-import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
 import com.finovara.securitymonitoring.clientdata.model.ClientData;
 import com.finovara.securitymonitoring.login.model.LoginProfile;
 import com.finovara.securitymonitoring.login.repository.LoginProfileRepository;
