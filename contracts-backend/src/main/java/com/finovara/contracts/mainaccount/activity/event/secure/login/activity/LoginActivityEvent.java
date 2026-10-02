@@ -1,6 +1,6 @@
 package com.finovara.contracts.mainaccount.activity.event.secure.login.activity;
 
-import com.finovara.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
 
 import java.time.LocalDateTime;
 
