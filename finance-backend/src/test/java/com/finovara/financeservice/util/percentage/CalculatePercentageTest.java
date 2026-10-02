@@ -1,6 +1,6 @@
 package com.finovara.financeservice.util.percentage;
 
-import com.finovara.contracts.percentage.CalculatePercentage;
+import com.finovara.contracts.util.calculate.CalculatePercentage;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
