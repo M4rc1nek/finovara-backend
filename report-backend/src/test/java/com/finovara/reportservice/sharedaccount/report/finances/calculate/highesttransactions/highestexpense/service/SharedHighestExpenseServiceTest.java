@@ -1,8 +1,8 @@
 package com.finovara.reportservice.sharedaccount.report.finances.calculate.highesttransactions.highestexpense.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto;
 import com.finovara.reportservice.feignclient.FinanceBackendSharedReportClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
