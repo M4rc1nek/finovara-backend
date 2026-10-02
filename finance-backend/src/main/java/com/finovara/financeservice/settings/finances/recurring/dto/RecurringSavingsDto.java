@@ -1,7 +1,7 @@
 package com.finovara.financeservice.settings.finances.recurring.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.util.PeriodType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
