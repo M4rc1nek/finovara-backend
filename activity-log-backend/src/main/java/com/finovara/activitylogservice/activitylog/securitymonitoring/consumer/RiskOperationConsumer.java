@@ -1,7 +1,7 @@
 package com.finovara.activitylogservice.activitylog.securitymonitoring.consumer;
 
 import com.finovara.activitylogservice.activitylog.securitymonitoring.service.RiskOperationLogService;
-import com.finovara.contracts.activity.event.securitymonitoring.RiskOperationCreatedEvent;
+import com.finovara.contracts.mainaccount.activity.event.securitymonitoring.RiskOperationCreatedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
