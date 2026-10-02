@@ -14,9 +14,9 @@ import com.finovara.authservice.util.attempts.dto.AttemptsContext;
 import com.finovara.authservice.util.attempts.properties.VerificationCodeProperties;
 import com.finovara.authservice.util.authorization.generator.SecretGenerator;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
-import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
-import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+import static com.finovara.contracts.user.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.contracts.user.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.contracts.user.clientdata.location.UserLocation.getLocationFromIp;
 
 @Service
 @RequiredArgsConstructor
