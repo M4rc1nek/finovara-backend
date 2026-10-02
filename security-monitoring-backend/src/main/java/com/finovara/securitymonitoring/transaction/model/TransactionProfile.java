@@ -1,7 +1,7 @@
 package com.finovara.securitymonitoring.transaction.model;
 
-import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.util.model.ExpenseCategory;
+import com.finovara.contracts.util.model.RevenueCategory;
 import jakarta.persistence.*;
 import lombok.*;
 
