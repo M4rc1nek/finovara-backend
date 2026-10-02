@@ -4,7 +4,7 @@ import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.model.LoginActivity;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.BrowserCountDto;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.LocationCountDto;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
