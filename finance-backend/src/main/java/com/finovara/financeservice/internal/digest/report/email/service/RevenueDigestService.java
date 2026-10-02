@@ -1,6 +1,6 @@
 package com.finovara.financeservice.internal.digest.report.email.service;
 
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.internal.digest.report.email.dto.RevenueSummary;
 import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
