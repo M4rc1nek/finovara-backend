@@ -1,4 +1,4 @@
-package com.finovara.contracts.clientdata.browser;
+package com.finovara.contracts.user.clientdata.browser;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.experimental.UtilityClass;
