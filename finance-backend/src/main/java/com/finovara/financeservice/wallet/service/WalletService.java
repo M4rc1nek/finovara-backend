@@ -1,7 +1,7 @@
 package com.finovara.financeservice.wallet.service;
 
-import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.notification.event.wallet.WalletBalanceChangedEvent;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.mainaccount.transaction.event.wallet.WalletBalanceChangedEvent;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.dto.WalletDto;
 import com.finovara.financeservice.wallet.dto.WalletResponse;
