@@ -1,7 +1,7 @@
 package com.finovara.notificationservice.notification.consumer.sharedaccount.deletion;
 
-import com.finovara.contracts.notification.event.sharedaccount.deletion.NotificationSharedAccountLeftEvent;
-import com.finovara.contracts.model.NotificationType;
+import com.finovara.contracts.sharedaccount.event.deletion.NotificationSharedAccountLeftEvent;
+import com.finovara.contracts.mainaccount.notification.NotificationType;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import com.finovara.notificationservice.notification.dto.sharedaccount.deletion.SharedAccountLeftDto;
 import lombok.RequiredArgsConstructor;
