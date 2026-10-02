@@ -1,7 +1,7 @@
 package com.finovara.contracts.mainaccount.activity.event.revenue;
 
-import com.finovara.contracts.model.activity.RevenueActivityType;
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.mainaccount.activity.model.RevenueActivityType;
+import com.finovara.contracts.util.model.RevenueCategory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
