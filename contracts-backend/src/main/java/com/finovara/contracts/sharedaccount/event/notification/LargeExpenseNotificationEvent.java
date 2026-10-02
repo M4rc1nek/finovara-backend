@@ -1,4 +1,4 @@
-package com.finovara.contracts.finance.event.sharedaccount;
+package com.finovara.contracts.sharedaccount.event.notification;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
