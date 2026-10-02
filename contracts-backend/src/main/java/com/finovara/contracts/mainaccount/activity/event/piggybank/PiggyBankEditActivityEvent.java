@@ -1,7 +1,7 @@
 package com.finovara.contracts.mainaccount.activity.event.piggybank;
 
-import com.finovara.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.util.model.PiggyBankGoalType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
