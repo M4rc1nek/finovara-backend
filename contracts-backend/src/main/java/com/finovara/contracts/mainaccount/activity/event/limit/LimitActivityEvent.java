@@ -1,6 +1,6 @@
 package com.finovara.contracts.mainaccount.activity.event.limit;
 
-import com.finovara.contracts.model.activity.LimitActivityType;
+import com.finovara.contracts.mainaccount.activity.model.LimitActivityType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
