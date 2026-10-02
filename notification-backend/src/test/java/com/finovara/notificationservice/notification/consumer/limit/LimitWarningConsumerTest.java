@@ -1,8 +1,8 @@
 package com.finovara.notificationservice.notification.consumer.limit;
 
-import com.finovara.contracts.notification.event.limit.LimitStatsEvent;
-import com.finovara.contracts.model.NotificationType;
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.mainaccount.transaction.event.limit.LimitStatsEvent;
+import com.finovara.contracts.mainaccount.notification.NotificationType;
+import com.finovara.contracts.util.PeriodType;
 import com.finovara.notificationservice.notification.dto.limit.LimitWarningDto;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import org.junit.jupiter.api.Test;
