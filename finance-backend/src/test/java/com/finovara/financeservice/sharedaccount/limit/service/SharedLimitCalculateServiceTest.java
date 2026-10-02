@@ -1,8 +1,8 @@
 package com.finovara.financeservice.sharedaccount.limit.service;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.limit.model.LimitStatus;
 import com.finovara.financeservice.sharedaccount.limit.dto.SharedLimitStatsDto;
 import com.finovara.financeservice.sharedaccount.limit.mapper.SharedLimitMapper;
