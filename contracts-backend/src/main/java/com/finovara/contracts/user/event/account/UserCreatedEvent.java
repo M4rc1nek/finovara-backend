@@ -1,4 +1,4 @@
-package com.finovara.contracts.user.event;
+package com.finovara.contracts.user.event.account;
 
 import java.time.LocalDateTime;
 
