@@ -1,6 +1,6 @@
 package com.finovara.notificationservice.notificationemail.service.settings.action.core;
 
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.notificationservice.notificationemail.model.EmailNotificationSettingRequest;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
