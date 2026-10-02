@@ -1,4 +1,4 @@
-package com.finovara.contracts.notification.event.recurring.transaction;
+package com.finovara.contracts.mainaccount.transaction.event.transaction;
 
 import com.finovara.contracts.util.model.RecurringType;
 
