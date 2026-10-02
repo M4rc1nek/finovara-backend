@@ -11,7 +11,7 @@ import java.util.TimeZone;
 @EnableAsync
 @EnableScheduling
 @EnableFeignClients
-@SpringBootApplication(scanBasePackages = {"com.finovara.notificationservice", "com.finovara.contracts.authorization.additionalcode.resolver"})
+@SpringBootApplication(scanBasePackages = {"com.finovara.notificationservice", "com.finovara.contracts.user.authorization.additionalcode.resolver"})
 public class NotificationServiceApplication {
 
     public static void main(String[] args) {
