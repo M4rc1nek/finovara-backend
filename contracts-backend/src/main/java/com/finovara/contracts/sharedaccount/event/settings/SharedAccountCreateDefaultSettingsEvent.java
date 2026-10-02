@@ -1,4 +1,4 @@
-package com.finovara.contracts.finance.event.sharedaccount;
+package com.finovara.contracts.sharedaccount.event.settings;
 
 public record SharedAccountCreateDefaultSettingsEvent(Long inviterUserId, Long inviteeUserId) {
 }
