@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.consumer;
 
-import com.finovara.contracts.finance.event.sharedaccount.UsersCreatedSharedAccountEvent;
+import com.finovara.contracts.sharedaccount.event.UsersCreatedSharedAccountEvent;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
