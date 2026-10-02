@@ -5,10 +5,10 @@ import com.finovara.activitylogservice.activitylog.accountactivity.settings.mapp
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.model.SettingsActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.repository.SettingsActivityRepository;
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.service.SettingsActivityService;
-import com.finovara.contracts.activity.event.settings.SettingsActivityEvent;
-import com.finovara.contracts.model.SortType;
-import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.util.SortType;
+import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
+import com.finovara.contracts.mainaccount.activity.model.SettingType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
