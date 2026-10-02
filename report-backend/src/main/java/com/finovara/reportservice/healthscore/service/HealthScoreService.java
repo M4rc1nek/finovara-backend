@@ -1,6 +1,6 @@
 package com.finovara.reportservice.healthscore.service;
 
-import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
+import com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto;
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.healthscore.dto.HealthScoreDto;
 import com.finovara.reportservice.healthscore.model.HealthScoreStatus;
