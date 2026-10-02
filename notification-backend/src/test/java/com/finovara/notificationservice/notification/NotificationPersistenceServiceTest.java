@@ -2,9 +2,9 @@ package com.finovara.notificationservice.notification;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.contracts.model.NotificationType;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.mainaccount.notification.NotificationType;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.SortType;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
 import com.finovara.notificationservice.notification.dto.limit.LimitWarningDto;
 import com.finovara.notificationservice.notification.model.Notification;
