@@ -1,8 +1,8 @@
 package com.finovara.financeservice.settings.finances.recurring.processor;
 
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.RecurringType;
-import com.finovara.contracts.notification.event.recurring.transaction.RecurringExecutionSkippedEvent;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.model.RecurringType;
+import com.finovara.contracts.mainaccount.transaction.event.transaction.RecurringExecutionSkippedEvent;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.financeservice.settings.finances.recurring.service.execution.RecurringExecutionResult;
