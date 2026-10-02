@@ -5,10 +5,10 @@ import com.finovara.activitylogservice.activitylog.accountactivity.limit.mapper.
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.model.LimitActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.repository.LimitActivityRepository;
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.service.LimitActivityService;
-import com.finovara.contracts.activity.event.limit.LimitActivityEvent;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.SortType;
-import com.finovara.contracts.model.activity.LimitActivityType;
+import com.finovara.contracts.mainaccount.activity.event.limit.LimitActivityEvent;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.SortType;
+import com.finovara.contracts.mainaccount.activity.model.LimitActivityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
