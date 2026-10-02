@@ -1,10 +1,9 @@
 package com.finovara.reportservice.report.finances.calculate.categorypercentage.expense.service;
 
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.report.finances.calculate.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
-import com.finovara.reportservice.report.finances.calculate.categorypercentage.expense.service.ExpenseCategoryPercentageService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
