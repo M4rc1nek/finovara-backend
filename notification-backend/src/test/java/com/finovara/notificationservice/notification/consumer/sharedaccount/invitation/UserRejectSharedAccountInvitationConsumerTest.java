@@ -1,7 +1,7 @@
 package com.finovara.notificationservice.notification.consumer.sharedaccount.invitation;
 
-import com.finovara.contracts.notification.event.sharedaccount.invitation.UserRejectSharedAccountInvitationEvent;
-import com.finovara.contracts.model.NotificationType;
+import com.finovara.contracts.sharedaccount.event.invitation.UserRejectSharedAccountInvitationEvent;
+import com.finovara.contracts.mainaccount.notification.NotificationType;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import com.finovara.notificationservice.notification.dto.sharedaccount.invitation.UserRejectSharedAccountInvitationDto;
 import org.junit.jupiter.api.BeforeEach;
