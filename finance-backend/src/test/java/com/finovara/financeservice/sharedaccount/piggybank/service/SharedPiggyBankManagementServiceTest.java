@@ -2,7 +2,7 @@ package com.finovara.financeservice.sharedaccount.piggybank.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.contracts.util.model.PiggyBankGoalType;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDto;
