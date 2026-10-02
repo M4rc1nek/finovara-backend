@@ -1,9 +1,9 @@
 package com.finovara.financeservice.wallet.reservation.service;
 
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
