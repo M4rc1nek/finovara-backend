@@ -1,8 +1,8 @@
 package com.finovara.financeservice.expense.repository;
 
-import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.contracts.transaction.report.dto.DailyCashDto;
-import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
+import com.finovara.contracts.util.model.ExpenseCategory;
+import com.finovara.contracts.mainaccount.report.dto.DailyCashDto;
+import com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.suggestions.dto.ExpenseSuggestionDto;
 import org.springframework.data.domain.Pageable;
@@ -64,7 +64,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     Optional<BigDecimal> avgExpensesByUserIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("""
-             SELECT NEW com.finovara.contracts.transaction.report.dto.HighestExpenseDto(
+             SELECT NEW com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto(
              e.category,
              e.amount
             )
@@ -85,7 +85,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<ExpenseCategory> findTopExpenseCategoriesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
-                SELECT new com.finovara.contracts.transaction.report.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
                     e.createdAt,
                     SUM(e.amount)
                 )
@@ -96,7 +96,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<DailyCashDto> sumExpensesGroupedByDate(Long userId);
 
     @Query("""
-                SELECT new com.finovara.contracts.transaction.report.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
                     e.createdAt,
                     CAST(AVG(e.amount) AS big_decimal)
                 )
