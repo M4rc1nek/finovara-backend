@@ -1,0 +1,11 @@
+package com.finovara.contracts.mainaccount.activity.model;
+
+public enum AccountChangesActivityType {
+    PASSWORD_CHANGED,
+    USERNAME_CHANGED,
+    EMAIL_CHANGED,
+    PROFILE_IMG_CHANGED,
+    PROFILE_IMG_DELETED,
+    ADDITIONAL_AUTHORIZATION_ENABLED,
+    ADDITIONAL_AUTHORIZATION_DISABLED,
+}
