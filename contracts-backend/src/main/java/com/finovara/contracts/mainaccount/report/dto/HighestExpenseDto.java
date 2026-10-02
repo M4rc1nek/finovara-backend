@@ -1,4 +1,4 @@
-package com.finovara.contracts.transaction.report.dto;
+package com.finovara.contracts.mainaccount.report.dto;
 
 import com.finovara.contracts.util.model.ExpenseCategory;
 
