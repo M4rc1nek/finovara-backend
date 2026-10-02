@@ -1,9 +1,8 @@
 package com.finovara.reportservice.feignclient;
 
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.report.dto.security.SecurityReportDto;
-import com.finovara.contracts.report.dto.security.SharedAccountSecurityOverviewDto;
-import com.finovara.contracts.report.dto.security.SharedAccountSecurityReportDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.mainaccount.report.security.dto.SecurityReportDto;
+import com.finovara.contracts.sharedaccount.report.security.dto.SharedAccountSecurityOverviewDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
