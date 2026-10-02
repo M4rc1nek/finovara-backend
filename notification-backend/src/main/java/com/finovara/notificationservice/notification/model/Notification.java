@@ -1,6 +1,6 @@
 package com.finovara.notificationservice.notification.model;
 
-import com.finovara.contracts.model.NotificationType;
+import com.finovara.contracts.mainaccount.notification.NotificationType;
 import jakarta.persistence.*;
 import lombok.*;
 
