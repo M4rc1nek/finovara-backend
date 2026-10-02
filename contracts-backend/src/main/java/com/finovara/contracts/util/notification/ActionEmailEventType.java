@@ -1,4 +1,4 @@
-package com.finovara.contracts.notification;
+package com.finovara.contracts.util.notification;
 
 public enum ActionEmailEventType {
     PASSWORD_CHANGED,
