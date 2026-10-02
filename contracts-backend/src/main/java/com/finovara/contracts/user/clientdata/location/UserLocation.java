@@ -1,4 +1,4 @@
-package com.finovara.contracts.clientdata.location;
+package com.finovara.contracts.user.clientdata.location;
 
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
