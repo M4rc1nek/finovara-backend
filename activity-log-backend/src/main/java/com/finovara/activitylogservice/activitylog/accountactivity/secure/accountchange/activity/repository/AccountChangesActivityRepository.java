@@ -2,7 +2,7 @@ package com.finovara.activitylogservice.activitylog.accountactivity.secure.accou
 
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface AccountChangesActivityRepository extends JpaRepository<AccountChangesActivity, Long> {
@@ -73,8 +72,8 @@ public interface AccountChangesActivityRepository extends JpaRepository<AccountC
         FROM AccountChangesActivity a
         WHERE a.userId = :userId
           AND a.type IN (
-              com.finovara.contracts.model.activity.AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_ENABLED,
-              com.finovara.contracts.model.activity.AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_DISABLED
+              com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_ENABLED,
+              com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_DISABLED
           )
         ORDER BY a.createdAt DESC
         """)
