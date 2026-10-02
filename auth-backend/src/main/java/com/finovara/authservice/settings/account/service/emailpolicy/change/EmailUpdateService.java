@@ -1,14 +1,14 @@
 package com.finovara.authservice.settings.account.service.emailpolicy.change;
 
-import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.notification.email.ActionEmailEventType;
-import com.finovara.contracts.notification.event.SendEmailEvent;
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.util.notification.ActionEmailEventType;
+import com.finovara.contracts.util.notification.event.SendEmailEvent;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 
-import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
-import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
-import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+import static com.finovara.contracts.user.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.contracts.user.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.contracts.user.clientdata.location.UserLocation.getLocationFromIp;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
