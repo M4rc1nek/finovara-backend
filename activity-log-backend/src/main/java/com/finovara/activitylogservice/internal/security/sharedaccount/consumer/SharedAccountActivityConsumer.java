@@ -1,10 +1,9 @@
 package com.finovara.activitylogservice.internal.security.sharedaccount.consumer;
 
 import com.finovara.activitylogservice.internal.security.sharedaccount.consumer.factory.SharedAccountActivityFactory;
-import com.finovara.activitylogservice.internal.security.sharedaccount.repository.SharedAccountFinanceActivityRepository;
-import com.finovara.contracts.finance.event.sharedaccount.finance.SharedAccountExpenseActivityEvent;
-import com.finovara.contracts.finance.event.sharedaccount.finance.SharedAccountPiggyBankDepositActivityEvent;
-import com.finovara.contracts.finance.event.sharedaccount.finance.SharedAccountRevenueActivityEvent;
+import com.finovara.contracts.sharedaccount.event.activity.finance.SharedAccountExpenseActivityEvent;
+import com.finovara.contracts.sharedaccount.event.activity.finance.SharedAccountPiggyBankDepositActivityEvent;
+import com.finovara.contracts.sharedaccount.event.activity.finance.SharedAccountRevenueActivityEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
