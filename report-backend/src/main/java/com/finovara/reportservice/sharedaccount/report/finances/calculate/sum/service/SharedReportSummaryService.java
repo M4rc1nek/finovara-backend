@@ -1,6 +1,6 @@
 package com.finovara.reportservice.sharedaccount.report.finances.calculate.sum.service;
 
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.util.PeriodType;
 import com.finovara.reportservice.feignclient.FinanceBackendSharedReportClient;
 import com.finovara.reportservice.util.dto.ReportDto;
 import lombok.RequiredArgsConstructor;
