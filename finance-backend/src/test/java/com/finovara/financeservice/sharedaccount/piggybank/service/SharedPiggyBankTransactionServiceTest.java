@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.piggybank.service;
 
-import com.finovara.contracts.finance.event.sharedaccount.finance.SharedAccountPiggyBankDepositActivityEvent;
+import com.finovara.contracts.sharedaccount.event.activity.finance.SharedAccountPiggyBankDepositActivityEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
