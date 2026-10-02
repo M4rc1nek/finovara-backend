@@ -1,4 +1,4 @@
-package com.finovara.contracts.model;
+package com.finovara.contracts.util.model;
 
 public enum RecurringType {
     REVENUE,
