@@ -1,8 +1,8 @@
 package com.finovara.financeservice.util.limit.validator;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.limit.dto.LimitDto;
 import com.finovara.financeservice.limit.model.LimitStatus;
 import com.finovara.financeservice.sharedaccount.limit.dto.SharedLimitDto;
