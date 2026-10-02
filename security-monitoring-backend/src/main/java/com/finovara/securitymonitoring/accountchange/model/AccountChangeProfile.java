@@ -1,6 +1,6 @@
 package com.finovara.securitymonitoring.accountchange.model;
 
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
