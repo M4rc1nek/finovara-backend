@@ -1,7 +1,7 @@
 package com.finovara.activitylogservice.internal.security.sharedaccount.repository;
 
 import com.finovara.activitylogservice.internal.security.sharedaccount.model.SharedAccountFinanceActivity;
-import com.finovara.contracts.activity.event.sharedaccount.SharedFinanceActivityType;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedFinanceActivityType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
