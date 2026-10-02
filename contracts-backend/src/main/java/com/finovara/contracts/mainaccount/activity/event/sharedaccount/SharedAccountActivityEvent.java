@@ -1,6 +1,6 @@
 package com.finovara.contracts.mainaccount.activity.event.sharedaccount;
 
-import com.finovara.contracts.model.activity.SharedAccountActivityType;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
