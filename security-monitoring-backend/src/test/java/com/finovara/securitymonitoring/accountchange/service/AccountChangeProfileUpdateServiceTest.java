@@ -1,7 +1,7 @@
 package com.finovara.securitymonitoring.accountchange.service;
 
-import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;
 import com.finovara.securitymonitoring.accountchange.repository.AccountChangeProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
