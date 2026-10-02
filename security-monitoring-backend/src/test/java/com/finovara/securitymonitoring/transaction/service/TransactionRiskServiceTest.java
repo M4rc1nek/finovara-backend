@@ -1,6 +1,6 @@
 package com.finovara.securitymonitoring.transaction.service;
 
-import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
 import com.finovara.contracts.securitymonitoring.model.RiskRule;
