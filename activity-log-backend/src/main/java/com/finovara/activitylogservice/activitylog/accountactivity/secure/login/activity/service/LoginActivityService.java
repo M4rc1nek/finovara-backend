@@ -6,10 +6,10 @@ import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.archive.service.LoginActivityArchiveService;
-import com.finovara.contracts.datadeletable.UserDataDeletable;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
