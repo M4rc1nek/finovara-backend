@@ -1,8 +1,8 @@
 package com.finovara.notificationservice.notification.consumer.recurring;
 
-import com.finovara.contracts.model.NotificationType;
-import com.finovara.contracts.model.RecurringType;
-import com.finovara.contracts.notification.event.recurring.transaction.RecurringExecutionSkippedEvent;
+import com.finovara.contracts.mainaccount.notification.NotificationType;
+import com.finovara.contracts.util.model.RecurringType;
+import com.finovara.contracts.mainaccount.transaction.event.transaction.RecurringExecutionSkippedEvent;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import com.finovara.notificationservice.notification.dto.recurring.RecurringExecutionSkippedDto;
 import org.junit.jupiter.api.BeforeEach;
