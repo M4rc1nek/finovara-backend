@@ -1,6 +1,6 @@
 package com.finovara.financeservice.internal.digest.report.email;
 
-import com.finovara.contracts.notification.email.digest.report.finance.WeeklyFinanceDigestReportDto;
+import com.finovara.contracts.mainaccount.report.digest.finance.WeeklyFinanceDigestReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
