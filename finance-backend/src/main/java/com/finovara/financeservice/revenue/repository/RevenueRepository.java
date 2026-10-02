@@ -1,10 +1,9 @@
 package com.finovara.financeservice.revenue.repository;
 
-import com.finovara.contracts.transaction.report.dto.DailyCashDto;
-import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
-import com.finovara.financeservice.expense.suggestions.dto.ExpenseSuggestionDto;
+import com.finovara.contracts.mainaccount.report.dto.DailyCashDto;
+import com.finovara.contracts.mainaccount.report.dto.HighestRevenueDto;
 import com.finovara.financeservice.revenue.model.Revenue;
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.revenue.suggestions.dto.RevenueSuggestionDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -61,7 +60,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     Optional<BigDecimal> avgRevenuesByUserIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("""
-             SELECT NEW com.finovara.contracts.transaction.report.dto.HighestRevenueDto(
+             SELECT NEW com.finovara.contracts.mainaccount.report.dto.HighestRevenueDto(
              r.category,
              r.amount
             )
@@ -70,7 +69,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<HighestRevenueDto> findHighestRevenuesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
-                SELECT new com.finovara.contracts.transaction.report.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
                     r.createdAt,
                     SUM(r.amount)
                 )
@@ -81,7 +80,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<DailyCashDto> sumRevenuesGroupedByDate(Long userId);
 
     @Query("""
-                SELECT new com.finovara.contracts.transaction.report.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
                     r.createdAt,
                     CAST(AVG(r.amount) AS big_decimal)
                 )
