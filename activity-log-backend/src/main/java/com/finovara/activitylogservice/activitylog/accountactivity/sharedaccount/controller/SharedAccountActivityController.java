@@ -3,8 +3,8 @@ package com.finovara.activitylogservice.activitylog.accountactivity.sharedaccoun
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.dto.SharedAccountActivityDto;
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.service.SharedAccountActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
