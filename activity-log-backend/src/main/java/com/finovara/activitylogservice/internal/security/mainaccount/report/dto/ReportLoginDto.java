@@ -1,6 +1,6 @@
 package com.finovara.activitylogservice.internal.security.mainaccount.report.dto;
 
-import com.finovara.contracts.report.dto.security.ShareStatDto;
+import com.finovara.contracts.mainaccount.report.security.dto.ShareStatDto;
 
 import java.time.LocalDate;
 import java.util.List;

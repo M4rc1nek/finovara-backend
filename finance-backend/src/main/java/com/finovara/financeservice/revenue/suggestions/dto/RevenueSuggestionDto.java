@@ -1,6 +1,6 @@
 package com.finovara.financeservice.revenue.suggestions.dto;
 
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.util.model.RevenueCategory;
 
 import java.math.BigDecimal;
 

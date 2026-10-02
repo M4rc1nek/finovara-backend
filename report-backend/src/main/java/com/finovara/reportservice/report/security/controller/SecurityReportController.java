@@ -1,7 +1,7 @@
 package com.finovara.reportservice.report.security.controller;
 
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.report.dto.security.SecurityReportDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.mainaccount.report.security.dto.SecurityReportDto;
 import com.finovara.reportservice.report.security.service.SecurityReportService;
 import com.finovara.reportservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;

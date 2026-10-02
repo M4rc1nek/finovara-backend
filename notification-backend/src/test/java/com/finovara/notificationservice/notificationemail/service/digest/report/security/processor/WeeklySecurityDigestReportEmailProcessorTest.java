@@ -1,7 +1,7 @@
 package com.finovara.notificationservice.notificationemail.service.digest.report.security.processor;
 
-import com.finovara.contracts.authorization.dto.UserDataResponse;
-import com.finovara.contracts.notification.email.digest.report.security.WeeklySecurityDigestReportDto;
+import com.finovara.contracts.user.authorization.dto.UserDataResponse;
+import com.finovara.contracts.mainaccount.report.digest.security.WeeklySecurityDigestReportDto;
 import com.finovara.notificationservice.feignclient.ActivityLogBackendClient;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ScheduledEmailNotificationType;

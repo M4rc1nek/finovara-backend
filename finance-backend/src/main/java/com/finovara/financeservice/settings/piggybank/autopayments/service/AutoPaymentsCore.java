@@ -1,7 +1,7 @@
 package com.finovara.financeservice.settings.piggybank.autopayments.service;
 
-import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.wallet.model.Wallet;

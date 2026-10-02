@@ -1,7 +1,7 @@
 package com.finovara.activitylogservice.activitylog.accountactivity.settings.model;
 
-import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
+import com.finovara.contracts.mainaccount.activity.model.SettingType;
 import jakarta.persistence.*;
 import lombok.*;
 

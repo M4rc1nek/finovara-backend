@@ -1,8 +1,8 @@
 package com.finovara.reportservice.sharedaccount.report.finances.calculate.categorypercentage.revenue.service;
 
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.contracts.percentage.CalculatePercentage;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.model.RevenueCategory;
+import com.finovara.contracts.util.calculate.CalculatePercentage;
 import com.finovara.reportservice.feignclient.FinanceBackendSharedReportClient;
 import com.finovara.reportservice.sharedaccount.report.finances.calculate.categorypercentage.revenue.dto.SharedRevenueCategoryPercentageDto;
 import lombok.RequiredArgsConstructor;

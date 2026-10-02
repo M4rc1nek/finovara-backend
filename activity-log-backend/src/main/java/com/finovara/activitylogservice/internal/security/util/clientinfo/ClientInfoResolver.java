@@ -4,9 +4,9 @@ import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.BrowserCountDto;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.LocationCountDto;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.ClientInfoDto;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
-import com.finovara.contracts.percentage.CalculatePercentage;
-import com.finovara.contracts.report.dto.security.ShareStatDto;
+import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
+import com.finovara.contracts.util.calculate.CalculatePercentage;
+import com.finovara.contracts.mainaccount.report.security.dto.ShareStatDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

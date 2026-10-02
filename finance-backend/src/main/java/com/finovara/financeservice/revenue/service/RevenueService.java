@@ -1,10 +1,10 @@
 package com.finovara.financeservice.revenue.service;
 
-import com.finovara.contracts.activity.event.revenue.RevenueActivityEvent;
-import com.finovara.contracts.datadeletable.UserDataDeletable;
+import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.model.activity.RevenueActivityType;
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.mainaccount.activity.model.RevenueActivityType;
+import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
@@ -18,7 +18,7 @@ import com.finovara.financeservice.settings.piggybank.autopayments.service.AutoP
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.revenue.RevenueManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

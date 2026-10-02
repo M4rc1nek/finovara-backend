@@ -1,7 +1,7 @@
 package com.finovara.securitymonitoring.consumer;
 
-import com.finovara.contracts.user.event.UserCreatedEvent;
-import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
+import com.finovara.contracts.user.event.account.UserCreatedEvent;
+import com.finovara.contracts.user.event.account.UserAccountDeletedEvent;
 import com.finovara.securitymonitoring.accountchange.factory.AccountChangeProfileFactory;
 import com.finovara.securitymonitoring.accountchange.service.AccountChangeProfileUpdateService;
 import com.finovara.securitymonitoring.clientdata.factory.ClientDataFactory;

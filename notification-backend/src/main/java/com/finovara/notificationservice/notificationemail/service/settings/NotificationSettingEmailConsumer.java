@@ -1,9 +1,9 @@
 package com.finovara.notificationservice.notificationemail.service.settings;
 
-import com.finovara.contracts.notification.email.ActionEmailEventType;
-import com.finovara.contracts.notification.event.SendEmailEvent;
-import com.finovara.contracts.user.event.UserCreatedEvent;
-import com.finovara.contracts.user.event.account.delete.UserAccountDeletedEvent;
+import com.finovara.contracts.util.notification.ActionEmailEventType;
+import com.finovara.contracts.util.notification.event.SendEmailEvent;
+import com.finovara.contracts.user.event.account.UserCreatedEvent;
+import com.finovara.contracts.user.event.account.UserAccountDeletedEvent;
 import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;

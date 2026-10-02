@@ -1,17 +1,17 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
-import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.mainaccount.activity.model.SettingType;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringSavingsDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.contracts.model.RecurringType;
+import com.finovara.contracts.util.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import lombok.RequiredArgsConstructor;
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

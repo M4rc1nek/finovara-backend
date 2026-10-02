@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.revenue.dto;
 
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.util.model.RevenueCategory;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Size;

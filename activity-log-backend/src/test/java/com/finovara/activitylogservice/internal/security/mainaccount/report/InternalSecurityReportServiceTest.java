@@ -5,8 +5,8 @@ import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.
 import com.finovara.activitylogservice.internal.security.mainaccount.report.mapper.SecurityReportMapper;
 import com.finovara.activitylogservice.internal.security.mainaccount.report.service.SecurityReportAccountChangeService;
 import com.finovara.activitylogservice.internal.security.mainaccount.report.service.SecurityReportLoginService;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.report.dto.security.SecurityReportDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.mainaccount.report.security.dto.SecurityReportDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
 package com.finovara.activitylogservice.feignclient;
 
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.sharedaccount.SharedAccountMemberInfoDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;

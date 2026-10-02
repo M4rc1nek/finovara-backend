@@ -1,7 +1,7 @@
 package com.finovara.financeservice.sharedaccount.limit.service;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.percentage.CalculatePercentage;
+import com.finovara.contracts.util.calculate.CalculatePercentage;
 import com.finovara.financeservice.limit.model.LimitStatus;
 import com.finovara.financeservice.sharedaccount.limit.dto.SharedLimitStatsDto;
 import com.finovara.financeservice.sharedaccount.limit.mapper.SharedLimitMapper;

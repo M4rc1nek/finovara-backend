@@ -3,7 +3,7 @@ package com.finovara.activitylogservice.activitylog.accountactivity.limit.contro
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.dto.LimitActivityDto;
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.service.LimitActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

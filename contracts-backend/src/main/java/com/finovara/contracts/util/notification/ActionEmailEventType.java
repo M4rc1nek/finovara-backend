@@ -1,0 +1,11 @@
+package com.finovara.contracts.util.notification;
+
+public enum ActionEmailEventType {
+    PASSWORD_CHANGED,
+    USERNAME_CHANGED,
+    EMAIL_CHANGED,
+    ACCOUNT_DELETED,
+    WALLET_LOW_BALANCE,
+    SHARED_ACCOUNT_LARGE_EXPENSE_DETECTED,
+    SHARED_ACCOUNT_PIGGY_BANK_GOAL_ACHIEVED
+}

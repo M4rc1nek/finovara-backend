@@ -5,10 +5,10 @@ import com.finovara.activitylogservice.activitylog.accountactivity.limit.dto.Lim
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.mapper.LimitActivityMapper;
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.model.LimitActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.limit.repository.LimitActivityRepository;
-import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.activity.event.limit.LimitActivityEvent;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.mainaccount.activity.event.limit.LimitActivityEvent;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

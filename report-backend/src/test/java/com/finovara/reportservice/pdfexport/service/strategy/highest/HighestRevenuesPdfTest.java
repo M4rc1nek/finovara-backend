@@ -1,8 +1,8 @@
 package com.finovara.reportservice.pdfexport.service.strategy.highest;
 
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.model.RevenueCategory;
+import com.finovara.contracts.mainaccount.report.dto.HighestRevenueDto;
 import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;

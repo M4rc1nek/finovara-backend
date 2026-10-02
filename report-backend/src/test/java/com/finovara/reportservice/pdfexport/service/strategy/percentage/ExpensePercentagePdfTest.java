@@ -1,7 +1,7 @@
 package com.finovara.reportservice.pdfexport.service.strategy.percentage;
 
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;

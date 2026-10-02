@@ -1,8 +1,8 @@
 package com.finovara.financeservice.util.periodbalance;
 
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.model.ExpenseCategory;
+import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.revenue.model.Revenue;

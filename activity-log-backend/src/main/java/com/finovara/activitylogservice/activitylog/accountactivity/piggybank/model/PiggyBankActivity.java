@@ -1,7 +1,7 @@
 package com.finovara.activitylogservice.activitylog.accountactivity.piggybank.model;
 
-import com.finovara.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.util.model.PiggyBankGoalType;
 import jakarta.persistence.*;
 import lombok.*;
 

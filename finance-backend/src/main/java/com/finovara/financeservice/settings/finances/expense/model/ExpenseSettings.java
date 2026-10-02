@@ -1,6 +1,6 @@
 package com.finovara.financeservice.settings.finances.expense.model;
 
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.util.PeriodType;
 import jakarta.persistence.*;
 import lombok.*;
 

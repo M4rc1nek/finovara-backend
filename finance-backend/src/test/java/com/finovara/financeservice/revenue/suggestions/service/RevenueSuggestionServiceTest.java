@@ -1,6 +1,6 @@
 package com.finovara.financeservice.revenue.suggestions.service;
 
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.revenue.suggestions.dto.RevenueSuggestionDto;
 import org.junit.jupiter.api.BeforeEach;

@@ -7,10 +7,10 @@ import com.finovara.activitylogservice.activitylog.securitymonitoring.model.Risk
 import com.finovara.activitylogservice.activitylog.securitymonitoring.model.RiskRuleCollectionActivity;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.repository.RiskOperationActivityRepository;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
-import com.finovara.contracts.activity.event.securitymonitoring.RiskOperationCreatedEvent;
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.mainaccount.activity.event.securitymonitoring.RiskOperationCreatedEvent;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

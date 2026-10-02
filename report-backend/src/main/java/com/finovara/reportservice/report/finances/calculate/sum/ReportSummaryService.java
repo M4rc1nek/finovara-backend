@@ -2,7 +2,7 @@ package com.finovara.reportservice.report.finances.calculate.sum;
 
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.util.dto.ReportDto;
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.util.PeriodType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;

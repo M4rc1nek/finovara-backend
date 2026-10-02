@@ -1,6 +1,6 @@
 package com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.model;
 
-import com.finovara.contracts.model.activity.SharedAccountActivityType;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
 import jakarta.persistence.*;
 import lombok.*;
 

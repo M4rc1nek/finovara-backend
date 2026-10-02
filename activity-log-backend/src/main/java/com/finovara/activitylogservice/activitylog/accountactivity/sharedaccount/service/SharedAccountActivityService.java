@@ -6,10 +6,10 @@ import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.model.SharedAccountActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.repository.SharedAccountActivityRepository;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.activity.event.sharedaccount.SharedAccountActivityEvent;
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

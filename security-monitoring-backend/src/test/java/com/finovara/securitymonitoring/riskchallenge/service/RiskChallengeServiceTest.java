@@ -1,6 +1,6 @@
 package com.finovara.securitymonitoring.riskchallenge.service;
 
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.securitymonitoring.exception.badrequest.InvalidChallengeException;
 import com.finovara.securitymonitoring.exception.conflict.RiskOperationStateException;

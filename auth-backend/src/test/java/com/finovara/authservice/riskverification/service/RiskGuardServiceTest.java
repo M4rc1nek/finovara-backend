@@ -2,8 +2,8 @@ package com.finovara.authservice.riskverification.service;
 
 import com.finovara.authservice.exception.riskverification.precondition.RiskVerificationRequiredException;
 import com.finovara.authservice.feignclient.SecurityMonitoringClient;
-import com.finovara.contracts.clientdata.browser.UserBrowser;
-import com.finovara.contracts.clientdata.location.UserLocation;
+import com.finovara.contracts.user.clientdata.browser.UserBrowser;
+import com.finovara.contracts.user.clientdata.location.UserLocation;
 import com.finovara.contracts.securitymonitoring.model.RiskAction;
 import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationRequest;
 import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationResponse;

@@ -1,7 +1,7 @@
 package com.finovara.notificationservice.notification.consumer.sharedaccount.invitation;
 
-import com.finovara.contracts.notification.event.sharedaccount.invitation.UserSentSharedAccountInvitationEvent;
-import com.finovara.contracts.model.NotificationType;
+import com.finovara.contracts.sharedaccount.event.invitation.UserSentSharedAccountInvitationEvent;
+import com.finovara.contracts.mainaccount.notification.NotificationType;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import com.finovara.notificationservice.notification.dto.sharedaccount.invitation.UserSentSharedAccountInvitationDto;
 import lombok.RequiredArgsConstructor;

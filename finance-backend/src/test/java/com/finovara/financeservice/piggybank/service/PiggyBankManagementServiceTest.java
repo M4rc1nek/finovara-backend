@@ -1,9 +1,9 @@
 package com.finovara.financeservice.piggybank.service;
 
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.activity.event.piggybank.PiggyBankEditActivityEvent;
-import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankEditActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.outbox.OutboxService;
@@ -12,7 +12,7 @@ import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
-import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.contracts.util.model.PiggyBankGoalType;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;

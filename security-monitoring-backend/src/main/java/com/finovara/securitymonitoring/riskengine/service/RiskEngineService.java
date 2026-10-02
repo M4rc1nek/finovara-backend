@@ -1,6 +1,6 @@
 package com.finovara.securitymonitoring.riskengine.service;
 
-import com.finovara.contracts.activity.event.securitymonitoring.RiskOperationCreatedEvent;
+import com.finovara.contracts.mainaccount.activity.event.securitymonitoring.RiskOperationCreatedEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.dto.*;
 import com.finovara.contracts.securitymonitoring.model.RiskAction;

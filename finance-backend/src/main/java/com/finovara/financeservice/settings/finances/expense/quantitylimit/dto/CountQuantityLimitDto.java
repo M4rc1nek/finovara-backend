@@ -1,6 +1,6 @@
 package com.finovara.financeservice.settings.finances.expense.quantitylimit.dto;
 
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.util.PeriodType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 

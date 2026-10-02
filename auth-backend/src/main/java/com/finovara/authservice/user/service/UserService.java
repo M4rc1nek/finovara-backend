@@ -3,10 +3,10 @@ package com.finovara.authservice.user.service;
 import com.finovara.authservice.exception.conflict.LocalPasswordNotSetException;
 import com.finovara.authservice.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.authservice.riskverification.service.RiskGuardService;
-import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
-import com.finovara.contracts.user.event.UserCreatedEvent;
+import com.finovara.contracts.user.event.account.UserCreatedEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.authservice.security.jwt.JwtService;
 import com.finovara.authservice.user.dto.UserLoginDto;
@@ -31,9 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 
-import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
-import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
-import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+import static com.finovara.contracts.user.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.contracts.user.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.contracts.user.clientdata.location.UserLocation.getLocationFromIp;
 
 @Slf4j
 @Service

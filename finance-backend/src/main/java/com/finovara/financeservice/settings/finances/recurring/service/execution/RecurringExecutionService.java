@@ -1,11 +1,11 @@
 package com.finovara.financeservice.settings.finances.recurring.service.execution;
 
-import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.service.ExpenseService;

@@ -1,11 +1,11 @@
 package com.finovara.financeservice.settings.finances.recurring.service.support;
 
-import com.finovara.contracts.activity.event.settings.SettingsActivityEvent;
-import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
+import com.finovara.contracts.mainaccount.activity.model.SettingType;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.contracts.model.RecurringType;
+import com.finovara.contracts.util.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

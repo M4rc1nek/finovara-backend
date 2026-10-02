@@ -1,6 +1,6 @@
 package com.finovara.activitylogservice.internal.security.mainaccount.digest;
 
-import com.finovara.contracts.notification.email.digest.report.security.WeeklySecurityDigestReportDto;
+import com.finovara.contracts.mainaccount.report.digest.security.WeeklySecurityDigestReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

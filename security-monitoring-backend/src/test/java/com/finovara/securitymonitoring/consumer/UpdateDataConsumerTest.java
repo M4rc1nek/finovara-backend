@@ -1,10 +1,10 @@
 package com.finovara.securitymonitoring.consumer;
 
-import com.finovara.contracts.activity.event.expense.ExpenseActivityEvent;
-import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.activity.event.revenue.RevenueActivityEvent;
-import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.securitymonitoring.accountchange.service.AccountChangeProfileUpdateService;
 import com.finovara.securitymonitoring.login.service.LoginProfileUpdateService;
 import com.finovara.securitymonitoring.transaction.service.TransactionProfileUpdateService;

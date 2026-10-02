@@ -1,15 +1,15 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.mainaccount.activity.model.SettingType;
+import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringRevenueDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.contracts.model.RecurringType;
+import com.finovara.contracts.util.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringRevenueValidator;
 import org.junit.jupiter.api.BeforeEach;

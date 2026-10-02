@@ -1,6 +1,6 @@
 package com.finovara.notificationservice.notification.controller;
 
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.util.SortType;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import lombok.RequiredArgsConstructor;

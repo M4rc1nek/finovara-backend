@@ -1,11 +1,11 @@
 package com.finovara.financeservice.piggybank.service;
 
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.notification.event.piggybank.PiggyBankProgressEvent;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.mainaccount.transaction.event.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;

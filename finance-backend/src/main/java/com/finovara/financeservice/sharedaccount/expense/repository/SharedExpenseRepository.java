@@ -1,11 +1,9 @@
 package com.finovara.financeservice.sharedaccount.expense.repository;
 
-import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.contracts.transaction.report.dto.DailyCashDto;
-import com.finovara.contracts.transaction.report.dto.HighestExpenseDto;
-import com.finovara.financeservice.expense.model.Expense;
+import com.finovara.contracts.util.model.ExpenseCategory;
+import com.finovara.contracts.mainaccount.report.dto.DailyCashDto;
+import com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
-import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -67,7 +65,7 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
     Optional<BigDecimal> sumExpensesByOwnerIdOrMemberIdAndDateRange(Long ownerId, Long memberId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     @Query("""
-             SELECT NEW com.finovara.contracts.transaction.report.dto.HighestExpenseDto(
+             SELECT NEW com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto(
              e.category,
              e.amount
             )
@@ -79,7 +77,7 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
     List<HighestExpenseDto> findHighestExpensesByOwnerIdOrMemberIdAndPeriod(Long ownerId, Long memberId, @Param("from") LocalDate from, @Param("to") LocalDate to, Pageable pageable);
 
     @Query("""
-                SELECT new com.finovara.contracts.transaction.report.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
                     e.createdAt,
                     SUM(e.amount)
                 )
@@ -90,7 +88,7 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
     List<DailyCashDto> sumExpensesGroupedByDateForOwnerIdOrMemberId(Long ownerId, Long memberId);
 
     @Query("""
-                SELECT new com.finovara.contracts.transaction.report.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
                     e.createdAt,
                     CAST(AVG(e.amount) AS big_decimal)
                 )

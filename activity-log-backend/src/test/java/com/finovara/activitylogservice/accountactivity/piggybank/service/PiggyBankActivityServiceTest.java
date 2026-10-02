@@ -5,11 +5,11 @@ import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.map
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.repository.PiggyBankActivityRepository;
 import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.activity.event.piggybank.PiggyBankEditActivityEvent;
-import com.finovara.contracts.model.SortType;
-import com.finovara.contracts.model.activity.PiggyBankActivityType;
-import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankEditActivityEvent;
+import com.finovara.contracts.util.SortType;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.util.model.PiggyBankGoalType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

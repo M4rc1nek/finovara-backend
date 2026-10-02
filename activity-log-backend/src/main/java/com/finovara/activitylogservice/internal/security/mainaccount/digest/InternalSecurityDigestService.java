@@ -5,7 +5,7 @@ import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.LoginDigestSummaryDto;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.mapper.WeeklySecurityDigestReportMapper;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.service.SecuritySummaryService;
-import com.finovara.contracts.notification.email.digest.report.security.WeeklySecurityDigestReportDto;
+import com.finovara.contracts.mainaccount.report.digest.security.WeeklySecurityDigestReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

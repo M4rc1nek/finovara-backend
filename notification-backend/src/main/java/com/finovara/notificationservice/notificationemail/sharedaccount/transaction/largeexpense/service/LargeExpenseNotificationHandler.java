@@ -1,7 +1,7 @@
 package com.finovara.notificationservice.notificationemail.sharedaccount.transaction.largeexpense.service;
 
-import com.finovara.contracts.authorization.dto.UserDataResponse;
-import com.finovara.contracts.finance.event.sharedaccount.LargeExpenseNotificationEvent;
+import com.finovara.contracts.user.authorization.dto.UserDataResponse;
+import com.finovara.contracts.sharedaccount.event.notification.LargeExpenseNotificationEvent;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
 import com.finovara.notificationservice.notificationemail.service.EmailNotifier;

@@ -1,8 +1,8 @@
 package com.finovara.financeservice.settings.finances.expense.smartscan.service;
 
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.activity.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
+import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.financeservice.exception.conflict.ConfirmationRequiredException;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
@@ -12,7 +12,7 @@ import com.finovara.financeservice.settings.finances.expense.repository.ExpenseS
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanDto;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.financeservice.util.settings.ExpenseAnomalyDetector;
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

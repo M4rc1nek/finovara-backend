@@ -6,9 +6,9 @@ import com.finovara.activitylogservice.activitylog.securitymonitoring.model.Risk
 import com.finovara.activitylogservice.activitylog.securitymonitoring.model.RiskRuleCollectionActivity;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.repository.RiskOperationActivityRepository;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
-import com.finovara.contracts.activity.event.securitymonitoring.RiskOperationCreatedEvent;
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.mainaccount.activity.event.securitymonitoring.RiskOperationCreatedEvent;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.util.SortType;
 import com.finovara.contracts.securitymonitoring.model.RiskAction;
 import com.finovara.contracts.securitymonitoring.model.RiskRule;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;

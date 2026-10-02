@@ -1,15 +1,15 @@
 package com.finovara.financeservice.settings.finances.expense.controlamount.service;
 
-import com.finovara.contracts.activity.event.settings.SettingsActivityEvent;
-import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
+import com.finovara.contracts.mainaccount.activity.model.SettingType;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import org.springframework.transaction.annotation.Transactional;
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;

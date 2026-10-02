@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.deletion;
 
-import com.finovara.contracts.notification.event.sharedaccount.deletion.SharedAccountDeletedEvent;
+import com.finovara.contracts.sharedaccount.event.deletion.SharedAccountDeletedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

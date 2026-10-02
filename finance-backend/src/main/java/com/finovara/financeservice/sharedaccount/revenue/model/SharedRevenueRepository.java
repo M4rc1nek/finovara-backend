@@ -1,8 +1,8 @@
 package com.finovara.financeservice.sharedaccount.revenue.model;
 
-import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.contracts.transaction.report.dto.DailyCashDto;
-import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
+import com.finovara.contracts.util.model.RevenueCategory;
+import com.finovara.contracts.mainaccount.report.dto.DailyCashDto;
+import com.finovara.contracts.mainaccount.report.dto.HighestRevenueDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -54,7 +54,7 @@ public interface SharedRevenueRepository extends JpaRepository<SharedRevenue, Lo
     Optional<BigDecimal> sumRevenuesByOwnerIdOrMemberIdAndDateRange(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     @Query("""
-             SELECT NEW com.finovara.contracts.transaction.report.dto.HighestRevenueDto(
+             SELECT NEW com.finovara.contracts.mainaccount.report.dto.HighestRevenueDto(
              r.category,
              r.amount
             )
@@ -66,7 +66,7 @@ public interface SharedRevenueRepository extends JpaRepository<SharedRevenue, Lo
     List<HighestRevenueDto> findHighestRevenuesByOwnerIdOrMemberIdAndPeriod(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId, @Param("from") LocalDate from, @Param("to") LocalDate to, Pageable pageable);
 
     @Query("""
-                SELECT new com.finovara.contracts.transaction.report.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
                     r.createdAt,
                     SUM(r.amount)
                 )
@@ -77,7 +77,7 @@ public interface SharedRevenueRepository extends JpaRepository<SharedRevenue, Lo
     List<DailyCashDto> sumRevenuesGroupedByDateForOwnerIdOrMemberId(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId);
 
     @Query("""
-                SELECT new com.finovara.contracts.transaction.report.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
                     r.createdAt,
                     CAST(AVG(r.amount) AS big_decimal)
                 )

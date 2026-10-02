@@ -1,6 +1,6 @@
 package com.finovara.securitymonitoring.riskchallenge.controller;
 
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.securitymonitoring.riskchallenge.dto.ChallengeConfirmationResponse;
 import com.finovara.securitymonitoring.riskchallenge.dto.ConfirmEmailCodeDto;
 import com.finovara.securitymonitoring.riskchallenge.service.RiskChallengeService;

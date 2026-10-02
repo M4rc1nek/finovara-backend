@@ -5,9 +5,9 @@ import com.finovara.activitylogservice.activitylog.accountactivity.settings.dto.
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.mapper.SettingsActivityMapper;
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.model.SettingsActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.settings.repository.SettingsActivityRepository;
-import com.finovara.contracts.datadeletable.UserDataDeletable;
-import com.finovara.contracts.activity.event.settings.SettingsActivityEvent;
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

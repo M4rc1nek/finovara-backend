@@ -1,16 +1,16 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.activity.SettingType;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.mainaccount.activity.model.SettingType;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringExpenseDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.contracts.model.RecurringType;
+import com.finovara.contracts.util.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.ExpenseSettingsValidator;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;

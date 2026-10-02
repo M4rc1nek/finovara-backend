@@ -1,8 +1,8 @@
 package com.finovara.financeservice.piggybank.service;
 
-import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.notification.event.piggybank.PiggyBankProgressEvent;
-import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.mainaccount.transaction.event.piggybank.PiggyBankProgressEvent;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
@@ -16,7 +16,7 @@ import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCheckGoal
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankValidator;
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

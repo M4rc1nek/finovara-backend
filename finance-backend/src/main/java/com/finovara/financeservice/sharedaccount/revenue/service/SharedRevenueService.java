@@ -2,7 +2,7 @@ package com.finovara.financeservice.sharedaccount.revenue.service;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
-import com.finovara.contracts.finance.event.sharedaccount.finance.SharedAccountRevenueActivityEvent;
+import com.finovara.contracts.sharedaccount.event.activity.finance.SharedAccountRevenueActivityEvent;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;

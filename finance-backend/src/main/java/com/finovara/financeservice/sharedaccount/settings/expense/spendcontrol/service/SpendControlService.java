@@ -1,7 +1,7 @@
 package com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.service;
 
 import com.finovara.contracts.exception.unprocessablecontent.InvalidOperationException;
-import com.finovara.contracts.percentage.CalculatePercentage;
+import com.finovara.contracts.util.calculate.CalculatePercentage;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.dto.SpendControlDto;

@@ -1,12 +1,12 @@
 package com.finovara.securitymonitoring.transaction.service;
 
-import com.finovara.contracts.activity.event.expense.ExpenseActivityEvent;
-import com.finovara.contracts.activity.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.activity.event.revenue.RevenueActivityEvent;
-import com.finovara.contracts.datadeletable.UserDataDeletable;
+import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.model.activity.ExpenseActivityType;
-import com.finovara.contracts.model.activity.PiggyBankActivityType;
+import com.finovara.contracts.mainaccount.activity.model.ExpenseActivityType;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
 import com.finovara.securitymonitoring.transaction.model.TransactionProfile;
 import com.finovara.securitymonitoring.transaction.repository.TransactionProfileRepository;
 import lombok.RequiredArgsConstructor;

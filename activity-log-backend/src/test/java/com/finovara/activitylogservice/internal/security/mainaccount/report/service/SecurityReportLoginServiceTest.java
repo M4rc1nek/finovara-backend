@@ -5,9 +5,9 @@ import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.
 import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.ReportLoginDto;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.ClientInfoResolver;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.ClientInfoDto;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
-import com.finovara.contracts.report.dto.security.ShareStatDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
+import com.finovara.contracts.mainaccount.report.security.dto.ShareStatDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.finovara.contracts.percentage.CalculatePercentage.calculatePercentage;
+import static com.finovara.contracts.util.calculate.CalculatePercentage.calculatePercentage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

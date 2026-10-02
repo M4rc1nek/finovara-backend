@@ -6,7 +6,7 @@ import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
 import com.finovara.notificationservice.notification.model.Notification;
 import com.finovara.notificationservice.notification.repository.NotificationRepository;
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.util.SortType;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

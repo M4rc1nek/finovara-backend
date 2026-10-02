@@ -1,7 +1,7 @@
 package com.finovara.financeservice.settings.finances.recurring.repository;
 
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.contracts.model.RecurringType;
+import com.finovara.contracts.util.model.RecurringType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

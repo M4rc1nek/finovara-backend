@@ -1,7 +1,7 @@
 package com.finovara.financeservice.limit.model;
 
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -18,7 +18,7 @@ import java.util.TimeZone;
 @EnableFeignClients
 @EnableScheduling
 @EnableConfigurationProperties(SecurityProperties.class)
-@SpringBootApplication(scanBasePackages = {"com.finovara.authservice", "com.finovara.contracts.outbox", "com.finovara.contracts.authorization.additionalcode.resolver"})
+@SpringBootApplication(scanBasePackages = {"com.finovara.authservice", "com.finovara.contracts.outbox", "com.finovara.contracts.user.authorization.additionalcode.resolver"})
 @EntityScan(basePackages = {"com.finovara.authservice", "com.finovara.contracts.outbox"})
 @EnableJpaRepositories(basePackages = {"com.finovara.authservice", "com.finovara.contracts.outbox"})
 public class FinovaraAuthBackendApplication {

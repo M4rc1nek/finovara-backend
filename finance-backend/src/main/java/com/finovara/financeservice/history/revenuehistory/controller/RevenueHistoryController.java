@@ -1,9 +1,9 @@
 package com.finovara.financeservice.history.revenuehistory.controller;
 
 import com.finovara.financeservice.revenue.dto.RevenueDto;
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.history.revenuehistory.service.RevenueHistoryService;
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.util.PeriodType;
 import com.finovara.financeservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

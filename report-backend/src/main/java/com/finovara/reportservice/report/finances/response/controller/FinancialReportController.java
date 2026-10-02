@@ -1,6 +1,6 @@
 package com.finovara.reportservice.report.finances.response.controller;
 
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.util.PeriodType;
 import com.finovara.reportservice.util.dto.financial.FinancialReportDto;
 import com.finovara.reportservice.report.finances.response.service.FinancialReportService;
 import com.finovara.reportservice.security.SecurityUtils;

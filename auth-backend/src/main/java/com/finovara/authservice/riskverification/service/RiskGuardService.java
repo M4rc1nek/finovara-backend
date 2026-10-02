@@ -1,8 +1,8 @@
 package com.finovara.authservice.riskverification.service;
 
-import com.finovara.contracts.clientdata.browser.UserBrowser;
-import com.finovara.contracts.clientdata.ip.ClientIp;
-import com.finovara.contracts.clientdata.location.UserLocation;
+import com.finovara.contracts.user.clientdata.browser.UserBrowser;
+import com.finovara.contracts.user.clientdata.ip.ClientIp;
+import com.finovara.contracts.user.clientdata.location.UserLocation;
 import com.finovara.contracts.securitymonitoring.model.RiskAction;
 import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationRequest;
 import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationResponse;

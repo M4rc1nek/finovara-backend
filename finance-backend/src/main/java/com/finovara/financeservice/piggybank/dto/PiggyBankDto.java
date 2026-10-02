@@ -1,6 +1,6 @@
 package com.finovara.financeservice.piggybank.dto;
 
-import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.contracts.util.model.PiggyBankGoalType;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;

@@ -5,10 +5,10 @@ import com.finovara.activitylogservice.activitylog.accountactivity.revenue.mappe
 import com.finovara.activitylogservice.activitylog.accountactivity.revenue.model.RevenueActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.revenue.repository.RevenueActivityRepository;
 import com.finovara.activitylogservice.activitylog.accountactivity.revenue.service.RevenueActivityService;
-import com.finovara.contracts.activity.event.revenue.RevenueActivityEvent;
-import com.finovara.contracts.model.SortType;
-import com.finovara.contracts.model.activity.RevenueActivityType;
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
+import com.finovara.contracts.util.SortType;
+import com.finovara.contracts.mainaccount.activity.model.RevenueActivityType;
+import com.finovara.contracts.util.model.RevenueCategory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

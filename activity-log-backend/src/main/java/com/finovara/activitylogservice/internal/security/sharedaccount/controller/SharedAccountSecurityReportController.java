@@ -1,8 +1,8 @@
 package com.finovara.activitylogservice.internal.security.sharedaccount.controller;
 
 import com.finovara.activitylogservice.internal.security.sharedaccount.service.SharedAccountSecurityReportService;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.report.dto.security.SharedAccountSecurityOverviewDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.sharedaccount.report.security.dto.SharedAccountSecurityOverviewDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

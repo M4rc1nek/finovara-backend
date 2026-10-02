@@ -8,11 +8,11 @@ import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepo
 import com.finovara.authservice.user.dto.UserDataDto;
 import com.finovara.authservice.user.mapper.UserDataMapper;
 import com.finovara.authservice.user.repository.UserRepository;
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.activity.event.sharedaccount.SharedAccountActivityEvent;
-import com.finovara.contracts.notification.event.sharedaccount.invitation.UserSentSharedAccountInvitationEvent;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.sharedaccount.event.invitation.UserSentSharedAccountInvitationEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.model.activity.SharedAccountActivityType;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.finovara.financeservice.revenue.model;
 
-import com.finovara.contracts.model.transaction.RevenueCategory;
+import com.finovara.contracts.util.model.RevenueCategory;
 import jakarta.persistence.*;
 import lombok.*;
 

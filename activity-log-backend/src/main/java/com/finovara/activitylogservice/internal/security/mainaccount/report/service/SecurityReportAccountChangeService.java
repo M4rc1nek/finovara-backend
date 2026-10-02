@@ -3,8 +3,8 @@ package com.finovara.activitylogservice.internal.security.mainaccount.report.ser
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
 import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.repository.AccountChangesActivityRepository;
 import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.ReportAccountChangeDto;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;

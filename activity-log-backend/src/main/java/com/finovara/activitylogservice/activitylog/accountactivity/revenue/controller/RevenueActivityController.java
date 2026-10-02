@@ -3,7 +3,7 @@ package com.finovara.activitylogservice.activitylog.accountactivity.revenue.cont
 import com.finovara.activitylogservice.activitylog.accountactivity.revenue.dto.RevenueActivityDto;
 import com.finovara.activitylogservice.activitylog.accountactivity.revenue.service.RevenueActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
-import com.finovara.contracts.model.SortType;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

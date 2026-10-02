@@ -1,7 +1,7 @@
 package com.finovara.reportservice.sharedaccount.report.security.controller;
 
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.report.dto.security.SharedAccountSecurityOverviewDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.sharedaccount.report.security.dto.SharedAccountSecurityOverviewDto;
 import com.finovara.reportservice.security.SecurityUtils;
 import com.finovara.reportservice.sharedaccount.report.security.service.SharedSecurityReportService;
 import lombok.RequiredArgsConstructor;

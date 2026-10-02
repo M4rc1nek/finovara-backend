@@ -1,6 +1,6 @@
 package com.finovara.securitymonitoring.accountchange.service;
 
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.securitymonitoring.accountchange.config.AccountChangeRiskProperties;
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;

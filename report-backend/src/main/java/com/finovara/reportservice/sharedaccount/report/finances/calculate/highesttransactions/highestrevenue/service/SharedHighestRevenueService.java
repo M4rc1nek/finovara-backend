@@ -1,8 +1,8 @@
 package com.finovara.reportservice.sharedaccount.report.finances.calculate.highesttransactions.highestrevenue.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.contracts.model.PeriodType;
-import com.finovara.contracts.transaction.report.dto.HighestRevenueDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.mainaccount.report.dto.HighestRevenueDto;
 import com.finovara.reportservice.feignclient.FinanceBackendSharedReportClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

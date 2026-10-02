@@ -4,8 +4,8 @@ import com.finovara.financeservice.history.revenuehistory.service.RevenueHistory
 import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.mapper.RevenueMapper;
 import com.finovara.financeservice.revenue.model.Revenue;
-import com.finovara.contracts.model.transaction.RevenueCategory;
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.util.model.RevenueCategory;
+import com.finovara.contracts.util.PeriodType;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

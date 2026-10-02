@@ -7,9 +7,9 @@ import com.finovara.authservice.security.oauth2.OAuth2PendingLoginCookie.Pending
 import com.finovara.authservice.security.oauth2.dto.OAuth2LoginResponseDto;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.activity.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.model.activity.LoginActivityStatus;
+import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
