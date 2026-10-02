@@ -2,8 +2,7 @@ package com.finovara.activitylogservice.internal.security.mainaccount.digest.map
 
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangesDigestSummaryDto;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.LoginDigestSummaryDto;
-import com.finovara.activitylogservice.internal.security.mainaccount.digest.mapper.WeeklySecurityDigestReportMapper;
-import com.finovara.contracts.notification.email.digest.report.security.WeeklySecurityDigestReportDto;
+import com.finovara.contracts.mainaccount.report.digest.security.WeeklySecurityDigestReportDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
