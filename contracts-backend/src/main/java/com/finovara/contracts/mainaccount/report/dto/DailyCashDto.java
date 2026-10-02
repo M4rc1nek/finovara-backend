@@ -1,4 +1,4 @@
-package com.finovara.contracts.transaction.report.dto;
+package com.finovara.contracts.mainaccount.report.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
