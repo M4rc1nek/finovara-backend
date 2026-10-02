@@ -3,13 +3,13 @@ package com.finovara.authservice.settings.security.operationauthorization.servic
 import com.finovara.authservice.settings.security.SecuritySettings;
 import com.finovara.authservice.settings.security.SecuritySettingsRepository;
 import com.finovara.authservice.settings.security.operationauthorization.dto.AdditionalAuthorizationSettingsResponse;
-import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.authservice.settings.security.operationauthorization.dto.AdditionalAuthorizationRequest;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.exception.forbidden.InvalidPasswordException;
-import com.finovara.contracts.model.activity.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-import static com.finovara.contracts.clientdata.browser.UserBrowser.getBrowser;
-import static com.finovara.contracts.clientdata.ip.ClientIp.getClientIpAddress;
-import static com.finovara.contracts.clientdata.location.UserLocation.getLocationFromIp;
+import static com.finovara.contracts.user.clientdata.browser.UserBrowser.getBrowser;
+import static com.finovara.contracts.user.clientdata.ip.ClientIp.getClientIpAddress;
+import static com.finovara.contracts.user.clientdata.location.UserLocation.getLocationFromIp;
 
 @Service
 @RequiredArgsConstructor
