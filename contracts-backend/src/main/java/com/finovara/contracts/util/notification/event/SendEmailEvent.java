@@ -1,6 +1,6 @@
-package com.finovara.contracts.util.email.event;
+package com.finovara.contracts.util.notification.event;
 
-import com.finovara.contracts.notification.ActionEmailEventType;
+import com.finovara.contracts.util.notification.ActionEmailEventType;
 
 import java.util.Map;
 
