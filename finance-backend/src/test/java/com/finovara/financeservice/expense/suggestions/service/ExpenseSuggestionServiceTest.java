@@ -1,6 +1,6 @@
 package com.finovara.financeservice.expense.suggestions.service;
 
-import com.finovara.contracts.model.transaction.ExpenseCategory;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.expense.suggestions.dto.ExpenseSuggestionDto;
 import org.junit.jupiter.api.BeforeEach;
