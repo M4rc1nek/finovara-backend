@@ -1,6 +1,6 @@
 package com.finovara.reportservice.sharedaccount.report.finances.calculate.chart.builder;
 
-import com.finovara.contracts.transaction.report.dto.DailyCashDto;
+import com.finovara.contracts.mainaccount.report.dto.DailyCashDto;
 import com.finovara.reportservice.sharedaccount.report.finances.calculate.chart.dto.SharedCashFlowDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
