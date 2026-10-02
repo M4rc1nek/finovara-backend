@@ -1,8 +1,8 @@
 package com.finovara.financeservice.settings.finances.expense.quantitylimit.service;
 
-import com.finovara.contracts.activity.event.settings.SettingsActivityEvent;
-import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.model.activity.SettingType;
+import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
+import com.finovara.contracts.mainaccount.activity.model.SettingType;
 import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
@@ -10,9 +10,9 @@ import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.C
 import com.finovara.financeservice.settings.finances.expense.quantitylimit.validator.CountQuantityLimitValidator;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.model.PeriodType;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.util.PeriodType;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
