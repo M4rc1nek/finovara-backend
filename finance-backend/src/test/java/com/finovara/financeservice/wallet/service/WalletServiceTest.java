@@ -1,8 +1,8 @@
 package com.finovara.financeservice.wallet.service;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.model.transaction.ExpenseCategory;
-import com.finovara.contracts.notification.event.wallet.WalletBalanceChangedEvent;
+import com.finovara.contracts.util.model.ExpenseCategory;
+import com.finovara.contracts.mainaccount.transaction.event.wallet.WalletBalanceChangedEvent;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.dto.WalletDto;
 import com.finovara.financeservice.wallet.dto.WalletResponse;
@@ -11,7 +11,6 @@ import com.finovara.financeservice.wallet.repository.WalletRepository;
 import com.finovara.financeservice.wallet.reservation.dto.FundReservationDto;
 import com.finovara.financeservice.wallet.reservation.model.FundReservation;
 import com.finovara.financeservice.wallet.reservation.repository.FundReservationRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
