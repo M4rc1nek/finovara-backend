@@ -1,8 +1,8 @@
 package com.finovara.financeservice.settings.piggybank.autopayments.service;
 
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.model.activity.SettingActivityStatus;
-import com.finovara.contracts.activity.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
+import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.piggybank.autopayments.dto.AutoPaymentsDto;
