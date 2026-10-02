@@ -2,7 +2,7 @@ package com.finovara.authservice.util.user.service;
 
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
-import com.finovara.contracts.authorization.dto.UserDataResponse;
+import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
