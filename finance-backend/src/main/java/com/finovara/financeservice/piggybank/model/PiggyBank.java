@@ -1,6 +1,6 @@
 package com.finovara.financeservice.piggybank.model;
 
-import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.contracts.util.model.PiggyBankGoalType;
 import com.finovara.financeservice.piggybank.goalplanner.model.GoalPlanner;
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
 import jakarta.persistence.*;
