@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.piggybank.model;
 
-import com.finovara.contracts.model.transaction.PiggyBankGoalType;
+import com.finovara.contracts.util.model.PiggyBankGoalType;
 import jakarta.persistence.*;
 import lombok.*;
 
