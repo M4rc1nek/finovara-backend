@@ -1,4 +1,4 @@
-package com.finovara.contracts.notification.email.digest.report.security;
+package com.finovara.contracts.mainaccount.report.digest.security;
 
 import java.time.LocalDateTime;
 import java.util.List;
