@@ -6,8 +6,8 @@ import com.finovara.authservice.settings.account.service.verification.Credential
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
