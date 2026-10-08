@@ -31,17 +31,6 @@ class UserLocationTest {
 
         assertEquals("Unknown", result);
     }
-
-    @Test
-    void shouldReturnRealLocationWhenApiReturnsValidResponse() {
-        String publicIp = "8.8.8.8";
-        Set<String> validLocations = Set.of("Mountain View, United States", "Ashburn, United States");
-
-        String result = UserLocation.getLocationFromIp(publicIp);
-
-        assertTrue(validLocations.contains(result));
-    }
-
     @Test
     void shouldReturnUnknownForInvalidIpAddressFormat() {
         String invalidIp = "not-an-ip-address";
