@@ -2,7 +2,7 @@ package com.finovara.authservice.user.mapper;
 
 import com.finovara.authservice.sharedaccount.dto.SharedAccountMemberDto;
 import com.finovara.authservice.sharedaccount.model.SharedAccountMember;
-import com.finovara.authservice.user.dto.UserDataDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.util.profile.ProfileImageUrlBuilder;
 import org.springframework.stereotype.Component;
