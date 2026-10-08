@@ -7,7 +7,7 @@ import com.finovara.authservice.sharedaccount.dto.SharedAccountStatusDto;
 import com.finovara.authservice.sharedaccount.service.invitation.InvitationResponseService;
 import com.finovara.authservice.sharedaccount.service.invitation.InvitationService;
 import com.finovara.authservice.sharedaccount.service.invitation.SharedAccountMemberService;
-import com.finovara.authservice.user.dto.UserDataDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
