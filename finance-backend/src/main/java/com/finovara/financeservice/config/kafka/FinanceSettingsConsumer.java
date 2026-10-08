@@ -5,7 +5,6 @@ import com.finovara.contracts.user.event.account.UserAccountDeletedEvent;
 import com.finovara.contracts.user.event.account.UserCreatedEvent;
 import com.finovara.financeservice.settings.FinanceSettingsService;
 import com.finovara.financeservice.settings.factory.FinanceSettingsFactory;
-import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -19,7 +18,6 @@ public class FinanceSettingsConsumer {
     private final List<UserDataDeletable> deletableServices;
     private final FinanceSettingsFactory financeSettingsFactory;
     private final FinanceSettingsService financeSettingsService;
-    private final ExpenseSettingsRepository expenseSettingsRepository;
 
     @KafkaListener(topics = "user.created", groupId = "finance.default-settings.expense")
     public void createDefaultExpenseSettings(UserCreatedEvent event) {
