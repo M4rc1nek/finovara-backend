@@ -158,8 +158,9 @@
             </column>
         </createTable>
     </changeSet>
-    <changeSet id="create-shared-account-activity-table" author="Marcin Parśniak">
-        <createTable tableName="shared_account_activity">
+
+    <changeSet id="create-shared-account-change-history-activity" author="Marcin Parśniak">
+        <createTable tableName="shared_account_change_history_activity">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -174,31 +175,20 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="create-shared-account-finance-activity" author="Marcin Parśniak">
-        <createTable tableName="shared_account_finance_activity">
+    <changeSet id="create-shared-account-activity-log" author="Marcin Parśniak">
+        <createTable tableName="shared_account_activity_log">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="activity_type" type="VARCHAR(255)"/>
-            <column name="amount" type="DECIMAL(19,2)"/>
             <column name="created_at" type="TIMESTAMP"/>
-            <column name="owner_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="member_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="transaction_id" type="BIGINT"/>
-            <column name="user_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
+            <column name="owner_id" type="BIGINT"/>
+            <column name="member_id" type="BIGINT"/>
+            <column name="user_id" type="BIGINT"/>
+            <column name="target_id" type="BIGINT"/>
         </createTable>
-        <createIndex tableName="shared_account_finance_activity" indexName="idx_shared_account_finance_activity_user_type_created">
-            <column name="user_id"/>
-            <column name="activity_type"/>
-            <column name="created_at"/>
-        </createIndex>
     </changeSet>
+
 
     <changeSet id="create-risk-operation-activity" author="Marcin Parśniak">
         <createTable tableName="risk_operation_activity">
