@@ -8,7 +8,7 @@ import java.util.List;
 
 public record SharedAccountSecurityReportDto(
         Long userId,
-        String userName,
+        String username,
         SharedRole role,
         List<ShareStatDto> locationShares,
         List<ShareStatDto> browserShares,
