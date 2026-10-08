@@ -2,19 +2,19 @@ package com.finovara.authservice.sharedaccount.service.invitation;
 
 import com.finovara.authservice.sharedaccount.model.SharedAccount;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
 import com.finovara.contracts.sharedaccount.SharedRole;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountRepository;
-import com.finovara.authservice.user.dto.UserDataDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.sharedaccount.event.UsersCreatedSharedAccountEvent;
 import com.finovara.contracts.sharedaccount.event.invitation.UserAcceptSharedAccountInvitationEvent;
 import com.finovara.contracts.sharedaccount.event.invitation.UserRejectSharedAccountInvitationEvent;
 import com.finovara.contracts.sharedaccount.event.settings.SharedAccountCreateDefaultSettingsEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import lombok.RequiredArgsConstructor;
@@ -74,8 +74,8 @@ public class InvitationResponseService {
                 new SharedAccountCreateDefaultSettingsEvent(inviterUserId, inviteeUserId));
 
         outboxService.save("User", inviteeUserId.toString(), "shared-account.changed",
-                new SharedAccountActivityEvent(
-                        inviteeUserId, SharedAccountActivityType.ACCEPTED_INVITATION, null,
+                new SharedAccountChangeHistoryActivityEvent(
+                        inviteeUserId, SharedAccountChangeHistoryActivityType.ACCEPTED_INVITATION, null,
                         inviter.username(), inviter.email(),
                         LocalDateTime.now()));
 
@@ -101,8 +101,8 @@ public class InvitationResponseService {
                 new UserRejectSharedAccountInvitationEvent(inviterUserId, invitee.username()));
 
         outboxService.save("User", inviteeUserId.toString(), "shared-account.changed",
-                new SharedAccountActivityEvent(
-                        inviteeUserId, SharedAccountActivityType.REJECTED_INVITATION, null,
+                new SharedAccountChangeHistoryActivityEvent(
+                        inviteeUserId, SharedAccountChangeHistoryActivityType.REJECTED_INVITATION, null,
                         inviter.username(), inviter.email(),
                         LocalDateTime.now()));
 
