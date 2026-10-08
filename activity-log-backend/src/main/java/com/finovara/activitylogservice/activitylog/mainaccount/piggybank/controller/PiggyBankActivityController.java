@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.piggybank.controller;
+package com.finovara.activitylogservice.activitylog.mainaccount.piggybank.controller;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.piggybank.dto.PiggyBankActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.piggybank.service.PiggyBankActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.dto.PiggyBankActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.service.PiggyBankActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;

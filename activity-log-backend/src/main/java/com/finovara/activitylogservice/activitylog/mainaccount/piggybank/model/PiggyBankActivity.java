@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.piggybank.model;
+package com.finovara.activitylogservice.activitylog.mainaccount.piggybank.model;
 
 import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
 import com.finovara.contracts.util.model.PiggyBankGoalType;

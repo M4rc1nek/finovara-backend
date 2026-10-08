@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.piggybank.scheduler;
+package com.finovara.activitylogservice.activitylog.mainaccount.piggybank.scheduler;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.piggybank.processor.PiggyBankActivityProcessor;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.processor.PiggyBankActivityProcessor;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;

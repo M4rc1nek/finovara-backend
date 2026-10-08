@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.piggybank.repository;
+package com.finovara.activitylogservice.activitylog.mainaccount.piggybank.repository;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.piggybank.model.PiggyBankActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.model.PiggyBankActivity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

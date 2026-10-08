@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.piggybank.processor;
+package com.finovara.activitylogservice.activitylog.mainaccount.piggybank.processor;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.piggybank.repository.PiggyBankActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.repository.PiggyBankActivityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
