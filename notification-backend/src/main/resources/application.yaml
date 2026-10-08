@@ -17,6 +17,8 @@ spring:
   liquibase:
     change-log: classpath:changelog/changelog.xml
     enabled: true
+  kafka:
+    bootstrap-servers: finovara-kafka:9092
   mail:
     host: smtp.gmail.com
     port: 465
@@ -31,8 +33,6 @@ spring:
           ssl:
             enable: true
             trust: smtp.gmail.com
-  kafka:
-    bootstrap-servers: finovara-kafka:9092
 
 server:
   port: 8086
@@ -43,40 +43,6 @@ server:
     key-store-type: PKCS12
     key-store-password: ${DEV_SSL_PASSWORD}
     key-alias: 1
-
-
-mail:
-  recipient:
-    address: ${MAIL_FROM_ADDRESS:finovaracenter@gmail.com}
-
-notification-persistence:
-  page-size: 5
-
-
-scheduler:
-  notification:
-    delete-cron: "0 2 0 ? * 1"
-  email-notification:
-    weekly-finance-digest-report-send: "0 0 23 * * *"
-    weekly-security-digest-report-send: "5 0 23 * * *"
-
-
-auth-backend:
-  url: ${AUTH_BACKEND_URL}
-
-finance-backend:
-  url: ${FINANCE_BACKEND_URL}
-
-activity-log-backend:
-  url: ${ACTIVITY_LOG_BACKEND_URL}
-
-logging:
-  level:
-    root: INFO
-    org.hibernate.SQL: WARN
-    org.hibernate.type.descriptor.sql.BasicBinder: WARN
-    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
-    org.springframework.security: DEBUG
 
 management:
   server:
@@ -103,3 +69,34 @@ management:
         http.server.requests: true
       slo:
         http.server.requests: 50ms,100ms,200ms,500ms,1s
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
+    org.springframework.security: DEBUG
+
+auth-backend:
+  url: ${AUTH_BACKEND_URL}
+
+finance-backend:
+  url: ${FINANCE_BACKEND_URL}
+
+activity-log-backend:
+  url: ${ACTIVITY_LOG_BACKEND_URL}
+
+mail:
+  recipient:
+    address: ${MAIL_FROM_ADDRESS:finovaracenter@gmail.com}
+
+notification-persistence:
+  page-size: 5
+
+scheduler:
+  notification:
+    delete-cron: "0 2 0 ? * 1"
+  email-notification:
+    weekly-finance-digest-report-send: "0 0 23 * * *"
+    weekly-security-digest-report-send: "5 0 23 * * *"
