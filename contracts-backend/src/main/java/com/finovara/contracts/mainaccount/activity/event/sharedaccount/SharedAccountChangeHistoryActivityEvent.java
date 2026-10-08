@@ -1,13 +1,13 @@
 package com.finovara.contracts.mainaccount.activity.event.sharedaccount;
 
-import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public record SharedAccountActivityEvent(
+public record SharedAccountChangeHistoryActivityEvent(
         Long userId,
-        SharedAccountActivityType type,
+        SharedAccountChangeHistoryActivityType type,
         BigDecimal refundedBalance,
         String coFounderUsername,
         String coFounderEmail,
