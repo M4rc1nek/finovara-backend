@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.activity.repository;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.activity.model.AccountChangesActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangesActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangesActivity;
 import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,13 +15,14 @@ import java.util.List;
 public interface AccountChangesActivityRepository extends JpaRepository<AccountChangesActivity, Long> {
 
     @Query("""
-            SELECT new com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto(
-            a.type, a.createdAt, a.browser, a.ipAddress, a.location) 
-            FROM AccountChangesActivity a 
-            WHERE a.userId = :userId
-            ORDER BY a.id DESC
-            """)
+        SELECT new com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangesActivityDto(
+        a.type, a.createdAt, a.browser, a.ipAddress, a.location)
+        FROM AccountChangesActivity a
+        WHERE a.userId = :userId
+        ORDER BY a.id DESC
+        """)
     List<AccountChangesActivityDto> findByUserIdOrderByIdDesc(Long userId);
+
 
     @Query("SELECT COUNT(u) FROM AccountChangesActivity u WHERE u.userId = :userId")
     long countAccountChangesByUserId(Long userId);
