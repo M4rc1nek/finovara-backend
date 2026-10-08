@@ -123,7 +123,7 @@ class WeeklySecurityDigestReportEmailProcessorTest {
             processor.sendWeeklySecurityDigestEmail();
 
             verify(emailNotifier).send(eq(ScheduledEmailNotificationType.WEEKLY_SECURITY_DIGEST_REPORT_EMAIL), eq(USER_EMAIL), placeholdersCaptor.capture());
-            assertEquals("Użytkowniku", placeholdersCaptor.getValue().get("userName"));
+            assertEquals("Użytkowniku", placeholdersCaptor.getValue().get("username"));
         }
 
         @Test
