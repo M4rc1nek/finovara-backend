@@ -10,12 +10,12 @@ import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.deletion.AccountRemovalTemplate;
 import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.sharedaccount.event.deletion.NotificationSharedAccountLeftEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -189,12 +189,12 @@ class SharedAccountDeletionServiceTest {
             assertEquals(CO_FOUNDER_ID, notificationCaptor.getValue().recipientUserId());
             assertEquals(USERNAME, notificationCaptor.getValue().leftUsername());
 
-            ArgumentCaptor<SharedAccountActivityEvent> activityCaptor =
-                    ArgumentCaptor.forClass(SharedAccountActivityEvent.class);
+            ArgumentCaptor<SharedAccountChangeHistoryActivityEvent> activityCaptor =
+                    ArgumentCaptor.forClass(SharedAccountChangeHistoryActivityEvent.class);
             verify(outboxService).save(eq("User"), eq(ACTING_USER_ID.toString()),
                     eq("shared-account.changed"), activityCaptor.capture());
             assertEquals(ACTING_USER_ID, activityCaptor.getValue().userId());
-            assertEquals(SharedAccountActivityType.LEFT_SHARED_ACCOUNT, activityCaptor.getValue().type());
+            assertEquals(SharedAccountChangeHistoryActivityType.LEFT_SHARED_ACCOUNT, activityCaptor.getValue().type());
             assertEquals(CO_FOUNDER_USERNAME, activityCaptor.getValue().coFounderUsername());
             assertEquals(CO_FOUNDER_EMAIL, activityCaptor.getValue().coFounderEmail());
         }
@@ -209,8 +209,8 @@ class SharedAccountDeletionServiceTest {
             verify(outboxService, never()).save(eq("User"), anyString(), eq("notification.shared-account.left"), any());
             verifyNoInteractions(userContextLoader);
 
-            ArgumentCaptor<SharedAccountActivityEvent> activityCaptor =
-                    ArgumentCaptor.forClass(SharedAccountActivityEvent.class);
+            ArgumentCaptor<SharedAccountChangeHistoryActivityEvent> activityCaptor =
+                    ArgumentCaptor.forClass(SharedAccountChangeHistoryActivityEvent.class);
             verify(outboxService).save(eq("User"), eq(ACTING_USER_ID.toString()),
                     eq("shared-account.changed"), activityCaptor.capture());
             assertEquals(ACTING_USER_ID, activityCaptor.getValue().userId());
