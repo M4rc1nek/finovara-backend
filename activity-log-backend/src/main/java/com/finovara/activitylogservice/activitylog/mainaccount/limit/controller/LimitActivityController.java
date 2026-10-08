@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.limit.controller;
+package com.finovara.activitylogservice.activitylog.mainaccount.limit.controller;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.limit.dto.LimitActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.limit.service.LimitActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.dto.LimitActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.service.LimitActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;

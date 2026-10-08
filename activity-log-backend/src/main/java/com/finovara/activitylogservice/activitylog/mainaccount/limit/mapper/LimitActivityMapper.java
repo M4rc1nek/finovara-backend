@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.limit.mapper;
+package com.finovara.activitylogservice.activitylog.mainaccount.limit.mapper;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.limit.dto.LimitActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.limit.model.LimitActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.dto.LimitActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.model.LimitActivity;
 import org.springframework.stereotype.Component;
 
 @Component

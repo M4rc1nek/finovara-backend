@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.limit.scheduler;
+package com.finovara.activitylogservice.activitylog.mainaccount.limit.scheduler;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.limit.processor.LimitActivityProcessor;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.processor.LimitActivityProcessor;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
