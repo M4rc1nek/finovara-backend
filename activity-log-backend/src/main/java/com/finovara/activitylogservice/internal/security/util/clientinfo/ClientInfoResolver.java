@@ -1,6 +1,6 @@
 package com.finovara.activitylogservice.internal.security.util.clientinfo;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.repository.LoginActivityRepository;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.BrowserCountDto;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.LocationCountDto;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.ClientInfoDto;
