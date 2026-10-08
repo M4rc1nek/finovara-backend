@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.repository;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.repository;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.dto.LoginActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.model.LoginActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.model.LoginActivity;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.BrowserCountDto;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.LocationCountDto;
 import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
@@ -17,7 +17,7 @@ import java.util.List;
 public interface LoginActivityRepository extends JpaRepository<LoginActivity, Long> {
 
     @Query("""
-            SELECT new com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.dto.LoginActivityDto(
+            SELECT new com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.dto.LoginActivityDto(
             l.type, l.status, l.createdAt, l.browser, l.ipAddress, l.location)
             FROM LoginActivity l
             WHERE l.userId = :userId
