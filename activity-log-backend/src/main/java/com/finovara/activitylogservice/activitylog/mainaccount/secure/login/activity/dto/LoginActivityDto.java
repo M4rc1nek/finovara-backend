@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.dto;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.dto;
 
 import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
 

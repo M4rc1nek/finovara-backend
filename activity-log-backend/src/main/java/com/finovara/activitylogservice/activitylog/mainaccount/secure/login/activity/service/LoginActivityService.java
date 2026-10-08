@@ -1,11 +1,11 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.service;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.service;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.core.SecurityActivityCore;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.dto.LoginActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.model.LoginActivity;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.repository.LoginActivityRepository;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.archive.model.LoginActivityArchive;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.archive.service.LoginActivityArchiveService;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.core.SecurityActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.model.LoginActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.repository.LoginActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.model.LoginActivityArchive;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.service.LoginActivityArchiveService;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;

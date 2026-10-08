@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.controller;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.controller;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.dto.LoginActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.service.LoginActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.service.LoginActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import lombok.RequiredArgsConstructor;
