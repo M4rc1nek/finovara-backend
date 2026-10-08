@@ -2,6 +2,9 @@ package com.finovara.financeservice.sharedaccount.piggybank.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDto;
@@ -18,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -31,6 +35,7 @@ public class SharedPiggyBankManagementService {
     private final SharedPiggyBankManager sharedPiggyBankManager;
     private final SharedPiggyBankMapper sharedPiggyBankMapper;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
+    private final OutboxService outboxService;
 
     @Transactional
     public Long addPiggyBank(SharedPiggyBankDto sharedPiggyBankDto, Long userId) {
@@ -60,6 +65,9 @@ public class SharedPiggyBankManagementService {
 
         SharedPiggyBank saved = sharedPiggyBankRepository.save(sharedPiggyBank);
 
+        outboxService.save("SharedAccountPiggyBank", saved.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.PIGGY_BANK_CREATED, LocalDateTime.now()));
+
         log.info("Added a new Piggy Bank called {}, with a goal amount of {}", sharedPiggyBankDto.name(), sharedPiggyBankDto.goalAmount());
         return saved.getId();
     }
@@ -80,6 +88,10 @@ public class SharedPiggyBankManagementService {
         sharedPiggyBank.setGoalType(sharedPiggyBankDto.goalType());
 
         SharedPiggyBank saved = sharedPiggyBankRepository.save(sharedPiggyBank);
+
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
+        outboxService.save("SharedAccountPiggyBank", saved.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.PIGGY_BANK_EDITED, LocalDateTime.now()));
 
         log.info("Edited Piggy Bank. New name: {}, new goal amount: {}", sharedPiggyBankDto.name(), sharedPiggyBankDto.goalAmount());
 
@@ -102,7 +114,11 @@ public class SharedPiggyBankManagementService {
             throw new InvalidInputException("Cannot delete piggy bank with balance. Withdraw funds first.");
         }
 
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
         sharedPiggyBankRepository.delete(sharedPiggyBank);
+
+        outboxService.save("SharedAccountPiggyBank", piggyBankId.toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, piggyBankId, SharedAccountActivityLogType.PIGGY_BANK_DELETED, LocalDateTime.now()));
 
         log.info("Deleted sharedPiggyBank id={} for userId={}", piggyBankId, userId);
     }
