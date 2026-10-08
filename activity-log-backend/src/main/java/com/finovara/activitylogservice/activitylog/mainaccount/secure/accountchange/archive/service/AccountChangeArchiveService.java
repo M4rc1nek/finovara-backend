@@ -1,9 +1,9 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.archive.service;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.service;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.activity.model.AccountChangesActivity;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.archive.dto.AccountChangeArchiveDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.archive.model.AccountChangeArchive;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.archive.repository.AccountChangeArchiveRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangesActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.dto.AccountChangeArchiveDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.model.AccountChangeArchive;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.repository.AccountChangeArchiveRepository;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
