@@ -37,6 +37,7 @@
         <addUniqueConstraint tableName="users" columnNames="oauth_provider, provider_user_id"
                              constraintName="uk_users_oauth_provider_user_id"/>
     </changeSet>
+
     <changeSet id="create-account-settings" author="Marcin Parśniak">
         <createTable tableName="account_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -59,6 +60,7 @@
             </column>
         </createTable>
     </changeSet>
+
     <changeSet id="create-shared-accounts" author="Marcin Parśniak">
         <createTable tableName="shared_accounts">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -76,7 +78,8 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_shared_account_members_user"
+                             references="users(id)"/>
             </column>
             <column name="role" type="VARCHAR(50)">
                 <constraints nullable="false"/>
@@ -89,11 +92,9 @@
                              references="shared_accounts(id)"/>
             </column>
         </createTable>
-
-        <addUniqueConstraint
-                tableName="shared_account_members"
-                columnNames="shared_account_id, user_id"
-                constraintName="uk_shared_account_members_account_user"/>
+        <createIndex tableName="shared_account_members" indexName="idx_shared_account_members_account_id">
+            <column name="shared_account_id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-shared-account-invitations" author="Marcin Parśniak">
@@ -118,6 +119,7 @@
             </column>
         </createTable>
     </changeSet>
+
     <changeSet id="create-security-settings" author="Marcin Parśniak">
         <createTable tableName="security_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -137,10 +139,12 @@
             <column name="additional_authorization_email_code_expires_at" type="TIMESTAMP"/>
             <column name="additional_authorization_attempts_expires_at" type="TIMESTAMP"/>
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_security_settings_user" references="users(id)"/>
+                <constraints nullable="false" unique="true" foreignKeyName="fk_security_settings_user"
+                             references="users(id)"/>
             </column>
         </createTable>
     </changeSet>
+
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">
             <column name="name" type="varchar(64)">

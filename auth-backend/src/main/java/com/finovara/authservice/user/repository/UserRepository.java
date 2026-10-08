@@ -1,6 +1,6 @@
 package com.finovara.authservice.user.repository;
 
-import com.finovara.authservice.user.dto.UserDataDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.user.model.OAuthProvider;
 import com.finovara.authservice.user.model.User;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +26,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmailAndIdNot(String email, Long id);
 
     @Query("""
-                SELECT new com.finovara.authservice.user.dto.UserDataDto(
+                SELECT new com.finovara.contracts.user.authorization.dto.UserDataDto(
                     u.id, 
                     u.username, 
                     u.email, 
@@ -40,7 +40,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<UserDataDto> searchByUsernameOrEmail(String query, Pageable pageable);
 
     @Query("""
-                SELECT new com.finovara.authservice.user.dto.UserDataDto(
+                SELECT new com.finovara.contracts.user.authorization.dto.UserDataDto(
                 u.id, u.username, u.email, u.profileImagePath
                 )
                 FROM User u

@@ -1,7 +1,7 @@
 package com.finovara.authservice.security.jwt.logout;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -14,7 +14,7 @@ public class JwtBlacklistService {
 
     private static final String BLACKLIST_PREFIX = "jwt:blacklist:";
 
-    private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
 
     public void blacklist(String token, Instant expiresAt) {
         if (!StringUtils.hasText(token) || expiresAt == null) {

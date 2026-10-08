@@ -2,7 +2,8 @@ package com.finovara.financeservice.sharedaccount.revenue.service;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
-import com.finovara.contracts.sharedaccount.event.activity.finance.SharedAccountRevenueActivityEvent;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
@@ -54,10 +55,8 @@ public class SharedRevenueService {
         sharedWalletService.addBalanceToWallet(userId, revenue.getAmount());
         SharedRevenue saved = sharedRevenueRepository.save(revenue);
 
-        outboxService.save("SharedAccountRevenue", saved.getId().toString(), "shared-account.revenue.created",
-                new SharedAccountRevenueActivityEvent(
-                        sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId,
-                        saved.getId(), saved.getAmount(), sharedRevenueDto.category().name(), LocalDateTime.now()));
+        outboxService.save("SharedAccountRevenue", saved.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.REVENUE_CREATED, LocalDateTime.now()));
         return new SharedRevenueResponse(revenue.getId(), userId, createdByUsername);
     }
 
@@ -76,7 +75,11 @@ public class SharedRevenueService {
         existingRevenue.setCategory(sharedRevenueDto.category());
         existingRevenue.setDescription(sharedRevenueDto.description());
 
-        sharedRevenueRepository.save(existingRevenue);
+        SharedRevenue saved = sharedRevenueRepository.save(existingRevenue);
+
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
+        outboxService.save("SharedAccountRevenue", saved.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.REVENUE_EDITED, LocalDateTime.now()));
 
         return revenueId;
     }
@@ -100,7 +103,11 @@ public class SharedRevenueService {
         SharedRevenue revenue = sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(revenueId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
         sharedWalletService.removeBalanceFromWallet(userId, revenue.getAmount());
+        
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
         sharedRevenueRepository.delete(revenue);
+        outboxService.save("SharedAccountRevenue", revenue.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, revenue.getId(), SharedAccountActivityLogType.REVENUE_DELETED, LocalDateTime.now()));
     }
 
     private boolean isOwnerOrMember(SharedRevenue revenue, Long userId) {

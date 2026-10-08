@@ -6,21 +6,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.time.Duration;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JwtBlacklistServiceTest {
 
     @Mock
-    private RedisTemplate<String, String> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Mock
     private ValueOperations<String, String> valueOperations;
@@ -31,7 +32,7 @@ class JwtBlacklistServiceTest {
 
     @BeforeEach
     void setUp() {
-        jwtBlacklistService = new JwtBlacklistService(redisTemplate);
+        jwtBlacklistService = new JwtBlacklistService(stringRedisTemplate);
     }
 
     @Nested
@@ -39,7 +40,7 @@ class JwtBlacklistServiceTest {
 
         @Test
         void shouldBlacklistTokenUntilExpiration() {
-            when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+            when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
             String token = "jwt-token";
 
             jwtBlacklistService.blacklist(token, Instant.now().plusSeconds(60));
@@ -51,14 +52,14 @@ class JwtBlacklistServiceTest {
         void shouldIgnoreExpiredToken() {
             jwtBlacklistService.blacklist("jwt-token", Instant.now().minusSeconds(1));
 
-            verifyNoInteractions(redisTemplate);
+            verifyNoInteractions(stringRedisTemplate);
         }
 
         @Test
         void shouldIgnoreBlankToken() {
             jwtBlacklistService.blacklist(" ", Instant.now().plusSeconds(60));
 
-            verifyNoInteractions(redisTemplate);
+            verifyNoInteractions(stringRedisTemplate);
         }
     }
 
@@ -68,7 +69,7 @@ class JwtBlacklistServiceTest {
         @Test
         void shouldReturnTrueWhenTokenIsBlacklisted() {
             String token = "jwt-token";
-            when(redisTemplate.hasKey(PREFIX + token)).thenReturn(Boolean.TRUE);
+            when(stringRedisTemplate.hasKey(PREFIX + token)).thenReturn(Boolean.TRUE);
 
             assertThat(jwtBlacklistService.isBlacklisted(token)).isTrue();
         }
@@ -76,7 +77,7 @@ class JwtBlacklistServiceTest {
         @Test
         void shouldReturnFalseWhenTokenNotInRedis() {
             String token = "jwt-token";
-            when(redisTemplate.hasKey(PREFIX + token)).thenReturn(Boolean.FALSE);
+            when(stringRedisTemplate.hasKey(PREFIX + token)).thenReturn(Boolean.FALSE);
 
             assertThat(jwtBlacklistService.isBlacklisted(token)).isFalse();
         }
@@ -84,7 +85,7 @@ class JwtBlacklistServiceTest {
         @Test
         void shouldReturnFalseForBlankToken() {
             assertThat(jwtBlacklistService.isBlacklisted(" ")).isFalse();
-            verifyNoInteractions(redisTemplate);
+            verifyNoInteractions(stringRedisTemplate);
         }
     }
 }

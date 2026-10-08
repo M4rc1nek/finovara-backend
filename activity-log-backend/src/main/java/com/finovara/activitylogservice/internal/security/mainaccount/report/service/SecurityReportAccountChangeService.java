@@ -1,7 +1,7 @@
 package com.finovara.activitylogservice.internal.security.mainaccount.report.service;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.repository.AccountChangesActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangesActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository.AccountChangesActivityRepository;
 import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.ReportAccountChangeDto;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;

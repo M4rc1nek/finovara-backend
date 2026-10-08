@@ -1,10 +1,10 @@
 package com.finovara.activitylogservice.accountactivity.secure.accountachange.archive.service;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.dto.AccountChangeArchiveDto;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.repository.AccountChangeArchiveRepository;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangesActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.dto.AccountChangeArchiveDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.model.AccountChangeArchive;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.repository.AccountChangeArchiveRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.service.AccountChangeArchiveService;
 import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

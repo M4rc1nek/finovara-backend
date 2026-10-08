@@ -2,7 +2,11 @@ package com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.
 
 import com.finovara.contracts.sharedaccount.event.notification.LargeExpenseNotificationEvent;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.dto.LargeExpenseNotificationDto;
@@ -12,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -20,16 +25,25 @@ public class LargeExpenseNotificationService {
 
     private final SharedAccountSettingsRepository sharedAccountSettingsRepository;
     private final OutboxService outboxService;
+    private final SharedAccountParticipantsService sharedAccountParticipantsService;
 
     @Transactional
     public void saveLargeExpenseNotification(Long userId, LargeExpenseNotificationDto largeExpenseNotificationDto) {
         SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
 
-        sharedAccountSettings.setLargeExpenseNotificationEnabled(largeExpenseNotificationDto.largeExpenseNotificationEnabled());
-        sharedAccountSettings.setLargeExpenseNotificationThreshold(largeExpenseNotificationDto.largeExpenseNotificationThreshold());
+        boolean changed = sharedAccountSettings.isLargeExpenseNotificationEnabled() != largeExpenseNotificationDto.largeExpenseNotificationEnabled()
+                || !Objects.equals(sharedAccountSettings.getLargeExpenseNotificationThreshold(), largeExpenseNotificationDto.largeExpenseNotificationThreshold());
 
-        log.info("Updated large expense notification settings userId={}, enabled={}, threshold={}",
-                userId, sharedAccountSettings.isLargeExpenseNotificationEnabled(), sharedAccountSettings.getLargeExpenseNotificationThreshold());
+        if (changed) {
+            sharedAccountSettings.setLargeExpenseNotificationEnabled(largeExpenseNotificationDto.largeExpenseNotificationEnabled());
+            sharedAccountSettings.setLargeExpenseNotificationThreshold(largeExpenseNotificationDto.largeExpenseNotificationThreshold());
+
+            SharedAccountParticipantsResponse participants = sharedAccountParticipantsService.getParticipants(userId);
+            outboxService.save("SharedAccountSettings", userId.toString(), "shared-account.activity",
+                    new SharedAccountActivityLogEvent(participants.ownerId(), participants.memberId(), userId, null, SharedAccountActivityLogType.SETTING_CHANGED, LocalDateTime.now()));
+
+            log.info("Updated large expense notification settings userId={}, enabled={}, threshold={}", userId, sharedAccountSettings.isLargeExpenseNotificationEnabled(), sharedAccountSettings.getLargeExpenseNotificationThreshold());
+        }
     }
 
     @Transactional

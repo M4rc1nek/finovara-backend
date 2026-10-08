@@ -52,7 +52,7 @@ public class WeeklyFinanceDigestReportEmailProcessor {
         PiggyBankSummaryDto piggyBankSummary = report.piggyBankSummary();
 
         return Map.ofEntries(
-                Map.entry("userName", user.username().orElse("Użytkowniku")),
+                Map.entry("username", user.username().orElse("Użytkowniku")),
                 Map.entry("weekStart", formatDate(report.weekStart())),
                 Map.entry("weekEnd", formatDate(report.weekEnd())),
                 Map.entry("expensesSum", formatAmount(report.expensesSum())),

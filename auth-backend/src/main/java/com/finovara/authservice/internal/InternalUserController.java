@@ -1,6 +1,7 @@
 package com.finovara.authservice.internal;
 
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
@@ -35,6 +36,16 @@ public class InternalUserController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/user-session")
+    public ResponseEntity<UserDataDto> getUserSession(@RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(userManagerService.getUserDataWithProfileImg(userId));
+    }
+
+    @GetMapping("/user-data")
+    public ResponseEntity<UserDataResponse> getUserData(@RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(userManagerService.getUserData(userId));
+    }
+
     @GetMapping("/username")
     public ResponseEntity<String> getUsername(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(userManagerService.getUsernameByIdOrThrow(userId));
@@ -43,11 +54,6 @@ public class InternalUserController {
     @GetMapping("/email")
     public ResponseEntity<String> getUserEmail(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(userManagerService.getUserEmailById(userId));
-    }
-
-    @GetMapping("/user-data")
-    public ResponseEntity<UserDataResponse> getUserData(@RequestHeader("X-User-Id") Long userId) {
-        return ResponseEntity.ok(userManagerService.getUserData(userId));
     }
 
     @GetMapping("/user-ids")

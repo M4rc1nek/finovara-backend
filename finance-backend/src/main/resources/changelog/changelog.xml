@@ -43,8 +43,10 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addForeignKeyConstraint baseTableName="fund_reservation" baseColumnNames="wallet_id" constraintName="fk_fund_reservation_wallet" referencedTableName="wallets" referencedColumnNames="id"/>
-        <createIndex tableName="fund_reservation" indexName="idx_fund_reservation_wallet_id_status">
+        <addForeignKeyConstraint baseTableName="fund_reservation" baseColumnNames="wallet_id"
+                                 constraintName="fk_fund_reservation_wallet"
+                                 referencedTableName="wallets" referencedColumnNames="id"/>
+        <createIndex tableName="fund_reservation" indexName="idx_fund_reservation_wallet_id">
             <column name="wallet_id"/>
         </createIndex>
     </changeSet>
@@ -126,6 +128,7 @@
             AND is_active = true;
         </sql>
     </changeSet>
+
     <changeSet id="create-shared-limits" author="Marcin Parśniak">
         <createTable tableName="shared_limits">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -172,6 +175,7 @@
             </column>
         </createTable>
     </changeSet>
+
     <changeSet id="create-shared-expenses" author="Marcin Parśniak">
         <createTable tableName="shared_expenses">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -193,7 +197,6 @@
         </createTable>
     </changeSet>
 
-
     <changeSet id="create-revenues" author="Marcin Parśniak">
         <createTable tableName="revenues">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -208,6 +211,7 @@
             </column>
         </createTable>
     </changeSet>
+
     <changeSet id="create-shared-revenues" author="Marcin Parśniak">
         <createTable tableName="shared_revenues">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -252,6 +256,7 @@
             ON piggybanks (user_id, LOWER(name));
         </sql>
     </changeSet>
+
     <changeSet id="create-shared-piggy_banks" author="Marcin Parśniak">
         <createTable tableName="shared_piggybanks">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -266,8 +271,8 @@
                 <constraints nullable="false"/>
             </column>
             <column name="goal_amount" type="DECIMAL(19,2)"/>
-            <column name="goal_achieved_notified" type="BOOLEAN">
-                <constraints nullable="true"/>
+            <column name="goal_achieved_notified" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
             </column>
             <column name="owner_id" type="BIGINT">
                 <constraints nullable="false"/>
@@ -281,6 +286,7 @@
             ON shared_piggybanks (owner_id, member_id, LOWER(name));
         </sql>
     </changeSet>
+
     <changeSet id="create-goalplanner" author="Marcin Parśniak">
         <createTable tableName="goalplanner">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -294,13 +300,15 @@
                 <constraints nullable="false"/>
             </column>
             <column name="piggy_bank_id" type="BIGINT">
-                <constraints nullable="true" unique="true" foreignKeyName="fk_goalplanner_piggybank" references="piggybanks(id)"/>
+                <constraints nullable="true" unique="true" foreignKeyName="fk_goalplanner_piggybank"
+                             references="piggybanks(id)"/>
             </column>
         </createTable>
         <createIndex tableName="goalplanner" indexName="idx_goalplanner_user_id">
             <column name="user_id"/>
         </createIndex>
     </changeSet>
+
     <changeSet id="create-expense-settings" author="Marcin Parśniak">
         <createTable tableName="expense_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -318,10 +326,16 @@
             <column name="count_quantity_limit_enabled" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
-            <column name="number_of_quantity_limit" type="INT"/>
+            <column name="number_of_quantity_limit" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
             <column name="count_quantity_limit_period" type="VARCHAR(255)"/>
-            <column name="quantity_limit_emergency_mode_enabled" type="BOOLEAN"/>
-            <column name="quantity_limit_emergency_mode_used" type="BOOLEAN"/>
+            <column name="quantity_limit_emergency_mode_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quantity_limit_emergency_mode_used" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" unique="true"/>
             </column>
@@ -337,7 +351,9 @@
                 <constraints nullable="false"/>
             </column>
             <column name="amount" type="DECIMAL(19,2)"/>
-            <column name="type" type="VARCHAR(255)"/>
+            <column name="type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
             <column name="revenue_category" type="VARCHAR(255)"/>
             <column name="expense_category" type="VARCHAR(255)"/>
             <column name="recurring_period" type="VARCHAR(255)"/>
@@ -355,6 +371,13 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createIndex tableName="recurring_settings" indexName="idx_recurring_settings_user_id">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="recurring_settings" indexName="idx_recurring_settings_next_execution">
+            <column name="enable"/>
+            <column name="next_execution_date"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-piggy-bank-settings" author="Marcin Parśniak">
@@ -380,6 +403,7 @@
             </column>
         </createTable>
     </changeSet>
+
     <changeSet id="create-shared-settings" author="Marcin Parśniak">
         <createTable tableName="shared_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -414,6 +438,7 @@
         <addUniqueConstraint tableName="shared_settings" columnNames="owner_id, member_id"
                              constraintName="uk_shared_settings_owner_member"/>
     </changeSet>
+
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">
             <column name="name" type="varchar(64)">
@@ -444,7 +469,6 @@
         <createIndex tableName="shared_revenues" indexName="idx_shared_revenues_member_id">
             <column name="member_id"/>
         </createIndex>
-
         <createIndex tableName="shared_expenses" indexName="idx_shared_expenses_owner_id">
             <column name="owner_id"/>
         </createIndex>

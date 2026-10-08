@@ -46,7 +46,7 @@ public class WeeklySecurityDigestReportEmailProcessor {
 
     private Map<String, String> buildPlaceholders(WeeklySecurityDigestReportDto report, UserDataResponse userDataResponse) {
         return Map.ofEntries(
-                Map.entry("userName", userDataResponse.username().orElse("Użytkowniku")),
+                Map.entry("username", userDataResponse.username().orElse("Użytkowniku")),
                 Map.entry("weekStart", formatDate(report.weekStart())),
                 Map.entry("weekEnd", formatDate(report.weekEnd())),
                 Map.entry("successfulLogins", String.valueOf(report.successfulLogins())),

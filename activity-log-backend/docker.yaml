@@ -31,11 +31,28 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       DEV_SSL_PASSWORD: ${DEV_SSL_PASSWORD}
+      REDIS_HOST: finovara-activity-log-redis
+      REDIS_PORT: 6383
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: finovara-kafka:9092
       AUTH_BACKEND_URL: https://finovara-auth-app:8443
     volumes:
       - ../localhost.p12:/app/localhost.p12
     restart: always
+    networks:
+      - finovara-network
+
+  finovara-activity-log-redis:
+    image: redis:7-alpine
+    container_name: finovara-activity-log-redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD} --port 6383
+    ports:
+      - "6383:6383"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-p", "6383", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 5s
+      retries: 10
     networks:
       - finovara-network
 

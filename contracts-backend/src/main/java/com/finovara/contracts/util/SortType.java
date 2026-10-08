@@ -36,7 +36,6 @@ public enum SortType {
 
         }
     },
-
     SCORE_DESC {
         @Override
         public Pageable getPageable(int pageSize) {

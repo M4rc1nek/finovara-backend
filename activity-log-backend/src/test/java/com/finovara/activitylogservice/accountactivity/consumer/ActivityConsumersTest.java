@@ -1,14 +1,14 @@
 package com.finovara.activitylogservice.accountactivity.consumer;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.consumer.ActivityConsumers;
-import com.finovara.activitylogservice.activitylog.accountactivity.expense.service.ExpenseActivityService;
-import com.finovara.activitylogservice.activitylog.accountactivity.limit.service.LimitActivityService;
-import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.activitylogservice.activitylog.accountactivity.revenue.service.RevenueActivityService;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.service.LoginActivityService;
-import com.finovara.activitylogservice.activitylog.accountactivity.settings.service.SettingsActivityService;
-import com.finovara.activitylogservice.activitylog.accountactivity.sharedaccount.service.SharedAccountActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.consumer.ActivityConsumers;
+import com.finovara.activitylogservice.activitylog.mainaccount.expense.service.ExpenseActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.service.LimitActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.service.PiggyBankActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.service.RevenueActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.service.AccountChangesActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.service.LoginActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.settings.service.SettingsActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service.SharedAccountChangeHistoryActivityService;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.limit.LimitActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
@@ -17,7 +17,7 @@ import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivity
 import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.*;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.model.ExpenseCategory;
@@ -62,7 +62,7 @@ class ActivityConsumersTest {
     private AccountChangesActivityService accountChangesActivityService;
 
     @Mock
-    private SharedAccountActivityService sharedAccountActivityService;
+    private SharedAccountChangeHistoryActivityService sharedAccountChangeHistoryActivityService;
 
 
     @InjectMocks
@@ -132,11 +132,11 @@ class ActivityConsumersTest {
 
     @Test
     void shouldDelegateSharedAccountEventToService() {
-        SharedAccountActivityEvent event = new SharedAccountActivityEvent(USER_ID, SharedAccountActivityType.ACCEPTED_INVITATION, null, "John", "example@gmail.com", OCCURRED_AT);
+        SharedAccountChangeHistoryActivityEvent event = new SharedAccountChangeHistoryActivityEvent(USER_ID, SharedAccountChangeHistoryActivityType.ACCEPTED_INVITATION, null, "John", "example@gmail.com", OCCURRED_AT);
 
         activityConsumers.handleSharedAccount(event);
 
-        verify(sharedAccountActivityService).handleEvent(event);
+        verify(sharedAccountChangeHistoryActivityService).handleEvent(event);
     }
 
     @Test

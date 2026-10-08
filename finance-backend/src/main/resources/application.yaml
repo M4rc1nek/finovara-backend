@@ -3,15 +3,6 @@ spring:
     import: optional:file:.env[.properties]
   application:
     name: finovara-finance-service
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
-  cache:
-    type: redis
-    redis:
-      cache-null-values: false
   datasource:
     url: jdbc:postgresql://finovara-finance-db:5432/finovara_finance_db
     username: ${DB_USERNAME}
@@ -26,57 +17,17 @@ spring:
   liquibase:
     change-log: classpath:changelog/changelog.xml
     enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+  cache:
+    type: redis
+    redis:
+      cache-null-values: false
   kafka:
     bootstrap-servers: finovara-kafka:9092
-
-server:
-  port: 8087
-  forward-headers-strategy: framework
-  ssl:
-    enabled: true
-    key-store: file:/app/localhost.p12
-    key-store-type: PKCS12
-    key-store-password: ${DEV_SSL_PASSWORD}
-    key-alias: 1
-
-auth-backend:
-  url: ${AUTH_BACKEND_URL}
-
-security-monitoring-backend:
-  url: ${SECURITY_MONITORING_URL}
-
-logging:
-  level:
-    root: INFO
-    org.hibernate.SQL: WARN
-    org.hibernate.type.descriptor.sql.BasicBinder: WARN
-    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
-
-scheduler:
-  recurring-settings:
-    frequency: "0 0 0 * * ?"
-    max-occurrence-range-days: 180
-  shared-account:
-    notes:
-      delete-cron: "0 0 1 5 * ?"
-
-
-expense:
-  suggestion:
-    history-size: 5
-  settings:
-    smart-scan:
-      expense-count: 4
-
-revenue:
-  suggestion:
-    history-size: 5
-
-nbp:
-  api:
-    url: https://api.nbp.pl/api
-  properties:
-    scale: 4
 
 cache:
   ttl-minutes:
@@ -88,6 +39,15 @@ cache:
     "[revenue:suggestion]": 10
     "[nbpRates]": 60
 
+server:
+  port: 8087
+  forward-headers-strategy: framework
+  ssl:
+    enabled: true
+    key-store: file:/app/localhost.p12
+    key-store-type: PKCS12
+    key-store-password: ${DEV_SSL_PASSWORD}
+    key-alias: 1
 
 management:
   server:
@@ -111,3 +71,41 @@ management:
         http.server.requests: true
       slo:
         http.server.requests: 50ms,100ms,200ms,500ms,1s
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
+
+auth-backend:
+  url: ${AUTH_BACKEND_URL}
+
+security-monitoring-backend:
+  url: ${SECURITY_MONITORING_URL}
+
+scheduler:
+  recurring-settings:
+    frequency: "0 0 0 * * ?"
+    max-occurrence-range-days: 180
+  shared-account:
+    notes:
+      delete-cron: "0 0 1 5 * ?"
+
+expense:
+  suggestion:
+    history-size: 5
+  settings:
+    smart-scan:
+      expense-count: 4
+
+revenue:
+  suggestion:
+    history-size: 5
+
+nbp:
+  api:
+    url: https://api.nbp.pl/api
+  properties:
+    scale: 4

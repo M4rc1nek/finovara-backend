@@ -185,7 +185,7 @@ class WeeklyFinanceDigestReportEmailProcessorTest {
             processor.sendWeeklyFinanceDigestEmail();
 
             verify(emailNotifier).send(any(), any(), captor.capture());
-            assertEquals("Użytkowniku", captor.getValue().get("userName"));
+            assertEquals("Użytkowniku", captor.getValue().get("username"));
         }
 
         @Test

@@ -2,6 +2,9 @@ package com.finovara.financeservice.sharedaccount.limit.service;
 
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import com.finovara.financeservice.sharedaccount.limit.dto.SharedLimitDto;
 import com.finovara.financeservice.sharedaccount.limit.dto.SharedLimitStatsDto;
 import com.finovara.financeservice.sharedaccount.limit.model.SharedLimit;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -25,6 +29,7 @@ public class SharedLimitManagementService {
     private final SharedLimitCalculateService sharedLimitCalculateService;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
     private final LimitExpensesValidator limitExpensesValidator;
+    private final OutboxService outboxService;
 
     @Transactional
     public Long createSharedLimit(SharedLimitDto limitDto, Long userId) {
@@ -54,6 +59,9 @@ public class SharedLimitManagementService {
 
         SharedLimit savedLimit = sharedLimitRepository.save(limit);
 
+        outboxService.save("SharedAccountLimit", savedLimit.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, savedLimit.getId(), SharedAccountActivityLogType.LIMIT_CREATED, LocalDateTime.now()));
+
         return savedLimit.getId();
     }
 
@@ -68,7 +76,11 @@ public class SharedLimitManagementService {
         limit.setCategory(limitDto.category());
         limit.setAmount(limitDto.amount());
 
-        sharedLimitRepository.save(limit);
+        SharedLimit saved = sharedLimitRepository.save(limit);
+
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
+        outboxService.save("SharedAccountLimit", saved.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.LIMIT_EDITED, LocalDateTime.now()));
 
         return limitId;
     }
@@ -88,7 +100,11 @@ public class SharedLimitManagementService {
         SharedLimit limit = sharedLimitRepository.findByIdAndUserId(userId, limitId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Active limit not found"));
 
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
         sharedLimitRepository.delete(limit);
+
+        outboxService.save("SharedAccountLimit", limit.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, limit.getId(), SharedAccountActivityLogType.LIMIT_DELETED, LocalDateTime.now()));
     }
 
 }

@@ -1,10 +1,10 @@
 package com.finovara.activitylogservice.accountactivity.limit.service;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.limit.dto.LimitActivityDto;
-import com.finovara.activitylogservice.activitylog.accountactivity.limit.mapper.LimitActivityMapper;
-import com.finovara.activitylogservice.activitylog.accountactivity.limit.model.LimitActivity;
-import com.finovara.activitylogservice.activitylog.accountactivity.limit.repository.LimitActivityRepository;
-import com.finovara.activitylogservice.activitylog.accountactivity.limit.service.LimitActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.dto.LimitActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.mapper.LimitActivityMapper;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.model.LimitActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.repository.LimitActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.service.LimitActivityService;
 import com.finovara.contracts.mainaccount.activity.event.limit.LimitActivityEvent;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.SortType;

@@ -46,23 +46,6 @@ class LargeExpenseNotificationServiceTest {
     }
 
     @Nested
-    class SaveLargeExpenseNotification {
-
-        @Test
-        void shouldUpdateNotificationSettingsWhenDtoIsValid() {
-            LargeExpenseNotificationDto dto = new LargeExpenseNotificationDto(Boolean.TRUE, new BigDecimal("250.00"));
-            when(sharedAccountSettingsRepository.findByUserId(userId)).thenReturn(settings);
-
-            largeExpenseNotificationService.saveLargeExpenseNotification(userId, dto);
-
-            assertTrue(settings.isLargeExpenseNotificationEnabled());
-            assertEquals(new BigDecimal("250.00"), settings.getLargeExpenseNotificationThreshold());
-            verify(sharedAccountSettingsRepository).findByUserId(userId);
-            verifyNoInteractions(outboxService);
-        }
-    }
-
-    @Nested
     class GetLargeExpenseNotification {
 
         @Test

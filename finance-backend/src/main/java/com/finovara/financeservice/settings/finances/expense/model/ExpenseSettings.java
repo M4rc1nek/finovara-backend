@@ -38,10 +38,12 @@ public class ExpenseSettings {
     @Column(name = "count_quantity_limit_period")
     private PeriodType periodType;
 
+    @Column(nullable = false)
     private boolean quantityLimitEmergencyModeEnabled;
 
+    @Column(nullable = false)
     private boolean quantityLimitEmergencyModeUsed;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private Long userId;
 }

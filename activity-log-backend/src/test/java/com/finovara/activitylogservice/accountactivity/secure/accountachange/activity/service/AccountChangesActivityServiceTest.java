@@ -1,11 +1,11 @@
 package com.finovara.activitylogservice.accountactivity.secure.accountachange.activity.service;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.model.AccountChangesActivity;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.repository.AccountChangesActivityRepository;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.model.AccountChangeArchive;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangesActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangesActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository.AccountChangesActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.service.AccountChangesActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.model.AccountChangeArchive;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.service.AccountChangeArchiveService;
 import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
 import org.junit.jupiter.api.BeforeEach;

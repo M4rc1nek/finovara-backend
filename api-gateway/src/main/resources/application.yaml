@@ -1,18 +1,3 @@
-server:
-  port: 8888
-  ssl:
-    enabled: true
-    key-store: file:/app/localhost.p12
-    key-store-type: PKCS12
-    key-store-password: ${DEV_SSL_PASSWORD}
-    key-alias: 1
-
-application:
-  name: api-gateway
-  security:
-    jwt:
-      secret-key: ${JWT_SECRET_KEY}
-
 spring:
   data:
     redis:
@@ -62,7 +47,7 @@ spring:
             - id: activity-log-backend
               uri: ${ACTIVITY_LOG_BACKEND_URL}
               predicates:
-                - Path=/api/account-activity/**,/api/archive-activities/**
+                - Path=/api/account-activity/**,/api/shared-accounts/activity,/api/shared-accounts/refresh-activity,/api/archive-activities/**
 
             - id: notification-backend
               uri: ${NOTIFICATION_BACKEND_URL}
@@ -88,6 +73,16 @@ spring:
               uri: ${FINANCE_BACKEND_URL}
               predicates:
                 - Path=/**
+
+server:
+  port: 8888
+  ssl:
+    enabled: true
+    key-store: file:/app/localhost.p12
+    key-store-type: PKCS12
+    key-store-password: ${DEV_SSL_PASSWORD}
+    key-alias: 1
+
 management:
   server:
     port: 9100
@@ -118,6 +113,11 @@ logging:
     root: WARN
     com.finovara.apigateway: INFO
 
+application:
+  name: api-gateway
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
 
 security:
   whitelist:
@@ -130,7 +130,6 @@ security:
     - /login/oauth2/**
     - /api/security-monitoring/confirm-email-code/**
     - /internal/**
-
 
 rate-limit:
   endpoints:
@@ -172,6 +171,9 @@ rate-limit:
       window-minutes: 5
     - path: /api/shared-accounts/report-cache/refresh-security
       max-requests: 1
+      window-minutes: 5
+    - path: /api/shared-accounts/refresh-activity
+      max-requests: 3 #1
       window-minutes: 5
     - path: /api/shared-account/users/send-invitation
       max-requests: 555 # 1

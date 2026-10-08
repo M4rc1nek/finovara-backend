@@ -17,6 +17,8 @@ spring:
   liquibase:
     change-log: classpath:changelog/changelog.xml
     enabled: true
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
   mail:
     host: smtp.gmail.com
     port: 465
@@ -31,8 +33,6 @@ spring:
           ssl:
             enable: true
             trust: smtp.gmail.com
-  kafka:
-    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
 
 server:
   port: 8085
@@ -43,6 +43,36 @@ server:
     key-store-type: PKCS12
     key-store-password: ${DEV_SSL_PASSWORD}
     key-alias: 1
+
+management:
+  server:
+    port: 9106
+    ssl:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: security-monitoring-backend
+    distribution:
+      percentiles:
+        http.server.requests: 0.5,0.9,0.95,0.99
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 50ms,100ms,200ms,500ms,1s
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
 
 auth-backend:
   url: ${AUTH_BACKEND_URL}
@@ -102,37 +132,6 @@ risk:
     full-verification-points: 80
     login-log-only-max-points: 40
 
-
 scheduler:
   risk-operation:
     delete-cron: "0 0 0 ? * 1"
-
-logging:
-  level:
-    root: INFO
-    org.hibernate.SQL: WARN
-    org.hibernate.type.descriptor.sql.BasicBinder: WARN
-    org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver: DEBUG
-
-management:
-  server:
-    port: 9106
-    ssl:
-      enabled: false
-  endpoints:
-    web:
-      exposure:
-        include: health,prometheus,info,metrics
-  endpoint:
-    health:
-      show-details: always
-  metrics:
-    tags:
-      application: security-monitoring-backend
-    distribution:
-      percentiles:
-        http.server.requests: 0.5,0.9,0.95,0.99
-      percentiles-histogram:
-        http.server.requests: true
-      slo:
-        http.server.requests: 50ms,100ms,200ms,500ms,1s

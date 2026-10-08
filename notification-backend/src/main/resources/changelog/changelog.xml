@@ -6,7 +6,6 @@
         http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.15.xsd">
 
-
     <changeSet id="create-notification-settings" author="Marcin Parśniak">
         <createTable tableName="notification_settings">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -58,6 +57,7 @@
         <addUniqueConstraint tableName="notifications" columnNames="user_id, deduplication_key"
                              constraintName="uk_notifications_user_dedup"/>
     </changeSet>
+
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">
             <column name="name" type="varchar(64)">

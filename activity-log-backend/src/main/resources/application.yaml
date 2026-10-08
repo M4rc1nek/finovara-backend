@@ -1,3 +1,32 @@
+spring:
+  application:
+    name: finovara-activity-service
+  datasource:
+    url: jdbc:postgresql://finovara-activity-db:5432/finovara_activity_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  liquibase:
+    change-log: classpath:changelog/changelog.xml
+    enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 1200000  # 20 minutes
+      cache-null-values: false
+  kafka:
+    bootstrap-servers: finovara-kafka:9092
+
 server:
   port: 8082
   forward-headers-strategy: framework
@@ -7,73 +36,6 @@ server:
     key-store-type: PKCS12
     key-store-password: ${DEV_SSL_PASSWORD}
     key-alias: 1
-
-spring:
-  application:
-    name: finovara-activity-service
-
-  datasource:
-    url: jdbc:postgresql://finovara-activity-db:5432/finovara_activity_db
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
-  liquibase:
-    change-log: classpath:changelog/changelog.xml
-    enabled: true
-
-  kafka:
-    bootstrap-servers: finovara-kafka:9092
-
-auth-backend:
-  url: ${AUTH_BACKEND_URL}
-
-scheduler:
-  user-activity:
-    login:
-      archive-cron: "0 3 0 1 1/6 ?"
-    account-changes:
-      archive-cron: "0 5 0 1 1/6 ?"
-    expense:
-      delete-cron: "0 6 0 1 * ?"
-    revenue:
-      delete-cron: "0 10 0 1 * ?"
-    limit:
-      delete-cron: "0 15 0 1 * ?"
-    piggy-bank:
-      delete-cron: "0 20 0 1 * ?"
-    settings:
-      delete-cron: "0 25 0 1 * ?"
-    shared-account:
-      delete-cron: "0 30 0 1 * ?"
-    risk-operation:
-      delete-cron: "0 5 0 ? * 1"
-
-user-activity:
-  login:
-    page-size: 30
-  account-changes:
-    page-size: 30
-  expense:
-    page-size: 100
-  revenue:
-    page-size: 100
-  limit:
-    page-size: 100
-  piggy-bank:
-    page-size: 100
-  settings:
-    page-size: 100
-  shared-account:
-    page-size: 50
-  risk-operation:
-    page-size: 30
 
 management:
   server:
@@ -99,3 +61,54 @@ management:
         http.server.requests: true
       slo:
         http.server.requests: 50ms,100ms,200ms,500ms,1s
+
+auth-backend:
+  url: ${AUTH_BACKEND_URL}
+
+scheduler:
+  user-activity:
+    login:
+      archive-cron: "0 3 0 1 1/6 ?"
+    account-changes:
+      archive-cron: "0 5 0 1 1/6 ?"
+    expense:
+      delete-cron: "0 6 0 1 * ?"
+    revenue:
+      delete-cron: "0 10 0 1 * ?"
+    limit:
+      delete-cron: "0 15 0 1 * ?"
+    piggy-bank:
+      delete-cron: "0 20 0 1 * ?"
+    settings:
+      delete-cron: "0 25 0 1 * ?"
+    shared-account-change-history:
+      delete-cron: "0 30 0 1 * ?"
+    risk-operation:
+      delete-cron: "0 5 0 ? * 1"
+  shared-account:
+    activity:
+      delete-cron: "0 35 0 1 * ?"
+
+user-activity:
+  login:
+    page-size: 30
+  account-changes:
+    page-size: 30
+  expense:
+    page-size: 100
+  revenue:
+    page-size: 100
+  limit:
+    page-size: 100
+  piggy-bank:
+    page-size: 100
+  settings:
+    page-size: 100
+  shared-account-change-history:
+    page-size: 30
+  risk-operation:
+    page-size: 30
+
+shared-account:
+  activity:
+    page-size: 30

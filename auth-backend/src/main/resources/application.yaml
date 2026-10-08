@@ -22,6 +22,8 @@ spring:
       password: ${REDIS_PASSWORD}
     cache:
       type: redis
+  kafka:
+    bootstrap-servers: finovara-kafka:9092
   mail:
     host: smtp.gmail.com
     port: 465
@@ -48,8 +50,6 @@ spring:
               - openid
               - email
               - profile
-  kafka:
-    bootstrap-servers: finovara-kafka:9092
 
 server:
   port: 8443
@@ -61,14 +61,28 @@ server:
     key-store-password: ${DEV_SSL_PASSWORD}
     key-alias: 1
 
-application:
-  security:
-    jwt:
-      secret-key: ${JWT_SECRET_KEY}
-      expiration: 86400000
-  upload:
-    profile-images-directory: uploads/profile-images
-    profile-images-default-directory: uploads/profile-images/default
+management:
+  server:
+    port: 9101
+    ssl:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: auth-backend
+    distribution:
+      percentiles:
+        http.server.requests: 0.5,0.9,0.95,0.99
+      percentiles-histogram:
+        http.server.requests: true
+      slo:
+        http.server.requests: 50ms,100ms,200ms,500ms
 
 logging:
   level:
@@ -80,6 +94,15 @@ logging:
     org.springframework.security.web.access: DEBUG
     org.springframework.cache: TRACE
     org.springframework.data.redis: DEBUG
+
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      expiration: 86400000
+  upload:
+    profile-images-directory: uploads/profile-images
+    profile-images-default-directory: uploads/profile-images/default
 
 oauth2:
   pending-login:
@@ -134,26 +157,3 @@ security:
   cors:
     allowed-origins:
       - https://localhost:5173
-
-management:
-  server:
-    port: 9101
-    ssl:
-      enabled: false
-  endpoints:
-    web:
-      exposure:
-        include: health,prometheus,info,metrics
-  endpoint:
-    health:
-      show-details: always
-  metrics:
-    tags:
-      application: auth-backend
-    distribution:
-      percentiles:
-        http.server.requests: 0.5,0.9,0.95,0.99
-      percentiles-histogram:
-        http.server.requests: true
-      slo:
-        http.server.requests: 50ms,100ms,200ms,500ms

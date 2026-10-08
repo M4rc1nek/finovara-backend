@@ -1,10 +1,10 @@
 package com.finovara.activitylogservice.accountactivity.revenue.service;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.revenue.dto.RevenueActivityDto;
-import com.finovara.activitylogservice.activitylog.accountactivity.revenue.mapper.RevenueActivityMapper;
-import com.finovara.activitylogservice.activitylog.accountactivity.revenue.model.RevenueActivity;
-import com.finovara.activitylogservice.activitylog.accountactivity.revenue.repository.RevenueActivityRepository;
-import com.finovara.activitylogservice.activitylog.accountactivity.revenue.service.RevenueActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.mapper.RevenueActivityMapper;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.model.RevenueActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.repository.RevenueActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.service.RevenueActivityService;
 import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
 import com.finovara.contracts.util.SortType;
 import com.finovara.contracts.mainaccount.activity.model.RevenueActivityType;

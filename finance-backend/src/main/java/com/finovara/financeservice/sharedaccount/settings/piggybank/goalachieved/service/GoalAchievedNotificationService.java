@@ -2,6 +2,10 @@ package com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieve
 
 import com.finovara.contracts.sharedaccount.event.notification.GoalAchievedNotificationEvent;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
@@ -19,12 +23,21 @@ public class GoalAchievedNotificationService {
 
     private final SharedAccountSettingsRepository sharedAccountSettingsRepository;
     private final OutboxService outboxService;
+    private final SharedAccountParticipantsService sharedAccountParticipantsService;
 
     @Transactional
     public void saveGoalAchievedNotification(Long userId, GoalAchievedNotificationDto settings) {
         SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
 
-        sharedAccountSettings.setPiggyBankGoalAchievedNotificationEnabled(settings.piggyBankGoalAchievedNotificationEnabled());
+        boolean changed = sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled() != settings.piggyBankGoalAchievedNotificationEnabled();
+
+        if (changed) {
+            sharedAccountSettings.setPiggyBankGoalAchievedNotificationEnabled(settings.piggyBankGoalAchievedNotificationEnabled());
+
+            SharedAccountParticipantsResponse participants = sharedAccountParticipantsService.getParticipants(userId);
+            outboxService.save("SharedAccountSettings", userId.toString(), "shared-account.activity",
+                    new SharedAccountActivityLogEvent(participants.ownerId(), participants.memberId(), userId, null, SharedAccountActivityLogType.SETTING_CHANGED, LocalDateTime.now()));
+        }
     }
 
     @Transactional

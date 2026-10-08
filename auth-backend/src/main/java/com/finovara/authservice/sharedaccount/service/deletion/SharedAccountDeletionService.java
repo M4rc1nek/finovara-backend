@@ -8,11 +8,11 @@ import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.deletion.AccountRemovalTemplate;
 import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.sharedaccount.event.deletion.NotificationSharedAccountLeftEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -80,7 +80,7 @@ public class SharedAccountDeletionService {
         String coFounderEmail = coFounder.map(User::getEmail).orElse(null);
 
         outboxService.save("User", actingUserId.toString(), "shared-account.changed",
-                new SharedAccountActivityEvent(actingUserId, SharedAccountActivityType.LEFT_SHARED_ACCOUNT,
+                new SharedAccountChangeHistoryActivityEvent(actingUserId, SharedAccountChangeHistoryActivityType.LEFT_SHARED_ACCOUNT,
                         null, coFounderUsername, coFounderEmail, LocalDateTime.now()));
     }
 }

@@ -1,8 +1,12 @@
 package com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieved.service;
 
-import com.finovara.contracts.sharedaccount.event.notification.GoalAchievedNotificationEvent;
-import com.finovara.contracts.util.model.PiggyBankGoalType;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
+import com.finovara.contracts.sharedaccount.event.notification.GoalAchievedNotificationEvent;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
@@ -11,20 +15,30 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GoalAchievedNotificationServiceTest {
+
+    private static final Long USER_ID = 1L;
+    private static final Long OWNER_ID = 10L;
+    private static final Long MEMBER_ID = 20L;
+    private static final Long PIGGY_BANK_ID = 30L;
+    private static final String SETTINGS_AGGREGATE = "SharedAccountSettings";
+    private static final String ACTIVITY_TOPIC = "shared-account.activity";
+    private static final String PIGGY_BANK_AGGREGATE = "PiggyBank";
+    private static final String NOTIFICATION_TOPIC = "notification.shared-account.piggy-bank-goal-achieved";
+    private static final BigDecimal GOAL_AMOUNT = new BigDecimal("100.00");
 
     @Mock
     private SharedAccountSettingsRepository sharedAccountSettingsRepository;
@@ -32,119 +46,325 @@ class GoalAchievedNotificationServiceTest {
     @Mock
     private OutboxService outboxService;
 
-    @InjectMocks
-    private GoalAchievedNotificationService goalAchievedNotificationService;
+    @Mock
+    private SharedAccountParticipantsService sharedAccountParticipantsService;
 
-    private Long userId;
-    private SharedAccountSettings settings;
-    private SharedPiggyBank piggyBank;
+    @Mock
+    private SharedAccountSettings sharedAccountSettings;
+
+    @Mock
+    private SharedAccountParticipantsResponse participantsResponse;
+
+    @Mock
+    private SharedPiggyBank sharedPiggyBank;
+
+    @Captor
+    private ArgumentCaptor<SharedAccountActivityLogEvent> activityEventCaptor;
+
+    @InjectMocks
+    private GoalAchievedNotificationService service;
 
     @BeforeEach
     void setUp() {
-        userId = 1L;
-        settings = SharedAccountSettings.builder().id(10L).ownerId(1L).memberId(2L).piggyBankGoalAchievedNotificationEnabled(true).build();
-        piggyBank = SharedPiggyBank.builder().id(20L).ownerId(1L).memberId(2L).goalType(PiggyBankGoalType.OTHER).amount(new BigDecimal("100.00")).goalAmount(new BigDecimal("100.00")).goalAchievedNotified(false).build();
+        when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(sharedAccountSettings);
     }
 
     @Nested
     class SaveGoalAchievedNotification {
 
+        private void stubParticipants() {
+            when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
+            when(participantsResponse.ownerId()).thenReturn(OWNER_ID);
+            when(participantsResponse.memberId()).thenReturn(MEMBER_ID);
+        }
+
+        @ParameterizedTest
+        @CsvSource({"true,false", "false,true"})
+        void shouldUpdateSettingWhenValueChanges(boolean current, boolean requested) {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(current);
+            stubParticipants();
+
+            service.saveGoalAchievedNotification(USER_ID, new GoalAchievedNotificationDto(requested));
+
+            verify(sharedAccountSettings).setPiggyBankGoalAchievedNotificationEnabled(requested);
+        }
+
+        @ParameterizedTest
+        @CsvSource({"true,false", "false,true"})
+        void shouldSaveActivityEventWhenValueChanges(boolean current, boolean requested) {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(current);
+            stubParticipants();
+
+            service.saveGoalAchievedNotification(USER_ID, new GoalAchievedNotificationDto(requested));
+
+            verify(outboxService).save(eq(SETTINGS_AGGREGATE), eq(USER_ID.toString()), eq(ACTIVITY_TOPIC),
+                    activityEventCaptor.capture());
+            SharedAccountActivityLogEvent event = activityEventCaptor.getValue();
+            assertEquals(OWNER_ID, event.ownerId());
+            assertEquals(MEMBER_ID, event.memberId());
+            assertEquals(USER_ID, event.userId());
+            assertNull(event.targetId());
+            assertEquals(SharedAccountActivityLogType.SETTING_CHANGED, event.type());
+            assertNotNull(event.createdAt());
+        }
+
         @Test
-        void shouldUpdateNotificationFlagWhenDtoIsValid() {
-            GoalAchievedNotificationDto dto = new GoalAchievedNotificationDto(Boolean.FALSE);
-            when(sharedAccountSettingsRepository.findByUserId(userId)).thenReturn(settings);
+        void shouldUpdateSettingBeforeSavingActivityEventWhenValueChanges() {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(false);
+            stubParticipants();
 
-            goalAchievedNotificationService.saveGoalAchievedNotification(userId, dto);
+            service.saveGoalAchievedNotification(USER_ID, new GoalAchievedNotificationDto(true));
 
-            assertFalse(settings.isPiggyBankGoalAchievedNotificationEnabled());
-            verify(sharedAccountSettingsRepository).findByUserId(userId);
+            InOrder inOrder = inOrder(sharedAccountSettings, outboxService);
+            inOrder.verify(sharedAccountSettings).setPiggyBankGoalAchievedNotificationEnabled(true);
+            inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {true, false})
+        void shouldDoNothingWhenValueDoesNotChange(boolean value) {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(value);
+
+            service.saveGoalAchievedNotification(USER_ID, new GoalAchievedNotificationDto(value));
+
+            verify(sharedAccountSettings, never()).setPiggyBankGoalAchievedNotificationEnabled(value);
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenSettingsDtoIsNull() {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(true);
+
+            assertThrows(NullPointerException.class, () -> service.saveGoalAchievedNotification(USER_ID, null));
+
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenSettingsAreNotFound() {
+            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(null);
+
+            assertThrows(NullPointerException.class,
+                    () -> service.saveGoalAchievedNotification(USER_ID, new GoalAchievedNotificationDto(true)));
+
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositoryFails() {
+            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenThrow(new IllegalStateException("db failed"));
+
+            assertThrows(IllegalStateException.class,
+                    () -> service.saveGoalAchievedNotification(USER_ID, new GoalAchievedNotificationDto(true)));
+
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenParticipantsServiceFails() {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(false);
+            when(sharedAccountParticipantsService.getParticipants(USER_ID))
+                    .thenThrow(new RequestedEntityNotFoundException("participants not found"));
+
+            assertThrows(RequestedEntityNotFoundException.class,
+                    () -> service.saveGoalAchievedNotification(USER_ID, new GoalAchievedNotificationDto(true)));
+
             verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenParticipantsResponseIsNull() {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(false);
+
+            assertThrows(NullPointerException.class,
+                    () -> service.saveGoalAchievedNotification(USER_ID, new GoalAchievedNotificationDto(true)));
+
+            verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenOutboxServiceFails() {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(false);
+            stubParticipants();
+            doThrow(new IllegalStateException("outbox failed")).when(outboxService)
+                    .save(anyString(), anyString(), anyString(), any());
+
+            assertThrows(IllegalStateException.class,
+                    () -> service.saveGoalAchievedNotification(USER_ID, new GoalAchievedNotificationDto(true)));
         }
     }
 
     @Nested
     class GetGoalAchievedNotification {
 
+        @ParameterizedTest
+        @ValueSource(booleans = {true, false})
+        void shouldReturnDtoWithSettingValueWhenSettingsExist(boolean enabled) {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(enabled);
+
+            GoalAchievedNotificationDto result = service.getGoalAchievedNotification(USER_ID);
+
+            assertEquals(enabled, result.piggyBankGoalAchievedNotificationEnabled());
+        }
+
         @Test
-        void shouldReturnNotificationSettingsWhenSettingsExist() {
-            when(sharedAccountSettingsRepository.findByUserId(userId)).thenReturn(settings);
+        void shouldNotInteractWithOutboxWhenGettingNotification() {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(true);
 
-            GoalAchievedNotificationDto result = goalAchievedNotificationService.getGoalAchievedNotification(userId);
+            service.getGoalAchievedNotification(USER_ID);
 
-            assertTrue(result.piggyBankGoalAchievedNotificationEnabled());
-            verify(sharedAccountSettingsRepository).findByUserId(userId);
-            verifyNoInteractions(outboxService);
+            verifyNoInteractions(outboxService, sharedAccountParticipantsService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenSettingsAreNotFound() {
+            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(null);
+
+            assertThrows(NullPointerException.class, () -> service.getGoalAchievedNotification(USER_ID));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositoryFails() {
+            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenThrow(new IllegalStateException("db failed"));
+
+            assertThrows(IllegalStateException.class, () -> service.getGoalAchievedNotification(USER_ID));
         }
     }
 
     @Nested
     class HandleGoalAchieved {
 
-        @Test
-        void shouldCreateOutboxEventWhenGoalIsCompleted() {
-            when(sharedAccountSettingsRepository.findByUserId(userId)).thenReturn(settings);
+        private void stubEnabledAndNotNotified() {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(true);
+            when(sharedPiggyBank.isGoalAchievedNotified()).thenReturn(false);
+        }
 
-            goalAchievedNotificationService.handleGoalAchieved(userId, piggyBank);
+        private void stubAmounts(String amount) {
+            when(sharedPiggyBank.getAmount()).thenReturn(new BigDecimal(amount));
+            when(sharedPiggyBank.getGoalAmount()).thenReturn(GOAL_AMOUNT);
+        }
 
-            ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
-            verify(outboxService).save(eq("PiggyBank"), eq("1"), eq("notification.shared-account.piggy-bank-goal-achieved"), captor.capture());
-            verify(sharedAccountSettingsRepository).findByUserId(userId);
-            assertTrue(piggyBank.isGoalAchievedNotified());
+        private void stubEventData() {
+            when(sharedPiggyBank.getOwnerId()).thenReturn(OWNER_ID);
+            when(sharedPiggyBank.getMemberId()).thenReturn(MEMBER_ID);
+            when(sharedPiggyBank.getId()).thenReturn(PIGGY_BANK_ID);
+        }
 
-            GoalAchievedNotificationEvent event = (GoalAchievedNotificationEvent) captor.getValue();
-            assertEquals(1L, event.ownerId());
-            assertEquals(2L, event.memberId());
-            assertEquals(userId, event.triggeredByUserId());
-            assertEquals(20L, event.piggyBankId());
-            assertEquals(new BigDecimal("100.00"), event.currentAmount());
-            assertEquals(new BigDecimal("100.00"), event.goalAmount());
-            assertNotNull(event.occurredAt());
+        @ParameterizedTest
+        @ValueSource(strings = {"100.00", "100.01", "250.00"})
+        void shouldMarkPiggyBankAsNotifiedWhenGoalIsCompleted(String amount) {
+            stubEnabledAndNotNotified();
+            stubAmounts(amount);
+            stubEventData();
+
+            service.handleGoalAchieved(USER_ID, sharedPiggyBank);
+
+            verify(sharedPiggyBank).setGoalAchievedNotified(true);
         }
 
         @Test
-        void shouldNotCreateOutboxEventWhenNotificationIsDisabled() {
-            settings.setPiggyBankGoalAchievedNotificationEnabled(false);
-            when(sharedAccountSettingsRepository.findByUserId(userId)).thenReturn(settings);
+        void shouldSaveNotificationEventWhenGoalIsCompleted() {
+            stubEnabledAndNotNotified();
+            stubAmounts("100.00");
+            stubEventData();
 
-            goalAchievedNotificationService.handleGoalAchieved(userId, piggyBank);
+            service.handleGoalAchieved(USER_ID, sharedPiggyBank);
 
-            verify(sharedAccountSettingsRepository).findByUserId(userId);
+            verify(outboxService).save(eq(PIGGY_BANK_AGGREGATE), eq(USER_ID.toString()), eq(NOTIFICATION_TOPIC),
+                    any(GoalAchievedNotificationEvent.class));
+        }
+
+        @Test
+        void shouldMarkAsNotifiedBeforeSavingNotificationEventWhenGoalIsCompleted() {
+            stubEnabledAndNotNotified();
+            stubAmounts("100.00");
+            stubEventData();
+
+            service.handleGoalAchieved(USER_ID, sharedPiggyBank);
+
+            InOrder inOrder = inOrder(sharedPiggyBank, outboxService);
+            inOrder.verify(sharedPiggyBank).setGoalAchievedNotified(true);
+            inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
+        }
+
+        @Test
+        void shouldNotNotifyWhenGoalIsNotCompleted() {
+            stubEnabledAndNotNotified();
+            stubAmounts("99.99");
+
+            service.handleGoalAchieved(USER_ID, sharedPiggyBank);
+
+            verify(sharedPiggyBank, never()).setGoalAchievedNotified(true);
             verifyNoInteractions(outboxService);
         }
 
         @Test
-        void shouldNotCreateOutboxEventWhenGoalWasAlreadyNotified() {
-            piggyBank.setGoalAchievedNotified(true);
-            when(sharedAccountSettingsRepository.findByUserId(userId)).thenReturn(settings);
+        void shouldNotNotifyWhenNotificationIsDisabled() {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(false);
 
-            goalAchievedNotificationService.handleGoalAchieved(userId, piggyBank);
+            service.handleGoalAchieved(USER_ID, sharedPiggyBank);
 
-            verify(sharedAccountSettingsRepository).findByUserId(userId);
+            verifyNoInteractions(sharedPiggyBank, outboxService);
+        }
+
+        @Test
+        void shouldNotThrowExceptionWhenNotificationIsDisabledAndPiggyBankIsNull() {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(false);
+
+            service.handleGoalAchieved(USER_ID, null);
+
             verifyNoInteractions(outboxService);
         }
 
         @Test
-        void shouldNotCreateOutboxEventWhenGoalIsNotCompleted() {
-            piggyBank.setAmount(new BigDecimal("50.00"));
-            when(sharedAccountSettingsRepository.findByUserId(userId)).thenReturn(settings);
+        void shouldNotNotifyWhenGoalWasAlreadyNotified() {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(true);
+            when(sharedPiggyBank.isGoalAchievedNotified()).thenReturn(true);
 
-            goalAchievedNotificationService.handleGoalAchieved(userId, piggyBank);
+            service.handleGoalAchieved(USER_ID, sharedPiggyBank);
 
-            verify(sharedAccountSettingsRepository).findByUserId(userId);
-            verify(outboxService, never()).save(any(), any(), any(), any());
+            verify(sharedPiggyBank, never()).setGoalAchievedNotified(true);
+            verifyNoInteractions(outboxService);
         }
 
         @Test
-        void shouldNotCreateOutboxEventWhenGoalAmountIsMissing() {
-            piggyBank.setGoalAmount(null);
-            when(sharedAccountSettingsRepository.findByUserId(userId)).thenReturn(settings);
+        void shouldThrowExceptionWhenPiggyBankIsNullAndNotificationIsEnabled() {
+            when(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()).thenReturn(true);
 
-            goalAchievedNotificationService.handleGoalAchieved(userId, piggyBank);
+            assertThrows(NullPointerException.class, () -> service.handleGoalAchieved(USER_ID, null));
 
-            verify(sharedAccountSettingsRepository).findByUserId(userId);
             verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenSettingsAreNotFound() {
+            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(null);
+
+            assertThrows(NullPointerException.class, () -> service.handleGoalAchieved(USER_ID, sharedPiggyBank));
+
+            verifyNoInteractions(sharedPiggyBank, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositoryFails() {
+            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenThrow(new IllegalStateException("db failed"));
+
+            assertThrows(IllegalStateException.class, () -> service.handleGoalAchieved(USER_ID, sharedPiggyBank));
+
+            verifyNoInteractions(sharedPiggyBank, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenOutboxServiceFails() {
+            stubEnabledAndNotNotified();
+            stubAmounts("100.00");
+            stubEventData();
+            doThrow(new IllegalStateException("outbox failed")).when(outboxService)
+                    .save(anyString(), anyString(), anyString(), any());
+
+            assertThrows(IllegalStateException.class, () -> service.handleGoalAchieved(USER_ID, sharedPiggyBank));
+
+            assertTrue(true);
         }
     }
 }
-
-
