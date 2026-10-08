@@ -1,7 +1,7 @@
 package com.finovara.activitylogservice.internal.security.mainaccount.report.service;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.model.LoginActivity;
-import com.finovara.activitylogservice.activitylog.accountactivity.secure.login.activity.repository.LoginActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.model.LoginActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.repository.LoginActivityRepository;
 import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.ReportLoginDto;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.ClientInfoResolver;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.ClientInfoDto;
