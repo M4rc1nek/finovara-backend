@@ -1,7 +1,28 @@
 package com.finovara.contracts.sharedaccount;
 
-public enum SharedActivityType {
+public enum SharedAccountActivityLogType {
     EXPENSE_CREATED,
+    EXPENSE_EDITED,
+    EXPENSE_DELETED,
+
     REVENUE_CREATED,
-    PIGGY_BANK_DEPOSIT
+    REVENUE_EDITED,
+    REVENUE_DELETED,
+
+    PIGGY_BANK_CREATED,
+    PIGGY_BANK_EDITED,
+    PIGGY_BANK_DELETED,
+
+    PIGGY_BANK_DEPOSIT,
+    PIGGY_BANK_WITHDRAWAL,
+
+    LIMIT_CREATED,
+    LIMIT_EDITED,
+    LIMIT_DELETED,
+
+    NOTE_CREATED,
+    NOTE_EDITED,
+    NOTE_DELETED,
+    
+    SETTING_CHANGED
 }
