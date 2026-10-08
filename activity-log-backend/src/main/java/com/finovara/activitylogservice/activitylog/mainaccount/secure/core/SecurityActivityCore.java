@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.core;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.core;
 
 import lombok.RequiredArgsConstructor;
 
