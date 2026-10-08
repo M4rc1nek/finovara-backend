@@ -3,9 +3,10 @@ package com.finovara.financeservice.sharedaccount.expense.service;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
-import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.outbox.OutboxService;
-import com.finovara.contracts.sharedaccount.event.activity.finance.SharedAccountExpenseActivityEvent;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseDto;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseRequest;
@@ -22,8 +23,8 @@ import com.finovara.financeservice.sharedaccount.settings.expense.analysis.servi
 import com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.service.LargeExpenseNotificationService;
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.service.SpendControlService;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
-import com.finovara.financeservice.util.transaction.expense.SharedExpenseManagerService;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
+import com.finovara.financeservice.util.transaction.expense.SharedExpenseManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -84,8 +85,8 @@ public class SharedExpenseService {
         sharedWalletService.removeBalanceFromWallet(userId, expense.getAmount());
         SharedExpense saved = sharedExpenseRepository.save(expense);
 
-        outboxService.save("SharedAccountExpense", saved.getId().toString(), "shared-account.expense.created",
-                new SharedAccountExpenseActivityEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), saved.getAmount(), category.name(), LocalDateTime.now()));
+        outboxService.save("SharedAccountExpense", saved.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.EXPENSE_CREATED, LocalDateTime.now()));
 
         largeExpenseNotificationService.handleLargeNotification(userId, expense);
 
@@ -110,11 +111,16 @@ public class SharedExpenseService {
         sharedWalletService.addBalanceToWallet(userId, existingExpense.getAmount());
         sharedWalletService.removeBalanceFromWallet(userId, amount);
 
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
+
         existingExpense.setAmount(amount);
         existingExpense.setCategory(category);
         existingExpense.setDescription(description);
 
-        sharedExpenseRepository.save(existingExpense);
+        SharedExpense saved = sharedExpenseRepository.save(existingExpense);
+
+        outboxService.save("SharedAccountExpense", saved.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.EXPENSE_EDITED, LocalDateTime.now()));
 
         return expenseId;
     }
@@ -137,7 +143,11 @@ public class SharedExpenseService {
         SharedExpense expense = sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(expenseId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
         sharedWalletService.addBalanceToWallet(userId, expense.getAmount());
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
+
         sharedExpenseRepository.delete(expense);
+        outboxService.save("SharedAccountExpense", expense.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, expense.getId(), SharedAccountActivityLogType.EXPENSE_DELETED, LocalDateTime.now()));
     }
 
     private void validateLimitOrThrow(Long userId, ExpenseCategory oldCategory, ExpenseCategory newCategory,
