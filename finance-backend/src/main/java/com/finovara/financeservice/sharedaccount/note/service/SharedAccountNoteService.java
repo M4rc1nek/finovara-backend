@@ -1,6 +1,9 @@
 package com.finovara.financeservice.sharedaccount.note.service;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.note.dto.SharedAccountNoteDto;
 import com.finovara.financeservice.sharedaccount.note.dto.SharedAccountNoteResponse;
@@ -24,6 +27,7 @@ public class SharedAccountNoteService {
     private final SharedAccountNoteRepository sharedAccountNoteRepository;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
     private final AuthBackendClient authBackendClient;
+    private final OutboxService outboxService;
 
     @Transactional
     public SharedAccountNoteResponse createNote(Long userId, SharedAccountNoteDto sharedAccountNoteDto) {
@@ -40,9 +44,12 @@ public class SharedAccountNoteService {
                 .createdByUserId(userId)
                 .build();
 
-        sharedAccountNoteRepository.save(sharedAccountNote);
+        SharedAccountNote saved = sharedAccountNoteRepository.save(sharedAccountNote);
 
-        return new SharedAccountNoteResponse(sharedAccountNote.getId(), userId, createdByUsername);
+        outboxService.save("SharedAccountNote", saved.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.NOTE_CREATED, LocalDateTime.now()));
+
+        return new SharedAccountNoteResponse(saved.getId(), userId, createdByUsername);
     }
 
     @Transactional
@@ -56,7 +63,11 @@ public class SharedAccountNoteService {
         existingNote.setTopic(sharedAccountNoteDto.topic());
         existingNote.setDescription(sharedAccountNoteDto.description());
 
-        sharedAccountNoteRepository.save(existingNote);
+        SharedAccountNote saved = sharedAccountNoteRepository.save(existingNote);
+
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
+        outboxService.save("SharedAccountNote", saved.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.NOTE_EDITED, LocalDateTime.now()));
 
         return noteId;
     }
@@ -86,7 +97,11 @@ public class SharedAccountNoteService {
         SharedAccountNote note = sharedAccountNoteRepository.findByIdAndOwnerIdOrMemberId(noteId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Note not found"));
 
+        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
         sharedAccountNoteRepository.delete(note);
+
+        outboxService.save("SharedAccountNote", note.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, note.getId(), SharedAccountActivityLogType.NOTE_DELETED, LocalDateTime.now()));
     }
 
     private SharedAccountNote getNoteByIdOrThrow(Long noteId) {
