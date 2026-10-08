@@ -1,9 +1,9 @@
 package com.finovara.financeservice.sharedaccount.deletion;
 
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
 import com.finovara.contracts.sharedaccount.event.deletion.SharedAccountDeletedEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
 import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
@@ -106,7 +106,7 @@ public class SharedAccountDeletionFinanceDataService {
         }
 
         outboxService.save("User", instruction.userId().toString(), "shared-account.changed",
-                new SharedAccountActivityEvent(instruction.userId(), SharedAccountActivityType.REFUND_BALANCE_AFTER_LEFT_SHARED_ACCOUNT,
+                new SharedAccountChangeHistoryActivityEvent(instruction.userId(), SharedAccountChangeHistoryActivityType.REFUND_BALANCE_AFTER_LEFT_SHARED_ACCOUNT,
                         instruction.amount(), instruction.coFounderUsername(), instruction.coFounderEmail(), LocalDateTime.now()));
 
         log.info("Refunded net contribution={} (revenue={}, expense={}) to userId={}",
