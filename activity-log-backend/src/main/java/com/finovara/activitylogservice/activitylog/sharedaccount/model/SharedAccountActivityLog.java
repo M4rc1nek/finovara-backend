@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.internal.security.sharedaccount.model;
+package com.finovara.activitylogservice.activitylog.sharedaccount.model;
 
 import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
 import jakarta.persistence.*;
@@ -27,4 +27,5 @@ public class SharedAccountActivityLog {
     private Long ownerId;
     private Long memberId;
     private Long userId;
+    private Long targetId;
 }
