@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.config;
+package com.finovara.activitylogservice.config.redis;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
