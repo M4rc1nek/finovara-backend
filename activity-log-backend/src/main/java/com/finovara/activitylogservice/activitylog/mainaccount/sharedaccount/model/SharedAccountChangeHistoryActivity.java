@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.model;
+package com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.model;
 
-import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,7 +21,7 @@ public class SharedAccountChangeHistoryActivity {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private SharedAccountActivityType type;
+    private SharedAccountChangeHistoryActivityType type;
 
     private BigDecimal refundedBalance;
     private String coFounderUsername;
