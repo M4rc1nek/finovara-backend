@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.internal.security.sharedaccount.consumer;
+package com.finovara.activitylogservice.activitylog.sharedaccount.consumer;
 
-import com.finovara.activitylogservice.internal.security.sharedaccount.repository.SharedAccountActivityLogRepository;
+import com.finovara.activitylogservice.activitylog.sharedaccount.repository.SharedAccountActivityLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ public class SharedAccountActivityDataDeleter {
     private final SharedAccountActivityLogRepository financeActivityRepository;
 
     @Transactional
-    public void deleteAllFinanceActivityData() {
+    public void deleteAllSharedAccountActivityLogData() {
         financeActivityRepository.deleteAllInBatch();
         log.info("Shared account finance activities has been deleted.");
     }
