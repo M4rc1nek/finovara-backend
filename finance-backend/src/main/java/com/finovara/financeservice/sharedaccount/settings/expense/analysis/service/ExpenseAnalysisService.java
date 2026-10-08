@@ -1,9 +1,14 @@
 package com.finovara.financeservice.sharedaccount.settings.expense.analysis.service;
 
+import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisDto;
@@ -16,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -30,12 +36,22 @@ public class ExpenseAnalysisService {
     private final SharedExpenseRepository sharedExpenseRepository;
     private final AuthBackendClient authBackendClient;
     private final ExpenseAnomalyDetector expenseAnomalyDetector;
+    private final SharedAccountParticipantsService sharedAccountParticipantsService;
+    private final OutboxService outboxService;
 
     @Transactional
     public void saveExpenseAnalysis(Long userId, ExpenseAnalysisDto settings) {
         SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
 
-        sharedAccountSettings.setExpenseAnalysisEnabled(settings.expenseAnalysisEnabled());
+        boolean changed = sharedAccountSettings.isExpenseAnalysisEnabled() != settings.expenseAnalysisEnabled();
+
+        if (changed) {
+            sharedAccountSettings.setExpenseAnalysisEnabled(settings.expenseAnalysisEnabled());
+
+            SharedAccountParticipantsResponse participants = sharedAccountParticipantsService.getParticipants(userId);
+            outboxService.save("SharedAccountSettings", userId.toString(), "shared-account.activity",
+                    new SharedAccountActivityLogEvent(participants.ownerId(), participants.memberId(), userId, null, SharedAccountActivityLogType.SETTING_CHANGED, LocalDateTime.now()));
+        }
     }
 
     @Transactional
