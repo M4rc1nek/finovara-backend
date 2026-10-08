@@ -2,6 +2,7 @@ package com.finovara.activitylogservice.feignclient;
 
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.sharedaccount.SharedAccountMemberInfoDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,9 @@ import java.util.List;
 
 @FeignClient(name = "auth-backend", url = "${auth-backend.url}")
 public interface AuthBackendClient {
+
+    @GetMapping("/internal/user-session")
+    UserDataDto getUserSession(@RequestHeader("X-User-Id") Long userId);
 
     @PostMapping("/internal/verify-password")
     Void verifyPassword(@RequestHeader("X-User-Id") Long userId, @RequestBody ConfirmPasswordDto dto);
