@@ -1,12 +1,12 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.dto;
+package com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.dto;
 
-import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record SharedAccountChangeHistoryActivityDto(
-        SharedAccountActivityType type,
+        SharedAccountChangeHistoryActivityType type,
         BigDecimal refundedBalance,
         String coFounderUsername,
         String coFounderEmail,
