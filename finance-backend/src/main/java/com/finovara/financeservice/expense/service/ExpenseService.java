@@ -50,7 +50,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExpenseService implements UserDataDeletable {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+   private final KafkaTemplate<String, Object> kafkaTemplate;
     private final OutboxService outboxService;
     private final ExpenseRepository expenseRepository;
     private final LimitRepository limitRepository;
