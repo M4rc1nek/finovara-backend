@@ -2,7 +2,7 @@ package com.finovara.authservice.sharedaccount.service.invitation;
 
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
-import com.finovara.authservice.user.dto.UserDataDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.sharedaccount.event.invitation.SharedAccountInvitationExpiredEvent;
 import com.finovara.contracts.outbox.OutboxService;
