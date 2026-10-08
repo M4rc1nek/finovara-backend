@@ -1,14 +1,14 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.service;
+package com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.core.AccountActivityCore;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.dto.SharedAccountChangeHistoryActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.mapper.SharedAccountActivityMapper;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.model.SharedAccountChangeHistoryActivity;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.repository.SharedAccountChangeHistoryActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.dto.SharedAccountChangeHistoryActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.mapper.SharedAccountActivityMapper;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.model.SharedAccountChangeHistoryActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.repository.SharedAccountChangeHistoryActivityRepository;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SharedAccountChangeHistoryActivityService extends AccountActivityCore<SharedAccountChangeHistoryActivity, SharedAccountChangeHistoryActivityDto> implements UserDataDeletable {
 
-    @Value("${user-activity.shared-account.page-size}")
+    @Value("${user-activity.shared-account-change-history.page-size}")
     private int pageSize;
 
     private final SharedAccountChangeHistoryActivityRepository sharedAccountChangeHistoryActivityRepository;
@@ -33,7 +33,7 @@ public class SharedAccountChangeHistoryActivityService extends AccountActivityCo
 
 
     @Transactional
-    public void handleEvent(SharedAccountActivityEvent event) {
+    public void handleEvent(SharedAccountChangeHistoryActivityEvent event) {
         SharedAccountChangeHistoryActivity revenueActivity = SharedAccountChangeHistoryActivity.builder()
                 .userId(event.userId())
                 .type(event.type())
