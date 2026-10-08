@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.settings.controller;
+package com.finovara.activitylogservice.activitylog.mainaccount.settings.controller;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.settings.dto.SettingsActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.settings.service.SettingsActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.settings.dto.SettingsActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.settings.service.SettingsActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;

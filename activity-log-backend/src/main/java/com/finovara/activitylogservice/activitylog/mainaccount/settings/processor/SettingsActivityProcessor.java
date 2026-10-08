@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.settings.processor;
+package com.finovara.activitylogservice.activitylog.mainaccount.settings.processor;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.settings.repository.SettingsActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.settings.repository.SettingsActivityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
