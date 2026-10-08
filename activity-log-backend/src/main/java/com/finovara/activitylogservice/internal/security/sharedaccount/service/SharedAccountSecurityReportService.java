@@ -1,10 +1,10 @@
 package com.finovara.activitylogservice.internal.security.sharedaccount.service;
 
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
-import com.finovara.activitylogservice.internal.security.sharedaccount.repository.SharedAccountFinanceActivityRepository;
+import com.finovara.activitylogservice.activitylog.sharedaccount.repository.SharedAccountActivityLogRepository;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.ClientInfoResolver;
 import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.ClientInfoDto;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedFinanceActivityType;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.sharedaccount.report.security.dto.SharedAccountSecurityOverviewDto;
 import com.finovara.contracts.sharedaccount.report.security.dto.SharedAccountSecurityReportDto;
@@ -22,7 +22,7 @@ public class SharedAccountSecurityReportService {
 
     private final ClientInfoResolver clientInfoResolver;
     private final AuthBackendClient authBackendClient;
-    private final SharedAccountFinanceActivityRepository financeActivityRepository;
+    private final SharedAccountActivityLogRepository sharedAccountActivityLogRepository;
 
     public SharedAccountSecurityOverviewDto getSecurityOverview(Long callerId, PeriodType periodType) {
         LocalDateTime now = LocalDateTime.now();
@@ -40,16 +40,16 @@ public class SharedAccountSecurityReportService {
         Long userId = member.userId();
         ClientInfoDto clientInfo = clientInfoResolver.getClientContext(userId, from, to);
 
-        int expensesCount = countActivities(userId, SharedFinanceActivityType.EXPENSE_CREATED, from, to);
-        LocalDateTime lastExpenseDate = lastActivityDate(userId, SharedFinanceActivityType.EXPENSE_CREATED);
+        int expensesCount = countActivities(userId, SharedAccountActivityLogType.EXPENSE_CREATED, from, to);
+        LocalDateTime lastExpenseDate = lastActivityDate(userId, SharedAccountActivityLogType.EXPENSE_CREATED);
 
-        int revenuesCount = countActivities(userId, SharedFinanceActivityType.REVENUE_CREATED, from, to);
-        LocalDateTime lastRevenueDate = lastActivityDate(userId, SharedFinanceActivityType.REVENUE_CREATED);
+        int revenuesCount = countActivities(userId, SharedAccountActivityLogType.REVENUE_CREATED, from, to);
+        LocalDateTime lastRevenueDate = lastActivityDate(userId, SharedAccountActivityLogType.REVENUE_CREATED);
 
-        int piggyBankDepositsCount = countActivities(userId, SharedFinanceActivityType.PIGGY_BANK_DEPOSIT, from, to);
-        LocalDateTime lastPiggyBankDepositDate = lastActivityDate(userId, SharedFinanceActivityType.PIGGY_BANK_DEPOSIT);
+        int piggyBankDepositsCount = countActivities(userId, SharedAccountActivityLogType.PIGGY_BANK_DEPOSIT, from, to);
+        LocalDateTime lastPiggyBankDepositDate = lastActivityDate(userId, SharedAccountActivityLogType.PIGGY_BANK_DEPOSIT);
 
-        LocalDateTime lastActiveAt = financeActivityRepository.findLastActivityDateByUserId(userId);
+        LocalDateTime lastActiveAt = sharedAccountActivityLogRepository.findLastActivityDateByUserId(userId);
 
         return new SharedAccountSecurityReportDto(
                 userId,
@@ -67,11 +67,11 @@ public class SharedAccountSecurityReportService {
         );
     }
 
-    private int countActivities(Long userId, SharedFinanceActivityType type, LocalDateTime from, LocalDateTime to) {
-        return financeActivityRepository.countByUserIdAndActivityType(userId, type, from, to);
+    private int countActivities(Long userId, SharedAccountActivityLogType type, LocalDateTime from, LocalDateTime to) {
+        return sharedAccountActivityLogRepository.countByUserIdAndActivityType(userId, type, from, to);
     }
 
-    private LocalDateTime lastActivityDate(Long userId, SharedFinanceActivityType type) {
-        return financeActivityRepository.findLastActivityDateByUserIdAndActivityType(userId, type);
+    private LocalDateTime lastActivityDate(Long userId, SharedAccountActivityLogType type) {
+        return sharedAccountActivityLogRepository.findLastActivityDateByUserIdAndActivityType(userId, type);
     }
 }
