@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.internal.security.sharedaccount.consumer;
+package com.finovara.activitylogservice.activitylog.sharedaccount.consumer;
 
-import com.finovara.activitylogservice.internal.security.sharedaccount.consumer.factory.SharedAccountActivityFactory;
-import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityEvent;
+import com.finovara.activitylogservice.activitylog.sharedaccount.service.SharedAccountActivityLogService;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -12,16 +12,16 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SharedAccountActivityConsumer {
 
-    private final SharedAccountActivityFactory sharedAccountActivityFactory;
     private final SharedAccountActivityDataDeleter sharedAccountActivityDataDeleter;
+    private final SharedAccountActivityLogService sharedAccountActivityLogService;
 
     @KafkaListener(topics = "shared-account.activity")
-    public void consumeExpenseCreated(SharedAccountActivityEvent event) {
-        sharedAccountActivityFactory.createSharedAccountActivityLog(event);
+    public void consumeSharedAccountActivityLog(SharedAccountActivityLogEvent event) {
+        sharedAccountActivityLogService.createSharedAccountActivityLog(event);
     }
 
     @KafkaListener(topics = "shared-account.deleted")
     public void deleteDataFromSharedAccount() {
-        sharedAccountActivityDataDeleter.deleteAllFinanceActivityData();
+        sharedAccountActivityDataDeleter.deleteAllSharedAccountActivityLogData();
     }
 }
