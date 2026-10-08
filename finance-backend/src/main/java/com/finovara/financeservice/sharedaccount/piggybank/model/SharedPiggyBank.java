@@ -15,11 +15,13 @@ import java.time.LocalDate;
 @Getter
 @Table(name = "shared_piggybanks")
 public class SharedPiggyBank {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
+
     @Column(nullable = false)
     private BigDecimal amount;
 
