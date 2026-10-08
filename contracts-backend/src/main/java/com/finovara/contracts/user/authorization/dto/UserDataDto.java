@@ -1,4 +1,4 @@
-package com.finovara.authservice.user.dto;
+package com.finovara.contracts.user.authorization.dto;
 
 public record UserDataDto(
     Long id,
