@@ -1,6 +1,6 @@
 package com.finovara.authservice.util.user.service;
 
-import com.finovara.authservice.user.dto.UserDataDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.contracts.user.authorization.dto.UserDataResponse;
