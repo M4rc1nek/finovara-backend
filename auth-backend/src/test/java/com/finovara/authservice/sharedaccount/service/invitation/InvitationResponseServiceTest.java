@@ -3,14 +3,14 @@ package com.finovara.authservice.sharedaccount.service.invitation;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.authservice.sharedaccount.model.SharedAccount;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.sharedaccount.SharedRole;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountRepository;
-import com.finovara.authservice.user.dto.UserDataDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.sharedaccount.event.settings.SharedAccountCreateDefaultSettingsEvent;
 import com.finovara.contracts.sharedaccount.event.UsersCreatedSharedAccountEvent;
 import com.finovara.contracts.sharedaccount.event.invitation.UserAcceptSharedAccountInvitationEvent;
@@ -177,7 +177,7 @@ class InvitationResponseServiceTest {
                     eq("finance.shared-account.create-default-settings"), any(SharedAccountCreateDefaultSettingsEvent.class));
 
             verify(outboxService).save(eq("User"), eq(INVITEE_USER_ID.toString()),
-                    eq("shared-account.changed"), any(SharedAccountActivityEvent.class));
+                    eq("shared-account.changed"), any(SharedAccountChangeHistoryActivityEvent.class));
 
             ArgumentCaptor<UserAcceptSharedAccountInvitationEvent> acceptedCaptor =
                     ArgumentCaptor.forClass(UserAcceptSharedAccountInvitationEvent.class);
@@ -310,7 +310,7 @@ class InvitationResponseServiceTest {
             assertThat(rejectCaptor.getValue().inviteeUsername()).isEqualTo("inviteeName");
 
             verify(outboxService).save(eq("User"), eq(INVITEE_USER_ID.toString()),
-                    eq("shared-account.changed"), any(SharedAccountActivityEvent.class));
+                    eq("shared-account.changed"), any(SharedAccountChangeHistoryActivityEvent.class));
         }
 
         @Test
