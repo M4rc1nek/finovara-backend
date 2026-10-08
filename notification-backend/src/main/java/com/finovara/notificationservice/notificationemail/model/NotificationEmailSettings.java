@@ -18,13 +18,23 @@ public class NotificationEmailSettings {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private boolean notifyOnPasswordChange;
-    private boolean notifyOnUsernameChange;
-    private boolean notifyOnEmailChange;
-    private boolean notifyOnAccountDeleted;
-    private boolean notifyOnWalletLowBalance;
-    private BigDecimal walletLowBalanceThreshold;
 
     @Column(nullable = false)
+    private boolean notifyOnUsernameChange;
+
+    @Column(nullable = false)
+    private boolean notifyOnEmailChange;
+
+    @Column(nullable = false)
+    private boolean notifyOnAccountDeleted;
+
+    @Column(nullable = false)
+    private boolean notifyOnWalletLowBalance;
+
+    private BigDecimal walletLowBalanceThreshold;
+
+    @Column(nullable = false, unique = true)
     private Long userId;
 }
