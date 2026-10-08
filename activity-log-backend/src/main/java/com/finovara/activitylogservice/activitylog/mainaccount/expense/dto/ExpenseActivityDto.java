@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.expense.dto;
+package com.finovara.activitylogservice.activitylog.mainaccount.expense.dto;
 
 import com.finovara.contracts.mainaccount.activity.model.ExpenseActivityType;
 import com.finovara.contracts.util.model.ExpenseCategory;

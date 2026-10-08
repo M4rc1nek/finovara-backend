@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.expense.processor;
+package com.finovara.activitylogservice.activitylog.mainaccount.expense.processor;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.expense.repository.ExpenseActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.expense.repository.ExpenseActivityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

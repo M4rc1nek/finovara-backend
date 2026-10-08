@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.expense.controller;
+package com.finovara.activitylogservice.activitylog.mainaccount.expense.controller;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.expense.dto.ExpenseActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.expense.service.ExpenseActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.expense.dto.ExpenseActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.expense.service.ExpenseActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
