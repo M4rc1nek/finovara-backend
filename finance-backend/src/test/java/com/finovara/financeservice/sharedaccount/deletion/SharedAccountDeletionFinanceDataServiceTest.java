@@ -1,6 +1,6 @@
 package com.finovara.financeservice.sharedaccount.deletion;
 
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.sharedaccount.event.deletion.SharedAccountDeletedEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
@@ -213,8 +213,8 @@ class SharedAccountDeletionFinanceDataServiceTest {
 
             financeDataService.deleteData(event);
 
-            verify(outboxService).save(eq("User"), eq(ownerId.toString()), eq("shared-account.changed"), any(SharedAccountActivityEvent.class));
-            verify(outboxService).save(eq("User"), eq(memberId.toString()), eq("shared-account.changed"), any(SharedAccountActivityEvent.class));
+            verify(outboxService).save(eq("User"), eq(ownerId.toString()), eq("shared-account.changed"), any(SharedAccountChangeHistoryActivityEvent.class));
+            verify(outboxService).save(eq("User"), eq(memberId.toString()), eq("shared-account.changed"), any(SharedAccountChangeHistoryActivityEvent.class));
         }
 
         @Test
