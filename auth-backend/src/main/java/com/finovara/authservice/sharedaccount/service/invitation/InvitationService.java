@@ -5,14 +5,14 @@ import com.finovara.authservice.sharedaccount.dto.SharedAccountStatusDto;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
-import com.finovara.authservice.user.dto.UserDataDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.user.mapper.UserDataMapper;
 import com.finovara.authservice.user.repository.UserRepository;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.sharedaccount.event.invitation.UserSentSharedAccountInvitationEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import lombok.RequiredArgsConstructor;
@@ -90,7 +90,7 @@ public class InvitationService {
         sharedAccountInvitationRepository.save(invitation);
 
         outboxService.save("User", inviterUserId.toString(), "shared-account.changed",
-                new SharedAccountActivityEvent(inviterUserId, SharedAccountActivityType.SENT_INVITATION, null, invitee.username(), invitee.email(), LocalDateTime.now()));
+                new SharedAccountChangeHistoryActivityEvent(inviterUserId, SharedAccountChangeHistoryActivityType.SENT_INVITATION, null, invitee.username(), invitee.email(), LocalDateTime.now()));
 
         outboxService.save("User", inviterUserId.toString(), "notification.shared-account.invitation-sent",
                 new UserSentSharedAccountInvitationEvent(inviteeUserId, inviter.username()));
