@@ -1,13 +1,13 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.consumer;
+package com.finovara.activitylogservice.activitylog.mainaccount.consumer;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.expense.service.ExpenseActivityService;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.limit.service.LimitActivityService;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.piggybank.service.PiggyBankActivityService;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.revenue.service.RevenueActivityService;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.activity.service.AccountChangesActivityService;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.activity.service.LoginActivityService;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.settings.service.SettingsActivityService;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.service.SharedAccountChangeHistoryActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.expense.service.ExpenseActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.service.LimitActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.service.PiggyBankActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.service.RevenueActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.service.AccountChangesActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.service.LoginActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.settings.service.SettingsActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service.SharedAccountChangeHistoryActivityService;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.limit.LimitActivityEvent;
@@ -17,7 +17,7 @@ import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivity
 import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.user.event.account.UserAccountDeletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -86,7 +86,7 @@ public class ActivityConsumers {
     }
 
     @KafkaListener(topics = "shared-account.changed")
-    public void handleSharedAccount(SharedAccountActivityEvent event) {
+    public void handleSharedAccount(SharedAccountChangeHistoryActivityEvent event) {
         sharedAccountChangeHistoryActivityService.handleEvent(event);
     }
 
