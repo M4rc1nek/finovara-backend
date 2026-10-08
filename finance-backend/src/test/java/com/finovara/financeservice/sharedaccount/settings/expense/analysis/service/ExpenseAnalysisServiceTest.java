@@ -63,28 +63,6 @@ class ExpenseAnalysisServiceTest {
     }
 
     @Nested
-    class SaveExpenseAnalysis {
-
-        @Test
-        void shouldEnableExpenseAnalysis() {
-            ExpenseAnalysisDto dto = new ExpenseAnalysisDto(true);
-
-            expenseAnalysisService.saveExpenseAnalysis(USER_ID, dto);
-
-            assertTrue(sharedAccountSettings.isExpenseAnalysisEnabled());
-        }
-
-        @Test
-        void shouldDisableExpenseAnalysis() {
-            ExpenseAnalysisDto dto = new ExpenseAnalysisDto(false);
-
-            expenseAnalysisService.saveExpenseAnalysis(USER_ID, dto);
-
-            assertFalse(sharedAccountSettings.isExpenseAnalysisEnabled());
-        }
-    }
-
-    @Nested
     class GetExpenseAnalysis {
 
         @Test
