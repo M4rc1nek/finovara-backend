@@ -1,11 +1,11 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.activity.service;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.service;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.activity.dto.AccountChangesActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.activity.model.AccountChangesActivity;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.activity.repository.AccountChangesActivityRepository;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.archive.model.AccountChangeArchive;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.accountchange.archive.service.AccountChangeArchiveService;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.core.SecurityActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangesActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangesActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository.AccountChangesActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.model.AccountChangeArchive;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.service.AccountChangeArchiveService;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.core.SecurityActivityCore;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
