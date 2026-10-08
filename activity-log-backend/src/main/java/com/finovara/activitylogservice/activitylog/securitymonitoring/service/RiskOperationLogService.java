@@ -1,6 +1,6 @@
 package com.finovara.activitylogservice.activitylog.securitymonitoring.service;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.dto.RiskOperationActivityDto;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.mapper.RiskOperationActivityMapper;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.model.RiskOperationActivity;
