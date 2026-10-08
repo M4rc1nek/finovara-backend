@@ -1,10 +1,10 @@
 package com.finovara.activitylogservice.accountactivity.piggybank.service;
 
-import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.dto.PiggyBankActivityDto;
-import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.mapper.PiggyBankActivityMapper;
-import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.model.PiggyBankActivity;
-import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.repository.PiggyBankActivityRepository;
-import com.finovara.activitylogservice.activitylog.accountactivity.piggybank.service.PiggyBankActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.dto.PiggyBankActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.mapper.PiggyBankActivityMapper;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.model.PiggyBankActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.repository.PiggyBankActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.service.PiggyBankActivityService;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.util.SortType;
