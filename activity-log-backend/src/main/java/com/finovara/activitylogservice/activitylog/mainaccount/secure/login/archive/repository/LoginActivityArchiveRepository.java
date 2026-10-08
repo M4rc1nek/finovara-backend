@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.archive.repository;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.repository;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.archive.dto.LoginActivityArchiveDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.archive.model.LoginActivityArchive;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.dto.LoginActivityArchiveDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.model.LoginActivityArchive;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -12,7 +12,7 @@ import java.util.List;
 public interface LoginActivityArchiveRepository extends JpaRepository<LoginActivityArchive, Long> {
 
     @Query("""
-            SELECT new com.finovara.activitylogservice.activitylog.accountactivity.secure.login.archive.dto.LoginActivityArchiveDto(
+            SELECT new com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.dto.LoginActivityArchiveDto(
            l.type, l.status, l.moveToArchiveDate, l.activityLoginDate, l.browser, l.ipAddress, l.location)
            FROM LoginActivityArchive l
            WHERE l.userId = :userId
