@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.archive.processor;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.processor;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.archive.repository.LoginActivityArchiveRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.repository.LoginActivityArchiveRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

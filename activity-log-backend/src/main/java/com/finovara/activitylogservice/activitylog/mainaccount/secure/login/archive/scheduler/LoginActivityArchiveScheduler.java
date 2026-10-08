@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.archive.scheduler;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.scheduler;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.secure.login.archive.processor.LoginActivityArchiveProcessor;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.processor.LoginActivityArchiveProcessor;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
