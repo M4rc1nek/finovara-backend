@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/shared-accounts/refresh-activity")
 @RequiredArgsConstructor
-public class EvictActivityCacheContoller {
+public class EvictActivityCacheController {
 
     private final EvictActivityCacheService evictActivityCacheService;
 
