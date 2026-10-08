@@ -1,15 +1,23 @@
-package com.finovara.activitylogservice.internal.security.sharedaccount.repository;
+package com.finovara.activitylogservice.activitylog.sharedaccount.repository;
 
-import com.finovara.activitylogservice.internal.security.sharedaccount.model.SharedAccountActivityLog;
+import com.finovara.activitylogservice.activitylog.sharedaccount.model.SharedAccountActivityLog;
 import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface SharedAccountActivityLogRepository extends JpaRepository<SharedAccountActivityLog, Long> {
+
+    @Query("SELECT a FROM SharedAccountActivityLog a WHERE a.ownerId = :userId OR a.memberId = :userId")
+    List<SharedAccountActivityLog> findByOwnerIdOrMemberId(Long userId, Pageable pageable);
+
+    void deleteByUserId(Long userId);
+
 
     @Query("""
             SELECT COUNT(a)
