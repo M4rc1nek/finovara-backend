@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.controller;
+package com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.controller;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.dto.SharedAccountChangeHistoryActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.service.SharedAccountChangeHistoryActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.dto.SharedAccountChangeHistoryActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service.SharedAccountChangeHistoryActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.util.SortType;
