@@ -1,7 +1,8 @@
 package com.finovara.financeservice.sharedaccount.piggybank.service;
 
-import com.finovara.contracts.sharedaccount.event.activity.finance.SharedAccountPiggyBankDepositActivityEvent;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
@@ -37,8 +38,8 @@ public class SharedPiggyBankTransactionService {
         sharedWalletService.removeBalanceFromWallet(userId, amount);
         piggyBank.setAmount(piggyBank.getAmount().add(amount));
 
-        outboxService.save("SharedAccountPiggyBank", piggyBankId.toString(), "shared-account.piggybank.deposit.added",
-                new SharedAccountPiggyBankDepositActivityEvent(sharedAccountParticipants.ownerId(), sharedAccountParticipants.memberId(), userId, piggyBankId, amount, LocalDateTime.now()));
+        outboxService.save("SharedAccountPiggyBank", piggyBankId.toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipants.ownerId(), sharedAccountParticipants.memberId(), userId, piggyBankId, SharedAccountActivityLogType.PIGGY_BANK_DEPOSIT, LocalDateTime.now()));
 
         goalAchievedNotificationService.handleGoalAchieved(userId, piggyBank);
 
@@ -54,6 +55,10 @@ public class SharedPiggyBankTransactionService {
 
         piggyBank.setAmount(piggyBank.getAmount().subtract(amount));
         sharedWalletService.addBalanceToWallet(userId, amount);
+
+        SharedAccountParticipantsResponse sharedAccountParticipants = sharedAccountParticipantsService.getParticipants(userId);
+        outboxService.save("SharedAccountPiggyBank", piggyBankId.toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipants.ownerId(), sharedAccountParticipants.memberId(), userId, piggyBankId, SharedAccountActivityLogType.PIGGY_BANK_WITHDRAWAL, LocalDateTime.now()));
 
         if (piggyBank.getGoalAmount() != null && piggyBank.getAmount().compareTo(piggyBank.getGoalAmount()) < 0) {
             piggyBank.setGoalAchievedNotified(false);
