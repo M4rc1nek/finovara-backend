@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.revenue.mapper;
+package com.finovara.activitylogservice.activitylog.mainaccount.revenue.mapper;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.revenue.dto.RevenueActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.revenue.model.RevenueActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.model.RevenueActivity;
 import org.springframework.stereotype.Component;
 
 @Component

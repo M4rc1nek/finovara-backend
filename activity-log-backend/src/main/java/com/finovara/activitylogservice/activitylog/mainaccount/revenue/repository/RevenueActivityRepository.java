@@ -1,6 +1,6 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.revenue.repository;
+package com.finovara.activitylogservice.activitylog.mainaccount.revenue.repository;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.revenue.model.RevenueActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.model.RevenueActivity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

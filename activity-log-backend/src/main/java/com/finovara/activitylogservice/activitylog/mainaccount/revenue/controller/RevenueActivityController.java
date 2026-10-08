@@ -1,7 +1,7 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.revenue.controller;
+package com.finovara.activitylogservice.activitylog.mainaccount.revenue.controller;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.revenue.dto.RevenueActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.revenue.service.RevenueActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.service.RevenueActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
