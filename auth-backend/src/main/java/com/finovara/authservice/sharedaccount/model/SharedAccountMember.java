@@ -19,14 +19,17 @@ public class SharedAccountMember {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
     private Long userId;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private SharedRole role;
 
+    @Column(nullable = false)
     private LocalDateTime joinedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "shared_account_id")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "shared_account_id", nullable = false)
     private SharedAccount sharedAccount;
 }
