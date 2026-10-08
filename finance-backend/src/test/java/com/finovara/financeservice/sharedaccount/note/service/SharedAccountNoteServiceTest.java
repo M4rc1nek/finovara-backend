@@ -1,6 +1,23 @@
 package com.finovara.financeservice.sharedaccount.note.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
+import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.note.dto.SharedAccountNoteDto;
 import com.finovara.financeservice.sharedaccount.note.dto.SharedAccountNoteResponse;
@@ -8,26 +25,33 @@ import com.finovara.financeservice.sharedaccount.note.model.SharedAccountNote;
 import com.finovara.financeservice.sharedaccount.note.repository.SharedAccountNoteRepository;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
-import org.junit.jupiter.api.BeforeEach;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InOrder;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class SharedAccountNoteServiceTest {
+
+    private static final Long OWNER_ID = 10L;
+    private static final Long MEMBER_ID = 20L;
+    private static final Long OUTSIDER_ID = 99L;
+    private static final Long NOTE_ID = 100L;
+    private static final String USERNAME = "john";
+    private static final String OTHER_USERNAME = "anna";
+    private static final String AGGREGATE = "SharedAccountNote";
+    private static final String TOPIC = "shared-account.activity";
+    private static final String NOTE_TOPIC = "Groceries";
+    private static final String NOTE_DESCRIPTION = "Buy milk and bread";
+    private static final LocalDateTime CREATED_AT = LocalDateTime.of(2026, 1, 10, 10, 0);
 
     @Mock
     private SharedAccountNoteRepository sharedAccountNoteRepository;
@@ -38,182 +62,305 @@ class SharedAccountNoteServiceTest {
     @Mock
     private AuthBackendClient authBackendClient;
 
-    private SharedAccountNoteService sharedAccountNoteService;
+    @Mock
+    private OutboxService outboxService;
 
-    private static final Long USER_ID = 1L;
-    private static final Long OWNER_ID = 1L;
-    private static final Long MEMBER_ID = 2L;
-    private static final Long NOTE_ID = 10L;
-    private static final String USERNAME = "john_doe";
-    private static final String TOPIC = "Go to the gym";
-    private static final String DESCRIPTION = "Do a lot of chest exercises";
+    @Mock
+    private SharedAccountNoteDto noteDto;
 
-    @BeforeEach
-    void setUp() {
-        sharedAccountNoteService = new SharedAccountNoteService(
-                sharedAccountNoteRepository,
-                sharedAccountParticipantsService,
-                authBackendClient
-        );
+    @Mock
+    private SharedAccountParticipantsResponse participantsResponse;
+
+    @Mock
+    private SharedAccountNote savedNote;
+
+    @Mock
+    private SharedAccountNote existingNote;
+
+    @Captor
+    private ArgumentCaptor<SharedAccountNote> noteCaptor;
+
+    @Captor
+    private ArgumentCaptor<SharedAccountActivityLogEvent> eventCaptor;
+
+    @InjectMocks
+    private SharedAccountNoteService service;
+
+    private void stubParticipants(Long userId) {
+        when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participantsResponse);
+        when(participantsResponse.ownerId()).thenReturn(OWNER_ID);
+        when(participantsResponse.memberId()).thenReturn(MEMBER_ID);
     }
 
-    private SharedAccountNote buildNote(Long id, Long ownerId, Long memberId, Long createdByUserId) {
-        return SharedAccountNote.builder()
-                .id(id)
-                .topic(TOPIC)
-                .description(DESCRIPTION)
-                .createdAt(LocalDateTime.now())
-                .ownerId(ownerId)
-                .memberId(memberId)
-                .createdByUserId(createdByUserId)
-                .build();
-    }
-
-    private SharedAccountNoteDto buildNoteDto() {
-        return new SharedAccountNoteDto(null, TOPIC, DESCRIPTION, null, null, null);
+    private void verifyOutboxEvent(Long userId, SharedAccountActivityLogType type) {
+        verify(outboxService).save(eq(AGGREGATE), eq(NOTE_ID.toString()), eq(TOPIC), eventCaptor.capture());
+        SharedAccountActivityLogEvent event = eventCaptor.getValue();
+        assertEquals(OWNER_ID, event.ownerId());
+        assertEquals(MEMBER_ID, event.memberId());
+        assertEquals(userId, event.userId());
+        assertEquals(NOTE_ID, event.targetId());
+        assertEquals(type, event.type());
+        assertNotNull(event.createdAt());
     }
 
     @Nested
     class CreateNote {
 
-        @Test
-        void shouldCreateNoteAndReturnResponseWhenValidDataProvided() {
-            SharedAccountNoteDto requestDto = buildNoteDto();
-            SharedAccountParticipantsResponse participantsResponse =
-                    new SharedAccountParticipantsResponse(OWNER_ID, MEMBER_ID);
+        private void stubCreateInputs() {
+            stubParticipants(OWNER_ID);
+            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
+            when(noteDto.topic()).thenReturn(NOTE_TOPIC);
+            when(noteDto.description()).thenReturn(NOTE_DESCRIPTION);
+        }
 
-            when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
-            when(authBackendClient.getUsername(USER_ID)).thenReturn(USERNAME);
-
-            SharedAccountNoteResponse response = sharedAccountNoteService.createNote(USER_ID, requestDto);
-
-            assertEquals(USER_ID, response.userId());
-            assertEquals(USERNAME, response.username());
-            verify(sharedAccountNoteRepository, times(1)).save(any(SharedAccountNote.class));
+        private void stubSavedNote() {
+            when(sharedAccountNoteRepository.save(any(SharedAccountNote.class))).thenReturn(savedNote);
+            when(savedNote.getId()).thenReturn(NOTE_ID);
         }
 
         @Test
-        void shouldSaveNoteWithOwnerAndMemberIdFromParticipantsResponse() {
-            SharedAccountNoteDto requestDto = buildNoteDto();
-            SharedAccountParticipantsResponse participantsResponse =
-                    new SharedAccountParticipantsResponse(OWNER_ID, MEMBER_ID);
+        void shouldReturnResponseWhenNoteIsCreated() {
+            stubCreateInputs();
+            stubSavedNote();
 
-            when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
-            when(authBackendClient.getUsername(USER_ID)).thenReturn(USERNAME);
+            SharedAccountNoteResponse result = service.createNote(OWNER_ID, noteDto);
 
-            ArgumentCaptor<SharedAccountNote> noteCaptor = ArgumentCaptor.forClass(SharedAccountNote.class);
+            assertEquals(new SharedAccountNoteResponse(NOTE_ID, OWNER_ID, USERNAME), result);
+        }
 
-            sharedAccountNoteService.createNote(USER_ID, requestDto);
+        @Test
+        void shouldSaveNoteWithDtoAndParticipantDataWhenNoteIsCreated() {
+            stubCreateInputs();
+            stubSavedNote();
+
+            service.createNote(OWNER_ID, noteDto);
 
             verify(sharedAccountNoteRepository).save(noteCaptor.capture());
-            SharedAccountNote savedNote = noteCaptor.getValue();
-            assertEquals(OWNER_ID, savedNote.getOwnerId());
-            assertEquals(MEMBER_ID, savedNote.getMemberId());
-            assertEquals(USER_ID, savedNote.getCreatedByUserId());
-            assertEquals(TOPIC, savedNote.getTopic());
-            assertEquals(DESCRIPTION, savedNote.getDescription());
+            SharedAccountNote saved = noteCaptor.getValue();
+            assertEquals(NOTE_TOPIC, saved.getTopic());
+            assertEquals(NOTE_DESCRIPTION, saved.getDescription());
+            assertEquals(OWNER_ID, saved.getOwnerId());
+            assertEquals(MEMBER_ID, saved.getMemberId());
+            assertEquals(OWNER_ID, saved.getCreatedByUserId());
+            assertNotNull(saved.getCreatedAt());
         }
 
         @Test
-        void shouldSetCreatedAtToCurrentTimeWhenCreatingNote() {
-            SharedAccountNoteDto requestDto = buildNoteDto();
-            SharedAccountParticipantsResponse participantsResponse =
-                    new SharedAccountParticipantsResponse(OWNER_ID, MEMBER_ID);
+        void shouldSaveNoteWithMemberAsCreatorWhenMemberCreatesNote() {
+            stubParticipants(MEMBER_ID);
+            when(authBackendClient.getUsername(MEMBER_ID)).thenReturn(OTHER_USERNAME);
+            when(noteDto.topic()).thenReturn(NOTE_TOPIC);
+            when(noteDto.description()).thenReturn(NOTE_DESCRIPTION);
+            stubSavedNote();
 
-            when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
-            when(authBackendClient.getUsername(USER_ID)).thenReturn(USERNAME);
-
-            LocalDateTime beforeCall = LocalDateTime.now();
-            ArgumentCaptor<SharedAccountNote> noteCaptor = ArgumentCaptor.forClass(SharedAccountNote.class);
-
-            sharedAccountNoteService.createNote(USER_ID, requestDto);
+            SharedAccountNoteResponse result = service.createNote(MEMBER_ID, noteDto);
 
             verify(sharedAccountNoteRepository).save(noteCaptor.capture());
-            LocalDateTime afterCall = LocalDateTime.now();
-            LocalDateTime savedCreatedAt = noteCaptor.getValue().getCreatedAt();
-
-            assertThat(savedCreatedAt).isBetween(beforeCall, afterCall);
+            assertEquals(MEMBER_ID, noteCaptor.getValue().getCreatedByUserId());
+            assertEquals(new SharedAccountNoteResponse(NOTE_ID, MEMBER_ID, OTHER_USERNAME), result);
         }
 
         @Test
-        void shouldNotSaveNoteWhenParticipantsServiceThrowsException() {
-            SharedAccountNoteDto requestDto = buildNoteDto();
+        void shouldSaveOutboxEventWhenNoteIsCreated() {
+            stubCreateInputs();
+            stubSavedNote();
 
-            when(sharedAccountParticipantsService.getParticipants(USER_ID))
-                    .thenThrow(new RequestedEntityNotFoundException("Shared account not found"));
+            service.createNote(OWNER_ID, noteDto);
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> sharedAccountNoteService.createNote(USER_ID, requestDto));
+            verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.NOTE_CREATED);
+        }
 
-            verifyNoInteractions(sharedAccountNoteRepository);
+        @Test
+        void shouldSaveNoteBeforeOutboxEventWhenNoteIsCreated() {
+            stubCreateInputs();
+            stubSavedNote();
+
+            service.createNote(OWNER_ID, noteDto);
+
+            InOrder inOrder = inOrder(sharedAccountNoteRepository, outboxService);
+            inOrder.verify(sharedAccountNoteRepository).save(any(SharedAccountNote.class));
+            inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenDtoIsNull() {
+            assertThrows(NullPointerException.class, () -> service.createNote(OWNER_ID, null));
+
+            verifyNoInteractions(sharedAccountNoteRepository, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenParticipantsResponseIsNull() {
+            assertThrows(NullPointerException.class, () -> service.createNote(OWNER_ID, noteDto));
+
+            verifyNoInteractions(sharedAccountNoteRepository, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenParticipantsServiceFails() {
+            when(sharedAccountParticipantsService.getParticipants(OWNER_ID))
+                    .thenThrow(new RequestedEntityNotFoundException("participants not found"));
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.createNote(OWNER_ID, noteDto));
+
+            verifyNoInteractions(authBackendClient, sharedAccountNoteRepository, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositorySaveFails() {
+            stubCreateInputs();
+            when(sharedAccountNoteRepository.save(any(SharedAccountNote.class)))
+                    .thenThrow(new IllegalStateException("db failed"));
+
+            assertThrows(IllegalStateException.class, () -> service.createNote(OWNER_ID, noteDto));
+
+            verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenOutboxServiceFails() {
+            stubCreateInputs();
+            stubSavedNote();
+            doThrow(new IllegalStateException("outbox failed")).when(outboxService)
+                    .save(anyString(), anyString(), anyString(), any());
+
+            assertThrows(IllegalStateException.class, () -> service.createNote(OWNER_ID, noteDto));
         }
     }
 
     @Nested
     class EditNote {
 
-        @Test
-        void shouldEditNoteWhenUserIsOwner() {
-            SharedAccountNote existingNote = buildNote(NOTE_ID, OWNER_ID, MEMBER_ID, MEMBER_ID);
-            SharedAccountNoteDto requestDto = new SharedAccountNoteDto(null, "New Topic", "New description", null, null, null);
+        private void stubEditInputs() {
+            when(noteDto.topic()).thenReturn(NOTE_TOPIC);
+            when(noteDto.description()).thenReturn(NOTE_DESCRIPTION);
+        }
 
+        private void stubSuccessfulEdit(Long userId) {
             when(sharedAccountNoteRepository.findById(NOTE_ID)).thenReturn(Optional.of(existingNote));
-
-            Long result = sharedAccountNoteService.editNote(OWNER_ID, NOTE_ID, requestDto);
-
-            assertEquals(NOTE_ID, result);
-            assertEquals("New Topic", existingNote.getTopic());
-            assertEquals("New description", existingNote.getDescription());
-            verify(sharedAccountNoteRepository, times(1)).save(existingNote);
+            when(existingNote.getOwnerId()).thenReturn(OWNER_ID);
+            when(existingNote.getId()).thenReturn(NOTE_ID);
+            when(sharedAccountNoteRepository.save(existingNote)).thenReturn(existingNote);
+            stubEditInputs();
+            stubParticipants(userId);
         }
 
         @Test
-        void shouldEditNoteWhenUserIsMember() {
-            SharedAccountNote existingNote = buildNote(NOTE_ID, OWNER_ID, MEMBER_ID, OWNER_ID);
-            SharedAccountNoteDto requestDto = new SharedAccountNoteDto(null, "New Topic", "New description", null, null, null);
+        void shouldReturnNoteIdWhenOwnerEditsNote() {
+            stubSuccessfulEdit(OWNER_ID);
 
-            when(sharedAccountNoteRepository.findById(NOTE_ID)).thenReturn(Optional.of(existingNote));
-
-            Long result = sharedAccountNoteService.editNote(MEMBER_ID, NOTE_ID, requestDto);
+            Long result = service.editNote(OWNER_ID, NOTE_ID, noteDto);
 
             assertEquals(NOTE_ID, result);
-            verify(sharedAccountNoteRepository, times(1)).save(existingNote);
+        }
+
+        @Test
+        void shouldReturnNoteIdWhenMemberEditsNote() {
+            when(sharedAccountNoteRepository.findById(NOTE_ID)).thenReturn(Optional.of(existingNote));
+            when(existingNote.getOwnerId()).thenReturn(OWNER_ID);
+            when(existingNote.getMemberId()).thenReturn(MEMBER_ID);
+            when(existingNote.getId()).thenReturn(NOTE_ID);
+            when(sharedAccountNoteRepository.save(existingNote)).thenReturn(existingNote);
+            stubEditInputs();
+            stubParticipants(MEMBER_ID);
+
+            Long result = service.editNote(MEMBER_ID, NOTE_ID, noteDto);
+
+            assertEquals(NOTE_ID, result);
+            verifyOutboxEvent(MEMBER_ID, SharedAccountActivityLogType.NOTE_EDITED);
+        }
+
+        @Test
+        void shouldUpdateNoteFieldsWhenNoteIsEdited() {
+            stubSuccessfulEdit(OWNER_ID);
+
+            service.editNote(OWNER_ID, NOTE_ID, noteDto);
+
+            verify(existingNote).setTopic(NOTE_TOPIC);
+            verify(existingNote).setDescription(NOTE_DESCRIPTION);
+            verify(sharedAccountNoteRepository).save(existingNote);
+        }
+
+        @Test
+        void shouldSaveOutboxEventWhenNoteIsEdited() {
+            stubSuccessfulEdit(OWNER_ID);
+
+            service.editNote(OWNER_ID, NOTE_ID, noteDto);
+
+            verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.NOTE_EDITED);
+        }
+
+        @Test
+        void shouldSaveNoteBeforeOutboxEventWhenNoteIsEdited() {
+            stubSuccessfulEdit(OWNER_ID);
+
+            service.editNote(OWNER_ID, NOTE_ID, noteDto);
+
+            InOrder inOrder = inOrder(sharedAccountNoteRepository, outboxService);
+            inOrder.verify(sharedAccountNoteRepository).save(existingNote);
+            inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
         }
 
         @Test
         void shouldThrowExceptionWhenNoteDoesNotExist() {
-            SharedAccountNoteDto requestDto = buildNoteDto();
-
             when(sharedAccountNoteRepository.findById(NOTE_ID)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> sharedAccountNoteService.editNote(USER_ID, NOTE_ID, requestDto));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.editNote(OWNER_ID, NOTE_ID, noteDto));
+
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
         }
 
         @Test
         void shouldThrowExceptionWhenUserIsNeitherOwnerNorMember() {
-            SharedAccountNote existingNote = buildNote(NOTE_ID, OWNER_ID, MEMBER_ID, OWNER_ID);
-            SharedAccountNoteDto requestDto = buildNoteDto();
-            Long strangerId = 999L;
-
             when(sharedAccountNoteRepository.findById(NOTE_ID)).thenReturn(Optional.of(existingNote));
+            when(existingNote.getOwnerId()).thenReturn(OWNER_ID);
+            when(existingNote.getMemberId()).thenReturn(MEMBER_ID);
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> sharedAccountNoteService.editNote(strangerId, NOTE_ID, requestDto));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.editNote(OUTSIDER_ID, NOTE_ID, noteDto));
+
+            verify(sharedAccountNoteRepository, never()).save(any(SharedAccountNote.class));
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
         }
 
         @Test
-        void shouldNotSaveNoteWhenUserIsNeitherOwnerNorMember() {
-            SharedAccountNote existingNote = buildNote(NOTE_ID, OWNER_ID, MEMBER_ID, OWNER_ID);
-            SharedAccountNoteDto requestDto = buildNoteDto();
-            Long strangerId = 999L;
-
+        void shouldThrowExceptionWhenDtoIsNull() {
             when(sharedAccountNoteRepository.findById(NOTE_ID)).thenReturn(Optional.of(existingNote));
+            when(existingNote.getOwnerId()).thenReturn(OWNER_ID);
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> sharedAccountNoteService.editNote(strangerId, NOTE_ID, requestDto));
+            assertThrows(NullPointerException.class, () -> service.editNote(OWNER_ID, NOTE_ID, null));
 
             verify(sharedAccountNoteRepository, never()).save(any(SharedAccountNote.class));
+            verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositoryFindFails() {
+            when(sharedAccountNoteRepository.findById(NOTE_ID)).thenThrow(new IllegalStateException("db failed"));
+
+            assertThrows(IllegalStateException.class, () -> service.editNote(OWNER_ID, NOTE_ID, noteDto));
+
+            verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositorySaveFails() {
+            when(sharedAccountNoteRepository.findById(NOTE_ID)).thenReturn(Optional.of(existingNote));
+            when(existingNote.getOwnerId()).thenReturn(OWNER_ID);
+            stubEditInputs();
+            when(sharedAccountNoteRepository.save(existingNote)).thenThrow(new IllegalStateException("db failed"));
+
+            assertThrows(IllegalStateException.class, () -> service.editNote(OWNER_ID, NOTE_ID, noteDto));
+
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenOutboxServiceFails() {
+            stubSuccessfulEdit(OWNER_ID);
+            doThrow(new IllegalStateException("outbox failed")).when(outboxService)
+                    .save(anyString(), anyString(), anyString(), any());
+
+            assertThrows(IllegalStateException.class, () -> service.editNote(OWNER_ID, NOTE_ID, noteDto));
         }
     }
 
@@ -221,94 +368,168 @@ class SharedAccountNoteServiceTest {
     class GetNotes {
 
         @Test
-        void shouldReturnListOfNotesWhenNotesExist() {
-            SharedAccountNote note1 = buildNote(1L, OWNER_ID, MEMBER_ID, OWNER_ID);
-            SharedAccountNote note2 = buildNote(2L, OWNER_ID, MEMBER_ID, MEMBER_ID);
+        void shouldReturnEmptyListWhenNoNotesExist() {
+            when(sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of());
 
-            when(sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(USER_ID))
-                    .thenReturn(List.of(note1, note2));
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn("owner_user");
-            when(authBackendClient.getUsername(MEMBER_ID)).thenReturn("member_user");
+            List<SharedAccountNoteDto> result = service.getNotes(OWNER_ID);
 
-            List<SharedAccountNoteDto> result = sharedAccountNoteService.getNotes(USER_ID);
+            assertTrue(result.isEmpty());
+            verifyNoInteractions(authBackendClient);
+        }
+
+        @Test
+        void shouldReturnNoteDtoWithUsernameWhenSingleNoteExists() {
+            when(sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of(existingNote));
+            when(existingNote.getId()).thenReturn(NOTE_ID);
+            when(existingNote.getTopic()).thenReturn(NOTE_TOPIC);
+            when(existingNote.getDescription()).thenReturn(NOTE_DESCRIPTION);
+            when(existingNote.getCreatedAt()).thenReturn(CREATED_AT);
+            when(existingNote.getCreatedByUserId()).thenReturn(OWNER_ID);
+            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
+
+            List<SharedAccountNoteDto> result = service.getNotes(OWNER_ID);
+
+            assertEquals(List.of(new SharedAccountNoteDto(NOTE_ID, NOTE_TOPIC, NOTE_DESCRIPTION, CREATED_AT, OWNER_ID, USERNAME)), result);
+        }
+
+        @Test
+        void shouldReturnNoteDtosWithCreatorUsernamesWhenCreatorsDiffer() {
+            when(sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(OWNER_ID))
+                    .thenReturn(List.of(existingNote, savedNote));
+            when(existingNote.getCreatedByUserId()).thenReturn(OWNER_ID);
+            when(savedNote.getCreatedByUserId()).thenReturn(MEMBER_ID);
+            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
+            when(authBackendClient.getUsername(MEMBER_ID)).thenReturn(OTHER_USERNAME);
+
+            List<SharedAccountNoteDto> result = service.getNotes(OWNER_ID);
 
             assertEquals(2, result.size());
-            assertEquals(TOPIC, result.getFirst().topic());
-            assertEquals(DESCRIPTION, result.getFirst().description());
+            assertEquals(new SharedAccountNoteDto(existingNote.getId(), existingNote.getTopic(), existingNote.getDescription(),
+                    existingNote.getCreatedAt(), OWNER_ID, USERNAME), result.get(0));
+            assertEquals(new SharedAccountNoteDto(savedNote.getId(), savedNote.getTopic(), savedNote.getDescription(),
+                    savedNote.getCreatedAt(), MEMBER_ID, OTHER_USERNAME), result.get(1));
         }
 
         @Test
-        void shouldMapNoteCreatorUsernameCorrectlyForEachNote() {
-            SharedAccountNote note1 = buildNote(1L, OWNER_ID, MEMBER_ID, OWNER_ID);
+        void shouldFetchUsernameOnceWhenNotesShareSameCreator() {
+            when(sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(OWNER_ID))
+                    .thenReturn(List.of(existingNote, savedNote));
+            when(existingNote.getCreatedByUserId()).thenReturn(OWNER_ID);
+            when(savedNote.getCreatedByUserId()).thenReturn(OWNER_ID);
+            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
 
-            when(sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(USER_ID))
-                    .thenReturn(List.of(note1));
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn("owner_user");
+            List<SharedAccountNoteDto> result = service.getNotes(OWNER_ID);
 
-            List<SharedAccountNoteDto> result = sharedAccountNoteService.getNotes(USER_ID);
-
-            assertEquals("owner_user", result.getFirst().noteCreatorUsername());
-            assertEquals(OWNER_ID, result.getFirst().noteCreatorId());
+            assertEquals(2, result.size());
+            verify(authBackendClient).getUsername(OWNER_ID);
         }
 
         @Test
-        void shouldCallGetUsernameOnlyOnceForDuplicateCreators() {
-            SharedAccountNote note1 = buildNote(1L, OWNER_ID, MEMBER_ID, OWNER_ID);
-            SharedAccountNote note2 = buildNote(2L, OWNER_ID, MEMBER_ID, OWNER_ID);
+        void shouldThrowExceptionWhenUsernameIsNull() {
+            when(sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of(existingNote));
+            when(existingNote.getCreatedByUserId()).thenReturn(OWNER_ID);
 
-            when(sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(USER_ID))
-                    .thenReturn(List.of(note1, note2));
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn("owner_user");
-
-            sharedAccountNoteService.getNotes(USER_ID);
-
-            verify(authBackendClient, times(1)).getUsername(OWNER_ID);
+            assertThrows(NullPointerException.class, () -> service.getNotes(OWNER_ID));
         }
 
         @Test
-        void shouldReturnEmptyListWhenNoNotesExistForUser() {
-            when(sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(USER_ID)).thenReturn(List.of());
+        void shouldThrowExceptionWhenRepositoryFails() {
+            when(sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(OWNER_ID))
+                    .thenThrow(new IllegalStateException("db failed"));
 
-            List<SharedAccountNoteDto> result = sharedAccountNoteService.getNotes(USER_ID);
+            assertThrows(IllegalStateException.class, () -> service.getNotes(OWNER_ID));
 
-            assertThat(result).isEmpty();
             verifyNoInteractions(authBackendClient);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenAuthBackendClientFails() {
+            when(sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of(existingNote));
+            when(existingNote.getCreatedByUserId()).thenReturn(OWNER_ID);
+            when(authBackendClient.getUsername(OWNER_ID)).thenThrow(new IllegalStateException("auth down"));
+
+            assertThrows(IllegalStateException.class, () -> service.getNotes(OWNER_ID));
         }
     }
 
     @Nested
     class DeleteNote {
 
-        @Test
-        void shouldDeleteNoteWhenNoteExistsAndUserIsOwnerOrMember() {
-            SharedAccountNote existingNote = buildNote(NOTE_ID, OWNER_ID, MEMBER_ID, OWNER_ID);
-
-            when(sharedAccountNoteRepository.findByIdAndOwnerIdOrMemberId(NOTE_ID, USER_ID))
+        private void stubSuccessfulDelete() {
+            when(sharedAccountNoteRepository.findByIdAndOwnerIdOrMemberId(NOTE_ID, OWNER_ID))
                     .thenReturn(Optional.of(existingNote));
-
-            sharedAccountNoteService.deleteNote(USER_ID, NOTE_ID);
-
-            verify(sharedAccountNoteRepository, times(1)).delete(existingNote);
+            when(existingNote.getId()).thenReturn(NOTE_ID);
+            stubParticipants(OWNER_ID);
         }
 
         @Test
-        void shouldThrowExceptionWhenNoteNotFoundForDeletion() {
-            when(sharedAccountNoteRepository.findByIdAndOwnerIdOrMemberId(NOTE_ID, USER_ID))
-                    .thenReturn(Optional.empty());
+        void shouldDeleteNoteWhenNoteExists() {
+            stubSuccessfulDelete();
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> sharedAccountNoteService.deleteNote(USER_ID, NOTE_ID));
+            service.deleteNote(OWNER_ID, NOTE_ID);
+
+            verify(sharedAccountNoteRepository).delete(existingNote);
         }
 
         @Test
-        void shouldNotCallDeleteWhenNoteNotFound() {
-            when(sharedAccountNoteRepository.findByIdAndOwnerIdOrMemberId(NOTE_ID, USER_ID))
-                    .thenReturn(Optional.empty());
+        void shouldSaveOutboxEventWhenNoteIsDeleted() {
+            stubSuccessfulDelete();
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> sharedAccountNoteService.deleteNote(USER_ID, NOTE_ID));
+            service.deleteNote(OWNER_ID, NOTE_ID);
+
+            verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.NOTE_DELETED);
+        }
+
+        @Test
+        void shouldDeleteNoteBeforeSavingOutboxEventWhenNoteIsDeleted() {
+            stubSuccessfulDelete();
+
+            service.deleteNote(OWNER_ID, NOTE_ID);
+
+            InOrder inOrder = inOrder(sharedAccountNoteRepository, outboxService);
+            inOrder.verify(sharedAccountNoteRepository).delete(existingNote);
+            inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenNoteDoesNotExist() {
+            when(sharedAccountNoteRepository.findByIdAndOwnerIdOrMemberId(NOTE_ID, OWNER_ID)).thenReturn(Optional.empty());
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteNote(OWNER_ID, NOTE_ID));
+
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositoryLookupFails() {
+            when(sharedAccountNoteRepository.findByIdAndOwnerIdOrMemberId(NOTE_ID, OWNER_ID))
+                    .thenThrow(new IllegalStateException("db failed"));
+
+            assertThrows(IllegalStateException.class, () -> service.deleteNote(OWNER_ID, NOTE_ID));
+
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenParticipantsServiceFails() {
+            when(sharedAccountNoteRepository.findByIdAndOwnerIdOrMemberId(NOTE_ID, OWNER_ID))
+                    .thenReturn(Optional.of(existingNote));
+            when(sharedAccountParticipantsService.getParticipants(OWNER_ID))
+                    .thenThrow(new RequestedEntityNotFoundException("participants not found"));
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteNote(OWNER_ID, NOTE_ID));
 
             verify(sharedAccountNoteRepository, never()).delete(any(SharedAccountNote.class));
+            verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenOutboxServiceFails() {
+            stubSuccessfulDelete();
+            doThrow(new IllegalStateException("outbox failed")).when(outboxService)
+                    .save(anyString(), anyString(), anyString(), any());
+
+            assertThrows(IllegalStateException.class, () -> service.deleteNote(OWNER_ID, NOTE_ID));
         }
     }
 }
