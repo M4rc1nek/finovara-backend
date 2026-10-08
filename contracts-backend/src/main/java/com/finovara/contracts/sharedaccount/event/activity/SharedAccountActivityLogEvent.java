@@ -4,12 +4,12 @@ import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
 
 import java.time.LocalDateTime;
 
-public record SharedAccountActivityEvent(
+public record SharedAccountActivityLogEvent(
         Long ownerId,
         Long memberId,
         Long userId,
-        SharedAccountActivityLogType type,
         Long targetId,
+        SharedAccountActivityLogType type,
         LocalDateTime createdAt) {
 
 }
