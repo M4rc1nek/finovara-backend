@@ -1,13 +1,13 @@
-package com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.service;
+package com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service;
 
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.dto.SharedAccountChangeHistoryActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.mapper.SharedAccountActivityMapper;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.model.SharedAccountChangeHistoryActivity;
-import com.finovara.activitylogservice.activitylog.mainaccountactivity.sharedaccount.repository.SharedAccountChangeHistoryActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.dto.SharedAccountChangeHistoryActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.mapper.SharedAccountActivityMapper;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.model.SharedAccountChangeHistoryActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.repository.SharedAccountChangeHistoryActivityRepository;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.util.SortType;
-import com.finovara.contracts.mainaccount.activity.model.SharedAccountActivityType;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -56,9 +56,9 @@ class SharedAccountChangeHistoryActivityServiceTest {
 
         @Test
         void shouldSaveActivityWhenEventIsValid() {
-            SharedAccountActivityEvent event = mock(SharedAccountActivityEvent.class);
+            SharedAccountChangeHistoryActivityEvent event = mock(SharedAccountChangeHistoryActivityEvent.class);
             when(event.userId()).thenReturn(1L);
-            when(event.type()).thenReturn(SharedAccountActivityType.values()[0]);
+            when(event.type()).thenReturn(SharedAccountChangeHistoryActivityType.values()[0]);
             when(event.refundedBalance()).thenReturn(BigDecimal.TEN);
             when(event.coFounderUsername()).thenReturn("cofounder");
             when(event.coFounderEmail()).thenReturn("cofounder@finovara.com");
@@ -71,7 +71,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
 
             SharedAccountChangeHistoryActivity savedActivity = captor.getValue();
             assertEquals(1L, savedActivity.getUserId());
-            assertEquals(SharedAccountActivityType.values()[0], savedActivity.getType());
+            assertEquals(SharedAccountChangeHistoryActivityType.values()[0], savedActivity.getType());
             assertEquals(BigDecimal.TEN, savedActivity.getRefundedBalance());
             assertEquals("cofounder", savedActivity.getCoFounderUsername());
             assertEquals("cofounder@finovara.com", savedActivity.getCoFounderEmail());
@@ -80,7 +80,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
 
         @Test
         void shouldCallRepositorySaveExactlyOnceWhenEventIsValid() {
-            SharedAccountActivityEvent event = mock(SharedAccountActivityEvent.class);
+            SharedAccountChangeHistoryActivityEvent event = mock(SharedAccountChangeHistoryActivityEvent.class);
             when(event.userId()).thenReturn(2L);
 
             sharedAccountChangeHistoryActivityService.handleEvent(event);
@@ -95,7 +95,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositorySaveFails() {
-            SharedAccountActivityEvent event = mock(SharedAccountActivityEvent.class);
+            SharedAccountChangeHistoryActivityEvent event = mock(SharedAccountChangeHistoryActivityEvent.class);
             when(event.userId()).thenReturn(3L);
             when(sharedAccountChangeHistoryActivityRepository.save(any(SharedAccountChangeHistoryActivity.class)))
                     .thenThrow(new RuntimeException("database error"));
@@ -105,7 +105,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
 
         @Test
         void shouldNotCallMapperWhenHandlingEvent() {
-            SharedAccountActivityEvent event = mock(SharedAccountActivityEvent.class);
+            SharedAccountChangeHistoryActivityEvent event = mock(SharedAccountChangeHistoryActivityEvent.class);
             when(event.userId()).thenReturn(4L);
 
             sharedAccountChangeHistoryActivityService.handleEvent(event);
@@ -126,7 +126,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
                     .userId(userId)
                     .build();
             SharedAccountChangeHistoryActivityDto dto = new SharedAccountChangeHistoryActivityDto(
-                    SharedAccountActivityType.values()[0],
+                    SharedAccountChangeHistoryActivityType.values()[0],
                     BigDecimal.TEN,
                     "cofounder",
                     "cofounder@finovara.com",
@@ -178,10 +178,10 @@ class SharedAccountChangeHistoryActivityServiceTest {
             SharedAccountChangeHistoryActivity secondEntity = SharedAccountChangeHistoryActivity.builder().userId(userId).build();
 
             SharedAccountChangeHistoryActivityDto firstDto = new SharedAccountChangeHistoryActivityDto(
-                    SharedAccountActivityType.values()[0], BigDecimal.ONE, "first", "first@finovara.com", LocalDateTime.now()
+                    SharedAccountChangeHistoryActivityType.values()[0], BigDecimal.ONE, "first", "first@finovara.com", LocalDateTime.now()
             );
             SharedAccountChangeHistoryActivityDto secondDto = new SharedAccountChangeHistoryActivityDto(
-                    SharedAccountActivityType.values()[0], BigDecimal.TWO, "second", "second@finovara.com", LocalDateTime.now()
+                    SharedAccountChangeHistoryActivityType.values()[0], BigDecimal.TWO, "second", "second@finovara.com", LocalDateTime.now()
             );
 
             when(sharedAccountChangeHistoryActivityRepository.findByUserId(eq(userId), any(Pageable.class)))
@@ -279,7 +279,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
         void shouldReturnDtoWhenEntityIsValid() {
             SharedAccountChangeHistoryActivity entity = SharedAccountChangeHistoryActivity.builder().userId(1L).build();
             SharedAccountChangeHistoryActivityDto dto = new SharedAccountChangeHistoryActivityDto(
-                    SharedAccountActivityType.values()[0],
+                    SharedAccountChangeHistoryActivityType.values()[0],
                     BigDecimal.TEN,
                     "cofounder",
                     "cofounder@finovara.com",
