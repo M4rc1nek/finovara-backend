@@ -8,12 +8,12 @@ import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
 import com.finovara.authservice.sharedaccount.model.SharedAccountMember;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
-import com.finovara.authservice.user.dto.UserDataDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.user.mapper.UserDataMapper;
 import com.finovara.authservice.user.repository.UserRepository;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountActivityEvent;
 import com.finovara.contracts.sharedaccount.event.invitation.UserSentSharedAccountInvitationEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
@@ -227,7 +227,7 @@ class InvitationServiceTest {
 
             invitationService.sendInvitation(INVITER_USER_ID, INVITEE_USER_ID, AUTHORIZATION_CODE);
 
-            verify(outboxService).save(eq("User"), eq(INVITER_USER_ID.toString()), eq("shared-account.changed"), any(SharedAccountActivityEvent.class));
+            verify(outboxService).save(eq("User"), eq(INVITER_USER_ID.toString()), eq("shared-account.changed"), any(SharedAccountChangeHistoryActivityEvent.class));
 
             ArgumentCaptor<UserSentSharedAccountInvitationEvent> eventCaptor = ArgumentCaptor.forClass(UserSentSharedAccountInvitationEvent.class);
             verify(outboxService).save(eq("User"), eq(INVITER_USER_ID.toString()), eq("notification.shared-account.invitation-sent"), eventCaptor.capture());
