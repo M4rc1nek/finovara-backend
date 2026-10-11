@@ -3,10 +3,12 @@ package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.arc
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.dto.LoginActivityArchiveDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.service.LoginActivityArchiveService;
 import com.finovara.activitylogservice.security.SecurityUtils;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -19,8 +21,8 @@ public class LoginActivityArchiveController {
     private final LoginActivityArchiveService archiveLoginActivityService;
 
     @GetMapping
-    public ResponseEntity<List<LoginActivityArchiveDto>> getLoginActivityArchive() {
-        return ResponseEntity.ok(archiveLoginActivityService.getLoginActivityArchive(SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<List<LoginActivityArchiveDto>> getLoginActivityArchive(@RequestParam(defaultValue = "NEWEST") SortType sortType) {
+        return ResponseEntity.ok(archiveLoginActivityService.getLoginActivityArchive(SecurityUtils.getCurrentUserId(), sortType));
     }
 
 }
