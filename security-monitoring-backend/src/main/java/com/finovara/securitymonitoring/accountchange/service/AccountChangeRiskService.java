@@ -1,6 +1,6 @@
 package com.finovara.securitymonitoring.accountchange.service;
 
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.securitymonitoring.accountchange.config.AccountChangeRiskProperties;
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
@@ -83,8 +83,8 @@ public class AccountChangeRiskService {
         return type == RiskTriggerType.USERNAME_CHANGED || type == RiskTriggerType.PROFILE_IMAGE_CHANGED;
     }
 
-    private boolean isCredentialType(AccountChangesActivityType type) {
-        return type == AccountChangesActivityType.PASSWORD_CHANGED || type == AccountChangesActivityType.EMAIL_CHANGED;
+    private boolean isCredentialType(AccountChangeActivityType type) {
+        return type == AccountChangeActivityType.PASSWORD_CHANGED || type == AccountChangeActivityType.EMAIL_CHANGED;
     }
 
     private boolean isWithin(LocalDateTime since, Duration window) {
