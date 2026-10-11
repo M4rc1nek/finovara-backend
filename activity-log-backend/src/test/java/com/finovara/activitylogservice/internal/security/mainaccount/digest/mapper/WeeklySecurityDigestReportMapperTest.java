@@ -1,6 +1,6 @@
 package com.finovara.activitylogservice.internal.security.mainaccount.digest.mapper;
 
-import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangesDigestSummaryDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangeDigestSummaryDto;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.LoginDigestSummaryDto;
 import com.finovara.contracts.mainaccount.report.digest.security.WeeklySecurityDigestReportDto;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ class WeeklySecurityDigestReportMapperTest {
         @Test
         void shouldMapAllFieldsWhenSummariesAreFullyPopulated() {
             LoginDigestSummaryDto loginSummary = new LoginDigestSummaryDto(5L, 2L, List.of("1.1.1.1"), List.of("Warsaw"), List.of("Chrome"));
-            AccountChangesDigestSummaryDto accountChangesSummary = new AccountChangesDigestSummaryDto(
+            AccountChangeDigestSummaryDto accountChangesSummary = new AccountChangeDigestSummaryDto(
                     1L, LocalDateTime.of(2026, 8, 11, 10, 0),
                     2L, LocalDateTime.of(2026, 8, 12, 10, 0),
                     3L, LocalDateTime.of(2026, 8, 13, 10, 0),
@@ -65,7 +65,7 @@ class WeeklySecurityDigestReportMapperTest {
         @Test
         void shouldMapEmptyListsAndNullDatesWhenSummariesHaveNoActivity() {
             LoginDigestSummaryDto loginSummary = new LoginDigestSummaryDto(0L, 0L, List.of(), List.of(), List.of());
-            AccountChangesDigestSummaryDto accountChangesSummary = new AccountChangesDigestSummaryDto(
+            AccountChangeDigestSummaryDto accountChangesSummary = new AccountChangeDigestSummaryDto(
                     0L, null, 0L, null, 0L, null, 0L, null, 0L, null
             );
 
@@ -84,7 +84,7 @@ class WeeklySecurityDigestReportMapperTest {
         @Test
         void shouldMapNullUserIdWhenUserIdIsNull() {
             LoginDigestSummaryDto loginSummary = new LoginDigestSummaryDto(0L, 0L, List.of(), List.of(), List.of());
-            AccountChangesDigestSummaryDto accountChangesSummary = new AccountChangesDigestSummaryDto(
+            AccountChangeDigestSummaryDto accountChangesSummary = new AccountChangeDigestSummaryDto(
                     0L, null, 0L, null, 0L, null, 0L, null, 0L, null
             );
 
@@ -96,7 +96,7 @@ class WeeklySecurityDigestReportMapperTest {
         @Test
         void shouldPreserveWeekStartAndWeekEndWhenMapping() {
             LoginDigestSummaryDto loginSummary = new LoginDigestSummaryDto(0L, 0L, List.of(), List.of(), List.of());
-            AccountChangesDigestSummaryDto accountChangesSummary = new AccountChangesDigestSummaryDto(
+            AccountChangeDigestSummaryDto accountChangesSummary = new AccountChangeDigestSummaryDto(
                     0L, null, 0L, null, 0L, null, 0L, null, 0L, null
             );
 
