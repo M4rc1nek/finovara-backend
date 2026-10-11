@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.accountactivity.settings.service;
+package com.finovara.activitylogservice.activitylog.mainaccount.settings;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.dto.SettingsActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.mapper.SettingsActivityMapper;
