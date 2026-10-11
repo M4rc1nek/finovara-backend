@@ -1,6 +1,6 @@
 package com.finovara.securitymonitoring.accountchange.model;
 
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -47,7 +47,7 @@ public class AccountChangeProfile {
     private Long totalChangeCount = 0L;
 
     @Enumerated(EnumType.STRING)
-    private AccountChangesActivityType lastChangeType;
+    private AccountChangeActivityType lastChangeType;
 
     private LocalDateTime lastChangeAt;
 
