@@ -1,19 +1,18 @@
-package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.mapper;
+package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.mapper;
 
-import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.dto.AccountChangeArchiveDto;
-import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.model.AccountChangeArchive;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangeActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangeActivity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AccountChangeArchiveMapper {
+public class AccountChangeActivityMapper {
 
-    public AccountChangeArchiveDto mapToDto(AccountChangeArchive accountChangeArchive) {
-        return new AccountChangeArchiveDto(
-                accountChangeArchive.getType(),
-                accountChangeArchive.getMoveToArchiveDate(),
-                accountChangeArchive.getActivityAccountChangeDate(),
-                accountChangeArchive.getBrowser(),
-                accountChangeArchive.getIpAddress(),
-                accountChangeArchive.getLocation());
+    public AccountChangeActivityDto mapToDto(AccountChangeActivity accountChangeActivity) {
+        return new AccountChangeActivityDto(
+                accountChangeActivity.getType(),
+                accountChangeActivity.getCreatedAt(),
+                accountChangeActivity.getBrowser(),
+                accountChangeActivity.getIpAddress(),
+                accountChangeActivity.getLocation());
     }
 }
