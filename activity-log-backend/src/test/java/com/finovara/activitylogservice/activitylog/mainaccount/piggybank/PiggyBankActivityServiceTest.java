@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.accountactivity.piggybank.service;
+package com.finovara.activitylogservice.activitylog.mainaccount.piggybank;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.dto.PiggyBankActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.mapper.PiggyBankActivityMapper;
