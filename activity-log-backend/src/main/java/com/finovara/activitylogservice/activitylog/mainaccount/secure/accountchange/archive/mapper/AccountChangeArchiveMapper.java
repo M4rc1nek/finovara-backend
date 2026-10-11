@@ -5,13 +5,13 @@ import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountcha
 import org.springframework.stereotype.Component;
 
 @Component
-public class AccountChangeActivityMapper {
+public class AccountChangeArchiveMapper {
 
     public AccountChangeArchiveDto mapToDto(AccountChangeArchive accountChangeArchive) {
         return new AccountChangeArchiveDto(
                 accountChangeArchive.getType(),
                 accountChangeArchive.getMoveToArchiveDate(),
-                accountChangeArchive.getActivityAccountChangeDate(),
+                accountChangeArchive.getCreatedAt(),
                 accountChangeArchive.getBrowser(),
                 accountChangeArchive.getIpAddress(),
                 accountChangeArchive.getLocation());
