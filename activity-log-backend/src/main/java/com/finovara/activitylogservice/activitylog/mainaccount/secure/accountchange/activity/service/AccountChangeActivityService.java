@@ -1,13 +1,14 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.service;
 
-import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangesActivityDto;
-import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangesActivity;
-import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository.AccountChangesActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangeActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.mapper.AccountChangeActivityMapper;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangeActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository.AccountChangeActivityRepository;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.service.AccountChangeArchiveService;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.core.SecurityActivityCore;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.util.SortType;
@@ -16,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,22 +27,19 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AccountChangesActivityService extends SecurityActivityCore<AccountChangesActivity, AccountChangeArchive, AccountChangesActivityDto> implements UserDataDeletable {
+public class AccountChangeActivityService extends SecurityActivityCore<AccountChangeActivity, AccountChangeArchive, AccountChangeActivityDto> implements UserDataDeletable {
 
-    private final AccountChangesActivityRepository accountChangesActivityRepository;
+    private final AccountChangeActivityRepository accountChangeActivityRepository;
     private final AccountChangeArchiveService accountChangeArchiveService;
+    private final AccountChangeActivityMapper accountChangeActivityMapper;
     private final AuthBackendClient authBackendClient;
 
     @Value("${user-activity.account-changes.page-size}")
     private int pageSize;
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "accountChangesActivity", allEntries = true),
-            @CacheEvict(value = "accountChangeArchive", allEntries = true)
-    })
-    public void handleEvent(AccountChangesActivityEvent event) {
-        AccountChangesActivity activity = AccountChangesActivity.builder()
+    public void handleEvent(AccountChangeActivityEvent event) {
+        AccountChangeActivity activity = AccountChangeActivity.builder()
                 .userId(event.userId())
                 .type(event.type())
                 .browser(event.browser())
@@ -56,8 +53,8 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
         moveToArchive(event.userId(), pageSize);
     }
 
-    @Cacheable(value = "accountChangesActivity", key = "#userId + ':' + #sort")
-    public List<AccountChangesActivityDto> getAccountChangesActivity(Long userId, SortType sort) {
+    @Cacheable(value = "accountChangeActivity", key = "#userId + ':' + #sort")
+    public List<AccountChangeActivityDto> getAccountChangeActivity(Long userId, SortType sort) {
         return getActivities(userId, sort, pageSize);
     }
 
@@ -66,33 +63,32 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
     }
 
     @Override
-    protected List<AccountChangesActivity> getRepositoryFindByUserId(Long userId, Pageable pageable) {
-        return accountChangesActivityRepository.findByUserId(userId, pageable);
+    protected List<AccountChangeActivity> getRepositoryFindByUserId(Long userId, Pageable pageable) {
+        return accountChangeActivityRepository.findByUserId(userId, pageable);
     }
 
     @Override
-    protected AccountChangesActivityDto mapToDto(AccountChangesActivity a) {
-        return new AccountChangesActivityDto(a.getType(), a.getCreatedAt(),
-                a.getBrowser(), a.getIpAddress(), a.getLocation());
+    protected AccountChangeActivityDto mapToDto(AccountChangeActivity accountChangeActivity) {
+        return accountChangeActivityMapper.mapToDto(accountChangeActivity);
     }
 
     @Override
-    protected void saveActivity(AccountChangesActivity activity) {
-        accountChangesActivityRepository.save(activity);
+    protected void saveActivity(AccountChangeActivity activity) {
+        accountChangeActivityRepository.save(activity);
     }
 
     @Override
     protected long countActivities(Long userId) {
-        return accountChangesActivityRepository.countAccountChangesByUserId(userId);
+        return accountChangeActivityRepository.countAccountChangesByUserId(userId);
     }
 
     @Override
-    protected List<AccountChangesActivity> findActivitiesToArchive(Long userId, int pageSize) {
-        return accountChangesActivityRepository.findFewByUserId(userId, PageRequest.of(0, pageSize));
+    protected List<AccountChangeActivity> findActivitiesToArchive(Long userId, int pageSize) {
+        return accountChangeActivityRepository.findFewByUserId(userId, PageRequest.of(0, pageSize));
     }
 
     @Override
-    protected AccountChangeArchive mapToArchive(AccountChangesActivity activity) {
+    protected AccountChangeArchive mapToArchive(AccountChangeActivity activity) {
         return accountChangeArchiveService.mapToArchive(activity);
     }
 
@@ -102,15 +98,14 @@ public class AccountChangesActivityService extends SecurityActivityCore<AccountC
     }
 
     @Override
-    protected void deleteActivities(List<AccountChangesActivity> activities) {
-        accountChangesActivityRepository.deleteAll(activities);
+    protected void deleteActivities(List<AccountChangeActivity> activities) {
+        accountChangeActivityRepository.deleteAll(activities);
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = "accountChangesActivity", allEntries = true)
     public void deleteByUserId(Long userId) {
-        accountChangesActivityRepository.deleteByUserId(userId);
+        accountChangeActivityRepository.deleteByUserId(userId);
         log.info("Deleted account changes activity for userId={}", userId);
     }
 }
