@@ -1,12 +1,19 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.service;
 
-import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangesActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangeActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.dto.AccountChangeArchiveDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.mapper.AccountChangeArchiveMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.repository.AccountChangeArchiveRepository;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,21 +23,24 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AccountChangeArchiveService  implements UserDataDeletable {
+public class AccountChangeArchiveService extends AccountActivityCore<AccountChangeArchive, AccountChangeArchiveDto> implements UserDataDeletable {
 
     private final AccountChangeArchiveRepository accountChangeArchiveRepository;
+    private final AccountChangeArchiveMapper accountChangeArchiveMapper;
 
-    public AccountChangeArchive mapToArchive(AccountChangesActivity accountChangesActivity) {
+    @Value("${user-activity.account-changes-archive.page-size}")
+    private int pageSize;
 
-        log.info("Archiving account change activity. type: {}, userId: {}", accountChangesActivity.getType(), accountChangesActivity.getUserId());
+    public AccountChangeArchive mapToArchive(AccountChangeActivity accountChangeActivity) {
+        log.info("Archiving account change activity. type: {}, userId: {}", accountChangeActivity.getType(), accountChangeActivity.getUserId());
         return AccountChangeArchive.builder()
-                .userId(accountChangesActivity.getUserId())
-                .type(accountChangesActivity.getType())
+                .userId(accountChangeActivity.getUserId())
+                .type(accountChangeActivity.getType())
                 .moveToArchiveDate(LocalDateTime.now())
-                .activityAccountChangesDate(accountChangesActivity.getCreatedAt())
-                .browser(accountChangesActivity.getBrowser())
-                .ipAddress(accountChangesActivity.getIpAddress())
-                .location(accountChangesActivity.getLocation())
+                .createdAt(accountChangeActivity.getCreatedAt())
+                .browser(accountChangeActivity.getBrowser())
+                .ipAddress(accountChangeActivity.getIpAddress())
+                .location(accountChangeActivity.getLocation())
                 .build();
     }
 
@@ -39,14 +49,25 @@ public class AccountChangeArchiveService  implements UserDataDeletable {
         accountChangeArchiveRepository.saveAll(archiveAccountChangesActivities);
     }
 
-    public List<AccountChangeArchiveDto> getAccountChangeArchive(Long userId) {
-        return accountChangeArchiveRepository.findAllByUserIdOrderByIdDesc(userId);
+    @Cacheable(value = "accountChangeArchive", key = "#userId + ':' + #sort")
+    public List<AccountChangeArchiveDto> getAccountChangeArchive(Long userId, SortType sort) {
+        return getActivities(userId, sort, pageSize);
+    }
+
+    @Override
+    protected List<AccountChangeArchive> getRepositoryFindByUserId(Long userId, Pageable pageable) {
+        return accountChangeArchiveRepository.findByUserId(userId, pageable);
+    }
+
+    @Override
+    protected AccountChangeArchiveDto mapToDto(AccountChangeArchive accountChangeArchive) {
+        return accountChangeArchiveMapper.mapToDto(accountChangeArchive);
     }
 
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
         accountChangeArchiveRepository.deleteByUserId(userId);
-        log.info("Deleted account changes activity from  archive for userId={}", userId);
+        log.info("Deleted account changes activity from archive for userId={}", userId);
     }
 }
