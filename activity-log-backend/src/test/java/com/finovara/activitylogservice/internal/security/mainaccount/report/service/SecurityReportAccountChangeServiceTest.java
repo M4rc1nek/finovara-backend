@@ -1,10 +1,10 @@
 package com.finovara.activitylogservice.internal.security.mainaccount.report.service;
 
-import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangesActivity;
-import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository.AccountChangesActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangeActivity;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository.AccountChangeActivityRepository;
 import com.finovara.activitylogservice.internal.security.mainaccount.report.dto.ReportAccountChangeDto;
 import com.finovara.contracts.util.PeriodType;
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,16 +43,16 @@ class SecurityReportAccountChangeServiceTest {
     private static final LocalDateTime EMAIL_CHANGED_AT = LocalDateTime.of(2024, 6, 1, 8, 0);
 
     @Mock
-    private AccountChangesActivityRepository accountChangesActivityRepository;
+    private AccountChangeActivityRepository accountChangeActivityRepository;
 
     @Mock
-    private AccountChangesActivity passwordActivity;
+    private AccountChangeActivity passwordActivity;
 
     @Mock
-    private AccountChangesActivity emailActivity;
+    private AccountChangeActivity emailActivity;
 
     @Mock
-    private AccountChangesActivity authorizationActivity;
+    private AccountChangeActivity authorizationActivity;
 
     @Captor
     private ArgumentCaptor<LocalDateTime> fromCaptor;
@@ -75,7 +75,7 @@ class SecurityReportAccountChangeServiceTest {
 
         @Test
         void shouldReturnPasswordChangesCountWhenChangesExist() {
-            when(accountChangesActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangesActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(3L);
+            when(accountChangeActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangeActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(3L);
 
             ReportAccountChangeDto result = securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType);
 
@@ -92,7 +92,7 @@ class SecurityReportAccountChangeServiceTest {
         @Test
         void shouldReturnLastPasswordChangeDateWhenActivityExists() {
             when(passwordActivity.getCreatedAt()).thenReturn(PASSWORD_CHANGED_AT);
-            when(accountChangesActivityRepository.findActivities(eq(USER_ID), eq(AccountChangesActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(passwordActivity));
+            when(accountChangeActivityRepository.findActivities(eq(USER_ID), eq(AccountChangeActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(passwordActivity));
 
             ReportAccountChangeDto result = securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType);
 
@@ -112,8 +112,8 @@ class SecurityReportAccountChangeServiceTest {
 
         @Test
         void shouldReturnEmailChangesCountWhenChangesExist() {
-            when(accountChangesActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangesActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(0L);
-            when(accountChangesActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangesActivityType.EMAIL_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(2L);
+            when(accountChangeActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangeActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(0L);
+            when(accountChangeActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangeActivityType.EMAIL_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(2L);
 
             ReportAccountChangeDto result = securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType);
 
@@ -130,8 +130,8 @@ class SecurityReportAccountChangeServiceTest {
         @Test
         void shouldReturnLastEmailChangeDateWhenActivityExists() {
             when(emailActivity.getCreatedAt()).thenReturn(EMAIL_CHANGED_AT);
-            when(accountChangesActivityRepository.findActivities(eq(USER_ID), eq(AccountChangesActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of());
-            when(accountChangesActivityRepository.findActivities(eq(USER_ID), eq(AccountChangesActivityType.EMAIL_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(emailActivity));
+            when(accountChangeActivityRepository.findActivities(eq(USER_ID), eq(AccountChangeActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of());
+            when(accountChangeActivityRepository.findActivities(eq(USER_ID), eq(AccountChangeActivityType.EMAIL_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(emailActivity));
 
             ReportAccountChangeDto result = securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType);
 
@@ -148,8 +148,8 @@ class SecurityReportAccountChangeServiceTest {
         @Test
         void shouldKeepPasswordAndEmailDatesIndependentWhenOnlyEmailActivityExists() {
             when(emailActivity.getCreatedAt()).thenReturn(EMAIL_CHANGED_AT);
-            when(accountChangesActivityRepository.findActivities(eq(USER_ID), eq(AccountChangesActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of());
-            when(accountChangesActivityRepository.findActivities(eq(USER_ID), eq(AccountChangesActivityType.EMAIL_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(emailActivity));
+            when(accountChangeActivityRepository.findActivities(eq(USER_ID), eq(AccountChangeActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of());
+            when(accountChangeActivityRepository.findActivities(eq(USER_ID), eq(AccountChangeActivityType.EMAIL_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(emailActivity));
 
             ReportAccountChangeDto result = securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType);
 
@@ -163,8 +163,8 @@ class SecurityReportAccountChangeServiceTest {
 
         @Test
         void shouldReturnTrueWhenLastStatusChangeEnabledAuthorization() {
-            when(authorizationActivity.getType()).thenReturn(AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_ENABLED);
-            when(accountChangesActivityRepository.findAuthorizationStatusChanges(USER_ID, FIRST_ELEMENT)).thenReturn(List.of(authorizationActivity));
+            when(authorizationActivity.getType()).thenReturn(AccountChangeActivityType.ADDITIONAL_AUTHORIZATION_ENABLED);
+            when(accountChangeActivityRepository.findAuthorizationStatusChanges(USER_ID, FIRST_ELEMENT)).thenReturn(List.of(authorizationActivity));
 
             ReportAccountChangeDto result = securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType);
 
@@ -173,8 +173,8 @@ class SecurityReportAccountChangeServiceTest {
 
         @Test
         void shouldReturnFalseWhenLastStatusChangeIsNotEnabling() {
-            when(authorizationActivity.getType()).thenReturn(AccountChangesActivityType.PASSWORD_CHANGED);
-            when(accountChangesActivityRepository.findAuthorizationStatusChanges(USER_ID, FIRST_ELEMENT)).thenReturn(List.of(authorizationActivity));
+            when(authorizationActivity.getType()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
+            when(accountChangeActivityRepository.findAuthorizationStatusChanges(USER_ID, FIRST_ELEMENT)).thenReturn(List.of(authorizationActivity));
 
             ReportAccountChangeDto result = securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType);
 
@@ -198,7 +198,7 @@ class SecurityReportAccountChangeServiceTest {
 
             securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType);
 
-            verify(accountChangesActivityRepository, times(2)).countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), any(AccountChangesActivityType.class), fromCaptor.capture(), toCaptor.capture());
+            verify(accountChangeActivityRepository, times(2)).countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), any(AccountChangeActivityType.class), fromCaptor.capture(), toCaptor.capture());
             assertTrue(fromCaptor.getAllValues().stream().allMatch(from -> from.equals(expectedFrom)));
         }
 
@@ -209,7 +209,7 @@ class SecurityReportAccountChangeServiceTest {
             securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType);
 
             LocalDateTime after = LocalDateTime.now();
-            verify(accountChangesActivityRepository, times(2)).countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), any(AccountChangesActivityType.class), fromCaptor.capture(), toCaptor.capture());
+            verify(accountChangeActivityRepository, times(2)).countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), any(AccountChangeActivityType.class), fromCaptor.capture(), toCaptor.capture());
             assertTrue(toCaptor.getAllValues().stream().allMatch(to -> !to.isBefore(before) && !to.isAfter(after)));
         }
 
@@ -217,8 +217,8 @@ class SecurityReportAccountChangeServiceTest {
         void shouldUseSameRangeForActivitiesAndCountsWhenSummaryIsRequested() {
             securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType);
 
-            verify(accountChangesActivityRepository).findActivities(eq(USER_ID), eq(AccountChangesActivityType.PASSWORD_CHANGED), fromCaptor.capture(), toCaptor.capture(), eq(FIRST_ELEMENT));
-            verify(accountChangesActivityRepository).findActivities(eq(USER_ID), eq(AccountChangesActivityType.EMAIL_CHANGED), fromCaptor.capture(), toCaptor.capture(), eq(FIRST_ELEMENT));
+            verify(accountChangeActivityRepository).findActivities(eq(USER_ID), eq(AccountChangeActivityType.PASSWORD_CHANGED), fromCaptor.capture(), toCaptor.capture(), eq(FIRST_ELEMENT));
+            verify(accountChangeActivityRepository).findActivities(eq(USER_ID), eq(AccountChangeActivityType.EMAIL_CHANGED), fromCaptor.capture(), toCaptor.capture(), eq(FIRST_ELEMENT));
             assertEquals(2, fromCaptor.getAllValues().size());
         }
     }
@@ -236,14 +236,14 @@ class SecurityReportAccountChangeServiceTest {
 
         @Test
         void shouldReturnCompleteSummaryWhenAllActivitiesExist() {
-            when(accountChangesActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangesActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(3L);
-            when(accountChangesActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangesActivityType.EMAIL_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(1L);
+            when(accountChangeActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangeActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(3L);
+            when(accountChangeActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangeActivityType.EMAIL_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(1L);
             when(passwordActivity.getCreatedAt()).thenReturn(PASSWORD_CHANGED_AT);
             when(emailActivity.getCreatedAt()).thenReturn(EMAIL_CHANGED_AT);
-            when(authorizationActivity.getType()).thenReturn(AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_ENABLED);
-            when(accountChangesActivityRepository.findActivities(eq(USER_ID), eq(AccountChangesActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(passwordActivity));
-            when(accountChangesActivityRepository.findActivities(eq(USER_ID), eq(AccountChangesActivityType.EMAIL_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(emailActivity));
-            when(accountChangesActivityRepository.findAuthorizationStatusChanges(USER_ID, FIRST_ELEMENT)).thenReturn(List.of(authorizationActivity));
+            when(authorizationActivity.getType()).thenReturn(AccountChangeActivityType.ADDITIONAL_AUTHORIZATION_ENABLED);
+            when(accountChangeActivityRepository.findActivities(eq(USER_ID), eq(AccountChangeActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(passwordActivity));
+            when(accountChangeActivityRepository.findActivities(eq(USER_ID), eq(AccountChangeActivityType.EMAIL_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(emailActivity));
+            when(accountChangeActivityRepository.findAuthorizationStatusChanges(USER_ID, FIRST_ELEMENT)).thenReturn(List.of(authorizationActivity));
             ReportAccountChangeDto expected = new ReportAccountChangeDto(3L, PASSWORD_CHANGED_AT.toLocalDate(), 1L, EMAIL_CHANGED_AT.toLocalDate(), true);
 
             ReportAccountChangeDto result = securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType);
@@ -267,7 +267,7 @@ class SecurityReportAccountChangeServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositoryFails() {
-            when(accountChangesActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangesActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenThrow(new IllegalStateException());
+            when(accountChangeActivityRepository.countByUserIdAndTypeAndCreatedAtBetween(eq(USER_ID), eq(AccountChangeActivityType.PASSWORD_CHANGED), any(LocalDateTime.class), any(LocalDateTime.class))).thenThrow(new IllegalStateException());
 
             assertThrows(IllegalStateException.class, () -> securityReportAccountChangeService.getAccountChangesSummary(USER_ID, periodType));
         }
