@@ -1,7 +1,7 @@
 package com.finovara.activitylogservice.internal.security.mainaccount.digest;
 
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
-import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangesDigestSummaryDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangeDigestSummaryDto;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.LoginDigestSummaryDto;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.mapper.WeeklySecurityDigestReportMapper;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.service.SecuritySummaryService;
@@ -46,7 +46,7 @@ class InternalSecurityDigestServiceTest {
     private LoginDigestSummaryDto loginDigestSummaryDto;
 
     @Mock
-    private AccountChangesDigestSummaryDto accountChangesDigestSummaryDto;
+    private AccountChangeDigestSummaryDto accountChangeDigestSummaryDto;
 
     @Mock
     private WeeklySecurityDigestReportDto weeklySecurityDigestReportDto;
@@ -76,8 +76,8 @@ class InternalSecurityDigestServiceTest {
         void shouldReturnSingleReportWhenSingleUserExists() {
             when(authBackendClient.getAllUserIds()).thenReturn(List.of(USER_ID_1));
             when(securitySummaryService.calculateLoginSummary(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(loginDigestSummaryDto);
-            when(securitySummaryService.calculateAccountChangesSummary(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(accountChangesDigestSummaryDto);
-            when(weeklySecurityDigestReportMapper.toDto(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangesDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
+            when(securitySummaryService.calculateAccountChangesSummary(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(accountChangeDigestSummaryDto);
+            when(weeklySecurityDigestReportMapper.toDto(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangeDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
 
             List<WeeklySecurityDigestReportDto> result = internalSecurityDigestService.getSecurityDigestReport();
 
@@ -89,23 +89,23 @@ class InternalSecurityDigestServiceTest {
         void shouldReturnReportForEachUserWhenMultipleUsersExist() {
             when(authBackendClient.getAllUserIds()).thenReturn(List.of(USER_ID_1, USER_ID_2));
             when(securitySummaryService.calculateLoginSummary(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(loginDigestSummaryDto);
-            when(securitySummaryService.calculateAccountChangesSummary(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(accountChangesDigestSummaryDto);
-            when(weeklySecurityDigestReportMapper.toDto(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangesDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
+            when(securitySummaryService.calculateAccountChangesSummary(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(accountChangeDigestSummaryDto);
+            when(weeklySecurityDigestReportMapper.toDto(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangeDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
 
             List<WeeklySecurityDigestReportDto> result = internalSecurityDigestService.getSecurityDigestReport();
 
             assertEquals(2, result.size());
             verify(securitySummaryService, times(2)).calculateLoginSummary(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class));
             verify(securitySummaryService, times(2)).calculateAccountChangesSummary(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class));
-            verify(weeklySecurityDigestReportMapper, times(2)).toDto(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangesDigestSummaryDto));
+            verify(weeklySecurityDigestReportMapper, times(2)).toDto(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangeDigestSummaryDto));
         }
 
         @Test
         void shouldUseSixDayPeriodEndingTomorrowWhenCalculatingDateRange() {
             when(authBackendClient.getAllUserIds()).thenReturn(List.of(USER_ID_1));
             when(securitySummaryService.calculateLoginSummary(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(loginDigestSummaryDto);
-            when(securitySummaryService.calculateAccountChangesSummary(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(accountChangesDigestSummaryDto);
-            when(weeklySecurityDigestReportMapper.toDto(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangesDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
+            when(securitySummaryService.calculateAccountChangesSummary(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(accountChangeDigestSummaryDto);
+            when(weeklySecurityDigestReportMapper.toDto(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangeDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
 
             internalSecurityDigestService.getSecurityDigestReport();
 
@@ -122,21 +122,21 @@ class InternalSecurityDigestServiceTest {
         void shouldPassLoginAndAccountChangesSummariesToMapperWhenBuildingReport() {
             when(authBackendClient.getAllUserIds()).thenReturn(List.of(USER_ID_1));
             when(securitySummaryService.calculateLoginSummary(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(loginDigestSummaryDto);
-            when(securitySummaryService.calculateAccountChangesSummary(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(accountChangesDigestSummaryDto);
-            when(weeklySecurityDigestReportMapper.toDto(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangesDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
+            when(securitySummaryService.calculateAccountChangesSummary(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(accountChangeDigestSummaryDto);
+            when(weeklySecurityDigestReportMapper.toDto(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangeDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
 
             internalSecurityDigestService.getSecurityDigestReport();
 
-            verify(weeklySecurityDigestReportMapper).toDto(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangesDigestSummaryDto));
+            verify(weeklySecurityDigestReportMapper).toDto(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangeDigestSummaryDto));
         }
 
         @Test
         void shouldPreserveUserIdsOrderWhenBuildingReports() {
             when(authBackendClient.getAllUserIds()).thenReturn(List.of(USER_ID_2, USER_ID_1));
             when(securitySummaryService.calculateLoginSummary(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(loginDigestSummaryDto);
-            when(securitySummaryService.calculateAccountChangesSummary(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(accountChangesDigestSummaryDto);
-            when(weeklySecurityDigestReportMapper.toDto(eq(USER_ID_2), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangesDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
-            when(weeklySecurityDigestReportMapper.toDto(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangesDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
+            when(securitySummaryService.calculateAccountChangesSummary(any(Long.class), any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(accountChangeDigestSummaryDto);
+            when(weeklySecurityDigestReportMapper.toDto(eq(USER_ID_2), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangeDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
+            when(weeklySecurityDigestReportMapper.toDto(eq(USER_ID_1), any(LocalDateTime.class), any(LocalDateTime.class), eq(loginDigestSummaryDto), eq(accountChangeDigestSummaryDto))).thenReturn(weeklySecurityDigestReportDto);
 
             internalSecurityDigestService.getSecurityDigestReport();
 
