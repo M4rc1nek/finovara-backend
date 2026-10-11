@@ -1,7 +1,7 @@
 package com.finovara.securitymonitoring.accountchange.service;
 
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;
 import com.finovara.securitymonitoring.accountchange.repository.AccountChangeProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,12 +30,12 @@ class AccountChangeProfileUpdateServiceTest {
     private static final Long USER_ID = 1L;
     private static final LocalDateTime OCCURRED_AT = LocalDateTime.of(2024, 6, 1, 12, 0);
 
-    private AccountChangesActivityEvent event;
+    private AccountChangeActivityEvent event;
     private AccountChangeProfile profile;
 
     @BeforeEach
     void setUp() {
-        event = mock(AccountChangesActivityEvent.class);
+        event = mock(AccountChangeActivityEvent.class);
         profile = mock(AccountChangeProfile.class);
         when(event.userId()).thenReturn(USER_ID);
         when(event.occurredAt()).thenReturn(OCCURRED_AT);
@@ -51,7 +51,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldIncrementPasswordChangeCountWhenTypeIsPasswordChanged() {
-            when(event.type()).thenReturn(AccountChangesActivityType.PASSWORD_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
             when(profile.getPasswordChangeCount()).thenReturn(3L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -61,7 +61,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldSetLastPasswordChangeAtWhenTypeIsPasswordChanged() {
-            when(event.type()).thenReturn(AccountChangesActivityType.PASSWORD_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
             when(profile.getPasswordChangeCount()).thenReturn(0L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -71,7 +71,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldNotChangeEmailUsernameOrProfileImageCountersWhenTypeIsPasswordChanged() {
-            when(event.type()).thenReturn(AccountChangesActivityType.PASSWORD_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
             when(profile.getPasswordChangeCount()).thenReturn(0L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -83,7 +83,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldIncrementEmailChangeCountWhenTypeIsEmailChanged() {
-            when(event.type()).thenReturn(AccountChangesActivityType.EMAIL_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.EMAIL_CHANGED);
             when(profile.getEmailChangeCount()).thenReturn(1L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -93,7 +93,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldSetLastEmailChangeAtWhenTypeIsEmailChanged() {
-            when(event.type()).thenReturn(AccountChangesActivityType.EMAIL_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.EMAIL_CHANGED);
             when(profile.getEmailChangeCount()).thenReturn(0L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -103,7 +103,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldIncrementUsernameChangeCountWhenTypeIsUsernameChanged() {
-            when(event.type()).thenReturn(AccountChangesActivityType.USERNAME_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.USERNAME_CHANGED);
             when(profile.getUsernameChangeCount()).thenReturn(5L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -113,7 +113,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldSetLastUsernameChangeAtWhenTypeIsUsernameChanged() {
-            when(event.type()).thenReturn(AccountChangesActivityType.USERNAME_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.USERNAME_CHANGED);
             when(profile.getUsernameChangeCount()).thenReturn(0L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -123,7 +123,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldIncrementProfileImageChangeCountWhenTypeIsProfileImgChanged() {
-            when(event.type()).thenReturn(AccountChangesActivityType.PROFILE_IMG_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.PROFILE_IMG_CHANGED);
             when(profile.getProfileImageChangeCount()).thenReturn(2L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -133,7 +133,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldSetLastProfileImageChangeAtWhenTypeIsProfileImgChanged() {
-            when(event.type()).thenReturn(AccountChangesActivityType.PROFILE_IMG_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.PROFILE_IMG_CHANGED);
             when(profile.getProfileImageChangeCount()).thenReturn(0L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -143,7 +143,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldIncrementTotalChangeCountRegardlessOfType() {
-            when(event.type()).thenReturn(AccountChangesActivityType.PASSWORD_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
             when(profile.getPasswordChangeCount()).thenReturn(0L);
             when(profile.getTotalChangeCount()).thenReturn(9L);
 
@@ -154,18 +154,18 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldSetLastChangeTypeAndLastChangeAtRegardlessOfType() {
-            when(event.type()).thenReturn(AccountChangesActivityType.USERNAME_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.USERNAME_CHANGED);
             when(profile.getUsernameChangeCount()).thenReturn(0L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
 
-            verify(profile).setLastChangeType(AccountChangesActivityType.USERNAME_CHANGED);
+            verify(profile).setLastChangeType(AccountChangeActivityType.USERNAME_CHANGED);
             verify(profile).setLastChangeAt(OCCURRED_AT);
         }
 
         @Test
         void shouldSetUpdatedAtRegardlessOfType() {
-            when(event.type()).thenReturn(AccountChangesActivityType.EMAIL_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.EMAIL_CHANGED);
             when(profile.getEmailChangeCount()).thenReturn(0L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -175,7 +175,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldSaveProfileAfterUpdating() {
-            when(event.type()).thenReturn(AccountChangesActivityType.PASSWORD_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
             when(profile.getPasswordChangeCount()).thenReturn(0L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -185,7 +185,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldNotIncrementAnySpecificCounterWhenTypeIsUnhandledByCases() {
-            when(event.type()).thenReturn(AccountChangesActivityType.PROFILE_IMG_DELETED);
+            when(event.type()).thenReturn(AccountChangeActivityType.PROFILE_IMG_DELETED);
             when(profile.getTotalChangeCount()).thenReturn(0L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
@@ -200,7 +200,7 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldFetchProfileByUserIdFromEvent() {
-            when(event.type()).thenReturn(AccountChangesActivityType.PASSWORD_CHANGED);
+            when(event.type()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
             when(profile.getPasswordChangeCount()).thenReturn(0L);
 
             accountChangeProfileUpdateService.handleAccountChangeEvent(event);
