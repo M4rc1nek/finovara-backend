@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.accountactivity.limit.service;
+package com.finovara.activitylogservice.activitylog.mainaccount.limit;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.dto.LimitActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.mapper.LimitActivityMapper;
