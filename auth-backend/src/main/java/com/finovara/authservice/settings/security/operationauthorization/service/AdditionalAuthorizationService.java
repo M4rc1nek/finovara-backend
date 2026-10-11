@@ -7,9 +7,9 @@ import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto
 import com.finovara.authservice.settings.security.operationauthorization.dto.AdditionalAuthorizationRequest;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.exception.forbidden.InvalidPasswordException;
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class AdditionalAuthorizationService {
 
         String ipAddress = getClientIpAddress(httpServletRequest);
         outboxService.save("User", userId.toString(), "account.changed",
-                new AccountChangesActivityEvent(userId, AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_DISABLED,
+                new AccountChangeActivityEvent(userId, AccountChangeActivityType.ADDITIONAL_AUTHORIZATION_DISABLED,
                         getBrowser(httpServletRequest), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
     }
 

@@ -2,8 +2,8 @@ package com.finovara.authservice.settings.account.service.profileimage;
 
 import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 
 import static com.finovara.contracts.user.clientdata.browser.UserBrowser.getBrowser;
@@ -69,7 +69,7 @@ public class ProfileImageService {
 
             user.setProfileImagePath(filePath.toString());
             userRepository.save(user);
-            publishActivity(user.getId(), AccountChangesActivityType.PROFILE_IMG_CHANGED, request);
+            publishActivity(user.getId(), AccountChangeActivityType.PROFILE_IMG_CHANGED, request);
 
             if (isLocalProfileImagePath(oldFilePath) && !isDefaultProfileImage(oldFilePath)) {
                 Files.deleteIfExists(Paths.get(oldFilePath));
@@ -101,7 +101,7 @@ public class ProfileImageService {
             String defaultPath = Paths.get(profileImagesDefaultDirectory).resolve("UserProf.png").toString();
             user.setProfileImagePath(defaultPath);
 
-            publishActivity(userId, AccountChangesActivityType.PROFILE_IMG_DELETED, request);
+            publishActivity(userId, AccountChangeActivityType.PROFILE_IMG_DELETED, request);
             userRepository.save(user);
 
         } catch (IOException e) {
@@ -130,8 +130,8 @@ public class ProfileImageService {
         return profileImagePath != null && profileImagePath.contains("UserProf.png");
     }
 
-    private void publishActivity(Long userId, AccountChangesActivityType type, HttpServletRequest request) {
+    private void publishActivity(Long userId, AccountChangeActivityType type, HttpServletRequest request) {
         String ipAddress = getClientIpAddress(request);
-        kafkaTemplate.send("account.changed", new AccountChangesActivityEvent(userId, type, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
+        kafkaTemplate.send("account.changed", new AccountChangeActivityEvent(userId, type, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
     }
 }

@@ -50,8 +50,7 @@ public class SharedAccountActivityLogService implements UserDataDeletable {
 
     @Cacheable(value = "shared-account:activity", key = "#userId + ':' + #sortType")
     public List<SharedAccountActivityLogDto> getSharedAccountLogActivity(Long userId, SortType sortType) {
-        List<SharedAccountActivityLog> activities =
-                sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(userId, sortType.getPageable(pageSize));
+        List<SharedAccountActivityLog> activities = sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(userId, sortType.getPageable(pageSize));
 
         Map<Long, UserDataDto> users = new HashMap<>();
         activities.stream()

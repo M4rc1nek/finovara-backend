@@ -1,10 +1,10 @@
 package com.finovara.activitylogservice.internal.security.mainaccount.digest.service;
 
-import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository.AccountChangesActivityRepository;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository.AccountChangeActivityRepository;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.repository.LoginActivityRepository;
-import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangesDigestSummaryDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangeDigestSummaryDto;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.LoginDigestSummaryDto;
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -32,13 +32,13 @@ class SecuritySummaryServiceTest {
     private LoginActivityRepository loginActivityRepository;
 
     @Mock
-    private AccountChangesActivityRepository accountChangesActivityRepository;
+    private AccountChangeActivityRepository accountChangeActivityRepository;
 
     private SecuritySummaryService securitySummaryService;
 
     @BeforeEach
     void setUp() {
-        securitySummaryService = new SecuritySummaryService(loginActivityRepository, accountChangesActivityRepository);
+        securitySummaryService = new SecuritySummaryService(loginActivityRepository, accountChangeActivityRepository);
     }
 
     @Nested
@@ -105,18 +105,18 @@ class SecuritySummaryServiceTest {
             LocalDateTime profileImageDate = LocalDateTime.of(2026, 8, 14, 10, 0);
             LocalDateTime profileImageDeleteDate = LocalDateTime.of(2026, 8, 15, 10, 0);
 
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(1L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(passwordDate);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(2L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(emailDate);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(3L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(usernameDate);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(4L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(profileImageDate);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(5L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(profileImageDeleteDate);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(1L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(passwordDate);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(2L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(emailDate);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(3L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(usernameDate);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(4L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(profileImageDate);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(5L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(profileImageDeleteDate);
 
-            AccountChangesDigestSummaryDto result = securitySummaryService.calculateAccountChangesSummary(USER_ID, FROM, TO);
+            AccountChangeDigestSummaryDto result = securitySummaryService.calculateAccountChangesSummary(USER_ID, FROM, TO);
 
             assertEquals(1L, result.passwordChanges());
             assertEquals(passwordDate, result.lastPasswordChangeDate());
@@ -132,18 +132,18 @@ class SecuritySummaryServiceTest {
 
         @Test
         void shouldReturnZeroCountsAndNullDatesWhenNoChangesExist() {
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(0L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(null);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(0L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(null);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(0L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(null);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(0L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(null);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(0L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(null);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(0L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(null);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(0L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(null);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(0L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(null);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(0L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(null);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(0L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(null);
 
-            AccountChangesDigestSummaryDto result = securitySummaryService.calculateAccountChangesSummary(USER_ID, FROM, TO);
+            AccountChangeDigestSummaryDto result = securitySummaryService.calculateAccountChangesSummary(USER_ID, FROM, TO);
 
             assertEquals(0L, result.passwordChanges());
             assertNull(result.lastPasswordChangeDate());
@@ -159,24 +159,24 @@ class SecuritySummaryServiceTest {
 
         @Test
         void shouldQueryRepositoryForEachChangeTypeWhenCalculatingAccountChangesSummary() {
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(0L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(null);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(0L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(null);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(0L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(null);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(0L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(null);
-            when(accountChangesActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(0L);
-            when(accountChangesActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(null);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(0L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PASSWORD_CHANGED, FROM, TO)).thenReturn(null);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(0L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.EMAIL_CHANGED, FROM, TO)).thenReturn(null);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(0L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.USERNAME_CHANGED, FROM, TO)).thenReturn(null);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(0L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_CHANGED, FROM, TO)).thenReturn(null);
+            when(accountChangeActivityRepository.countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(0L);
+            when(accountChangeActivityRepository.findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_DELETED, FROM, TO)).thenReturn(null);
 
             securitySummaryService.calculateAccountChangesSummary(USER_ID, FROM, TO);
 
-            verify(accountChangesActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PASSWORD_CHANGED, FROM, TO);
-            verify(accountChangesActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.EMAIL_CHANGED, FROM, TO);
-            verify(accountChangesActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.USERNAME_CHANGED, FROM, TO);
-            verify(accountChangesActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_CHANGED, FROM, TO);
-            verify(accountChangesActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangesActivityType.PROFILE_IMG_DELETED, FROM, TO);
+            verify(accountChangeActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PASSWORD_CHANGED, FROM, TO);
+            verify(accountChangeActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.EMAIL_CHANGED, FROM, TO);
+            verify(accountChangeActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.USERNAME_CHANGED, FROM, TO);
+            verify(accountChangeActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_CHANGED, FROM, TO);
+            verify(accountChangeActivityRepository).countByUserIdAndStatusAndCreatedAtBetween(USER_ID, AccountChangeActivityType.PROFILE_IMG_DELETED, FROM, TO);
         }
     }
 }

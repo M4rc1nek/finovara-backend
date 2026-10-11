@@ -14,6 +14,7 @@ import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +67,7 @@ public class RiskOperationLogService extends AccountActivityCore<RiskOperationAc
         authBackendClient.verifyPassword(userId, confirmPasswordDto);
     }
 
-    @Transactional(readOnly = true)
+    @Cacheable(value = "riskOperationActivity", key = "#userId + ':' + #sort")
     public List<RiskOperationActivityDto> getRiskActivity(Long userId, SortType sort) {
         return getActivities(userId, sort, pageSize);
     }

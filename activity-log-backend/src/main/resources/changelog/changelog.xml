@@ -101,11 +101,11 @@
             </column>
             <column name="type" type="VARCHAR(255)"/>
             <column name="status" type="VARCHAR(255)"/>
-            <column name="move_to_archive_date" type="TIMESTAMP"/>
-            <column name="activity_login_date" type="TIMESTAMP"/>
             <column name="browser" type="VARCHAR(255)"/>
             <column name="ip_address" type="VARCHAR(255)"/>
             <column name="location" type="VARCHAR(255)"/>
+            <column name="move_to_archive_date" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
@@ -113,7 +113,7 @@
     </changeSet>
 
     <changeSet id="create-account-changes-activity" author="Marcin Parśniak">
-        <createTable tableName="account_changes_activity">
+        <createTable tableName="account_change_activity">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -134,11 +134,11 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="type" type="VARCHAR(255)"/>
-            <column name="move_to_archive_date" type="TIMESTAMP"/>
-            <column name="activity_account_changes_date" type="TIMESTAMP"/>
             <column name="browser" type="VARCHAR(255)"/>
             <column name="ip_address" type="VARCHAR(255)"/>
             <column name="location" type="VARCHAR(255)"/>
+            <column name="move_to_archive_date" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP"/>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>

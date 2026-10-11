@@ -1,6 +1,6 @@
 package com.finovara.securitymonitoring.accountchange.service;
 
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;
@@ -20,7 +20,7 @@ public class AccountChangeProfileUpdateService implements UserDataDeletable {
     private final AccountChangeProfileRepository accountChangeProfileRepository;
 
     @Transactional
-    public void handleAccountChangeEvent(AccountChangesActivityEvent event) {
+    public void handleAccountChangeEvent(AccountChangeActivityEvent event) {
         AccountChangeProfile profile = accountChangeProfileRepository.findByUserId(event.userId())
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Account change profile not found for userId=" + event.userId()));
 

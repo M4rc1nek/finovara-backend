@@ -1,6 +1,6 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.model;
 
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,17 +20,17 @@ public class AccountChangeArchive {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private AccountChangesActivityType type;
-
-    private LocalDateTime moveToArchiveDate;
-
-    private LocalDateTime activityAccountChangesDate;
+    private AccountChangeActivityType type;
 
     private String browser;
 
     private String ipAddress;
 
     private String location;
+
+    private LocalDateTime moveToArchiveDate;
+
+    private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private Long userId;

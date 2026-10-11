@@ -16,6 +16,9 @@ public interface SharedAccountActivityLogRepository extends JpaRepository<Shared
     @Query("SELECT a FROM SharedAccountActivityLog a WHERE a.ownerId = :userId OR a.memberId = :userId")
     List<SharedAccountActivityLog> findByOwnerIdOrMemberId(Long userId, Pageable pageable);
 
+
+    void deleteByOwnerIdAndMemberId(Long ownerId, Long memberId);
+
     void deleteByUserId(Long userId);
 
 

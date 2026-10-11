@@ -1,29 +1,23 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.core;
 
-import lombok.RequiredArgsConstructor;
+
+import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
 
 import java.util.List;
+public abstract class SecurityActivityCore<E, AR, D> extends AccountActivityCore<E, D> {
 
-@RequiredArgsConstructor
-public abstract class SecurityActivityCore<A, AR> {
-
-    protected abstract void saveActivity(A activity);
-
+    protected abstract void saveActivity(E activity);
     protected abstract long countActivities(Long userId);
-
-    protected abstract List<A> findActivitiesToArchive(Long userId, int pageSize);
-
-    protected abstract AR mapToArchive(A activity);
-
+    protected abstract List<E> findActivitiesToArchive(Long userId, int pageSize);
+    protected abstract AR mapToArchive(E activity);
     protected abstract void archive(List<AR> archives);
-
-    protected abstract void deleteActivities(List<A> activities);
+    protected abstract void deleteActivities(List<E> activities);
 
     protected void moveToArchive(Long userId, int pageSize) {
         long count = countActivities(userId);
 
         if (count > pageSize) {
-            List<A> toMove = findActivitiesToArchive(userId, pageSize);
+            List<E> toMove = findActivitiesToArchive(userId, pageSize);
             List<AR> archives = toMove.stream().map(this::mapToArchive).toList();
 
             archive(archives);
@@ -31,4 +25,3 @@ public abstract class SecurityActivityCore<A, AR> {
         }
     }
 }
-

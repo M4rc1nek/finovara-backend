@@ -4,6 +4,7 @@ import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.acti
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.service.LoginActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,14 +12,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/account-activity/account-security")
+@RequestMapping("/api/account-activity/login")
 @RequiredArgsConstructor
 public class LoginActivityController {
     private final LoginActivityService loginActivityService;
 
     @GetMapping
-    public ResponseEntity<List<LoginActivityDto>> getUserLoginActivity() {
-        return ResponseEntity.ok(loginActivityService.getLoginActivity(SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<List<LoginActivityDto>> getUserLoginActivity(@RequestParam(defaultValue = "NEWEST") SortType sortType) {
+        return ResponseEntity.ok(loginActivityService.getLoginActivity(SecurityUtils.getCurrentUserId(), sortType));
     }
 
     @PostMapping("/confirm-password")

@@ -3,7 +3,7 @@ package com.finovara.securitymonitoring.consumer;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.securitymonitoring.accountchange.service.AccountChangeProfileUpdateService;
 import com.finovara.securitymonitoring.login.service.LoginProfileUpdateService;
@@ -36,7 +36,7 @@ public class UpdateDataConsumer {
     }
 
     @KafkaListener(topics = "account.changed")
-    public void handleAccountChanges(AccountChangesActivityEvent event) {
+    public void handleAccountChanges(AccountChangeActivityEvent event) {
         accountChangeProfileUpdateService.handleAccountChangeEvent(event);
     }
 

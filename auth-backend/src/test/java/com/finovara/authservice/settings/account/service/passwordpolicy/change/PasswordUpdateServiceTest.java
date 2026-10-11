@@ -1,8 +1,8 @@
 package com.finovara.authservice.settings.account.service.passwordpolicy.change;
 
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.util.notification.event.SendEmailEvent;
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
@@ -86,9 +86,9 @@ class PasswordUpdateServiceTest {
                 payloadCaptor.capture()
         );
 
-        AccountChangesActivityEvent event = (AccountChangesActivityEvent) payloadCaptor.getValue();
+        AccountChangeActivityEvent event = (AccountChangeActivityEvent) payloadCaptor.getValue();
         assertThat(event.userId()).isEqualTo(USER_ID);
-        assertThat(event.type()).isEqualTo(AccountChangesActivityType.PASSWORD_CHANGED);
+        assertThat(event.type()).isEqualTo(AccountChangeActivityType.PASSWORD_CHANGED);
         assertThat(event.occurredAt()).isNotNull();
     }
 

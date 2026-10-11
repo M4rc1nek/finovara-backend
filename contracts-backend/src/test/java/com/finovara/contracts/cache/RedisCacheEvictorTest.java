@@ -49,7 +49,6 @@ class RedisCacheEvictorTest {
         lenient().when(cursor.next()).thenAnswer(inv -> iterator.next());
     }
 
-    /** Zapamiętuje kopię zawartości przy każdym delete(Collection), bo evictor czyści batch. */
     private List<List<String>> captureDeleteCalls() {
         List<List<String>> calls = new ArrayList<>();
         doAnswer(inv -> {

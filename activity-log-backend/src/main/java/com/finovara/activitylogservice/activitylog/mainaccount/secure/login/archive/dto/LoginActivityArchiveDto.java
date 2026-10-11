@@ -8,7 +8,7 @@ public record LoginActivityArchiveDto(
         String type,
         LoginActivityStatus status,
         LocalDateTime moveToArchiveDate,
-        LocalDateTime activityLoginDate,
+        LocalDateTime createdAt,
         String browser,
         String ipAddress,
         String location

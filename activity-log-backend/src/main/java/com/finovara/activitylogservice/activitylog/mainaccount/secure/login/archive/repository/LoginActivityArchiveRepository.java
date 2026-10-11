@@ -1,9 +1,8 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.repository;
 
-import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.dto.LoginActivityArchiveDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.model.LoginActivityArchive;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -11,14 +10,7 @@ import java.util.List;
 @Repository
 public interface LoginActivityArchiveRepository extends JpaRepository<LoginActivityArchive, Long> {
 
-    @Query("""
-            SELECT new com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.dto.LoginActivityArchiveDto(
-           l.type, l.status, l.moveToArchiveDate, l.activityLoginDate, l.browser, l.ipAddress, l.location)
-           FROM LoginActivityArchive l
-           WHERE l.userId = :userId
-           ORDER BY l.id DESC
-            """)
-     List<LoginActivityArchiveDto> findAllByUserIdOrderByIdDesc(Long userId);
+    List<LoginActivityArchive> findByUserId(Long userId, Pageable pageable);
 
     void deleteByUserId(Long userId);
 

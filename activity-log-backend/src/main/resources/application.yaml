@@ -22,7 +22,7 @@ spring:
   cache:
     type: redis
     redis:
-      time-to-live: 1200000  # 20 minutes
+      time-to-live: 3600000  # 1 hour
       cache-null-values: false
   kafka:
     bootstrap-servers: finovara-kafka:9092
@@ -92,7 +92,11 @@ scheduler:
 user-activity:
   login:
     page-size: 30
+  login-archive:
+    page-size: 30
   account-changes:
+    page-size: 30
+  account-changes-archive:
     page-size: 30
   expense:
     page-size: 100

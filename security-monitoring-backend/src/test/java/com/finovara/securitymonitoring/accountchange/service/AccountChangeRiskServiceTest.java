@@ -1,6 +1,6 @@
 package com.finovara.securitymonitoring.accountchange.service;
 
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.securitymonitoring.accountchange.config.AccountChangeRiskProperties;
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;
@@ -164,7 +164,7 @@ class AccountChangeRiskServiceTest {
             when(context.accountChangeProfile()).thenReturn(profile);
             when(context.triggerType()).thenReturn(RiskTriggerType.USERNAME_CHANGED);
             when(profile.getLastUsernameChangeAt()).thenReturn(null);
-            when(profile.getLastChangeType()).thenReturn(AccountChangesActivityType.PASSWORD_CHANGED);
+            when(profile.getLastChangeType()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
             when(profile.getLastChangeAt()).thenReturn(LocalDateTime.now().minusMinutes(3));
             when(profile.getCreatedAt()).thenReturn(null);
             when(properties.getIdentityChangeMinutes()).thenReturn(15L);
@@ -182,7 +182,7 @@ class AccountChangeRiskServiceTest {
             when(context.accountChangeProfile()).thenReturn(profile);
             when(context.triggerType()).thenReturn(RiskTriggerType.PROFILE_IMAGE_CHANGED);
             when(profile.getLastProfileImageChangeAt()).thenReturn(null);
-            when(profile.getLastChangeType()).thenReturn(AccountChangesActivityType.EMAIL_CHANGED);
+            when(profile.getLastChangeType()).thenReturn(AccountChangeActivityType.EMAIL_CHANGED);
             when(profile.getLastChangeAt()).thenReturn(LocalDateTime.now().minusMinutes(3));
             when(profile.getCreatedAt()).thenReturn(null);
             when(properties.getIdentityChangeMinutes()).thenReturn(15L);
@@ -210,7 +210,7 @@ class AccountChangeRiskServiceTest {
             when(context.accountChangeProfile()).thenReturn(profile);
             when(context.triggerType()).thenReturn(RiskTriggerType.USERNAME_CHANGED);
             when(profile.getLastUsernameChangeAt()).thenReturn(null);
-            when(profile.getLastChangeType()).thenReturn(AccountChangesActivityType.PROFILE_IMG_CHANGED);
+            when(profile.getLastChangeType()).thenReturn(AccountChangeActivityType.PROFILE_IMG_CHANGED);
             when(profile.getCreatedAt()).thenReturn(null);
 
             List<TriggeredRule> result = accountChangeRiskService.evaluate(context);
@@ -223,7 +223,7 @@ class AccountChangeRiskServiceTest {
             when(context.accountChangeProfile()).thenReturn(profile);
             when(context.triggerType()).thenReturn(RiskTriggerType.USERNAME_CHANGED);
             when(profile.getLastUsernameChangeAt()).thenReturn(null);
-            when(profile.getLastChangeType()).thenReturn(AccountChangesActivityType.PASSWORD_CHANGED);
+            when(profile.getLastChangeType()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
             when(profile.getLastChangeAt()).thenReturn(null);
             when(profile.getCreatedAt()).thenReturn(null);
 
@@ -237,7 +237,7 @@ class AccountChangeRiskServiceTest {
             when(context.accountChangeProfile()).thenReturn(profile);
             when(context.triggerType()).thenReturn(RiskTriggerType.USERNAME_CHANGED);
             when(profile.getLastUsernameChangeAt()).thenReturn(null);
-            when(profile.getLastChangeType()).thenReturn(AccountChangesActivityType.PASSWORD_CHANGED);
+            when(profile.getLastChangeType()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
             when(profile.getLastChangeAt()).thenReturn(LocalDateTime.now().minusMinutes(60));
             when(profile.getCreatedAt()).thenReturn(null);
             when(properties.getIdentityChangeMinutes()).thenReturn(15L);
@@ -326,7 +326,7 @@ class AccountChangeRiskServiceTest {
             when(context.accountChangeProfile()).thenReturn(profile);
             when(context.triggerType()).thenReturn(RiskTriggerType.USERNAME_CHANGED);
             when(profile.getLastUsernameChangeAt()).thenReturn(LocalDateTime.now().minusMinutes(2));
-            when(profile.getLastChangeType()).thenReturn(AccountChangesActivityType.PASSWORD_CHANGED);
+            when(profile.getLastChangeType()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
             when(profile.getLastChangeAt()).thenReturn(LocalDateTime.now().minusMinutes(3));
             when(profile.getCreatedAt()).thenReturn(LocalDateTime.now().minusDays(1));
             when(profile.getTotalChangeCount()).thenReturn(10L);

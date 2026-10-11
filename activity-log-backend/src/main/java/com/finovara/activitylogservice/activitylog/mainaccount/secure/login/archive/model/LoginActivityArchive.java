@@ -24,15 +24,15 @@ public class LoginActivityArchive {
     @Enumerated(EnumType.STRING)
     private LoginActivityStatus status;
 
-    private LocalDateTime moveToArchiveDate;
-
-    private LocalDateTime activityLoginDate;
-
     private String browser;
 
     private String ipAddress;
 
     private String location;
+
+    private LocalDateTime moveToArchiveDate;
+
+    private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private Long userId;

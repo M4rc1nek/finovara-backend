@@ -6,13 +6,15 @@ import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.map
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.model.SharedAccountChangeHistoryActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.repository.SharedAccountChangeHistoryActivityRepository;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,10 +33,9 @@ public class SharedAccountChangeHistoryActivityService extends AccountActivityCo
     private final SharedAccountActivityMapper sharedAccountActivityMapper;
     private final AuthBackendClient authBackendClient;
 
-
     @Transactional
     public void handleEvent(SharedAccountChangeHistoryActivityEvent event) {
-        SharedAccountChangeHistoryActivity revenueActivity = SharedAccountChangeHistoryActivity.builder()
+        SharedAccountChangeHistoryActivity activity = SharedAccountChangeHistoryActivity.builder()
                 .userId(event.userId())
                 .type(event.type())
                 .refundedBalance(event.refundedBalance())
@@ -43,10 +44,11 @@ public class SharedAccountChangeHistoryActivityService extends AccountActivityCo
                 .createdAt(event.occurredAt())
                 .build();
 
-        sharedAccountChangeHistoryActivityRepository.save(revenueActivity);
-        log.info("Created shared account activity. Type: {}, userId: {}", event.type(), event.userId());
+        sharedAccountChangeHistoryActivityRepository.save(activity);
+        log.info("Created shared account change history activity. Type: {}, userId: {}", event.type(), event.userId());
     }
 
+    @Cacheable(value = "sharedAccountChangeHistoryActivity", key = "#userId + ':' + #sort")
     public List<SharedAccountChangeHistoryActivityDto> getSharedAccountActivity(Long userId, SortType sort) {
         return getActivities(userId, sort, pageSize);
     }
@@ -69,6 +71,6 @@ public class SharedAccountChangeHistoryActivityService extends AccountActivityCo
     @Transactional
     public void deleteByUserId(Long userId) {
         sharedAccountChangeHistoryActivityRepository.deleteByUserId(userId);
-        log.info("Deleted shared account activity for userId={}", userId);
+        log.info("Deleted shared account change history activity for userId={}", userId);
     }
 }

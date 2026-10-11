@@ -11,6 +11,8 @@ import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +46,7 @@ public class RevenueActivityService extends AccountActivityCore<RevenueActivity,
         log.info("Created activity type: {}, userId: {}", event.type(), event.userId());
     }
 
+    @Cacheable(value = "revenueActivity", key = "#userId + ':' + #sort")
     public List<RevenueActivityDto> getRevenueActivity(Long userId, SortType sort) {
         return getActivities(userId, sort, pageSize);
     }

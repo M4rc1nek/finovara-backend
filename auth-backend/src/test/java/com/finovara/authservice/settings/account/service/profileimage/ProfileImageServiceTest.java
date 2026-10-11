@@ -7,8 +7,8 @@ import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -146,11 +146,11 @@ class ProfileImageServiceTest {
 
             profileImageService.uploadProfileImage(validFile, USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
-            ArgumentCaptor<AccountChangesActivityEvent> captor =
-                    ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
+            ArgumentCaptor<AccountChangeActivityEvent> captor =
+                    ArgumentCaptor.forClass(AccountChangeActivityEvent.class);
 
             verify(kafkaTemplate).send(eq("account.changed"), captor.capture());
-            assertThat(captor.getValue().type()).isEqualTo(AccountChangesActivityType.PROFILE_IMG_CHANGED);
+            assertThat(captor.getValue().type()).isEqualTo(AccountChangeActivityType.PROFILE_IMG_CHANGED);
         }
 
         @Test
@@ -337,10 +337,10 @@ class ProfileImageServiceTest {
 
             profileImageService.deleteProfileImage(USER_ID, request, AUTHORIZATION_CODE, SOURCE_EVENT_ID);
 
-            ArgumentCaptor<AccountChangesActivityEvent> captor =
-                    ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
+            ArgumentCaptor<AccountChangeActivityEvent> captor =
+                    ArgumentCaptor.forClass(AccountChangeActivityEvent.class);
             verify(kafkaTemplate).send(eq("account.changed"), captor.capture());
-            assertThat(captor.getValue().type()).isEqualTo(AccountChangesActivityType.PROFILE_IMG_DELETED);
+            assertThat(captor.getValue().type()).isEqualTo(AccountChangeActivityType.PROFILE_IMG_DELETED);
         }
 
         @Test

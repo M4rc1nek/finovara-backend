@@ -10,9 +10,9 @@ import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.user.clientdata.browser.UserBrowser;
 import com.finovara.contracts.user.clientdata.ip.ClientIp;
 import com.finovara.contracts.user.clientdata.location.UserLocation;
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.exception.forbidden.InvalidPasswordException;
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -136,11 +136,11 @@ class AdditionalAuthorizationServiceTest {
 
             additionalAuthorizationService.saveAdditionalAuthorization(USER_ID, request, httpServletRequest);
 
-            ArgumentCaptor<AccountChangesActivityEvent> eventCaptor = ArgumentCaptor.forClass(AccountChangesActivityEvent.class);
+            ArgumentCaptor<AccountChangeActivityEvent> eventCaptor = ArgumentCaptor.forClass(AccountChangeActivityEvent.class);
             verify(outboxService, times(1)).save(eq("User"), eq(USER_ID.toString()), eq("account.changed"), eventCaptor.capture());
 
-            AccountChangesActivityEvent publishedEvent = eventCaptor.getValue();
-            assertEquals(AccountChangesActivityType.ADDITIONAL_AUTHORIZATION_DISABLED, publishedEvent.type());
+            AccountChangeActivityEvent publishedEvent = eventCaptor.getValue();
+            assertEquals(AccountChangeActivityType.ADDITIONAL_AUTHORIZATION_DISABLED, publishedEvent.type());
             assertEquals(USER_ID, publishedEvent.userId());
             assertEquals(IP_ADDRESS, publishedEvent.ipAddress());
             assertEquals(BROWSER, publishedEvent.browser());

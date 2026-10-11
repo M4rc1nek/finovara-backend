@@ -2,18 +2,22 @@ package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.act
 
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.core.SecurityActivityCore;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.mapper.LoginActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.model.LoginActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.repository.LoginActivityRepository;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.service.LoginActivityArchiveService;
-import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
-import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +26,11 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LoginActivityService extends SecurityActivityCore<LoginActivity, LoginActivityArchive>  implements UserDataDeletable {
+public class LoginActivityService extends SecurityActivityCore<LoginActivity, LoginActivityArchive, LoginActivityDto> implements UserDataDeletable {
 
     private final LoginActivityRepository loginActivityRepository;
-    private final LoginActivityArchiveService archiveService;
+    private final LoginActivityArchiveService loginActivityArchiveService;
+    private final LoginActivityMapper loginActivityMapper;
     private final AuthBackendClient authBackendClient;
 
     @Value("${user-activity.login.page-size}")
@@ -48,12 +53,23 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
         moveToArchive(event.userId(), pageSize);
     }
 
-    public List<LoginActivityDto> getLoginActivity(Long userId) {
-        return loginActivityRepository.findByUserIdOrderByDesc(userId);
+    @Cacheable(value = "loginActivity", key = "#userId + ':' + #sort")
+    public List<LoginActivityDto> getLoginActivity(Long userId, SortType sort) {
+        return getActivities(userId, sort, pageSize);
     }
 
     public void confirmPassword(Long userId, ConfirmPasswordDto confirmPasswordDto) {
-            authBackendClient.verifyPassword(userId, confirmPasswordDto);
+        authBackendClient.verifyPassword(userId, confirmPasswordDto);
+    }
+
+    @Override
+    protected List<LoginActivity> getRepositoryFindByUserId(Long userId, Pageable pageable) {
+        return loginActivityRepository.findByUserId(userId, pageable);
+    }
+
+    @Override
+    protected LoginActivityDto mapToDto(LoginActivity loginActivity) {
+        return loginActivityMapper.mapToDto(loginActivity);
     }
 
     @Override
@@ -73,12 +89,12 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
 
     @Override
     protected LoginActivityArchive mapToArchive(LoginActivity a) {
-        return archiveService.mapToArchive(a);
+        return loginActivityArchiveService.mapToArchive(a);
     }
 
     @Override
     protected void archive(List<LoginActivityArchive> a) {
-        archiveService.archive(a);
+        loginActivityArchiveService.archive(a);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.finovara.activitylogservice.internal.security.mainaccount.digest;
 
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
-import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangesDigestSummaryDto;
+import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.AccountChangeDigestSummaryDto;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.dto.LoginDigestSummaryDto;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.mapper.WeeklySecurityDigestReportMapper;
 import com.finovara.activitylogservice.internal.security.mainaccount.digest.service.SecuritySummaryService;
@@ -35,7 +35,7 @@ public class InternalSecurityDigestService {
 
     private WeeklySecurityDigestReportDto buildSummaryForUser(Long userId, LocalDateTime from, LocalDateTime to) {
         LoginDigestSummaryDto loginSummary = securitySummaryService.calculateLoginSummary(userId, from, to);
-        AccountChangesDigestSummaryDto accountChangesSummary = securitySummaryService.calculateAccountChangesSummary(userId, from, to);
+        AccountChangeDigestSummaryDto accountChangesSummary = securitySummaryService.calculateAccountChangesSummary(userId, from, to);
 
         return weeklySecurityDigestReportMapper.toDto(userId, from, to, loginSummary, accountChangesSummary);
     }
