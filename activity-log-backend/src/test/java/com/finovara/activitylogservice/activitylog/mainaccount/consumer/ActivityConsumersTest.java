@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.accountactivity.consumer;
+package com.finovara.activitylogservice.activitylog.mainaccount.consumer;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.consumer.ActivityConsumers;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.service.ExpenseActivityService;
