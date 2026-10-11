@@ -5,7 +5,16 @@ import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.arch
 import org.springframework.stereotype.Component;
 
 @Component
-public class LoginArchiveMapper {
+public class LoginActivityArchiveMapper {
 
-    public LoginActivityArchiveDto mapToDto(LoginActivityArchive activityArchive)
+    public LoginActivityArchiveDto mapToDto(LoginActivityArchive activityArchive) {
+        return new LoginActivityArchiveDto(
+                activityArchive.getType(),
+                activityArchive.getStatus(),
+                activityArchive.getMoveToArchiveDate(),
+                activityArchive.getCreatedAt(),
+                activityArchive.getBrowser(),
+                activityArchive.getIpAddress(),
+                activityArchive.getLocation());
+    }
 }
