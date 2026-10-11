@@ -1,13 +1,13 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.dto;
 
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 
 import java.time.LocalDateTime;
 
 public record AccountChangeArchiveDto(
-        AccountChangesActivityType type,
+        AccountChangeActivityType type,
         LocalDateTime moveToArchiveDate,
-        LocalDateTime activityAccountChangesDate,
+        LocalDateTime createdAt,
         String browser,
         String ipAddress,
         String location
