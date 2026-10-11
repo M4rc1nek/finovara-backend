@@ -1,8 +1,8 @@
 package com.finovara.authservice.settings.account.service.emailpolicy.change;
 
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.util.notification.event.SendEmailEvent;
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
@@ -89,9 +89,9 @@ class EmailUpdateServiceTest {
                 payloadCaptor.capture()
         );
 
-        AccountChangesActivityEvent event = (AccountChangesActivityEvent) payloadCaptor.getValue();
+        AccountChangeActivityEvent event = (AccountChangeActivityEvent) payloadCaptor.getValue();
         assertThat(event.userId()).isEqualTo(USER_ID);
-        assertThat(event.type()).isEqualTo(AccountChangesActivityType.EMAIL_CHANGED);
+        assertThat(event.type()).isEqualTo(AccountChangeActivityType.EMAIL_CHANGED);
         assertThat(event.occurredAt()).isNotNull();
     }
 
