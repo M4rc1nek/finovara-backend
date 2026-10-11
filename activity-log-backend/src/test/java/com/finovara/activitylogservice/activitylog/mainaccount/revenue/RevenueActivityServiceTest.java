@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.accountactivity.revenue.service;
+package com.finovara.activitylogservice.activitylog.mainaccount.revenue;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.mapper.RevenueActivityMapper;
