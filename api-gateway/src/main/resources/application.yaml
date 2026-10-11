@@ -47,7 +47,7 @@ spring:
             - id: activity-log-backend
               uri: ${ACTIVITY_LOG_BACKEND_URL}
               predicates:
-                - Path=/api/account-activity/**,/api/shared-accounts/activity,/api/shared-accounts/refresh-activity,/api/archive-activities/**
+                - Path=/api/account-activity/**,/api/shared-accounts/activity,/api/activity-log/refresh/**,/api/archive-activities/**
 
             - id: notification-backend
               uri: ${NOTIFICATION_BACKEND_URL}
@@ -154,27 +154,6 @@ rate-limit:
     - path: /api/auth/login
       max-requests: 555 # 5
       window-hours: 1
-    - path: /api/report-cache/refresh-financial
-      max-requests: 1
-      window-minutes: 5
-    - path: /api/report-cache/refresh-security
-      max-requests: 1
-      window-minutes: 5
-    - path: /api/revenue-history-cache/refresh
-      max-requests: 1
-      window-minutes: 5
-    - path: /api/expense-history-cache/refresh
-      max-requests: 1
-      window-minutes: 5
-    - path: /api/shared-accounts/report-cache/refresh-financial
-      max-requests: 1
-      window-minutes: 5
-    - path: /api/shared-accounts/report-cache/refresh-security
-      max-requests: 1
-      window-minutes: 5
-    - path: /api/shared-accounts/refresh-activity
-      max-requests: 3 #1
-      window-minutes: 5
     - path: /api/shared-account/users/send-invitation
       max-requests: 555 # 1
       window-hours: 1
@@ -187,3 +166,26 @@ rate-limit:
     - path: /api/security-monitoring/confirm-email-code/**
       max-requests: 10
       window-minutes: 15
+
+
+    - path: /api/report-cache/refresh-financial
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/report-cache/refresh-security
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/shared-accounts/report-cache/refresh-financial
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/shared-accounts/report-cache/refresh-security
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/revenue-history/refresh
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/expense-history/refresh
+      max-requests: 1
+      window-minutes: 5
+    - path: /api/activity-log/refresh/**
+      max-requests: 3
+      window-hours: 1
