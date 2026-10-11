@@ -3,7 +3,7 @@ package com.finovara.securitymonitoring.consumer;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.securitymonitoring.accountchange.service.AccountChangeProfileUpdateService;
 import com.finovara.securitymonitoring.login.service.LoginProfileUpdateService;
@@ -197,11 +197,11 @@ class UpdateDataConsumerTest {
     @Nested
     class HandleAccountChanges {
 
-        private AccountChangesActivityEvent event;
+        private AccountChangeActivityEvent event;
 
         @BeforeEach
         void setUp() {
-            event = new AccountChangesActivityEvent(123L, null, "Chrome", "192.168.1.1", "Warsaw", LocalDateTime.of(2026, 1, 1, 12, 0));
+            event = new AccountChangeActivityEvent(123L, null, "Chrome", "192.168.1.1", "Warsaw", LocalDateTime.of(2026, 1, 1, 12, 0));
         }
 
         @Test
@@ -224,7 +224,7 @@ class UpdateDataConsumerTest {
 
         @Test
         void shouldHandleAccountChangeEventWhenOptionalValuesAreNull() {
-            AccountChangesActivityEvent eventWithNullValues = new AccountChangesActivityEvent(null, null, null, null, null, null);
+            AccountChangeActivityEvent eventWithNullValues = new AccountChangeActivityEvent(null, null, null, null, null, null);
 
             updateDataConsumer.handleAccountChanges(eventWithNullValues);
 
