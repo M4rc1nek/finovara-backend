@@ -1,26 +1,26 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model;
 
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "account_changes_activity")
+@Table(name = "account_change_activity")
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
 @Builder
-public class AccountChangesActivity {
+public class AccountChangeActivity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    private AccountChangesActivityType type;
+    private AccountChangeActivityType type;
 
     private LocalDateTime createdAt;
 
