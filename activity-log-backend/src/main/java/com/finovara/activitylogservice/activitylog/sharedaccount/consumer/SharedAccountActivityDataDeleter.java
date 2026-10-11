@@ -11,11 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SharedAccountActivityDataDeleter {
 
-    private final SharedAccountActivityLogRepository financeActivityRepository;
+    private final SharedAccountActivityLogRepository sharedAccountActivityLogRepository;
 
     @Transactional
-    public void deleteAllSharedAccountActivityLogData() {
-        financeActivityRepository.deleteAllInBatch();
+    public void deleteSharedAccountActivityLogData(Long ownerId, Long memberId) {
+        sharedAccountActivityLogRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
         log.info("Shared account finance activities has been deleted.");
     }
 
