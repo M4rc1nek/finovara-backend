@@ -12,6 +12,8 @@ import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,6 +67,7 @@ public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActiv
         log.info("Created piggy bank edit activity. type={}, userId={}", event.type(), event.userId());
     }
 
+    @Cacheable(value = "piggyBankActivity", key = "#userId + ':' + #sort")
     public List<PiggyBankActivityDto> getPiggyBankActivities(Long userId, SortType sort) {
         return getActivities(userId, sort, pageSize);
     }
