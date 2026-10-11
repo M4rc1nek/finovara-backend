@@ -1,9 +1,9 @@
 package com.finovara.authservice.settings.account.service.passwordpolicy.change;
 
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.util.notification.ActionEmailEventType;
 import com.finovara.contracts.util.notification.event.SendEmailEvent;
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.outbox.OutboxService;
 
 import static com.finovara.contracts.user.clientdata.browser.UserBrowser.getBrowser;
@@ -41,6 +41,6 @@ public class PasswordUpdateService {
     private void createActivity(User user, HttpServletRequest request) {
         String ipAddress = getClientIpAddress(request);
         outboxService.save("User", user.getId().toString(), "account.changed",
-                new AccountChangesActivityEvent(user.getId(), AccountChangesActivityType.PASSWORD_CHANGED, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
+                new AccountChangeActivityEvent(user.getId(), AccountChangeActivityType.PASSWORD_CHANGED, getBrowser(request), ipAddress, getLocationFromIp(ipAddress), LocalDateTime.now()));
     }
 }
