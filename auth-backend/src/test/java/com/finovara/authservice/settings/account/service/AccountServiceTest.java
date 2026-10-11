@@ -7,11 +7,11 @@ import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangesActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.mainaccount.activity.model.AccountChangesActivityType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.util.notification.event.SendEmailEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
@@ -109,9 +109,9 @@ class AccountServiceTest {
                     payloadCaptor.capture()
             );
 
-            AccountChangesActivityEvent event = (AccountChangesActivityEvent) payloadCaptor.getValue();
+            AccountChangeActivityEvent event = (AccountChangeActivityEvent) payloadCaptor.getValue();
             assertThat(event.userId()).isEqualTo(userId);
-            assertThat(event.type()).isEqualTo(AccountChangesActivityType.USERNAME_CHANGED);
+            assertThat(event.type()).isEqualTo(AccountChangeActivityType.USERNAME_CHANGED);
             assertThat(event.occurredAt()).isNotNull();
         }
 
