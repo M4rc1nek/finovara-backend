@@ -228,7 +228,7 @@ class FundReservationServiceTest {
             when(reservation.getWalletId()).thenReturn(WALLET_ID);
             when(reservation.getAmount()).thenReturn(BigDecimal.valueOf(40));
 
-            fundReservationService.cancelReservation(USER_ID, RESERVATION_ID, AUTHORIZATION_CODE);
+            fundReservationService.manualDeleteReservation(USER_ID, RESERVATION_ID, AUTHORIZATION_CODE);
 
             verify(authBackendClient).confirmAuthorizationCode(USER_ID, additionalAuthorizationCodeResolver.resolve(AUTHORIZATION_CODE));
             verify(wallet, times(1)).unreserve(BigDecimal.valueOf(40));
@@ -241,7 +241,7 @@ class FundReservationServiceTest {
             when(reservation.getWalletId()).thenReturn(WALLET_ID);
             when(reservation.getAmount()).thenReturn(BigDecimal.valueOf(40));
 
-            fundReservationService.cancelReservation(USER_ID, RESERVATION_ID, AUTHORIZATION_CODE);
+            fundReservationService.manualDeleteReservation(USER_ID, RESERVATION_ID, AUTHORIZATION_CODE);
 
             verify(authBackendClient).confirmAuthorizationCode(USER_ID, additionalAuthorizationCodeResolver.resolve(AUTHORIZATION_CODE));
             verify(fundReservationRepository, times(1)).delete(reservation);
@@ -251,7 +251,7 @@ class FundReservationServiceTest {
         void shouldThrowExceptionWhenReservationNotFound() {
             when(fundReservationRepository.findById(RESERVATION_ID)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> fundReservationService.cancelReservation(USER_ID, RESERVATION_ID, AUTHORIZATION_CODE));
+            assertThrows(RequestedEntityNotFoundException.class, () -> fundReservationService.manualDeleteReservation(USER_ID, RESERVATION_ID, AUTHORIZATION_CODE));
             verify(fundReservationRepository, never()).delete(any(FundReservation.class));
         }
 
@@ -261,7 +261,7 @@ class FundReservationServiceTest {
             when(fundReservationRepository.findById(RESERVATION_ID)).thenReturn(Optional.of(reservation));
             when(reservation.getWalletId()).thenReturn(999L);
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> fundReservationService.cancelReservation(USER_ID, RESERVATION_ID, AUTHORIZATION_CODE));
+            assertThrows(RequestedEntityNotFoundException.class, () -> fundReservationService.manualDeleteReservation(USER_ID, RESERVATION_ID, AUTHORIZATION_CODE));
             verify(fundReservationRepository, never()).delete(any(FundReservation.class));
         }
 
@@ -270,7 +270,7 @@ class FundReservationServiceTest {
             when(walletManagerService.getWalletByUserIdOrThrow(USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("Wallet not found"));
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> fundReservationService.cancelReservation(USER_ID, RESERVATION_ID, AUTHORIZATION_CODE));
+            assertThrows(RequestedEntityNotFoundException.class, () -> fundReservationService.manualDeleteReservation(USER_ID, RESERVATION_ID, AUTHORIZATION_CODE));
             verify(fundReservationRepository, never()).findById(any(Long.class));
         }
     }

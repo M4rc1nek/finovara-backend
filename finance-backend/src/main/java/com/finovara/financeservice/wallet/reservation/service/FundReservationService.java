@@ -1,8 +1,9 @@
 package com.finovara.financeservice.wallet.reservation.service;
 
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
@@ -19,7 +20,7 @@ import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
-public class FundReservationService {
+public class FundReservationService implements UserDataDeletable {
 
     private final WalletManagerService walletManagerService;
     private final FundReservationRepository fundReservationRepository;
@@ -66,7 +67,7 @@ public class FundReservationService {
 
     @Transactional
     @CacheEvict(value = "wallet:user", key = "#userId")
-    public void cancelReservation(Long userId, Long reservationId, String authorizationCode) {
+    public void manualDeleteReservation(Long userId, Long reservationId, String authorizationCode) {
         Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
         FundReservation reservation = getOwnedReservationOrThrow(reservationId, wallet.getId());
 
@@ -75,6 +76,7 @@ public class FundReservationService {
 
         fundReservationRepository.delete(reservation);
     }
+
 
     private FundReservation getOwnedReservationOrThrow(Long reservationId, Long walletId) {
         FundReservation reservation = fundReservationRepository.findById(reservationId)
@@ -85,5 +87,11 @@ public class FundReservationService {
         }
 
         return reservation;
+    }
+
+    @Override
+    @Transactional
+    public void deleteByUserId(Long userId) {
+        fundReservationRepository.deleteAllByUserId(userId);
     }
 }
