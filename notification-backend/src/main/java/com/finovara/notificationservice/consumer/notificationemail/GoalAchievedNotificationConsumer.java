@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notificationemail.sharedaccount.piggybank.goalachieved.consumer;
+package com.finovara.notificationservice.consumer.notificationemail;
 
 import com.finovara.contracts.sharedaccount.event.notification.GoalAchievedNotificationEvent;
 import com.finovara.notificationservice.notificationemail.sharedaccount.piggybank.goalachieved.service.GoalAchievedNotificationHandler;
