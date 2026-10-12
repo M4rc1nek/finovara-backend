@@ -1,8 +1,7 @@
-package com.finovara.notificationservice.notificationemail.service.settings.consumer.wallet.lowbalance;
+package com.finovara.notificationservice.consumer.notificationemail;
 
 import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.contracts.mainaccount.transaction.event.wallet.WalletBalanceChangedEvent;
-import com.finovara.notificationservice.consumer.notificationemail.NotificationLowBalanceConsumer;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
