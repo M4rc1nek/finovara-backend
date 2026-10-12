@@ -180,10 +180,10 @@ rate-limit:
     - path: /api/shared-accounts/report-cache/refresh-security
       max-requests: 1
       window-minutes: 5
-    - path: /api/revenue-history/refresh
+    - path: /api/finance-history/revenue/refresh
       max-requests: 1
       window-minutes: 5
-    - path: /api/expense-history/refresh
+    - path: /api/finance-history/expense/refresh
       max-requests: 1
       window-minutes: 5
     - path: /api/activity-log/refresh/**

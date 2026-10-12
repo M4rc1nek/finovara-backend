@@ -33,8 +33,8 @@ cache:
   ttl-minutes:
     "[wallet:user]": 1
     "[wallet:shared]": 1
-    "[expense:historyByCategory]": 10
-    "[revenue:historyByCategory]": 10
+    "[historyByCategory:expense]": 10
+    "[historyByCategory:revenue]": 10
     "[expense:suggestion]": 10
     "[revenue:suggestion]": 10
     "[nbpRates]": 60
