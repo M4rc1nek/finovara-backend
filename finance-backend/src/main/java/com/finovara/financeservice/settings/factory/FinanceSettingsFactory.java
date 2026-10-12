@@ -29,6 +29,14 @@ public class FinanceSettingsFactory {
         createRecurringSettingsIfMissing(userId);
     }
 
+    @Transactional
+    public void deleteSettingsIfExist(Long userId) {
+        if (recurringSettingsExist(userId) && expenseSettingsRepository.existsByUserId(userId)) {
+            recurringSettingsRepository.deleteAllByUserId(userId);
+            expenseSettingsRepository.deleteByUserId(userId);
+        }
+    }
+
     private void createExpenseSettingsIfMissing(Long userId) {
         if (expenseSettingsRepository.existsByUserId(userId)) {
             log.debug("Expense settings already exist for userId={}, skipping", userId);
@@ -53,6 +61,7 @@ public class FinanceSettingsFactory {
                 log.debug("Recurring settings already exist for userId={}, type={}, skipping", userId, type);
                 return;
             }
+
             recurringSettingsRepository.save(RecurringSettings.builder()
                     .userId(userId)
                     .enable(false)
@@ -66,7 +75,13 @@ public class FinanceSettingsFactory {
                     .nextExecutionDate(null)
                     .createdAt(LocalDate.now())
                     .build());
+
             log.info("Recurring settings created for userId={}, type={}", userId, type);
         });
+    }
+    private boolean recurringSettingsExist(Long userId) {
+        return Arrays.stream(RecurringType.values())
+                .anyMatch(type ->
+                        recurringSettingsRepository.existsByUserIdAndType(userId, type));
     }
 }
