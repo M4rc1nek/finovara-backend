@@ -1,6 +1,5 @@
-package com.finovara.activitylogservice.activitylog.mainaccount.consumer;
+package com.finovara.activitylogservice.activitylog.consumer;
 
-import com.finovara.activitylogservice.activitylog.consumer.ActivityConsumers;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.service.ExpenseActivityService;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.service.LimitActivityService;
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.service.PiggyBankActivityService;
