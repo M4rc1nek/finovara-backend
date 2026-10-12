@@ -1,17 +1,17 @@
-package com.finovara.notificationservice.notification.consumer.sharedaccount.deletion;
+package com.finovara.notificationservice.consumer.notification.sharedaccount.deletion;
 
-import com.finovara.contracts.sharedaccount.event.deletion.NotificationSharedAccountLeftEvent;
 import com.finovara.contracts.mainaccount.notification.NotificationType;
+import com.finovara.contracts.sharedaccount.event.deletion.NotificationSharedAccountLeftEvent;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import com.finovara.notificationservice.notification.dto.sharedaccount.deletion.SharedAccountLeftDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-@Service
+@Component
 @Slf4j
 @RequiredArgsConstructor
 public class SharedAccountLeftConsumer {
