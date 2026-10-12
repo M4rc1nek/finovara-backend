@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notification.consumer.recurring;
+package com.finovara.notificationservice.consumer.notification.recurring;
 
 import com.finovara.contracts.mainaccount.notification.NotificationType;
 import com.finovara.contracts.util.model.RecurringType;
