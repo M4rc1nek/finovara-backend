@@ -1,6 +1,5 @@
-package com.finovara.activitylogservice.activitylog.sharedaccount.consumer;
+package com.finovara.activitylogservice.activitylog.consumer.sharedaccount;
 
-import com.finovara.activitylogservice.activitylog.consumer.sharedaccount.SharedAccountActivityDataDeleter;
 import com.finovara.activitylogservice.activitylog.sharedaccount.repository.SharedAccountActivityLogRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
