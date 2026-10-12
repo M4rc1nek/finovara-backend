@@ -1,18 +1,18 @@
-package com.finovara.notificationservice.notification.consumer.limit;
+package com.finovara.notificationservice.consumer.notification.limit;
 
-import com.finovara.contracts.mainaccount.transaction.event.limit.LimitStatsEvent;
 import com.finovara.contracts.mainaccount.notification.NotificationType;
-import com.finovara.notificationservice.notification.dto.limit.LimitExceededDto;
+import com.finovara.contracts.mainaccount.transaction.event.limit.LimitStatsEvent;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
+import com.finovara.notificationservice.notification.dto.limit.LimitExceededDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Service
+@Component
 @Slf4j
 @RequiredArgsConstructor
 public class LimitExceededConsumer {
