@@ -1,0 +1,29 @@
+package com.finovara.financeservice.consumer;
+
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.user.event.account.UserAccountDeletedEvent;
+import com.finovara.contracts.user.event.account.UserCreatedEvent;
+import com.finovara.financeservice.settings.factory.FinanceSettingsFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+@RequiredArgsConstructor
+public class FinanceConsumer {
+
+    private final List<UserDataDeletable> deletableServices;
+    private final FinanceSettingsFactory financeSettingsFactory;
+
+    @KafkaListener(topics = "user.created", groupId = "finance.create-default-settings")
+    public void handleUserCreated(UserCreatedEvent event) {
+        financeSettingsFactory.createDefaultSettingsIfNotExist(event.userId());
+    }
+
+    @KafkaListener(topics = "user-account.deleted", groupId = "finance.delete-data")
+    public void handleAccountDeleted(UserAccountDeletedEvent event) {
+        deletableServices.forEach(service -> service.deleteByUserId(event.userId()));
+    }
+}
