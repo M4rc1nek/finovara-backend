@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.activitylog.securitymonitoring.consumer;
+package com.finovara.activitylogservice.activitylog.consumer;
 
 import com.finovara.activitylogservice.activitylog.securitymonitoring.service.RiskOperationLogService;
 import com.finovara.contracts.mainaccount.activity.event.securitymonitoring.RiskOperationCreatedEvent;
