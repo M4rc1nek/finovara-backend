@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notification.consumer.sharedaccount.invitation;
+package com.finovara.notificationservice.consumer.notification.sharedaccount.invitation;
 
 import com.finovara.contracts.sharedaccount.event.invitation.UserAcceptSharedAccountInvitationEvent;
 import com.finovara.contracts.mainaccount.notification.NotificationType;
