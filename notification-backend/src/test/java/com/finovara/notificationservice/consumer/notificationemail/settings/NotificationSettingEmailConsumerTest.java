@@ -1,14 +1,14 @@
-package com.finovara.notificationservice.notificationemail.service.settings;
+package com.finovara.notificationservice.consumer.notificationemail.settings;
 
 import com.finovara.contracts.util.notification.ActionEmailEventType;
 import com.finovara.contracts.util.notification.event.SendEmailEvent;
 import com.finovara.contracts.user.event.account.UserCreatedEvent;
 import com.finovara.contracts.user.event.account.UserAccountDeletedEvent;
-import com.finovara.notificationservice.consumer.notificationemail.settings.NotificationSettingEmailConsumer;
 import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
+import com.finovara.notificationservice.notificationemail.service.settings.NotificationEmailSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
