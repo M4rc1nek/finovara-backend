@@ -1,4 +1,4 @@
-package com.finovara.activitylogservice.activitylog.sharedaccount.consumer;
+package com.finovara.activitylogservice.activitylog.consumer.sharedaccount;
 
 import com.finovara.activitylogservice.activitylog.sharedaccount.service.SharedAccountActivityLogService;
 import com.finovara.activitylogservice.cache.evict.ActivityCache;
@@ -8,10 +8,11 @@ import com.finovara.contracts.sharedaccount.event.deletion.SharedAccountDeletedE
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
+
 
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
 public class SharedAccountActivityConsumer {
 
