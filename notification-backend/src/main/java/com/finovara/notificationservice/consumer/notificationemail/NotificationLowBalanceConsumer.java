@@ -1,7 +1,7 @@
-package com.finovara.notificationservice.notificationemail.service.settings.consumer.wallet.lowbalance;
+package com.finovara.notificationservice.consumer.notificationemail;
 
-import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.contracts.mainaccount.transaction.event.wallet.WalletBalanceChangedEvent;
+import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
@@ -10,13 +10,13 @@ import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Map;
 
-@Service
+@Component
 @Slf4j
 @RequiredArgsConstructor
 public class NotificationLowBalanceConsumer {
@@ -48,7 +48,7 @@ public class NotificationLowBalanceConsumer {
         }
 
         BigDecimal dropped = event.previousBalance().subtract(event.currentBalance()).setScale(2, RoundingMode.HALF_UP);
-        Map<String, String>  placeholders =  buildPlaceHolders(event, settings, userDataResponse, dropped);
+        Map<String, String> placeholders = buildPlaceHolders(event, settings, userDataResponse, dropped);
 
         emailNotifier.send(ActionEmailNotificationType.WALLET_LOW_BALANCE, userDataResponse.email().get(), placeholders);
 
