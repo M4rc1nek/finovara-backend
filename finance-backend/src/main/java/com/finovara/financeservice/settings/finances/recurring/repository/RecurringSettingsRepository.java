@@ -34,4 +34,6 @@ public interface RecurringSettingsRepository extends JpaRepository<RecurringSett
     List<RecurringSettings> findAllEnabledByUserId(Long userId);
 
     void deleteAllByUserId(Long userId);
+
+    boolean existsByUserIdAndType(Long userId, RecurringType type);
 }
