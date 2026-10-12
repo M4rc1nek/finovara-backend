@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notificationemail.service.settings;
+package com.finovara.notificationservice.consumer.notificationemail.settings;
 
 import com.finovara.contracts.util.notification.ActionEmailEventType;
 import com.finovara.contracts.util.notification.event.SendEmailEvent;
@@ -8,6 +8,7 @@ import com.finovara.notificationservice.notificationemail.model.ActionEmailNotif
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
 import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
+import com.finovara.notificationservice.notificationemail.service.settings.NotificationEmailSettingsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -36,7 +37,7 @@ public class NotificationSettingEmailConsumer {
                 .ifPresent(settings -> processEmail(event));
     }
 
-    @KafkaListener(topics = "user-account.deleted", groupId = "notification-email-service")
+    @KafkaListener(topics = "user-account.deleted", groupId = "notification-email-settings-delete")
     public void deleteSettings(UserAccountDeletedEvent event) {
         notificationEmailSettingsRepository.findByUserId(event.userId())
                 .ifPresent(notificationEmailSettingsService::deleteSettings);
