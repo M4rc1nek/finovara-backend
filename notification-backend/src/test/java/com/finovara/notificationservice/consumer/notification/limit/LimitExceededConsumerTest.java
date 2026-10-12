@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notification.consumer.limit;
+package com.finovara.notificationservice.consumer.notification.limit;
 
 import com.finovara.contracts.mainaccount.transaction.event.limit.LimitStatsEvent;
 import com.finovara.contracts.mainaccount.notification.NotificationType;
