@@ -1,4 +1,4 @@
-package com.finovara.financeservice.sharedaccount.consumer;
+package com.finovara.financeservice.consumer;
 
 import com.finovara.contracts.sharedaccount.event.UsersCreatedSharedAccountEvent;
 import com.finovara.contracts.sharedaccount.event.deletion.SharedAccountDeletedEvent;
@@ -12,19 +12,19 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class SharedAccountConsumer {
+public class SharedAccountFinanceConsumer {
 
     private final SharedAccountSettingsFactory sharedAccountSettingsFactory;
     private final SharedWalletService sharedWalletService;
     private final SharedAccountDeletionHandler sharedAccountDeletionHandler;
 
     @KafkaListener(topics = "finance.shared-account.invitation-accepted")
-    public void createDefault(UsersCreatedSharedAccountEvent event){
+    public void createDefaultSharedAccountWallet(UsersCreatedSharedAccountEvent event){
         sharedWalletService.createSharedWallet(event.inviterUserId(), event.inviteeUserId());
     }
 
     @KafkaListener(topics = "finance.shared-account.create-default-settings")
-    public void createDefaultSettings(SharedAccountCreateDefaultSettingsEvent event){
+    public void createDefaultSharedAccountSettings(SharedAccountCreateDefaultSettingsEvent event){
         sharedAccountSettingsFactory.createDefaultSharedAccountSettingsIfNotExist(event.inviterUserId(), event.inviteeUserId());
     }
 
