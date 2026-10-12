@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notification.consumer.piggybank;
+package com.finovara.notificationservice.consumer.notification.piggybank;
 
 import com.finovara.contracts.mainaccount.transaction.event.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.mainaccount.notification.NotificationType;
