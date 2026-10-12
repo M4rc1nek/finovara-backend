@@ -51,8 +51,7 @@ public class WalletService implements UserDataDeletable {
         wallet.withdraw(amount);
         log.info("Withdrawing balance from wallet for userId: {}", userId);
 
-        kafkaTemplate.send("wallet.balance-changed",
-                new WalletBalanceChangedEvent(userId, previousBalance, wallet.getBalance(), LocalDateTime.now()));
+        kafkaTemplate.send("wallet.balance-changed", new WalletBalanceChangedEvent(userId, previousBalance, wallet.getBalance(), LocalDateTime.now()));
 
         return returnNewWalletDto(userId, wallet);
     }
