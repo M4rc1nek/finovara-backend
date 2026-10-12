@@ -1,25 +1,24 @@
-package com.finovara.notificationservice.notification.consumer.sharedaccount.invitation;
+package com.finovara.notificationservice.consumer.notification.sharedaccount.invitation;
 
-import com.finovara.contracts.sharedaccount.event.invitation.UserRejectSharedAccountInvitationEvent;
 import com.finovara.contracts.mainaccount.notification.NotificationType;
-import com.finovara.notificationservice.notification.dto.sharedaccount.invitation.UserRejectSharedAccountInvitationDto;
+import com.finovara.contracts.sharedaccount.event.invitation.UserRejectSharedAccountInvitationEvent;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
+import com.finovara.notificationservice.notification.dto.sharedaccount.invitation.UserRejectSharedAccountInvitationDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-
-@Service
+@Component
 @Slf4j
 @RequiredArgsConstructor
 public class UserRejectSharedAccountInvitationConsumer {
 
     private final NotificationPersistenceService notificationPersistenceService;
 
-    @KafkaListener(topics = "user.shared-account.reject-invitation", groupId = "notification-shared-account-invitation-reject")
+    @KafkaListener(topics = "user.shared-account.reject-invitation")
     public void handle(UserRejectSharedAccountInvitationEvent event) {
 
         notificationPersistenceService.save(event.userId(), new UserRejectSharedAccountInvitationDto(
