@@ -1,7 +1,5 @@
-package com.finovara.activitylogservice.activitylog.sharedaccount.consumer;
+package com.finovara.activitylogservice.activitylog.consumer.sharedaccount;
 
-import com.finovara.activitylogservice.activitylog.consumer.sharedaccount.SharedAccountActivityConsumer;
-import com.finovara.activitylogservice.activitylog.consumer.sharedaccount.SharedAccountActivityDataDeleter;
 import com.finovara.activitylogservice.activitylog.sharedaccount.service.SharedAccountActivityLogService;
 import com.finovara.activitylogservice.cache.evict.ActivityCache;
 import com.finovara.activitylogservice.cache.evict.EvictActivityCacheService;
