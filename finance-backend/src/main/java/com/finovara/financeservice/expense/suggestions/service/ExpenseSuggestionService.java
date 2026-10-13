@@ -19,10 +19,9 @@ public class ExpenseSuggestionService {
     @Value("${expense.suggestion.history-size}")
     private int pageSize;
 
-    @Cacheable(value = "expense:suggestion", key = "#userId", unless = "#result == null")
+    @Cacheable(value = "suggestion:expense", key = "#userId", unless = "#result == null")
     public ExpenseSuggestionDto getExpenseSuggestion(Long userId) {
-        List<ExpenseSuggestionDto> latest =
-                expenseRepository.findLatestExpensePairsByUserId(userId, PageRequest.of(0, pageSize));
+        List<ExpenseSuggestionDto> latest = expenseRepository.findLatestExpensePairsByUserId(userId, PageRequest.of(0, pageSize));
 
         if (latest.size() < pageSize) {
             return null;
