@@ -19,7 +19,7 @@ public class RevenueSuggestionService {
     @Value("${revenue.suggestion.history-size}")
     private int pageSize;
 
-    @Cacheable(value = "revenue:suggestion", key = "#userId", unless = "#result == null")
+    @Cacheable(value = "suggestion:revenue", key = "#userId", unless = "#result == null")
     public RevenueSuggestionDto getRevenueSuggestion(Long userId) {
         List<RevenueSuggestionDto> latest = revenueRepository.findLatestRevenuePairsByUserId(userId, PageRequest.of(0, pageSize));
 
