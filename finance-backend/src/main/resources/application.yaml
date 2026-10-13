@@ -35,8 +35,8 @@ cache:
     "[wallet:shared]": 1
     "[historyByCategory:expense]": 10
     "[historyByCategory:revenue]": 10
-    "[expense:suggestion]": 10
-    "[revenue:suggestion]": 10
+    "[suggestion:expense]": 10
+    "[suggestion:revenue]": 10
     "[nbpRates]": 60
 
 server:
