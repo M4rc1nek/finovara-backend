@@ -1,4 +1,4 @@
-package com.finovara.reportservice.util.dto;
+package com.finovara.contracts.mainaccount.report.financial.dto;
 
 import com.finovara.contracts.util.PeriodType;
 
