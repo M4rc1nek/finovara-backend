@@ -1,71 +1,52 @@
-package smartreport.service.loader;
+package com.finovara.reportservice.report.smartreport.service.loader;
 
-import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
-import com.finovara.reportservice.report.finances.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.text.Normalizer;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class SmartReportQuestionService {
 
+    private static final String[] QUESTION_FILES = {
+            "smartreport/question/MonthSpendingQuestion",
+            "smartreport/question/AverageDaySpendingQuestion",
+            "smartreport/question/ExpenseRateQuestion",
+            "smartreport/question/SavingsRateQuestion"
+    };
+
+    private final SmartReportResourceLoader resourceLoader;
     private final Map<String, SmartReportType> questionMap = new HashMap<>();
 
     @PostConstruct
-    public void init() {
-        loadQuestions("smartreport/question/MonthSpendingQuestion");
-        loadQuestions("smartreport/question/AverageDaySpendingQuestion");
-        loadQuestions("smartreport/question/ExpenseRateQuestion");
-        loadQuestions("smartreport/question/SavingsRateQuestion");
+    void init() {
+        for (String file : QUESTION_FILES) {
+            resourceLoader.readLines(file).forEach(this::register);
+        }
     }
 
     public SmartReportType getTypeFromQuestion(String userQuestion) {
-        return questionMap.get(normalize(userQuestion));
+        return userQuestion == null ? null : questionMap.get(normalize(userQuestion));
     }
 
-    private void loadQuestions(String path) {
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(path)) {
-
-            if (inputStream == null) {
-                throw new IllegalStateException("File not found: " + path);
-            }
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
-            reader.lines()
-                    .filter(line -> !line.isBlank())
-                    .forEach(line -> {
-                        String[] parts = line.split("\\|");
-                        if (parts.length == 2) {
-                            String enumName = parts[0].trim();
-                            String question = normalize(parts[1]);
-                            questionMap.put(question, SmartReportType.valueOf(enumName));
-                        }
-                    });
-        } catch (Exception exception) {
-            throw new ServiceUnavailableException("Failed to load Questions", exception);
+    private void register(String line) {
+        String[] parts = line.split("\\|");
+        if (parts.length == 2) {
+            questionMap.put(normalize(parts[1]), SmartReportType.valueOf(parts[0].trim()));
         }
     }
 
     private String normalize(String text) {
-        return text.toLowerCase()
-                .trim()
-                .replace("ą", "a")
-                .replace("ę", "e")
-                .replace("ł", "l")
-                .replace("ś", "s")
-                .replace("ó", "o")
-                .replace("ż", "z")
-                .replace("ź", "z")
-                .replace("ć", "c")
-                .replace("ń", "n")
-                .replace("?", "");
+        String lower = text.toLowerCase(Locale.ROOT).replace('ł', 'l');
+        return Normalizer.normalize(lower, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace("?", "")
+                .trim();
     }
 }
