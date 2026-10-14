@@ -1,7 +1,19 @@
 package com.finovara.reportservice.healthscore.service;
 
-import com.finovara.contracts.util.model.ExpenseCategory;
-import com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.nCopies;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialTotalsDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
+import com.finovara.contracts.util.PeriodType;
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.healthscore.dto.HealthScoreDto;
 import com.finovara.reportservice.healthscore.model.HealthScoreStatus;
@@ -9,365 +21,237 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class HealthScoreServiceTest {
 
     private static final Long USER_ID = 1L;
+    private static final PeriodType REPORT_PERIOD = PeriodType.MONTHLY;
 
     @Mock
-    private FinanceBackendReportClient reportClient;
+    private FinanceBackendReportClient financeBackendReportClient;
+
+    @Mock
+    private FinancialReportDto report;
+
+    @Mock
+    private FinancialTotalsDto totals;
+
+    @Mock
+    private HighestExpenseDto highestExpense;
+
+    @Mock
+    private HighestExpenseDto smallExpense;
+
+    @Mock
+    private HighestExpenseDto expenseWithoutAmount;
 
     @InjectMocks
-    private HealthScoreService healthScoreService;
-
-    private LocalDate from;
-    private LocalDate to;
-
-    @BeforeEach
-    void setUp() {
-        to = LocalDate.now();
-        from = to.withDayOfMonth(1);
-    }
+    private HealthScoreService service;
 
     @Nested
     class GetHealthScore {
 
-        @Test
-        void shouldReturnExcellentStatusWhenAllComponentScoresAreAtMaximum() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(1000));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.ZERO, BigDecimal.valueOf(100));
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.valueOf(1000));
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5)).thenReturn(Collections.emptyList());
+        @BeforeEach
+        void setUp() {
+            when(financeBackendReportClient.getFinancialReport(USER_ID, REPORT_PERIOD)).thenReturn(report);
+            when(report.totals()).thenReturn(totals);
+        }
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
+        @ParameterizedTest
+        @CsvSource({
+                "1000,500,5000,100,95,EXCELLENT",
+                "2000,1000,5000,600,85,EXCELLENT",
+                "2000,1000,5000,640,84,GOOD",
+                "2000,1000,2580,1000,70,GOOD",
+                "2000,1000,2520,1000,69,NEEDS_ATTENTION",
+                "2000,1000,0,600,50,NEEDS_ATTENTION",
+                "2000,1000,0,640,49,POOR",
+                "1000,2000,0,2000,0,POOR",
+                "1000,500,5000,1000,75,GOOD",
+                "0,500,5000,100,55,NEEDS_ATTENTION"
+        })
+        void shouldReturnExpectedScoreAndStatusWhenFinancialDataIsGiven(
+                BigDecimal revenues,
+                BigDecimal expenses,
+                BigDecimal walletBalance,
+                BigDecimal topExpense,
+                BigDecimal expectedScore,
+                HealthScoreStatus expectedStatus) {
+            when(totals.revenues()).thenReturn(revenues);
+            when(totals.expenses()).thenReturn(expenses);
+            when(financeBackendReportClient.walletBalance(USER_ID)).thenReturn(walletBalance);
+            when(highestExpense.amount()).thenReturn(topExpense);
+            when(report.highestExpenses()).thenReturn(List.of(highestExpense));
 
-            assertNotNull(result);
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(100)));
-            assertEquals(HealthScoreStatus.EXCELLENT, result.statusFromScore());
+            HealthScoreDto result = service.getHealthScore(USER_ID);
+
+            assertEquals(new HealthScoreDto(expectedScore, expectedStatus), result);
         }
 
         @Test
-        void shouldTreatNullRevenuesAsZeroSavingsScore() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.ZERO);
+        void shouldReturnExcellentWhenExpensesAreZeroAndRevenuesArePositive() {
+            when(totals.revenues()).thenReturn(new BigDecimal("1000"));
+            when(totals.expenses()).thenReturn(BigDecimal.ZERO);
+            when(financeBackendReportClient.walletBalance(USER_ID)).thenReturn(new BigDecimal("100"));
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
+            HealthScoreDto result = service.getHealthScore(USER_ID);
 
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(60)));
-            assertEquals(HealthScoreStatus.NEEDS_ATTENTION, result.statusFromScore());
+            assertEquals(new HealthScoreDto(BigDecimal.valueOf(100), HealthScoreStatus.EXCELLENT), result);
         }
 
         @Test
-        void shouldTreatZeroRevenuesAsZeroSavingsScore() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.ZERO);
+        void shouldTreatNullRevenuesAndExpensesAsZeroWhenTotalsHaveNoValues() {
+            HealthScoreDto result = service.getHealthScore(USER_ID);
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
-
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(60)));
-            assertEquals(HealthScoreStatus.NEEDS_ATTENTION, result.statusFromScore());
+            assertEquals(new HealthScoreDto(BigDecimal.valueOf(60), HealthScoreStatus.NEEDS_ATTENTION), result);
         }
 
         @Test
-        void shouldTreatNullExpensesAsZeroWhenCalculatingSavingsScore() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(null, BigDecimal.valueOf(100));
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5))
-                    .thenReturn(List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(100))));
+        void shouldTreatNullWalletBalanceAsZeroWhenWalletBalanceIsNull() {
+            when(totals.revenues()).thenReturn(new BigDecimal("2000"));
+            when(totals.expenses()).thenReturn(new BigDecimal("1000"));
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
+            HealthScoreDto result = service.getHealthScore(USER_ID);
 
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(40)));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
+            assertEquals(new HealthScoreDto(BigDecimal.valueOf(65), HealthScoreStatus.NEEDS_ATTENTION), result);
         }
 
         @Test
-        void shouldReturnProportionalSavingsScoreWhenSavingsRateBelowTarget() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(85), BigDecimal.valueOf(100));
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5))
-                    .thenReturn(List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(100))));
+        void shouldReturnZeroEmergencyFundScoreWhenWalletBalanceIsNegative() {
+            when(totals.revenues()).thenReturn(new BigDecimal("2000"));
+            when(totals.expenses()).thenReturn(new BigDecimal("1000"));
+            when(financeBackendReportClient.walletBalance(USER_ID)).thenReturn(new BigDecimal("-500"));
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
+            HealthScoreDto result = service.getHealthScore(USER_ID);
 
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(20)));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
+            assertEquals(new HealthScoreDto(BigDecimal.valueOf(65), HealthScoreStatus.NEEDS_ATTENTION), result);
         }
 
         @Test
-        void shouldReturnFullBufferScoreWhenAvgExpensesIsZero() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.valueOf(500));
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5))
-                    .thenReturn(List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(100))));
+        void shouldReturnFullDiversityScoreWhenHighestExpensesAreEmpty() {
+            when(totals.revenues()).thenReturn(new BigDecimal("2000"));
+            when(totals.expenses()).thenReturn(new BigDecimal("1000"));
+            when(financeBackendReportClient.walletBalance(USER_ID)).thenReturn(new BigDecimal("3000"));
+            when(report.highestExpenses()).thenReturn(emptyList());
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
+            HealthScoreDto result = service.getHealthScore(USER_ID);
 
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(35)));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
+            assertEquals(new HealthScoreDto(BigDecimal.valueOf(100), HealthScoreStatus.EXCELLENT), result);
         }
 
         @Test
-        void shouldReturnFullBufferScoreWhenAvgExpensesIsNull() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.valueOf(500));
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5))
-                    .thenReturn(List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(100))));
+        void shouldReturnFullDiversityScoreWhenHighestExpensesAreNull() {
+            when(totals.revenues()).thenReturn(new BigDecimal("2000"));
+            when(totals.expenses()).thenReturn(new BigDecimal("1000"));
+            when(financeBackendReportClient.walletBalance(USER_ID)).thenReturn(new BigDecimal("3000"));
+            when(report.highestExpenses()).thenReturn(null);
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
+            HealthScoreDto result = service.getHealthScore(USER_ID);
 
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(35)));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
+            assertEquals(new HealthScoreDto(BigDecimal.valueOf(100), HealthScoreStatus.EXCELLENT), result);
         }
 
         @Test
-        void shouldTreatNullWalletBalanceAsZeroWhenCalculatingBufferScore() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(1000));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.ZERO, BigDecimal.ZERO);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(null);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
+        void shouldIgnoreExpensesWithNullAmountWhenCalculatingDiversityScore() {
+            when(totals.revenues()).thenReturn(new BigDecimal("2000"));
+            when(totals.expenses()).thenReturn(new BigDecimal("1000"));
+            when(financeBackendReportClient.walletBalance(USER_ID)).thenReturn(new BigDecimal("3000"));
+            when(highestExpense.amount()).thenReturn(new BigDecimal("100"));
+            when(report.highestExpenses()).thenReturn(List.of(expenseWithoutAmount, highestExpense));
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
+            HealthScoreDto result = service.getHealthScore(USER_ID);
 
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(65)));
-            assertEquals(HealthScoreStatus.NEEDS_ATTENTION, result.statusFromScore());
+            assertEquals(new HealthScoreDto(BigDecimal.valueOf(98), HealthScoreStatus.EXCELLENT), result);
         }
 
         @Test
-        void shouldReturnFullBufferScoreWhenMonthsCoveredExceedsTarget() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.valueOf(1000));
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5))
-                    .thenReturn(List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(100))));
+        void shouldSumOnlyFiveHighestExpensesWhenMoreExpensesAreReturned() {
+            when(totals.revenues()).thenReturn(new BigDecimal("6000"));
+            when(totals.expenses()).thenReturn(new BigDecimal("3000"));
+            when(financeBackendReportClient.walletBalance(USER_ID)).thenReturn(new BigDecimal("9000"));
+            when(highestExpense.amount()).thenReturn(new BigDecimal("100"));
+            when(report.highestExpenses()).thenReturn(nCopies(10, highestExpense));
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
+            HealthScoreDto result = service.getHealthScore(USER_ID);
 
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(35)));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
+            assertEquals(new HealthScoreDto(BigDecimal.valueOf(96), HealthScoreStatus.EXCELLENT), result);
         }
 
         @Test
-        void shouldReturnProportionalBufferScoreWhenMonthsCoveredBelowTarget() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.valueOf(150));
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5))
-                    .thenReturn(List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(100))));
+        void shouldSortExpensesDescendingBeforeLimitingWhenExpensesAreUnordered() {
+            when(totals.revenues()).thenReturn(new BigDecimal("10000"));
+            when(totals.expenses()).thenReturn(new BigDecimal("5000"));
+            when(financeBackendReportClient.walletBalance(USER_ID)).thenReturn(new BigDecimal("15000"));
+            when(smallExpense.amount()).thenReturn(BigDecimal.ONE);
+            when(highestExpense.amount()).thenReturn(new BigDecimal("1000"));
+            when(report.highestExpenses()).thenReturn(List.of(
+                    smallExpense, smallExpense, smallExpense, smallExpense, smallExpense,
+                    highestExpense, highestExpense, highestExpense, highestExpense, highestExpense));
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
+            HealthScoreDto result = service.getHealthScore(USER_ID);
 
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(18)));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
+            assertEquals(new HealthScoreDto(BigDecimal.valueOf(75), HealthScoreStatus.GOOD), result);
         }
 
         @Test
-        void shouldReturnFullConcentrationScoreWhenTotalExpensesIsZero() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.ZERO);
+        void shouldFetchReportAndWalletBalanceExactlyOnceWhenScoreIsCalculated() {
+            service.getHealthScore(USER_ID);
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
+            verify(financeBackendReportClient, times(1)).getFinancialReport(USER_ID, REPORT_PERIOD);
+            verify(financeBackendReportClient, times(1)).walletBalance(USER_ID);
+            verifyNoMoreInteractions(financeBackendReportClient);
+        }
+    }
 
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(25)));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
+    @Nested
+    class GetHealthScoreWithMissingReportData {
+
+        @Test
+        void shouldReturnNeedsAttentionWhenReportIsNull() {
+            when(financeBackendReportClient.getFinancialReport(USER_ID, REPORT_PERIOD)).thenReturn(null);
+
+            HealthScoreDto result = service.getHealthScore(USER_ID);
+
+            assertEquals(new HealthScoreDto(BigDecimal.valueOf(60), HealthScoreStatus.NEEDS_ATTENTION), result);
         }
 
         @Test
-        void shouldReturnFullConcentrationScoreWhenTotalExpensesIsNull() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(null);
+        void shouldReturnNeedsAttentionWhenTotalsAreNull() {
+            when(financeBackendReportClient.getFinancialReport(USER_ID, REPORT_PERIOD)).thenReturn(report);
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
+            HealthScoreDto result = service.getHealthScore(USER_ID);
 
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(25)));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
+            assertEquals(new HealthScoreDto(BigDecimal.valueOf(60), HealthScoreStatus.NEEDS_ATTENTION), result);
+        }
+    }
+
+    @Nested
+    class GetHealthScoreWithClientFailures {
+
+        @Test
+        void shouldThrowExceptionWhenReportClientFails() {
+            when(financeBackendReportClient.getFinancialReport(USER_ID, REPORT_PERIOD)).thenThrow(new IllegalStateException("client error"));
+
+            assertThrows(IllegalStateException.class, () -> service.getHealthScore(USER_ID));
+
+            verify(financeBackendReportClient, never()).walletBalance(USER_ID);
         }
 
         @Test
-        void shouldReturnFullConcentrationScoreWhenTopExpensesListIsEmpty() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5)).thenReturn(Collections.emptyList());
+        void shouldThrowExceptionWhenWalletBalanceClientFails() {
+            when(financeBackendReportClient.getFinancialReport(USER_ID, REPORT_PERIOD)).thenReturn(report);
+            when(financeBackendReportClient.walletBalance(USER_ID)).thenThrow(new IllegalStateException("client error"));
 
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
-
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(25)));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
-        }
-
-        @Test
-        void shouldReturnFullConcentrationScoreWhenTopExpensesListIsNull() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5)).thenReturn(null);
-
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
-
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(25)));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
-        }
-
-        @Test
-        void shouldIgnoreNullAmountsWhenSummingTopExpenses() {
-            List<HighestExpenseDto> topExpenses = Arrays.asList(
-                    new HighestExpenseDto(ExpenseCategory.FOOD, null),
-                    new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(100)));
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(1000));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5)).thenReturn(topExpenses);
-
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
-
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(23)));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
-        }
-
-        @Test
-        void shouldClampConcentrationScoreToZeroWhenTopExpensesExceedTotalExpenses() {
-            List<HighestExpenseDto> topExpenses = List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(150)));
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5)).thenReturn(topExpenses);
-
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
-
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.ZERO));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
-        }
-
-        @Test
-        void shouldReturnExcellentStatusAtLowerBoundaryScoreEightyFive() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(74.5), BigDecimal.valueOf(100));
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.valueOf(255));
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5))
-                    .thenReturn(List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(15))));
-
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
-
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(85)));
-            assertEquals(HealthScoreStatus.EXCELLENT, result.statusFromScore());
-        }
-
-        @Test
-        void shouldQueryReportClientWithFirstDayOfMonthAndTodayAndSampleSizeFive() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(1000));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.ZERO, BigDecimal.valueOf(100));
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.valueOf(1000));
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5)).thenReturn(Collections.emptyList());
-
-            healthScoreService.getHealthScore(USER_ID);
-
-            verify(reportClient, times(1)).sumRevenues(eq(USER_ID), eq(from), eq(to));
-            verify(reportClient, times(1)).walletBalance(eq(USER_ID));
-            verify(reportClient, times(1)).avgExpenses(eq(USER_ID), eq(from), eq(to));
-            verify(reportClient, times(1)).highestExpenses(eq(USER_ID), eq(from), eq(to), eq(5));
-        }
-
-        @Test
-        void shouldReturnGoodStatusAtLowerBoundaryScoreSeventy() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(79), BigDecimal.valueOf(100));
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.valueOf(210));
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5))
-                    .thenReturn(List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(30))));
-
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
-
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(70)));
-            assertEquals(HealthScoreStatus.GOOD, result.statusFromScore());
-        }
-
-        @Test
-        void shouldReturnNeedsAttentionStatusAtLowerBoundaryScoreFifty() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(85), BigDecimal.valueOf(100));
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.valueOf(150));
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5))
-                    .thenReturn(List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(50))));
-
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
-
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(50)));
-            assertEquals(HealthScoreStatus.NEEDS_ATTENTION, result.statusFromScore());
-        }
-
-        @Test
-        void shouldReturnGoodStatusJustBelowExcellentBoundary() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(74.8), BigDecimal.valueOf(100));
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.valueOf(252));
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5))
-                    .thenReturn(List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(16))));
-
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
-
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.valueOf(84)));
-            assertEquals(HealthScoreStatus.GOOD, result.statusFromScore());
-        }
-
-        @Test
-        void shouldReturnPoorStatusWhenAllComponentScoresAreAtMinimum() {
-            when(reportClient.sumRevenues(USER_ID, from, to)).thenReturn(null);
-            when(reportClient.walletBalance(USER_ID)).thenReturn(BigDecimal.ZERO);
-            when(reportClient.avgExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.sumExpenses(USER_ID, from, to)).thenReturn(BigDecimal.valueOf(100));
-            when(reportClient.highestExpenses(USER_ID, from, to, 5))
-                    .thenReturn(List.of(new HighestExpenseDto(ExpenseCategory.FOOD, BigDecimal.valueOf(100))));
-
-            HealthScoreDto result = healthScoreService.getHealthScore(USER_ID);
-
-            assertEquals(0, result.finalScore().compareTo(BigDecimal.ZERO));
-            assertEquals(HealthScoreStatus.POOR, result.statusFromScore());
+            assertThrows(IllegalStateException.class, () -> service.getHealthScore(USER_ID));
         }
     }
 }

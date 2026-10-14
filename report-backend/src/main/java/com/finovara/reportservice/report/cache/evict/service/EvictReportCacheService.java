@@ -19,14 +19,10 @@ public class EvictReportCacheService {
         redisCacheEvictor.evictByPatterns(buildPatterns(FINANCIAL_PREFIX, userId));
     }
 
-    public void evictSecurityDataForUser(Long userId) {
-        redisCacheEvictor.evictByPatterns(buildPatterns(SECURITY_PREFIX, userId));
+    public void evictSecurityDataForUser(Long userId) {redisCacheEvictor.evictByPatterns(buildPatterns(SECURITY_PREFIX, userId));
     }
 
     private List<String> buildPatterns(String prefix, Long userId) {
-        return List.of(
-                prefix + ":*::" + userId,
-                prefix + ":*::" + userId + ":*"
-        );
+        return List.of(prefix + "::" + userId + ":*");
     }
 }

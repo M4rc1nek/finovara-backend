@@ -94,6 +94,8 @@ scheduler:
       delete-cron: "0 0 1 5 * ?"
 
 expense:
+  highest:
+    page-size: 5
   suggestion:
     history-size: 5
   settings:
@@ -101,8 +103,18 @@ expense:
       expense-count: 4
 
 revenue:
+  highest:
+    page-size: 5
   suggestion:
     history-size: 5
+
+shared:
+  expense:
+    highest:
+      page-size: 10
+  revenue:
+    highest:
+      page-size: 10
 
 nbp:
   api:

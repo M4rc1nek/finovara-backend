@@ -1,0 +1,56 @@
+package com.finovara.reportservice.pdfexport.strategy.highest;
+
+import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.reportservice.pdfexport.PdfReportContext;
+import com.finovara.reportservice.pdfexport.ReportPdfHandler;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import com.finovara.reportservice.pdfexport.strategy.PdfReportValues;
+import com.finovara.reportservice.pdfexport.strategy.label.PdfReportText;
+import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.util.List;
+
+@Component
+public class HighestExpensesPdf implements ReportPdfHandler {
+
+    @Override
+    public PdfReportType getType() {
+        return PdfReportType.HIGHEST_EXPENSES;
+    }
+
+    @Override
+    public String getTitle(PeriodType periodType) {
+        return "Największe wydatki";
+    }
+
+    @Override
+    public String getFileName(PeriodType periodType) {
+        return PdfReportText.fileName("najwieksze-wydatki", periodType);
+    }
+
+    @Override
+    public void generate(PdfReportDocument document, PdfReportContext context) throws IOException {
+        List<HighestExpenseDto> expenses = PdfReportValues.safe(context.report().highestExpenses());
+
+        document.addSection("Największe wydatki");
+        document.addInfo("Okres:", PdfReportText.periodLabel(context.periodType()));
+        document.addBarChart(
+                "Największe wydatki według kategorii",
+                expenses.stream().map(e -> PdfReportText.expenseCategoryLabel(e.category())).toList(),
+                expenses.stream().map(HighestExpenseDto::amount).toList(),
+                true
+        );
+        document.addTable(
+                new String[]{"Kategoria", "Kwota"},
+                expenses.stream()
+                        .map(e -> new String[]{
+                                PdfReportText.expenseCategoryLabel(e.category()),
+                                document.formatMoney(e.amount())
+                        })
+                        .toList()
+        );
+    }
+}

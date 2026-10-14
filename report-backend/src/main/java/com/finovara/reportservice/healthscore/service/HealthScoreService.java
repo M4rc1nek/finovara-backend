@@ -1,6 +1,9 @@
 package com.finovara.reportservice.healthscore.service;
 
-import com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialTotalsDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
+import com.finovara.contracts.util.PeriodType;
 import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
 import com.finovara.reportservice.healthscore.dto.HealthScoreDto;
 import com.finovara.reportservice.healthscore.model.HealthScoreStatus;
@@ -10,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -22,27 +25,43 @@ public class HealthScoreService {
     private static final BigDecimal SAVINGS_TARGET_RATE = BigDecimal.valueOf(30);
     private static final BigDecimal EMERGENCY_FUND_TARGET_MONTHS = BigDecimal.valueOf(3);
     private static final int EXPENSE_DIVERSITY_SAMPLE_SIZE = 5;
+    private static final PeriodType REPORT_PERIOD = PeriodType.MONTHLY;
 
     private static final BigDecimal SAVINGS_WEIGHT = BigDecimal.valueOf(0.40);
     private static final BigDecimal EMERGENCY_FUND_WEIGHT = BigDecimal.valueOf(0.35);
     private static final BigDecimal EXPENSE_DIVERSITY_WEIGHT = BigDecimal.valueOf(0.25);
 
-    private final FinanceBackendReportClient reportClient;
+    private final FinanceBackendReportClient financeBackendReportClient;
 
     @Cacheable(value = "healthScore", key = "#userId")
     public HealthScoreDto getHealthScore(Long userId) {
-        LocalDate to = LocalDate.now();
-        LocalDate from = to.withDayOfMonth(1);
+        FinancialReportDto report = financeBackendReportClient.getFinancialReport(userId, REPORT_PERIOD);
+        BigDecimal walletBalance = valueOrZero(financeBackendReportClient.walletBalance(userId));
 
-        int savingsScore = calculateSavingsScore(userId, from, to);
-        int emergencyFundScore = calculateEmergencyFundScore(userId, from, to);
-        int expenseDiversityScore = calculateExpenseDiversityScore(userId, from, to);
+        BigDecimal revenues = totalRevenues(report);
+        BigDecimal expenses = totalExpenses(report);
+
+        int savingsScore = calculateSavingsScore(revenues, expenses);
+        int emergencyFundScore = calculateEmergencyFundScore(walletBalance, expenses);
+        int expenseDiversityScore = calculateExpenseDiversityScore(expenses, report);
 
         int finalScore = aggregateScores(savingsScore, emergencyFundScore, expenseDiversityScore);
         HealthScoreStatus status = statusFromScore(finalScore);
 
         return new HealthScoreDto(BigDecimal.valueOf(finalScore), status);
     }
+
+
+    private BigDecimal totalRevenues(FinancialReportDto report) {
+        FinancialTotalsDto totals = report == null ? null : report.totals();
+        return totals == null ? BigDecimal.ZERO : valueOrZero(totals.revenues());
+    }
+
+    private BigDecimal totalExpenses(FinancialReportDto report) {
+        FinancialTotalsDto totals = report == null ? null : report.totals();
+        return totals == null ? BigDecimal.ZERO : valueOrZero(totals.expenses());
+    }
+
 
     private int aggregateScores(int savingsScore, int emergencyFundScore, int expenseDiversityScore) {
         BigDecimal weightedSum = BigDecimal.valueOf(savingsScore).multiply(SAVINGS_WEIGHT)
@@ -52,14 +71,10 @@ public class HealthScoreService {
         return weightedSum.setScale(0, RoundingMode.HALF_UP).intValue();
     }
 
-    private int calculateSavingsScore(Long userId, LocalDate from, LocalDate to) {
-        BigDecimal revenues = reportClient.sumRevenues(userId, from, to);
-
-        if (revenues == null || revenues.compareTo(BigDecimal.ZERO) == 0) {
+    private int calculateSavingsScore(BigDecimal revenues, BigDecimal expenses) {
+        if (revenues.compareTo(BigDecimal.ZERO) == 0) {
             return 0;
         }
-
-        BigDecimal expenses = valueOrZero(reportClient.sumExpenses(userId, from, to));
 
         BigDecimal savingsRate = revenues.subtract(expenses)
                 .divide(revenues, 4, RoundingMode.HALF_UP)
@@ -68,28 +83,22 @@ public class HealthScoreService {
         return scoreScaledToTarget(savingsRate, SAVINGS_TARGET_RATE);
     }
 
-    private int calculateEmergencyFundScore(Long userId, LocalDate from, LocalDate to) {
-        BigDecimal walletBalance = valueOrZero(reportClient.walletBalance(userId));
-        BigDecimal avgMonthlyExpenses = reportClient.avgExpenses(userId, from, to);
-
-        if (avgMonthlyExpenses == null || avgMonthlyExpenses.compareTo(BigDecimal.ZERO) == 0) {
+    private int calculateEmergencyFundScore(BigDecimal walletBalance, BigDecimal monthlyExpenses) {
+        if (monthlyExpenses.compareTo(BigDecimal.ZERO) == 0) {
             return 100;
         }
 
-        BigDecimal monthsCovered = walletBalance.divide(avgMonthlyExpenses, 4, RoundingMode.HALF_UP);
+        BigDecimal monthsCovered = walletBalance.divide(monthlyExpenses, 4, RoundingMode.HALF_UP);
 
         return scoreScaledToTarget(monthsCovered, EMERGENCY_FUND_TARGET_MONTHS);
     }
 
-    private int calculateExpenseDiversityScore(Long userId, LocalDate from, LocalDate to) {
-        BigDecimal totalExpenses = reportClient.sumExpenses(userId, from, to);
-
-        if (totalExpenses == null || totalExpenses.compareTo(BigDecimal.ZERO) == 0) {
+    private int calculateExpenseDiversityScore(BigDecimal totalExpenses, FinancialReportDto report) {
+        if (totalExpenses.compareTo(BigDecimal.ZERO) == 0) {
             return 100;
         }
 
-        List<HighestExpenseDto> topExpenses = reportClient.highestExpenses(userId, from, to, EXPENSE_DIVERSITY_SAMPLE_SIZE);
-        BigDecimal topExpensesSum = sumExpenseAmounts(topExpenses);
+        BigDecimal topExpensesSum = sumTopExpenses(report == null ? null : report.highestExpenses());
 
         BigDecimal concentrationRatio = topExpensesSum.divide(totalExpenses, 4, RoundingMode.HALF_UP);
         BigDecimal score = HUNDRED.subtract(concentrationRatio.multiply(HUNDRED));
@@ -97,13 +106,15 @@ public class HealthScoreService {
         return Math.clamp(score.intValue(), 0, 100);
     }
 
-    private BigDecimal sumExpenseAmounts(List<HighestExpenseDto> expenses) {
+    private BigDecimal sumTopExpenses(List<HighestExpenseDto> expenses) {
         if (expenses == null || expenses.isEmpty()) {
             return BigDecimal.ZERO;
         }
         return expenses.stream()
                 .map(HighestExpenseDto::amount)
                 .filter(Objects::nonNull)
+                .sorted(Comparator.reverseOrder())
+                .limit(EXPENSE_DIVERSITY_SAMPLE_SIZE)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 

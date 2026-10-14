@@ -1,19 +1,15 @@
 package com.finovara.reportservice.pdfexport.controller;
 
-import com.finovara.reportservice.pdfexport.model.PdfReportType;
-import com.finovara.reportservice.pdfexport.service.PdfExecutionService;
 import com.finovara.contracts.util.PeriodType;
+import com.finovara.reportservice.pdfexport.PdfExecutionService;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/pdf/reports")

@@ -31,7 +31,7 @@ public class ReportDataDeleterConsumer {
     public void deleteReportHistoryCache(UserAccountDeletedEvent event) {
         evictReportCacheService.evictFinancialDataForUser(event.userId());
         evictReportCacheService.evictSecurityDataForUser(event.userId());
-        healthScoreCacheEvictor.evict(event.userId());
+       healthScoreCacheEvictor.evict(event.userId());
 
     }
 

@@ -9,7 +9,7 @@ import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpens
 import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
 import com.finovara.financeservice.sharedaccount.note.repository.SharedAccountNoteRepository;
 import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
-import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
+import com.finovara.financeservice.sharedaccount.revenue.repository.SharedRevenueRepository;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
 import com.finovara.financeservice.wallet.service.WalletService;

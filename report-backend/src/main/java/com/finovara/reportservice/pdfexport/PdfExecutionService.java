@@ -1,0 +1,65 @@
+package com.finovara.reportservice.pdfexport;
+
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
+import com.finovara.reportservice.pdfexport.document.PdfReportDocumentFactory;
+import com.finovara.reportservice.pdfexport.model.PdfReportType;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class PdfExecutionService {
+
+    private final PdfReportDocumentFactory documentFactory;
+    private final FinanceBackendReportClient reportClient;
+    private final Map<PdfReportType, ReportPdfHandler> strategies = new EnumMap<>(PdfReportType.class);
+
+    public PdfExecutionService(PdfReportDocumentFactory documentFactory,
+                               FinanceBackendReportClient reportClient,
+                               List<ReportPdfHandler> handlers) {
+        this.documentFactory = documentFactory;
+        this.reportClient = reportClient;
+        handlers.forEach(handler -> strategies.put(handler.getType(), handler));
+    }
+
+    public byte[] execute(PdfReportType type, PeriodType periodType, Long userId) {
+        validatePeriodType(periodType);
+        ReportPdfHandler strategy = getStrategy(type);
+        PdfReportContext context = new PdfReportContext(reportClient, userId, periodType);
+
+        try (PdfReportDocument document = documentFactory.create(strategy.getTitle(periodType))) {
+            strategy.generate(document, context);
+            return document.toByteArray();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Could not generate PDF report.", exception);
+        }
+    }
+
+    public String getFileName(PdfReportType type, PeriodType periodType) {
+        validatePeriodType(periodType);
+        return getStrategy(type).getFileName(periodType);
+    }
+
+    private void validatePeriodType(PeriodType periodType) {
+        if (periodType == null) {
+            throw new InvalidInputException("Report period type is required.");
+        }
+    }
+
+    private ReportPdfHandler getStrategy(PdfReportType type) {
+        if (type == null) {
+            throw new InvalidInputException("Report type is required.");
+        }
+        ReportPdfHandler strategy = strategies.get(type);
+        if (strategy == null) {
+            throw new InvalidInputException("Unsupported PDF report type: " + type);
+        }
+        return strategy;
+    }
+}
