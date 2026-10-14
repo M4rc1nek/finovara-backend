@@ -108,6 +108,14 @@ revenue:
   suggestion:
     history-size: 5
 
+shared:
+  expense:
+    highest:
+      page-size: 10
+  revenue:
+    highest:
+      page-size: 10
+
 nbp:
   api:
     url: https://api.nbp.pl/api
