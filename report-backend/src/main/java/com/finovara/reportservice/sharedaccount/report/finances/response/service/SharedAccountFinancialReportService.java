@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class SharedFinancialReportService {
+public class SharedAccountFinancialReportService {
 
     private final FinanceBackendSharedReportClient financeBackendSharedReportClient;
 
