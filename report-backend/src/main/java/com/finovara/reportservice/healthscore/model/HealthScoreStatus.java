@@ -1,4 +1,4 @@
-package healthscore.model;
+package com.finovara.reportservice.healthscore.model;
 
 public enum HealthScoreStatus {
     EXCELLENT,
