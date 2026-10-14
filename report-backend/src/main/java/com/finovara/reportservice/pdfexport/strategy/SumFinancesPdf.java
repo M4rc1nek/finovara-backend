@@ -1,13 +1,12 @@
-package pdf.pdfexport.strategy;
+package com.finovara.reportservice.pdfexport.strategy;
 
-import com.finovara.contracts.mainaccount.report.financial.dto.ReportDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
 import com.finovara.contracts.util.PeriodType;
+import com.finovara.reportservice.pdfexport.PdfReportContext;
+import com.finovara.reportservice.pdfexport.ReportPdfHandler;
 import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
-import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
-import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
-import com.finovara.reportservice.report.finances.calculate.sum.ReportSummaryService;
-import lombok.RequiredArgsConstructor;
+import com.finovara.reportservice.pdfexport.strategy.label.PdfReportText;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -15,10 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class SumFinancesPdf implements ReportPdfHandler {
-
-    private final ReportSummaryService reportSummaryService;
 
     @Override
     public PdfReportType getType() {
@@ -36,24 +32,25 @@ public class SumFinancesPdf implements ReportPdfHandler {
     }
 
     @Override
-    public void generate(PdfReportDocument document, Long userId, PeriodType periodType) throws IOException {
-        ReportDto revenue = reportSummaryService.sumRevenue(userId, periodType);
-        ReportDto expense = reportSummaryService.sumExpense(userId, periodType);
-        BigDecimal balance = revenue.amount().subtract(expense.amount());
+    public void generate(PdfReportDocument document, PdfReportContext context) throws IOException {
+        FinancialReportDto report = context.report();
+        BigDecimal revenue = PdfReportValues.revenues(report);
+        BigDecimal expense = PdfReportValues.expenses(report);
+        BigDecimal balance = revenue.subtract(expense);
 
         document.addSection("Podsumowanie");
-        document.addInfo("Okres:", PdfReportText.periodLabel(periodType));
+        document.addInfo("Okres:", PdfReportText.periodLabel(context.periodType()));
         document.addLineChart(
                 "Porównanie przepływu",
                 List.of("Przychody", "Wydatki", "Bilans"),
-                List.of(revenue.amount(), expense.amount(), balance),
+                List.of(revenue, expense, balance),
                 true
         );
         document.addTable(
                 new String[]{"Typ", "Wartość"},
                 List.of(
-                        new String[]{"Przychody", document.formatMoney(revenue.amount())},
-                        new String[]{"Wydatki", document.formatMoney(expense.amount())}
+                        new String[]{"Przychody", document.formatMoney(revenue)},
+                        new String[]{"Wydatki", document.formatMoney(expense)}
                 )
         );
         document.addSummary("Bilans", balance);
