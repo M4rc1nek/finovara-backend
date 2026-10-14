@@ -1,22 +1,16 @@
-package smartreport.service.handler;
+package com.finovara.reportservice.report.smartreport.service.handler;
 
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
+import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.calculate.CalculatePercentage;
-import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
-import com.finovara.reportservice.report.finances.smartreport.model.SmartReportType;
-import com.finovara.reportservice.report.finances.smartreport.service.SmartReportHandler;
-import com.finovara.reportservice.report.finances.smartreport.service.loader.SmartReportTemplateService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.service.SmartReportHandler;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
-@Service
-@RequiredArgsConstructor
+@Component
 public class SavingsRateHandler implements SmartReportHandler {
-
-    private final FinanceBackendReportClient reportClient;
-    private final SmartReportTemplateService templateService;
 
     @Override
     public SmartReportType getType() {
@@ -24,18 +18,17 @@ public class SavingsRateHandler implements SmartReportHandler {
     }
 
     @Override
-    public String generate(Long userId) {
-        BigDecimal revenues = Optional.ofNullable(reportClient.sumAllRevenues(userId))
-                .orElse(BigDecimal.ZERO);
-        BigDecimal expenses = Optional.ofNullable(reportClient.sumAllExpenses(userId))
-                .orElse(BigDecimal.ZERO);
+    public PeriodType getPeriodType() {
+        return PeriodType.MONTHLY;
+    }
 
-        BigDecimal savings = revenues.compareTo(BigDecimal.ZERO) == 0
-                ? BigDecimal.ZERO
-                : CalculatePercentage.calculatePercentage(
-                revenues.subtract(expenses), revenues);
-
-        String template = templateService.getRandomResponse(SmartReportType.SAVINGS_RATE);
-        return template.replace("{amount}", savings.toString());
+    @Override
+    public BigDecimal calculate(FinancialReportDto report) {
+        BigDecimal revenues = ReportValues.revenues(report);
+        if (revenues.signum() == 0) {
+            return BigDecimal.ZERO;
+        }
+        return CalculatePercentage.calculatePercentage(
+                revenues.subtract(ReportValues.expenses(report)), revenues);
     }
 }
