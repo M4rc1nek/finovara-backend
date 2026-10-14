@@ -57,8 +57,8 @@ spring:
             - id: report-backend
               uri: ${REPORT_BACKEND_URL}
               predicates:
-                - Path=/api/reports/**,/api/shared-accounts/reports/**,/api/shared-accounts/report-cache/**,/api/report-cache/**,/api/pdf/**,/api/finance-health-score
-
+                - Path=/api/reports/**,/api/shared-accounts/reports/**,/api/shared-accounts/report-cache/**,/api/report-cache/**
+                # /api/pdf/**,/api/finance-health-score -> TO REPORT-BACKEND
             - id: auth_backend
               uri: ${AUTH_BACKEND_URL}
               predicates:
