@@ -1,17 +1,18 @@
+/*
 package com.finovara.reportservice.sharedaccount.report.finances.response.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.util.model.RevenueCategory;
-import com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto;
-import com.finovara.contracts.mainaccount.report.dto.HighestRevenueDto;
-import com.finovara.reportservice.util.dto.ReportDto;
-import com.finovara.reportservice.util.dto.financial.FinancialCashFlowDto;
-import com.finovara.reportservice.util.dto.financial.FinancialCategoryPercentageDto;
-import com.finovara.reportservice.util.dto.financial.FinancialPeriodSummaryDto;
-import com.finovara.reportservice.util.dto.financial.FinancialReportDto;
-import com.finovara.reportservice.util.dto.financial.FinancialTotalsDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.ReportDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialCashFlowDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialCategoryPercentageDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialPeriodSummaryDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialTotalsDto;
 import com.finovara.reportservice.util.mapper.FinancialReportMapper;
 import com.finovara.reportservice.sharedaccount.report.finances.calculate.categorypercentage.expense.dto.SharedExpenseCategoryPercentageDto;
 import com.finovara.reportservice.sharedaccount.report.finances.calculate.categorypercentage.expense.service.SharedExpenseCategoryPercentageService;
@@ -105,4 +106,4 @@ public class SharedFinancialReportService {
                 .toList();
         return FinancialReportMapper.mapSharedRevenuePercentages(percentages);
     }
-}
+}*/
