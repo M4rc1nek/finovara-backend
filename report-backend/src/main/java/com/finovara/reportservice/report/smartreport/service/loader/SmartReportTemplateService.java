@@ -1,61 +1,44 @@
-package smartreport.service.loader;
+package com.finovara.reportservice.report.smartreport.service.loader;
 
-import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
-import com.finovara.reportservice.report.finances.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.HashMap;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
 public class SmartReportTemplateService {
 
-    private final Map<SmartReportType, List<String>> templates = new HashMap<>();
-    private final Random random = new Random();
+    private static final String PLACEHOLDER = "{amount}";
+
+    private final SmartReportResourceLoader resourceLoader;
+    private final Map<SmartReportType, List<String>> templates = new EnumMap<>(SmartReportType.class);
 
     @PostConstruct
-    public void init() {
-        loadTemplates(SmartReportType.MONTH_SPENDING, "smartreport/answer/MonthSpending");
-        loadTemplates(SmartReportType.AVERAGE_DAY_SPENDING, "smartreport/answer/AverageDaySpending");
-        loadTemplates(SmartReportType.EXPENSE_RATE, "smartreport/answer/ExpenseRate");
-        loadTemplates(SmartReportType.SAVINGS_RATE, "smartreport/answer/SavingsRate");
+    void init() {
+        templates.put(SmartReportType.MONTH_SPENDING, resourceLoader.readLines("smartreport/answer/MonthSpending"));
+        templates.put(SmartReportType.AVERAGE_DAY_SPENDING, resourceLoader.readLines("smartreport/answer/AverageDaySpending"));
+        templates.put(SmartReportType.EXPENSE_RATE, resourceLoader.readLines("smartreport/answer/ExpenseRate"));
+        templates.put(SmartReportType.SAVINGS_RATE, resourceLoader.readLines("smartreport/answer/SavingsRate"));
     }
 
-    public String getRandomResponse(SmartReportType type) {
-        List<String> responses = templates.get(type);
+    public String render(SmartReportType type, BigDecimal value) {
+        String formatted = value.setScale(2, RoundingMode.HALF_UP).toPlainString();
+        return getRandomTemplate(type).replace(PLACEHOLDER, formatted);
+    }
 
+    private String getRandomTemplate(SmartReportType type) {
+        List<String> responses = templates.get(type);
         if (responses == null || responses.isEmpty()) {
             return "Responses are null or empty";
         }
-
-        return responses.get(random.nextInt(responses.size()));
-    }
-
-    private void loadTemplates(SmartReportType type, String path) {
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(path)) {
-
-            if (inputStream == null) {
-                throw new IllegalStateException("File not found:  " + path);
-            }
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
-            List<String> lines = reader.lines()
-                    .filter(line -> !line.isBlank())
-                    .toList();
-
-            templates.put(type, lines);
-
-        } catch (Exception e) {
-            throw new ServiceUnavailableException("Loading error: " + path, e);
-        }
+        return responses.get(ThreadLocalRandom.current().nextInt(responses.size()));
     }
 }
