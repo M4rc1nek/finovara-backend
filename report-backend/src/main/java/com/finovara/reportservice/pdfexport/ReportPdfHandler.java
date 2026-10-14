@@ -1,4 +1,4 @@
-package pdf.pdfexport;
+package com.finovara.reportservice.pdfexport;
 
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
@@ -13,5 +13,5 @@ public interface ReportPdfHandler {
 
     String getFileName(PeriodType periodType);
 
-    void generate(PdfReportDocument document, Long userId, PeriodType periodType) throws IOException;
+    void generate(PdfReportDocument document, PdfReportContext context) throws IOException;
 }
