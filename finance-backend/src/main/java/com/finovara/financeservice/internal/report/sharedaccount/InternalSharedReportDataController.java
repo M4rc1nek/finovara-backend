@@ -1,8 +1,8 @@
-package com.finovara.financeservice.internal.sharedaccount;
+package com.finovara.financeservice.internal.report.sharedaccount;
 
 import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
 import com.finovara.contracts.util.PeriodType;
-import com.finovara.financeservice.internal.sharedaccount.financial.SharedAccountFinancialReportService;
+import com.finovara.financeservice.internal.report.sharedaccount.financial.SharedAccountFinancialReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
