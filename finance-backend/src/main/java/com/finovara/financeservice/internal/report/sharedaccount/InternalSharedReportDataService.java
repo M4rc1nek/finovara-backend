@@ -1,14 +1,14 @@
-package com.finovara.financeservice.internal.sharedaccount;
+package com.finovara.financeservice.internal.report.sharedaccount;
 
 import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.util.model.RevenueCategory;
-import com.finovara.financeservice.internal.mainaccount.financial.dto.ExpenseCategorySumDto;
-import com.finovara.financeservice.internal.mainaccount.financial.dto.RevenueCategorySumDto;
+import com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto;
+import com.finovara.financeservice.internal.report.util.dto.RevenueCategorySumDto;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
-import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
+import com.finovara.financeservice.sharedaccount.revenue.repository.SharedRevenueRepository;
 import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
 import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
 import lombok.RequiredArgsConstructor;
