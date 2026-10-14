@@ -1,23 +1,20 @@
-package pdf.pdfexport.strategy.highest;
+package com.finovara.reportservice.pdfexport.strategy.highest;
 
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
 import com.finovara.contracts.util.PeriodType;
+import com.finovara.reportservice.pdfexport.PdfReportContext;
+import com.finovara.reportservice.pdfexport.ReportPdfHandler;
 import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
-import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
-import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
-import com.finovara.reportservice.report.finances.calculate.highesttransactions.highestexpense.service.HighestExpenseService;
-import lombok.RequiredArgsConstructor;
+import com.finovara.reportservice.pdfexport.strategy.PdfReportValues;
+import com.finovara.reportservice.pdfexport.strategy.label.PdfReportText;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class HighestExpensesPdf implements ReportPdfHandler {
-
-    private final HighestExpenseService highestExpenseService;
 
     @Override
     public PdfReportType getType() {
@@ -35,19 +32,15 @@ public class HighestExpensesPdf implements ReportPdfHandler {
     }
 
     @Override
-    public void generate(PdfReportDocument document, Long userId, PeriodType periodType) throws IOException {
-        List<HighestExpenseDto> expenses = highestExpenseService.getHighestExpense(userId, periodType);
+    public void generate(PdfReportDocument document, PdfReportContext context) throws IOException {
+        List<HighestExpenseDto> expenses = PdfReportValues.safe(context.report().highestExpenses());
 
         document.addSection("Największe wydatki");
-        document.addInfo("Okres:", PdfReportText.periodLabel(periodType));
+        document.addInfo("Okres:", PdfReportText.periodLabel(context.periodType()));
         document.addBarChart(
                 "Największe wydatki według kategorii",
-                expenses.stream()
-                        .map(e -> PdfReportText.expenseCategoryLabel(e.category()))
-                        .toList(),
-                expenses.stream()
-                        .map(HighestExpenseDto::amount)
-                        .toList(),
+                expenses.stream().map(e -> PdfReportText.expenseCategoryLabel(e.category())).toList(),
+                expenses.stream().map(HighestExpenseDto::amount).toList(),
                 true
         );
         document.addTable(
