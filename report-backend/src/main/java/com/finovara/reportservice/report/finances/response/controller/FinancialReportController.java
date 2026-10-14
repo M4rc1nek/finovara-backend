@@ -1,7 +1,7 @@
 package com.finovara.reportservice.report.finances.response.controller;
 
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
 import com.finovara.contracts.util.PeriodType;
-import com.finovara.reportservice.util.dto.financial.FinancialReportDto;
 import com.finovara.reportservice.report.finances.response.service.FinancialReportService;
 import com.finovara.reportservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class FinancialReportController {
 
     @GetMapping
     public ResponseEntity<FinancialReportDto> getFinancialReport(@RequestParam PeriodType periodType) {
-        return ResponseEntity.ok(financialReportService.getFinancialReport(SecurityUtils.getCurrentUserId(), periodType));
+        return ResponseEntity.ok(financialReportService.buildReport(SecurityUtils.getCurrentUserId(), periodType));
     }
 }
 
