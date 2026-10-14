@@ -1,8 +1,6 @@
-package com.finovara.reportservice.util.dto.financial;
+package com.finovara.contracts.mainaccount.report.financial.dto;
 
 import com.finovara.contracts.util.PeriodType;
-import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
-import com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto;
 
 import java.util.List;
 
