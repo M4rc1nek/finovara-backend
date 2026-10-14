@@ -1,4 +1,4 @@
-package pdf.pdfexport.model;
+package com.finovara.reportservice.pdfexport.model;
 
 public enum PdfReportType {
     IMPORTANT_INFORMATION,
