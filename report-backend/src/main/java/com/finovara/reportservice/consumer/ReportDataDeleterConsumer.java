@@ -5,7 +5,7 @@ import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActi
 import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
 import com.finovara.contracts.sharedaccount.event.deletion.SharedAccountDeletedEvent;
 import com.finovara.contracts.user.event.account.UserAccountDeletedEvent;
-/*import com.finovara.reportservice.healthscore.cache.evict.HealthScoreCacheEvictor;*/
+import com.finovara.reportservice.healthscore.cache.evict.HealthScoreCacheEvictor;
 import com.finovara.reportservice.report.cache.evict.service.EvictReportCacheService;
 import com.finovara.reportservice.sharedaccount.report.cache.evict.service.EvictSharedReportCacheService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 public class ReportDataDeleterConsumer {
     private final EvictReportCacheService evictReportCacheService;
     private final EvictSharedReportCacheService evictSharedReportCacheService;
-   // private final HealthScoreCacheEvictor healthScoreCacheEvictor;
+    private final HealthScoreCacheEvictor healthScoreCacheEvictor;
 
     @KafkaListener(topics = "shared-account.deleted")
     public void deleteSharedReportHistoryCache(SharedAccountDeletedEvent event) {
@@ -31,11 +31,11 @@ public class ReportDataDeleterConsumer {
     public void deleteReportHistoryCache(UserAccountDeletedEvent event) {
         evictReportCacheService.evictFinancialDataForUser(event.userId());
         evictReportCacheService.evictSecurityDataForUser(event.userId());
-     //   healthScoreCacheEvictor.evict(event.userId());
+       healthScoreCacheEvictor.evict(event.userId());
 
     }
 
-  /*  @KafkaListener(topics = "expense.created", groupId = "report.health-score-evict")
+    @KafkaListener(topics = "expense.created", groupId = "report.health-score-evict")
     public void onExpense(ExpenseActivityEvent event) {
         healthScoreCacheEvictor.evict(event.userId());
     }
@@ -48,5 +48,5 @@ public class ReportDataDeleterConsumer {
     @KafkaListener(topics = "piggybank.transaction.created", groupId = "report.health-score-evict")
     public void onPiggyBankTransaction(PiggyBankActivityEvent event) {
         healthScoreCacheEvictor.evict(event.userId());
-    }*/
+    }
 }
