@@ -1,7 +1,8 @@
+/*
 package com.finovara.reportservice.sharedaccount.report.finances.response.controller;
 
 import com.finovara.contracts.util.PeriodType;
-import com.finovara.reportservice.util.dto.financial.FinancialReportDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
 import com.finovara.reportservice.security.SecurityUtils;
 import com.finovara.reportservice.sharedaccount.report.finances.response.service.SharedFinancialReportService;
 import lombok.RequiredArgsConstructor;
@@ -22,4 +23,4 @@ public class SharedFinancialReportController {
     public ResponseEntity<FinancialReportDto> getFinancialReport(@RequestParam Long memberId, @RequestParam PeriodType periodType) {
         return ResponseEntity.ok(financialReportService.getFinancialReport(SecurityUtils.getCurrentUserId(), memberId, periodType));
     }
-}
+}*/
