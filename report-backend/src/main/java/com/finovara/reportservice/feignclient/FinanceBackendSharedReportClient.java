@@ -2,9 +2,9 @@ package com.finovara.reportservice.feignclient;
 
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.util.model.RevenueCategory;
-import com.finovara.contracts.mainaccount.report.dto.DailyCashDto;
-import com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto;
-import com.finovara.contracts.mainaccount.report.dto.HighestRevenueDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
