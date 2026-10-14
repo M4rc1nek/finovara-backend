@@ -5,7 +5,7 @@ import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.suggestions.dto.ExpenseSuggestionDto;
-import com.finovara.financeservice.internal.financial.dto.ExpenseCategorySumDto;
+import com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -52,17 +52,11 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT COUNT(e) FROM Expense e WHERE e.userId = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
     long countExpensesByUserIdAndCreatedAtBetween(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
-    @Query("SELECT coalesce(sum(e.amount),0) FROM Expense e WHERE e.userId = :userId")
-    BigDecimal sumAllExpensesByUserId(Long userId);
-
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userId = :userId AND e.createdAt >= :startDate AND e.createdAt <= :endDate")
     Optional<BigDecimal> sumExpensesByUserAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
 
     @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userId = :userId AND e.createdAt >= :startDate AND e.createdAt <= :endDate AND e.category = :expenseCategory")
     Optional<BigDecimal> sumExpensesByUserAndDateRangeAndCategory(Long userId, LocalDate startDate, LocalDate endDate, ExpenseCategory expenseCategory);
-
-    @Query("SELECT CAST(AVG(e.amount) AS big_decimal) FROM Expense e WHERE e.userId = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
-    Optional<BigDecimal> avgExpensesByUserIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("""
              SELECT NEW com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto(
@@ -97,7 +91,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<DailyCashDto> sumExpensesGroupedByDate(Long userId);
 
     @Query("""
-            SELECT new com.finovara.financeservice.internal.financial.dto.ExpenseCategorySumDto(e.category, SUM(e.amount))
+            SELECT new com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto(e.category, SUM(e.amount))
             FROM Expense e
             WHERE e.userId = :userId AND e.createdAt BETWEEN :from AND :to
             GROUP BY e.category
