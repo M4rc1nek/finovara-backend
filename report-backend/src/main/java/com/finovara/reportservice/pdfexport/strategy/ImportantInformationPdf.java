@@ -1,38 +1,25 @@
-package pdf.pdfexport.strategy;
+package com.finovara.reportservice.pdfexport.strategy;
 
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialCategoryPercentageDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
 import com.finovara.contracts.util.PeriodType;
-import com.finovara.contracts.util.model.ExpenseCategory;
-import com.finovara.contracts.util.model.RevenueCategory;
-import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
+import com.finovara.reportservice.pdfexport.PdfReportContext;
+import com.finovara.reportservice.pdfexport.ReportPdfHandler;
 import com.finovara.reportservice.pdfexport.document.PdfReportDocument;
 import com.finovara.reportservice.pdfexport.model.PdfReportType;
-import com.finovara.reportservice.pdfexport.service.ReportPdfHandler;
-import com.finovara.reportservice.pdfexport.service.strategy.label.PdfReportText;
-import com.finovara.reportservice.report.finances.calculate.avg.ReportAverageService;
-import com.finovara.reportservice.report.finances.calculate.categorypercentage.expense.dto.ExpenseCategoryPercentageDto;
-import com.finovara.reportservice.report.finances.calculate.categorypercentage.expense.service.ExpenseCategoryPercentageService;
-import com.finovara.reportservice.report.finances.calculate.categorypercentage.revenue.dto.RevenueCategoryPercentageDto;
-import com.finovara.reportservice.report.finances.calculate.categorypercentage.revenue.service.RevenueCategoryPercentageService;
-import com.finovara.reportservice.report.finances.calculate.sum.ReportSummaryService;
-import lombok.RequiredArgsConstructor;
+import com.finovara.reportservice.pdfexport.strategy.label.PdfReportText;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
 @Component
-@RequiredArgsConstructor
 public class ImportantInformationPdf implements ReportPdfHandler {
 
-    private final FinanceBackendReportClient reportClient;
-    private final ReportSummaryService reportSummaryService;
-    private final ReportAverageService reportAverageService;
-    private final ExpenseCategoryPercentageService expenseCategoryPercentageService;
-    private final RevenueCategoryPercentageService revenueCategoryPercentageService;
+    private static final String NO_DATA = "Brak danych";
 
     @Override
     public PdfReportType getType() {
@@ -50,32 +37,27 @@ public class ImportantInformationPdf implements ReportPdfHandler {
     }
 
     @Override
-    public void generate(PdfReportDocument document, Long userId, PeriodType periodType) throws IOException {
-        BigDecimal walletBalance = reportClient.walletBalance(userId);
-        BigDecimal monthlyRevenue = reportSummaryService.sumRevenue(userId, PeriodType.MONTHLY).amount();
-        BigDecimal monthlyExpense = reportSummaryService.sumExpense(userId, PeriodType.MONTHLY).amount();
-        BigDecimal weeklyRevenue = reportSummaryService.sumRevenue(userId, PeriodType.WEEKLY).amount();
-        BigDecimal weeklyExpense = reportSummaryService.sumExpense(userId, PeriodType.WEEKLY).amount();
-        BigDecimal dailyAverageRevenue = reportAverageService.calculateAverageRevenue(userId, PeriodType.DAILY).amount();
-        BigDecimal dailyAverageExpense = reportAverageService.calculateAverageExpense(userId, PeriodType.DAILY).amount();
+    public void generate(PdfReportDocument document, PdfReportContext context) throws IOException {
+        FinancialReportDto report = context.report(PeriodType.MONTHLY);
 
-        List<ExpenseCategoryPercentageDto> expensePercentages = Arrays.stream(ExpenseCategory.values())
-                .map(cat -> expenseCategoryPercentageService
-                        .getExpensePercentageByCategoryReport(userId, cat, PeriodType.MONTHLY))
-                .toList();
+        BigDecimal walletBalance = context.walletBalance();
+        BigDecimal monthlyRevenue = PdfReportValues.revenueFor(report, PeriodType.MONTHLY);
+        BigDecimal monthlyExpense = PdfReportValues.expenseFor(report, PeriodType.MONTHLY);
+        BigDecimal weeklyRevenue = PdfReportValues.revenueFor(report, PeriodType.WEEKLY);
+        BigDecimal weeklyExpense = PdfReportValues.expenseFor(report, PeriodType.WEEKLY);
+        BigDecimal dailyAverageRevenue = PdfReportValues.averagePerDay(monthlyRevenue, PeriodType.MONTHLY);
+        BigDecimal dailyAverageExpense = PdfReportValues.averagePerDay(monthlyExpense, PeriodType.MONTHLY);
 
-        List<RevenueCategoryPercentageDto> revenuePercentages = Arrays.stream(RevenueCategory.values())
-                .map(cat -> revenueCategoryPercentageService
-                        .getRevenuePercentageByCategoryReport(userId, cat, PeriodType.MONTHLY))
-                .toList();
+        List<FinancialCategoryPercentageDto> expensePercentages =
+                PdfReportValues.safe(report.expenseCategoryPercentages());
+        List<FinancialCategoryPercentageDto> revenuePercentages =
+                PdfReportValues.safe(report.revenueCategoryPercentages());
 
-        ExpenseCategoryPercentageDto highestExpensePercentage = maxExpensePercentage(expensePercentages);
-        ExpenseCategoryPercentageDto lowestExpensePercentage = minPositiveExpensePercentage(expensePercentages);
-        RevenueCategoryPercentageDto mainRevenueSource = maxRevenuePercentage(revenuePercentages);
+        FinancialCategoryPercentageDto highestExpense = max(expensePercentages);
+        FinancialCategoryPercentageDto lowestExpense = minPositive(expensePercentages);
+        FinancialCategoryPercentageDto mainRevenueSource = max(revenuePercentages);
 
-        BigDecimal allExpenses = reportClient.sumAllExpenses(userId);
-        BigDecimal allRevenues = reportClient.sumAllRevenues(userId);
-        BigDecimal spentPercentage = percentage(allExpenses, allRevenues);
+        BigDecimal spentPercentage = percentage(monthlyExpense, monthlyRevenue);
         BigDecimal savedPercentage = BigDecimal.valueOf(100).subtract(spentPercentage).max(BigDecimal.ZERO);
 
         document.addSection("Podstawowe informacje");
@@ -101,63 +83,52 @@ public class ImportantInformationPdf implements ReportPdfHandler {
         document.addSection("Szczegółowe informacje");
         document.addPieChart(
                 "Struktura wydatków w tym miesiącu",
-                expensePercentages.stream()
-                        .map(dto -> PdfReportText.expenseCategoryLabel(dto.category()))
-                        .toList(),
-                expensePercentages.stream()
-                        .map(ExpenseCategoryPercentageDto::percentage)
-                        .toList()
+                expensePercentages.stream().map(dto -> PdfReportText.expenseCategoryLabel(dto.category())).toList(),
+                expensePercentages.stream().map(FinancialCategoryPercentageDto::percentage).toList()
         );
         document.addTable(
                 new String[]{"Informacja", "Wartość"},
                 List.of(
-                        new String[]{"Wszystkich swoich dochodów wydajesz", document.formatPercent(spentPercentage)},
-                        new String[]{"Wszystkich swoich dochodów oszczędzasz", document.formatPercent(savedPercentage)},
+                        new String[]{"Z przychodów wydajesz", document.formatPercent(spentPercentage)},
+                        new String[]{"Z przychodów oszczędzasz", document.formatPercent(savedPercentage)},
                         new String[]{"Główne źródło przychodu", revenueLabel(mainRevenueSource)},
-                        new String[]{"Największy procent wydatków stanowi", expenseLabel(highestExpensePercentage)},
-                        new String[]{"Najwięcej wydajesz na", expenseLabel(highestExpensePercentage)},
-                        new String[]{"Najmniej wydajesz na", expenseLabel(lowestExpensePercentage)}
+                        new String[]{"Największy procent wydatków stanowi", expenseLabel(highestExpense)},
+                        new String[]{"Najwięcej wydajesz na", expenseLabel(highestExpense)},
+                        new String[]{"Najmniej wydajesz na", expenseLabel(lowestExpense)}
                 )
         );
     }
 
-    private ExpenseCategoryPercentageDto maxExpensePercentage(List<ExpenseCategoryPercentageDto> percentages) {
+    private FinancialCategoryPercentageDto max(List<FinancialCategoryPercentageDto> percentages) {
         return percentages.stream()
-                .max(Comparator.comparing(ExpenseCategoryPercentageDto::percentage))
+                .max(Comparator.comparing(FinancialCategoryPercentageDto::percentage))
                 .orElse(null);
     }
 
-    private ExpenseCategoryPercentageDto minPositiveExpensePercentage(List<ExpenseCategoryPercentageDto> percentages) {
+    private FinancialCategoryPercentageDto minPositive(List<FinancialCategoryPercentageDto> percentages) {
         return percentages.stream()
-                .filter(dto -> dto.percentage().compareTo(BigDecimal.ZERO) > 0)
-                .min(Comparator.comparing(ExpenseCategoryPercentageDto::percentage))
-                .orElse(null);
-    }
-
-    private RevenueCategoryPercentageDto maxRevenuePercentage(List<RevenueCategoryPercentageDto> percentages) {
-        return percentages.stream()
-                .max(Comparator.comparing(RevenueCategoryPercentageDto::percentage))
+                .filter(dto -> dto.percentage().signum() > 0)
+                .min(Comparator.comparing(FinancialCategoryPercentageDto::percentage))
                 .orElse(null);
     }
 
     private BigDecimal percentage(BigDecimal value, BigDecimal total) {
-        if (total == null || total.compareTo(BigDecimal.ZERO) <= 0) {
+        if (total == null || total.signum() <= 0) {
             return BigDecimal.ZERO;
         }
-        return value.multiply(BigDecimal.valueOf(100))
-                .divide(total, 2, RoundingMode.HALF_UP);
+        return value.multiply(BigDecimal.valueOf(100)).divide(total, 2, RoundingMode.HALF_UP);
     }
 
-    private String expenseLabel(ExpenseCategoryPercentageDto dto) {
-        if (dto == null || dto.percentage().compareTo(BigDecimal.ZERO) <= 0) {
-            return "Brak danych";
+    private String expenseLabel(FinancialCategoryPercentageDto dto) {
+        if (dto == null || dto.percentage().signum() <= 0) {
+            return NO_DATA;
         }
         return PdfReportText.expenseCategoryLabel(dto.category()) + " (" + dto.percentage() + "%)";
     }
 
-    private String revenueLabel(RevenueCategoryPercentageDto dto) {
-        if (dto == null || dto.percentage().compareTo(BigDecimal.ZERO) <= 0) {
-            return "Brak danych";
+    private String revenueLabel(FinancialCategoryPercentageDto dto) {
+        if (dto == null || dto.percentage().signum() <= 0) {
+            return NO_DATA;
         }
         return PdfReportText.revenueCategoryLabel(dto.category()) + " (" + dto.percentage() + "%)";
     }
