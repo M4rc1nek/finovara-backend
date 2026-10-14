@@ -63,14 +63,6 @@ finance-backend:
 activity-log-backend:
   url: ${ACTIVITY_LOG_BACKEND_URL}
 
-expenses:
-  highest:
-    page-size: 5
-
-revenues:
-  highest:
-    page-size: 5
-
 shared:
   expenses:
     highest:
