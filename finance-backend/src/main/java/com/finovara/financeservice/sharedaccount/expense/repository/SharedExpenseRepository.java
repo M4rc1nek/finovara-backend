@@ -3,6 +3,7 @@ package com.finovara.financeservice.sharedaccount.expense.repository;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
+import com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -44,25 +45,16 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
     BigDecimal sumExpenseByCreatedByUserId(Long ownerId, Long memberId, @Param("userId") Long userId);
 
     @Query("""
-            SELECT e FROM SharedExpense e
+            SELECT NEW com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto(
+                e.category,
+                SUM(e.amount)
+            )
+            FROM SharedExpense e
             WHERE (e.ownerId = :ownerId OR e.memberId = :memberId)
-            AND e.createdAt BETWEEN :startDate AND :endDate
-            AND e.category = :category
+            AND e.createdAt BETWEEN :from AND :to
+            GROUP BY e.category
             """)
-    List<SharedExpense> findAllByOwnerIdOrMemberIdAndCreatedAtBetweenAndCategory(Long ownerId, Long memberId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to, @Param("category") ExpenseCategory category);
-
-    @Query("""
-            SELECT COALESCE(SUM(e.amount), 0) FROM SharedExpense e
-            WHERE e.ownerId = :ownerId OR e.memberId = :memberId
-            """)
-    BigDecimal sumAllExpensesByOwnerIdOrMemberId(Long ownerId, Long memberId);
-
-    @Query("""
-            SELECT SUM(e.amount) FROM SharedExpense e
-            WHERE (e.ownerId = :ownerId OR e.memberId = :memberId)
-            AND e.createdAt >= :startDate AND e.createdAt <= :endDate
-            """)
-    Optional<BigDecimal> sumExpensesByOwnerIdOrMemberIdAndDateRange(Long ownerId, Long memberId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    List<ExpenseCategorySumDto> sumExpensesGroupedByCategoryForOwnerIdOrMemberId(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId, @Param("from") LocalDate from, @Param("to") LocalDate to);
 
     @Query("""
              SELECT NEW com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto(
