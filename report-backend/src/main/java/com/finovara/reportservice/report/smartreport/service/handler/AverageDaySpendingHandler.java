@@ -1,23 +1,20 @@
-package smartreport.service.handler;
+package com.finovara.reportservice.report.smartreport.service.handler;
 
-import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
-import com.finovara.reportservice.report.finances.smartreport.model.SmartReportType;
-import com.finovara.reportservice.report.finances.smartreport.service.SmartReportHandler;
-import com.finovara.reportservice.report.finances.smartreport.service.loader.SmartReportTemplateService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.service.SmartReportHandler;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-@Service
-@RequiredArgsConstructor
+@Component
 public class AverageDaySpendingHandler implements SmartReportHandler {
 
-    private final FinanceBackendReportClient reportClient;
-    private final SmartReportTemplateService templateService;
+    private static final PeriodType PERIOD = PeriodType.MONTHLY;
 
     @Override
     public SmartReportType getType() {
@@ -25,15 +22,16 @@ public class AverageDaySpendingHandler implements SmartReportHandler {
     }
 
     @Override
-    public String generate(Long userId) {
+    public PeriodType getPeriodType() {
+        return PERIOD;
+    }
+
+    @Override
+    public BigDecimal calculate(FinancialReportDto report) {
         LocalDate today = LocalDate.now();
-        LocalDate startMonth = today.withDayOfMonth(1);
-        long days = ChronoUnit.DAYS.between(startMonth, today) + 1;
+        long days = ChronoUnit.DAYS.between(PERIOD.getStartDate(today), today) + 1;
 
-        BigDecimal sum = reportClient.sumExpenses(userId, startMonth, today);
-        BigDecimal average = sum.divide(BigDecimal.valueOf(days), RoundingMode.HALF_UP);
-
-        String template = templateService.getRandomResponse(SmartReportType.AVERAGE_DAY_SPENDING);
-        return template.replace("{amount}", average.toString());
+        return ReportValues.expenses(report)
+                .divide(BigDecimal.valueOf(days), 2, RoundingMode.HALF_UP);
     }
 }
