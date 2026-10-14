@@ -1,9 +1,10 @@
 package com.finovara.financeservice.revenue.repository;
 
-import com.finovara.contracts.mainaccount.report.dto.DailyCashDto;
-import com.finovara.contracts.mainaccount.report.dto.HighestRevenueDto;
-import com.finovara.financeservice.revenue.model.Revenue;
+import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto;
 import com.finovara.contracts.util.model.RevenueCategory;
+import com.finovara.financeservice.internal.financial.dto.RevenueCategorySumDto;
+import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.suggestions.dto.RevenueSuggestionDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -60,7 +61,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     Optional<BigDecimal> avgRevenuesByUserIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("""
-             SELECT NEW com.finovara.contracts.mainaccount.report.dto.HighestRevenueDto(
+             SELECT NEW com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto(
              r.category,
              r.amount
             )
@@ -69,7 +70,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<HighestRevenueDto> findHighestRevenuesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
-                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto(
                     r.createdAt,
                     SUM(r.amount)
                 )
@@ -80,7 +81,15 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<DailyCashDto> sumRevenuesGroupedByDate(Long userId);
 
     @Query("""
-                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
+            SELECT new com.finovara.financeservice.internal.financial.dto.RevenueCategorySumDto(r.category, SUM(r.amount))
+            FROM Revenue r
+            WHERE r.userId = :userId AND r.createdAt BETWEEN :from AND :to
+            GROUP BY r.category
+            """)
+    List<RevenueCategorySumDto> sumRevenuesGroupedByCategory(Long userId, LocalDate from, LocalDate to);
+
+    @Query("""
+                SELECT new com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto(
                     r.createdAt,
                     CAST(AVG(r.amount) AS big_decimal)
                 )
