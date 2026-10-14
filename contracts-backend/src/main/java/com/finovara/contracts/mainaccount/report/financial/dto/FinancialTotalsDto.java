@@ -1,4 +1,4 @@
-package com.finovara.reportservice.util.dto.financial;
+package com.finovara.contracts.mainaccount.report.financial.dto;
 
 import java.math.BigDecimal;
 
