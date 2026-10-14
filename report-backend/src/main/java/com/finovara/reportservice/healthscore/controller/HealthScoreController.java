@@ -1,4 +1,4 @@
-package healthscore.controller;
+package com.finovara.reportservice.healthscore.controller;
 
 import com.finovara.reportservice.healthscore.dto.HealthScoreDto;
 import com.finovara.reportservice.healthscore.service.HealthScoreService;
