@@ -1,4 +1,4 @@
-package com.finovara.financeservice.internal.report.mainaccount.financial.dto;
+package com.finovara.financeservice.internal.report.util.dto;
 
 import com.finovara.contracts.util.model.RevenueCategory;
 
