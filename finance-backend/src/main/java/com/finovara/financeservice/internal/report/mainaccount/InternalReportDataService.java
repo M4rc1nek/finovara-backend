@@ -1,4 +1,4 @@
-package com.finovara.financeservice.internal;
+package com.finovara.financeservice.internal.mainaccount;
 
 import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
@@ -6,8 +6,8 @@ import com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
-import com.finovara.financeservice.internal.financial.dto.ExpenseCategorySumDto;
-import com.finovara.financeservice.internal.financial.dto.RevenueCategorySumDto;
+import com.finovara.financeservice.internal.mainaccount.financial.dto.ExpenseCategorySumDto;
+import com.finovara.financeservice.internal.mainaccount.financial.dto.RevenueCategorySumDto;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;

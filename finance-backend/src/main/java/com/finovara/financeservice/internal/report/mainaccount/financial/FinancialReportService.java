@@ -1,4 +1,4 @@
-package com.finovara.financeservice.internal.financial;
+package com.finovara.financeservice.internal.mainaccount.financial;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.mainaccount.report.financial.dto.*;
@@ -6,7 +6,7 @@ import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.calculate.CalculatePercentage;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.util.model.RevenueCategory;
-import com.finovara.financeservice.internal.InternalReportDataService;
+import com.finovara.financeservice.internal.mainaccount.InternalReportDataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

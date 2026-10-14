@@ -1,4 +1,4 @@
-package com.finovara.financeservice.internal.financial;
+package com.finovara.financeservice.internal.report.mainaccount.financial;
 
 import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.FinancialCashFlowDto;

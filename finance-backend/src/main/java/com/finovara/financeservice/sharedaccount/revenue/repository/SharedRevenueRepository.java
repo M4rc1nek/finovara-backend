@@ -1,8 +1,8 @@
 package com.finovara.financeservice.sharedaccount.revenue.model;
 
-import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto;
+import com.finovara.financeservice.internal.report.util.dto.RevenueCategorySumDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -33,25 +33,16 @@ public interface SharedRevenueRepository extends JpaRepository<SharedRevenue, Lo
     BigDecimal sumRevenueByCreatedByUserId(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId, @Param("userId") Long userId);
 
     @Query("""
-            SELECT r FROM SharedRevenue r
+            SELECT NEW com.finovara.financeservice.internal.mainaccount.financial.dto.RevenueCategorySumDto(
+                r.category,
+                SUM(r.amount)
+            )
+            FROM SharedRevenue r
             WHERE (r.ownerId = :ownerId OR r.memberId = :memberId)
-            AND r.createdAt BETWEEN :startDate AND :endDate
-            AND r.category = :category
+            AND r.createdAt BETWEEN :from AND :to
+            GROUP BY r.category
             """)
-    List<SharedRevenue> findAllByOwnerIdOrMemberIdAndCreatedAtBetweenAndCategory(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to, @Param("category") RevenueCategory category);
-
-    @Query("""
-            SELECT COALESCE(SUM(r.amount), 0) FROM SharedRevenue r
-            WHERE r.ownerId = :ownerId OR r.memberId = :memberId
-            """)
-    BigDecimal sumAllRevenuesByOwnerIdOrMemberId(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId);
-
-    @Query("""
-            SELECT SUM(r.amount) FROM SharedRevenue r
-            WHERE (r.ownerId = :ownerId OR r.memberId = :memberId)
-            AND r.createdAt >= :startDate AND r.createdAt <= :endDate
-            """)
-    Optional<BigDecimal> sumRevenuesByOwnerIdOrMemberIdAndDateRange(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    List<RevenueCategorySumDto> sumRevenuesGroupedByCategoryForOwnerIdOrMemberId(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId, @Param("from") LocalDate from, @Param("to") LocalDate to);
 
     @Query("""
              SELECT NEW com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto(
