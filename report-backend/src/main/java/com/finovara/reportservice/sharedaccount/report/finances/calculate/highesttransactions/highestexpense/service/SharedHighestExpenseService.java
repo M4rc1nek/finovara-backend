@@ -2,7 +2,7 @@ package com.finovara.reportservice.sharedaccount.report.finances.calculate.highe
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.util.PeriodType;
-import com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
 import com.finovara.reportservice.feignclient.FinanceBackendSharedReportClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
