@@ -1,8 +1,9 @@
-package com.finovara.financeservice.sharedaccount.revenue.model;
+package com.finovara.financeservice.sharedaccount.revenue.repository;
 
 import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto;
 import com.finovara.financeservice.internal.report.util.dto.RevenueCategorySumDto;
+import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -33,7 +34,7 @@ public interface SharedRevenueRepository extends JpaRepository<SharedRevenue, Lo
     BigDecimal sumRevenueByCreatedByUserId(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId, @Param("userId") Long userId);
 
     @Query("""
-            SELECT NEW com.finovara.financeservice.internal.mainaccount.financial.dto.RevenueCategorySumDto(
+            SELECT NEW com.finovara.financeservice.internal.report.util.dto.RevenueCategorySumDto(
                 r.category,
                 SUM(r.amount)
             )
