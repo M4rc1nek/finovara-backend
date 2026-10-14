@@ -1,4 +1,8 @@
 package com.finovara.financeservice.internal.financial.dto;
 
-public record RevenueCategorySumDto() {
+import com.finovara.contracts.util.model.RevenueCategory;
+
+import java.math.BigDecimal;
+
+public record RevenueCategorySumDto(RevenueCategory category, BigDecimal amount) {
 }
