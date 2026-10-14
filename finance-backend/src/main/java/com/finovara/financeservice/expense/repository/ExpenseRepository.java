@@ -1,10 +1,11 @@
 package com.finovara.financeservice.expense.repository;
 
+import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
+import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
 import com.finovara.contracts.util.model.ExpenseCategory;
-import com.finovara.contracts.mainaccount.report.dto.DailyCashDto;
-import com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.suggestions.dto.ExpenseSuggestionDto;
+import com.finovara.financeservice.internal.financial.dto.ExpenseCategorySumDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -31,7 +32,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Expense> findAllByUserIdAndCreatedAtBetween(Long userId, @Param("startDate") LocalDate from,
                                                      @Param("endDate") LocalDate to);
 
-        @Query("""
+    @Query("""
             SELECT new com.finovara.financeservice.expense.suggestions.dto.ExpenseSuggestionDto(
                 e.category,
                 e.amount
@@ -40,7 +41,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             WHERE e.userId = :userId
             ORDER BY e.id DESC
             """)
-        List<ExpenseSuggestionDto> findLatestExpensePairsByUserId(Long userId, Pageable pageable);
+    List<ExpenseSuggestionDto> findLatestExpensePairsByUserId(Long userId, Pageable pageable);
 
     @Query("SELECT e FROM Expense e WHERE e.userId = :userId ORDER BY e.id DESC")
     List<Expense> findLatestByUserId(Long userId, Pageable pageable);
@@ -64,7 +65,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     Optional<BigDecimal> avgExpensesByUserIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("""
-             SELECT NEW com.finovara.contracts.mainaccount.report.dto.HighestExpenseDto(
+             SELECT NEW com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto(
              e.category,
              e.amount
             )
@@ -85,7 +86,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<ExpenseCategory> findTopExpenseCategoriesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
-                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
+                SELECT new com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto(
                     e.createdAt,
                     SUM(e.amount)
                 )
@@ -96,7 +97,15 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<DailyCashDto> sumExpensesGroupedByDate(Long userId);
 
     @Query("""
-                SELECT new com.finovara.contracts.mainaccount.report.dto.DailyCashDto(
+            SELECT new com.finovara.financeservice.internal.financial.dto.ExpenseCategorySumDto(e.category, SUM(e.amount))
+            FROM Expense e
+            WHERE e.userId = :userId AND e.createdAt BETWEEN :from AND :to
+            GROUP BY e.category
+            """)
+    List<ExpenseCategorySumDto> sumExpensesGroupedByCategory(Long userId, LocalDate from, LocalDate to);
+
+    @Query("""
+                SELECT new com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto(
                     e.createdAt,
                     CAST(AVG(e.amount) AS big_decimal)
                 )
