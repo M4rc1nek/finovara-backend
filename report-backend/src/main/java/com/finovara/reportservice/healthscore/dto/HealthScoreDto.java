@@ -1,4 +1,4 @@
-package healthscore.dto;
+package com.finovara.reportservice.healthscore.dto;
 
 import com.finovara.reportservice.healthscore.model.HealthScoreStatus;
 
