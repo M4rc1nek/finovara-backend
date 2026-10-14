@@ -1,39 +1,52 @@
-package smartreport.service;
+package com.finovara.reportservice.report.smartreport.service;
 
-import com.finovara.reportservice.report.finances.smartreport.model.SmartReportType;
-import com.finovara.reportservice.report.finances.smartreport.service.loader.SmartReportQuestionService;
+import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.service.loader.SmartReportQuestionService;
+import com.finovara.reportservice.report.smartreport.service.loader.SmartReportTemplateService;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class SmartReportService {
 
-    private final SmartReportQuestionService smartReportQuestionService;
+    private static final String UNKNOWN_QUESTION =
+            "Nie jestem aż tak inteligentny, aby odpowiedzieć na to pytanie, zadaj pytanie z księgi pytań!";
+    private static final String UNSUPPORTED_TYPE = "Report type not supported";
 
-    private final Map<SmartReportType, SmartReportHandler> handlers;
+    private final SmartReportQuestionService questionService;
+    private final SmartReportTemplateService templateService;
+    private final FinanceBackendReportClient reportClient;
+    private final Map<SmartReportType, SmartReportHandler> handlers = new EnumMap<>(SmartReportType.class);
 
-    public SmartReportService(List<SmartReportHandler> handlerList, SmartReportQuestionService smartReportQuestionService) {
-        this.smartReportQuestionService = smartReportQuestionService;
-        this.handlers = handlerList.stream().collect(Collectors.toMap(
-                SmartReportHandler::getType, handler -> handler));
+    public SmartReportService(List<SmartReportHandler> handlerList,
+                              SmartReportQuestionService questionService,
+                              SmartReportTemplateService templateService,
+                              FinanceBackendReportClient reportClient) {
+        this.questionService = questionService;
+        this.templateService = templateService;
+        this.reportClient = reportClient;
+        handlerList.forEach(handler -> handlers.put(handler.getType(), handler));
     }
 
     public String generateResponse(Long userId, String userQuestion) {
-
-        SmartReportType type = smartReportQuestionService.getTypeFromQuestion(userQuestion);
-
-        if (type == null)
-            return "Nie  jestem aż tak inteligenty aby odpowiedzieć na to pytanie, zadaj pytanie z księgi pytań!";
-
-        SmartReportHandler handler = handlers.get(type);
-
-        if (handler == null) {
-            return "Report type not supported";
+        SmartReportType type = questionService.getTypeFromQuestion(userQuestion);
+        if (type == null) {
+            return UNKNOWN_QUESTION;
         }
 
-        return handler.generate(userId);
+        SmartReportHandler handler = handlers.get(type);
+        if (handler == null) {
+            return UNSUPPORTED_TYPE;
+        }
+
+        var report = reportClient.getFinancialReport(userId, handler.getPeriodType());
+        BigDecimal value = handler.calculate(report);
+
+        return templateService.render(type, value);
     }
 }
