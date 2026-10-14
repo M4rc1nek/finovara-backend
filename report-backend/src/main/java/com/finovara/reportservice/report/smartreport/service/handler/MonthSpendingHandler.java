@@ -1,21 +1,15 @@
-package smartreport.service.handler;
+package com.finovara.reportservice.report.smartreport.service.handler;
 
-import com.finovara.reportservice.feignclient.FinanceBackendReportClient;
-import com.finovara.reportservice.report.finances.smartreport.model.SmartReportType;
-import com.finovara.reportservice.report.finances.smartreport.service.SmartReportHandler;
-import com.finovara.reportservice.report.finances.smartreport.service.loader.SmartReportTemplateService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
+import com.finovara.contracts.util.PeriodType;
+import com.finovara.reportservice.report.smartreport.model.SmartReportType;
+import com.finovara.reportservice.report.smartreport.service.SmartReportHandler;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
-@Service
-@RequiredArgsConstructor
+@Component
 public class MonthSpendingHandler implements SmartReportHandler {
-
-    private final FinanceBackendReportClient reportClient;
-    private final SmartReportTemplateService templateService;
 
     @Override
     public SmartReportType getType() {
@@ -23,11 +17,12 @@ public class MonthSpendingHandler implements SmartReportHandler {
     }
 
     @Override
-    public String generate(Long userId) {
-        LocalDate today = LocalDate.now();
-        LocalDate startMonth = today.withDayOfMonth(1);
-        BigDecimal sum = reportClient.sumExpenses(userId, startMonth, today);
-        String template = templateService.getRandomResponse(SmartReportType.MONTH_SPENDING);
-        return template.replace("{amount}", sum.toString());
+    public PeriodType getPeriodType() {
+        return PeriodType.MONTHLY;
+    }
+
+    @Override
+    public BigDecimal calculate(FinancialReportDto report) {
+        return ReportValues.expenses(report);
     }
 }
