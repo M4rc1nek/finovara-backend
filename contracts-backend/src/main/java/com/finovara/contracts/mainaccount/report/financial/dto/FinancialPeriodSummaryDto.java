@@ -1,6 +1,4 @@
-package com.finovara.reportservice.util.dto.financial;
-
-import com.finovara.reportservice.util.dto.ReportDto;
+package com.finovara.contracts.mainaccount.report.financial.dto;
 
 public record FinancialPeriodSummaryDto(
         ReportDto dailyExpense,
