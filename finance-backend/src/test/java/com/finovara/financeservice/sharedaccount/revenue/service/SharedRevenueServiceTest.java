@@ -26,7 +26,7 @@ import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueDto;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueResponse;
 import com.finovara.financeservice.sharedaccount.revenue.mapper.SharedRevenueMapper;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
-import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenueRepository;
+import com.finovara.financeservice.sharedaccount.revenue.repository.SharedRevenueRepository;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.transaction.revenue.SharedRevenueManagerService;
 import java.math.BigDecimal;
