@@ -3,7 +3,7 @@ package com.finovara.financeservice.revenue.repository;
 import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto;
 import com.finovara.contracts.util.model.RevenueCategory;
-import com.finovara.financeservice.internal.financial.dto.RevenueCategorySumDto;
+import com.finovara.financeservice.internal.report.util.dto.RevenueCategorySumDto;
 import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.suggestions.dto.RevenueSuggestionDto;
 import org.springframework.data.domain.Pageable;
@@ -27,9 +27,6 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     @Query("SELECT r From Revenue r WHERE r.userId = :userId AND r.createdAt BETWEEN :startDate AND :endDate AND r.category = :category")
     List<Revenue> findAllByUserIdAndCreatedAtBetweenAndCategory(Long userId, @Param("startDate") LocalDate from,
                                                                 @Param("endDate") LocalDate to, RevenueCategory category);
-
-    @Query("SELECT coalesce(sum(r.amount),0) FROM Revenue r WHERE r.userId = :userId")
-    BigDecimal sumAllRevenuesByUserId(Long userId);
 
     @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userId = :userId AND r.createdAt >= :startDate AND r.createdAt <= :endDate")
     Optional<BigDecimal> sumRevenuesByUserAndDateRange(Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
@@ -81,7 +78,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<DailyCashDto> sumRevenuesGroupedByDate(Long userId);
 
     @Query("""
-            SELECT new com.finovara.financeservice.internal.financial.dto.RevenueCategorySumDto(r.category, SUM(r.amount))
+            SELECT new com.finovara.financeservice.internal.report.util.dto.RevenueCategorySumDto(r.category, SUM(r.amount))
             FROM Revenue r
             WHERE r.userId = :userId AND r.createdAt BETWEEN :from AND :to
             GROUP BY r.category
