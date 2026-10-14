@@ -1,4 +1,4 @@
-package pdf.pdfexport.strategy.label;
+package com.finovara.reportservice.pdfexport.strategy.label;
 
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.model.ExpenseCategory;
@@ -49,5 +49,13 @@ public class PdfReportText {
 
     public static String fileName(String prefix, PeriodType periodType) {
         return prefix + "-" + periodType.name().toLowerCase() + ".pdf";
+    }
+
+    public static String expenseCategoryLabel(String category) {
+        return category == null ? "Inne" : expenseCategoryLabel(ExpenseCategory.valueOf(category));
+    }
+
+    public static String revenueCategoryLabel(String category) {
+        return category == null ? "Inne" : revenueCategoryLabel(RevenueCategory.valueOf(category));
     }
 }
