@@ -4,7 +4,6 @@ import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitation
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.exception.forbidden.AccessDeniedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -35,31 +34,11 @@ public class InvitationValidator {
                 });
     }
 
-
-    public void validateAcceptInvite(Long inviterUserId, Long inviteeUserId, Long invitationId){
+    public void validateAcceptInvite(Long inviterUserId, Long inviteeUserId, Long invitationId) {
         if (sharedAccountMemberRepository.existsByUserId(inviterUserId) || sharedAccountMemberRepository.existsByUserId(inviteeUserId)) {
             log.warn("Rejected accept: inviterUserId={} or inviteeUserId={} already has a shared account, invitationId={}",
                     inviterUserId, inviteeUserId, invitationId);
             throw new EntityAlreadyExistsException("One of the users already belongs to a shared account");
-        }
-    }
-
-    public void validateInvitationOwnership(Long actualInviteeUserId, Long callerUserId, Long invitationId) {
-        if (!actualInviteeUserId.equals(callerUserId)) {
-            log.warn("Access denied: userId={} tried to act on invitationId={} belonging to inviteeUserId={}",
-                    callerUserId, invitationId, actualInviteeUserId);
-            throw new AccessDeniedException("This invitation does not belong to the current user");
-        }
-    }
-
-    public void validateMembership(Long accountId, Long callerId) {
-        boolean isMember = sharedAccountMemberRepository.findByUserId(callerId)
-                .map(member -> member.getSharedAccount().getId().equals(accountId))
-                .orElse(false);
-
-        if (!isMember) {
-            log.warn("Access denied: userId={} tried to access members of sharedAccountId={} they don't belong to", callerId, accountId);
-            throw new AccessDeniedException("You are not a member of this shared account");
         }
     }
 }
