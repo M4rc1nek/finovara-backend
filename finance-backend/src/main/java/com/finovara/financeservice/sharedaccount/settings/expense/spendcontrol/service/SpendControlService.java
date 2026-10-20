@@ -8,10 +8,10 @@ import com.finovara.contracts.util.calculate.CalculatePercentage;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
-import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.dto.SpendControlDto;
 import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
 import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
+import com.finovara.financeservice.util.sharedaccount.settings.SharedSettingsManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,14 +22,14 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class SpendControlService {
-    private final SharedAccountSettingsRepository sharedAccountSettingsRepository;
     private final SharedWalletRepository sharedWalletRepository;
+    private final SharedSettingsManager sharedSettingsManager;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
     private final OutboxService outboxService;
 
     @Transactional
     public void saveSpendControlService(Long userId, SpendControlDto spendControlDto) {
-        SharedAccountSettings settings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings settings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
 
         boolean changed = settings.isSpendControlEnabled() != spendControlDto.spendControlEnabled()
                 || !settings.getSpendControlPercentage().equals(spendControlDto.spendControlPercentage());
@@ -46,14 +46,14 @@ public class SpendControlService {
 
     @Transactional
     public SpendControlDto getSmartScan(Long userId) {
-        SharedAccountSettings settings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings settings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
 
         return new SpendControlDto(settings.isSpendControlEnabled(), settings.getSpendControlPercentage());
     }
 
     @Transactional
     public void handleSpendControl(Long userId, BigDecimal expenseAmount) {
-        SharedAccountSettings settings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings settings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
 
         if (!settings.isSpendControlEnabled()) return;
 
@@ -66,3 +66,4 @@ public class SpendControlService {
         }
     }
 }
+
