@@ -159,7 +159,7 @@ class SharedLimitCalculateServiceTest {
 
         @Test
         void shouldReturnStatsWhenLimitExistsForUser() {
-            when(limitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(limit));
+            when(limitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(limit));
             when(financialPeriodService.getSharedExpensesSum(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD)).thenReturn(BigDecimal.valueOf(100));
 
             SharedLimitStatsDto expectedDto = mock(SharedLimitStatsDto.class);
@@ -173,7 +173,7 @@ class SharedLimitCalculateServiceTest {
 
         @Test
         void shouldThrowRequestedEntityNotFoundExceptionWhenLimitDoesNotExist() {
-            when(limitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.empty());
+            when(limitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class, () -> sharedLimitCalculateService.calculateLimitStats(USER_ID, LIMIT_ID, today));
 
