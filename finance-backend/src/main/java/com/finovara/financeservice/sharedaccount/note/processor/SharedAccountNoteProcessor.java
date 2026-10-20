@@ -14,9 +14,10 @@ public class SharedAccountNoteProcessor {
     private final SharedAccountNoteRepository sharedAccountNoteRepository;
 
     @Transactional
-    public void deleteNotes(){
+    public void deleteNotes() {
         sharedAccountNoteRepository.deleteAllInBatch();
         log.info("Deleted shared-account notes");
     }
 
 }
+

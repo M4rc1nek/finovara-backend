@@ -3,15 +3,14 @@ package com.finovara.financeservice.sharedaccount.wallet.service;
 import com.finovara.financeservice.sharedaccount.wallet.dto.SharedWalletDto;
 import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
 import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
+import com.finovara.financeservice.util.sharedaccount.wallet.SharedWalletManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -19,9 +18,10 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SharedWalletService{
+public class SharedWalletService {
 
     private final SharedWalletRepository sharedWalletRepository;
+    private final SharedWalletManager sharedWalletManager;
 
     @Transactional
     @Caching(evict = {
@@ -46,7 +46,7 @@ public class SharedWalletService{
             @CacheEvict(value = "wallet:shared", key = "#result.memberId")
     })
     public SharedWalletDto addBalanceToWallet(Long callerId, BigDecimal amount) {
-        SharedWallet wallet = getWalletOrThrow(callerId);
+        SharedWallet wallet = sharedWalletManager.getWalletForUpdateOrThrow(callerId);
 
         wallet.deposit(amount);
         log.info("Adding balance to shared wallet, callerId={}", callerId);
@@ -60,7 +60,7 @@ public class SharedWalletService{
             @CacheEvict(value = "wallet:shared", key = "#result.memberId")
     })
     public SharedWalletDto removeBalanceFromWallet(Long callerId, BigDecimal amount) {
-        SharedWallet wallet = getWalletOrThrow(callerId);
+        SharedWallet wallet = sharedWalletManager.getWalletForUpdateOrThrow(callerId);
 
         wallet.withdraw(amount);
         log.info("Withdrawing balance from shared wallet, callerId={}", callerId);
@@ -71,12 +71,7 @@ public class SharedWalletService{
     @Transactional
     @Cacheable(value = "wallet:shared", key = "#callerId")
     public SharedWalletDto getWallet(Long callerId) {
-        return toDto(getWalletOrThrow(callerId));
-    }
-
-    private SharedWallet getWalletOrThrow(Long callerId) {
-        return sharedWalletRepository.findByOwnerIdOrMemberId(callerId, callerId)
-                .orElseThrow(() -> new InvalidInputException("Shared wallet not found for userId=" + callerId));
+        return toDto(sharedWalletManager.getWalletOrThrow(callerId));
     }
 
     private SharedWalletDto toDto(SharedWallet wallet) {

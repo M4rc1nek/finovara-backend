@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class SharedWalletController {
     private final SharedWalletService sharedWalletService;
 
-
     @GetMapping("/shared-wallet")
-    public ResponseEntity<SharedWalletDto> getSharedWallet(){
-        return  ResponseEntity.ok(sharedWalletService.getWallet(SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<SharedWalletDto> getSharedWallet() {
+        return ResponseEntity.ok(sharedWalletService.getWallet(SecurityUtils.getCurrentUserId()));
     }
 
 }
+

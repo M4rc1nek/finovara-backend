@@ -38,3 +38,4 @@ public class SharedRevenueController {
         return ResponseEntity.noContent().build();
     }
 }
+

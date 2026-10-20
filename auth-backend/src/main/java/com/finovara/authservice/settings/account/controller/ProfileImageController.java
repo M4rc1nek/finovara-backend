@@ -1,5 +1,6 @@
 package com.finovara.authservice.settings.account.controller;
 
+import com.finovara.authservice.security.SecurityUtils;
 import com.finovara.authservice.settings.account.service.profileimage.ProfileImageService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +14,13 @@ public class ProfileImageController {
 
     private final ProfileImageService profileImageService;
 
-    @PostMapping("/{userId}")
-    public void uploadProfileImage(@PathVariable Long userId, @RequestParam("file") MultipartFile file, HttpServletRequest request, @RequestParam(required = false) String authorizationCode, @RequestParam String sourceEventId) {
-        profileImageService.uploadProfileImage(file, userId, request, authorizationCode, sourceEventId);
+    @PostMapping
+    public void uploadProfileImage(@RequestParam("file") MultipartFile file, HttpServletRequest request, @RequestParam(required = false) String authorizationCode, @RequestParam String sourceEventId) {
+        profileImageService.uploadProfileImage(file, SecurityUtils.getCurrentUserId(), request, authorizationCode, sourceEventId);
     }
 
-    @DeleteMapping("/{userId}")
-    public void deleteProfileImage(@PathVariable Long userId, HttpServletRequest request, @RequestParam(required = false) String authorizationCode, @RequestParam String sourceEventId) {
-        profileImageService.deleteProfileImage(userId, request, authorizationCode, sourceEventId);
+    @DeleteMapping
+    public void deleteProfileImage(HttpServletRequest request, @RequestParam(required = false) String authorizationCode, @RequestParam String sourceEventId) {
+        profileImageService.deleteProfileImage(SecurityUtils.getCurrentUserId(), request, authorizationCode, sourceEventId);
     }
 }

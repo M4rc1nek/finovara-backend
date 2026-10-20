@@ -8,9 +8,9 @@ import com.finovara.financeservice.sharedaccount.participants.SharedAccountParti
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieved.service.GoalAchievedNotificationService;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
+import com.finovara.financeservice.util.sharedaccount.piggybank.SharedPiggyBankManager;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCalculator;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankValidator;
-import com.finovara.financeservice.util.transaction.piggybank.manager.SharedPiggyBankManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +31,7 @@ public class SharedPiggyBankTransactionService {
 
     @Transactional
     public BigDecimal addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount) {
-        SharedPiggyBank piggyBank = sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId);
+        SharedPiggyBank piggyBank = sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(piggyBankId, userId);
         SharedAccountParticipantsResponse sharedAccountParticipants = sharedAccountParticipantsService.getParticipants(userId);
 
         PiggyBankValidator.validateAmount(amount);
@@ -48,7 +48,7 @@ public class SharedPiggyBankTransactionService {
 
     @Transactional
     public BigDecimal removeBalanceFromPiggyBank(Long userId, Long piggyBankId, BigDecimal amount) {
-        SharedPiggyBank piggyBank = sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId);
+        SharedPiggyBank piggyBank = sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(piggyBankId, userId);
 
         PiggyBankValidator.validateAmount(amount);
         PiggyBankValidator.validateSufficientFunds(piggyBank.getAmount(), amount);

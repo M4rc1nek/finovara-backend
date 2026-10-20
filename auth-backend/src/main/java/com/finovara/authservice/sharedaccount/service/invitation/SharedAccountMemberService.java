@@ -27,8 +27,8 @@ public class SharedAccountMemberService {
     private final SharedAccountMemberRepository sharedAccountMemberRepository;
     private final UserRepository userRepository;
     private final UserDataMapper userDataMapper;
-    private final InvitationValidator invitationValidator;
 
+    @Transactional
     public void createMember(SharedAccount sharedAccount, Long userId, SharedRole role) {
         User user = userRepository.getReferenceById(userId);
         sharedAccountMemberRepository.save(
@@ -41,37 +41,47 @@ public class SharedAccountMemberService {
         user.setHasSharedAccount(true);
     }
 
-    public List<SharedAccountMemberDto> getMemberDetails(Long accountId, Long callerId) {
-        invitationValidator.validateMembership(accountId, callerId);
+    @Transactional(readOnly = true)
+    public List<SharedAccountMemberDto> getMemberDetails(Long callerId) {
+        List<SharedAccountMember> members = loadAccountMembers(callerId);
+        Map<Long, User> usersById = loadUsersById(members);
 
-        return sharedAccountMemberRepository.findMembersByAccountId(accountId).stream()
-                .map(member -> userDataMapper.toSharedAccountMemberDto(
-                        member, userRepository.getReferenceById(member.getUserId())))
+        return members.stream()
+                .map(member -> userDataMapper.toSharedAccountMemberDto(member, usersById.get(member.getUserId())))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<SharedAccountMemberInfoDto> getMembersInfo(Long userId) {
-        SharedAccountMember membership = sharedAccountMemberRepository.findByUserId(userId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("User is not a member of any shared account"));
-
-        List<SharedAccountMember> members = sharedAccountMemberRepository.findMembersByAccountId(membership.getSharedAccount().getId());
-
-        Map<Long, User> usersById = userRepository
-                .findAllById(members.stream().map(SharedAccountMember::getUserId).toList())
-                .stream()
-                .collect(Collectors.toMap(User::getId, Function.identity()));
+        List<SharedAccountMember> members = loadAccountMembers(userId);
+        Map<Long, User> usersById = loadUsersById(members);
 
         return members.stream()
                 .map(member -> {
                     User user = usersById.get(member.getUserId());
-                    validateUserExists(user, member);
                     return new SharedAccountMemberInfoDto(user.getId(), user.getUsername(), member.getRole());
                 })
                 .toList();
     }
 
-    private void validateUserExists(User user, SharedAccountMember member){
+    private List<SharedAccountMember> loadAccountMembers(Long userId) {
+        SharedAccountMember membership = sharedAccountMemberRepository.findByUserId(userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("User is not a member of any shared account"));
+
+        return sharedAccountMemberRepository.findMembersByAccountId(membership.getSharedAccount().getId());
+    }
+
+    private Map<Long, User> loadUsersById(List<SharedAccountMember> members) {
+        Map<Long, User> usersById = userRepository
+                .findAllById(members.stream().map(SharedAccountMember::getUserId).toList())
+                .stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        members.forEach(member -> validateUserExists(usersById.get(member.getUserId()), member));
+        return usersById;
+    }
+
+    private void validateUserExists(User user, SharedAccountMember member) {
         if (user == null) {
             throw new RequestedEntityNotFoundException("User not found, userId=" + member.getUserId());
         }

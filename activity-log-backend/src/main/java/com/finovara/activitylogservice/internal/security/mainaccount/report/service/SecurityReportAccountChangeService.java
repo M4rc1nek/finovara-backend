@@ -45,7 +45,7 @@ public class SecurityReportAccountChangeService {
     }
 
     private Optional<AccountChangeActivity> findLastActivity(Long userId, AccountChangeActivityType type, LocalDateTime from, LocalDateTime to) {
-        return accountChangeActivityRepository.findActivities(userId, type, from, to, PageRequest.of(0, 1))
+        return accountChangeActivityRepository.findActivitiesByUserId(userId, type, from, to, PageRequest.of(0, 1))
                 .stream().findFirst();
     }
 

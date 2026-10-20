@@ -31,3 +31,4 @@ public class MainAccountFinanceConsumer {
         evictFinanceDataHistoryService.evictFinanceDataHistory(event.userId());
     }
 }
+

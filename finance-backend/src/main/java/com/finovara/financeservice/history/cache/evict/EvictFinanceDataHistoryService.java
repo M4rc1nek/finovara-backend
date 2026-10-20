@@ -10,7 +10,7 @@ public class EvictFinanceDataHistoryService {
 
     private final RedisCacheEvictor redisCacheEvictor;
 
-    public void evictFinanceDataHistory(Long userId){
+    public void evictFinanceDataHistory(Long userId) {
         evictRevenueHistoryForUser(userId);
         evictExpenseHistoryForUser(userId);
     }
@@ -24,3 +24,4 @@ public class EvictFinanceDataHistoryService {
     }
 
 }
+

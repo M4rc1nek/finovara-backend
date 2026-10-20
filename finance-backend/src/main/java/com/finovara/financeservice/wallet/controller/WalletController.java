@@ -26,6 +26,7 @@ public class WalletController {
     public ResponseEntity<Long> createReservation(@RequestBody FundReservationDto fundReservationDto) {
         return ResponseEntity.ok(fundReservationService.createReservation(SecurityUtils.getCurrentUserId(), fundReservationDto));
     }
+
     @PatchMapping("/fund-reservation/unreserve/{reservationId}")
     public ResponseEntity<Void> unreserveReservation(@PathVariable Long reservationId, @RequestBody UnreserveReservationDto unreserveReservationDto) {
         fundReservationService.unreserveReservation(SecurityUtils.getCurrentUserId(), reservationId, unreserveReservationDto);
@@ -38,3 +39,4 @@ public class WalletController {
         return ResponseEntity.noContent().build();
     }
 }
+

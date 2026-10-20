@@ -5,14 +5,23 @@ import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class WalletManagerService {
+
     private final WalletRepository walletRepository;
 
     public Wallet getWalletByUserIdOrThrow(Long userId) {
         return walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Wallet not found for this user"));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Wallet getWalletForUpdateOrThrow(Long userId) {
+        return walletRepository.findByUserIdForUpdate(userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Wallet not found for this user"));
     }
 }

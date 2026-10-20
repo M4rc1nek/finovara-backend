@@ -25,3 +25,4 @@ public class SpendControlController {
         return ResponseEntity.ok(spendControlService.getSmartScan(SecurityUtils.getCurrentUserId()));
     }
 }
+

@@ -3,7 +3,6 @@ package com.finovara.financeservice.util.transaction.expense;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
-import com.finovara.financeservice.util.transaction.expense.ExpenseManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,19 +51,15 @@ class ExpenseManagerServiceTest {
     void shouldReturnExpenseById() {
         Expense expense = new Expense();
 
-        when(expenseRepository.findById(EXPENSE_ID)).thenReturn(Optional.of(expense));
+        when(expenseRepository.findByIdAndUserId(EXPENSE_ID, USER_ID)).thenReturn(Optional.of(expense));
 
-        expenseManagerService.getExpenseByIdOrThrow(EXPENSE_ID);
-
-        verify(expenseRepository).findById(EXPENSE_ID);
+        expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID);
     }
 
     @Test
     void shouldThrowExceptionWhenExpenseByIdNotFound() {
-        when(expenseRepository.findById(EXPENSE_ID)).thenReturn(Optional.empty());
+        when(expenseRepository.findByIdAndUserId(EXPENSE_ID, USER_ID)).thenReturn(Optional.empty());
 
-        assertThrows(RequestedEntityNotFoundException.class, () -> expenseManagerService.getExpenseByIdOrThrow(EXPENSE_ID));
-
-        verify(expenseRepository).findById(EXPENSE_ID);
+        assertThrows(RequestedEntityNotFoundException.class, () -> expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID));
     }
 }

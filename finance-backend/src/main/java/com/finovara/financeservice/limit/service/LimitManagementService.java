@@ -1,22 +1,22 @@
 package com.finovara.financeservice.limit.service;
 
-import com.finovara.contracts.user.datadeletable.UserDataDeletable;
-import com.finovara.contracts.mainaccount.activity.event.limit.LimitActivityEvent;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.mainaccount.activity.event.limit.LimitActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.LimitActivityType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.limit.dto.LimitDto;
 import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
+import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.limit.validator.LimitExpensesValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -28,6 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LimitManagementService implements UserDataDeletable {
     private final LimitRepository limitRepository;
+    private final LimitManagerService limitManagerService;
     private final LimitCalculateService limitCalculateService;
     private final LimitExpensesValidator limitExpensesValidator;
     private final OutboxService outboxService;
@@ -71,12 +72,7 @@ public class LimitManagementService implements UserDataDeletable {
     public Long editLimit(LimitDto limitDto, Long limitId, Long userId) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(limitDto.authorizationCode()));
 
-        Limit limit = limitRepository.findByIdAndUserId(userId, limitId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Active limit not found"));
-
-        if (!limit.getUserId().equals(userId)) {
-            throw new RequestedEntityNotFoundException("Active Limit not found for this user");
-        }
+        Limit limit = limitManagerService.getLimitByUserIdOrThrow(userId, limitId);
 
         limitExpensesValidator.validateCurrentExpensesDoNotExceedLimit(userId, limitDto);
 
@@ -107,8 +103,7 @@ public class LimitManagementService implements UserDataDeletable {
     public void deleteLimit(Long userId, Long limitId, String authorizationCode) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
 
-        Limit limit = limitRepository.findByIdAndUserId(userId, limitId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Active limit not found"));
+        Limit limit = limitManagerService.getLimitByUserIdOrThrow(userId, limitId);
 
         outboxService.save("Limit", limitId.toString(), "limit.changed",
                 new LimitActivityEvent(userId, LimitActivityType.DELETED_LIMIT, limit.getPeriodType() == null ? null : limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
@@ -123,3 +118,4 @@ public class LimitManagementService implements UserDataDeletable {
     }
 
 }
+

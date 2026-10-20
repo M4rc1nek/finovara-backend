@@ -10,10 +10,10 @@ import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpens
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
-import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisDto;
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisMode;
 import com.finovara.financeservice.util.settings.ExpenseAnomalyDetector;
+import com.finovara.financeservice.util.sharedaccount.settings.SharedSettingsManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +32,7 @@ public class ExpenseAnalysisService {
     private static final int SCAN_INTERVAL = 10;
     private static final BigDecimal ANOMALY_MULTIPLIER = BigDecimal.valueOf(3);
 
-    private final SharedAccountSettingsRepository sharedAccountSettingsRepository;
+    private final SharedSettingsManager sharedSettingsManager;
     private final SharedExpenseRepository sharedExpenseRepository;
     private final AuthBackendClient authBackendClient;
     private final ExpenseAnomalyDetector expenseAnomalyDetector;
@@ -41,7 +41,7 @@ public class ExpenseAnalysisService {
 
     @Transactional
     public void saveExpenseAnalysis(Long userId, ExpenseAnalysisDto settings) {
-        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings sharedAccountSettings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
 
         boolean changed = sharedAccountSettings.isExpenseAnalysisEnabled() != settings.expenseAnalysisEnabled();
 
@@ -56,14 +56,14 @@ public class ExpenseAnalysisService {
 
     @Transactional
     public ExpenseAnalysisDto getExpenseAnalysis(Long userId) {
-        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings sharedAccountSettings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
 
         return new ExpenseAnalysisDto(sharedAccountSettings.isExpenseAnalysisEnabled());
     }
 
     @Transactional
     public void handleExpenseAnalysis(Long userId, ConfirmPasswordDto confirmPasswordDto, BigDecimal newExpenseAmount, ExpenseAnalysisMode mode) {
-        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings sharedAccountSettings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
 
         if (!sharedAccountSettings.isExpenseAnalysisEnabled()) return;
 

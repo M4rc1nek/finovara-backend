@@ -13,6 +13,7 @@ import com.finovara.financeservice.settings.finances.expense.smartscan.dto.Smart
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.financeservice.util.settings.ExpenseAnomalyDetector;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
+import com.finovara.financeservice.util.settings.SettingsManager;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -51,6 +52,9 @@ class SmartScanServiceTest {
     private ExpenseRepository expenseRepository;
 
     @Mock
+    private SettingsManager settingsManager;
+
+    @Mock
     private AuthBackendClient authBackendClient;
 
     @Mock
@@ -72,7 +76,7 @@ class SmartScanServiceTest {
     @BeforeEach
     void setup() {
         expenseSettings = new ExpenseSettings();
-        when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(expenseSettings);
+        when(settingsManager.getExpenseSettingsByUserId(USER_ID)).thenReturn(expenseSettings);
         ReflectionTestUtils.setField(smartScanService, "pageSize", 4);
     }
 

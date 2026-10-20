@@ -25,3 +25,4 @@ public class GoalAchievedNotificationController {
         return ResponseEntity.ok(goalAchievedNotificationService.getGoalAchievedNotification(SecurityUtils.getCurrentUserId()));
     }
 }
+

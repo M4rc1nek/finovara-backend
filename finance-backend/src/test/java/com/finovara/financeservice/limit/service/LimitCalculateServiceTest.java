@@ -7,19 +7,19 @@ import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.mapper.LimitMapper;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.model.LimitStatus;
-import com.finovara.financeservice.limit.repository.LimitRepository;
+import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,11 +33,12 @@ class LimitCalculateServiceTest {
     private FinancialPeriodService financialPeriodService;
 
     @Mock
-    private LimitRepository limitRepository;
+    private LimitManagerService limitManagerService;
 
     @Mock
     private LimitMapper limitMapper;
 
+    @InjectMocks
     private LimitCalculateService limitCalculateService;
 
     private Long userId;
@@ -48,7 +49,7 @@ class LimitCalculateServiceTest {
 
     @BeforeEach
     void setUp() {
-        limitCalculateService = new LimitCalculateService(financialPeriodService, limitRepository, limitMapper);
+        limitCalculateService = new LimitCalculateService(financialPeriodService, limitManagerService, limitMapper);
         userId = 1L;
         date = LocalDate.of(2026, 7, 15);
         expectedDto = mock(LimitStatsDto.class);
@@ -141,7 +142,7 @@ class LimitCalculateServiceTest {
             @Test
             void shouldReturnStatsWhenLimitExistsForUser() {
                 Limit limit = buildLimit(5L, BigDecimal.valueOf(300), PeriodType.MONTHLY, null);
-                when(limitRepository.findByIdAndUserId(userId, limit.getId())).thenReturn(Optional.of(limit));
+                when(limitManagerService.getLimitByUserIdOrThrow(userId, limit.getId())).thenReturn(limit);
                 when(financialPeriodService.getExpensesSum(userId, limit.getPeriodType(), limit.getCategory()))
                         .thenReturn(BigDecimal.valueOf(30));
                 when(limitMapper.mapLimitStatsToDto(eq(limit), any(BigDecimal.class), any(BigDecimal.class), any(BigDecimal.class), eq(LimitStatus.NONE), eq(date)))
@@ -150,14 +151,6 @@ class LimitCalculateServiceTest {
                 LimitStatsDto result = limitCalculateService.calculateLimitStats(userId, limit.getId(), date);
 
                 assertSame(expectedDto, result);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenLimitNotFoundForUser() {
-                when(limitRepository.findByIdAndUserId(userId, 99L)).thenReturn(Optional.empty());
-
-                assertThrows(RequestedEntityNotFoundException.class,
-                        () -> limitCalculateService.calculateLimitStats(userId, 99L, date));
             }
         }
     }

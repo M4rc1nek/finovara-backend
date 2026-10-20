@@ -38,5 +38,4 @@ public class SharedAccountNoteController {
         sharedAccountNoteService.deleteNote(SecurityUtils.getCurrentUserId(), noteId);
         return ResponseEntity.noContent().build();
     }
-
 }

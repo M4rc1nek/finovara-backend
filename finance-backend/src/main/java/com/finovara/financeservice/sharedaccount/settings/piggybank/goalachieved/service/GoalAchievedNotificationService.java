@@ -1,15 +1,15 @@
 package com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieved.service;
 
-import com.finovara.contracts.sharedaccount.event.notification.GoalAchievedNotificationEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
 import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
+import com.finovara.contracts.sharedaccount.event.notification.GoalAchievedNotificationEvent;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
-import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieved.dto.GoalAchievedNotificationDto;
+import com.finovara.financeservice.util.sharedaccount.settings.SharedSettingsManager;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCheckGoalCompletion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,13 +21,13 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class GoalAchievedNotificationService {
 
-    private final SharedAccountSettingsRepository sharedAccountSettingsRepository;
     private final OutboxService outboxService;
+    private final SharedSettingsManager sharedSettingsManager;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
 
     @Transactional
     public void saveGoalAchievedNotification(Long userId, GoalAchievedNotificationDto settings) {
-        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings sharedAccountSettings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
 
         boolean changed = sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled() != settings.piggyBankGoalAchievedNotificationEnabled();
 
@@ -42,14 +42,14 @@ public class GoalAchievedNotificationService {
 
     @Transactional
     public GoalAchievedNotificationDto getGoalAchievedNotification(Long userId) {
-        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings sharedAccountSettings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
 
         return new GoalAchievedNotificationDto(sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled());
     }
 
     @Transactional
     public void handleGoalAchieved(Long userId, SharedPiggyBank sharedPiggyBank) {
-        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings sharedAccountSettings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
         if (!sharedAccountSettings.isPiggyBankGoalAchievedNotificationEnabled()) return;
 
         if (sharedPiggyBank.isGoalAchievedNotified()) return;
@@ -71,3 +71,4 @@ public class GoalAchievedNotificationService {
         }
     }
 }
+

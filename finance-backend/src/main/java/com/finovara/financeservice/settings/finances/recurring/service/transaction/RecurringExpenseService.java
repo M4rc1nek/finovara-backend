@@ -1,18 +1,18 @@
 package com.finovara.financeservice.settings.finances.recurring.service.transaction;
 
 import com.finovara.contracts.mainaccount.activity.model.SettingType;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.util.model.RecurringType;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
-import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringExpenseDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.contracts.util.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.service.support.RecurringSettingsSupport;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.ExpenseSettingsValidator;
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
+import com.finovara.financeservice.util.settings.SettingsManager;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class RecurringExpenseService {
 
     private final RecurringSettingsSupport recurringSettingsSupport;
     private final ExpenseSettingsValidator expenseSettingsValidator;
-    private final ExpenseSettingsRepository expenseSettingsRepository;
+    private final SettingsManager settingsManager;
     private final WalletManagerService walletManagerService;
     private final LimitManagerService limitManagerService;
     private final AuthBackendClient authBackendClient;
@@ -49,7 +49,7 @@ public class RecurringExpenseService {
         );
 
         if (settings.isEnable()) {
-            ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+            ExpenseSettings expenseSettings = settingsManager.getExpenseSettingsByUserId(userId);
             Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
             List<Limit> limits = limitManagerService.getLimitsByUserId(userId);
 
@@ -72,3 +72,4 @@ public class RecurringExpenseService {
         );
     }
 }
+

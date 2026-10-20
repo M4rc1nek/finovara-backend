@@ -17,6 +17,7 @@ import java.util.Optional;
 
 public interface SharedRevenueRepository extends JpaRepository<SharedRevenue, Long> {
 
+
     @Query("SELECT sr FROM SharedRevenue sr WHERE sr.ownerId = :userId OR sr.memberId = :userId")
     List<SharedRevenue> findAllByOwnerIdOrMemberId(@Param("userId") Long userId);
 

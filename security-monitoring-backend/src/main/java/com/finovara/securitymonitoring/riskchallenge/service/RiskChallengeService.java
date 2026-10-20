@@ -1,7 +1,7 @@
 package com.finovara.securitymonitoring.riskchallenge.service;
 
-import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.securitymonitoring.exception.badrequest.InvalidChallengeException;
 import com.finovara.securitymonitoring.exception.conflict.RiskOperationStateException;
 import com.finovara.securitymonitoring.feignclient.AuthBackendClient;
@@ -40,7 +40,7 @@ public class RiskChallengeService {
     public void generateAndSendEmailCode(RiskOperation operation, String recipientEmail) {
         String code = generateCode();
 
-        operation.setEmailCode((code));
+        operation.setEmailCode(code);
         operation.setEmailCodeExpiresAt(LocalDateTime.now().plusMinutes(secureCodeExpiresMinutes));
         riskOperationRepository.save(operation);
 
@@ -50,8 +50,9 @@ public class RiskChallengeService {
     }
 
     @Transactional
-    public ChallengeConfirmationResponse confirmPassword(Long riskOperationId, String password) {
-        RiskOperation operation = getOperation(riskOperationId);
+    public ChallengeConfirmationResponse confirmPassword(Long userId, Long riskOperationId, String password) {
+        RiskOperation operation = riskOperationRepository.findByIdAndUserId(riskOperationId, userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Risk operation not found id=" + riskOperationId));
 
         if (!operation.requiresPassword()) {
             throw new RiskOperationStateException("Risk operation id=" + riskOperationId + " does not require password confirmation");
@@ -72,7 +73,8 @@ public class RiskChallengeService {
 
     @Transactional
     public ChallengeConfirmationResponse confirmEmailCode(Long riskOperationId, String code) {
-        RiskOperation operation = getOperation(riskOperationId);
+        RiskOperation operation = riskOperationRepository.findById(riskOperationId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Risk operation not found id=" + riskOperationId));
 
         if (!operation.requiresEmailCode()) {
             throw new RiskOperationStateException("Risk operation id=" + riskOperationId + " does not require email code");
@@ -89,11 +91,6 @@ public class RiskChallengeService {
 
         log.info("Email code confirmed for riskOperationId={} userId={}", riskOperationId, operation.getUserId());
         return toConfirmationResponse(operation);
-    }
-
-    private RiskOperation getOperation(Long riskOperationId) {
-        return riskOperationRepository.findById(riskOperationId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Risk operation not found id=" + riskOperationId));
     }
 
     private ChallengeConfirmationResponse toConfirmationResponse(RiskOperation operation) {

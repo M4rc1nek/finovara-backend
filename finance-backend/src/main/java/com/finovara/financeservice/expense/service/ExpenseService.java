@@ -1,16 +1,15 @@
 package com.finovara.financeservice.expense.service;
 
-import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
+import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.ExpenseActivityType;
-import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.mainaccount.transaction.event.limit.LimitStatsEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.mapper.ExpenseMapper;
@@ -50,7 +49,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExpenseService implements UserDataDeletable {
 
-   private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final OutboxService outboxService;
     private final ExpenseRepository expenseRepository;
     private final LimitRepository limitRepository;
@@ -112,10 +111,8 @@ public class ExpenseService implements UserDataDeletable {
     @Transactional
     @CacheEvict(value = "expense:suggestion", key = "#userId")
     public Long editExpense(ExpenseRequestDto expenseRequestDto, Long userId, Long expenseId, HttpServletRequest servletRequest) {
-        Expense existingExpense = expenseManagerService.getExpenseByIdOrThrow(expenseId);
-        if (!existingExpense.getUserId().equals(userId)) {
-            throw new RequestedEntityNotFoundException("Expense not found for this user");
-        }
+        Expense existingExpense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, userId);
+
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
         riskGuardService.guard(userId, RiskTriggerType.EXPENSE, expenseRequestDto.expenseDto().amount(), expenseRequestDto.expenseDto().category().name(), authBackendClient.getUserEmail(userId),
                 expenseRequestDto.riskVerificationSourceEventId(), servletRequest);
@@ -157,8 +154,7 @@ public class ExpenseService implements UserDataDeletable {
     @Transactional
     @CacheEvict(value = "expense:suggestion", key = "#userId")
     public void deleteExpense(Long expenseId, Long userId, String authorizationCode) {
-        Expense expense = expenseRepository.findByIdAndUserId(expenseId, userId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
+        Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
         walletService.addBalanceToWallet(userId, expense.getAmount());
@@ -184,7 +180,7 @@ public class ExpenseService implements UserDataDeletable {
             if (!limitApplies(limit, newCategory)) {
                 return;
             }
-
+            // N+1 probably
             BigDecimal spentAlready = financialPeriodService.getExpensesSum(userId, limit.getPeriodType(), limit.getCategory());
             boolean oldAmountAlreadyCounted = limitApplies(limit, oldCategory);
             BigDecimal amountToRemove = oldAmountAlreadyCounted ? oldAmount : BigDecimal.ZERO;

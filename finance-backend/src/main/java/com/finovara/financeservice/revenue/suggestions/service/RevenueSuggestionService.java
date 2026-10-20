@@ -31,3 +31,4 @@ public class RevenueSuggestionService {
         return allIdentical ? latest.getFirst() : null;
     }
 }
+

@@ -1,14 +1,12 @@
 package com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.service;
 
-import com.finovara.contracts.exception.unprocessablecontent.InvalidOperationException;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
-import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
+import com.finovara.financeservice.util.sharedaccount.settings.SharedSettingsManager;
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.dto.SpendControlDto;
-import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
 import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -35,7 +33,7 @@ class SpendControlServiceTest {
     private static final Long USER_ID = 1L;
 
     @Mock
-    private SharedAccountSettingsRepository sharedAccountSettingsRepository;
+    private SharedSettingsManager sharedSettingsManager;
 
     @Mock
     private SharedWalletRepository sharedWalletRepository;
@@ -66,7 +64,7 @@ class SpendControlServiceTest {
                     .spendControlPercentage(new BigDecimal("50"))
                     .build();
             SpendControlDto dto = new SpendControlDto(true, new BigDecimal("50"));
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(settings);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(settings);
             when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
 
             spendControlService.saveSpendControlService(USER_ID, dto);
@@ -82,7 +80,7 @@ class SpendControlServiceTest {
                     .spendControlPercentage(new BigDecimal("50"))
                     .build();
             SpendControlDto dto = new SpendControlDto(true, new BigDecimal("75"));
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(settings);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(settings);
             when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
 
             spendControlService.saveSpendControlService(USER_ID, dto);
@@ -98,7 +96,7 @@ class SpendControlServiceTest {
                     .spendControlPercentage(new BigDecimal("50"))
                     .build();
             SpendControlDto dto = new SpendControlDto(true, new BigDecimal("50"));
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(settings);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(settings);
 
             spendControlService.saveSpendControlService(USER_ID, dto);
 
@@ -113,7 +111,7 @@ class SpendControlServiceTest {
                     .spendControlPercentage(new BigDecimal("50"))
                     .build();
             SpendControlDto dto = new SpendControlDto(true, new BigDecimal("50"));
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(settings);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(settings);
 
             spendControlService.saveSpendControlService(USER_ID, dto);
 
@@ -123,7 +121,7 @@ class SpendControlServiceTest {
         @Test
         void shouldThrowExceptionWhenSettingsRepositoryFails() {
             SpendControlDto dto = new SpendControlDto(true, new BigDecimal("50"));
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenThrow(new IllegalStateException("query failed"));
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenThrow(new IllegalStateException("query failed"));
 
             assertThrows(IllegalStateException.class, () -> spendControlService.saveSpendControlService(USER_ID, dto));
 
@@ -137,7 +135,7 @@ class SpendControlServiceTest {
                     .spendControlPercentage(new BigDecimal("50"))
                     .build();
             SpendControlDto dto = new SpendControlDto(true, new BigDecimal("50"));
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(settings);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(settings);
             when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenThrow(new IllegalStateException("participants failed"));
 
             assertThrows(IllegalStateException.class, () -> spendControlService.saveSpendControlService(USER_ID, dto));
@@ -155,7 +153,7 @@ class SpendControlServiceTest {
                     .spendControlEnabled(true)
                     .spendControlPercentage(new BigDecimal("40"))
                     .build();
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(settings);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(settings);
 
             SpendControlDto result = spendControlService.getSmartScan(USER_ID);
 
@@ -169,7 +167,7 @@ class SpendControlServiceTest {
                     .spendControlEnabled(false)
                     .spendControlPercentage(BigDecimal.ZERO)
                     .build();
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(settings);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(settings);
 
             SpendControlDto result = spendControlService.getSmartScan(USER_ID);
 
@@ -178,7 +176,7 @@ class SpendControlServiceTest {
 
         @Test
         void shouldThrowExceptionWhenSettingsRepositoryFails() {
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenThrow(new IllegalStateException("query failed"));
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenThrow(new IllegalStateException("query failed"));
 
             assertThrows(IllegalStateException.class, () -> spendControlService.getSmartScan(USER_ID));
         }
@@ -193,7 +191,7 @@ class SpendControlServiceTest {
                     .spendControlEnabled(false)
                     .spendControlPercentage(new BigDecimal("50"))
                     .build();
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(settings);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(settings);
 
             spendControlService.handleSpendControl(USER_ID, new BigDecimal("10000.00"));
 
@@ -202,7 +200,7 @@ class SpendControlServiceTest {
 
         @Test
         void shouldThrowExceptionWhenSettingsRepositoryFails() {
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenThrow(new IllegalStateException("query failed"));
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenThrow(new IllegalStateException("query failed"));
 
             assertThrows(IllegalStateException.class, () -> spendControlService.handleSpendControl(USER_ID, new BigDecimal("100.00")));
 
@@ -215,7 +213,7 @@ class SpendControlServiceTest {
                     .spendControlEnabled(true)
                     .spendControlPercentage(new BigDecimal("50"))
                     .build();
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(settings);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(settings);
             when(sharedWalletRepository.findByUserId(USER_ID)).thenThrow(new IllegalStateException("wallet query failed"));
 
             assertThrows(IllegalStateException.class, () -> spendControlService.handleSpendControl(USER_ID, new BigDecimal("100.00")));

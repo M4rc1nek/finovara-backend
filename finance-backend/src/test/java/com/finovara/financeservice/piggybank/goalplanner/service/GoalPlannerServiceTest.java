@@ -51,11 +51,6 @@ class GoalPlannerServiceTest {
     @InjectMocks
     private GoalPlannerService goalPlannerService;
 
-    @BeforeEach
-    void setUp() {
-        goalPlannerService = new GoalPlannerService(goalPlannerRepository, piggyBankManagerService, goalPlannerMapper);
-    }
-
     @Nested
     class CreateGoalPlanner {
 
@@ -65,7 +60,7 @@ class GoalPlannerServiceTest {
             GoalPlannerDto dto = new GoalPlannerDto(null, PIGGY_BANK_ID, "Wakacje", null, LocalDate.now().plusDays(30), null);
             GoalPlanner savedGoalPlanner = GoalPlanner.builder().id(GOAL_PLANNER_ID).build();
 
-            when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
             when(goalPlannerRepository.save(any(GoalPlanner.class))).thenReturn(savedGoalPlanner);
 
             Long result = goalPlannerService.createGoalPlanner(USER_ID, dto);
@@ -77,7 +72,7 @@ class GoalPlannerServiceTest {
         void shouldThrowExceptionWhenPiggyBankNotFound() {
             GoalPlannerDto dto = new GoalPlannerDto(null, PIGGY_BANK_ID, "Wakacje", null, LocalDate.now().plusDays(30), null);
 
-            when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID))
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_BANK_ID, USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("Piggy bank not found"));
 
             assertThrows(RequestedEntityNotFoundException.class, () -> goalPlannerService.createGoalPlanner(USER_ID, dto));

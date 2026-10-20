@@ -20,9 +20,11 @@ public class ControlAmountController {
         controlAmountService.saveExpenseAmountControl(SecurityUtils.getCurrentUserId(), controlAmountDto);
         return ResponseEntity.noContent().build();
     }
+
     @GetMapping
     public ResponseEntity<ControlAmountDto> getExpenseAmountControl() {
         return ResponseEntity.ok(controlAmountService.getExpenseAmountControl(SecurityUtils.getCurrentUserId()));
     }
 
 }
+

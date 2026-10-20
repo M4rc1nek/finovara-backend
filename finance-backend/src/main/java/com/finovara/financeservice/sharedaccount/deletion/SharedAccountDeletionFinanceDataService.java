@@ -1,10 +1,10 @@
 package com.finovara.financeservice.sharedaccount.deletion;
 
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
-import com.finovara.contracts.sharedaccount.event.deletion.SharedAccountDeletedEvent;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.event.deletion.SharedAccountDeletedEvent;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
 import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
 import com.finovara.financeservice.sharedaccount.note.repository.SharedAccountNoteRepository;
@@ -45,7 +45,7 @@ public class SharedAccountDeletionFinanceDataService {
 
         if (!sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)) {
             log.info("Shared account financial data already deleted for accountId={}, ownerId={}, memberId={} " +
-                    "(duplicate Kafka delivery) — skipping.", event.accountId(), ownerId, memberId);
+                    "(duplicate Kafka delivery) skipping.", event.accountId(), ownerId, memberId);
             return false;
         }
 
@@ -91,7 +91,7 @@ public class SharedAccountDeletionFinanceDataService {
 
     private void doRefund(RefundInstruction instruction) {
         if (instruction.amount().compareTo(BigDecimal.ZERO) <= 0) {
-            log.info("No refund for userId={} — insufficient shared account balance after deficit reconciliation " +
+            log.info("No refund for userId={} insufficient shared account balance after deficit reconciliation " +
                             "(revenue={}, expense={})",
                     instruction.userId(), instruction.contribution().revenue(), instruction.contribution().expense());
             return;
@@ -100,7 +100,7 @@ public class SharedAccountDeletionFinanceDataService {
         try {
             walletService.addBalanceToWallet(instruction.userId(), instruction.amount());
         } catch (RequestedEntityNotFoundException ex) {
-            log.warn("Refund skipped for userId={} — personal wallet no longer exists " +
+            log.warn("Refund skipped for userId={}  personal wallet no longer exists " +
                     "(likely concurrent full account deletion). amount={}", instruction.userId(), instruction.amount());
             return;
         }
@@ -129,7 +129,7 @@ public class SharedAccountDeletionFinanceDataService {
         sharedWalletRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
         sharedPiggyBankRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
         sharedLimitRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
-        sharedAccountNoteRepository.deleteByOwnerIdAndMemberId(ownerId,memberId);
+        sharedAccountNoteRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
         sharedAccountSettingsRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
     }
 

@@ -67,8 +67,7 @@ public class SharedLimitManagementService {
 
     @Transactional
     public Long editSharedLimit(SharedLimitDto limitDto, Long limitId, Long userId) {
-        SharedLimit limit = sharedLimitRepository.findByIdAndUserId(userId, limitId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Active limit not found"));
+        SharedLimit limit = getSharedLimitByUserIdOrThrow(userId, limitId);
 
         limitExpensesValidator.validateCurrentSharedExpensesDoNotExceedLimit(userId, limitDto);
 
@@ -97,8 +96,7 @@ public class SharedLimitManagementService {
 
     @Transactional
     public void deleteSharedLimit(Long userId, Long limitId) {
-        SharedLimit limit = sharedLimitRepository.findByIdAndUserId(userId, limitId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Active limit not found"));
+        SharedLimit limit = getSharedLimitByUserIdOrThrow(userId, limitId);
 
         SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
         sharedLimitRepository.delete(limit);
@@ -107,4 +105,8 @@ public class SharedLimitManagementService {
                 new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, limit.getId(), SharedAccountActivityLogType.LIMIT_DELETED, LocalDateTime.now()));
     }
 
+    private SharedLimit getSharedLimitByUserIdOrThrow(Long userId, Long limitId) {
+        return sharedLimitRepository.findByIdAndOwnerIdOrMemberId(userId, limitId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Shared limit not found"));
+    }
 }

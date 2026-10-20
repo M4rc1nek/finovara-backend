@@ -32,7 +32,6 @@ public class InvitationResponseService {
     private final SharedAccountInvitationRepository sharedAccountInvitationRepository;
     private final SharedAccountRepository sharedAccountRepository;
     private final InvitationValidator invitationValidator;
-    private final InvitationExpirationService invitationExpirationService;
     private final SharedAccountMemberService sharedAccountMemberService;
     private final UserManagerService userManagerService;
     private final OutboxService outboxService;
@@ -42,8 +41,8 @@ public class InvitationResponseService {
     @Transactional
     public void acceptInvite(Long inviteeUserId, Long invitationId, String authorizationCode) {
         additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviteeUserId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
-        
-        SharedAccountInvitation invitation = loadAndValidateInvitation(inviteeUserId, invitationId);
+
+        SharedAccountInvitation invitation = loadActiveInvitation(inviteeUserId, invitationId);
 
         Long inviterUserId = invitation.getInviterUserId();
 
@@ -87,8 +86,8 @@ public class InvitationResponseService {
     @Transactional
     public void rejectInvite(Long inviteeUserId, Long invitationId, String authorizationCode) {
         additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviteeUserId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
-        
-        SharedAccountInvitation invitation = loadAndValidateInvitation(inviteeUserId, invitationId);
+
+        SharedAccountInvitation invitation = loadActiveInvitation(inviteeUserId, invitationId);
 
         Long inviterUserId = invitation.getInviterUserId();
 
@@ -110,18 +109,15 @@ public class InvitationResponseService {
                 invitationId, inviterUserId, inviteeUserId);
     }
 
-    private SharedAccountInvitation loadAndValidateInvitation(Long inviteeUserId, Long invitationId) {
-        SharedAccountInvitation invitation = sharedAccountInvitationRepository.findById(invitationId)
+    private SharedAccountInvitation loadActiveInvitation(Long inviteeUserId, Long invitationId) {
+        SharedAccountInvitation invitation = sharedAccountInvitationRepository
+                .findByIdAndInviteeUserId(invitationId, inviteeUserId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Pending invitation not found"));
 
-        invitationValidator.validateInvitationOwnership(invitation.getInviteeUserId(), inviteeUserId, invitationId);
-
         if (invitation.hasExpired()) {
-            invitationExpirationService.expireInvitation(invitation);
-            throw new RequestedEntityNotFoundException("This invitation has expired");
+            throw new RequestedEntityNotFoundException("Pending invitation not found");
         }
 
         return invitation;
     }
-
 }

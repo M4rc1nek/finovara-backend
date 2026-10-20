@@ -85,7 +85,7 @@ class GoogleOAuth2UserServiceTest {
 
         @BeforeEach
         void setUp() {
-            when(userRepository.findByOauthProviderAndProviderUserId(OAuthProvider.GOOGLE, PROVIDER_USER_ID))
+            when(userRepository.findUserByOauthProviderAndProviderUserId(OAuthProvider.GOOGLE, PROVIDER_USER_ID))
                     .thenReturn(Optional.empty());
         }
 
@@ -191,7 +191,7 @@ class GoogleOAuth2UserServiceTest {
                     .providerUserId(PROVIDER_USER_ID)
                     .build();
 
-            when(userRepository.findByOauthProviderAndProviderUserId(OAuthProvider.GOOGLE, PROVIDER_USER_ID))
+            when(userRepository.findUserByOauthProviderAndProviderUserId(OAuthProvider.GOOGLE, PROVIDER_USER_ID))
                     .thenReturn(Optional.of(existingUser));
         }
 

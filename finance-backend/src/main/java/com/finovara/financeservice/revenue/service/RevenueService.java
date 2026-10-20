@@ -1,12 +1,12 @@
 package com.finovara.financeservice.revenue.service;
 
 import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
-import com.finovara.contracts.user.datadeletable.UserDataDeletable;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.model.RevenueActivityType;
-import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.mapper.RevenueMapper;
@@ -18,7 +18,6 @@ import com.finovara.financeservice.settings.piggybank.autopayments.service.AutoP
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.revenue.RevenueManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -76,11 +75,7 @@ public class RevenueService implements UserDataDeletable {
     public Long editRevenue(RevenueDto revenueDto, Long revenueId, Long userId, HttpServletRequest servletRequest) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
 
-        Revenue existingRevenue = revenueManagerService.getRevenueOrThrow(revenueId);
-
-        if (!existingRevenue.getUserId().equals(userId)) {
-            throw new RequestedEntityNotFoundException("Revenue not found for this user");
-        }
+        Revenue existingRevenue = revenueManagerService.getRevenueByUserIdOrThrow(revenueId, userId);
 
         riskGuardService.guard(userId, RiskTriggerType.REVENUE, revenueDto.amount(), revenueDto.category().name(),
                 authBackendClient.getUserEmail(userId), revenueDto.riskVerificationSourceEventId(), servletRequest);
@@ -120,8 +115,8 @@ public class RevenueService implements UserDataDeletable {
     public void deleteRevenue(Long revenueId, Long userId, String authorizationCode) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
 
-        Revenue revenue = revenueRepository.findByIdAndUserId(revenueId, userId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
+        Revenue revenue = revenueManagerService.getRevenueByUserIdOrThrow(revenueId, userId);
+
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
         walletService.removeBalanceFromWallet(userId, revenue.getAmount());
         outboxService.save("Revenue", revenueId.toString(), "revenue.created",

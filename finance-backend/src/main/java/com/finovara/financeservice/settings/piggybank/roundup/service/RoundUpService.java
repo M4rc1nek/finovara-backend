@@ -1,9 +1,10 @@
 package com.finovara.financeservice.settings.piggybank.roundup.service;
 
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
 import com.finovara.contracts.mainaccount.activity.model.SettingType;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
@@ -16,11 +17,10 @@ import com.finovara.financeservice.util.transaction.expense.ExpenseManagerServic
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -43,7 +43,7 @@ public class RoundUpService {
 
     @Transactional
     public RoundUpDto getRoundUp(Long userId, Long piggyBankId) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         return new RoundUpDto(piggyBankSettings.isRoundUpActive(), null);
@@ -51,7 +51,7 @@ public class RoundUpService {
 
     @Transactional
     public void saveRoundUpPiggyBank(Long userId, Long piggyBankId, RoundUpDto dto) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
 
         PiggyBankSettings settings = piggyBank.getSettings();
@@ -93,3 +93,4 @@ public class RoundUpService {
     }
 
 }
+

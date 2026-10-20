@@ -15,3 +15,4 @@ public class SharedAccountParticipantsService {
         return new SharedAccountParticipantsResponse(wallet.ownerId(), wallet.memberId());
     }
 }
+

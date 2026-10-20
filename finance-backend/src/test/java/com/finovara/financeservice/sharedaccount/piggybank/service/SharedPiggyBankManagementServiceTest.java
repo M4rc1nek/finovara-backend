@@ -11,7 +11,7 @@ import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDt
 import com.finovara.financeservice.sharedaccount.piggybank.mapper.SharedPiggyBankMapper;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
-import com.finovara.financeservice.util.transaction.piggybank.manager.SharedPiggyBankManager;
+import com.finovara.financeservice.util.sharedaccount.piggybank.SharedPiggyBankManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -190,7 +190,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldEditPiggyBankWhenNewNameIsUnique() {
             SharedPiggyBank existingPiggyBank = SharedPiggyBank.builder().id(PIGGY_BANK_ID).name(PIGGY_BANK_NAME).build();
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
             when(sharedPiggyBankDto.name()).thenReturn("New Name");
             when(sharedPiggyBankDto.goalAmount()).thenReturn(new BigDecimal("2000.00"));
             when(sharedPiggyBankRepository.existsByNameIgnoreCase(USER_ID, "New Name")).thenReturn(false);
@@ -205,7 +205,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldEditPiggyBankWhenNameUnchanged() {
             SharedPiggyBank existingPiggyBank = SharedPiggyBank.builder().id(PIGGY_BANK_ID).name(PIGGY_BANK_NAME).build();
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
             when(sharedPiggyBankDto.name()).thenReturn(PIGGY_BANK_NAME.toUpperCase());
             when(sharedPiggyBankDto.goalAmount()).thenReturn(new BigDecimal("2000.00"));
             when(sharedPiggyBankRepository.existsByNameIgnoreCase(USER_ID, PIGGY_BANK_NAME.toUpperCase())).thenReturn(true);
@@ -220,7 +220,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldThrowExceptionWhenNewNameAlreadyExistsForDifferentPiggyBank() {
             SharedPiggyBank existingPiggyBank = SharedPiggyBank.builder().id(PIGGY_BANK_ID).name(PIGGY_BANK_NAME).build();
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
             when(sharedPiggyBankDto.name()).thenReturn("Taken Name");
             when(sharedPiggyBankRepository.existsByNameIgnoreCase(USER_ID, "Taken Name")).thenReturn(true);
 
@@ -232,7 +232,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldUpdatePiggyBankFieldsFromDto() {
             SharedPiggyBank existingPiggyBank = SharedPiggyBank.builder().id(PIGGY_BANK_ID).name(PIGGY_BANK_NAME).build();
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
             when(sharedPiggyBankDto.name()).thenReturn("Updated Name");
             when(sharedPiggyBankDto.goalAmount()).thenReturn(new BigDecimal("3000.00"));
             when(sharedPiggyBankRepository.existsByNameIgnoreCase(USER_ID, "Updated Name")).thenReturn(false);
@@ -248,7 +248,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldPublishOutboxEventWhenPiggyBankEdited() {
             SharedPiggyBank existingPiggyBank = SharedPiggyBank.builder().id(PIGGY_BANK_ID).name(PIGGY_BANK_NAME).build();
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
             when(sharedPiggyBankDto.name()).thenReturn(PIGGY_BANK_NAME);
             when(sharedPiggyBankDto.goalAmount()).thenReturn(new BigDecimal("2000.00"));
             when(sharedPiggyBankRepository.existsByNameIgnoreCase(USER_ID, PIGGY_BANK_NAME)).thenReturn(false);
@@ -262,7 +262,7 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenPiggyBankNotFoundForEdit() {
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID))
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("Piggy bank not found"));
 
             assertThrows(RequestedEntityNotFoundException.class, () -> sharedPiggyBankManagementService.editPiggyBank(USER_ID, sharedPiggyBankDto, PIGGY_BANK_ID));
@@ -274,7 +274,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldThrowExceptionWhenRepositorySaveFailsDuringEdit() {
             SharedPiggyBank existingPiggyBank = SharedPiggyBank.builder().id(PIGGY_BANK_ID).name(PIGGY_BANK_NAME).build();
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(existingPiggyBank);
             when(sharedPiggyBankDto.name()).thenReturn(PIGGY_BANK_NAME);
             when(sharedPiggyBankDto.goalAmount()).thenReturn(new BigDecimal("2000.00"));
             when(sharedPiggyBankRepository.existsByNameIgnoreCase(USER_ID, PIGGY_BANK_NAME)).thenReturn(false);
@@ -343,7 +343,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldDeletePiggyBankWhenBalanceIsZero() {
             SharedPiggyBank bank = SharedPiggyBank.builder().id(PIGGY_BANK_ID).amount(BigDecimal.ZERO).build();
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(bank);
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(bank);
             when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
 
             sharedPiggyBankManagementService.deletePiggyBank(USER_ID, PIGGY_BANK_ID);
@@ -354,7 +354,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldThrowExceptionWhenBalanceIsPositive() {
             SharedPiggyBank bank = SharedPiggyBank.builder().id(PIGGY_BANK_ID).amount(new BigDecimal("50.00")).build();
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(bank);
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(bank);
 
             assertThrows(InvalidInputException.class, () -> sharedPiggyBankManagementService.deletePiggyBank(USER_ID, PIGGY_BANK_ID));
 
@@ -365,7 +365,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldPublishOutboxEventWhenPiggyBankDeleted() {
             SharedPiggyBank bank = SharedPiggyBank.builder().id(PIGGY_BANK_ID).amount(BigDecimal.ZERO).build();
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(bank);
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(bank);
             when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
 
             sharedPiggyBankManagementService.deletePiggyBank(USER_ID, PIGGY_BANK_ID);
@@ -375,7 +375,7 @@ class SharedPiggyBankManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenPiggyBankNotFoundForDeletion() {
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID))
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("Piggy bank not found"));
 
             assertThrows(RequestedEntityNotFoundException.class, () -> sharedPiggyBankManagementService.deletePiggyBank(USER_ID, PIGGY_BANK_ID));
@@ -387,7 +387,7 @@ class SharedPiggyBankManagementServiceTest {
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
             SharedPiggyBank bank = SharedPiggyBank.builder().id(PIGGY_BANK_ID).amount(BigDecimal.ZERO).build();
-            when(sharedPiggyBankManager.getPiggyBankByUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(bank);
+            when(sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(bank);
             when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
             doThrow(new IllegalStateException("delete failed")).when(sharedPiggyBankRepository).delete(bank);
 

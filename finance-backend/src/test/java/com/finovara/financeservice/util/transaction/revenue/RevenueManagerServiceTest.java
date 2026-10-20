@@ -3,7 +3,6 @@ package com.finovara.financeservice.util.transaction.revenue;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
-import com.finovara.financeservice.util.transaction.revenue.RevenueManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,25 +28,25 @@ class RevenueManagerServiceTest {
     @Test
     void shouldReturnRevenueWhenExists() {
         Long revenueId = 1L;
+        Long userId = 2L;
 
         Revenue revenue = new Revenue();
 
-        when(revenueRepository.findById(revenueId)).thenReturn(Optional.of(revenue));
+        when(revenueRepository.findByIdAndUserId(revenueId, userId)).thenReturn(Optional.of(revenue));
 
-        Revenue result = revenueManagerService.getRevenueOrThrow(revenueId);
+        Revenue result = revenueManagerService.getRevenueByUserIdOrThrow(revenueId, userId);
 
         assertEquals(revenue, result);
-        verify(revenueRepository).findById(revenueId);
     }
 
     @Test
     void shouldThrowExceptionWhenRevenueNotFound() {
         Long revenueId = 1L;
+        Long userId = 2L;
 
-        when(revenueRepository.findById(revenueId)).thenReturn(Optional.empty());
+        when(revenueRepository.findByIdAndUserId(revenueId, userId)).thenReturn(Optional.empty());
 
-        assertThrows(RequestedEntityNotFoundException.class, () -> revenueManagerService.getRevenueOrThrow(revenueId));
-
-        verify(revenueRepository).findById(revenueId);
+        assertThrows(RequestedEntityNotFoundException.class, () -> revenueManagerService.getRevenueByUserIdOrThrow(revenueId, 2L));
+        verify(revenueRepository).findByIdAndUserId(revenueId,userId);
     }
 }

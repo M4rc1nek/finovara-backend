@@ -39,3 +39,4 @@ public class RevenueController {
         return ResponseEntity.noContent().build();
     }
 }
+

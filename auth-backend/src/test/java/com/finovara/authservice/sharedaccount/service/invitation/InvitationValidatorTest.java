@@ -1,13 +1,10 @@
 package com.finovara.authservice.sharedaccount.service.invitation;
 
-import com.finovara.authservice.sharedaccount.model.SharedAccount;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
-import com.finovara.authservice.sharedaccount.model.SharedAccountMember;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.exception.forbidden.AccessDeniedException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,9 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -184,91 +179,4 @@ class InvitationValidatorTest {
         }
     }
 
-    @Nested
-    class ValidateInvitationOwnershipTests {
-
-        @Test
-        void shouldPassWhenActualInviteeMatchesCaller() {
-            assertDoesNotThrow(() ->
-                    invitationValidator.validateInvitationOwnership(INVITEE_USER_ID, INVITEE_USER_ID, INVITATION_ID));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenActualInviteeDoesNotMatchCaller() {
-            Long someoneElseId = 999L;
-
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                    () -> invitationValidator.validateInvitationOwnership(INVITEE_USER_ID, someoneElseId, INVITATION_ID));
-
-            assertEquals("This invitation does not belong to the current user", exception.getMessage());
-        }
-
-        @Test
-        void shouldNotCallAnyRepositoryWhenValidatingOwnership() {
-            invitationValidator.validateInvitationOwnership(INVITEE_USER_ID, INVITEE_USER_ID, INVITATION_ID);
-
-            verifyNoInteractions(sharedAccountMemberRepository);
-            verifyNoInteractions(sharedAccountInvitationRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenActualInviteeUserIdIsNull() {
-            assertThrows(NullPointerException.class,
-                    () -> invitationValidator.validateInvitationOwnership(null, INVITEE_USER_ID, INVITATION_ID));
-        }
-    }
-
-    @Nested
-    class ValidateMembershipTests {
-
-        private static final Long ACCOUNT_ID = 50L;
-
-        @Test
-        void shouldPassWhenCallerIsMemberOfGivenAccount() {
-            SharedAccount sharedAccount = SharedAccount.builder().id(ACCOUNT_ID).build();
-            SharedAccountMember member = SharedAccountMember.builder()
-                    .sharedAccount(sharedAccount)
-                    .userId(INVITEE_USER_ID)
-                    .build();
-
-            when(sharedAccountMemberRepository.findByUserId(INVITEE_USER_ID)).thenReturn(Optional.of(member));
-
-            assertDoesNotThrow(() -> invitationValidator.validateMembership(ACCOUNT_ID, INVITEE_USER_ID));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenCallerIsNotMemberAtAll() {
-            when(sharedAccountMemberRepository.findByUserId(INVITEE_USER_ID)).thenReturn(Optional.empty());
-
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                    () -> invitationValidator.validateMembership(ACCOUNT_ID, INVITEE_USER_ID));
-
-            assertEquals("You are not a member of this shared account", exception.getMessage());
-        }
-
-        @Test
-        void shouldThrowExceptionWhenCallerBelongsToDifferentAccount() {
-            SharedAccount differentAccount = SharedAccount.builder().id(999L).build();
-            SharedAccountMember member = SharedAccountMember.builder()
-                    .sharedAccount(differentAccount)
-                    .userId(INVITEE_USER_ID)
-                    .build();
-
-            when(sharedAccountMemberRepository.findByUserId(INVITEE_USER_ID)).thenReturn(Optional.of(member));
-
-            AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                    () -> invitationValidator.validateMembership(ACCOUNT_ID, INVITEE_USER_ID));
-
-            assertEquals("You are not a member of this shared account", exception.getMessage());
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryThrowsException() {
-            when(sharedAccountMemberRepository.findByUserId(INVITEE_USER_ID))
-                    .thenThrow(new RuntimeException("database error"));
-
-            assertThrows(RuntimeException.class,
-                    () -> invitationValidator.validateMembership(ACCOUNT_ID, INVITEE_USER_ID));
-        }
-    }
 }

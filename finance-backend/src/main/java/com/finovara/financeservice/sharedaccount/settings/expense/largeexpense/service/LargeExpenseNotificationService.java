@@ -1,15 +1,15 @@
 package com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.service;
 
-import com.finovara.contracts.sharedaccount.event.notification.LargeExpenseNotificationEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
 import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
+import com.finovara.contracts.sharedaccount.event.notification.LargeExpenseNotificationEvent;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
-import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.dto.LargeExpenseNotificationDto;
+import com.finovara.financeservice.util.sharedaccount.settings.SharedSettingsManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,13 +23,13 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class LargeExpenseNotificationService {
 
-    private final SharedAccountSettingsRepository sharedAccountSettingsRepository;
+    private final SharedSettingsManager sharedSettingsManager;
     private final OutboxService outboxService;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
 
     @Transactional
     public void saveLargeExpenseNotification(Long userId, LargeExpenseNotificationDto largeExpenseNotificationDto) {
-        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings sharedAccountSettings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
 
         boolean changed = sharedAccountSettings.isLargeExpenseNotificationEnabled() != largeExpenseNotificationDto.largeExpenseNotificationEnabled()
                 || !Objects.equals(sharedAccountSettings.getLargeExpenseNotificationThreshold(), largeExpenseNotificationDto.largeExpenseNotificationThreshold());
@@ -48,28 +48,28 @@ public class LargeExpenseNotificationService {
 
     @Transactional
     public LargeExpenseNotificationDto getLargeExpenseNotification(Long userId) {
-        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings sharedAccountSettings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
 
         return new LargeExpenseNotificationDto(sharedAccountSettings.isLargeExpenseNotificationEnabled(), sharedAccountSettings.getLargeExpenseNotificationThreshold());
     }
 
     @Transactional
     public void handleLargeNotification(Long userId, SharedExpense expense) {
-        SharedAccountSettings sharedAccountSettings = sharedAccountSettingsRepository.findByUserId(userId);
+        SharedAccountSettings sharedAccountSettings = sharedSettingsManager.getSharedAccountSettingsByUserId(userId);
 
         if (!sharedAccountSettings.isLargeExpenseNotificationEnabled()) return;
         if (sharedAccountSettings.getLargeExpenseNotificationThreshold() == null) return;
 
         if (expense.getAmount().compareTo(sharedAccountSettings.getLargeExpenseNotificationThreshold()) > 0) {
 
-            outboxService.save("SharedExpense", expense.getId().toString(),"notification.shared-account.large-expense-detected",
+            outboxService.save("SharedExpense", expense.getId().toString(), "notification.shared-account.large-expense-detected",
                     new LargeExpenseNotificationEvent(expense.getOwnerId(),
-                    expense.getMemberId(),
-                    userId,
-                    expense.getId(),
-                    expense.getAmount(),
-                    sharedAccountSettings.getLargeExpenseNotificationThreshold(),
-                    LocalDateTime.now()));
+                            expense.getMemberId(),
+                            userId,
+                            expense.getId(),
+                            expense.getAmount(),
+                            sharedAccountSettings.getLargeExpenseNotificationThreshold(),
+                            LocalDateTime.now()));
 
             log.info("Large expense detected, outbox event created expenseId={}, ownerId={}, memberId={}, triggeredByUserId={}, amount={}, threshold={}",
                     expense.getId(), expense.getOwnerId(), expense.getMemberId(), userId, expense.getAmount(), sharedAccountSettings.getLargeExpenseNotificationThreshold());

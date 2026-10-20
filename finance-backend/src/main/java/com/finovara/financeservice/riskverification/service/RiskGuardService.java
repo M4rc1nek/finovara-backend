@@ -1,13 +1,12 @@
 package com.finovara.financeservice.riskverification.service;
 
-
+import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationRequest;
+import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationResponse;
+import com.finovara.contracts.securitymonitoring.model.RiskAction;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.contracts.user.clientdata.browser.UserBrowser;
 import com.finovara.contracts.user.clientdata.ip.ClientIp;
 import com.finovara.contracts.user.clientdata.location.UserLocation;
-import com.finovara.contracts.securitymonitoring.model.RiskAction;
-import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationRequest;
-import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationResponse;
-import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.financeservice.exception.riskverification.precondition.RiskVerificationRequiredException;
 import com.finovara.financeservice.feignclient.SecurityMonitoringClient;
 import jakarta.servlet.http.HttpServletRequest;

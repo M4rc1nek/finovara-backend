@@ -1,19 +1,19 @@
 package com.finovara.financeservice.settings.finances.expense.smartscan.service;
 
-import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
 import com.finovara.contracts.mainaccount.activity.model.SettingType;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
-import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanDto;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.financeservice.util.settings.ExpenseAnomalyDetector;
+import com.finovara.financeservice.util.settings.SettingsManager;
 import lombok.RequiredArgsConstructor;
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -33,7 +33,7 @@ public class SmartScanService {
     private static final int SCAN_INTERVAL = 5;
     private static final BigDecimal ANOMALY_MULTIPLIER = BigDecimal.valueOf(3);
 
-    private final ExpenseSettingsRepository expenseSettingsRepository;
+    private final SettingsManager settingsManager;
     private final ExpenseRepository expenseRepository;
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
@@ -45,7 +45,7 @@ public class SmartScanService {
 
     @Transactional
     public void saveSmartScan(Long userId, SmartScanDto smartScanDto) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+        ExpenseSettings expenseSettings = settingsManager.getExpenseSettingsByUserId(userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(smartScanDto.authorizationCode()));
 
         expenseSettings.setSmartScanEnabled(smartScanDto.smartScanEnabled());
@@ -58,14 +58,14 @@ public class SmartScanService {
 
     @Transactional
     public SmartScanDto getSmartScan(Long userId) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+        ExpenseSettings expenseSettings = settingsManager.getExpenseSettingsByUserId(userId);
 
         return new SmartScanDto(expenseSettings.isSmartScanEnabled(), null);
     }
 
     @Transactional
     public void handleSmartScan(Long userId, ConfirmPasswordDto confirmPasswordDto, BigDecimal newExpenseAmount, SmartScanMode mode) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+        ExpenseSettings expenseSettings = settingsManager.getExpenseSettingsByUserId(userId);
 
         if (!expenseSettings.isSmartScanEnabled()) return;
 

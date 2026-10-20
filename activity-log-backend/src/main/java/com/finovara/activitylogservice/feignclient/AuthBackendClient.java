@@ -25,7 +25,4 @@ public interface AuthBackendClient {
 
     @GetMapping("/internal/shared-account/members")
     List<SharedAccountMemberInfoDto> getSharedAccountMembers(@RequestHeader("X-User-Id") Long userId);
-
-    @GetMapping("/internal/username")
-    String getUsername(@RequestHeader("X-User-Id") Long id);
 }

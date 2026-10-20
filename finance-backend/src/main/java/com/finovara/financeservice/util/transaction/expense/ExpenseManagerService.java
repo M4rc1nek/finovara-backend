@@ -16,9 +16,5 @@ public class ExpenseManagerService {
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
     }
 
-    public Expense getExpenseByIdOrThrow(Long expenseId) {
-        return expenseRepository.findById(expenseId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
-
-    }
 }
+

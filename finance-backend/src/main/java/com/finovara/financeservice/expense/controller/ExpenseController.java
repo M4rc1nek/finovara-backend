@@ -22,7 +22,7 @@ public class ExpenseController {
 
     @PostMapping
     public ResponseEntity<Long> addExpense(@RequestBody @Valid ExpenseRequestDto expenseRequestDto, HttpServletRequest servletRequest) {
-        return ResponseEntity.ok(expenseService.addExpense(expenseRequestDto, SecurityUtils.getCurrentUserId(), servletRequest,TransactionOrigin.USER_MANUAL));
+        return ResponseEntity.ok(expenseService.addExpense(expenseRequestDto, SecurityUtils.getCurrentUserId(), servletRequest, TransactionOrigin.USER_MANUAL));
     }
 
     @PutMapping("/edit/{expenseId}")
@@ -42,3 +42,4 @@ public class ExpenseController {
     }
 
 }
+

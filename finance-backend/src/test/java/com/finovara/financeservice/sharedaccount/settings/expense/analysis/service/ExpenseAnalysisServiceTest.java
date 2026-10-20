@@ -10,6 +10,7 @@ import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsR
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisDto;
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisMode;
 import com.finovara.financeservice.util.settings.ExpenseAnomalyDetector;
+import com.finovara.financeservice.util.sharedaccount.settings.SharedSettingsManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,9 @@ class ExpenseAnalysisServiceTest {
     @Mock
     private ExpenseAnomalyDetector expenseAnomalyDetector;
 
+    @Mock
+    private SharedSettingsManager sharedSettingsManager;
+
     @InjectMocks
     private ExpenseAnalysisService expenseAnalysisService;
 
@@ -59,7 +63,7 @@ class ExpenseAnalysisServiceTest {
     @BeforeEach
     void setUp() {
         sharedAccountSettings = new SharedAccountSettings();
-        when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(sharedAccountSettings);
+        when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(sharedAccountSettings);
     }
 
     @Nested

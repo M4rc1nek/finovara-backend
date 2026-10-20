@@ -57,7 +57,7 @@ public interface AccountChangeActivityRepository extends JpaRepository<AccountCh
               AND a.createdAt < :to
             ORDER BY a.createdAt DESC
             """)
-    List<AccountChangeActivity> findActivities(Long userId, AccountChangeActivityType type, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    List<AccountChangeActivity> findActivitiesByUserId(Long userId, AccountChangeActivityType type, LocalDateTime from, LocalDateTime to, Pageable pageable);
 
     @Query("""
             SELECT a

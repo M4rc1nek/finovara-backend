@@ -14,7 +14,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
@@ -294,7 +293,7 @@ class SharedLimitManagementServiceTest {
     class EditSharedLimit {
 
         private void stubSuccessfulEdit() {
-            when(sharedLimitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
             when(limitDto.amount()).thenReturn(AMOUNT);
             when(sharedLimitRepository.save(existingLimit)).thenReturn(existingLimit);
             when(existingLimit.getId()).thenReturn(LIMIT_ID);
@@ -355,7 +354,7 @@ class SharedLimitManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenLimitDoesNotExist() {
-            when(sharedLimitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.empty());
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class,
                     () -> service.editSharedLimit(limitDto, LIMIT_ID, USER_ID));
@@ -365,7 +364,7 @@ class SharedLimitManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenValidatorFails() {
-            when(sharedLimitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
             doThrow(new IllegalStateException("limit exceeded")).when(limitExpensesValidator)
                     .validateCurrentSharedExpensesDoNotExceedLimit(USER_ID, limitDto);
 
@@ -378,7 +377,7 @@ class SharedLimitManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenLimitDtoIsNull() {
-            when(sharedLimitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
 
             assertThrows(NullPointerException.class, () -> service.editSharedLimit(null, LIMIT_ID, USER_ID));
 
@@ -388,7 +387,7 @@ class SharedLimitManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositoryLookupFails() {
-            when(sharedLimitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenThrow(new IllegalStateException("db failed"));
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenThrow(new IllegalStateException("db failed"));
 
             assertThrows(IllegalStateException.class, () -> service.editSharedLimit(limitDto, LIMIT_ID, USER_ID));
 
@@ -397,7 +396,7 @@ class SharedLimitManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositorySaveFails() {
-            when(sharedLimitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
             when(limitDto.amount()).thenReturn(AMOUNT);
             when(sharedLimitRepository.save(existingLimit)).thenThrow(new IllegalStateException("db failed"));
 
@@ -484,7 +483,7 @@ class SharedLimitManagementServiceTest {
     class DeleteSharedLimit {
 
         private void stubSuccessfulDelete() {
-            when(sharedLimitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
             when(existingLimit.getId()).thenReturn(LIMIT_ID);
             stubParticipants();
         }
@@ -520,7 +519,7 @@ class SharedLimitManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenLimitDoesNotExist() {
-            when(sharedLimitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.empty());
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteSharedLimit(USER_ID, LIMIT_ID));
 
@@ -529,7 +528,7 @@ class SharedLimitManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositoryLookupFails() {
-            when(sharedLimitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenThrow(new IllegalStateException("db failed"));
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenThrow(new IllegalStateException("db failed"));
 
             assertThrows(IllegalStateException.class, () -> service.deleteSharedLimit(USER_ID, LIMIT_ID));
 
@@ -538,7 +537,7 @@ class SharedLimitManagementServiceTest {
 
         @Test
         void shouldThrowExceptionWhenParticipantsServiceFails() {
-            when(sharedLimitRepository.findByIdAndUserId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
             when(sharedAccountParticipantsService.getParticipants(USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("participants not found"));
 

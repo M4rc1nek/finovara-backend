@@ -137,6 +137,7 @@ shared-account:
     expiration-hours: 24
   search:
     page-size: 25
+  min-search-query: 3
 
 scheduler:
   shared-account:
