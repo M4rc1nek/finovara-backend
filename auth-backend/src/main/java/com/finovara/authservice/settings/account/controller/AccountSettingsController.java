@@ -18,9 +18,9 @@ public class AccountSettingsController {
     private final AccountService accountService;
     private final ChangePasswordService changePasswordService;
 
-    @PutMapping("/{userId}/username")
-    public ResponseEntity<AccountSettingsDto> updateUsername(@RequestBody @Valid AccountSettingsDto accountSettingsDto, @PathVariable Long userId, HttpServletRequest request) {
-        return ResponseEntity.ok(accountService.updateUsername(accountSettingsDto, userId, request));
+    @PutMapping("/username")
+    public ResponseEntity<AccountSettingsDto> updateUsername(@RequestBody @Valid AccountSettingsDto accountSettingsDto, HttpServletRequest request) {
+        return ResponseEntity.ok(accountService.updateUsername(accountSettingsDto, SecurityUtils.getCurrentUserId(), request));
     }
 
     @GetMapping
