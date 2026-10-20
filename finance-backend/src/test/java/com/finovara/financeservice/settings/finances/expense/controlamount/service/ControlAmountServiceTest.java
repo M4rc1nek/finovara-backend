@@ -1,22 +1,22 @@
 package com.finovara.financeservice.settings.finances.expense.controlamount.service;
 
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
-import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.financeservice.settings.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
-import org.springframework.kafka.core.KafkaTemplate;
+import com.finovara.financeservice.util.settings.SettingsManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigDecimal;
 
@@ -30,6 +30,9 @@ class ControlAmountServiceTest {
 
     @Mock
     private ExpenseSettingsRepository expenseSettingsRepository;
+
+    @Mock
+    private SettingsManager settingsManager;
 
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -50,7 +53,7 @@ class ControlAmountServiceTest {
     @BeforeEach
     void setUp() {
         expenseSettings = new ExpenseSettings();
-        when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(expenseSettings);
+        when(settingsManager.getExpenseSettingsByUserId(USER_ID)).thenReturn(expenseSettings);
     }
 
     @Nested
@@ -76,15 +79,6 @@ class ControlAmountServiceTest {
 
             assertFalse(result.expenseAmountThresholdEnabled());
             assertEquals(BigDecimal.valueOf(50), result.blockedAmount());
-        }
-
-        @Test
-        void shouldThrowWhenSettingsNotFound() {
-            when(expenseSettingsRepository.findByUserId(USER_ID))
-                    .thenThrow(new RequestedEntityNotFoundException("Expense settings not found"));
-
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> controlAmountService.getExpenseAmountControl(USER_ID));
         }
     }
 
@@ -163,17 +157,6 @@ class ControlAmountServiceTest {
             controlAmountService.saveExpenseAmountControl(USER_ID, dto);
 
             assertEquals(BigDecimal.ZERO, expenseSettings.getBlockedAmount());
-        }
-
-        @Test
-        void shouldThrowWhenSettingsNotFound() {
-            when(expenseSettingsRepository.findByUserId(USER_ID))
-                    .thenThrow(new RequestedEntityNotFoundException("Expense settings not found"));
-
-            ControlAmountDto dto = new ControlAmountDto(true, BigDecimal.valueOf(10), null);
-
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> controlAmountService.saveExpenseAmountControl(USER_ID, dto));
         }
     }
 }
