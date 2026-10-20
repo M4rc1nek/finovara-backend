@@ -1,13 +1,15 @@
 package com.finovara.financeservice.piggybank.service;
 
-import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
-import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.util.model.PiggyBankGoalType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
+import com.finovara.contracts.util.model.PiggyBankGoalType;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
@@ -20,12 +22,10 @@ import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCalculato
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankValidator;
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
-import com.finovara.financeservice.feignclient.AuthBackendClient;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -86,8 +86,8 @@ public class PiggyBankManagementService implements UserDataDeletable {
     @Transactional
     public Long editPiggyBank(Long userId, PiggyBankDto piggyBankDto, Long piggyBankId) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(piggyBankDto.authorizationCode()));
-        
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
 
         if (piggyBankRepository.existsByNameIgnoreCase(userId, piggyBankDto.name())
                 && !piggyBank.getName().equalsIgnoreCase(piggyBankDto.name())) {
@@ -110,7 +110,6 @@ public class PiggyBankManagementService implements UserDataDeletable {
                 new PiggyBankEditActivityEvent(userId, PiggyBankActivityType.EDITED_PIGGY_BANK, piggyBank.getName(), previousName,
                         piggyBank.getGoalType(), previousGoalType, piggyBank.getGoalAmount(), previousGoalAmount, LocalDateTime.now()));
 
-
         log.info("Edited Piggy Bank. New name: {}, new goal amount: {}", piggyBankDto.name(), piggyBankDto.goalAmount());
 
         return saved.getId();
@@ -128,8 +127,8 @@ public class PiggyBankManagementService implements UserDataDeletable {
     @Transactional
     public void deletePiggyBank(Long userId, Long piggyBankId, String authorizationCode) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
-        
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
 
         if (piggyBank == null || piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             throw new InvalidInputException("Cannot delete piggy bank with balance. Withdraw funds first.");
