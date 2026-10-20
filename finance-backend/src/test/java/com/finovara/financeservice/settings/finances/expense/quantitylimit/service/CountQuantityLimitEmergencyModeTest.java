@@ -2,7 +2,7 @@ package com.finovara.financeservice.settings.finances.expense.quantitylimit.serv
 
 import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitEmergencyModeDto;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
-import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
+import com.finovara.financeservice.util.settings.SettingsManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 class CountQuantityLimitEmergencyModeTest {
 
     @Mock
-    private ExpenseSettingsRepository expenseSettingsRepository;
+    private SettingsManager settingsManager;
 
     @InjectMocks
     private CountQuantityLimitEmergencyModeService emergencyModeService;
@@ -30,7 +30,7 @@ class CountQuantityLimitEmergencyModeTest {
     @BeforeEach
     void setup() {
         expenseSettings = new ExpenseSettings();
-        when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(expenseSettings);
+        when(settingsManager.getExpenseSettingsByUserId(USER_ID)).thenReturn(expenseSettings);
     }
 
     @ParameterizedTest
