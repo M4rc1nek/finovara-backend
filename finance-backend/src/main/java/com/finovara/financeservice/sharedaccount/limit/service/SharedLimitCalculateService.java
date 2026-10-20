@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class SharedLimitCalculateService {
     private final FinancialPeriodService financialPeriodService;
     private final SharedLimitRepository limitRepository;
@@ -36,7 +36,7 @@ public class SharedLimitCalculateService {
     }
 
     public SharedLimitStatsDto calculateLimitStats(Long userId, Long limitId, LocalDate date) {
-        SharedLimit limit = limitRepository.findByIdAndUserId(userId, limitId)
+        SharedLimit limit = limitRepository.findByIdAndOwnerIdOrMemberId(userId, limitId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Active Limit not found"));
 
         return calculateLimitStats(limit, userId, date);
@@ -50,3 +50,4 @@ public class SharedLimitCalculateService {
     }
 
 }
+
