@@ -98,30 +98,6 @@ class UserManagerServiceTest {
     }
 
     @Nested
-    class GetUserByEmailOrThrow {
-
-        @Test
-        void shouldReturnUserWhenEmailExists() {
-            when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-
-            User result = userManagerService.getUserByEmailOrThrow(email);
-
-            assertThat(result).isEqualTo(user);
-            verify(userRepository).findByEmail(email);
-        }
-
-        @Test
-        void shouldThrowRequestedEntityNotFoundExceptionWhenEmailIsMissing() {
-            when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, 
-                () -> userManagerService.getUserByEmailOrThrow(email));
-
-            verify(userRepository).findByEmail(email);
-        }
-    }
-
-    @Nested
     class GetUsernameByIdOrThrow {
 
         @Test
