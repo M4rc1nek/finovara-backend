@@ -15,9 +15,10 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/piggy-banks")
-@RequiredArgsConstructor
+
 public class PiggyBankManagementController {
     private final PiggyBankManagementService piggyBankManagementService;
     private final PiggyBankTransactionService piggyBankTransactionService;
@@ -56,3 +57,4 @@ public class PiggyBankManagementController {
     }
 
 }
+
