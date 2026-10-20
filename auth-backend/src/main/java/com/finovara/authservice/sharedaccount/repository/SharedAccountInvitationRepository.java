@@ -13,6 +13,8 @@ import java.util.Optional;
 @Repository
 public interface SharedAccountInvitationRepository extends JpaRepository<SharedAccountInvitation, Long> {
 
+    Optional<SharedAccountInvitation> findByIdAndInviteeUserId(Long id, Long inviteeUserId);
+
     @Query("""
                 SELECT i FROM SharedAccountInvitation i 
                 WHERE (i.inviterUserId = :userAId AND i.inviteeUserId = :userBId) 
