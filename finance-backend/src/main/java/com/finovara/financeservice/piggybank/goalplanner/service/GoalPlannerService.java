@@ -26,7 +26,7 @@ public class GoalPlannerService {
 
     @Transactional
     public Long createGoalPlanner(Long userId, GoalPlannerDto goalPlannerDto) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(goalPlannerDto.piggyBankId(), userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(goalPlannerDto.piggyBankId(), userId);
 
         GoalPlanner goalPlanner = GoalPlanner.builder()
                 .topic(goalPlannerDto.topic())
