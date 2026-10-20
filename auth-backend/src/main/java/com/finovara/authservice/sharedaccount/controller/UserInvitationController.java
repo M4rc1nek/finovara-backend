@@ -54,9 +54,9 @@ public class UserInvitationController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/members-details/{accountId}")
-    public ResponseEntity<List<SharedAccountMemberDto>> getMembersDetails(@PathVariable Long accountId) {
-        return ResponseEntity.ok(sharedAccountMemberService.getMemberDetails(accountId, SecurityUtils.getCurrentUserId()));
+    @GetMapping("/members-details")
+    public ResponseEntity<List<SharedAccountMemberDto>> getMembersDetails() {
+        return ResponseEntity.ok(sharedAccountMemberService.getMemberDetails(SecurityUtils.getCurrentUserId()));
     }
 
     @GetMapping("/status")
