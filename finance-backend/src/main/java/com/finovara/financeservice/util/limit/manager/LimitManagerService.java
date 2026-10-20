@@ -1,5 +1,6 @@
 package com.finovara.financeservice.util.limit.manager;
 
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,4 +16,10 @@ public class LimitManagerService {
     public List<Limit> getLimitsByUserId(Long userId) {
         return limitRepository.findAllByUserId(userId);
     }
+
+    public Limit getLimitByUserIdOrThrow(Long userId, Long limitId) {
+        return limitRepository.findByIdAndUserId(userId, limitId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Active Limit not found"));
+    }
 }
+
