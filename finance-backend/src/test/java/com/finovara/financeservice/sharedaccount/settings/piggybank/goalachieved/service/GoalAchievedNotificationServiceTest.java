@@ -9,8 +9,8 @@ import com.finovara.financeservice.sharedaccount.participants.SharedAccountParti
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
-import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.settings.piggybank.goalachieved.dto.GoalAchievedNotificationDto;
+import com.finovara.financeservice.util.sharedaccount.settings.SharedSettingsManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class GoalAchievedNotificationServiceTest {
     private static final BigDecimal GOAL_AMOUNT = new BigDecimal("100.00");
 
     @Mock
-    private SharedAccountSettingsRepository sharedAccountSettingsRepository;
+    private SharedSettingsManager sharedSettingsManager;
 
     @Mock
     private OutboxService outboxService;
@@ -66,7 +66,7 @@ class GoalAchievedNotificationServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(sharedAccountSettings);
+        when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(sharedAccountSettings);
     }
 
     @Nested
@@ -142,7 +142,7 @@ class GoalAchievedNotificationServiceTest {
 
         @Test
         void shouldThrowExceptionWhenSettingsAreNotFound() {
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(null);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(null);
 
             assertThrows(NullPointerException.class,
                     () -> service.saveGoalAchievedNotification(USER_ID, new GoalAchievedNotificationDto(true)));
@@ -152,7 +152,7 @@ class GoalAchievedNotificationServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositoryFails() {
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenThrow(new IllegalStateException("db failed"));
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenThrow(new IllegalStateException("db failed"));
 
             assertThrows(IllegalStateException.class,
                     () -> service.saveGoalAchievedNotification(USER_ID, new GoalAchievedNotificationDto(true)));
@@ -218,14 +218,14 @@ class GoalAchievedNotificationServiceTest {
 
         @Test
         void shouldThrowExceptionWhenSettingsAreNotFound() {
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(null);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(null);
 
             assertThrows(NullPointerException.class, () -> service.getGoalAchievedNotification(USER_ID));
         }
 
         @Test
         void shouldThrowExceptionWhenRepositoryFails() {
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenThrow(new IllegalStateException("db failed"));
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenThrow(new IllegalStateException("db failed"));
 
             assertThrows(IllegalStateException.class, () -> service.getGoalAchievedNotification(USER_ID));
         }
@@ -338,7 +338,7 @@ class GoalAchievedNotificationServiceTest {
 
         @Test
         void shouldThrowExceptionWhenSettingsAreNotFound() {
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenReturn(null);
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(null);
 
             assertThrows(NullPointerException.class, () -> service.handleGoalAchieved(USER_ID, sharedPiggyBank));
 
@@ -347,7 +347,7 @@ class GoalAchievedNotificationServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositoryFails() {
-            when(sharedAccountSettingsRepository.findByUserId(USER_ID)).thenThrow(new IllegalStateException("db failed"));
+            when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenThrow(new IllegalStateException("db failed"));
 
             assertThrows(IllegalStateException.class, () -> service.handleGoalAchieved(USER_ID, sharedPiggyBank));
 
