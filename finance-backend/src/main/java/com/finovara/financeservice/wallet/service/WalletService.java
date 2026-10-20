@@ -1,7 +1,7 @@
 package com.finovara.financeservice.wallet.service;
 
-import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.mainaccount.transaction.event.wallet.WalletBalanceChangedEvent;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.dto.WalletDto;
 import com.finovara.financeservice.wallet.dto.WalletResponse;
@@ -34,7 +34,7 @@ public class WalletService implements UserDataDeletable {
     @Transactional
     @CacheEvict(value = "wallet:user", key = "#userId")
     public WalletDto addBalanceToWallet(Long userId, BigDecimal amount) {
-        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
+        Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
 
         wallet.deposit(amount);
         log.info("Adding balance to wallet for userId: {}", userId);
@@ -45,7 +45,7 @@ public class WalletService implements UserDataDeletable {
     @Transactional
     @CacheEvict(value = "wallet:user", key = "#userId")
     public WalletDto removeBalanceFromWallet(Long userId, BigDecimal amount) {
-        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
+        Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
 
         BigDecimal previousBalance = wallet.getBalance();
         wallet.withdraw(amount);
@@ -64,9 +64,9 @@ public class WalletService implements UserDataDeletable {
 
         BigDecimal available = wallet.getBalance().subtract(wallet.getReservedAmount());
 
-        List<FundReservationDto> reservations  = fundReservationRepository.findByWalletId(wallet.getId())
+        List<FundReservationDto> reservations = fundReservationRepository.findByWalletId(wallet.getId())
                 .stream()
-                .map(fundReservation -> new FundReservationDto(fundReservation.getId(), fundReservation.getCategory(), fundReservation.getAmount(),null)).toList();
+                .map(fundReservation -> new FundReservationDto(fundReservation.getId(), fundReservation.getCategory(), fundReservation.getAmount(), null)).toList();
 
         return new WalletResponse(wallet.getId(), userId, wallet.getBalance(), wallet.getReservedAmount(), available, reservations);
     }
