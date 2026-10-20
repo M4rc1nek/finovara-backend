@@ -1,15 +1,16 @@
 package com.finovara.authservice.settings.account.service.passwordpolicy;
 
-import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.settings.account.dto.AttemptsDto;
 import com.finovara.authservice.settings.account.dto.passwordpolicy.PasswordResetConfirmDto;
 import com.finovara.authservice.settings.account.dto.passwordpolicy.PasswordResetRequestDto;
 import com.finovara.authservice.settings.account.model.AccountSettings;
+import com.finovara.authservice.settings.account.service.passwordpolicy.attempts.PasswordResetVerificationService;
 import com.finovara.authservice.settings.account.service.passwordpolicy.change.PasswordUpdateService;
 import com.finovara.authservice.settings.account.service.verification.CredentialValidationService;
-import com.finovara.authservice.settings.account.service.passwordpolicy.attempts.PasswordResetVerificationService;
 import com.finovara.authservice.settings.account.service.verification.VerificationCodeEmailSender;
-import com.finovara.authservice.util.user.service.UserManagerService;
+import com.finovara.authservice.user.model.User;
+import com.finovara.authservice.user.repository.UserRepository;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,18 +24,19 @@ public class PasswordResetService {
     private final PasswordResetVerificationService passwordResetVerificationService;
     private final VerificationCodeEmailSender verificationCodeEmailSender;
     private final PasswordUpdateService passwordUpdateService;
-    private final UserManagerService userManagerService;
+    private final UserRepository userRepository;
 
     @Transactional
     public void requestPasswordReset(PasswordResetRequestDto dto) {
-        User user = userManagerService.getUserByEmailOrThrow(dto.email());
-
-        generateAndSendPasswordResetCode(user, dto.email());
+        userRepository.findUserByEmail(dto.email())
+                .ifPresent(user -> generateAndSendPasswordResetCode(user, user.getEmail()));
     }
 
     @Transactional
     public AttemptsDto confirmPasswordReset(PasswordResetConfirmDto dto, HttpServletRequest request) {
-        User user = userManagerService.getUserByEmailOrThrow(dto.email());
+        User user = userRepository.findUserByEmail(dto.email())
+                .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
+
         AccountSettings settings = user.getAccountSettings();
 
         validatePasswordReset(user, dto);
