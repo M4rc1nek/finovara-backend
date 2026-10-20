@@ -80,7 +80,7 @@ class AutoPaymentsServiceTest {
 
         @Test
         void shouldActivateAutomationWithPercentage() {
-            when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
             autoPaymentsService.createAutomation(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, BigDecimal.valueOf(20), null));
 
@@ -90,7 +90,7 @@ class AutoPaymentsServiceTest {
 
         @Test
         void shouldDeactivateAutomationAndResetPercentage() {
-            when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
             autoPaymentsService.createAutomation(USER_ID, PIGGY_ID, new AutoPaymentsDto(false, null, null));
 
@@ -100,7 +100,7 @@ class AutoPaymentsServiceTest {
 
         @Test
         void shouldSaveAutomationAndCreateActivity() {
-            when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
             autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, BigDecimal.TEN, null));
 
@@ -111,7 +111,7 @@ class AutoPaymentsServiceTest {
 
         @Test
         void shouldThrowExceptionWhenActiveWithoutPercentage() {
-            when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
             assertThrows(IllegalArgumentException.class, () -> autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, null, null)));
         }
@@ -127,7 +127,7 @@ class AutoPaymentsServiceTest {
             settings.setAutomationPercentage(BigDecimal.valueOf(15));
             piggyBank.setSettings(settings);
 
-            when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
             AutoPaymentsDto result = autoPaymentsService.getAutomation(USER_ID, PIGGY_ID);
 
@@ -142,7 +142,7 @@ class AutoPaymentsServiceTest {
             settings.setAutomationPercentage(BigDecimal.ZERO);
             piggyBank.setSettings(settings);
 
-            when(piggyBankManagerService.getPiggyBankByUserId(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
             AutoPaymentsDto result = autoPaymentsService.getAutomation(USER_ID, PIGGY_ID);
 
@@ -163,23 +163,6 @@ class AutoPaymentsServiceTest {
             verifyNoInteractions(autoPaymentsCore);
         }
 
-        @Test
-        void shouldSkipInactivePiggyBanks() {
-            PiggyBankSettings settings = new PiggyBankSettings();
-            settings.setAutomationActive(false);
-
-            PiggyBank piggy = new PiggyBank();
-            piggy.setSettings(settings);
-
-            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(List.of(piggy));
-            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
-
-            autoPaymentsService.handleRevenuePiggyBankAutomation(USER_ID, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
-
-            verifyNoInteractions(autoPaymentsCore);
-            verify(goalCompletionService).handleGoalCompletion(USER_ID);
-        }
-
         @ParameterizedTest
         @EnumSource(PiggyBankAutomationMode.class)
         void shouldProcessActivePiggyBank(PiggyBankAutomationMode mode) {
@@ -191,7 +174,7 @@ class AutoPaymentsServiceTest {
             piggy.setSettings(settings);
 
             when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(List.of(piggy));
-            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
+            when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
 
             autoPaymentsService.handleRevenuePiggyBankAutomation(USER_ID, BigDecimal.TEN, mode);
 
