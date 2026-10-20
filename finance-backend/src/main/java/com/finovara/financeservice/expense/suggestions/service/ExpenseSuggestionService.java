@@ -31,3 +31,4 @@ public class ExpenseSuggestionService {
         return allIdentical ? latest.getFirst() : null;
     }
 }
+
