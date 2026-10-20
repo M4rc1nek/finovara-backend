@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface SharedLimitRepository extends JpaRepository<SharedLimit, Long> {
 
     @Query("SELECT l FROM SharedLimit l WHERE (l.ownerId = :userId OR l.memberId = :userId) AND l.id = :limitId AND l.isActive = true")
-    Optional<SharedLimit> findByIdAndUserId(Long userId, Long limitId);
+    Optional<SharedLimit> findByIdAndOwnerIdOrMemberId(Long userId, Long limitId);
 
     @Query("SELECT l FROM SharedLimit l WHERE (l.ownerId = :userId OR l.memberId = :userId) AND l.isActive = true")
     List<SharedLimit> findAllByUserId(Long userId);
