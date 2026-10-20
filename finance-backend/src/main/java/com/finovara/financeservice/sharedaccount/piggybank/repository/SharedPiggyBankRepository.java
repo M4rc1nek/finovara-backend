@@ -12,9 +12,8 @@ import java.util.Optional;
 @Repository
 public interface SharedPiggyBankRepository extends JpaRepository<SharedPiggyBank, Long> {
 
-    @Query("SELECT pb FROM SharedPiggyBank pb WHERE pb.id = :piggyBankId " +
-            "AND (pb.ownerId = :userId OR pb.memberId = :userId)")
-    Optional<SharedPiggyBank> findByIdAndUserId(Long piggyBankId, Long userId);
+    @Query("SELECT pb FROM SharedPiggyBank pb WHERE pb.id = :piggyBankId AND (pb.ownerId = :userId OR pb.memberId = :userId)")
+    Optional<SharedPiggyBank> findByIdAndOwnerIdOrMemberId(Long piggyBankId, Long userId);
 
     @Query("SELECT pb FROM SharedPiggyBank pb WHERE pb.ownerId = :userId OR pb.memberId = :userId")
     List<SharedPiggyBank> findAllByUserId(Long userId);
