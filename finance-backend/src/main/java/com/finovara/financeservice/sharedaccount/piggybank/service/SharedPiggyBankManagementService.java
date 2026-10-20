@@ -11,9 +11,9 @@ import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDt
 import com.finovara.financeservice.sharedaccount.piggybank.mapper.SharedPiggyBankMapper;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
+import com.finovara.financeservice.util.sharedaccount.piggybank.SharedPiggyBankManager;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCalculator;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankValidator;
-import com.finovara.financeservice.util.transaction.piggybank.manager.SharedPiggyBankManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,7 +74,7 @@ public class SharedPiggyBankManagementService {
 
     @Transactional
     public Long editPiggyBank(Long userId, SharedPiggyBankDto sharedPiggyBankDto, Long piggyBankId) {
-        SharedPiggyBank sharedPiggyBank = sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId);
+        SharedPiggyBank sharedPiggyBank = sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(piggyBankId, userId);
 
         if (sharedPiggyBankRepository.existsByNameIgnoreCase(userId, sharedPiggyBankDto.name())
                 && !sharedPiggyBank.getName().equalsIgnoreCase(sharedPiggyBankDto.name())) {
@@ -108,7 +108,7 @@ public class SharedPiggyBankManagementService {
 
     @Transactional
     public void deletePiggyBank(Long userId, Long piggyBankId) {
-        SharedPiggyBank sharedPiggyBank = sharedPiggyBankManager.getPiggyBankByUserId(piggyBankId, userId);
+        SharedPiggyBank sharedPiggyBank = sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(piggyBankId, userId);
 
         if (sharedPiggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             throw new InvalidInputException("Cannot delete piggy bank with balance. Withdraw funds first.");
