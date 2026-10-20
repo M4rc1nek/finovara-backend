@@ -11,9 +11,10 @@ import org.springframework.stereotype.Service;
 public class RevenueManagerService {
     private final RevenueRepository revenueRepository;
 
-    public Revenue getRevenueOrThrow(Long revenueId) {
-        return revenueRepository.findById(revenueId)
+    public Revenue getRevenueByUserIdOrThrow(Long revenueId, Long userId) {
+        return revenueRepository.findByIdAndUserId(revenueId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
     }
 
 }
+
