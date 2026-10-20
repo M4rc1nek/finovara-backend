@@ -11,8 +11,9 @@ import org.springframework.stereotype.Service;
 public class PiggyBankManagerService {
     private final PiggyBankRepository piggyBankRepository;
 
-    public PiggyBank getPiggyBankByUserId(Long piggyBankId, Long userId) {
+    public PiggyBank getPiggyBankByUserIdOrThrow(Long piggyBankId, Long userId) {
         return piggyBankRepository.findByIdAndUserId(piggyBankId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Piggy Bank not found"));
     }
 }
+
