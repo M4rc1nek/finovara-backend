@@ -1,11 +1,11 @@
 package com.finovara.financeservice.settings.finances.recurring.service.execution;
 
-import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
+import com.finovara.contracts.util.PeriodType;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
 import com.finovara.financeservice.expense.service.ExpenseService;
@@ -15,13 +15,13 @@ import com.finovara.financeservice.revenue.dto.RevenueDto;
 import com.finovara.financeservice.revenue.service.RevenueService;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitDto;
-import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringDescription;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.ExpenseSettingsValidator;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringRevenueValidator;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.RecurringSavingsValidator;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
+import com.finovara.financeservice.util.settings.SettingsManager;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
@@ -37,13 +37,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecurringExecutionService {
 
+    private final SettingsManager settingsManager;
     private final RevenueService revenueService;
     private final ExpenseService expenseService;
     private final PiggyBankTransactionService piggyBankTransactionService;
     private final ExpenseSettingsValidator expenseSettingsValidator;
     private final RecurringRevenueValidator recurringRevenueValidator;
     private final RecurringSavingsValidator recurringSavingsValidator;
-    private final ExpenseSettingsRepository expenseSettingsRepository;
     private final WalletManagerService walletManagerService;
     private final LimitManagerService limitManagerService;
 
@@ -84,7 +84,7 @@ public class RecurringExecutionService {
             return RecurringExecutionResult.EXECUTED;
         }
 
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(settings.getUserId());
+        ExpenseSettings expenseSettings = settingsManager.getExpenseSettingsByUserId(settings.getUserId());
 
         if (expenseSettings == null) {
             return RecurringExecutionResult.EXECUTED;
@@ -159,3 +159,4 @@ public class RecurringExecutionService {
         return new RevenueDto(null, settings.getUserId(), settings.getAmount(), settings.getRevenueCategory(), date, RecurringDescription.REVENUE.label(), null, null);
     }
 }
+
