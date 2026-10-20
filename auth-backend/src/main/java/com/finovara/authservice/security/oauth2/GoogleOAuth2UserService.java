@@ -31,7 +31,7 @@ public class GoogleOAuth2UserService {
     public User synchronize(OAuth2User oauth2User) {
         GoogleOAuth2UserInfo userInfo = GoogleOAuth2UserInfo.from(oauth2User.getAttributes());
 
-        return userRepository.findByOauthProviderAndProviderUserId(GOOGLE_PROVIDER, userInfo.providerUserId())
+        return userRepository.findUserByOauthProviderAndProviderUserId(GOOGLE_PROVIDER, userInfo.providerUserId())
                 .map(user -> synchronizeExistingGoogleUser(user, userInfo))
                 .orElseGet(() -> createGoogleUser(userInfo));
     }
