@@ -3,20 +3,20 @@ package com.finovara.financeservice.settings.finances.expense.quantitylimit.serv
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
 import com.finovara.contracts.mainaccount.activity.model.SettingType;
-import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
-import com.finovara.financeservice.expense.repository.ExpenseRepository;
-import com.finovara.financeservice.feignclient.AuthBackendClient;
-import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitDto;
-import com.finovara.financeservice.settings.finances.expense.quantitylimit.validator.CountQuantityLimitValidator;
-import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
-import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.util.PeriodType;
-import org.springframework.transaction.annotation.Transactional;
+import com.finovara.financeservice.exception.conflict.QuantityLimitOperationException;
+import com.finovara.financeservice.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
+import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitDto;
+import com.finovara.financeservice.settings.finances.expense.quantitylimit.validator.CountQuantityLimitValidator;
+import com.finovara.financeservice.util.settings.SettingsManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class CountQuantityLimitService {
 
-    private final ExpenseSettingsRepository expenseSettingsRepository;
+    private final SettingsManager settingsManager;
     private final ExpenseRepository expenseRepository;
     private final AuthBackendClient authBackendClient;
     private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -34,7 +34,7 @@ public class CountQuantityLimitService {
 
     @Transactional
     public void saveCountQuantityLimit(Long userId, CountQuantityLimitDto dto) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+        ExpenseSettings expenseSettings = settingsManager.getExpenseSettingsByUserId(userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
         expenseSettings.setCountQuantityLimitEnabled(dto.expenseCountLimitEnabled());
 
@@ -60,7 +60,7 @@ public class CountQuantityLimitService {
 
     @Transactional
     public void handleExpenseLimitExceeded(Long userId, CountQuantityLimitDto dto, PeriodType periodType, ConfirmPasswordDto confirmPasswordDto) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+        ExpenseSettings expenseSettings = settingsManager.getExpenseSettingsByUserId(userId);
 
         if (!expenseSettings.isCountQuantityLimitEnabled()) return;
 
@@ -78,7 +78,7 @@ public class CountQuantityLimitService {
 
     @Transactional
     public CountQuantityLimitDto getCountQuantityLimit(Long userId) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+        ExpenseSettings expenseSettings = settingsManager.getExpenseSettingsByUserId(userId);
 
         return new CountQuantityLimitDto(expenseSettings.isCountQuantityLimitEnabled(), expenseSettings.getPeriodType(), expenseSettings.getNumberOfQuantityLimit(), null);
     }
@@ -99,3 +99,4 @@ public class CountQuantityLimitService {
     }
 
 }
+
