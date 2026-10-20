@@ -1,19 +1,20 @@
 package com.finovara.financeservice.settings.finances.expense.controlamount.service;
 
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
 import com.finovara.contracts.mainaccount.activity.model.SettingType;
-import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
-import org.springframework.transaction.annotation.Transactional;
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.financeservice.util.settings.SettingsManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,13 +26,14 @@ import java.util.Optional;
 public class ControlAmountService {
 
     private final ExpenseSettingsRepository expenseSettingsRepository;
+    private final SettingsManager settingsManager;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
     public void saveExpenseAmountControl(Long userId, ControlAmountDto controlAmountDto) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+        ExpenseSettings expenseSettings = settingsManager.getExpenseSettingsByUserId(userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(controlAmountDto.authorizationCode()));
 
         BigDecimal blockedAmount = Optional.ofNullable(controlAmountDto.blockedAmount()).orElse(BigDecimal.ZERO);
@@ -47,13 +49,13 @@ public class ControlAmountService {
 
     @Transactional
     public ControlAmountDto getExpenseAmountControl(Long userId) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+        ExpenseSettings expenseSettings = settingsManager.getExpenseSettingsByUserId(userId);
 
         return new ControlAmountDto(expenseSettings.isAmountThresholdEnabled(), expenseSettings.getBlockedAmount(), null);
     }
 
     public void handleExpenseAmountControl(Long userId, BigDecimal newAmount) {
-        ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId);
+        ExpenseSettings expenseSettings = settingsManager.getExpenseSettingsByUserId(userId);
 
         BigDecimal blockedAmount = Optional.ofNullable(expenseSettings.getBlockedAmount()).orElse(BigDecimal.ZERO);
 
@@ -63,3 +65,4 @@ public class ControlAmountService {
         }
     }
 }
+
