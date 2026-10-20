@@ -27,7 +27,7 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return email -> userRepository.findByEmail(email)
+        return email -> userRepository.findUserByEmail(email)
                 .map(CustomUserDetails::new)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
     }
