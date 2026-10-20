@@ -3,6 +3,7 @@ package com.finovara.notificationservice.notification.controller;
 import com.finovara.contracts.util.SortType;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
+import com.finovara.notificationservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,8 +16,8 @@ import java.util.List;
 public class NotificationController {
     private final NotificationPersistenceService notificationPersistenceService;
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<NotificationResponse>> getAllNotifications(@PathVariable Long userId, @RequestParam(defaultValue = "NEWEST") SortType sort) {
-        return ResponseEntity.ok(notificationPersistenceService.getUserNotifications(userId, sort));
+    @GetMapping
+    public ResponseEntity<List<NotificationResponse>> getAllNotifications(@RequestParam(defaultValue = "NEWEST") SortType sort) {
+        return ResponseEntity.ok(notificationPersistenceService.getUserNotifications(SecurityUtils.getCurrentUserId(), sort));
     }
 }
