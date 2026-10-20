@@ -54,11 +54,7 @@ public class SharedAccountNoteService {
 
     @Transactional
     public Long editNote(Long userId, Long noteId, SharedAccountNoteDto sharedAccountNoteDto) {
-        SharedAccountNote existingNote = getNoteByIdOrThrow(noteId);
-
-        if (!isOwnerOrMember(existingNote, userId)) {
-            throw new RequestedEntityNotFoundException("Note not found for this user");
-        }
+        SharedAccountNote existingNote = getNoteByIdOrThrow(userId, noteId);
 
         existingNote.setTopic(sharedAccountNoteDto.topic());
         existingNote.setDescription(sharedAccountNoteDto.description());
@@ -94,22 +90,17 @@ public class SharedAccountNoteService {
 
     @Transactional
     public void deleteNote(Long userId, Long noteId) {
-        SharedAccountNote note = sharedAccountNoteRepository.findByIdAndOwnerIdOrMemberId(noteId, userId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Note not found"));
+        SharedAccountNote sharedAccountNote = getNoteByIdOrThrow(userId, noteId);
 
         SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
-        sharedAccountNoteRepository.delete(note);
+        sharedAccountNoteRepository.delete(sharedAccountNote);
 
-        outboxService.save("SharedAccountNote", note.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, note.getId(), SharedAccountActivityLogType.NOTE_DELETED, LocalDateTime.now()));
+        outboxService.save("SharedAccountNote", sharedAccountNote.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, sharedAccountNote.getId(), SharedAccountActivityLogType.NOTE_DELETED, LocalDateTime.now()));
     }
 
-    private SharedAccountNote getNoteByIdOrThrow(Long noteId) {
-        return sharedAccountNoteRepository.findById(noteId)
+    private SharedAccountNote getNoteByIdOrThrow(Long userId, Long noteId) {
+        return sharedAccountNoteRepository.findByIdAndOwnerIdOrMemberId(noteId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Note not found"));
-    }
-
-    private boolean isOwnerOrMember(SharedAccountNote note, Long userId) {
-        return note.getOwnerId().equals(userId) || note.getMemberId().equals(userId);
     }
 }
