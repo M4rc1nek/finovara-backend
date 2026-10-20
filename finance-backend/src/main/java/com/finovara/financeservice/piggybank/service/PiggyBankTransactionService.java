@@ -1,10 +1,11 @@
 package com.finovara.financeservice.piggybank.service;
 
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.mainaccount.transaction.event.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.mainaccount.transaction.event.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
@@ -16,7 +17,6 @@ import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCheckGoal
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankValidator;
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -47,7 +47,7 @@ public class PiggyBankTransactionService {
             authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         }
 
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
 
         PiggyBankValidator.validateAmount(amount);
         walletService.removeBalanceFromWallet(userId, amount);
@@ -74,7 +74,7 @@ public class PiggyBankTransactionService {
         riskGuardService.guard(userId, RiskTriggerType.PIGGY_BANK, amount, null,
                 authBackendClient.getUserEmail(userId), sourceEventId, servletRequest);
 
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
 
         PiggyBankValidator.validateAmount(amount);
         PiggyBankValidator.validateSufficientFunds(piggyBank.getAmount(), amount);
