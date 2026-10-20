@@ -79,6 +79,7 @@ public class FinanceSettingsFactory {
             log.info("Recurring settings created for userId={}, type={}", userId, type);
         });
     }
+
     private boolean recurringSettingsExist(Long userId) {
         return Arrays.stream(RecurringType.values())
                 .anyMatch(type ->
