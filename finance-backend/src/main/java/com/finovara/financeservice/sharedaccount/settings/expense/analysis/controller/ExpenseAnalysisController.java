@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/api/shared-accounts/settings/expense-analysis")
 @RequiredArgsConstructor
@@ -20,6 +19,7 @@ public class ExpenseAnalysisController {
         expenseAnalysisService.saveExpenseAnalysis(SecurityUtils.getCurrentUserId(), expenseAnalysisDto);
         return ResponseEntity.noContent().build();
     }
+
     @GetMapping
 
     public ResponseEntity<ExpenseAnalysisDto> getSmartScan() {
@@ -27,3 +27,4 @@ public class ExpenseAnalysisController {
     }
 
 }
+
