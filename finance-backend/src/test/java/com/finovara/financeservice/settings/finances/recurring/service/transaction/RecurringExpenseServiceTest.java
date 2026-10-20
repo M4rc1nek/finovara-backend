@@ -6,7 +6,7 @@ import com.finovara.contracts.mainaccount.activity.model.SettingType;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
-import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
+import com.finovara.financeservice.util.settings.SettingsManager;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringCommonFields;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringExpenseDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
@@ -47,7 +47,7 @@ class RecurringExpenseServiceTest {
     private ExpenseSettingsValidator expenseSettingsValidator;
 
     @Mock
-    private ExpenseSettingsRepository expenseSettingsRepository;
+    private SettingsManager settingsManager;
 
     @Mock
     private WalletManagerService walletManagerService;
@@ -129,7 +129,7 @@ class RecurringExpenseServiceTest {
             List<Limit> limits = List.of();
 
             when(recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE)).thenReturn(settings);
-            when(expenseSettingsRepository.findByUserId(userId)).thenReturn(expenseSettings);
+            when(settingsManager.getExpenseSettingsByUserId(userId)).thenReturn(expenseSettings);
             when(walletManagerService.getWalletByUserIdOrThrow(userId)).thenReturn(wallet);
             when(limitManagerService.getLimitsByUserId(userId)).thenReturn(limits);
 
@@ -175,7 +175,7 @@ class RecurringExpenseServiceTest {
 
             recurringExpenseService.saveExpenseSettings(userId, disabledDto);
 
-            verifyNoInteractions(expenseSettingsRepository, walletManagerService, limitManagerService);
+            verifyNoInteractions(settingsManager, walletManagerService, limitManagerService);
         }
     }
 
