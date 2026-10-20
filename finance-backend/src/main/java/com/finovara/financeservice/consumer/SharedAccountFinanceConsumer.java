@@ -19,12 +19,12 @@ public class SharedAccountFinanceConsumer {
     private final SharedAccountDeletionHandler sharedAccountDeletionHandler;
 
     @KafkaListener(topics = "finance.shared-account.invitation-accepted")
-    public void createDefaultSharedAccountWallet(UsersCreatedSharedAccountEvent event){
+    public void createDefaultSharedAccountWallet(UsersCreatedSharedAccountEvent event) {
         sharedWalletService.createSharedWallet(event.inviterUserId(), event.inviteeUserId());
     }
 
     @KafkaListener(topics = "finance.shared-account.create-default-settings")
-    public void createDefaultSharedAccountSettings(SharedAccountCreateDefaultSettingsEvent event){
+    public void createDefaultSharedAccountSettings(SharedAccountCreateDefaultSettingsEvent event) {
         sharedAccountSettingsFactory.createDefaultSharedAccountSettingsIfNotExist(event.inviterUserId(), event.inviteeUserId());
     }
 
@@ -34,3 +34,4 @@ public class SharedAccountFinanceConsumer {
     }
 
 }
+
