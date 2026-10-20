@@ -91,7 +91,7 @@ public class ExpenseSettingsValidator {
         LocalDate nextDate = settings.getNextExecutionDate();
         LocalDate endDate = settings.getEndDate();
 
-        while (!nextDate.isAfter(today) && (endDate == null ||  !nextDate.isAfter(endDate)) && iterationGuard++ < MAX_ITERATIONS) {
+        while (!nextDate.isAfter(today) && (endDate == null || !nextDate.isAfter(endDate)) && iterationGuard++ < MAX_ITERATIONS) {
             count++;
             nextDate = settings.getPeriodType().addPeriod(nextDate);
         }
