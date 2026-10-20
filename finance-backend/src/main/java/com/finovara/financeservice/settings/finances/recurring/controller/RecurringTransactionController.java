@@ -27,7 +27,6 @@ public class RecurringTransactionController {
     private final RecurringRevenueService recurringRevenueService;
     private final RecurringOccurrenceService recurringOccurrenceService;
 
-
     @PatchMapping("/expense")
     public ResponseEntity<Void> saveRecurringExpenseSetting(@RequestBody @Valid RecurringExpenseDto dto) {
         recurringExpenseService.saveExpenseSettings(SecurityUtils.getCurrentUserId(), dto);
@@ -66,3 +65,4 @@ public class RecurringTransactionController {
         return ResponseEntity.ok(recurringOccurrenceService.getUpcomingOccurrences(SecurityUtils.getCurrentUserId(), from, to));
     }
 }
+
