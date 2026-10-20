@@ -29,7 +29,7 @@ public class WalletCacheEvictionService {
                 cache.evict(key);
             }
         } catch (Exception ex) {
-            log.warn("Cache eviction failed for cache={}, key={} — entry may be stale until TTL expiry.",
+            log.warn("Cache eviction failed for cache={}, key={}” entry may be stale until TTL expiry.",
                     cacheName, key, ex);
         }
     }
