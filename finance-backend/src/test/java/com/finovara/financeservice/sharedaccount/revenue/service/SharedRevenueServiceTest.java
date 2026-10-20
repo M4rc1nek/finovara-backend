@@ -1,20 +1,5 @@
 package com.finovara.financeservice.sharedaccount.revenue.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
@@ -28,11 +13,7 @@ import com.finovara.financeservice.sharedaccount.revenue.mapper.SharedRevenueMap
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
 import com.finovara.financeservice.sharedaccount.revenue.repository.SharedRevenueRepository;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
-import com.finovara.financeservice.util.transaction.revenue.SharedRevenueManagerService;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +23,25 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SharedRevenueServiceTest {
@@ -71,9 +71,6 @@ class SharedRevenueServiceTest {
     private SharedWalletService sharedWalletService;
 
     @Mock
-    private SharedRevenueManagerService sharedRevenueManagerService;
-
-    @Mock
     private AuthBackendClient authBackendClient;
 
     @Mock
@@ -83,6 +80,12 @@ class SharedRevenueServiceTest {
     private SharedRevenueDto revenueDto;
 
     @Mock
+    private SharedRevenueDto firstMappedDto;
+
+    @Mock
+    private SharedRevenueDto secondMappedDto;
+
+    @Mock
     private SharedAccountParticipantsResponse participantsResponse;
 
     @Mock
@@ -90,6 +93,9 @@ class SharedRevenueServiceTest {
 
     @Mock
     private SharedRevenue existingRevenue;
+
+    @Mock
+    private SharedRevenue anotherRevenue;
 
     @Captor
     private ArgumentCaptor<SharedRevenue> revenueCaptor;
@@ -108,7 +114,9 @@ class SharedRevenueServiceTest {
 
     private void verifyOutboxEvent(Long userId, SharedAccountActivityLogType type) {
         verify(outboxService).save(eq(AGGREGATE), eq(REVENUE_ID.toString()), eq(TOPIC), eventCaptor.capture());
+
         SharedAccountActivityLogEvent event = eventCaptor.getValue();
+
         assertEquals(OWNER_ID, event.ownerId());
         assertEquals(MEMBER_ID, event.memberId());
         assertEquals(userId, event.userId());
@@ -119,95 +127,6 @@ class SharedRevenueServiceTest {
 
     @Nested
     class AddSharedRevenue {
-
-        private void stubAddInputs() {
-            stubParticipants(OWNER_ID);
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
-            when(revenueDto.amount()).thenReturn(AMOUNT);
-            when(revenueDto.description()).thenReturn(DESCRIPTION);
-        }
-
-        private void stubSavedRevenue() {
-            when(sharedRevenueRepository.save(any(SharedRevenue.class))).thenReturn(savedRevenue);
-            when(savedRevenue.getId()).thenReturn(REVENUE_ID);
-        }
-
-        @Test
-        void shouldReturnResponseWhenRevenueIsAdded() {
-            stubAddInputs();
-            stubSavedRevenue();
-
-            SharedRevenueResponse result = service.addSharedRevenue(revenueDto, OWNER_ID);
-
-            verify(sharedRevenueRepository).save(revenueCaptor.capture());
-            assertEquals(new SharedRevenueResponse(revenueCaptor.getValue().getId(), OWNER_ID, USERNAME), result);
-        }
-
-        @Test
-        void shouldSaveRevenueWithDtoAndParticipantDataWhenRevenueIsAdded() {
-            stubAddInputs();
-            stubSavedRevenue();
-
-            service.addSharedRevenue(revenueDto, OWNER_ID);
-
-            verify(sharedRevenueRepository).save(revenueCaptor.capture());
-            SharedRevenue saved = revenueCaptor.getValue();
-            assertEquals(AMOUNT, saved.getAmount());
-            assertEquals(revenueDto.category(), saved.getCategory());
-            assertEquals(DESCRIPTION, saved.getDescription());
-            assertEquals(OWNER_ID, saved.getOwnerId());
-            assertEquals(MEMBER_ID, saved.getMemberId());
-            assertEquals(OWNER_ID, saved.getCreatedByUserId());
-            assertEquals(LocalDate.now(), saved.getCreatedAt());
-        }
-
-        @Test
-        void shouldSaveRevenueWithMemberAsCreatorWhenMemberAddsRevenue() {
-            stubParticipants(MEMBER_ID);
-            when(authBackendClient.getUsername(MEMBER_ID)).thenReturn(OTHER_USERNAME);
-            when(revenueDto.amount()).thenReturn(AMOUNT);
-            when(revenueDto.description()).thenReturn(DESCRIPTION);
-            stubSavedRevenue();
-
-            service.addSharedRevenue(revenueDto, MEMBER_ID);
-
-            verify(sharedRevenueRepository).save(revenueCaptor.capture());
-            assertEquals(MEMBER_ID, revenueCaptor.getValue().getCreatedByUserId());
-            verify(sharedWalletService).addBalanceToWallet(MEMBER_ID, AMOUNT);
-        }
-
-        @Test
-        void shouldAddAmountToWalletWhenRevenueIsAdded() {
-            stubAddInputs();
-            stubSavedRevenue();
-
-            service.addSharedRevenue(revenueDto, OWNER_ID);
-
-            verify(sharedWalletService).addBalanceToWallet(OWNER_ID, AMOUNT);
-        }
-
-        @Test
-        void shouldSaveOutboxEventWhenRevenueIsAdded() {
-            stubAddInputs();
-            stubSavedRevenue();
-
-            service.addSharedRevenue(revenueDto, OWNER_ID);
-
-            verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.REVENUE_CREATED);
-        }
-
-        @Test
-        void shouldUpdateWalletBeforeSavingRevenueAndOutboxEventWhenRevenueIsAdded() {
-            stubAddInputs();
-            stubSavedRevenue();
-
-            service.addSharedRevenue(revenueDto, OWNER_ID);
-
-            InOrder inOrder = inOrder(sharedWalletService, sharedRevenueRepository, outboxService);
-            inOrder.verify(sharedWalletService).addBalanceToWallet(OWNER_ID, AMOUNT);
-            inOrder.verify(sharedRevenueRepository).save(any(SharedRevenue.class));
-            inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
-        }
 
         @Test
         void shouldThrowExceptionWhenDtoIsNull() {
@@ -225,203 +144,318 @@ class SharedRevenueServiceTest {
 
         @Test
         void shouldThrowExceptionWhenParticipantsServiceFails() {
-            when(sharedAccountParticipantsService.getParticipants(OWNER_ID))
-                    .thenThrow(new RequestedEntityNotFoundException("participants not found"));
+            when(sharedAccountParticipantsService.getParticipants(OWNER_ID)).thenThrow(new RequestedEntityNotFoundException("participants not found"));
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.addSharedRevenue(revenueDto, OWNER_ID));
 
             verifyNoInteractions(authBackendClient, sharedWalletService, sharedRevenueRepository, outboxService);
         }
 
-
         @Test
-        void shouldThrowExceptionWhenWalletUpdateFails() {
-            stubAddInputs();
-            doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService).addBalanceToWallet(OWNER_ID, AMOUNT);
+        void shouldThrowExceptionWhenAuthBackendClientFails() {
+            when(sharedAccountParticipantsService.getParticipants(OWNER_ID)).thenReturn(participantsResponse);
+            when(authBackendClient.getUsername(OWNER_ID)).thenThrow(new IllegalStateException("auth down"));
 
             assertThrows(IllegalStateException.class, () -> service.addSharedRevenue(revenueDto, OWNER_ID));
 
-            verifyNoInteractions(sharedRevenueRepository, outboxService);
+            verifyNoInteractions(sharedWalletService, sharedRevenueRepository, outboxService);
         }
 
         @Test
-        void shouldThrowExceptionWhenRepositorySaveFails() {
-            stubAddInputs();
-            when(sharedRevenueRepository.save(any(SharedRevenue.class))).thenThrow(new IllegalStateException("db failed"));
+        void shouldAddRevenueWithMemberAsCreatorWhenMemberAddsRevenue() {
+            stubParticipants(MEMBER_ID);
+            when(authBackendClient.getUsername(MEMBER_ID)).thenReturn(OTHER_USERNAME);
+            when(revenueDto.amount()).thenReturn(AMOUNT);
+            when(revenueDto.description()).thenReturn(DESCRIPTION);
+            when(sharedRevenueRepository.save(any(SharedRevenue.class))).thenReturn(savedRevenue);
+            when(savedRevenue.getId()).thenReturn(REVENUE_ID);
 
-            assertThrows(IllegalStateException.class, () -> service.addSharedRevenue(revenueDto, OWNER_ID));
+            SharedRevenueResponse result = service.addSharedRevenue(revenueDto, MEMBER_ID);
 
-            verifyNoInteractions(outboxService);
+            verify(sharedRevenueRepository).save(revenueCaptor.capture());
+            assertEquals(MEMBER_ID, revenueCaptor.getValue().getCreatedByUserId());
+            assertEquals(new SharedRevenueResponse(revenueCaptor.getValue().getId(), MEMBER_ID, OTHER_USERNAME), result);
+            verify(sharedWalletService).addBalanceToWallet(MEMBER_ID, AMOUNT);
+            verifyOutboxEvent(MEMBER_ID, SharedAccountActivityLogType.REVENUE_CREATED);
         }
 
-        @Test
-        void shouldThrowExceptionWhenOutboxServiceFails() {
-            stubAddInputs();
-            stubSavedRevenue();
-            doThrow(new IllegalStateException("outbox failed")).when(outboxService)
-                    .save(anyString(), anyString(), anyString(), any());
+        @Nested
+        class WithValidInput {
 
-            assertThrows(IllegalStateException.class, () -> service.addSharedRevenue(revenueDto, OWNER_ID));
+            @BeforeEach
+            void setUp() {
+                stubParticipants(OWNER_ID);
+                when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
+                when(revenueDto.amount()).thenReturn(AMOUNT);
+                when(revenueDto.description()).thenReturn(DESCRIPTION);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenWalletUpdateFails() {
+                doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService).addBalanceToWallet(OWNER_ID, AMOUNT);
+
+                assertThrows(IllegalStateException.class, () -> service.addSharedRevenue(revenueDto, OWNER_ID));
+
+                verifyNoInteractions(sharedRevenueRepository, outboxService);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenRepositorySaveFails() {
+                when(sharedRevenueRepository.save(any(SharedRevenue.class))).thenThrow(new IllegalStateException("db failed"));
+
+                assertThrows(IllegalStateException.class, () -> service.addSharedRevenue(revenueDto, OWNER_ID));
+
+                verifyNoInteractions(outboxService);
+            }
+
+            @Nested
+            class WhenRevenueIsSaved {
+
+                @BeforeEach
+                void setUp() {
+                    when(sharedRevenueRepository.save(any(SharedRevenue.class))).thenReturn(savedRevenue);
+                    when(savedRevenue.getId()).thenReturn(REVENUE_ID);
+                }
+
+                @Test
+                void shouldReturnResponseWithCreatorDataWhenRevenueIsAdded() {
+                    SharedRevenueResponse result = service.addSharedRevenue(revenueDto, OWNER_ID);
+
+                    verify(sharedRevenueRepository).save(revenueCaptor.capture());
+                    assertEquals(new SharedRevenueResponse(revenueCaptor.getValue().getId(), OWNER_ID, USERNAME), result);
+                }
+
+                @Test
+                void shouldSaveRevenueWithDtoAndParticipantDataWhenRevenueIsAdded() {
+                    service.addSharedRevenue(revenueDto, OWNER_ID);
+
+                    verify(sharedRevenueRepository).save(revenueCaptor.capture());
+
+                    SharedRevenue saved = revenueCaptor.getValue();
+
+                    assertEquals(AMOUNT, saved.getAmount());
+                    assertEquals(revenueDto.category(), saved.getCategory());
+                    assertEquals(DESCRIPTION, saved.getDescription());
+                    assertEquals(OWNER_ID, saved.getOwnerId());
+                    assertEquals(MEMBER_ID, saved.getMemberId());
+                    assertEquals(OWNER_ID, saved.getCreatedByUserId());
+                    assertEquals(LocalDate.now(), saved.getCreatedAt());
+                }
+
+                @Test
+                void shouldAddAmountToWalletWhenRevenueIsAdded() {
+                    service.addSharedRevenue(revenueDto, OWNER_ID);
+
+                    verify(sharedWalletService).addBalanceToWallet(OWNER_ID, AMOUNT);
+                }
+
+                @Test
+                void shouldSaveOutboxEventWhenRevenueIsAdded() {
+                    service.addSharedRevenue(revenueDto, OWNER_ID);
+
+                    verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.REVENUE_CREATED);
+                }
+
+                @Test
+                void shouldUpdateWalletBeforeSavingRevenueAndOutboxEventWhenRevenueIsAdded() {
+                    service.addSharedRevenue(revenueDto, OWNER_ID);
+
+                    InOrder order = inOrder(sharedWalletService, sharedRevenueRepository, outboxService);
+
+                    order.verify(sharedWalletService).addBalanceToWallet(OWNER_ID, AMOUNT);
+                    order.verify(sharedRevenueRepository).save(any(SharedRevenue.class));
+                    order.verify(outboxService).save(anyString(), anyString(), anyString(), any());
+                }
+
+                @Test
+                void shouldThrowExceptionWhenOutboxServiceFails() {
+                    doThrow(new IllegalStateException("outbox failed")).when(outboxService).save(anyString(), anyString(), anyString(), any());
+
+                    assertThrows(IllegalStateException.class, () -> service.addSharedRevenue(revenueDto, OWNER_ID));
+                }
+            }
         }
     }
 
     @Nested
     class EditRevenue {
 
-        private void stubEditInputs() {
+        @Test
+        void shouldThrowExceptionWhenRevenueDoesNotExist() {
+            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID)).thenReturn(Optional.empty());
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID));
+
+            verifyNoInteractions(sharedWalletService, sharedAccountParticipantsService, outboxService);
+            verify(sharedRevenueRepository, never()).save(any(SharedRevenue.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenUserIsNeitherOwnerNorMember() {
+            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OUTSIDER_ID)).thenReturn(Optional.empty());
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, OUTSIDER_ID));
+
+            verifyNoInteractions(sharedWalletService, sharedAccountParticipantsService, outboxService);
+            verify(sharedRevenueRepository, never()).save(any(SharedRevenue.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenDtoIsNull() {
+            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID)).thenReturn(Optional.of(existingRevenue));
+
+            assertThrows(NullPointerException.class, () -> service.editRevenue(null, REVENUE_ID, OWNER_ID));
+
+            verifyNoInteractions(sharedWalletService, sharedAccountParticipantsService, outboxService);
+            verify(sharedRevenueRepository, never()).save(any(SharedRevenue.class));
+        }
+
+        @Test
+        void shouldEditRevenueWhenMemberEditsRevenue() {
+            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, MEMBER_ID)).thenReturn(Optional.of(existingRevenue));
             when(revenueDto.amount()).thenReturn(AMOUNT);
-            when(revenueDto.description()).thenReturn(DESCRIPTION);
-        }
-
-        private void stubSuccessfulEdit(Long userId) {
-            when(sharedRevenueManagerService.getSharedRevenueOrThrow(REVENUE_ID)).thenReturn(existingRevenue);
-            when(existingRevenue.getOwnerId()).thenReturn(OWNER_ID);
             when(existingRevenue.getAmount()).thenReturn(OLD_AMOUNT);
-            when(existingRevenue.getId()).thenReturn(REVENUE_ID);
             when(sharedRevenueRepository.save(existingRevenue)).thenReturn(existingRevenue);
-            stubEditInputs();
-            stubParticipants(userId);
-        }
-
-        @Test
-        void shouldReturnRevenueIdWhenOwnerEditsRevenue() {
-            stubSuccessfulEdit(OWNER_ID);
-
-            Long result = service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID);
-
-            assertEquals(REVENUE_ID, result);
-        }
-
-        @Test
-        void shouldReturnRevenueIdWhenMemberEditsRevenue() {
-            when(sharedRevenueManagerService.getSharedRevenueOrThrow(REVENUE_ID)).thenReturn(existingRevenue);
-            when(existingRevenue.getOwnerId()).thenReturn(OWNER_ID);
-            when(existingRevenue.getMemberId()).thenReturn(MEMBER_ID);
-            when(existingRevenue.getAmount()).thenReturn(OLD_AMOUNT);
             when(existingRevenue.getId()).thenReturn(REVENUE_ID);
-            when(sharedRevenueRepository.save(existingRevenue)).thenReturn(existingRevenue);
-            stubEditInputs();
             stubParticipants(MEMBER_ID);
 
             Long result = service.editRevenue(revenueDto, REVENUE_ID, MEMBER_ID);
 
             assertEquals(REVENUE_ID, result);
+            verify(sharedWalletService).addBalanceToWallet(MEMBER_ID, AMOUNT);
+            verify(sharedWalletService).removeBalanceFromWallet(MEMBER_ID, OLD_AMOUNT);
             verifyOutboxEvent(MEMBER_ID, SharedAccountActivityLogType.REVENUE_EDITED);
         }
 
-        @Test
-        void shouldUpdateRevenueFieldsWhenRevenueIsEdited() {
-            stubSuccessfulEdit(OWNER_ID);
+        @Nested
+        class WhenRevenueExists {
 
-            service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID);
+            @BeforeEach
+            void setUp() {
+                when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID)).thenReturn(Optional.of(existingRevenue));
+                when(revenueDto.amount()).thenReturn(AMOUNT);
+            }
 
-            verify(existingRevenue).setAmount(AMOUNT);
-            verify(existingRevenue).setCategory(revenueDto.category());
-            verify(existingRevenue).setDescription(DESCRIPTION);
-            verify(sharedRevenueRepository).save(existingRevenue);
-        }
+            @Test
+            void shouldThrowExceptionWhenAddingBalanceToWalletFails() {
+                doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService).addBalanceToWallet(OWNER_ID, AMOUNT);
 
-        @Test
-        void shouldAddNewAmountAndRemoveOldAmountFromWalletWhenRevenueIsEdited() {
-            stubSuccessfulEdit(OWNER_ID);
+                assertThrows(IllegalStateException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID));
 
-            service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID);
+                verify(sharedWalletService, never()).removeBalanceFromWallet(any(Long.class), any(BigDecimal.class));
+                verify(sharedRevenueRepository, never()).save(any(SharedRevenue.class));
+                verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+            }
 
-            InOrder inOrder = inOrder(sharedWalletService);
-            inOrder.verify(sharedWalletService).addBalanceToWallet(OWNER_ID, AMOUNT);
-            inOrder.verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, OLD_AMOUNT);
-        }
+            @Nested
+            class WhenOldAmountIsAvailable {
 
-        @Test
-        void shouldSaveOutboxEventWhenRevenueIsEdited() {
-            stubSuccessfulEdit(OWNER_ID);
+                @BeforeEach
+                void setUp() {
+                    when(existingRevenue.getAmount()).thenReturn(OLD_AMOUNT);
+                }
 
-            service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID);
+                @Test
+                void shouldThrowExceptionWhenRemovingBalanceFromWalletFails() {
+                    doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService).removeBalanceFromWallet(OWNER_ID, OLD_AMOUNT);
 
-            verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.REVENUE_EDITED);
-        }
+                    assertThrows(IllegalStateException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID));
 
-        @Test
-        void shouldThrowExceptionWhenUserIsNeitherOwnerNorMember() {
-            when(sharedRevenueManagerService.getSharedRevenueOrThrow(REVENUE_ID)).thenReturn(existingRevenue);
-            when(existingRevenue.getOwnerId()).thenReturn(OWNER_ID);
-            when(existingRevenue.getMemberId()).thenReturn(MEMBER_ID);
+                    verify(existingRevenue, never()).setAmount(any(BigDecimal.class));
+                    verify(sharedRevenueRepository, never()).save(any(SharedRevenue.class));
+                    verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+                }
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> service.editRevenue(revenueDto, REVENUE_ID, OUTSIDER_ID));
+                @Test
+                void shouldThrowExceptionWhenRepositorySaveFails() {
+                    when(sharedRevenueRepository.save(existingRevenue)).thenThrow(new IllegalStateException("db failed"));
 
-            verifyNoInteractions(sharedWalletService, sharedRevenueRepository, outboxService, sharedAccountParticipantsService);
-        }
+                    assertThrows(IllegalStateException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID));
 
-        @Test
-        void shouldThrowExceptionWhenRevenueDoesNotExist() {
-            when(sharedRevenueManagerService.getSharedRevenueOrThrow(REVENUE_ID))
-                    .thenThrow(new RequestedEntityNotFoundException("Revenue not found"));
+                    verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+                }
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID));
+                @Nested
+                class WhenRevenueIsSaved {
 
-            verifyNoInteractions(sharedWalletService, sharedRevenueRepository, outboxService);
-        }
+                    @BeforeEach
+                    void setUp() {
+                        when(sharedRevenueRepository.save(existingRevenue)).thenReturn(existingRevenue);
+                        when(revenueDto.description()).thenReturn(DESCRIPTION);
+                    }
 
+                    @Test
+                    void shouldThrowExceptionWhenParticipantsServiceFails() {
+                        when(sharedAccountParticipantsService.getParticipants(OWNER_ID)).thenThrow(new RequestedEntityNotFoundException("participants not found"));
 
-        @Test
-        void shouldThrowExceptionWhenDtoIsNull() {
-            when(sharedRevenueManagerService.getSharedRevenueOrThrow(REVENUE_ID)).thenReturn(existingRevenue);
-            when(existingRevenue.getOwnerId()).thenReturn(OWNER_ID);
+                        assertThrows(RequestedEntityNotFoundException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID));
 
-            assertThrows(NullPointerException.class, () -> service.editRevenue(null, REVENUE_ID, OWNER_ID));
+                        verifyNoInteractions(outboxService);
+                    }
 
-            verifyNoInteractions(sharedWalletService, sharedRevenueRepository, outboxService);
-        }
+                    @Nested
+                    class WhenParticipantsAreAvailable {
 
-        @Test
-        void shouldThrowExceptionWhenAddingBalanceToWalletFails() {
-            when(sharedRevenueManagerService.getSharedRevenueOrThrow(REVENUE_ID)).thenReturn(existingRevenue);
-            when(existingRevenue.getOwnerId()).thenReturn(OWNER_ID);
-            when(revenueDto.amount()).thenReturn(AMOUNT);
-            doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService).addBalanceToWallet(OWNER_ID, AMOUNT);
+                        @BeforeEach
+                        void setUp() {
+                            stubParticipants(OWNER_ID);
+                            when(existingRevenue.getId()).thenReturn(REVENUE_ID);
+                        }
 
-            assertThrows(IllegalStateException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID));
+                        @Test
+                        void shouldReturnRevenueIdWhenOwnerEditsRevenue() {
+                            Long result = service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID);
 
-            verify(sharedWalletService, never()).removeBalanceFromWallet(any(Long.class), any(BigDecimal.class));
-            verifyNoInteractions(sharedRevenueRepository, outboxService);
-        }
+                            assertEquals(REVENUE_ID, result);
+                        }
 
-        @Test
-        void shouldThrowExceptionWhenRemovingBalanceFromWalletFails() {
-            when(sharedRevenueManagerService.getSharedRevenueOrThrow(REVENUE_ID)).thenReturn(existingRevenue);
-            when(existingRevenue.getOwnerId()).thenReturn(OWNER_ID);
-            when(existingRevenue.getAmount()).thenReturn(OLD_AMOUNT);
-            when(revenueDto.amount()).thenReturn(AMOUNT);
-            doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService)
-                    .removeBalanceFromWallet(OWNER_ID, OLD_AMOUNT);
+                        @Test
+                        void shouldUpdateRevenueFieldsWhenRevenueIsEdited() {
+                            service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID);
 
-            assertThrows(IllegalStateException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID));
+                            verify(existingRevenue).setAmount(AMOUNT);
+                            verify(existingRevenue).setCategory(any());
+                            verify(existingRevenue).setDescription(DESCRIPTION);
+                            verify(sharedRevenueRepository).save(existingRevenue);
+                        }
 
-            verifyNoInteractions(sharedRevenueRepository, outboxService);
-        }
+                        @Test
+                        void shouldAddNewAmountAndRemoveOldAmountFromWalletWhenRevenueIsEdited() {
+                            service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID);
 
-        @Test
-        void shouldThrowExceptionWhenRepositorySaveFails() {
-            when(sharedRevenueManagerService.getSharedRevenueOrThrow(REVENUE_ID)).thenReturn(existingRevenue);
-            when(existingRevenue.getOwnerId()).thenReturn(OWNER_ID);
-            when(existingRevenue.getAmount()).thenReturn(OLD_AMOUNT);
-            stubEditInputs();
-            when(sharedRevenueRepository.save(existingRevenue)).thenThrow(new IllegalStateException("db failed"));
+                            InOrder order = inOrder(sharedWalletService);
 
-            assertThrows(IllegalStateException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID));
+                            order.verify(sharedWalletService).addBalanceToWallet(OWNER_ID, AMOUNT);
+                            order.verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, OLD_AMOUNT);
+                        }
 
-            verifyNoInteractions(outboxService, sharedAccountParticipantsService);
-        }
+                        @Test
+                        void shouldSaveOutboxEventWhenRevenueIsEdited() {
+                            service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID);
 
-        @Test
-        void shouldThrowExceptionWhenOutboxServiceFails() {
-            stubSuccessfulEdit(OWNER_ID);
-            doThrow(new IllegalStateException("outbox failed")).when(outboxService)
-                    .save(anyString(), anyString(), anyString(), any());
+                            verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.REVENUE_EDITED);
+                        }
 
-            assertThrows(IllegalStateException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID));
+                        @Test
+                        void shouldUpdateWalletBeforeSavingRevenueAndOutboxEventWhenRevenueIsEdited() {
+                            service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID);
+
+                            InOrder order = inOrder(sharedWalletService, sharedRevenueRepository, outboxService);
+
+                            order.verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, OLD_AMOUNT);
+                            order.verify(sharedRevenueRepository).save(existingRevenue);
+                            order.verify(outboxService).save(anyString(), anyString(), anyString(), any());
+                        }
+
+                        @Test
+                        void shouldThrowExceptionWhenOutboxServiceFails() {
+                            doThrow(new IllegalStateException("outbox failed")).when(outboxService).save(anyString(), anyString(), anyString(), any());
+
+                            assertThrows(IllegalStateException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, OWNER_ID));
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -440,50 +474,43 @@ class SharedRevenueServiceTest {
 
         @Test
         void shouldReturnMappedRevenueWithUsernameWhenSingleRevenueExists() {
-            SharedRevenueDto mappedDto = mock(SharedRevenueDto.class);
             when(sharedRevenueRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of(existingRevenue));
             when(existingRevenue.getCreatedByUserId()).thenReturn(OWNER_ID);
             when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
-            when(sharedRevenueMapper.mapToDto(existingRevenue, USERNAME)).thenReturn(mappedDto);
+            when(sharedRevenueMapper.mapToDto(existingRevenue, USERNAME)).thenReturn(firstMappedDto);
 
             List<SharedRevenueDto> result = service.getRevenue(OWNER_ID);
 
-            assertEquals(List.of(mappedDto), result);
+            assertEquals(List.of(firstMappedDto), result);
         }
 
         @Test
         void shouldMapEachRevenueWithItsCreatorUsernameWhenCreatorsDiffer() {
-            SharedRevenueDto firstDto = mock(SharedRevenueDto.class);
-            SharedRevenueDto secondDto = mock(SharedRevenueDto.class);
-            when(sharedRevenueRepository.findAllByOwnerIdOrMemberId(OWNER_ID))
-                    .thenReturn(List.of(existingRevenue, savedRevenue));
+            when(sharedRevenueRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of(existingRevenue, anotherRevenue));
             when(existingRevenue.getCreatedByUserId()).thenReturn(OWNER_ID);
-            when(savedRevenue.getCreatedByUserId()).thenReturn(MEMBER_ID);
+            when(anotherRevenue.getCreatedByUserId()).thenReturn(MEMBER_ID);
             when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
             when(authBackendClient.getUsername(MEMBER_ID)).thenReturn(OTHER_USERNAME);
-            when(sharedRevenueMapper.mapToDto(existingRevenue, USERNAME)).thenReturn(firstDto);
-            when(sharedRevenueMapper.mapToDto(savedRevenue, OTHER_USERNAME)).thenReturn(secondDto);
+            when(sharedRevenueMapper.mapToDto(existingRevenue, USERNAME)).thenReturn(firstMappedDto);
+            when(sharedRevenueMapper.mapToDto(anotherRevenue, OTHER_USERNAME)).thenReturn(secondMappedDto);
 
             List<SharedRevenueDto> result = service.getRevenue(OWNER_ID);
 
-            assertEquals(List.of(firstDto, secondDto), result);
+            assertEquals(List.of(firstMappedDto, secondMappedDto), result);
         }
 
         @Test
         void shouldFetchUsernameOnceWhenRevenuesShareSameCreator() {
-            SharedRevenueDto firstDto = mock(SharedRevenueDto.class);
-            SharedRevenueDto secondDto = mock(SharedRevenueDto.class);
-            when(sharedRevenueRepository.findAllByOwnerIdOrMemberId(OWNER_ID))
-                    .thenReturn(List.of(existingRevenue, savedRevenue));
+            when(sharedRevenueRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of(existingRevenue, anotherRevenue));
             when(existingRevenue.getCreatedByUserId()).thenReturn(OWNER_ID);
-            when(savedRevenue.getCreatedByUserId()).thenReturn(OWNER_ID);
+            when(anotherRevenue.getCreatedByUserId()).thenReturn(OWNER_ID);
             when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
-            when(sharedRevenueMapper.mapToDto(existingRevenue, USERNAME)).thenReturn(firstDto);
-            when(sharedRevenueMapper.mapToDto(savedRevenue, USERNAME)).thenReturn(secondDto);
+            when(sharedRevenueMapper.mapToDto(existingRevenue, USERNAME)).thenReturn(firstMappedDto);
+            when(sharedRevenueMapper.mapToDto(anotherRevenue, USERNAME)).thenReturn(secondMappedDto);
 
             List<SharedRevenueDto> result = service.getRevenue(OWNER_ID);
 
-            assertEquals(2, result.size());
+            assertEquals(List.of(firstMappedDto, secondMappedDto), result);
             verify(authBackendClient).getUsername(OWNER_ID);
         }
 
@@ -494,13 +521,13 @@ class SharedRevenueServiceTest {
 
             assertThrows(NullPointerException.class, () -> service.getRevenue(OWNER_ID));
 
+            verify(authBackendClient).getUsername(OWNER_ID);
             verifyNoInteractions(sharedRevenueMapper);
         }
 
         @Test
         void shouldThrowExceptionWhenRepositoryFails() {
-            when(sharedRevenueRepository.findAllByOwnerIdOrMemberId(OWNER_ID))
-                    .thenThrow(new IllegalStateException("db failed"));
+            when(sharedRevenueRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenThrow(new IllegalStateException("db failed"));
 
             assertThrows(IllegalStateException.class, () -> service.getRevenue(OWNER_ID));
 
@@ -532,109 +559,148 @@ class SharedRevenueServiceTest {
     @Nested
     class DeleteRevenue {
 
-        private void stubSuccessfulDelete() {
-            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID))
-                    .thenReturn(Optional.of(existingRevenue));
-            when(existingRevenue.getAmount()).thenReturn(OLD_AMOUNT);
-            when(existingRevenue.getId()).thenReturn(REVENUE_ID);
-            stubParticipants(OWNER_ID);
-        }
-
-        @Test
-        void shouldDeleteRevenueWhenRevenueExists() {
-            stubSuccessfulDelete();
-
-            service.deleteRevenue(REVENUE_ID, OWNER_ID);
-
-            verify(sharedRevenueRepository).delete(existingRevenue);
-        }
-
-        @Test
-        void shouldRemoveRevenueAmountFromWalletWhenRevenueIsDeleted() {
-            stubSuccessfulDelete();
-
-            service.deleteRevenue(REVENUE_ID, OWNER_ID);
-
-            verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, OLD_AMOUNT);
-        }
-
-        @Test
-        void shouldSaveOutboxEventWhenRevenueIsDeleted() {
-            stubSuccessfulDelete();
-
-            service.deleteRevenue(REVENUE_ID, OWNER_ID);
-
-            verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.REVENUE_DELETED);
-        }
-
-        @Test
-        void shouldUpdateWalletBeforeDeletingAndSavingEventWhenRevenueIsDeleted() {
-            stubSuccessfulDelete();
-
-            service.deleteRevenue(REVENUE_ID, OWNER_ID);
-
-            InOrder inOrder = inOrder(sharedWalletService, sharedRevenueRepository, outboxService);
-            inOrder.verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, OLD_AMOUNT);
-            inOrder.verify(sharedRevenueRepository).delete(existingRevenue);
-            inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
-        }
-
         @Test
         void shouldThrowExceptionWhenRevenueDoesNotExist() {
             when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID)).thenReturn(Optional.empty());
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteRevenue(REVENUE_ID, OWNER_ID));
 
+            verify(sharedRevenueRepository, never()).delete(any(SharedRevenue.class));
+            verifyNoInteractions(sharedWalletService, sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenUserIsNeitherOwnerNorMember() {
+            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OUTSIDER_ID)).thenReturn(Optional.empty());
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteRevenue(REVENUE_ID, OUTSIDER_ID));
+
+            verify(sharedRevenueRepository, never()).delete(any(SharedRevenue.class));
             verifyNoInteractions(sharedWalletService, sharedAccountParticipantsService, outboxService);
         }
 
         @Test
         void shouldThrowExceptionWhenRepositoryLookupFails() {
-            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID))
-                    .thenThrow(new IllegalStateException("db failed"));
+            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID)).thenThrow(new IllegalStateException("db failed"));
 
             assertThrows(IllegalStateException.class, () -> service.deleteRevenue(REVENUE_ID, OWNER_ID));
 
-            verifyNoInteractions(sharedWalletService, outboxService);
+            verifyNoInteractions(sharedWalletService, sharedAccountParticipantsService, outboxService);
+        }
+
+        @Nested
+        class WhenRevenueExists {
+
+            @BeforeEach
+            void setUp() {
+                when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID)).thenReturn(Optional.of(existingRevenue));
+                when(existingRevenue.getAmount()).thenReturn(OLD_AMOUNT);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenWalletUpdateFails() {
+                doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService).removeBalanceFromWallet(OWNER_ID, OLD_AMOUNT);
+
+                assertThrows(IllegalStateException.class, () -> service.deleteRevenue(REVENUE_ID, OWNER_ID));
+
+                verify(sharedRevenueRepository, never()).delete(any(SharedRevenue.class));
+                verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenParticipantsServiceFails() {
+                when(sharedAccountParticipantsService.getParticipants(OWNER_ID)).thenThrow(new RequestedEntityNotFoundException("participants not found"));
+
+                assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteRevenue(REVENUE_ID, OWNER_ID));
+
+                verify(sharedRevenueRepository, never()).delete(any(SharedRevenue.class));
+                verifyNoInteractions(outboxService);
+            }
+
+            @Nested
+            class WhenParticipantsAreAvailable {
+
+                @BeforeEach
+                void setUp() {
+                    stubParticipants(OWNER_ID);
+                }
+
+
+                @Nested
+                class WhenRevenueIsDeleted {
+
+                    @BeforeEach
+                    void setUp() {
+                        when(existingRevenue.getId()).thenReturn(REVENUE_ID);
+                    }
+
+                    @Test
+                    void shouldDeleteRevenueWhenRevenueExists() {
+                        service.deleteRevenue(REVENUE_ID, OWNER_ID);
+
+                        verify(sharedRevenueRepository).delete(existingRevenue);
+                    }
+
+                    @Test
+                    void shouldRemoveRevenueAmountFromWalletWhenRevenueIsDeleted() {
+                        service.deleteRevenue(REVENUE_ID, OWNER_ID);
+
+                        verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, OLD_AMOUNT);
+                    }
+
+                    @Test
+                    void shouldSaveOutboxEventWhenRevenueIsDeleted() {
+                        service.deleteRevenue(REVENUE_ID, OWNER_ID);
+
+                        verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.REVENUE_DELETED);
+                    }
+
+                    @Test
+                    void shouldUpdateWalletBeforeDeletingAndSavingEventWhenRevenueIsDeleted() {
+                        service.deleteRevenue(REVENUE_ID, OWNER_ID);
+
+                        InOrder order = inOrder(sharedWalletService, sharedRevenueRepository, outboxService);
+
+                        order.verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, OLD_AMOUNT);
+                        order.verify(sharedRevenueRepository).delete(existingRevenue);
+                        order.verify(outboxService).save(anyString(), anyString(), anyString(), any());
+                    }
+
+                    @Test
+                    void shouldThrowExceptionWhenOutboxServiceFails() {
+                        doThrow(new IllegalStateException("outbox failed")).when(outboxService).save(anyString(), anyString(), anyString(), any());
+
+                        assertThrows(IllegalStateException.class, () -> service.deleteRevenue(REVENUE_ID, OWNER_ID));
+                    }
+                }
+            }
+        }
+    }
+
+    @Nested
+    class GetSharedRevenueByUserIdOrThrow {
+
+        @Test
+        void shouldReturnRevenueWhenRevenueExists() {
+            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID)).thenReturn(Optional.of(existingRevenue));
+
+            SharedRevenue result = service.getSharedRevenueByUserIdOrThrow(OWNER_ID, REVENUE_ID);
+
+            assertEquals(existingRevenue, result);
         }
 
         @Test
-        void shouldThrowExceptionWhenWalletUpdateFails() {
-            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID))
-                    .thenReturn(Optional.of(existingRevenue));
-            when(existingRevenue.getAmount()).thenReturn(OLD_AMOUNT);
-            doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService)
-                    .removeBalanceFromWallet(OWNER_ID, OLD_AMOUNT);
+        void shouldThrowExceptionWhenRevenueDoesNotExist() {
+            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OUTSIDER_ID)).thenReturn(Optional.empty());
 
-            assertThrows(IllegalStateException.class, () -> service.deleteRevenue(REVENUE_ID, OWNER_ID));
-
-            verify(sharedRevenueRepository, never()).delete(any(SharedRevenue.class));
-            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.getSharedRevenueByUserIdOrThrow(OUTSIDER_ID, REVENUE_ID));
         }
 
         @Test
-        void shouldThrowExceptionWhenParticipantsServiceFails() {
-            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID))
-                    .thenReturn(Optional.of(existingRevenue));
-            when(existingRevenue.getAmount()).thenReturn(OLD_AMOUNT);
-            when(sharedAccountParticipantsService.getParticipants(OWNER_ID))
-                    .thenThrow(new RequestedEntityNotFoundException("participants not found"));
+        void shouldThrowExceptionWhenRepositoryFails() {
+            when(sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(REVENUE_ID, OWNER_ID)).thenThrow(new IllegalStateException("db failed"));
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteRevenue(REVENUE_ID, OWNER_ID));
-
-            verify(sharedRevenueRepository, never()).delete(any(SharedRevenue.class));
-            verifyNoInteractions(outboxService);
-        }
-
-
-
-        @Test
-        void shouldThrowExceptionWhenOutboxServiceFails() {
-            stubSuccessfulDelete();
-            doThrow(new IllegalStateException("outbox failed")).when(outboxService)
-                    .save(anyString(), anyString(), anyString(), any());
-
-            assertThrows(IllegalStateException.class, () -> service.deleteRevenue(REVENUE_ID, OWNER_ID));
+            assertThrows(IllegalStateException.class, () -> service.getSharedRevenueByUserIdOrThrow(OWNER_ID, REVENUE_ID));
         }
     }
 }
