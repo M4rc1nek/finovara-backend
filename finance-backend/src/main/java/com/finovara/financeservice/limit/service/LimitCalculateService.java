@@ -1,12 +1,11 @@
 package com.finovara.financeservice.limit.service;
 
+import com.finovara.contracts.util.calculate.CalculatePercentage;
 import com.finovara.financeservice.limit.dto.LimitStatsDto;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.limit.mapper.LimitMapper;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.model.LimitStatus;
-import com.finovara.financeservice.limit.repository.LimitRepository;
-import com.finovara.contracts.util.calculate.CalculatePercentage;
+import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,11 +13,11 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class LimitCalculateService {
     private final FinancialPeriodService financialPeriodService;
-    private final LimitRepository limitRepository;
+    private final LimitManagerService limitManagerService;
     private final LimitMapper limitMapper;
 
     public LimitStatsDto calculateLimitStats(Limit limit, Long userId, LocalDate date) {
@@ -36,8 +35,7 @@ public class LimitCalculateService {
     }
 
     public LimitStatsDto calculateLimitStats(Long userId, Long limitId, LocalDate date) {
-        Limit limit = limitRepository.findByIdAndUserId(userId, limitId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Active Limit not found"));
+        Limit limit = limitManagerService.getLimitByUserIdOrThrow(userId, limitId);
 
         return calculateLimitStats(limit, userId, date);
     }
@@ -50,3 +48,4 @@ public class LimitCalculateService {
     }
 
 }
+
