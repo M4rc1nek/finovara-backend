@@ -3,6 +3,8 @@ package com.finovara.financeservice.settings.piggybank.autopayments.service;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
 import com.finovara.contracts.mainaccount.activity.model.SettingType;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.util.calculate.CalculatePercentage;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
@@ -10,16 +12,14 @@ import com.finovara.financeservice.settings.piggybank.autopayments.dto.AutoPayme
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.completion.service.GoalCompletionService;
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
-import com.finovara.contracts.util.calculate.CalculatePercentage;
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -41,10 +41,8 @@ public class AutoPaymentsService {
 
     @Transactional
     public void saveAutoPaymentsPiggyBank(Long userId, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(autoPaymentsDto.authorizationCode()));
-
-
 
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
@@ -61,7 +59,7 @@ public class AutoPaymentsService {
 
     @Transactional
     public AutoPaymentsDto getAutomation(Long userId, Long piggyBankId) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
 
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
@@ -70,7 +68,7 @@ public class AutoPaymentsService {
 
     @Transactional
     public void createAutomation(Long userId, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(autoPaymentsDto.authorizationCode()));
 
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
@@ -88,7 +86,7 @@ public class AutoPaymentsService {
 
     @Transactional
     public void handleRevenuePiggyBankAutomation(Long userId, BigDecimal revenueAmount, PiggyBankAutomationMode mode) {
-        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
+        Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserId(userId);
 
         if (piggyBanks == null || piggyBanks.isEmpty()) return;
@@ -114,3 +112,4 @@ public class AutoPaymentsService {
     }
 
 }
+
