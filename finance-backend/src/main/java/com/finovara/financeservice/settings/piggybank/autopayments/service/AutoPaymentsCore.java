@@ -46,3 +46,4 @@ public class AutoPaymentsCore {
         kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amountToRollback, LocalDateTime.now()));
     }
 }
+

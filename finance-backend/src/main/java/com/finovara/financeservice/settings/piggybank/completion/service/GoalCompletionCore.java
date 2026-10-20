@@ -42,6 +42,7 @@ public class GoalCompletionCore {
 
         kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amountToTransfer, LocalDateTime.now()));
     }
+
     private void withdrawAndDelete(Long userId, PiggyBank piggyBank, Wallet wallet) {
         BigDecimal amountToTransfer = piggyBank.getAmount();
 
@@ -61,7 +62,6 @@ public class GoalCompletionCore {
         piggyBankRepository.delete(piggyBank);
     }
 
-
     private void transferFunds(PiggyBank piggyBank, Wallet wallet) {
         BigDecimal amount = piggyBank.getAmount();
 
@@ -73,3 +73,4 @@ public class GoalCompletionCore {
         piggyBank.setAmount(BigDecimal.ZERO);
     }
 }
+
