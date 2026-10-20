@@ -12,6 +12,7 @@ import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettin
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.util.PeriodType;
+import com.finovara.financeservice.util.settings.SettingsManager;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -36,6 +37,9 @@ class CountQuantityLimitServiceTest {
     private CountQuantityLimitValidator countQuantityLimitValidator;
 
     @Mock
+    private SettingsManager settingsManager;
+
+    @Mock
     private ExpenseRepository expenseRepository;
 
     @Mock
@@ -57,7 +61,7 @@ class CountQuantityLimitServiceTest {
     @BeforeEach
     void setup() {
         expenseSettings = new ExpenseSettings();
-        when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(expenseSettings);
+        when(settingsManager.getExpenseSettingsByUserId(USER_ID)).thenReturn(expenseSettings);
     }
 
     @Nested
