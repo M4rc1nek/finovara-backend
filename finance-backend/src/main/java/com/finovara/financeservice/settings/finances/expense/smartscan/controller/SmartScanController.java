@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/api/expense-settings/smart-scan")
 @RequiredArgsConstructor
@@ -20,10 +19,11 @@ public class SmartScanController {
         smartScanService.saveSmartScan(SecurityUtils.getCurrentUserId(), smartScanDto);
         return ResponseEntity.noContent().build();
     }
-    @GetMapping
 
+    @GetMapping
     public ResponseEntity<SmartScanDto> getSmartScan() {
         return ResponseEntity.ok(smartScanService.getSmartScan(SecurityUtils.getCurrentUserId()));
     }
 
 }
+

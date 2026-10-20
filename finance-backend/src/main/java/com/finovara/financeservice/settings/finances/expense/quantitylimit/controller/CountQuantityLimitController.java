@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/expense-settings/count-quantity-expense")
 @RequiredArgsConstructor
 public class CountQuantityLimitController {
-
     private final CountQuantityLimitService countQuantityLimitService;
     private final CountQuantityLimitEmergencyModeService countQuantityLimitEmergencyModeService;
 
@@ -35,3 +34,4 @@ public class CountQuantityLimitController {
         return ResponseEntity.ok(countQuantityLimitService.getCountQuantityLimit(SecurityUtils.getCurrentUserId()));
     }
 }
+
