@@ -3,7 +3,6 @@ package com.finovara.financeservice.util.transaction.piggybank.manager;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
-import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,7 +33,7 @@ class PiggyBankManagerServiceTest {
 
         when(piggyBankRepository.findByIdAndUserId(piggyBankId, userId)).thenReturn(Optional.of(piggyBank));
 
-        PiggyBank result = piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId);
+        PiggyBank result = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
 
         assertEquals(piggyBank, result);
 
@@ -48,7 +47,7 @@ class PiggyBankManagerServiceTest {
 
         when(piggyBankRepository.findByIdAndUserId(piggyBankId, userId)).thenReturn(Optional.empty());
 
-        assertThrows(RequestedEntityNotFoundException.class, () -> piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId));
+        assertThrows(RequestedEntityNotFoundException.class, () -> piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId));
 
         verify(piggyBankRepository).findByIdAndUserId(piggyBankId, userId);
     }
