@@ -88,7 +88,7 @@ class RoundUpServiceTest {
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
         void shouldSaveRoundUp(boolean active) {
-            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
 
             RoundUpDto dto = new RoundUpDto(active, null);
 
@@ -109,7 +109,7 @@ class RoundUpServiceTest {
         void shouldReturnRoundUp(boolean active) {
             piggyBank.getSettings().setRoundUpActive(active);
 
-            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
 
             RoundUpDto result = roundUpService.getRoundUp(userId, piggyBankId);
 
