@@ -89,7 +89,7 @@ public class UserService {
     }
 
     public UserLoginDto loginUser(String email, String rawPassword, String sourceEventId, HttpServletRequest request) {
-        User user = userRepository.findByEmail(email).orElse(null);
+        User user = userRepository.findUserByEmail(email).orElse(null);
 
         if (user != null && !user.isPasswordSet()) {
             publishLoginActivity(user.getId(), LoginActivityStatus.UNSUCCESSFUL, request);
