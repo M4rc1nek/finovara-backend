@@ -136,7 +136,7 @@ class PiggyBankManagementServiceTest {
             piggyBank.setGoalAmount(BigDecimal.TEN);
             piggyBank.setGoalType(PiggyBankGoalType.GIFTS);
 
-            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
             when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(false);
             when(piggyBankRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
@@ -159,7 +159,7 @@ class PiggyBankManagementServiceTest {
             piggyBank.setGoalAmount(BigDecimal.TEN);
             piggyBank.setGoalType(PiggyBankGoalType.GIFTS);
 
-            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
             when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(true);
             when(piggyBankRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
@@ -171,7 +171,7 @@ class PiggyBankManagementServiceTest {
             PiggyBank piggyBank = new PiggyBank();
             piggyBank.setName("Old");
 
-            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
             when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(true);
 
             assertThrows(EntityAlreadyExistsException.class, () -> piggyBankManagementService.editPiggyBank(userId, defaultDto, piggyBankId));
@@ -213,7 +213,7 @@ class PiggyBankManagementServiceTest {
             PiggyBank piggyBank = new PiggyBank();
             piggyBank.setAmount(BigDecimal.ZERO);
 
-            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
             when(recurringSettingsRepository.findByUserIdAndPiggyBankId(userId, piggyBankId)).thenReturn(Optional.empty());
 
             piggyBankManagementService.deletePiggyBank(userId, piggyBankId, "authCode");
@@ -230,7 +230,7 @@ class PiggyBankManagementServiceTest {
             PiggyBank piggyBank = new PiggyBank();
             piggyBank.setAmount(BigDecimal.TEN);
 
-            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
 
             assertThrows(InvalidInputException.class, () -> piggyBankManagementService.deletePiggyBank(userId, piggyBankId, "authCode"));
         }
@@ -245,7 +245,7 @@ class PiggyBankManagementServiceTest {
             settings.setNextExecutionDate(LocalDate.now());
             settings.setPiggyBankId(piggyBankId);
 
-            when(piggyBankManagerService.getPiggyBankByUserId(piggyBankId, userId)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
             when(recurringSettingsRepository.findByUserIdAndPiggyBankId(userId, piggyBankId)).thenReturn(Optional.of(settings));
 
             piggyBankManagementService.deletePiggyBank(userId, piggyBankId, "authCode");
