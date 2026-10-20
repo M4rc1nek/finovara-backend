@@ -26,7 +26,7 @@ public class NbpController {
 
     @GetMapping("/convert")
     public BigDecimal convert(@RequestParam BigDecimal amount, @RequestParam String from, @RequestParam String to,
-                          @RequestParam(defaultValue = "FROM_PLN") NbpConversionType nbpConversionType) {
+                              @RequestParam(defaultValue = "FROM_PLN") NbpConversionType nbpConversionType) {
         return nbpService.convertCurrencies(from, to, amount, nbpConversionType);
     }
 }

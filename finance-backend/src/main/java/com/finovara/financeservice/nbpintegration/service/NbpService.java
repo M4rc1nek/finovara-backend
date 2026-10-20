@@ -23,14 +23,13 @@ public class NbpService {
     @Value("${nbp.properties.scale}")
     private int scale;
 
-
     private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
     private final NbpApiClient nbpApiClient;
 
     public List<NbpTableDto> getAllRates() {
-        try{
+        try {
             return nbpApiClient.getAllRates("json");
-        }catch (FeignException exception){
+        } catch (FeignException exception) {
             log.error("Failed to fetch rates from NBP API", exception);
             throw new ServiceUnavailableException("Failed to get all rates", exception);
         }
