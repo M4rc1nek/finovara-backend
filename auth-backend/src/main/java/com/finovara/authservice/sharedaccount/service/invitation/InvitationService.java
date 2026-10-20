@@ -6,7 +6,6 @@ import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
 import com.finovara.contracts.user.authorization.dto.UserDataDto;
-import com.finovara.authservice.user.mapper.UserDataMapper;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
@@ -34,7 +33,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class InvitationService {
 
-    private final UserDataMapper userDataMapper;
     private final SharedAccountMemberRepository sharedAccountMemberRepository;
     private final OutboxService outboxService;
     private final UserRepository userRepository;
@@ -46,14 +44,21 @@ public class InvitationService {
     @Value("${shared-account.search.page-size}")
     private int pageSize;
 
+    @Value("${shared-account.min-search-query}")
+    private int minSearchQueryLength;
+
     @Value("${shared-account.invitation.expiration-hours}")
     private int invitationExpirationHours;
 
     public List<UserDataDto> searchUser(String query, Long currentUserId) {
-        return userRepository.searchByUsernameOrEmail(query, PageRequest.of(0, pageSize))
+        if (query == null || query.trim().length() < minSearchQueryLength) {
+            return List.of();
+        }
+
+        return userRepository.searchByUsernameOrEmail(query.trim(), PageRequest.of(0, pageSize))
                 .stream()
                 .filter(user -> !user.id().equals(currentUserId))
-                .map(userDataMapper::mapToUserData)
+                .map(user -> new UserDataDto(user.id(), user.username(), user.email(),user.profileImagePath()))
                 .toList();
     }
 
@@ -66,7 +71,7 @@ public class InvitationService {
     @Transactional
     public void sendInvitation(Long inviterUserId, Long inviteeUserId, String authorizationCode) {
         additionalAuthorizationService.confirmAdditionalAuthorizationCode(inviterUserId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
-        
+
         LocalDateTime now = LocalDateTime.now();
         invitationValidator.validateSendInvitation(inviterUserId, inviteeUserId);
 
@@ -84,13 +89,13 @@ public class InvitationService {
                 .inviterUserId(inviterUserId)
                 .inviteeUserId(inviteeUserId)
                 .expiresAt(now.plusHours(invitationExpirationHours))
-                .createdAt(LocalDateTime.now())
+                .createdAt(now)
                 .build();
 
         sharedAccountInvitationRepository.save(invitation);
 
         outboxService.save("User", inviterUserId.toString(), "shared-account.changed",
-                new SharedAccountChangeHistoryActivityEvent(inviterUserId, SharedAccountChangeHistoryActivityType.SENT_INVITATION, null, invitee.username(), invitee.email(), LocalDateTime.now()));
+                new SharedAccountChangeHistoryActivityEvent(inviterUserId, SharedAccountChangeHistoryActivityType.SENT_INVITATION, null, invitee.username(), invitee.email(), now));
 
         outboxService.save("User", inviterUserId.toString(), "notification.shared-account.invitation-sent",
                 new UserSentSharedAccountInvitationEvent(inviteeUserId, inviter.username()));
