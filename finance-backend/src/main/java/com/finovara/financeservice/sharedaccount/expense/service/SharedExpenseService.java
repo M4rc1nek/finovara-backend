@@ -24,7 +24,6 @@ import com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.s
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.service.SpendControlService;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
-import com.finovara.financeservice.util.transaction.expense.SharedExpenseManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,7 +45,6 @@ public class SharedExpenseService {
     private final SharedWalletService sharedWalletService;
     private final SharedLimitRepository sharedLimitRepository;
     private final FinancialPeriodService financialPeriodService;
-    private final SharedExpenseManagerService sharedExpenseManagerService;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
     private final SpendControlService spendControlService;
     private final ExpenseAnalysisService expenseAnalysisService;
@@ -95,14 +93,11 @@ public class SharedExpenseService {
 
     @Transactional
     public Long editExpense(SharedExpenseRequest sharedExpenseRequest, Long userId, Long expenseId) {
-        SharedExpense existingExpense = sharedExpenseManagerService.getSharedExpenseOrThrow(expenseId);
+        SharedExpense existingExpense = getSharedExpenseByUserIdOrThrow(expenseId, userId);
+
         ExpenseCategory category = sharedExpenseRequest.sharedExpenseDto().category();
         BigDecimal amount = sharedExpenseRequest.sharedExpenseDto().amount();
         String description = sharedExpenseRequest.sharedExpenseDto().description();
-
-        if (!isOwnerOrMember(existingExpense, userId)) {
-            throw new RequestedEntityNotFoundException("Expense not found for this user");
-        }
 
         validateLimitOrThrow(userId, existingExpense.getCategory(), category,
                 existingExpense.getAmount(), amount);
@@ -140,21 +135,21 @@ public class SharedExpenseService {
 
     @Transactional
     public void deleteExpense(Long expenseId, Long userId) {
-        SharedExpense expense = sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(expenseId, userId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
-        sharedWalletService.addBalanceToWallet(userId, expense.getAmount());
+        SharedExpense sharedExpense = getSharedExpenseByUserIdOrThrow(expenseId, userId);
+
+        sharedWalletService.addBalanceToWallet(userId, sharedExpense.getAmount());
         SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
 
-        sharedExpenseRepository.delete(expense);
-        outboxService.save("SharedAccountExpense", expense.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, expense.getId(), SharedAccountActivityLogType.EXPENSE_DELETED, LocalDateTime.now()));
+        sharedExpenseRepository.delete(sharedExpense);
+        outboxService.save("SharedAccountExpense", sharedExpense.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, sharedExpense.getId(), SharedAccountActivityLogType.EXPENSE_DELETED, LocalDateTime.now()));
     }
 
     private void validateLimitOrThrow(Long userId, ExpenseCategory oldCategory, ExpenseCategory newCategory,
                                       BigDecimal oldAmount, BigDecimal newAmount) {
 
         sharedLimitRepository.findAllByUserId(userId).forEach(limit -> {
-
+            // N+1 probably
             if (!limitApplies(limit, newCategory)) {
                 return;
             }
@@ -180,7 +175,9 @@ public class SharedExpenseService {
         return limit.getCategory() == null || limit.getCategory().equals(category);
     }
 
-    private boolean isOwnerOrMember(SharedExpense expense, Long userId) {
-        return expense.getOwnerId().equals(userId) || expense.getMemberId().equals(userId);
+    private SharedExpense getSharedExpenseByUserIdOrThrow(Long expenseId, Long callerId) {
+        return sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(expenseId, callerId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
+
     }
 }
