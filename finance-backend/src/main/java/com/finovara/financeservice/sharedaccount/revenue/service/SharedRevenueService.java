@@ -9,11 +9,10 @@ import com.finovara.financeservice.sharedaccount.participants.SharedAccountParti
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueDto;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueResponse;
+import com.finovara.financeservice.sharedaccount.revenue.mapper.SharedRevenueMapper;
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
 import com.finovara.financeservice.sharedaccount.revenue.repository.SharedRevenueRepository;
-import com.finovara.financeservice.sharedaccount.revenue.mapper.SharedRevenueMapper;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
-import com.finovara.financeservice.util.transaction.revenue.SharedRevenueManagerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,11 +33,11 @@ public class SharedRevenueService {
     private final SharedRevenueRepository sharedRevenueRepository;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
     private final SharedWalletService sharedWalletService;
-    private final SharedRevenueManagerService sharedRevenueManagerService;
     private final AuthBackendClient authBackendClient;
     private final OutboxService outboxService;
+
     @Transactional
-    public SharedRevenueResponse addSharedRevenue(SharedRevenueDto sharedRevenueDto, Long userId)  {
+    public SharedRevenueResponse addSharedRevenue(SharedRevenueDto sharedRevenueDto, Long userId) {
         SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
         String createdByUsername = authBackendClient.getUsername(userId);
 
@@ -62,11 +61,7 @@ public class SharedRevenueService {
 
     @Transactional
     public Long editRevenue(SharedRevenueDto sharedRevenueDto, Long revenueId, Long userId) {
-        SharedRevenue existingRevenue = sharedRevenueManagerService.getSharedRevenueOrThrow(revenueId);
-
-        if (!isOwnerOrMember(existingRevenue, userId)) {
-            throw new RequestedEntityNotFoundException("Revenue not found for this user");
-        }
+        SharedRevenue existingRevenue = getSharedRevenueByUserIdOrThrow(userId, revenueId);
 
         sharedWalletService.addBalanceToWallet(userId, sharedRevenueDto.amount());
         sharedWalletService.removeBalanceFromWallet(userId, existingRevenue.getAmount());
@@ -97,20 +92,19 @@ public class SharedRevenueService {
                 .toList();
     }
 
-
     @Transactional
     public void deleteRevenue(Long revenueId, Long userId) {
-        SharedRevenue revenue = sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(revenueId, userId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
-        sharedWalletService.removeBalanceFromWallet(userId, revenue.getAmount());
-        
+        SharedRevenue sharedRevenue = getSharedRevenueByUserIdOrThrow(userId, revenueId);
+        sharedWalletService.removeBalanceFromWallet(userId, sharedRevenue.getAmount());
+
         SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
-        sharedRevenueRepository.delete(revenue);
-        outboxService.save("SharedAccountRevenue", revenue.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, revenue.getId(), SharedAccountActivityLogType.REVENUE_DELETED, LocalDateTime.now()));
+        sharedRevenueRepository.delete(sharedRevenue);
+        outboxService.save("SharedAccountRevenue", sharedRevenue.getId().toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, sharedRevenue.getId(), SharedAccountActivityLogType.REVENUE_DELETED, LocalDateTime.now()));
     }
 
-    private boolean isOwnerOrMember(SharedRevenue revenue, Long userId) {
-        return revenue.getOwnerId().equals(userId) || revenue.getMemberId().equals(userId);
+    public SharedRevenue getSharedRevenueByUserIdOrThrow(Long userId, Long revenueId) {
+        return sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(revenueId, userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
     }
 }
