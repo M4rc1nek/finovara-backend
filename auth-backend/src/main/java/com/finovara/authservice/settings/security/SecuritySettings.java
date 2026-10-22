@@ -28,12 +28,14 @@ public class SecuritySettings {
     private String additionalAuthorizationCode;
 
     private Integer additionalAuthorizationEmailCode;
-    private int  additionalAuthorizationAttempts;
+    private int additionalAuthorizationAttempts;
     private LocalDateTime additionalAuthorizationEmailCodeExpiresAt;
     private LocalDateTime additionalAuthorizationAttemptsExpiresAt;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
+    @Version
+    private Long version;
+
+    @OneToOne(mappedBy = "securitySettings")
     private User userAssigned;
 }
 
