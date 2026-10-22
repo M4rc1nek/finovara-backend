@@ -29,8 +29,9 @@ public class AccountSettings {
     private int  emailChangeAttempts;
     private LocalDateTime attemptsEmailExpiresAt;
 
+    @Version
+    private Long version;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
+    @OneToOne(mappedBy = "accountSettings")
     private User userAssigned;
 }
