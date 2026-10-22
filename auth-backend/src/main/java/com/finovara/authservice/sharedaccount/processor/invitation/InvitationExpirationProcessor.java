@@ -1,31 +1,30 @@
 package com.finovara.authservice.sharedaccount.processor.invitation;
 
-import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
-import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.sharedaccount.service.invitation.InvitationExpirationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class InvitationExpirationProcessor {
 
-    private final SharedAccountInvitationRepository sharedAccountInvitationRepository;
     private final InvitationExpirationService invitationExpirationService;
+    private static final int BATCH_SIZE = 500;
 
     public void expireOverdueInvitations() {
-        List<SharedAccountInvitation> invitations = sharedAccountInvitationRepository.findAllExpired(LocalDateTime.now());
+        int total = 0;
+        int processed;
+        do {
+            processed = invitationExpirationService.expireBatch(LocalDateTime.now(), BATCH_SIZE);
+            total += processed;
+        } while (processed == BATCH_SIZE);
 
-        invitations.forEach(invitationExpirationService::expireInvitation);
-        log.info("Invitations have expired and have been deleted");
-
-        if (!invitations.isEmpty()) {
-            log.info("Expired {} overdue shared account invitations", invitations.size());
+        if (total > 0) {
+            log.info("Expired {} overdue shared account invitations", total);
         }
     }
 }
