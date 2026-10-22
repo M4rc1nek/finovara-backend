@@ -5,6 +5,7 @@ import com.finovara.authservice.sharedaccount.dto.SharedAccountStatusDto;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
@@ -17,6 +18,7 @@ import com.finovara.authservice.settings.security.operationauthorization.service
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,16 +52,12 @@ public class InvitationService {
     @Value("${shared-account.invitation.expiration-hours}")
     private int invitationExpirationHours;
 
+    @Transactional(readOnly = true)
     public List<UserDataDto> searchUser(String query, Long currentUserId) {
         if (query == null || query.trim().length() < minSearchQueryLength) {
             return List.of();
         }
-
-        return userRepository.searchByUsernameOrEmail(query.trim(), PageRequest.of(0, pageSize))
-                .stream()
-                .filter(user -> !user.id().equals(currentUserId))
-                .map(user -> new UserDataDto(user.id(), user.username(), user.email(),user.profileImagePath()))
-                .toList();
+        return userRepository.searchByUsernameOrEmail(query.trim(), currentUserId, PageRequest.of(0, pageSize));
     }
 
     public SharedAccountStatusDto hasSharedAccount(Long userId) {
@@ -92,7 +90,11 @@ public class InvitationService {
                 .createdAt(now)
                 .build();
 
-        sharedAccountInvitationRepository.save(invitation);
+        try {
+            sharedAccountInvitationRepository.saveAndFlush(invitation);
+        } catch (DataIntegrityViolationException e) {
+            throw new EntityAlreadyExistsException("Invitation already exists between these users!");
+        }
 
         outboxService.save("User", inviterUserId.toString(), "shared-account.changed",
                 new SharedAccountChangeHistoryActivityEvent(inviterUserId, SharedAccountChangeHistoryActivityType.SENT_INVITATION, null, invitee.username(), invitee.email(), now));
