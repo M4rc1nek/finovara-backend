@@ -1,8 +1,11 @@
 package com.finovara.authservice.sharedaccount.repository;
 
+import com.finovara.authservice.sharedaccount.dto.ExpiredInvitationDto;
 import com.finovara.authservice.sharedaccount.dto.InvitationResponse;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -32,6 +35,20 @@ public interface SharedAccountInvitationRepository extends JpaRepository<SharedA
             """)
     List<InvitationResponse> findInvitationWithInviterUsername(Long userId);
 
-    @Query("SELECT i FROM SharedAccountInvitation i WHERE i.expiresAt < :now")
-    List<SharedAccountInvitation> findAllExpired(LocalDateTime now);
+    @Modifying
+    @Query("DELETE FROM SharedAccountInvitation i WHERE i.inviterUserId IN :userIds OR i.inviteeUserId IN :userIds")
+    int deleteAllInvolvingUsers(List<Long> userIds);
+
+    @Query("""
+            SELECT new com.finovara.authservice.sharedaccount.dto.ExpiredInvitationDto(i.id, i.inviterUserId, u.username)
+            FROM SharedAccountInvitation i
+            LEFT JOIN User u ON u.id = i.inviteeUserId
+            WHERE i.expiresAt < :now
+            ORDER BY i.id
+            """)
+    List<ExpiredInvitationDto> findExpired(LocalDateTime now, Pageable pageable);
+
+    @Modifying
+    @Query("DELETE FROM SharedAccountInvitation i WHERE i.id IN :ids")
+    int deleteByIds(List<Long> ids);
 }
