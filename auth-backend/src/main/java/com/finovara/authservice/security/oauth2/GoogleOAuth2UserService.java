@@ -52,8 +52,8 @@ public class GoogleOAuth2UserService {
                 .build();
         user.setPasswordSet(false);
 
-        user.setAccountSettings(settingsFactory.createDefaultAccountSettings(user));
-        user.setSecuritySettings(settingsFactory.createDefaultSecuritySettings(user));
+        user.setAccountSettings(settingsFactory.createDefaultAccountSettings());
+        user.setSecuritySettings(settingsFactory.createDefaultSecuritySettings());
 
         User savedUser = userRepository.save(user);
         outboxService.save("User", savedUser.getId().toString(), "user.created", new UserCreatedEvent(savedUser.getId(), savedUser.getUsername(), savedUser.getEmail(), savedUser.getCreatedAt()));
