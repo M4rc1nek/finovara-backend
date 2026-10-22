@@ -42,11 +42,13 @@ public class User {
     @Version
     private Long version;
 
-    @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
-    private AccountSettings accountSettings;
-
-    @OneToOne(mappedBy = "userAssigned", cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JoinColumn(name = "security_settings_id", unique = true)
     private SecuritySettings securitySettings;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JoinColumn(name = "account_settings_id", unique = true)
+    private AccountSettings accountSettings;
 
     public String getProfileImageUrl() {
         return ProfileImageUrlBuilder.buildProfileImageUrl(this.profileImagePath);
