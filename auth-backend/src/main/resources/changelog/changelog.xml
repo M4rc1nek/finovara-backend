@@ -8,6 +8,56 @@
 
     <include file="changelog/outbox-table.xml"/>
 
+
+    <changeSet id="create-account-settings" author="Marcin Parśniak">
+        <createTable tableName="account_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reset_password_code" type="INT"/>
+            <column name="reset_password_code_expires_at" type="TIMESTAMP"/>
+            <column name="password_reset_attempts" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attempts_password_expires_at" type="TIMESTAMP"/>
+
+            <column name="email_change_code" type="INT"/>
+            <column name="pending_email" type="VARCHAR(255)"/>
+            <column name="email_change_code_expires_at" type="TIMESTAMP"/>
+            <column name="email_change_attempts" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="attempts_email_expires_at" type="TIMESTAMP"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-security-settings" author="Marcin Parśniak">
+        <createTable tableName="security_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="additional_authorization_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="additional_authorization_visible" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="additional_authorization_code" type="VARCHAR(255)"/>
+            <column name="additional_authorization_email_code" type="INT"/>
+            <column name="additional_authorization_attempts" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="additional_authorization_email_code_expires_at" type="TIMESTAMP"/>
+            <column name="additional_authorization_attempts_expires_at" type="TIMESTAMP"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
     <changeSet id="create-users" author="Marcin Parśniak">
         <createTable tableName="users">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -33,32 +83,19 @@
             <column name="version" type="BIGINT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
+            <column name="account_settings_id" type="BIGINT">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_users_account_settings"
+                             foreignKeyName="fk_users_account_settings"
+                             references="account_settings(id)"/>
+            </column>
+            <column name="security_settings_id" type="BIGINT">
+                <constraints nullable="false" unique="true" uniqueConstraintName="uk_users_security_settings"
+                             foreignKeyName="fk_users_security_settings"
+                             references="security_settings(id)"/>
+            </column>
         </createTable>
         <addUniqueConstraint tableName="users" columnNames="oauth_provider, provider_user_id"
                              constraintName="uk_users_oauth_provider_user_id"/>
-    </changeSet>
-
-    <changeSet id="create-account-settings" author="Marcin Parśniak">
-        <createTable tableName="account_settings">
-            <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="reset_password_code" type="INT"/>
-            <column name="reset_password_code_expires_at" type="TIMESTAMP"/>
-            <column name="password_reset_attempts" type="INT"/>
-            <column name="attempts_password_expires_at" type="TIMESTAMP"/>
-
-            <column name="email_change_code" type="INT"/>
-            <column name="pending_email" type="VARCHAR(255)"/>
-            <column name="email_change_code_expires_at" type="TIMESTAMP"/>
-            <column name="email_change_attempts" type="INT"/>
-            <column name="attempts_email_expires_at" type="TIMESTAMP"/>
-
-            <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_account_settings_user"
-                             references="users(id)"/>
-            </column>
-        </createTable>
     </changeSet>
 
     <changeSet id="create-shared-accounts" author="Marcin Parśniak">
@@ -120,31 +157,6 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="create-security-settings" author="Marcin Parśniak">
-        <createTable tableName="security_settings">
-            <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="additional_authorization_enabled" type="BOOLEAN" defaultValueBoolean="false">
-                <constraints nullable="false"/>
-            </column>
-            <column name="additional_authorization_visible" type="BOOLEAN" defaultValueBoolean="false">
-                <constraints nullable="false"/>
-            </column>
-            <column name="additional_authorization_code" type="VARCHAR(255)"/>
-            <column name="additional_authorization_email_code" type="INT"/>
-            <column name="additional_authorization_attempts" type="INT" defaultValueNumeric="0">
-                <constraints nullable="false"/>
-            </column>
-            <column name="additional_authorization_email_code_expires_at" type="TIMESTAMP"/>
-            <column name="additional_authorization_attempts_expires_at" type="TIMESTAMP"/>
-            <column name="user_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_security_settings_user"
-                             references="users(id)"/>
-            </column>
-        </createTable>
-    </changeSet>
-
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">
             <column name="name" type="varchar(64)">
@@ -160,5 +172,51 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+    </changeSet>
+
+    <changeSet id="idx-shared-account-invitations" author="Marcin Parśniak">
+        <createIndex tableName="shared_account_invitations" indexName="idx_sa_invitations_inviter_invitee">
+            <column name="inviter_user_id"/>
+            <column name="invitee_user_id"/>
+        </createIndex>
+        <createIndex tableName="shared_account_invitations" indexName="idx_sa_invitations_invitee_expires">
+            <column name="invitee_user_id"/>
+            <column name="expires_at"/>
+        </createIndex>
+        <createIndex tableName="shared_account_invitations" indexName="idx_sa_invitations_expires_at">
+            <column name="expires_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="uk-shared-account-invitation-pair" author="Marcin Parśniak" dbms="postgresql">
+        <sql>
+            CREATE UNIQUE INDEX uk_sa_invitation_pair ON shared_account_invitations
+            (LEAST(inviter_user_id, invitee_user_id), GREATEST(inviter_user_id, invitee_user_id))
+        </sql>
+        <rollback>
+            <sql>DROP INDEX IF EXISTS uk_sa_invitation_pair</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="enable-pg-trgm" author="Marcin Parśniak" dbms="postgresql">
+        <sql>CREATE EXTENSION IF NOT EXISTS pg_trgm</sql>
+    </changeSet>
+
+    <changeSet id="idx-users-search-trgm" author="Marcin Parśniak" dbms="postgresql">
+        <sql>CREATE INDEX idx_users_username_trgm ON users USING gin (lower(username) gin_trgm_ops)</sql>
+        <sql>CREATE INDEX idx_users_email_trgm ON users USING gin (lower(email) gin_trgm_ops)</sql>
+        <rollback>
+            <sql>DROP INDEX IF EXISTS idx_users_username_trgm</sql>
+            <sql>DROP INDEX IF EXISTS idx_users_email_trgm</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="uk-users-username-email-lower" author="Marcin Parśniak" dbms="postgresql">
+        <sql>CREATE UNIQUE INDEX uk_users_username_lower ON users (lower(username))</sql>
+        <sql>CREATE UNIQUE INDEX uk_users_email_lower ON users (lower(email))</sql>
+        <rollback>
+            <sql>DROP INDEX IF EXISTS uk_users_username_lower</sql>
+            <sql>DROP INDEX IF EXISTS uk_users_email_lower</sql>
+        </rollback>
     </changeSet>
 </databaseChangeLog>
