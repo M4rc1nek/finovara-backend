@@ -2,15 +2,15 @@ package com.finovara.authservice.settings.security.operationauthorization.servic
 
 import com.finovara.authservice.settings.security.SecuritySettings;
 import com.finovara.authservice.settings.security.SecuritySettingsRepository;
-import com.finovara.authservice.settings.security.operationauthorization.dto.AdditionalAuthorizationSettingsResponse;
-import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
 import com.finovara.authservice.settings.security.operationauthorization.dto.AdditionalAuthorizationRequest;
+import com.finovara.authservice.settings.security.operationauthorization.dto.AdditionalAuthorizationSettingsResponse;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
-import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.exception.forbidden.InvalidPasswordException;
+import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -68,8 +68,7 @@ public class AdditionalAuthorizationService {
     }
 
     public Boolean visibleAdditionalAuthorization(Long userId){
-        SecuritySettings settings = securitySettingsRepository.findByUserId(userId);
-        return settings.isAdditionalAuthorizationVisible();
+        return securitySettingsRepository.findByUserId(userId).isAdditionalAuthorizationVisible();
     }
 
     @Transactional
@@ -89,8 +88,6 @@ public class AdditionalAuthorizationService {
             securitySettingsVisibilityService.markVisible(securitySettings);
             throw new InvalidPasswordException("Incorrect authorization code");
         }
-
-        securitySettings.setAdditionalAuthorizationVisible(false);
-        securitySettingsRepository.save(securitySettings);
+        securitySettingsRepository.updateAdditionalAuthorizationVisible(userId, false);
     }
 }
