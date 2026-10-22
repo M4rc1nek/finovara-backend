@@ -22,6 +22,17 @@ public interface SharedAccountMemberRepository extends JpaRepository<SharedAccou
             """)
     List<SharedAccountMember> findMembersByAccountId(Long accountId);
 
+    @Query("""
+            SELECT m FROM SharedAccountMember m
+            WHERE m.sharedAccount.id = (
+                SELECT m2.sharedAccount.id FROM SharedAccountMember m2 WHERE m2.userId = :userId
+            )
+            """)
+    List<SharedAccountMember> findMembersByUserId(Long userId);
+
+    @Query("SELECT COUNT(m) > 0 FROM SharedAccountMember m WHERE m.userId IN :userIds")
+    boolean existsByUserIdIn(List<Long> userIds);
+
     @Modifying
     @Query("DELETE FROM SharedAccountMember m WHERE m.sharedAccount.id = :accountId")
     void deleteMembersByAccountId(Long accountId);
