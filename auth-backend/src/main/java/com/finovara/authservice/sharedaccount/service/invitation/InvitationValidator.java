@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -22,7 +24,7 @@ public class InvitationValidator {
             throw new InvalidInputException("You cannot invite yourself");
         }
 
-        if (sharedAccountMemberRepository.existsByUserId(inviterUserId) || sharedAccountMemberRepository.existsByUserId(inviteeUserId)) {
+        if (sharedAccountMemberRepository.existsByUserIdIn(List.of(inviterUserId, inviteeUserId))) {
             log.warn("Rejected invitation: inviterUserId={} or inviteeUserId={} already has a shared account", inviterUserId, inviteeUserId);
             throw new EntityAlreadyExistsException("One of the users already belongs to a shared account");
         }
@@ -35,7 +37,7 @@ public class InvitationValidator {
     }
 
     public void validateAcceptInvite(Long inviterUserId, Long inviteeUserId, Long invitationId) {
-        if (sharedAccountMemberRepository.existsByUserId(inviterUserId) || sharedAccountMemberRepository.existsByUserId(inviteeUserId)) {
+        if (sharedAccountMemberRepository.existsByUserIdIn(List.of(inviterUserId, inviteeUserId))) {
             log.warn("Rejected accept: inviterUserId={} or inviteeUserId={} already has a shared account, invitationId={}",
                     inviterUserId, inviteeUserId, invitationId);
             throw new EntityAlreadyExistsException("One of the users already belongs to a shared account");
