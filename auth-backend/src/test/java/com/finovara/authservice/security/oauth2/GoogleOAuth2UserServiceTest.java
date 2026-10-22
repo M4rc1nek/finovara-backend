@@ -118,7 +118,7 @@ class GoogleOAuth2UserServiceTest {
 
             googleOAuth2UserService.synchronize(oauth2User);
 
-            verify(settingsFactory).createDefaultAccountSettings(any());
+            verify(settingsFactory).createDefaultAccountSettings();
 
             ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
             verify(outboxService).save(
@@ -253,7 +253,7 @@ class GoogleOAuth2UserServiceTest {
 
             googleOAuth2UserService.synchronize(oauth2User);
 
-            verify(settingsFactory, never()).createDefaultAccountSettings(any());
+            verify(settingsFactory, never()).createDefaultAccountSettings();
             verify(outboxService, never()).save(any(), any(), any(), any());
         }
 
