@@ -17,6 +17,7 @@ import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,14 +44,20 @@ public class AccountService {
         User user = userManagerService.getUserByIdOrThrow(userId);
         additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(accountSettingsDto.authorizationCode()));
 
-        if (userRepository.existsByUsername(accountSettingsDto.username())) {
+        String newUsername = accountSettingsDto.username();
+
+        if (userRepository.existsByUsername(newUsername)) {
             throw new EntityAlreadyExistsException("Username is already taken");
         }
 
         riskGuardService.guard(userId, RiskTriggerType.USERNAME_CHANGED, user.getEmail(), accountSettingsDto.riskVerificationSourceEventId(), request);
 
-        user.setUsername(accountSettingsDto.username());
-        userRepository.save(user);
+        user.setUsername(newUsername);
+        try {
+            userRepository.saveAndFlush(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new EntityAlreadyExistsException("Username is already taken");
+        }
 
         String ipAddress = getClientIpAddress(request);
         outboxService.save("User", userId.toString(), "account.changed",
@@ -62,7 +69,6 @@ public class AccountService {
         return accountSettingsDto;
     }
 
-    @Transactional
     public AccountSettingsDto getAccountSettings(Long userId) {
         User user = userManagerService.getUserByIdOrThrow(userId);
         String profileImageUrl = user.getProfileImageUrl();
