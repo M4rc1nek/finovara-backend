@@ -1,19 +1,18 @@
 package com.finovara.authservice.sharedaccount.service.deletion;
 
-import com.finovara.authservice.sharedaccount.context.UserContextLoader;
-import com.finovara.authservice.sharedaccount.dto.SharedAccountDetailsDto;
 import com.finovara.authservice.sharedaccount.model.SharedAccountMember;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.util.confirmationpassword.service.PasswordValidator;
 import com.finovara.authservice.util.deletion.AccountRemovalTemplate;
+import com.finovara.authservice.util.deletion.SharedAccountRemovalResult;
 import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
-import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
-import com.finovara.contracts.sharedaccount.event.deletion.NotificationSharedAccountLeftEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.event.deletion.NotificationSharedAccountLeftEvent;
+import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -33,7 +32,6 @@ public class SharedAccountDeletionService {
     private final OutboxService outboxService;
     private final SharedAccountMemberRepository sharedAccountMemberRepository;
     private final AccountRemovalTemplate accountRemovalTemplate;
-    private final UserContextLoader userContextLoader;
 
     @Transactional
     public void leaveSharedAccount(Long actingUserId, ConfirmPasswordDto dto) {
@@ -47,10 +45,9 @@ public class SharedAccountDeletionService {
         Long accountId = membership.getSharedAccount().getId();
 
         try {
-            Optional<SharedAccountDetailsDto> removalResult =
-                    accountRemovalTemplate.handleSharedAccountRemoval(accountId, actingUserId, actingUser.getUsername());
+            Optional<SharedAccountRemovalResult> removalResult = accountRemovalTemplate.handleSharedAccountRemoval(accountId, actingUserId);
 
-            Optional<User> coFounder = resolveCoFounder(removalResult, actingUserId);
+            Optional<User> coFounder = removalResult.map(removal -> removal.users().getParticualUser(actingUserId));
 
             notifyCoFounderIfPresent(coFounder, accountId, actingUser);
             publishLeftActivity(actingUserId, coFounder);
@@ -61,12 +58,6 @@ public class SharedAccountDeletionService {
             throw exception;
         }
         log.info("User left shared account. actingUserId={}", actingUserId);
-    }
-
-    private Optional<User> resolveCoFounder(Optional<SharedAccountDetailsDto> removalResult, Long actingUserId) {
-        return removalResult
-                .map(userContextLoader::loadUsersContext)
-                .map(usersContext -> usersContext.getParticualUser(actingUserId));
     }
 
     private void notifyCoFounderIfPresent(Optional<User> coFounder, Long accountId, User actingUser) {
