@@ -2,7 +2,6 @@ package com.finovara.authservice.settings.factory;
 
 import com.finovara.authservice.settings.account.model.AccountSettings;
 import com.finovara.authservice.settings.security.SecuritySettings;
-import com.finovara.authservice.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -10,9 +9,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SettingsFactory {
 
-    public AccountSettings createDefaultAccountSettings(User user) {
+    public AccountSettings createDefaultAccountSettings() {
         return AccountSettings.builder()
-                .userAssigned(user)
                 .emailChangeCode(null)
                 .pendingEmail(null)
                 .resetPasswordCode(null)
@@ -22,12 +20,11 @@ public class SettingsFactory {
                 .build();
     }
 
-    public SecuritySettings createDefaultSecuritySettings(User user) {
+    public SecuritySettings createDefaultSecuritySettings() {
         return SecuritySettings.builder()
                 .additionalAuthorizationEnabled(false)
                 .additionalAuthorizationVisible(false)
                 .additionalAuthorizationAttempts(0)
-                .userAssigned(user)
                 .build();
     }
 
