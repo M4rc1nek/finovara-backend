@@ -285,7 +285,7 @@ class WalletServiceTest {
             when(wallet.getId()).thenReturn(WALLET_ID);
             when(wallet.getBalance()).thenReturn(BigDecimal.valueOf(200));
             when(wallet.getReservedAmount()).thenReturn(BigDecimal.valueOf(50));
-            when(fundReservationRepository.findByWalletId(WALLET_ID)).thenReturn(List.of(reservation));
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(List.of(reservation));
 
             WalletResponse result = walletService.getWalletWithReservations(USER_ID);
 
@@ -308,7 +308,7 @@ class WalletServiceTest {
             when(wallet.getId()).thenReturn(WALLET_ID);
             when(wallet.getBalance()).thenReturn(BigDecimal.valueOf(200));
             when(wallet.getReservedAmount()).thenReturn(BigDecimal.valueOf(50));
-            when(fundReservationRepository.findByWalletId(WALLET_ID)).thenReturn(List.of(first, second));
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(List.of(first, second));
 
             WalletResponse result = walletService.getWalletWithReservations(USER_ID);
 
@@ -323,7 +323,7 @@ class WalletServiceTest {
             when(wallet.getId()).thenReturn(WALLET_ID);
             when(wallet.getBalance()).thenReturn(BigDecimal.TEN);
             when(wallet.getReservedAmount()).thenReturn(BigDecimal.ZERO);
-            when(fundReservationRepository.findByWalletId(WALLET_ID)).thenReturn(List.of());
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(List.of());
 
             WalletResponse result = walletService.getWalletWithReservations(USER_ID);
 
@@ -336,7 +336,7 @@ class WalletServiceTest {
             when(wallet.getId()).thenReturn(WALLET_ID);
             when(wallet.getBalance()).thenReturn(BigDecimal.valueOf(500));
             when(wallet.getReservedAmount()).thenReturn(BigDecimal.valueOf(120));
-            when(fundReservationRepository.findByWalletId(WALLET_ID)).thenReturn(List.of());
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(List.of());
 
             WalletResponse result = walletService.getWalletWithReservations(USER_ID);
 
@@ -349,7 +349,7 @@ class WalletServiceTest {
             when(wallet.getId()).thenReturn(WALLET_ID);
             when(wallet.getBalance()).thenReturn(BigDecimal.valueOf(100));
             when(wallet.getReservedAmount()).thenReturn(BigDecimal.valueOf(100));
-            when(fundReservationRepository.findByWalletId(WALLET_ID)).thenReturn(List.of());
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(List.of());
 
             WalletResponse result = walletService.getWalletWithReservations(USER_ID);
 
@@ -362,7 +362,7 @@ class WalletServiceTest {
             when(wallet.getId()).thenReturn(WALLET_ID);
             when(wallet.getBalance()).thenReturn(BigDecimal.TEN);
             when(wallet.getReservedAmount()).thenReturn(BigDecimal.ZERO);
-            when(fundReservationRepository.findByWalletId(WALLET_ID)).thenReturn(List.of());
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(List.of());
 
             walletService.getWalletWithReservations(USER_ID);
 
@@ -375,11 +375,11 @@ class WalletServiceTest {
             when(wallet.getId()).thenReturn(WALLET_ID);
             when(wallet.getBalance()).thenReturn(BigDecimal.TEN);
             when(wallet.getReservedAmount()).thenReturn(BigDecimal.ZERO);
-            when(fundReservationRepository.findByWalletId(WALLET_ID)).thenReturn(List.of());
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(List.of());
 
             walletService.getWalletWithReservations(USER_ID);
 
-            verify(fundReservationRepository).findByWalletId(WALLET_ID);
+            verify(fundReservationRepository).findAllByWalletId(WALLET_ID);
         }
 
         @Test
@@ -389,7 +389,7 @@ class WalletServiceTest {
             when(wallet.getId()).thenReturn(WALLET_ID);
             when(wallet.getBalance()).thenReturn(BigDecimal.ZERO);
             when(wallet.getReservedAmount()).thenReturn(BigDecimal.ZERO);
-            when(fundReservationRepository.findByWalletId(WALLET_ID)).thenReturn(List.of());
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(List.of());
 
             walletService.getWalletWithReservations(USER_ID);
 
@@ -403,7 +403,7 @@ class WalletServiceTest {
             when(wallet.getId()).thenReturn(WALLET_ID);
             when(wallet.getBalance()).thenReturn(BigDecimal.ZERO);
             when(wallet.getReservedAmount()).thenReturn(BigDecimal.ZERO);
-            when(fundReservationRepository.findByWalletId(WALLET_ID)).thenReturn(List.of());
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(List.of());
 
             WalletResponse result = walletService.getWalletWithReservations(USER_ID);
 
