@@ -1,8 +1,9 @@
 package com.finovara.financeservice.sharedaccount.piggybank.repository;
 
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -15,22 +16,25 @@ public interface SharedPiggyBankRepository extends JpaRepository<SharedPiggyBank
     @Query("SELECT pb FROM SharedPiggyBank pb WHERE pb.id = :piggyBankId AND (pb.ownerId = :userId OR pb.memberId = :userId)")
     Optional<SharedPiggyBank> findByIdAndOwnerIdOrMemberId(Long piggyBankId, Long userId);
 
-    @Query("SELECT pb FROM SharedPiggyBank pb WHERE pb.ownerId = :userId OR pb.memberId = :userId")
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT pb FROM SharedPiggyBank pb WHERE pb.id = :piggyBankId AND (pb.ownerId = :userId OR pb.memberId = :userId)")
+    Optional<SharedPiggyBank> findByIdAndOwnerIdOrMemberIdForUpdate(Long piggyBankId, Long userId);
+
+    @Query("SELECT pb FROM SharedPiggyBank pb WHERE pb.ownerId = :userId OR pb.memberId = :userId ORDER BY pb.createdAt DESC, pb.id DESC")
     List<SharedPiggyBank> findAllByUserId(Long userId);
 
-    @Modifying
-    @Query("DELETE FROM SharedPiggyBank pb WHERE pb.ownerId = :ownerId AND pb.memberId = :memberId")
-    void deleteByOwnerIdAndMemberId(Long ownerId, Long memberId);
+    @Query("SELECT e FROM SharedPiggyBank e WHERE e.ownerId = :ownerId AND e.memberId = :memberId")
+    List<SharedPiggyBank> findAllByOwnerIdAndMemberId(Long ownerId, Long memberId);
 
-    @Query("SELECT COUNT(pb) FROM SharedPiggyBank pb WHERE pb.ownerId = :userId OR pb.memberId = :userId")
-    long countPiggyBanksByUserId(Long userId);
+    @Query("SELECT LOWER(pb.name) FROM SharedPiggyBank pb WHERE pb.ownerId = :userId OR pb.memberId = :userId")
+    List<String> findLowerCaseNamesByUserId(Long userId);
 
     @Query("""
                 SELECT COUNT(p) > 0
                 FROM SharedPiggyBank p
                 WHERE LOWER(p.name) = LOWER(:name)
                   AND (p.ownerId = :userId OR p.memberId = :userId)
+                  AND p.id <> :excludedId
             """)
-    boolean existsByNameIgnoreCase(Long userId, String name);
-
+    boolean existsByNameIgnoreCaseExcludingId(Long userId, String name, Long excludedId);
 }
