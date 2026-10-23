@@ -20,13 +20,13 @@ public class AccountSettings {
 
     private Integer resetPasswordCode;
     private LocalDateTime resetPasswordCodeExpiresAt;
-    private int  passwordResetAttempts;
+    private int passwordResetAttempts;
     private LocalDateTime attemptsPasswordExpiresAt;
 
     private Integer emailChangeCode;
     private LocalDateTime emailChangeCodeExpiresAt;
     private String pendingEmail;
-    private int  emailChangeAttempts;
+    private int emailChangeAttempts;
     private LocalDateTime attemptsEmailExpiresAt;
 
     @Version
