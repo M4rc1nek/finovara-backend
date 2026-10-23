@@ -22,7 +22,8 @@ public class PiggyBank {
     private Long id;
 
     private String name;
-    @Column(nullable = false)
+
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
 
     private LocalDate createdAt;
@@ -31,15 +32,21 @@ public class PiggyBank {
     @Column(nullable = false)
     private PiggyBankGoalType goalType;
 
+    @Column(precision = 19, scale = 2)
     private BigDecimal goalAmount;
 
     @Column(nullable = false)
     private Long userId;
 
-    @OneToOne(mappedBy = "piggyBankAssigned", cascade = CascadeType.ALL)
+    @Version
+    private Long version;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "piggy_bank_settings_id", unique = true)
     private PiggyBankSettings settings;
 
-    @OneToOne(mappedBy = "piggyBankAssigned", cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "goal_planner_id", unique = true)
     private GoalPlanner goalPlanner;
 
 }
