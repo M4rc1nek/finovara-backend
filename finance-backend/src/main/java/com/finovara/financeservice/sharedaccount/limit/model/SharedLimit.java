@@ -27,16 +27,18 @@ public class SharedLimit {
     @Enumerated(EnumType.STRING)
     private ExpenseCategory category;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
 
     @Column(nullable = false)
     private Boolean isActive;
+
+    @Version
+    private Long version;
 
     @Column(nullable = false)
     private Long ownerId;
 
     @Column(nullable = false)
     private Long memberId;
-
 }
