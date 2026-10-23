@@ -66,11 +66,12 @@ public class InvitationResponseService {
                         .build());
 
         try {
-            sharedAccountMemberService.createOwnerAndMember(sharedAccount, inviterUserId,  inviteeUserId);
+            sharedAccountMemberService.createOwnerAndMember(sharedAccount, inviterUserId, inviteeUserId);
         } catch (DataIntegrityViolationException e) {
             throw new EntityAlreadyExistsException("One of the users already belongs to a shared account");
         }
-        sharedAccountInvitationRepository.deleteAllInvolvingUsers(List.of(inviterUserId, inviteeUserId));
+        List<SharedAccountInvitation> sharedAccountInvitations = sharedAccountInvitationRepository.findAllInvolvingUsers(List.of(inviterUserId, inviteeUserId));
+        sharedAccountInvitationRepository.deleteAll(sharedAccountInvitations);
 
         log.info("Accepted invitation id={}, created sharedAccountId={} for inviterUserId={} and inviteeUserId={}",
                 invitationId, sharedAccount.getId(), inviterUserId, inviteeUserId);
