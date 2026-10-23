@@ -34,17 +34,18 @@ public class RecurringExpenseService {
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
-    public void saveExpenseSettings(Long userId, RecurringExpenseDto dto) {
-        RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE);
-        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
-        settings.setExpenseCategory(dto.expenseCategory());
+    public void saveExpenseSettings(Long userId, RecurringExpenseDto recurringExpenseDto) {
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(recurringExpenseDto.authorizationCode()));
+
+        RecurringSettings settings = recurringSettingsSupport.getSettingsForUpdate(userId, RecurringType.EXPENSE);
+        settings.setExpenseCategory(recurringExpenseDto.expenseCategory());
         settings.setRevenueCategory(null);
         settings.setPiggyBankId(null);
 
         recurringSettingsSupport.applyCommonFields(
                 userId,
                 settings,
-                new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate(), dto.endDate()),
+                new RecurringCommonFields(recurringExpenseDto.enable(), recurringExpenseDto.amount(), recurringExpenseDto.periodType(), recurringExpenseDto.startDate(), recurringExpenseDto.endDate()),
                 SettingType.EXPENSE_RECURRING
         );
 
@@ -57,6 +58,7 @@ public class RecurringExpenseService {
         }
     }
 
+    @Transactional(readOnly = true)
     public RecurringExpenseDto getExpenseSettings(Long userId) {
         RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.EXPENSE);
 
@@ -72,4 +74,3 @@ public class RecurringExpenseService {
         );
     }
 }
-
