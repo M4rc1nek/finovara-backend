@@ -1,13 +1,12 @@
 package com.finovara.financeservice.sharedaccount.expense.repository;
 
-import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
+import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto;
 import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -21,8 +20,8 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
     @Query("SELECT se FROM SharedExpense se WHERE se.ownerId = :userId OR se.memberId = :userId")
     List<SharedExpense> findAllByOwnerIdOrMemberId(@Param("userId") Long userId);
 
-    @Query("SELECT se FROM SharedExpense se WHERE se.ownerId = :userId OR se.memberId = :userId")
-    SharedExpense findByUserId(Long userId);
+    @Query("SELECT e FROM SharedExpense e WHERE e.ownerId = :ownerId AND e.memberId = :memberId")
+    List<SharedExpense> findAllByOwnerIdAndMemberId(Long ownerId, Long memberId);
 
     @Query("SELECT se FROM SharedExpense se WHERE se.id = :expenseId AND (se.ownerId = :userId OR se.memberId = :userId)")
     Optional<SharedExpense> findByIdAndOwnerIdOrMemberId(@Param("expenseId") Long expenseId, @Param("userId") Long userId);
@@ -32,10 +31,6 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
 
     @Query("SELECT SUM(e.amount) FROM SharedExpense e WHERE (e.ownerId = :userId OR e.memberId = :userId) AND e.createdAt >= :startDate AND e.createdAt <= :endDate AND e.category = :expenseCategory")
     Optional<BigDecimal> sumExpensesByUsersAndDateRangeAndCategory(Long userId, LocalDate startDate, LocalDate endDate, ExpenseCategory expenseCategory);
-
-    @Modifying
-    @Query("DELETE FROM SharedExpense se WHERE se.ownerId = :ownerId AND se.memberId = :memberId")
-    void deleteAllByOwnerIdAndMemberId(Long ownerId, Long memberId);
 
     @Query("""
             SELECT COALESCE(SUM(e.amount), 0) FROM SharedExpense e
@@ -95,5 +90,7 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
     @Query("SELECT COUNT(e) FROM SharedExpense e WHERE (e.ownerId = :userId OR e.memberId = :userId)")
     long countExpensesByUserId(Long userId);
 
+    @Query("SELECT se FROM SharedExpense se WHERE se.ownerId = :userId OR se.memberId = :userId ORDER BY se.createdAt DESC, se.id DESC")
+    List<SharedExpense> findAllByOwnerIdOrMemberId(@Param("userId") Long userId, Pageable pageable);
 
 }
