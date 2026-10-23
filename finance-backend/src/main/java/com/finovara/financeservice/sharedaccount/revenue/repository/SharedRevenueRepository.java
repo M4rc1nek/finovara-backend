@@ -6,7 +6,6 @@ import com.finovara.financeservice.internal.report.util.dto.RevenueCategorySumDt
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -17,16 +16,17 @@ import java.util.Optional;
 
 public interface SharedRevenueRepository extends JpaRepository<SharedRevenue, Long> {
 
-
     @Query("SELECT sr FROM SharedRevenue sr WHERE sr.ownerId = :userId OR sr.memberId = :userId")
     List<SharedRevenue> findAllByOwnerIdOrMemberId(@Param("userId") Long userId);
+
+    @Query("SELECT e FROM SharedRevenue e WHERE e.ownerId = :ownerId AND e.memberId = :memberId")
+    List<SharedRevenue> findAllByOwnerIdAndMemberId(Long ownerId, Long memberId);
 
     @Query("SELECT sr FROM SharedRevenue sr WHERE sr.id = :revenueId AND (sr.ownerId = :userId OR sr.memberId = :userId)")
     Optional<SharedRevenue> findByIdAndOwnerIdOrMemberId(@Param("revenueId") Long revenueId, @Param("userId") Long userId);
 
-    @Modifying
-    @Query("DELETE FROM SharedRevenue sr WHERE sr.ownerId = :ownerId AND sr.memberId = :memberId")
-    void deleteAllByOwnerIdAndMemberId(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId);
+    @Query("SELECT sr FROM SharedRevenue sr WHERE sr.ownerId = :userId OR sr.memberId = :userId ORDER BY sr.createdAt DESC, sr.id DESC")
+    List<SharedRevenue> findAllByOwnerIdOrMemberId(@Param("userId") Long userId, Pageable pageable);
 
     @Query("""
             SELECT COALESCE(SUM(r.amount), 0) FROM SharedRevenue r
