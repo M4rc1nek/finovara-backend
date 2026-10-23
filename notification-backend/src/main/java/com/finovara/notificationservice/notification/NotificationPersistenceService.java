@@ -3,16 +3,16 @@ package com.finovara.notificationservice.notification;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.util.SortType;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
 import com.finovara.notificationservice.notification.model.Notification;
 import com.finovara.notificationservice.notification.repository.NotificationRepository;
-import com.finovara.contracts.util.SortType;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -66,7 +66,6 @@ public class NotificationPersistenceService {
         List<Notification> notifications = notificationRepository.findAllByUserAssignedId(userId, pageable);
         List<NotificationResponse> result = new ArrayList<>();
 
-
         for (Notification notification : notifications) {
             if (notification.getPayload() == null || notification.getPayload().isBlank()) {
                 log.warn("Notification {} has empty payload and will be skipped", notification.getId());
@@ -78,8 +77,9 @@ public class NotificationPersistenceService {
     }
 
     @Transactional
-    public void deleteAllNotifications(Long userId){
-        notificationRepository.deleteByUserId(userId);
+    public void deleteAllNotifications(Long userId) {
+        List<Notification> notifications = notificationRepository.findByUserId(userId);
+        notificationRepository.deleteAll(notifications);
     }
 
     private String toJson(NotificationResponse dto) {
