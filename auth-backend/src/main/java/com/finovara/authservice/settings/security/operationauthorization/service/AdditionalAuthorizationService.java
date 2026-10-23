@@ -88,6 +88,6 @@ public class AdditionalAuthorizationService {
             securitySettingsVisibilityService.markVisible(securitySettings);
             throw new InvalidPasswordException("Incorrect authorization code");
         }
-        securitySettingsRepository.updateAdditionalAuthorizationVisible(userId, false);
+        securitySettings.setAdditionalAuthorizationVisible(false);
     }
 }
