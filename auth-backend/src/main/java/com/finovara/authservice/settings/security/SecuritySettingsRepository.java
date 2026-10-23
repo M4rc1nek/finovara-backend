@@ -1,9 +1,12 @@
 package com.finovara.authservice.settings.security;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public interface SecuritySettingsRepository extends JpaRepository<SecuritySettings, Long> {
@@ -11,25 +14,12 @@ public interface SecuritySettingsRepository extends JpaRepository<SecuritySettin
     @Query("SELECT ss FROM User u JOIN u.securitySettings ss WHERE u.id = :userId")
     SecuritySettings findByUserId(Long userId);
 
-    @Modifying
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-            UPDATE SecuritySettings ss
-            SET ss.additionalAuthorizationAttempts = ss.additionalAuthorizationAttempts + 1,
-                ss.version = ss.version + 1
+            SELECT ss FROM SecuritySettings ss
             WHERE ss.id = (SELECT u.securitySettings.id FROM User u WHERE u.id = :userId)
-            AND ss.additionalAuthorizationAttempts < :maxAttempts
-        """)
-    int incrementAdditionalAuthorizationAttempts(Long userId, int maxAttempts);
-
-    @Modifying
-    @Query("""
-            UPDATE SecuritySettings ss
-            SET ss.additionalAuthorizationVisible = :visible,
-                ss.version = ss.version + 1
-            WHERE ss.id = (SELECT u.securitySettings.id FROM User u WHERE u.id = :userId)
-            AND ss.additionalAuthorizationVisible <> :visible
-        """)
-    int updateAdditionalAuthorizationVisible(Long userId, boolean visible);
+            """)
+    Optional<SecuritySettings> findByUserIdForUpdate(Long userId);
 
     @Query("""
                 SELECT ss.additionalAuthorizationAttempts
