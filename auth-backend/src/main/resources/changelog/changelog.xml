@@ -155,6 +155,14 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <addForeignKeyConstraint baseTableName="shared_account_invitations" baseColumnNames="inviter_user_id"
+                                 constraintName="fk_shared_account_invitations_inviter"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="shared_account_invitations" baseColumnNames="invitee_user_id"
+                                 constraintName="fk_shared_account_invitations_invitee"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
     </changeSet>
 
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
@@ -175,6 +183,11 @@
     </changeSet>
 
     <changeSet id="idx-shared-account-invitations" author="Marcin Parśniak">
+        <comment>
+            (inviter, invitee) serves the sent-invitations lookups and the FK on inviter_user_id;
+            (invitee, expires_at) serves the received/active invitations lookups and the FK on invitee_user_id;
+            expires_at alone serves the cleanup of expired invitations.
+        </comment>
         <createIndex tableName="shared_account_invitations" indexName="idx_sa_invitations_inviter_invitee">
             <column name="inviter_user_id"/>
             <column name="invitee_user_id"/>
@@ -212,11 +225,42 @@
     </changeSet>
 
     <changeSet id="uk-users-username-email-lower" author="Marcin Parśniak" dbms="postgresql">
+        <comment>
+            Case-insensitive uniqueness. The plain UNIQUE (username) / UNIQUE (email) from create-users stay for exact
+            lookups (findByUsername / findByEmail) - the lower() indexes cannot serve those.
+        </comment>
         <sql>CREATE UNIQUE INDEX uk_users_username_lower ON users (lower(username))</sql>
         <sql>CREATE UNIQUE INDEX uk_users_email_lower ON users (lower(email))</sql>
         <rollback>
             <sql>DROP INDEX IF EXISTS uk_users_username_lower</sql>
             <sql>DROP INDEX IF EXISTS uk_users_email_lower</sql>
         </rollback>
+    </changeSet>
+
+    <changeSet id="auth-hot-tables-fillfactor" author="Marcin Parśniak" dbms="postgresql">
+        <comment>
+            Rows updated on every login / code attempt / version bump. The indexed columns do not change in those
+            updates, so free space in the page allows HOT updates (no index maintenance, less bloat).
+        </comment>
+        <sql>
+            ALTER TABLE users SET (fillfactor = 90);
+            ALTER TABLE account_settings SET (fillfactor = 90);
+            ALTER TABLE security_settings SET (fillfactor = 90);
+            ALTER TABLE shared_account_invitations SET (fillfactor = 90);
+        </sql>
+    </changeSet>
+
+    <changeSet id="auth-integrity-checks" author="Marcin Parśniak" dbms="postgresql">
+        <comment>Last line of defense against race conditions and bugs: counters never go negative and a user cannot
+            invite themselves.
+        </comment>
+        <sql>
+            ALTER TABLE account_settings ADD CONSTRAINT chk_account_settings_attempts_non_negative
+            CHECK (password_reset_attempts >= 0 AND email_change_attempts >= 0);
+            ALTER TABLE security_settings ADD CONSTRAINT chk_security_settings_attempts_non_negative
+            CHECK (additional_authorization_attempts >= 0);
+            ALTER TABLE shared_account_invitations ADD CONSTRAINT chk_sa_invitations_not_self
+            CHECK (inviter_user_id &lt;&gt; invitee_user_id);
+        </sql>
     </changeSet>
 </databaseChangeLog>
