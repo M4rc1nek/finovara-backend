@@ -6,7 +6,6 @@ import com.finovara.authservice.util.user.UserDataProjection;
 import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -33,10 +32,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT COUNT(u) > 0 FROM User u WHERE LOWER(u.email) = LOWER(:email)")
     boolean existsByEmailIgnoreCase(String email);
-
-    @Modifying(flushAutomatically = true, clearAutomatically = true)
-    @Query("UPDATE User u SET u.hasSharedAccount = :hasSharedAccount, u.version = u.version + 1 WHERE u.id IN :userIds")
-    void updateHasSharedAccount(List<Long> userIds, boolean hasSharedAccount);
 
     @Query("""
             SELECT new com.finovara.contracts.user.authorization.dto.UserDataDto(
