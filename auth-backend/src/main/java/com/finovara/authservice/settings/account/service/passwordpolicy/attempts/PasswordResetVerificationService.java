@@ -39,7 +39,7 @@ public class PasswordResetVerificationService {
         AttemptsContext context = new AttemptsContext(properties.getMaxAttempts(), properties.getAttemptsExpirationMinutes(), ATTEMPTS_EXCEEDED_MESSAGE);
 
         verificationCodeVerifier.verifyAttemptsOrThrow(settings.getResetPasswordCode(), settings.getResetPasswordCodeExpiresAt(),
-                providedCode, context, new PasswordResetAttemptsHandler(email, settings, accountRepository));
+                providedCode, context, new PasswordResetAttemptsHandler(email, accountRepository));
     }
 
     public AttemptsDto getCurrentAttempts(String email) {
