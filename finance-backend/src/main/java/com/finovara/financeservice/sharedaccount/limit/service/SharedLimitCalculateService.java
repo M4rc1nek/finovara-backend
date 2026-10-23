@@ -7,32 +7,27 @@ import com.finovara.financeservice.sharedaccount.limit.dto.SharedLimitStatsDto;
 import com.finovara.financeservice.sharedaccount.limit.mapper.SharedLimitMapper;
 import com.finovara.financeservice.sharedaccount.limit.model.SharedLimit;
 import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
+import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class SharedLimitCalculateService {
     private final FinancialPeriodService financialPeriodService;
     private final SharedLimitRepository limitRepository;
+    private final SharedLimitSpendingService sharedLimitSpendingService;
     private final SharedLimitMapper limitMapper;
 
     public SharedLimitStatsDto calculateLimitStats(SharedLimit limit, Long userId, LocalDate date) {
         BigDecimal spent = financialPeriodService.getSharedExpensesSum(userId, limit.getPeriodType(), limit.getCategory());
-
-        BigDecimal remaining = limit.getAmount().subtract(spent);
-        if (remaining.compareTo(BigDecimal.ZERO) < 0) {
-            remaining = BigDecimal.ZERO;
-        }
-
-        BigDecimal percentage = CalculatePercentage.calculatePercentage(spent, limit.getAmount());
-        LimitStatus status = determineStatus(percentage);
-
-        return limitMapper.mapLimitStatsToDto(limit, spent, remaining, percentage, status, date);
+        return buildLimitStats(limit, spent, date);
     }
 
     public SharedLimitStatsDto calculateLimitStats(Long userId, Long limitId, LocalDate date) {
@@ -42,12 +37,23 @@ public class SharedLimitCalculateService {
         return calculateLimitStats(limit, userId, date);
     }
 
-    private LimitStatus determineStatus(BigDecimal percentage) {
-        if (percentage.compareTo(BigDecimal.valueOf(80)) >= 0) return LimitStatus.HIGH;
-        if (percentage.compareTo(BigDecimal.valueOf(50)) >= 0) return LimitStatus.MEDIUM;
-        if (percentage.compareTo(BigDecimal.valueOf(25)) >= 0) return LimitStatus.LOW;
-        return LimitStatus.NONE;
+    public List<SharedLimitStatsDto> calculateLimitStats(List<SharedLimit> limits,
+                                                         SharedAccountParticipantsResponse participants, LocalDate date) {
+        if (limits.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, BigDecimal> spentByLimitId = sharedLimitSpendingService.calculateSpent(participants, limits, date);
+
+        return limits.stream()
+                .map(limit -> buildLimitStats(limit, spentByLimitId.getOrDefault(limit.getId(), BigDecimal.ZERO), date))
+                .toList();
     }
 
-}
+    public SharedLimitStatsDto buildLimitStats(SharedLimit limit, BigDecimal spent, LocalDate date) {
+        BigDecimal remaining = limit.getAmount().subtract(spent).max(BigDecimal.ZERO);
+        BigDecimal percentage = CalculatePercentage.calculatePercentage(spent, limit.getAmount());
+        LimitStatus status = LimitStatus.fromPercentage(percentage);
 
+        return limitMapper.mapLimitStatsToDto(limit, spent, remaining, percentage, status, date);
+    }
+}
