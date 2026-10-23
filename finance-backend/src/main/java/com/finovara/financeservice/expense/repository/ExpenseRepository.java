@@ -22,11 +22,13 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     Optional<Expense> findByIdAndUserId(Long expenseId, Long userId);
 
-    List<Expense> findAllByUserId(Long userId);
+    @Query("SELECT e FROM Expense e WHERE e.userId = :userId ORDER BY e.createdAt DESC, e.id DESC")
+    List<Expense> findAllByUserId(Long userId, Pageable pageable);
 
-    @Query("SELECT e From Expense e WHERE e.userId = :userId AND e.createdAt BETWEEN :startDate AND :endDate AND e.category = :category")
+    @Query("SELECT e FROM Expense e WHERE e.userId = :userId AND e.createdAt BETWEEN :startDate AND :endDate AND e.category = :category " +
+            "ORDER BY e.createdAt DESC, e.id DESC")
     List<Expense> findAllByUserIdAndCreatedAtBetweenAndCategory(Long userId, @Param("startDate") LocalDate from,
-                                                                @Param("endDate") LocalDate to, ExpenseCategory category);
+                                                                @Param("endDate") LocalDate to, ExpenseCategory category, Pageable pageable);
 
     @Query("SELECT e From Expense e WHERE e.userId = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
     List<Expense> findAllByUserIdAndCreatedAtBetween(Long userId, @Param("startDate") LocalDate from,
@@ -39,11 +41,11 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             )
             FROM Expense e
             WHERE e.userId = :userId
-            ORDER BY e.id DESC
+            ORDER BY e.createdAt DESC, e.id DESC
             """)
     List<ExpenseSuggestionDto> findLatestExpensePairsByUserId(Long userId, Pageable pageable);
 
-    @Query("SELECT e FROM Expense e WHERE e.userId = :userId ORDER BY e.id DESC")
+    @Query("SELECT e FROM Expense e WHERE e.userId = :userId ORDER BY e.createdAt DESC, e.id DESC")
     List<Expense> findLatestByUserId(Long userId, Pageable pageable);
 
     @Query("SELECT COUNT(e) FROM Expense e WHERE e.userId = :userId")
