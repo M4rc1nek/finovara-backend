@@ -1,6 +1,5 @@
 package com.finovara.financeservice.settings.piggybank.model;
 
-import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.settings.piggybank.completion.model.GoalCompletionStrategy;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,9 +31,4 @@ public class PiggyBankSettings {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private GoalCompletionStrategy goalCompletionStrategy;
-
-    @OneToOne
-    @JoinColumn(name = "piggy_bank_id")
-    private PiggyBank piggyBankAssigned;
-
 }
