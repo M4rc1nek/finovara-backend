@@ -22,7 +22,7 @@ public class SharedPiggyBank {
 
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
 
     private LocalDate createdAt;
@@ -31,10 +31,14 @@ public class SharedPiggyBank {
     @Column(nullable = false)
     private PiggyBankGoalType goalType;
 
+    @Column(precision = 19, scale = 2)
     private BigDecimal goalAmount;
 
     @Column(nullable = false)
     private boolean goalAchievedNotified;
+
+    @Version
+    private Long version;
 
     @Column(nullable = false)
     private Long ownerId;
