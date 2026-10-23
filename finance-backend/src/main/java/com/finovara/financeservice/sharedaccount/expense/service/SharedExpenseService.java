@@ -7,7 +7,6 @@ import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
 import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import com.finovara.contracts.util.model.ExpenseCategory;
-import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseDto;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseRequest;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseResponse;
@@ -16,16 +15,22 @@ import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
 import com.finovara.financeservice.sharedaccount.limit.model.SharedLimit;
 import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
+import com.finovara.financeservice.sharedaccount.limit.service.SharedLimitSpendingService;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
+import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisMode;
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.service.ExpenseAnalysisService;
 import com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.service.LargeExpenseNotificationService;
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.service.SpendControlService;
+import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
-import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
+import com.finovara.financeservice.util.sharedaccount.SharedUsernameResolver;
+import com.finovara.financeservice.util.sharedaccount.settings.SharedSettingsManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,89 +49,89 @@ public class SharedExpenseService {
     private final SharedExpenseRepository sharedExpenseRepository;
     private final SharedWalletService sharedWalletService;
     private final SharedLimitRepository sharedLimitRepository;
-    private final FinancialPeriodService financialPeriodService;
+    private final SharedLimitSpendingService sharedLimitSpendingService;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
     private final SpendControlService spendControlService;
     private final ExpenseAnalysisService expenseAnalysisService;
     private final LargeExpenseNotificationService largeExpenseNotificationService;
     private final SharedExpenseMapper sharedExpenseMapper;
-    private final AuthBackendClient authBackendClient;
+    private final SharedUsernameResolver usernameResolver;
     private final OutboxService outboxService;
 
-    @Transactional
-    public SharedExpenseResponse addExpense(SharedExpenseRequest sharedExpenseRequest, Long userId) {
-        ExpenseCategory category = sharedExpenseRequest.sharedExpenseDto().category();
-        BigDecimal amount = sharedExpenseRequest.sharedExpenseDto().amount();
-        String description = sharedExpenseRequest.sharedExpenseDto().description();
+    @Value("${finance.pagination.page-size}")
+    private int pageSize;
 
-        if (amount.compareTo(BigDecimal.ONE) < 0) {
-            throw new InvalidInputException("Expense amount must be positive");
-        }
+    @Transactional
+    public SharedExpenseResponse addExpense(SharedExpenseRequest request, Long userId) {
+        ExpenseCategory category = request.sharedExpenseDto().category();
+        BigDecimal amount = request.sharedExpenseDto().amount();
+        validateAmount(amount);
+
+        SharedAccountParticipantsResponse participants = sharedAccountParticipantsService.getParticipants(userId);
+        String createdByUsername = usernameResolver.resolve(List.of(userId)).get(userId);
+
+        expenseAnalysisService.handleExpenseAnalysis(userId, request.confirmPasswordDto(), amount, ExpenseAnalysisMode.ADD);
+
+        sharedWalletService.lockWalletForUpdate(userId);
 
         spendControlService.handleSpendControl(userId, amount);
-        validateLimitOrThrow(userId, category, category, BigDecimal.ZERO, amount);
-        expenseAnalysisService.handleExpenseAnalysis(userId, sharedExpenseRequest.confirmPasswordDto(), amount, ExpenseAnalysisMode.ADD);
 
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
-        String createdByUsername = authBackendClient.getUsername(userId);
+        LocalDate today = LocalDate.now();
+        List<SharedLimit> limits = sharedLimitRepository.findAllByUserId(userId);
+        validateLimits(participants, limits, today, today, category, amount, null);
 
-        SharedExpense expense = SharedExpense.builder()
+        sharedWalletService.removeBalanceFromWallet(userId, amount);
+
+        SharedExpense saved = sharedExpenseRepository.save(SharedExpense.builder()
                 .amount(amount)
                 .category(category)
-                .createdAt(LocalDate.now())
-                .description(description)
-                .ownerId(sharedAccountParticipantsResponse.ownerId())
-                .memberId(sharedAccountParticipantsResponse.memberId())
+                .createdAt(today)
+                .description(request.sharedExpenseDto().description())
+                .ownerId(participants.ownerId())
+                .memberId(participants.memberId())
                 .createdByUserId(userId)
-                .build();
+                .build());
 
-        sharedWalletService.removeBalanceFromWallet(userId, expense.getAmount());
-        SharedExpense saved = sharedExpenseRepository.save(expense);
+        logActivity(participants, userId, saved.getId(), SharedAccountActivityLogType.EXPENSE_CREATED);
+        largeExpenseNotificationService.handleLargeNotification(userId, saved);
 
-        outboxService.save("SharedAccountExpense", saved.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.EXPENSE_CREATED, LocalDateTime.now()));
-
-        largeExpenseNotificationService.handleLargeNotification(userId, expense);
-
-        return new SharedExpenseResponse(expense.getId(), userId, createdByUsername);
+        return new SharedExpenseResponse(saved.getId(), userId, createdByUsername);
     }
 
     @Transactional
-    public Long editExpense(SharedExpenseRequest sharedExpenseRequest, Long userId, Long expenseId) {
-        SharedExpense existingExpense = getSharedExpenseByUserIdOrThrow(expenseId, userId);
+    public Long editExpense(SharedExpenseRequest request, Long userId, Long expenseId) {
+        ExpenseCategory category = request.sharedExpenseDto().category();
+        BigDecimal amount = request.sharedExpenseDto().amount();
+        validateAmount(amount);
 
-        ExpenseCategory category = sharedExpenseRequest.sharedExpenseDto().category();
-        BigDecimal amount = sharedExpenseRequest.sharedExpenseDto().amount();
-        String description = sharedExpenseRequest.sharedExpenseDto().description();
+        SharedAccountParticipantsResponse participants = sharedAccountParticipantsService.getParticipants(userId);
+        expenseAnalysisService.handleExpenseAnalysis(userId, request.confirmPasswordDto(), amount, ExpenseAnalysisMode.EDIT);
 
-        validateLimitOrThrow(userId, existingExpense.getCategory(), category,
-                existingExpense.getAmount(), amount);
-        expenseAnalysisService.handleExpenseAnalysis(userId, sharedExpenseRequest.confirmPasswordDto(), amount, ExpenseAnalysisMode.EDIT);
+        sharedWalletService.lockWalletForUpdate(userId);
+        SharedExpense existing = getSharedExpenseByUserIdOrThrow(expenseId, userId);
 
-        sharedWalletService.addBalanceToWallet(userId, existingExpense.getAmount());
-        sharedWalletService.removeBalanceFromWallet(userId, amount);
+        BigDecimal oldAmount = existing.getAmount();
 
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
+        LocalDate today = LocalDate.now();
+        List<SharedLimit> limits = sharedLimitRepository.findAllByUserId(userId);
+        validateLimits(participants, limits, today, existing.getCreatedAt(), category, amount, existing);
 
-        existingExpense.setAmount(amount);
-        existingExpense.setCategory(category);
-        existingExpense.setDescription(description);
+        applyWalletDelta(userId, oldAmount, amount);
 
-        SharedExpense saved = sharedExpenseRepository.save(existingExpense);
+        existing.setAmount(amount);
+        existing.setCategory(category);
+        existing.setDescription(request.sharedExpenseDto().description());
 
-        outboxService.save("SharedAccountExpense", saved.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.EXPENSE_EDITED, LocalDateTime.now()));
+        logActivity(participants, userId, expenseId, SharedAccountActivityLogType.EXPENSE_EDITED);
 
         return expenseId;
     }
 
     public List<SharedExpenseDto> getExpense(Long userId) {
-        List<SharedExpense> expenses = sharedExpenseRepository.findAllByOwnerIdOrMemberId(userId);
+        List<SharedExpense> expenses = sharedExpenseRepository.findAllByOwnerIdOrMemberId(userId, PageRequest.of(0, pageSize));
 
-        Map<Long, String> usernameById = expenses.stream()
-                .map(SharedExpense::getCreatedByUserId)
-                .distinct()
-                .collect(Collectors.toMap(id -> id, authBackendClient::getUsername));
+        Map<Long, String> usernameById = usernameResolver.resolve(
+                expenses.stream().map(SharedExpense::getCreatedByUserId).collect(Collectors.toSet()));
 
         return expenses.stream()
                 .map(e -> sharedExpenseMapper.mapToDto(e, usernameById.get(e.getCreatedByUserId())))
@@ -135,49 +140,74 @@ public class SharedExpenseService {
 
     @Transactional
     public void deleteExpense(Long expenseId, Long userId) {
-        SharedExpense sharedExpense = getSharedExpenseByUserIdOrThrow(expenseId, userId);
+        sharedWalletService.lockWalletForUpdate(userId);
+        SharedExpense expense = getSharedExpenseByUserIdOrThrow(expenseId, userId);
 
-        sharedWalletService.addBalanceToWallet(userId, sharedExpense.getAmount());
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
+        sharedWalletService.addBalanceToWallet(userId, expense.getAmount());
+        sharedExpenseRepository.delete(expense);
 
-        sharedExpenseRepository.delete(sharedExpense);
-        outboxService.save("SharedAccountExpense", sharedExpense.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, sharedExpense.getId(), SharedAccountActivityLogType.EXPENSE_DELETED, LocalDateTime.now()));
+        logActivity(sharedAccountParticipantsService.getParticipants(userId), userId, expenseId, SharedAccountActivityLogType.EXPENSE_DELETED);
     }
 
-    private void validateLimitOrThrow(Long userId, ExpenseCategory oldCategory, ExpenseCategory newCategory,
-                                      BigDecimal oldAmount, BigDecimal newAmount) {
 
-        sharedLimitRepository.findAllByUserId(userId).forEach(limit -> {
-            // N+1 probably
-            if (!limitApplies(limit, newCategory)) {
-                return;
-            }
-
-            BigDecimal spentAlready = financialPeriodService.getSharedExpensesSum(userId, limit.getPeriodType(), limit.getCategory());
-
-            boolean oldAmountAlreadyCounted = limitApplies(limit, oldCategory);
-
-            BigDecimal amountToRemove = oldAmountAlreadyCounted ? oldAmount : BigDecimal.ZERO;
-
-            BigDecimal totalAfterEdit = spentAlready
-                    .subtract(amountToRemove)
-                    .add(newAmount);
-
-            if (totalAfterEdit.compareTo(limit.getAmount()) > 0) {
-                String msg = limit.getCategory() == null ? "General limit exceeded" : "Category limit exceeded";
-                throw new MissingRequirementException(msg);
-            }
-        });
+    private void applyWalletDelta(Long userId, BigDecimal oldAmount, BigDecimal newAmount) {
+        BigDecimal delta = newAmount.subtract(oldAmount);
+        if (delta.signum() > 0) {
+            sharedWalletService.removeBalanceFromWallet(userId, delta);
+        } else if (delta.signum() < 0) {
+            sharedWalletService.addBalanceToWallet(userId, delta.negate());
+        }
     }
 
-    private boolean limitApplies(SharedLimit limit, ExpenseCategory category) {
-        return limit.getCategory() == null || limit.getCategory().equals(category);
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ONE) < 0) {
+            throw new InvalidInputException("Expense amount must be positive");
+        }
+    }
+
+    private void validateLimits(SharedAccountParticipantsResponse participants, List<SharedLimit> limits, LocalDate today,
+                                LocalDate expenseDate, ExpenseCategory newCategory, BigDecimal newAmount, SharedExpense oldExpense) {
+        if (limits.isEmpty()) {
+            return;
+        }
+        Map<Long, BigDecimal> spentByLimitId = sharedLimitSpendingService.calculateSpent(participants, limits, today);
+
+        for (SharedLimit limit : limits) {
+            if (!isCountedInLimit(limit, newCategory, expenseDate, today)) {
+                continue;
+            }
+
+            BigDecimal oldAmountInLimit = oldAmountCountedInLimit(limit, oldExpense, today);
+            BigDecimal spent = spentByLimitId.getOrDefault(limit.getId(), BigDecimal.ZERO);
+            BigDecimal totalAfterChange = spent.subtract(oldAmountInLimit).add(newAmount);
+
+            if (totalAfterChange.compareTo(limit.getAmount()) > 0) {
+                throw new MissingRequirementException(limit.getCategory() == null ? "General limit exceeded" : "Category limit exceeded");
+            }
+        }
+    }
+
+    private boolean isCountedInLimit(SharedLimit limit, ExpenseCategory category, LocalDate expenseDate, LocalDate today) {
+        boolean categoryMatches = limit.getCategory() == null || limit.getCategory() == category;
+        boolean inCurrentPeriod = !expenseDate.isBefore(limit.getPeriodType().getStartDate(today));
+        return categoryMatches && inCurrentPeriod;
+    }
+
+    private BigDecimal oldAmountCountedInLimit(SharedLimit limit, SharedExpense oldExpense, LocalDate today) {
+        if (oldExpense == null) {
+            return BigDecimal.ZERO;
+        }
+        boolean counted = isCountedInLimit(limit, oldExpense.getCategory(), oldExpense.getCreatedAt(), today);
+        return counted ? oldExpense.getAmount() : BigDecimal.ZERO;
+    }
+
+    private void logActivity(SharedAccountParticipantsResponse participants, Long userId, Long expenseId, SharedAccountActivityLogType type) {
+        outboxService.save("SharedAccountExpense", expenseId.toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(participants.ownerId(), participants.memberId(), userId, expenseId, type, LocalDateTime.now()));
     }
 
     private SharedExpense getSharedExpenseByUserIdOrThrow(Long expenseId, Long callerId) {
         return sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(expenseId, callerId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
-
     }
 }
