@@ -3,10 +3,8 @@ package com.finovara.authservice.sharedaccount.service.invitation;
 import com.finovara.authservice.sharedaccount.dto.ExpiredInvitationDto;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
-import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.event.invitation.SharedAccountInvitationExpiredEvent;
-import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -33,7 +31,8 @@ public class InvitationExpirationService {
             return 0;
         }
 
-        sharedAccountInvitationRepository.deleteByIds(expired.stream().map(ExpiredInvitationDto::id).toList());
+        List<SharedAccountInvitation> sharedAccountInvitations = sharedAccountInvitationRepository.findByIds(expired.stream().map(ExpiredInvitationDto::id).toList());
+        sharedAccountInvitationRepository.deleteAll(sharedAccountInvitations);
 
         expired.forEach(invitation ->
                 outboxService.save("User", invitation.inviterUserId().toString(),
