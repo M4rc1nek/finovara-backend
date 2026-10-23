@@ -35,9 +35,9 @@ public class SharedAccountMemberService {
         sharedAccountMemberRepository.saveAll(List.of(
                 buildUserToSharedAccount(sharedAccount, ownerUserId, SharedRole.OWNER, now),
                 buildUserToSharedAccount(sharedAccount, memberUserId, SharedRole.MEMBER, now)));
-        sharedAccountMemberRepository.flush();
 
-        userRepository.updateHasSharedAccount(List.of(ownerUserId, memberUserId), true);
+        userRepository.findAllById(List.of(ownerUserId, memberUserId))
+                .forEach(user -> user.setHasSharedAccount(true));
     }
 
     @Transactional(readOnly = true)
