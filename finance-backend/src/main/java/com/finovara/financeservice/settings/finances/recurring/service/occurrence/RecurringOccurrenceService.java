@@ -7,6 +7,7 @@ import com.finovara.financeservice.settings.finances.recurring.repository.Recurr
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -18,17 +19,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecurringOccurrenceService {
 
+    private static final int MAX_OCCURRENCES_PER_RULE = 1000;
+
     @Value("${scheduler.recurring-settings.max-occurrence-range-days}")
     private long maxRangeDay;
 
     private final RecurringSettingsRepository recurringSettingsRepository;
 
+    @Transactional(readOnly = true)
     public List<RecurringOccurrenceDto> getUpcomingOccurrences(Long userId, LocalDate from, LocalDate to) {
         validateDateRange(from, to);
 
         List<RecurringSettings> activeRecurringRules = recurringSettingsRepository.findAllEnabledByUserId(userId);
 
         return activeRecurringRules.stream()
+                .filter(rule -> rule.getNextExecutionDate() != null && rule.getPeriodType() != null)
                 .flatMap(rule -> generateOccurrencesForRule(rule, from, to).stream())
                 .sorted(Comparator.comparing(RecurringOccurrenceDto::date))
                 .toList();
@@ -48,8 +53,9 @@ public class RecurringOccurrenceService {
         List<RecurringOccurrenceDto> occurrencesInRange = new ArrayList<>();
         LocalDate nextOccurrenceDate = recurringSettings.getNextExecutionDate();
         LocalDate endDate = recurringSettings.getEndDate();
+        int iterationGuard = 0;
 
-        while (!nextOccurrenceDate.isAfter(to) && (endDate == null || !nextOccurrenceDate.isAfter(endDate))) {
+        while (!nextOccurrenceDate.isAfter(to) && (endDate == null || !nextOccurrenceDate.isAfter(endDate)) && iterationGuard++ < MAX_OCCURRENCES_PER_RULE) {
             if (!nextOccurrenceDate.isBefore(from)) {
                 occurrencesInRange.add(mapToOccurrenceDto(recurringSettings, nextOccurrenceDate));
             }
