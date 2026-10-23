@@ -15,6 +15,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -56,6 +57,11 @@ public class WalletService implements UserDataDeletable {
         return returnNewWalletDto(userId, wallet);
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void lockWalletForUpdate(Long userId) {
+        walletManagerService.getWalletForUpdateOrThrow(userId);
+    }
+
     @Transactional
     @Cacheable(value = "wallet:user", key = "#userId")
     public WalletResponse getWalletWithReservations(Long userId) {
@@ -64,7 +70,7 @@ public class WalletService implements UserDataDeletable {
 
         BigDecimal available = wallet.getBalance().subtract(wallet.getReservedAmount());
 
-        List<FundReservationDto> reservations = fundReservationRepository.findByWalletId(wallet.getId())
+        List<FundReservationDto> reservations = fundReservationRepository.findAllByWalletId(wallet.getId())
                 .stream()
                 .map(fundReservation -> new FundReservationDto(fundReservation.getId(), fundReservation.getCategory(), fundReservation.getAmount(), null)).toList();
 
