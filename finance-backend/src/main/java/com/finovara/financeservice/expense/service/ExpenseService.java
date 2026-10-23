@@ -16,10 +16,10 @@ import com.finovara.financeservice.expense.mapper.ExpenseMapper;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
-import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.limit.service.LimitCalculateService;
+import com.finovara.financeservice.limit.service.LimitSpendingService;
 import com.finovara.financeservice.riskverification.service.RiskGuardService;
 import com.finovara.financeservice.settings.finances.expense.controlamount.service.ControlAmountService;
 import com.finovara.financeservice.settings.finances.expense.quantitylimit.service.CountQuantityLimitService;
@@ -27,15 +27,15 @@ import com.finovara.financeservice.settings.finances.expense.smartscan.dto.Smart
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpService;
-import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.expense.ExpenseManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,17 +43,20 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExpenseService implements UserDataDeletable {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private static final String LIMIT_STATS_TOPIC = "limit.calculate-stats";
+
     private final OutboxService outboxService;
     private final ExpenseRepository expenseRepository;
     private final LimitRepository limitRepository;
     private final LimitCalculateService limitCalculateService;
+    private final LimitSpendingService limitSpendingService;
     private final WalletService walletService;
     private final RoundUpService roundUpService;
     private final CountQuantityLimitService countQuantityLimitService;
@@ -61,92 +64,98 @@ public class ExpenseService implements UserDataDeletable {
     private final SmartScanService smartScanService;
     private final ExpenseManagerService expenseManagerService;
     private final ExpenseMapper expenseMapper;
-    private final FinancialPeriodService financialPeriodService;
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     private final RiskGuardService riskGuardService;
 
+    @Value("${finance.pagination.page-size}")
+    private int pageSize;
+
     @Transactional
     @CacheEvict(value = "expense:suggestion", key = "#userId")
-    public Long addExpense(ExpenseRequestDto expenseRequestDto, Long userId, HttpServletRequest servletRequest, TransactionOrigin origin) {
+    public Long addExpense(ExpenseRequestDto dto, Long userId, HttpServletRequest servletRequest, TransactionOrigin origin) {
+        ExpenseDto expenseDto = dto.expenseDto();
+        validateAmount(expenseDto.amount());
+
         if (origin == TransactionOrigin.USER_MANUAL) {
-            riskGuardService.guard(userId, RiskTriggerType.EXPENSE, expenseRequestDto.expenseDto().amount(), expenseRequestDto.expenseDto().category().name(), authBackendClient.getUserEmail(userId),
-                    expenseRequestDto.riskVerificationSourceEventId(), servletRequest);
-            authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
+            riskGuardService.guard(userId, RiskTriggerType.EXPENSE, expenseDto.amount(), expenseDto.category().name(),
+                    authBackendClient.getUserEmail(userId), dto.riskVerificationSourceEventId(), servletRequest);
+            authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.confirmAuthorizationCodeDto()));
         }
 
-        validateLimitOrThrow(userId, expenseRequestDto.expenseDto().category(), expenseRequestDto.expenseDto().category(),
-                BigDecimal.ZERO, expenseRequestDto.expenseDto().amount());
+        LocalDate today = LocalDate.now();
 
-        countQuantityLimitService.handleExpenseLimitExceeded(userId, expenseRequestDto.countQuantityLimitDto(),
-                expenseRequestDto.countQuantityLimitDto().periodType(), expenseRequestDto.confirmPasswordDto());
+        walletService.lockWalletForUpdate(userId);
 
-        Expense expense = Expense.builder()
-                .amount(expenseRequestDto.expenseDto().amount())
-                .category(expenseRequestDto.expenseDto().category())
-                .createdAt(LocalDate.now())
-                .description(expenseRequestDto.expenseDto().description())
+        List<Limit> limits = limitRepository.findAllActiveByUserId(userId);
+        validateLimits(userId, limits, today, today, expenseDto.category(), expenseDto.amount(), null);
+
+        countQuantityLimitService.handleExpenseLimitExceeded(userId, dto.countQuantityLimitDto(),
+                dto.countQuantityLimitDto().periodType(), dto.confirmPasswordDto());
+        smartScanService.handleSmartScan(userId, dto.confirmPasswordDto(), expenseDto.amount(), SmartScanMode.ADD);
+
+        walletService.removeBalanceFromWallet(userId, expenseDto.amount());
+
+        Expense expense = expenseRepository.save(Expense.builder()
+                .amount(expenseDto.amount())
+                .category(expenseDto.category())
+                .createdAt(today)
+                .description(expenseDto.description())
                 .userId(userId)
-                .build();
-
-        if (expenseRequestDto.expenseDto().amount().compareTo(BigDecimal.ONE) < 0) {
-            throw new InvalidInputException("Expense amount must be positive");
-        }
-
-        smartScanService.handleSmartScan(userId, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.ADD);
-
-        walletService.removeBalanceFromWallet(userId, expense.getAmount());
-        expenseRepository.save(expense);
+                .build());
 
         outboxService.save("Expense", expense.getId().toString(), "expense.created",
                 new ExpenseActivityEvent(userId, ExpenseActivityType.ADDED_EXPENSE, expense.getAmount(), expense.getCategory(), null, null, LocalDateTime.now()));
 
         roundUpService.handleExpenseForRoundUp(userId, expense.getId(), PiggyBankAutomationMode.APPLY);
         controlAmountService.handleExpenseAmountControl(userId, expense.getAmount());
-        publishLimitStatsEvents(userId);
+        publishLimitStatsEvents(userId, limits, today);
 
         return expense.getId();
     }
 
     @Transactional
     @CacheEvict(value = "expense:suggestion", key = "#userId")
-    public Long editExpense(ExpenseRequestDto expenseRequestDto, Long userId, Long expenseId, HttpServletRequest servletRequest) {
-        Expense existingExpense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, userId);
+    public Long editExpense(ExpenseRequestDto dto, Long userId, Long expenseId, HttpServletRequest servletRequest) {
+        ExpenseDto expenseDto = dto.expenseDto();
+        validateAmount(expenseDto.amount());
 
-        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(expenseRequestDto.confirmAuthorizationCodeDto()));
-        riskGuardService.guard(userId, RiskTriggerType.EXPENSE, expenseRequestDto.expenseDto().amount(), expenseRequestDto.expenseDto().category().name(), authBackendClient.getUserEmail(userId),
-                expenseRequestDto.riskVerificationSourceEventId(), servletRequest);
-        validateLimitOrThrow(userId, existingExpense.getCategory(), expenseRequestDto.expenseDto().category(),
-                existingExpense.getAmount(), expenseRequestDto.expenseDto().amount());
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.confirmAuthorizationCodeDto()));
+        riskGuardService.guard(userId, RiskTriggerType.EXPENSE, expenseDto.amount(), expenseDto.category().name(),
+                authBackendClient.getUserEmail(userId), dto.riskVerificationSourceEventId(), servletRequest);
 
-        walletService.addBalanceToWallet(userId, existingExpense.getAmount());
-        walletService.removeBalanceFromWallet(userId, expenseRequestDto.expenseDto().amount());
+        LocalDate today = LocalDate.now();
+
+        walletService.lockWalletForUpdate(userId);
+        Expense existing = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, userId);
+
+        BigDecimal oldAmount = existing.getAmount();
+        ExpenseCategory oldCategory = existing.getCategory();
+
+        List<Limit> limits = limitRepository.findAllActiveByUserId(userId);
+        validateLimits(userId, limits, today, existing.getCreatedAt(), expenseDto.category(), expenseDto.amount(), existing);
+
+        applyWalletDelta(userId, oldAmount, expenseDto.amount());
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
 
-        BigDecimal oldAmount = existingExpense.getAmount();
-        ExpenseCategory oldCategory = existingExpense.getCategory();
-
-        existingExpense.setAmount(expenseRequestDto.expenseDto().amount());
-        existingExpense.setCategory(expenseRequestDto.expenseDto().category());
-        existingExpense.setDescription(expenseRequestDto.expenseDto().description());
-
-        expenseRepository.save(existingExpense);
+        existing.setAmount(expenseDto.amount());
+        existing.setCategory(expenseDto.category());
+        existing.setDescription(expenseDto.description());
 
         outboxService.save("Expense", expenseId.toString(), "expense.created",
-                new ExpenseActivityEvent(userId, ExpenseActivityType.EDITED_EXPENSE, existingExpense.getAmount(), existingExpense.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
+                new ExpenseActivityEvent(userId, ExpenseActivityType.EDITED_EXPENSE, existing.getAmount(), existing.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
 
-        smartScanService.handleSmartScan(userId, expenseRequestDto.confirmPasswordDto(), expenseRequestDto.expenseDto().amount(), SmartScanMode.EDIT);
+        smartScanService.handleSmartScan(userId, dto.confirmPasswordDto(), expenseDto.amount(), SmartScanMode.EDIT);
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.APPLY);
-        controlAmountService.handleExpenseAmountControl(userId, expenseRequestDto.expenseDto().amount());
-        publishLimitStatsEvents(userId);
+        controlAmountService.handleExpenseAmountControl(userId, expenseDto.amount());
+        publishLimitStatsEvents(userId, limits, today);
 
         return expenseId;
     }
 
+    @Transactional(readOnly = true)
     public List<ExpenseDto> getExpense(Long userId) {
-        List<Expense> expenses = expenseRepository.findAllByUserId(userId);
-
-        return expenses.stream()
+        return expenseRepository.findAllByUserId(userId, PageRequest.of(0, pageSize)).stream()
                 .map(expenseMapper::mapExpenseToDto)
                 .toList();
     }
@@ -154,50 +163,18 @@ public class ExpenseService implements UserDataDeletable {
     @Transactional
     @CacheEvict(value = "expense:suggestion", key = "#userId")
     public void deleteExpense(Long expenseId, Long userId, String authorizationCode) {
-        Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
+
+        walletService.lockWalletForUpdate(userId);
+        Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, userId);
+
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
         walletService.addBalanceToWallet(userId, expense.getAmount());
         outboxService.save("Expense", expenseId.toString(), "expense.created",
                 new ExpenseActivityEvent(userId, ExpenseActivityType.DELETED_EXPENSE, expense.getAmount(), expense.getCategory(), null, null, LocalDateTime.now()));
         expenseRepository.delete(expense);
-        publishLimitStatsEvents(userId);
-    }
 
-    private void publishLimitStatsEvents(Long userId) {
-        limitRepository.findAllByUserId(userId).forEach(limit -> {
-            LimitStatsDto stats = limitCalculateService.calculateLimitStats(limit, userId, LocalDate.now());
-            kafkaTemplate.send("limit.calculate-stats", new LimitStatsEvent(
-                    userId, stats.limitId(), stats.percentage(), stats.periodType()));
-        });
-    }
-
-    private void validateLimitOrThrow(Long userId, ExpenseCategory oldCategory, ExpenseCategory newCategory,
-                                      BigDecimal oldAmount, BigDecimal newAmount) {
-
-        limitRepository.findAllByUserId(userId).forEach(limit -> {
-
-            if (!limitApplies(limit, newCategory)) {
-                return;
-            }
-            // N+1 probably
-            BigDecimal spentAlready = financialPeriodService.getExpensesSum(userId, limit.getPeriodType(), limit.getCategory());
-            boolean oldAmountAlreadyCounted = limitApplies(limit, oldCategory);
-            BigDecimal amountToRemove = oldAmountAlreadyCounted ? oldAmount : BigDecimal.ZERO;
-
-            BigDecimal totalAfterEdit = spentAlready
-                    .subtract(amountToRemove)
-                    .add(newAmount);
-
-            if (totalAfterEdit.compareTo(limit.getAmount()) > 0) {
-                String msg = limit.getCategory() == null ? "General limit exceeded" : "Category limit exceeded";
-                throw new MissingRequirementException(msg);
-            }
-        });
-    }
-
-    private boolean limitApplies(Limit limit, ExpenseCategory category) {
-        return limit.getCategory() == null || limit.getCategory().equals(category);
+        publishLimitStatsEvents(userId, limitRepository.findAllActiveByUserId(userId), LocalDate.now());
     }
 
     @Override
@@ -205,5 +182,65 @@ public class ExpenseService implements UserDataDeletable {
     public void deleteByUserId(Long userId) {
         expenseRepository.deleteByUserId(userId);
         log.info("Deleted expenses for userId={}", userId);
+    }
+
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ONE) < 0) {
+            throw new InvalidInputException("Expense amount must be positive");
+        }
+    }
+
+    private void applyWalletDelta(Long userId, BigDecimal oldAmount, BigDecimal newAmount) {
+        BigDecimal delta = newAmount.subtract(oldAmount);
+        if (delta.signum() > 0) {
+            walletService.removeBalanceFromWallet(userId, delta);
+        } else if (delta.signum() < 0) {
+            walletService.addBalanceToWallet(userId, delta.negate());
+        }
+    }
+
+    private void validateLimits(Long userId, List<Limit> limits, LocalDate today, LocalDate expenseDate,
+                                ExpenseCategory newCategory, BigDecimal newAmount, Expense oldExpense) {
+        if (limits.isEmpty()) {
+            return;
+        }
+        Map<Long, BigDecimal> spentByLimitId = limitSpendingService.calculateSpent(userId, limits, today);
+
+        for (Limit limit : limits) {
+            if (!isCountedInLimit(limit, newCategory, expenseDate, today)) {
+                continue;
+            }
+
+            BigDecimal spent = spentByLimitId.get(limit.getId());
+            BigDecimal oldAmountInLimit = oldAmountCountedInLimit(limit, oldExpense, today);
+            BigDecimal totalAfterChange = spent.subtract(oldAmountInLimit).add(newAmount);
+
+            if (totalAfterChange.compareTo(limit.getAmount()) > 0) {
+                throw new MissingRequirementException(limit.getCategory() == null ? "General limit exceeded" : "Category limit exceeded");
+            }
+        }
+    }
+
+    private boolean isCountedInLimit(Limit limit, ExpenseCategory category, LocalDate expenseDate, LocalDate today) {
+        boolean categoryMatches = limit.getCategory() == null || limit.getCategory() == category;
+        boolean inCurrentPeriod = !expenseDate.isBefore(limit.getPeriodType().getStartDate(today));
+        return categoryMatches && inCurrentPeriod;
+    }
+
+    private BigDecimal oldAmountCountedInLimit(Limit limit, Expense oldExpense, LocalDate today) {
+        if (oldExpense == null) {
+            return BigDecimal.ZERO;
+        }
+        boolean counted = isCountedInLimit(limit, oldExpense.getCategory(), oldExpense.getCreatedAt(), today);
+        return counted ? oldExpense.getAmount() : BigDecimal.ZERO;
+    }
+
+    private void publishLimitStatsEvents(Long userId, List<Limit> limits, LocalDate today) {
+        if (limits.isEmpty()) {
+            return;
+        }
+        limitCalculateService.calculateLimitStats(limits, userId, today).forEach(stats ->
+                outboxService.save("Limit", stats.limitId().toString(), LIMIT_STATS_TOPIC,
+                        new LimitStatsEvent(userId, stats.limitId(), stats.percentage(), stats.periodType())));
     }
 }
