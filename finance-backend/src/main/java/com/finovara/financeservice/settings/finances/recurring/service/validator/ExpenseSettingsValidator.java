@@ -3,12 +3,12 @@ package com.finovara.financeservice.settings.finances.recurring.service.validato
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.financeservice.exception.conflict.ConfirmationRequiredException;
 import com.finovara.financeservice.limit.model.Limit;
+import com.finovara.financeservice.limit.service.LimitSpendingService;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.smartscan.dto.SmartScanMode;
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.service.validator.util.RecurringBasicValidator;
-import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import com.finovara.financeservice.wallet.model.Wallet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class ExpenseSettingsValidator {
 
     private final SmartScanService smartScanService;
     private final RecurringBasicValidator recurringBasicValidator;
-    private final FinancialPeriodService financialPeriodService;
+    private final LimitSpendingService limitSpendingService;
 
     public void validate(RecurringSettings settings, ExpenseSettings expenseSettings, Wallet wallet, List<Limit> limits) {
         recurringBasicValidator.validateBasics(settings, settings.getExpenseCategory());
@@ -100,22 +101,27 @@ public class ExpenseSettingsValidator {
     }
 
     private void validateLimits(RecurringSettings recurringSettings, List<Limit> limits) {
-        limits.forEach(limit -> {
-            if (limit.getCategory() != null && !limit.getCategory().equals(recurringSettings.getExpenseCategory())) {
-                return;
-            }
+        List<Limit> applicableLimits = limits.stream()
+                .filter(limit -> limit.getCategory() == null || limit.getCategory().equals(recurringSettings.getExpenseCategory()))
+                .toList();
 
-            BigDecimal spent = financialPeriodService.getExpensesSum(
-                    recurringSettings.getUserId(), limit.getPeriodType(), limit.getCategory());
+        if (applicableLimits.isEmpty()) {
+            return;
+        }
 
+        Map<Long, BigDecimal> spentByLimitId = limitSpendingService.calculateSpent(
+                recurringSettings.getUserId(), applicableLimits, LocalDate.now());
+
+        for (Limit limit : applicableLimits) {
+            BigDecimal spent = spentByLimitId.getOrDefault(limit.getId(), BigDecimal.ZERO);
             BigDecimal totalAmount = spent.add(recurringSettings.getAmount());
 
             if (totalAmount.compareTo(limit.getAmount()) > 0) {
-                String msg = limit.getCategory() == null
+                String message = limit.getCategory() == null
                         ? "You cannot create this recurring expense because it exceeds your general limit."
                         : "You cannot create this recurring expense because it exceeds the limit for category " + limit.getCategory() + ".";
-                throw new InvalidInputException(msg);
+                throw new InvalidInputException(message);
             }
-        });
+        }
     }
 }
