@@ -17,7 +17,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "recurring_settings")
 @Builder
-public class RecurringSettings  {
+public class RecurringSettings {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,6 +30,7 @@ public class RecurringSettings  {
     @Column(nullable = false)
     private RecurringType type;
 
+    @Column(precision = 19, scale = 2)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
@@ -54,7 +55,9 @@ public class RecurringSettings  {
     @Column(nullable = false)
     private LocalDate createdAt;
 
+    @Version
+    private Long version;
+
     @Column(nullable = false)
     private Long userId;
-
 }
