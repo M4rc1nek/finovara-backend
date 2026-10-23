@@ -1,5 +1,6 @@
 package com.finovara.authservice.user.service;
 
+import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
 import com.finovara.authservice.user.repository.UserRepository;
@@ -52,7 +53,8 @@ public class AccountDeletionService {
             throw ex;
         }
 
-        sharedAccountInvitationRepository.deleteAllInvolvingUsers(List.of(userId));
+        List<SharedAccountInvitation> sharedAccountInvitations = sharedAccountInvitationRepository.findAllInvolvingUsers(List.of(userId));
+        sharedAccountInvitationRepository.deleteAll(sharedAccountInvitations);
 
         outboxService.save("User", userId.toString(), "notification.email.send",
                 new SendEmailEvent(userId, username, email, ActionEmailEventType.ACCOUNT_DELETED, Map.of()));
