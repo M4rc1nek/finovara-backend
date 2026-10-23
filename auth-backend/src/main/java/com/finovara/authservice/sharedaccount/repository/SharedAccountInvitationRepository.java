@@ -35,9 +35,11 @@ public interface SharedAccountInvitationRepository extends JpaRepository<SharedA
             """)
     List<InvitationResponse> findInvitationWithInviterUsername(Long userId);
 
-    @Modifying
-    @Query("DELETE FROM SharedAccountInvitation i WHERE i.inviterUserId IN :userIds OR i.inviteeUserId IN :userIds")
-    int deleteAllInvolvingUsers(List<Long> userIds);
+    @Query("SELECT i FROM SharedAccountInvitation i WHERE i.inviterUserId IN :userIds OR i.inviteeUserId IN :userIds")
+    List<SharedAccountInvitation> findAllInvolvingUsers(List<Long> userIds);
+
+    @Query("SELECT i FROM SharedAccountInvitation i WHERE i.id IN :ids")
+    List<SharedAccountInvitation> findByIds(List<Long> ids);
 
     @Query("""
             SELECT new com.finovara.authservice.sharedaccount.dto.ExpiredInvitationDto(i.id, i.inviterUserId, u.username)
@@ -47,8 +49,4 @@ public interface SharedAccountInvitationRepository extends JpaRepository<SharedA
             ORDER BY i.id
             """)
     List<ExpiredInvitationDto> findExpired(LocalDateTime now, Pageable pageable);
-
-    @Modifying
-    @Query("DELETE FROM SharedAccountInvitation i WHERE i.id IN :ids")
-    int deleteByIds(List<Long> ids);
 }
