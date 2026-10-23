@@ -1,5 +1,6 @@
 package com.finovara.financeservice.revenue.service;
 
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.RevenueActivityType;
 import com.finovara.contracts.outbox.OutboxService;
@@ -21,7 +22,9 @@ import com.finovara.financeservice.wallet.service.WalletService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,25 +48,29 @@ public class RevenueService implements UserDataDeletable {
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     private final RiskGuardService riskGuardService;
 
+    @Value("${finance.pagination.page-size}")
+    private int pageSize;
+
     @Transactional
     @CacheEvict(value = "revenue:suggestion", key = "#userId")
     public Long addRevenue(RevenueDto revenueDto, Long userId, HttpServletRequest servletRequest, TransactionOrigin origin) {
+        validateAmount(revenueDto.amount());
+
         if (origin == TransactionOrigin.USER_MANUAL) {
             riskGuardService.guard(userId, RiskTriggerType.REVENUE, revenueDto.amount(), revenueDto.category().name(),
                     authBackendClient.getUserEmail(userId), revenueDto.riskVerificationSourceEventId(), servletRequest);
             authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
         }
 
-        Revenue revenue = Revenue.builder()
+        walletService.addBalanceToWallet(userId, revenueDto.amount());
+        Revenue revenue = revenueRepository.save(Revenue.builder()
                 .amount(revenueDto.amount())
                 .category(revenueDto.category())
                 .createdAt(LocalDate.now())
                 .description(revenueDto.description())
                 .userId(userId)
-                .build();
+                .build());
 
-        walletService.addBalanceToWallet(userId, revenue.getAmount());
-        revenueRepository.save(revenue);
         outboxService.save("Revenue", revenue.getId().toString(), "revenue.created",
                 new RevenueActivityEvent(userId, RevenueActivityType.ADDED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.APPLY);
@@ -73,39 +80,42 @@ public class RevenueService implements UserDataDeletable {
     @Transactional
     @CacheEvict(value = "revenue:suggestion", key = "#userId")
     public Long editRevenue(RevenueDto revenueDto, Long revenueId, Long userId, HttpServletRequest servletRequest) {
+        validateAmount(revenueDto.amount());
+
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
-
-        Revenue existingRevenue = revenueManagerService.getRevenueByUserIdOrThrow(revenueId, userId);
-
         riskGuardService.guard(userId, RiskTriggerType.REVENUE, revenueDto.amount(), revenueDto.category().name(),
                 authBackendClient.getUserEmail(userId), revenueDto.riskVerificationSourceEventId(), servletRequest);
 
-        BigDecimal oldAmount = existingRevenue.getAmount();
+        walletService.lockWalletForUpdate(userId);
+        Revenue existing = revenueManagerService.getRevenueByUserIdOrThrow(revenueId, userId);
+
+        BigDecimal oldAmount = existing.getAmount();
         BigDecimal newAmount = revenueDto.amount();
-        RevenueCategory oldCategory = existingRevenue.getCategory();
+        RevenueCategory oldCategory = existing.getCategory();
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, oldAmount, PiggyBankAutomationMode.ROLLBACK);
 
-        walletService.addBalanceToWallet(userId, newAmount);
-        walletService.removeBalanceFromWallet(userId, oldAmount);
+        BigDecimal delta = newAmount.subtract(oldAmount);
+        if (delta.signum() > 0) {
+            walletService.addBalanceToWallet(userId, delta);
+        } else if (delta.signum() < 0) {
+            walletService.removeBalanceFromWallet(userId, delta.negate());
+        }
 
-        existingRevenue.setAmount(revenueDto.amount());
-        existingRevenue.setCategory(revenueDto.category());
-        existingRevenue.setDescription(revenueDto.description());
-
-        revenueRepository.save(existingRevenue);
+        existing.setAmount(newAmount);
+        existing.setCategory(revenueDto.category());
+        existing.setDescription(revenueDto.description());
 
         outboxService.save("Revenue", revenueId.toString(), "revenue.created",
-                new RevenueActivityEvent(userId, RevenueActivityType.EDITED_REVENUE, existingRevenue.getAmount(), existingRevenue.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
+                new RevenueActivityEvent(userId, RevenueActivityType.EDITED_REVENUE, existing.getAmount(), existing.getCategory(), oldAmount, oldCategory, LocalDateTime.now()));
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, newAmount, PiggyBankAutomationMode.APPLY);
 
         return revenueId;
     }
 
+    @Transactional(readOnly = true)
     public List<RevenueDto> getRevenue(Long userId) {
-        List<Revenue> revenue = revenueRepository.findAllByUserId(userId);
-
-        return revenue.stream()
+        return revenueRepository.findAllByUserId(userId, PageRequest.of(0, pageSize)).stream()
                 .map(revenueMapper::mapRevenueToDto)
                 .toList();
     }
@@ -115,6 +125,7 @@ public class RevenueService implements UserDataDeletable {
     public void deleteRevenue(Long revenueId, Long userId, String authorizationCode) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
 
+        walletService.lockWalletForUpdate(userId);
         Revenue revenue = revenueManagerService.getRevenueByUserIdOrThrow(revenueId, userId);
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
@@ -129,5 +140,11 @@ public class RevenueService implements UserDataDeletable {
     public void deleteByUserId(Long userId) {
         revenueRepository.deleteByUserId(userId);
         log.info("Deleted revenue for userId={}", userId);
+    }
+
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.signum() <= 0) {
+            throw new InvalidInputException("Revenue amount must be positive");
+        }
     }
 }
