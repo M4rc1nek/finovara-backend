@@ -40,7 +40,7 @@ public class EmailChangeVerificationService {
         AttemptsContext context = new AttemptsContext(properties.getMaxAttempts(), properties.getAttemptsExpirationMinutes(), ATTEMPTS_EXCEEDED_MESSAGE);
 
         verificationCodeVerifier.verifyAttemptsOrThrow(settings.getEmailChangeCode(), settings.getEmailChangeCodeExpiresAt(),
-                providedCode, context, new EmailChangeAttemptsHandler(userId, settings, accountRepository));
+                providedCode, context, new EmailChangeAttemptsHandler(userId, accountRepository));
     }
 
     public AttemptsDto getCurrentAttempts(Long userId) {
