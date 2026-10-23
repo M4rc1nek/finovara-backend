@@ -26,18 +26,18 @@ public class RecurringSavingsService {
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
-    public void saveSavingsSettings(Long userId, RecurringSavingsDto dto) {
-        RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.SAVINGS);
-        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
+    public void saveSavingsSettings(Long userId, RecurringSavingsDto recurringSavingsDto) {
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(recurringSavingsDto.authorizationCode()));
 
-        settings.setPiggyBankId(dto.piggyBankId());
+        RecurringSettings settings = recurringSettingsSupport.getSettingsForUpdate(userId, RecurringType.SAVINGS);
+        settings.setPiggyBankId(recurringSavingsDto.piggyBankId());
         settings.setRevenueCategory(null);
         settings.setExpenseCategory(null);
 
         recurringSettingsSupport.applyCommonFields(
                 userId,
                 settings,
-                new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate(), dto.endDate()),
+                new RecurringCommonFields(recurringSavingsDto.enable(), recurringSavingsDto.amount(), recurringSavingsDto.periodType(), recurringSavingsDto.startDate(), recurringSavingsDto.endDate()),
                 SettingType.SAVINGS_RECURRING
         );
 
@@ -47,6 +47,7 @@ public class RecurringSavingsService {
         }
     }
 
+    @Transactional(readOnly = true)
     public RecurringSavingsDto getSavingsSettings(Long userId) {
         RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.SAVINGS);
 
@@ -62,4 +63,3 @@ public class RecurringSavingsService {
         );
     }
 }
-
