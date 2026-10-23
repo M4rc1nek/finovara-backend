@@ -1,6 +1,5 @@
 package com.finovara.authservice.settings.security;
 
-import com.finovara.authservice.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,8 +33,5 @@ public class SecuritySettings {
 
     @Version
     private Long version;
-
-    @OneToOne(mappedBy = "securitySettings")
-    private User userAssigned;
 }
 
