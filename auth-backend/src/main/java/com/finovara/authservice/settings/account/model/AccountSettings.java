@@ -1,6 +1,5 @@
 package com.finovara.authservice.settings.account.model;
 
-import com.finovara.authservice.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,7 +30,4 @@ public class AccountSettings {
 
     @Version
     private Long version;
-
-    @OneToOne(mappedBy = "accountSettings")
-    private User userAssigned;
 }
