@@ -3,10 +3,12 @@ package com.finovara.authservice.util.deletion;
 import com.finovara.authservice.sharedaccount.context.SharedAccountUsers;
 import com.finovara.authservice.sharedaccount.context.UserContextLoader;
 import com.finovara.authservice.sharedaccount.dto.SharedAccountDetailsDto;
+import com.finovara.authservice.sharedaccount.model.SharedAccount;
 import com.finovara.authservice.sharedaccount.model.SharedAccountMember;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountMemberRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountRepository;
 import com.finovara.authservice.user.repository.UserRepository;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.SharedRole;
 import com.finovara.contracts.sharedaccount.event.deletion.NotificationSharedAccountDeletedEvent;
@@ -57,7 +59,7 @@ public class AccountRemovalTemplate {
 
         if (details.ownerId() == null || details.memberId() == null) {
             log.warn("Incomplete shared account members for accountId={}. Skipping event propagation.", accountId);
-            deleteAccount(accountId);
+            deleteAccount(accountId, actingUserId);
             clearHasSharedAccountFlags(Stream.of(details.ownerId(), details.memberId()).filter(Objects::nonNull).toList());
             return Optional.empty();
         }
@@ -69,7 +71,7 @@ public class AccountRemovalTemplate {
                         users.owner().getUsername(), users.owner().getEmail(),
                         users.member().getUsername(), users.member().getEmail()));
 
-        deleteAccount(accountId);
+        deleteAccount(accountId, actingUserId);
         clearHasSharedAccountFlags(List.of(details.ownerId(), details.memberId()));
 
         log.info("Shared account removed, accountId={}, ownerId={}, memberId={}, remainingUserId={}",
@@ -78,14 +80,18 @@ public class AccountRemovalTemplate {
         return Optional.of(new SharedAccountRemovalResult(details, users));
     }
 
-    private void deleteAccount(Long accountId) {
-        sharedAccountMemberRepository.deleteMembersByAccountId(accountId);
-        sharedAccountRepository.deleteAccountById(accountId);
+    private void deleteAccount(Long accountId, Long actingUserId) {
+        SharedAccount sharedAccount = sharedAccountRepository.findByIdAndUserId(accountId, actingUserId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Shared account not found"));
+        SharedAccountMember sharedAccountMember = sharedAccountMemberRepository.findByUserId(actingUserId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Shared account member not found"));
+        sharedAccountMemberRepository.delete(sharedAccountMember);
+        sharedAccountRepository.delete(sharedAccount);
     }
 
     private void clearHasSharedAccountFlags(List<Long> userIds) {
         if (!userIds.isEmpty()) {
-            userRepository.updateHasSharedAccount(userIds, false);
+            userRepository.findAllById(userIds).forEach(user -> user.setHasSharedAccount(false));
         }
     }
 
