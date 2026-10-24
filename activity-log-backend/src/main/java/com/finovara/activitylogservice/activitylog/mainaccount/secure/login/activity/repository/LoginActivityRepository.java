@@ -124,5 +124,5 @@ public interface LoginActivityRepository extends JpaRepository<LoginActivity, Lo
             """)
     List<BrowserCountDto> findBrowserCounts(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to);
 
-    void deleteByUserId(Long userId);
+    List<LoginActivity> findAllByUserId(Long userId);
 }
