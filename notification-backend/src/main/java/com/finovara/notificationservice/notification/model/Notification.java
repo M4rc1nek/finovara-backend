@@ -29,11 +29,9 @@ public class Notification {
     @Column(name = "deduplication_key", nullable = false, length = 255)
     private String deduplicationKey;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String payload;
 
     @Column(nullable = false)
     private Long userId;
-
 }
