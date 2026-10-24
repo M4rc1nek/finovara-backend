@@ -5,13 +5,12 @@ import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.Reven
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.mapper.RevenueActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.model.RevenueActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.repository.RevenueActivityRepository;
-import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -46,9 +45,9 @@ public class RevenueActivityService extends AccountActivityCore<RevenueActivity,
         log.info("Created activity type: {}, userId: {}", event.type(), event.userId());
     }
 
-    @Cacheable(value = "revenueActivity", key = "#userId + ':' + #sort")
-    public List<RevenueActivityDto> getRevenueActivity(Long userId, SortType sort) {
-        return getActivities(userId, sort, pageSize);
+    @Cacheable(value = "revenueActivity", key = "#userId + ':' + #sort + ':' + #page")
+    public List<RevenueActivityDto> getRevenueActivity(Long userId, SortType sort, int page) {
+        return getActivities(userId, sort, page, pageSize);
     }
 
     @Override
