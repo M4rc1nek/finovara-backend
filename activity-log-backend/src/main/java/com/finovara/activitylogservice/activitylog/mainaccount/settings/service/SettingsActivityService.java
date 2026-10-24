@@ -59,7 +59,8 @@ public class SettingsActivityService extends AccountActivityCore<SettingsActivit
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        settingsActivityRepository.deleteByUserId(userId);
+        List<SettingsActivity> activities = settingsActivityRepository.findAllByUserId(userId);
+        settingsActivityRepository.deleteAll(activities);
         log.info("Deleted settings activity for userId={}", userId);
     }
 }
