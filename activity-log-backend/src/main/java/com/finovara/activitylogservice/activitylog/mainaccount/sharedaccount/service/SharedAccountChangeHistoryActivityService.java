@@ -69,7 +69,8 @@ public class SharedAccountChangeHistoryActivityService extends AccountActivityCo
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        sharedAccountChangeHistoryActivityRepository.deleteByUserId(userId);
+        List<SharedAccountChangeHistoryActivity> activities = sharedAccountChangeHistoryActivityRepository.findAllByUserId(userId);
+        sharedAccountChangeHistoryActivityRepository.deleteAll(activities);
         log.info("Deleted shared account change history activity for userId={}", userId);
     }
 }
