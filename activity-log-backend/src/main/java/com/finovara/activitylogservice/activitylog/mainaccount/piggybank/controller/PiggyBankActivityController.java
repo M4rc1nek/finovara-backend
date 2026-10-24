@@ -21,8 +21,7 @@ public class PiggyBankActivityController {
     private final PiggyBankActivityService piggyBankActivityService;
 
     @GetMapping
-    public ResponseEntity<List<PiggyBankActivityDto>> getPiggyBanksActivities(@RequestParam(defaultValue = "NEWEST") SortType sort) {
-        return ResponseEntity.ok(piggyBankActivityService.getPiggyBankActivities(SecurityUtils.getCurrentUserId(), sort));
+    public ResponseEntity<List<PiggyBankActivityDto>> getPiggyBanksActivities(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(piggyBankActivityService.getPiggyBankActivities(SecurityUtils.getCurrentUserId(), sort, page));
     }
-
 }
