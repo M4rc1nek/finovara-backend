@@ -105,7 +105,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
         piggyBank.setGoalAmount(piggyBankDto.goalAmount());
         piggyBank.setGoalType(piggyBankDto.goalType());
 
-        goalPlannerService.checkAndMarkGoalCompletion(piggyBank.getGoalPlanner());
+        goalPlannerService.checkAndMarkGoalCompletion(piggyBank);
         outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.updated",
                 new PiggyBankEditActivityEvent(userId, PiggyBankActivityType.EDITED_PIGGY_BANK, piggyBank.getName(), previousName,
                         piggyBank.getGoalType(), previousGoalType, piggyBank.getGoalAmount(), previousGoalAmount, LocalDateTime.now()));
