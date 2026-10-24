@@ -19,8 +19,8 @@ public class AccountChangeActivityController {
     private final AccountChangeActivityService accountChangeActivityService;
 
     @GetMapping
-    public ResponseEntity<List<AccountChangeActivityDto>> getAccountChangeActivity(@RequestParam(defaultValue = "NEWEST") SortType sortType) {
-        return ResponseEntity.ok(accountChangeActivityService.getAccountChangeActivity(SecurityUtils.getCurrentUserId(), sortType));
+    public ResponseEntity<List<AccountChangeActivityDto>> getAccountChangeActivity(@RequestParam(defaultValue = "NEWEST") SortType sortType, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(accountChangeActivityService.getAccountChangeActivity(SecurityUtils.getCurrentUserId(), sortType, page));
     }
 
     @PostMapping("/confirm-password")
