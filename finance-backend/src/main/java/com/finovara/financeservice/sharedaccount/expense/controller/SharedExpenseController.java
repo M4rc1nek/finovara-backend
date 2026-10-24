@@ -30,8 +30,8 @@ public class SharedExpenseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SharedExpenseDto>> getSharedExpense() {
-        return ResponseEntity.ok(expenseService.getExpense(SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<List<SharedExpenseDto>> getSharedExpense(@RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(expenseService.getExpense(SecurityUtils.getCurrentUserId(), page));
     }
 
     @DeleteMapping("/{expenseId}")
