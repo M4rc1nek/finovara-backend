@@ -169,7 +169,7 @@ class AccountChangeArchiveServiceTest {
                     .thenReturn(List.of(accountChangeArchive));
             when(accountChangeArchiveMapper.mapToDto(accountChangeArchive)).thenReturn(accountChangeArchiveDto);
 
-            List<AccountChangeArchiveDto> result = accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT);
+            List<AccountChangeArchiveDto> result = accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT,1 );
 
             assertEquals(List.of(accountChangeArchiveDto), result);
         }
@@ -180,7 +180,7 @@ class AccountChangeArchiveServiceTest {
             when(accountChangeArchiveRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenReturn(List.of());
 
-            accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT);
+            accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT, 1);
 
             verify(accountChangeArchiveRepository).findByUserId(eq(USER_ID), pageableCaptor.capture());
             assertEquals(PAGE_SIZE, pageableCaptor.getValue().getPageSize());
@@ -191,7 +191,7 @@ class AccountChangeArchiveServiceTest {
             when(accountChangeArchiveRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenReturn(List.of());
 
-            List<AccountChangeArchiveDto> result = accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT);
+            List<AccountChangeArchiveDto> result = accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT, 1);
 
             assertTrue(result.isEmpty());
             verifyNoInteractions(accountChangeArchiveMapper);
@@ -202,7 +202,7 @@ class AccountChangeArchiveServiceTest {
             when(accountChangeArchiveRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenThrow(new IllegalStateException());
 
-            assertThrows(IllegalStateException.class, () -> accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT));
+            assertThrows(IllegalStateException.class, () -> accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT, 1));
         }
 
         @Test
@@ -211,7 +211,7 @@ class AccountChangeArchiveServiceTest {
                     .thenReturn(List.of(accountChangeArchive));
             when(accountChangeArchiveMapper.mapToDto(accountChangeArchive)).thenThrow(new IllegalArgumentException());
 
-            assertThrows(IllegalArgumentException.class, () -> accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT));
+            assertThrows(IllegalArgumentException.class, () -> accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT, 1));
         }
     }
 
