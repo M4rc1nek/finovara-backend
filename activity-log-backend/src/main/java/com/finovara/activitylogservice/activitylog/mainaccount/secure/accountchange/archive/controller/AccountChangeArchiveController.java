@@ -21,8 +21,8 @@ public class AccountChangeArchiveController {
     private final AccountChangeArchiveService accountChangeArchiveService;
 
     @GetMapping
-    public ResponseEntity<List<AccountChangeArchiveDto>> getAccountChangeArchive(@RequestParam(defaultValue = "NEWEST") SortType sortType) {
-        return ResponseEntity.ok(accountChangeArchiveService.getAccountChangeArchive(SecurityUtils.getCurrentUserId(), sortType));
+    public ResponseEntity<List<AccountChangeArchiveDto>> getAccountChangeArchive(@RequestParam(defaultValue = "NEWEST") SortType sortType, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(accountChangeArchiveService.getAccountChangeArchive(SecurityUtils.getCurrentUserId(), sortType, page));
     }
 
 }
