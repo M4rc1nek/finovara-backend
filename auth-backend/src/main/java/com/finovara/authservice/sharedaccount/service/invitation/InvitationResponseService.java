@@ -20,7 +20,6 @@ import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +57,7 @@ public class InvitationResponseService {
         UserDataDto inviter = requireUser(users, inviterUserId);
         UserDataDto invitee = requireUser(users, inviteeUserId);
 
-        consumeInvitation(invitation);
+        sharedAccountInvitationRepository.delete(invitation);
 
         SharedAccount sharedAccount = sharedAccountRepository.save(
                 SharedAccount.builder()
@@ -67,7 +66,7 @@ public class InvitationResponseService {
 
         try {
             sharedAccountMemberService.createOwnerAndMember(sharedAccount, inviterUserId, inviteeUserId);
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException exception) {
             throw new EntityAlreadyExistsException("One of the users already belongs to a shared account");
         }
         List<SharedAccountInvitation> sharedAccountInvitations = sharedAccountInvitationRepository.findAllInvolvingUsers(List.of(inviterUserId, inviteeUserId));
@@ -107,7 +106,7 @@ public class InvitationResponseService {
         UserDataDto inviter = requireUser(users, inviterUserId);
         UserDataDto invitee = requireUser(users, inviteeUserId);
 
-        consumeInvitation(invitation);
+        sharedAccountInvitationRepository.delete(invitation);
 
         outboxService.save("User", inviterUserId.toString(), "user.shared-account.reject-invitation",
                 new UserRejectSharedAccountInvitationEvent(inviterUserId, invitee.username()));
@@ -132,15 +131,6 @@ public class InvitationResponseService {
         }
 
         return invitation;
-    }
-
-    private void consumeInvitation(SharedAccountInvitation invitation) {
-        try {
-            sharedAccountInvitationRepository.delete(invitation);
-            sharedAccountInvitationRepository.flush();
-        } catch (ObjectOptimisticLockingFailureException e) {
-            throw new RequestedEntityNotFoundException("Pending invitation not found");
-        }
     }
 
     private Map<Long, UserDataDto> loadUsers(Long firstUserId, Long secondUserId) {
