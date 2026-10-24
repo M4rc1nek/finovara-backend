@@ -4,10 +4,9 @@ import com.finovara.activitylogservice.activitylog.mainaccount.expense.dto.Expen
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.mapper.ExpenseActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.model.ExpenseActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.repository.ExpenseActivityRepository;
-import com.finovara.activitylogservice.activitylog.mainaccount.expense.service.ExpenseActivityService;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
-import com.finovara.contracts.util.SortType;
 import com.finovara.contracts.mainaccount.activity.model.ExpenseActivityType;
+import com.finovara.contracts.util.SortType;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -27,9 +26,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ExpenseActivityServiceTest {
@@ -111,7 +108,7 @@ class ExpenseActivityServiceTest {
             when(expenseActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
             when(expenseActivityMapper.mapToExpenseActivity(activity)).thenReturn(dto);
 
-            List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(USER_ID, SortType.NEWEST);
+            List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(USER_ID, SortType.NEWEST, 1);
 
             assertThat(result).containsExactly(dto);
             verify(expenseActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
@@ -122,7 +119,7 @@ class ExpenseActivityServiceTest {
         void shouldReturnEmptyListWhenUserHasNoActivities() {
             when(expenseActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
 
-            List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(USER_ID, SortType.OLDEST);
+            List<ExpenseActivityDto> result = expenseActivityService.getExpenseActivity(USER_ID, SortType.OLDEST, 1);
 
             assertThat(result).isEmpty();
             verifyNoInteractions(expenseActivityMapper);
