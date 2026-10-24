@@ -100,7 +100,8 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        loginActivityRepository.deleteByUserId(userId);
+        List<LoginActivity> activities = loginActivityRepository.findAllByUserId(userId);
+        loginActivityRepository.deleteAll(activities);
         log.info("Deleted login activity for userId={}", userId);
     }
 }
