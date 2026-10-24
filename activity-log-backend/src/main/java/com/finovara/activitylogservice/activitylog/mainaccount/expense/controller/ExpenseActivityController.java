@@ -21,7 +21,7 @@ public class ExpenseActivityController {
     private final ExpenseActivityService expenseActivityService;
 
     @GetMapping
-    public ResponseEntity<List<ExpenseActivityDto>> getExpenseActivity(@RequestParam(defaultValue = "NEWEST") SortType sort) {
-        return ResponseEntity.ok(expenseActivityService.getExpenseActivity(SecurityUtils.getCurrentUserId(), sort));
+    public ResponseEntity<List<ExpenseActivityDto>> getExpenseActivity(@RequestParam(defaultValue = "NEWEST") SortType sort,  @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(expenseActivityService.getExpenseActivity(SecurityUtils.getCurrentUserId(), sort, page));
     }
 }
