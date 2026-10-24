@@ -84,14 +84,15 @@ public class SharedRevenueService {
         return revenueId;
     }
 
-    public List<SharedRevenueDto> getRevenue(Long userId) {
-        List<SharedRevenue> revenues = sharedRevenueRepository.findAllByOwnerIdOrMemberId(userId, PageRequest.of(0, pageSize));
+    @Transactional(readOnly = true)
+    public List<SharedRevenueDto> getRevenue(Long userId, int page) {
+        List<SharedRevenue> revenues = sharedRevenueRepository.findAllByOwnerIdOrMemberId(userId, PageRequest.of(page, pageSize));
 
         Map<Long, String> usernameById = usernameResolver.resolve(
                 revenues.stream().map(SharedRevenue::getCreatedByUserId).collect(Collectors.toSet()));
 
         return revenues.stream()
-                .map(r -> sharedRevenueMapper.mapToDto(r, usernameById.get(r.getCreatedByUserId())))
+                .map(revenue -> sharedRevenueMapper.mapToDto(revenue, usernameById.get(revenue.getCreatedByUserId())))
                 .toList();
     }
 
