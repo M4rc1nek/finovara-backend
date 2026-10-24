@@ -180,7 +180,8 @@ public class ExpenseService implements UserDataDeletable {
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        expenseRepository.deleteByUserId(userId);
+        List<Expense> expenses = expenseRepository.findAllByUserId(userId);
+        expenseRepository.deleteAll(expenses);
         log.info("Deleted expenses for userId={}", userId);
     }
 
