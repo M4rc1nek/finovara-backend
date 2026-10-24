@@ -82,7 +82,8 @@ public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActiv
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        piggyBankActivityRepository.deleteByUserId(userId);
+        List<PiggyBankActivity> activities = piggyBankActivityRepository.findAllByUserId(userId);
+        piggyBankActivityRepository.deleteAll(activities);
         log.info("Deleted piggy bank activity for userId={}", userId);
     }
 }
