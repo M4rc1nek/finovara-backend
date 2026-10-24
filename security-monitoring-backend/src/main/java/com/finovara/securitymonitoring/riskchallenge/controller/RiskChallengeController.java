@@ -4,7 +4,6 @@ import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.securitymonitoring.riskchallenge.dto.ChallengeConfirmationResponse;
 import com.finovara.securitymonitoring.riskchallenge.dto.ConfirmEmailCodeDto;
 import com.finovara.securitymonitoring.riskchallenge.service.RiskChallengeService;
-import com.finovara.securitymonitoring.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +16,7 @@ public class RiskChallengeController {
 
     @PostMapping("/confirm-password/{riskOperationId}")
     public ChallengeConfirmationResponse confirmPassword(@RequestBody ConfirmPasswordDto dto, @PathVariable Long riskOperationId) {
-        return riskChallengeService.confirmPassword(SecurityUtils.getCurrentUserId(), riskOperationId, dto.password());
+        return riskChallengeService.confirmPassword(riskOperationId, dto.password());
     }
 
     @PostMapping("/confirm-email-code/{riskOperationId}")
