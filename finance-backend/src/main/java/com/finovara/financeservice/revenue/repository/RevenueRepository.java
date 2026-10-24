@@ -94,5 +94,5 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
             """)
     List<DailyCashDto> avgRevenuesGroupedByDate(Long userId);
 
-    void deleteByUserId(Long userId);
+    List<Revenue> findAllByUserId(Long userId);
 }
