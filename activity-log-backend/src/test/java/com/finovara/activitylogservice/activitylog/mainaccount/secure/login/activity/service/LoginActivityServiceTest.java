@@ -8,6 +8,7 @@ import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.arch
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.service.LoginActivityArchiveService;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
 import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.util.SortType;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,9 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -41,7 +42,8 @@ class LoginActivityServiceTest {
 
     private static final Long USER_ID = 1L;
     private static final int PAGE_SIZE = 5;
-    private static final SortType SORT = SortType.values()[0];
+    private static final SortType SORT = SortType.NEWEST;
+    private static final LocalDateTime OCCURRED_AT = LocalDateTime.of(2026, 4, 10, 18, 45);
 
     @Mock
     private LoginActivityRepository loginActivityRepository;
@@ -55,18 +57,6 @@ class LoginActivityServiceTest {
     @Mock
     private AuthBackendClient authBackendClient;
 
-    @Mock
-    private LoginActivity loginActivity;
-
-    @Mock
-    private LoginActivityDto loginActivityDto;
-
-    @Mock
-    private LoginActivityArchive loginActivityArchive;
-
-    @Mock
-    private ConfirmPasswordDto confirmPasswordDto;
-
     @InjectMocks
     private LoginActivityService loginActivityService;
 
@@ -78,22 +68,35 @@ class LoginActivityServiceTest {
     @Nested
     class HandleEvent {
 
-        private LocalDateTime occurredAt;
         private LoginActivityEvent event;
+        private LoginActivity oldestActivity;
+        private LoginActivityArchive archivedActivity;
 
         @BeforeEach
         void setUp() {
-            occurredAt = LocalDateTime.of(2026, 4, 10, 18, 45);
-            event = mock(LoginActivityEvent.class);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.browser()).thenReturn("Edge");
-            when(event.ipAddress()).thenReturn("203.0.113.7");
-            when(event.location()).thenReturn("Wroclaw");
-            when(event.occurredAt()).thenReturn(occurredAt);
+            event = new LoginActivityEvent(USER_ID, LoginActivityStatus.SUCCESSFUL, "Edge", "203.0.113.7", "Wroclaw", OCCURRED_AT);
+            oldestActivity = LoginActivity.builder()
+                    .userId(USER_ID)
+                    .type("Login")
+                    .status(LoginActivityStatus.SUCCESSFUL)
+                    .browser("Chrome")
+                    .ipAddress("198.51.100.42")
+                    .location("Berlin")
+                    .createdAt(OCCURRED_AT.minusDays(1))
+                    .build();
+            archivedActivity = LoginActivityArchive.builder()
+                    .userId(USER_ID)
+                    .type("Login")
+                    .status(LoginActivityStatus.SUCCESSFUL)
+                    .browser("Chrome")
+                    .ipAddress("198.51.100.42")
+                    .location("Berlin")
+                    .createdAt(OCCURRED_AT.minusDays(1))
+                    .build();
         }
 
         @Test
-        void shouldSaveActivityWithEventDataWhenEventIsValid() {
+        void shouldSaveActivityWhenEventIsValid() {
             ArgumentCaptor<LoginActivity> captor = ArgumentCaptor.forClass(LoginActivity.class);
 
             loginActivityService.handleEvent(event);
@@ -102,49 +105,54 @@ class LoginActivityServiceTest {
             LoginActivity saved = captor.getValue();
             assertEquals(USER_ID, saved.getUserId());
             assertEquals("Login", saved.getType());
-            assertEquals(event.status(), saved.getStatus());
+            assertEquals(LoginActivityStatus.SUCCESSFUL, saved.getStatus());
             assertEquals("Edge", saved.getBrowser());
             assertEquals("203.0.113.7", saved.getIpAddress());
             assertEquals("Wroclaw", saved.getLocation());
-            assertEquals(occurredAt, saved.getCreatedAt());
+            assertEquals(OCCURRED_AT, saved.getCreatedAt());
         }
 
         @Test
-        void shouldNotArchiveActivitiesWhenActivityCountDoesNotExceedPageSize() {
-            when(loginActivityRepository.countActivityLoginByUserId(USER_ID)).thenReturn((long) PAGE_SIZE);
+        void shouldNotArchiveActivitiesWhenActivitiesDoNotExceedPageSize() {
+            when(loginActivityRepository.findOldestForArchive(eq(USER_ID), any(Pageable.class)))
+                    .thenReturn(List.of(oldestActivity));
 
             loginActivityService.handleEvent(event);
 
-            verify(loginActivityArchiveService, never()).archive(any());
-            verify(loginActivityRepository, never()).deleteAll(any());
+            verify(loginActivityArchiveService, never()).archive(anyList());
+            verify(loginActivityRepository, never()).deleteAll(anyList());
         }
 
         @Test
-        void shouldArchiveAndDeleteActivitiesWhenActivityCountExceedsPageSize() {
-            when(loginActivityRepository.countActivityLoginByUserId(USER_ID)).thenReturn(PAGE_SIZE + 1L);
-            when(loginActivityRepository.findOldestByUserId(eq(USER_ID), any(Pageable.class)))
-                    .thenReturn(List.of(loginActivity));
-            when(loginActivityArchiveService.mapToArchive(loginActivity)).thenReturn(loginActivityArchive);
+        void shouldArchiveOldestActivitiesWhenThresholdIsExceeded() {
+            List<LoginActivity> oldestActivities = List.of(oldestActivity, oldestActivity, oldestActivity, oldestActivity, oldestActivity, oldestActivity);
+            when(loginActivityRepository.findOldestForArchive(eq(USER_ID), any(Pageable.class)))
+                    .thenReturn(oldestActivities);
+            when(loginActivityArchiveService.mapToArchive(oldestActivity)).thenReturn(archivedActivity);
 
             loginActivityService.handleEvent(event);
 
-            verify(loginActivityArchiveService).archive(List.of(loginActivityArchive));
-            verify(loginActivityRepository).deleteAll(List.of(loginActivity));
+            ArgumentCaptor<List<LoginActivityArchive>> archiveCaptor = ArgumentCaptor.forClass(List.class);
+            verify(loginActivityArchiveService).archive(archiveCaptor.capture());
+            assertEquals(PAGE_SIZE, archiveCaptor.getValue().size());
+
+            ArgumentCaptor<List<LoginActivity>> deleteCaptor = ArgumentCaptor.forClass(List.class);
+            verify(loginActivityRepository).deleteAll(deleteCaptor.capture());
+            assertEquals(PAGE_SIZE, deleteCaptor.getValue().size());
         }
 
         @Test
         void shouldThrowExceptionWhenRepositorySaveFails() {
-            doThrow(new IllegalStateException()).when(loginActivityRepository).save(any(LoginActivity.class));
+            doThrow(new IllegalStateException("save failed")).when(loginActivityRepository).save(any(LoginActivity.class));
 
             assertThrows(IllegalStateException.class, () -> loginActivityService.handleEvent(event));
         }
 
         @Test
         void shouldNotArchiveActivitiesWhenRepositorySaveFails() {
-            doThrow(new IllegalStateException()).when(loginActivityRepository).save(any(LoginActivity.class));
+            doThrow(new IllegalStateException("save failed")).when(loginActivityRepository).save(any(LoginActivity.class));
 
             assertThrows(IllegalStateException.class, () -> loginActivityService.handleEvent(event));
-
             verifyNoInteractions(loginActivityArchiveService);
         }
     }
@@ -154,53 +162,51 @@ class LoginActivityServiceTest {
 
         @Test
         void shouldReturnMappedDtosWhenActivitiesExist() {
-            when(loginActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
-                    .thenReturn(List.of(loginActivity));
-            when(loginActivityMapper.mapToDto(loginActivity)).thenReturn(loginActivityDto);
+            LoginActivity activity = LoginActivity.builder().userId(USER_ID).type("Login").status(LoginActivityStatus.SUCCESSFUL).build();
+            when(loginActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
+            when(loginActivityMapper.mapToDto(activity)).thenReturn(new LoginActivityDto("Login", LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Edge", "203.0.113.7", "Wroclaw"));
 
-            List<LoginActivityDto> result = loginActivityService.getLoginActivity(USER_ID, SORT);
+            List<LoginActivityDto> result = loginActivityService.getLoginActivity(USER_ID, SORT, 1);
 
-            assertEquals(List.of(loginActivityDto), result);
+            assertEquals(List.of(new LoginActivityDto("Login", LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Edge", "203.0.113.7", "Wroclaw")), result);
         }
 
         @Test
         void shouldUseConfiguredPageSizeWhenFetchingActivities() {
-            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-            when(loginActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
-                    .thenReturn(List.of());
+            when(loginActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
 
-            loginActivityService.getLoginActivity(USER_ID, SORT);
+            loginActivityService.getLoginActivity(USER_ID, SORT, 1);
 
-            verify(loginActivityRepository).findByUserId(eq(USER_ID), pageableCaptor.capture());
-            assertEquals(PAGE_SIZE, pageableCaptor.getValue().getPageSize());
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            verify(loginActivityRepository).findByUserId(eq(USER_ID), captor.capture());
+            assertEquals(PAGE_SIZE, captor.getValue().getPageSize());
         }
 
         @Test
         void shouldReturnEmptyListWhenNoActivitiesExist() {
-            when(loginActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
-                    .thenReturn(List.of());
+            when(loginActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
 
-            List<LoginActivityDto> result = loginActivityService.getLoginActivity(USER_ID, SORT);
+            List<LoginActivityDto> result = loginActivityService.getLoginActivity(USER_ID, SORT, 1);
 
             assertTrue(result.isEmpty());
             verifyNoInteractions(loginActivityMapper);
         }
 
         @Test
-        void shouldThrowExceptionWhenRepositoryFails() {
+        void shouldThrowExceptionWhenRepositoryFindFails() {
             when(loginActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
-                    .thenThrow(new IllegalStateException());
+                    .thenThrow(new IllegalStateException("query failed"));
 
-            assertThrows(IllegalStateException.class, () -> loginActivityService.getLoginActivity(USER_ID, SORT));
+            assertThrows(IllegalStateException.class, () -> loginActivityService.getLoginActivity(USER_ID, SORT, 1));
         }
 
         @Test
         void shouldThrowExceptionWhenMapperFails() {
-            when(loginActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
-                    .thenReturn(List.of(loginActivity));
-            when(loginActivityMapper.mapToDto(loginActivity)).thenThrow(new IllegalArgumentException());
+            LoginActivity activity = LoginActivity.builder().userId(USER_ID).type("Login").status(LoginActivityStatus.SUCCESSFUL).build();
+            when(loginActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
+            when(loginActivityMapper.mapToDto(activity)).thenThrow(new IllegalArgumentException("mapping failed"));
 
-            assertThrows(IllegalArgumentException.class, () -> loginActivityService.getLoginActivity(USER_ID, SORT));
+            assertThrows(IllegalArgumentException.class, () -> loginActivityService.getLoginActivity(USER_ID, SORT, 1));
         }
     }
 
@@ -209,9 +215,11 @@ class LoginActivityServiceTest {
 
         @Test
         void shouldDelegatePasswordVerificationWhenDataIsProvided() {
-            loginActivityService.confirmPassword(USER_ID, confirmPasswordDto);
+            ConfirmPasswordDto dto = new ConfirmPasswordDto("Secret123");
 
-            verify(authBackendClient).verifyPassword(USER_ID, confirmPasswordDto);
+            loginActivityService.confirmPassword(USER_ID, dto);
+
+            verify(authBackendClient).verifyPassword(USER_ID, dto);
         }
 
         @Test
@@ -223,9 +231,11 @@ class LoginActivityServiceTest {
 
         @Test
         void shouldThrowExceptionWhenPasswordVerificationFails() {
-            doThrow(new IllegalStateException()).when(authBackendClient).verifyPassword(USER_ID, confirmPasswordDto);
+            ConfirmPasswordDto dto = new ConfirmPasswordDto("Secret123");
+            doThrow(new IllegalStateException("verification failed")).when(authBackendClient)
+                    .verifyPassword(USER_ID, dto);
 
-            assertThrows(IllegalStateException.class, () -> loginActivityService.confirmPassword(USER_ID, confirmPasswordDto));
+            assertThrows(IllegalStateException.class, () -> loginActivityService.confirmPassword(USER_ID, dto));
         }
     }
 
@@ -248,7 +258,7 @@ class LoginActivityServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
-            doThrow(new IllegalStateException()).when(loginActivityRepository).deleteByUserId(USER_ID);
+            doThrow(new IllegalStateException("delete failed")).when(loginActivityRepository).deleteByUserId(USER_ID);
 
             assertThrows(IllegalStateException.class, () -> loginActivityService.deleteByUserId(USER_ID));
         }
