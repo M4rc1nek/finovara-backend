@@ -79,5 +79,5 @@ public interface AccountChangeActivityRepository extends JpaRepository<AccountCh
             """)
     List<AccountChangeActivity> findAuthorizationStatusChanges(Long userId, Pageable pageable);
 
-    void deleteByUserId(Long userId);
+    List<AccountChangeActivity> findAllByUserId(Long userId);
 }
