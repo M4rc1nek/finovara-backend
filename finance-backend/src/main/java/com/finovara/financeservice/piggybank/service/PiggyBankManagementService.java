@@ -148,7 +148,8 @@ public class PiggyBankManagementService implements UserDataDeletable {
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        piggyBankRepository.deleteByUserId(userId);
+        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserId(userId);
+        piggyBankRepository.deleteAll(piggyBanks);
         log.info("Deleted piggyBank for userId={}", userId);
     }
 }
