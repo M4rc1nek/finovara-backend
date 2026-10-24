@@ -1,15 +1,13 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.repository;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.model.LoginActivity;
-import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.BrowserCountDto;
-import com.finovara.activitylogservice.internal.security.util.clientinfo.dto.LocationCountDto;
-import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -17,108 +15,14 @@ public interface LoginActivityRepository extends JpaRepository<LoginActivity, Lo
 
     List<LoginActivity> findByUserId(Long userId, Pageable pageable);
 
-    @Query("SELECT u FROM LoginActivity u WHERE u.userId = :userId ORDER BY u.id ASC")
-    List<LoginActivity> findOldestByUserId(Long userId, Pageable pageable);
-
-    @Query("SELECT COUNT(u) FROM LoginActivity u WHERE u.userId = :userId")
-    long countActivityLoginByUserId(Long userId);
-
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-            SELECT COUNT(l)
-            FROM LoginActivity l
-            WHERE l.userId = :userId
-              AND l.status = :status
-              AND l.createdAt >= :from
-              AND l.createdAt <= :to
+            SELECT a
+            FROM LoginActivity a
+            WHERE a.userId = :userId
+            ORDER BY a.createdAt, a.id
             """)
-    long countByUserIdAndStatusAndCreatedAtBetween(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to);
-
-    @Query("""
-            SELECT DISTINCT l.ipAddress
-            FROM LoginActivity l
-            WHERE l.userId = :userId
-              AND l.status = :status
-              AND l.createdAt >= :from
-              AND l.createdAt < :to
-            """)
-    List<String> findDistinctIpAddresses(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to);
-
-    @Query("""
-            SELECT DISTINCT l.browser
-            FROM LoginActivity l
-            WHERE l.userId = :userId
-              AND l.status = :status
-              AND l.createdAt >= :from
-              AND l.createdAt < :to
-            """)
-    List<String> findDistinctBrowsers(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to);
-
-    @Query("""
-            SELECT DISTINCT l.location
-            FROM LoginActivity l
-            WHERE l.userId = :userId
-              AND l.status = :status
-              AND l.createdAt >= :from
-              AND l.createdAt < :to
-            """)
-    List<String> findDistinctLocations(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to);
-
-    @Query("""
-            SELECT l
-            FROM LoginActivity l
-            WHERE l.userId = :userId
-              AND l.status = :status
-              AND l.createdAt >= :from
-              AND l.createdAt < :to
-            ORDER BY l.createdAt ASC
-            """)
-    List<LoginActivity> findFirstLogins(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to, Pageable pageable);
-
-    @Query("""
-            SELECT l
-            FROM LoginActivity l
-            WHERE l.userId = :userId
-              AND l.status = :status
-              AND l.createdAt >= :from
-              AND l.createdAt < :to
-            ORDER BY l.createdAt DESC
-            """)
-    List<LoginActivity> findLastLogins(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to, Pageable pageable);
-
-    @Query("""
-            SELECT COUNT(DISTINCT CONCAT(l.ipAddress, '-', l.browser))
-            FROM LoginActivity l
-            WHERE l.userId = :userId
-              AND l.status = :status
-              AND l.createdAt >= :from
-              AND l.createdAt < :to
-            """)
-    long countDistinctDevices(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to);
-
-    @Query("""
-            SELECT new com.finovara.activitylogservice.internal.security.util.clientinfo.dto.LocationCountDto(l.location, COUNT(l))
-            FROM LoginActivity l
-            WHERE l.userId = :userId
-              AND l.status = :status
-              AND l.createdAt >= :from
-              AND l.createdAt < :to
-            GROUP BY l.location
-            ORDER BY COUNT(l) DESC
-            """)
-    List<LocationCountDto> findLocationCounts(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to);
-
-    @Query("""
-            SELECT new com.finovara.activitylogservice.internal.security.util.clientinfo.dto.BrowserCountDto(l.browser, COUNT(l))
-            FROM LoginActivity l
-            WHERE l.userId = :userId
-              AND l.status = :status
-              AND l.createdAt >= :from
-              AND l.createdAt < :to
-            GROUP BY l.browser
-            ORDER BY COUNT(l) DESC
-            """)
-    List<BrowserCountDto> findBrowserCounts(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to);
+    List<LoginActivity> findOldestForArchive(Long userId, Pageable pageable);
 
     void deleteByUserId(Long userId);
-
 }
