@@ -13,7 +13,6 @@ import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -48,9 +47,9 @@ public class SharedAccountChangeHistoryActivityService extends AccountActivityCo
         log.info("Created shared account change history activity. Type: {}, userId: {}", event.type(), event.userId());
     }
 
-    @Cacheable(value = "sharedAccountChangeHistoryActivity", key = "#userId + ':' + #sort")
-    public List<SharedAccountChangeHistoryActivityDto> getSharedAccountActivity(Long userId, SortType sort) {
-        return getActivities(userId, sort, pageSize);
+    @Cacheable(value = "sharedAccountChangeHistoryActivity", key = "#userId + ':' + #sort + ':' + #page")
+    public List<SharedAccountChangeHistoryActivityDto> getSharedAccountActivity(Long userId, SortType sort, int page) {
+        return getActivities(userId, sort, page, pageSize);
     }
 
     public void confirmPassword(Long userId, ConfirmPasswordDto confirmPasswordDto) {
