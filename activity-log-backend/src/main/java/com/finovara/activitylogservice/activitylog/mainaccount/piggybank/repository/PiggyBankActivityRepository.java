@@ -12,5 +12,5 @@ public interface PiggyBankActivityRepository extends JpaRepository<PiggyBankActi
 
     List<PiggyBankActivity> findByUserId(Long userId, Pageable pageable);
 
-    void deleteByUserId(Long userId);
+    List<PiggyBankActivity> findAllByUserId(Long userId);
 }
