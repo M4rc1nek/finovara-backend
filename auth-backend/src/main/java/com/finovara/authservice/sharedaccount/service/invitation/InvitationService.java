@@ -46,6 +46,9 @@ public class InvitationService {
     @Value("${shared-account.search.page-size}")
     private int pageSize;
 
+    @Value("${shared-account.invitation.page-size}")
+    private int invitationPageSize;
+
     @Value("${shared-account.min-search-query}")
     private int minSearchQueryLength;
 
@@ -53,11 +56,11 @@ public class InvitationService {
     private int invitationExpirationHours;
 
     @Transactional(readOnly = true)
-    public List<UserDataDto> searchUser(String query, Long currentUserId) {
+    public List<UserDataDto> searchUser(String query, Long currentUserId, int page) {
         if (query == null || query.trim().length() < minSearchQueryLength) {
             return List.of();
         }
-        return userRepository.searchByUsernameOrEmail(query.trim(), currentUserId, PageRequest.of(0, pageSize));
+        return userRepository.searchByUsernameOrEmail(query.trim(), currentUserId, PageRequest.of(page, pageSize));
     }
 
     public SharedAccountStatusDto hasSharedAccount(Long userId) {
@@ -91,8 +94,8 @@ public class InvitationService {
                 .build();
 
         try {
-            sharedAccountInvitationRepository.saveAndFlush(invitation);
-        } catch (DataIntegrityViolationException e) {
+            sharedAccountInvitationRepository.save(invitation);
+        } catch (DataIntegrityViolationException exception) {
             throw new EntityAlreadyExistsException("Invitation already exists between these users!");
         }
 
@@ -105,7 +108,7 @@ public class InvitationService {
         log.info("Created invitation id={}, inviterUserId={}, inviteeUserId={}", invitation.getId(), inviterUserId, inviteeUserId);
     }
 
-    public List<InvitationResponse> getPendingInvitations(Long userId) {
-        return sharedAccountInvitationRepository.findInvitationWithInviterUsername(userId);
+    public List<InvitationResponse> getPendingInvitations(Long userId, int page) {
+        return sharedAccountInvitationRepository.findInvitationWithInviterUsername(userId, PageRequest.of(page, invitationPageSize));
     }
 }
