@@ -1,147 +1,254 @@
 package com.finovara.notificationservice.notification;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.contracts.mainaccount.notification.NotificationType;
-import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.SortType;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
-import com.finovara.notificationservice.notification.dto.limit.LimitWarningDto;
 import com.finovara.notificationservice.notification.model.Notification;
 import com.finovara.notificationservice.notification.repository.NotificationRepository;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationPersistenceServiceTest {
 
+    private static final int PAGE_SIZE = 20;
+    private static final int PAGE = 2;
+    private static final Long USER_ID = 1L;
+    private static final Long NOTIFICATION_ID = 100L;
+    private static final String KEY = "key-1";
+    private static final String OTHER_KEY = "key-2";
+    private static final String PAYLOAD = "{\"id\":1}";
+    private static final String OTHER_PAYLOAD = "{\"id\":2}";
+    private static final String BLANK_PAYLOAD = "   ";
+    private static final String EMPTY_PAYLOAD = "";
+
     @Mock
     private NotificationRepository notificationRepository;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
+    private NotificationResponse firstDto;
+
+    @Mock
+    private NotificationResponse secondDto;
+
+    @Mock
+    private Notification firstNotification;
+
+    @Mock
+    private Notification secondNotification;
+
+    @Mock
+    private Notification savedNotification;
+
+    @Mock
+    private JsonProcessingException jsonProcessingException;
+
+    @Captor
+    private ArgumentCaptor<Notification> notificationCaptor;
+
     @InjectMocks
-    private NotificationPersistenceService notificationPersistenceService;
+    private NotificationPersistenceService service;
 
-    private ArgumentCaptor<List<Notification>> captor;
-
-    private final Long userId = 1L;
+    private PageRequest pageRequest;
 
     @BeforeEach
     void setUp() {
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
-        notificationPersistenceService = new NotificationPersistenceService(notificationRepository, objectMapper);
-        ReflectionTestUtils.setField(notificationPersistenceService, "pageSize", 5);
-        captor = ArgumentCaptor.forClass(List.class);
-    }
-
-    @Nested
-    class SaveAll {
-
-        @Test
-        void shouldSaveAllWhenNoDuplicates() {
-            when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId)).thenReturn(Set.of());
-
-            NotificationResponse dto1 = createDto(1L);
-            NotificationResponse dto2 = createDto(2L);
-
-            notificationPersistenceService.saveAll(userId, List.of(dto1, dto2));
-
-            verify(notificationRepository).saveAll(captor.capture());
-            List<Notification> saved = captor.getValue();
-
-            assertThat(saved).hasSize(2);
-            assertThat(saved).extracting(Notification::getDeduplicationKey)
-                    .containsExactlyInAnyOrder(dto1.deduplicationKey(), dto2.deduplicationKey());
-            assertThat(saved).extracting(Notification::getType)
-                    .containsOnly(NotificationType.LIMIT_EXCEEDED_WARNING);
-            assertThat(saved).extracting(Notification::getUserId)
-                    .containsOnly(userId);
-        }
-
-        @Test
-        void shouldSkipExistingKeys() {
-            NotificationResponse dto1 = createDto(1L);
-            NotificationResponse dto2 = createDto(2L);
-
-            when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId))
-                    .thenReturn(Set.of(dto1.deduplicationKey()));
-
-            notificationPersistenceService.saveAll(userId, List.of(dto1, dto2));
-
-            verify(notificationRepository).saveAll(captor.capture());
-            List<Notification> saved = captor.getValue();
-
-            assertThat(saved).hasSize(1);
-            assertThat(saved.getFirst().getDeduplicationKey()).isEqualTo(dto2.deduplicationKey());
-        }
-
-        @Test
-        void shouldRemoveDuplicatesInBatch() {
-            when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId)).thenReturn(Set.of());
-
-            NotificationResponse dto1 = createDto(1L);
-            NotificationResponse dto2 = createDto(1L);
-
-            notificationPersistenceService.saveAll(userId, List.of(dto1, dto2));
-
-            verify(notificationRepository).saveAll(captor.capture());
-            assertThat(captor.getValue()).hasSize(1);
-        }
-
-        @Test
-        void shouldHandleEmptyInput() {
-            when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId)).thenReturn(Set.of());
-
-            notificationPersistenceService.saveAll(userId, List.of());
-
-            verify(notificationRepository).saveAll(captor.capture());
-            assertThat(captor.getValue()).isEmpty();
-        }
+        setField(service, "pageSize", PAGE_SIZE);
+        pageRequest = PageRequest.of(PAGE, PAGE_SIZE);
     }
 
     @Nested
     class Save {
 
         @Test
-        void shouldSaveSingleNotification() {
-            when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId)).thenReturn(Set.of());
+        void shouldPersistNotificationWhenDtoIsNew() throws JsonProcessingException {
+            when(firstDto.deduplicationKey()).thenReturn(KEY);
+            when(notificationRepository.findExistingDeduplicationKeys(USER_ID, List.of(KEY))).thenReturn(List.of());
+            when(objectMapper.writeValueAsString(firstDto)).thenReturn(PAYLOAD);
 
-            NotificationResponse dto = createDto(1L);
-            notificationPersistenceService.save(userId, dto);
+            service.save(USER_ID, firstDto);
 
-            verify(notificationRepository).saveAll(captor.capture());
-            assertThat(captor.getValue()).hasSize(1);
-            assertThat(captor.getValue().getFirst().getDeduplicationKey()).isEqualTo(dto.deduplicationKey());
+            verify(notificationRepository).save(notificationCaptor.capture());
+            Notification saved = notificationCaptor.getValue();
+            assertEquals(USER_ID, saved.getUserId());
+            assertEquals(KEY, saved.getDeduplicationKey());
+            assertEquals(PAYLOAD, saved.getPayload());
+            assertEquals(firstDto.type(), saved.getType());
+            assertEquals(firstDto.createdAt(), saved.getCreatedAt());
         }
 
         @Test
-        void shouldSkipIfAlreadyExists() {
-            NotificationResponse dto = createDto(1L);
-            when(notificationRepository.findAllDeduplicationKeysByUserAssignedId(userId))
-                    .thenReturn(Set.of(dto.deduplicationKey()));
+        void shouldNotPersistNotificationWhenDeduplicationKeyAlreadyExists() {
+            when(firstDto.deduplicationKey()).thenReturn(KEY);
+            when(notificationRepository.findExistingDeduplicationKeys(USER_ID, List.of(KEY))).thenReturn(List.of(KEY));
 
-            notificationPersistenceService.save(userId, dto);
+            service.save(USER_ID, firstDto);
 
-            verify(notificationRepository).saveAll(captor.capture());
-            assertThat(captor.getValue()).isEmpty();
+            verify(notificationRepository, never()).save(any(Notification.class));
+            verifyNoInteractions(objectMapper);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenDtoIsNull() {
+            assertThrows(NullPointerException.class, () -> service.save(USER_ID, null));
+
+            verifyNoInteractions(notificationRepository, objectMapper);
+        }
+    }
+
+    @Nested
+    class SaveAll {
+
+        @Test
+        void shouldDoNothingWhenDtoListIsEmpty() {
+            service.saveAll(USER_ID, List.of());
+
+            verifyNoInteractions(notificationRepository, objectMapper);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenDtoListIsNull() {
+            assertThrows(NullPointerException.class, () -> service.saveAll(USER_ID, null));
+
+            verifyNoInteractions(notificationRepository, objectMapper);
+        }
+
+        @Test
+        void shouldPersistAllNotificationsWhenAllKeysAreNew() throws JsonProcessingException {
+            when(firstDto.deduplicationKey()).thenReturn(KEY);
+            when(secondDto.deduplicationKey()).thenReturn(OTHER_KEY);
+            when(notificationRepository.findExistingDeduplicationKeys(USER_ID, List.of(KEY, OTHER_KEY)))
+                    .thenReturn(List.of());
+            when(objectMapper.writeValueAsString(firstDto)).thenReturn(PAYLOAD);
+            when(objectMapper.writeValueAsString(secondDto)).thenReturn(OTHER_PAYLOAD);
+
+            service.saveAll(USER_ID, List.of(firstDto, secondDto));
+
+            verify(notificationRepository, times(2)).save(notificationCaptor.capture());
+            List<Notification> saved = notificationCaptor.getAllValues();
+            assertEquals(KEY, saved.get(0).getDeduplicationKey());
+            assertEquals(PAYLOAD, saved.get(0).getPayload());
+            assertEquals(OTHER_KEY, saved.get(1).getDeduplicationKey());
+            assertEquals(OTHER_PAYLOAD, saved.get(1).getPayload());
+        }
+
+        @Test
+        void shouldSkipOnlyExistingNotificationsWhenSomeKeysAlreadyExist() throws JsonProcessingException {
+            when(firstDto.deduplicationKey()).thenReturn(KEY);
+            when(secondDto.deduplicationKey()).thenReturn(OTHER_KEY);
+            when(notificationRepository.findExistingDeduplicationKeys(USER_ID, List.of(KEY, OTHER_KEY)))
+                    .thenReturn(List.of(KEY));
+            when(objectMapper.writeValueAsString(secondDto)).thenReturn(OTHER_PAYLOAD);
+
+            service.saveAll(USER_ID, List.of(firstDto, secondDto));
+
+            verify(notificationRepository, times(1)).save(notificationCaptor.capture());
+            assertEquals(OTHER_KEY, notificationCaptor.getValue().getDeduplicationKey());
+            verify(objectMapper, never()).writeValueAsString(firstDto);
+        }
+
+        @Test
+        void shouldPersistOnlyFirstNotificationWhenDtosShareSameDeduplicationKey() throws JsonProcessingException {
+            when(firstDto.deduplicationKey()).thenReturn(KEY);
+            when(secondDto.deduplicationKey()).thenReturn(KEY);
+            when(notificationRepository.findExistingDeduplicationKeys(USER_ID, List.of(KEY))).thenReturn(List.of());
+            when(objectMapper.writeValueAsString(firstDto)).thenReturn(PAYLOAD);
+
+            service.saveAll(USER_ID, List.of(firstDto, secondDto));
+
+            verify(notificationRepository, times(1)).save(any(Notification.class));
+            verify(objectMapper, never()).writeValueAsString(secondDto);
+        }
+
+        @Test
+        void shouldRequestExistingKeysOnlyOnceWhenMultipleDtosAreProvided() {
+            when(firstDto.deduplicationKey()).thenReturn(KEY);
+            when(secondDto.deduplicationKey()).thenReturn(OTHER_KEY);
+            when(notificationRepository.findExistingDeduplicationKeys(USER_ID, List.of(KEY, OTHER_KEY)))
+                    .thenReturn(List.of(KEY, OTHER_KEY));
+
+            service.saveAll(USER_ID, List.of(firstDto, secondDto));
+
+            verify(notificationRepository, times(1)).findExistingDeduplicationKeys(USER_ID, List.of(KEY, OTHER_KEY));
+            verifyNoMoreInteractions(notificationRepository);
+        }
+
+        @Test
+        void shouldContinueSavingWhenDuplicateIsDetectedDuringInsert() throws JsonProcessingException {
+            when(firstDto.deduplicationKey()).thenReturn(KEY);
+            when(secondDto.deduplicationKey()).thenReturn(OTHER_KEY);
+            when(notificationRepository.findExistingDeduplicationKeys(USER_ID, List.of(KEY, OTHER_KEY)))
+                    .thenReturn(List.of());
+            when(objectMapper.writeValueAsString(firstDto)).thenReturn(PAYLOAD);
+            when(objectMapper.writeValueAsString(secondDto)).thenReturn(OTHER_PAYLOAD);
+            when(notificationRepository.save(any(Notification.class)))
+                    .thenThrow(new DataIntegrityViolationException("duplicate"))
+                    .thenReturn(savedNotification);
+
+            service.saveAll(USER_ID, List.of(firstDto, secondDto));
+
+            verify(notificationRepository, times(2)).save(notificationCaptor.capture());
+            assertEquals(OTHER_KEY, notificationCaptor.getAllValues().get(1).getDeduplicationKey());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenSerializationFails() throws JsonProcessingException {
+            when(firstDto.deduplicationKey()).thenReturn(KEY);
+            when(notificationRepository.findExistingDeduplicationKeys(USER_ID, List.of(KEY))).thenReturn(List.of());
+            when(objectMapper.writeValueAsString(firstDto)).thenThrow(jsonProcessingException);
+
+            assertThrows(IllegalStateException.class, () -> service.saveAll(USER_ID, List.of(firstDto)));
+
+            verify(notificationRepository, never()).save(any(Notification.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenInsertFailsWithNonDuplicateException() throws JsonProcessingException {
+            when(firstDto.deduplicationKey()).thenReturn(KEY);
+            when(notificationRepository.findExistingDeduplicationKeys(USER_ID, List.of(KEY))).thenReturn(List.of());
+            when(objectMapper.writeValueAsString(firstDto)).thenReturn(PAYLOAD);
+            when(notificationRepository.save(any(Notification.class))).thenThrow(new IllegalStateException());
+
+            assertThrows(IllegalStateException.class, () -> service.saveAll(USER_ID, List.of(firstDto)));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenFindingExistingKeysFails() {
+            when(firstDto.deduplicationKey()).thenReturn(KEY);
+            when(notificationRepository.findExistingDeduplicationKeys(USER_ID, List.of(KEY)))
+                    .thenThrow(new IllegalStateException());
+
+            assertThrows(IllegalStateException.class, () -> service.saveAll(USER_ID, List.of(firstDto)));
+
+            verifyNoInteractions(objectMapper);
         }
     }
 
@@ -149,122 +256,226 @@ class NotificationPersistenceServiceTest {
     class GetUserNotifications {
 
         @Test
-        void shouldReturnNotificationsCorrectly() {
-            Notification notification = createNotification(1L, validJson());
-            Notification notification2 = createNotification(2L, validJson());
+        void shouldReturnNewestNotificationsWhenSortTypeIsNewest() throws JsonProcessingException {
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest)).thenReturn(List.of(firstNotification));
+            when(firstNotification.getPayload()).thenReturn(PAYLOAD);
+            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenReturn(firstDto);
 
-            when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
-                    .thenReturn(List.of(notification, notification2));
+            List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
 
-            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.NEWEST);
-
-            assertThat(result).hasSize(2);
-            assertThat(result).allMatch(Objects::nonNull);
+            assertEquals(1, result.size());
+            assertSame(firstDto, result.get(0));
+            verify(notificationRepository, never()).findOldestByUserId(any(Long.class), any(PageRequest.class));
         }
 
         @Test
-        void shouldSkipNullAndBlankPayloads() {
-            Notification notification = createNotification(1L, validJson());
-            Notification notification2 = createNotification(2L, null);
-            Notification notification3 = createNotification(3L, "");
+        void shouldReturnOldestNotificationsWhenSortTypeIsOldest() throws JsonProcessingException {
+            when(notificationRepository.findOldestByUserId(USER_ID, pageRequest)).thenReturn(List.of(firstNotification));
+            when(firstNotification.getPayload()).thenReturn(PAYLOAD);
+            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenReturn(firstDto);
 
-            when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
-                    .thenReturn(List.of(notification, notification2, notification3));
+            List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.OLDEST, PAGE);
 
-            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.NEWEST);
-
-            assertThat(result).hasSize(1);
-            assertThat(result.getFirst().deduplicationKey()).isNotNull();
+            assertEquals(1, result.size());
+            assertSame(firstDto, result.get(0));
+            verify(notificationRepository, never()).findNewestByUserId(any(Long.class), any(PageRequest.class));
         }
 
         @Test
-        void shouldReturnEmptyWhenAllPayloadsInvalid() {
-            Notification notification = createNotification(1L, null);
-            Notification notification2 = createNotification(2L, "");
+        void shouldReturnEmptyListWhenNoNotificationsFound() {
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest)).thenReturn(List.of());
 
-            when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
-                    .thenReturn(List.of(notification, notification2));
+            List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
 
-            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.NEWEST);
-
-            assertThat(result).isEmpty();
+            assertTrue(result.isEmpty());
+            verifyNoInteractions(objectMapper);
         }
 
         @Test
-        void shouldReturnEmptyWhenNoNotifications() {
-            when(notificationRepository.findAllByUserAssignedId(userId, SortType.NEWEST.getPageable(5)))
-                    .thenReturn(List.of());
+        void shouldRequestPageWithConfiguredPageSizeWhenFetchingNotifications() {
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest)).thenReturn(List.of());
 
-            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.NEWEST);
+            service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
 
-            assertThat(result).isEmpty();
+            verify(notificationRepository).findNewestByUserId(USER_ID, PageRequest.of(PAGE, PAGE_SIZE));
         }
 
         @Test
-        void shouldSupportOldestSortType() {
-            Notification notification = createNotification(1L, validJson());
+        void shouldPreserveRepositoryOrderWhenMappingNotifications() throws JsonProcessingException {
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest))
+                    .thenReturn(List.of(secondNotification, firstNotification));
+            when(firstNotification.getPayload()).thenReturn(PAYLOAD);
+            when(secondNotification.getPayload()).thenReturn(OTHER_PAYLOAD);
+            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenReturn(firstDto);
+            when(objectMapper.readValue(OTHER_PAYLOAD, NotificationResponse.class)).thenReturn(secondDto);
 
-            when(notificationRepository.findAllByUserAssignedId(userId, SortType.OLDEST.getPageable(5)))
-                    .thenReturn(List.of(notification));
+            List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
 
-            List<NotificationResponse> result = notificationPersistenceService.getUserNotifications(userId, SortType.OLDEST);
-
-            assertThat(result).hasSize(1);
+            assertEquals(List.of(secondDto, firstDto), result);
         }
 
-        @ParameterizedTest
-        @EnumSource(value = SortType.class, names = {"AMOUNT_ASC", "AMOUNT_DESC"})
-        void shouldThrowExceptionWhenSortTypeIsUnsupported(SortType sortType) {
-            assertThrows(InvalidInputException.class, () -> notificationPersistenceService.getUserNotifications(userId, sortType));
+        @Test
+        void shouldSkipNotificationWhenPayloadIsNull() {
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest)).thenReturn(List.of(firstNotification));
+            when(firstNotification.getPayload()).thenReturn(null);
+
+            List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
+
+            assertTrue(result.isEmpty());
+            verifyNoInteractions(objectMapper);
+        }
+
+        @Test
+        void shouldSkipNotificationWhenPayloadIsEmpty() {
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest)).thenReturn(List.of(firstNotification));
+            when(firstNotification.getPayload()).thenReturn(EMPTY_PAYLOAD);
+
+            List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
+
+            assertTrue(result.isEmpty());
+            verifyNoInteractions(objectMapper);
+        }
+
+        @Test
+        void shouldSkipNotificationWhenPayloadIsBlank() {
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest)).thenReturn(List.of(firstNotification));
+            when(firstNotification.getPayload()).thenReturn(BLANK_PAYLOAD);
+
+            List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
+
+            assertTrue(result.isEmpty());
+            verifyNoInteractions(objectMapper);
+        }
+
+        @Test
+        void shouldReturnOnlyValidNotificationsWhenSomePayloadsAreEmpty() throws JsonProcessingException {
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest))
+                    .thenReturn(List.of(firstNotification, secondNotification));
+            when(firstNotification.getPayload()).thenReturn(null);
+            when(secondNotification.getPayload()).thenReturn(PAYLOAD);
+            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenReturn(secondDto);
+
+            List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
+
+            assertEquals(1, result.size());
+            assertSame(secondDto, result.get(0));
+        }
+
+        @Test
+        void shouldDeserializeEachPayloadExactlyOnceWhenNotificationsExist() throws JsonProcessingException {
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest))
+                    .thenReturn(List.of(firstNotification, secondNotification));
+            when(firstNotification.getPayload()).thenReturn(PAYLOAD);
+            when(secondNotification.getPayload()).thenReturn(OTHER_PAYLOAD);
+            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenReturn(firstDto);
+            when(objectMapper.readValue(OTHER_PAYLOAD, NotificationResponse.class)).thenReturn(secondDto);
+
+            service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
+
+            verify(objectMapper, times(1)).readValue(PAYLOAD, NotificationResponse.class);
+            verify(objectMapper, times(1)).readValue(OTHER_PAYLOAD, NotificationResponse.class);
+            verifyNoMoreInteractions(objectMapper);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenDeserializationFails() throws JsonProcessingException {
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest)).thenReturn(List.of(firstNotification));
+            when(firstNotification.getId()).thenReturn(NOTIFICATION_ID);
+            when(firstNotification.getPayload()).thenReturn(PAYLOAD);
+            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenThrow(jsonProcessingException);
+
+            assertThrows(IllegalStateException.class,
+                    () -> service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositoryFailsForNewest() {
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest)).thenThrow(new IllegalStateException());
+
+            assertThrows(IllegalStateException.class,
+                    () -> service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE));
+
+            verifyNoInteractions(objectMapper);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositoryFailsForOldest() {
+            when(notificationRepository.findOldestByUserId(USER_ID, pageRequest)).thenThrow(new IllegalStateException());
+
+            assertThrows(IllegalStateException.class,
+                    () -> service.getUserNotifications(USER_ID, SortType.OLDEST, PAGE));
+
+            verifyNoInteractions(objectMapper);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenSortTypeIsNull() {
+            assertThrows(NullPointerException.class, () -> service.getUserNotifications(USER_ID, null, PAGE));
+
+            verifyNoInteractions(notificationRepository, objectMapper);
         }
     }
 
     @Nested
-    class DeleteNotifications{
+    class DeleteAllNotifications {
+
         @Test
-        void shouldCallRepositoryToDeleteNotifications() {
-            notificationPersistenceService.deleteAllNotifications(userId);
-            verify(notificationRepository, times(1)).deleteByUserId(userId);
+        void shouldDeleteNotificationsInBatchWhenUserHasNotifications() {
+            List<Long> ids = List.of(1L, 2L, 3L);
+            when(notificationRepository.findIdsByUserId(USER_ID)).thenReturn(ids);
+
+            service.deleteAllNotifications(USER_ID);
+
+            verify(notificationRepository).deleteAllByIdInBatch(ids);
         }
 
         @Test
-        void shouldPropagateExceptionWhenRepositoryFails() {
-            RuntimeException databaseException = new RuntimeException("Database connection timeout");
-            doThrow(databaseException).when(notificationRepository).deleteByUserId(userId);
+        void shouldDelegateEmptyIdListWhenUserHasNoNotifications() {
+            when(notificationRepository.findIdsByUserId(USER_ID)).thenReturn(List.of());
 
-            assertThrows(RuntimeException.class, () -> {notificationPersistenceService.deleteAllNotifications(userId);});
-            verify(notificationRepository, times(1)).deleteByUserId(userId);
+            service.deleteAllNotifications(USER_ID);
+
+            verify(notificationRepository).deleteAllByIdInBatch(List.of());
         }
-    }
 
-    private NotificationResponse createDto(Long limitId) {
-        return new LimitWarningDto(
-                NotificationType.LIMIT_EXCEEDED_WARNING,
-                LocalDateTime.now(),
-                BigDecimal.valueOf(50),
-                PeriodType.WEEKLY,
-                limitId,
-                BigDecimal.valueOf(75)
-        );
-    }
+        @Test
+        void shouldDelegateWithNullWhenUserIdIsNull() {
+            when(notificationRepository.findIdsByUserId(null)).thenReturn(List.of());
 
-    private Notification createNotification(Long id, String payload) {
-        Notification notification = new Notification();
-        notification.setId(id);
-        notification.setPayload(payload);
-        return notification;
-    }
+            service.deleteAllNotifications(null);
 
-    private String validJson() {
-        return """
-                {
-                  "type": "LIMIT_EXCEEDED_WARNING",
-                  "createdAt": "2026-01-01T00:00:00",
-                  "limitPercentage": 50,
-                  "period": "WEEKLY",
-                  "limitId": 1,
-                  "threshold": 75
-                }
-                """;
+            verify(notificationRepository).findIdsByUserId(null);
+            verify(notificationRepository).deleteAllByIdInBatch(List.of());
+        }
+
+        @Test
+        void shouldFindIdsAndDeleteExactlyOnceWhenUserHasNotifications() {
+            List<Long> ids = List.of(1L);
+            when(notificationRepository.findIdsByUserId(USER_ID)).thenReturn(ids);
+
+            service.deleteAllNotifications(USER_ID);
+
+            verify(notificationRepository, times(1)).findIdsByUserId(USER_ID);
+            verify(notificationRepository, times(1)).deleteAllByIdInBatch(ids);
+            verifyNoMoreInteractions(notificationRepository);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenFindingIdsFails() {
+            when(notificationRepository.findIdsByUserId(USER_ID)).thenThrow(new IllegalStateException());
+
+            assertThrows(IllegalStateException.class, () -> service.deleteAllNotifications(USER_ID));
+
+            verifyNoMoreInteractions(notificationRepository);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenBatchDeleteFails() {
+            List<Long> ids = List.of(1L);
+            when(notificationRepository.findIdsByUserId(USER_ID)).thenReturn(ids);
+            doThrow(new IllegalStateException()).when(notificationRepository).deleteAllByIdInBatch(ids);
+
+            assertThrows(IllegalStateException.class, () -> service.deleteAllNotifications(USER_ID));
+        }
     }
 }
