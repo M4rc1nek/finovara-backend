@@ -99,7 +99,8 @@ public class AccountChangeActivityService extends SecurityActivityCore<AccountCh
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        accountChangeActivityRepository.deleteByUserId(userId);
+        List<AccountChangeActivity> activities = accountChangeActivityRepository.findAllByUserId(userId);
+        accountChangeActivityRepository.deleteAll(activities);
         log.info("Deleted account changes activity for userId={}", userId);
     }
 }
