@@ -67,7 +67,8 @@ public class LoginActivityArchiveService extends AccountActivityCore<LoginActivi
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        loginActivityArchiveRepository.deleteByUserId(userId);
+        List<LoginActivityArchive> activities = loginActivityArchiveRepository.findAllByUserId(userId);
+        loginActivityArchiveRepository.deleteAll(activities);
         log.info("Deleted login activity from archive for userId={}", userId);
     }
 }
