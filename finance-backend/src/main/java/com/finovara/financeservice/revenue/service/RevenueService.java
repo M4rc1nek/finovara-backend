@@ -114,8 +114,8 @@ public class RevenueService implements UserDataDeletable {
     }
 
     @Transactional(readOnly = true)
-    public List<RevenueDto> getRevenue(Long userId) {
-        return revenueRepository.findAllByUserId(userId, PageRequest.of(0, pageSize)).stream()
+    public List<RevenueDto> getRevenue(Long userId, int page) {
+        return revenueRepository.findAllByUserId(userId, PageRequest.of(page, pageSize)).stream()
                 .map(revenueMapper::mapRevenueToDto)
                 .toList();
     }
