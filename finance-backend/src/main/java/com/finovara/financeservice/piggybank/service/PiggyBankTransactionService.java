@@ -65,7 +65,7 @@ public class PiggyBankTransactionService {
         if (completed) {
             goalCompletionService.handleGoalCompletion(userId);
         }
-        goalPlannerService.checkAndMarkGoalCompletion(piggyBank.getGoalPlanner());
+        goalPlannerService.checkAndMarkGoalCompletion(piggyBank);
     }
 
     @Transactional
@@ -89,7 +89,7 @@ public class PiggyBankTransactionService {
                 new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
         outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.calculate-progress",
                 new PiggyBankProgressEvent(userId, piggyBankId, percentage, piggyBank.getGoalType(), piggyBank.getName()));
-        goalPlannerService.checkAndMarkGoalCompletion(piggyBank.getGoalPlanner());
+        goalPlannerService.checkAndMarkGoalCompletion(piggyBank);
     }
 
     private BigDecimal calculatePercentage(PiggyBank piggyBank) {
