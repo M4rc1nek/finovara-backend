@@ -8,6 +8,7 @@ import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountcha
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.service.AccountChangeArchiveService;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
 import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.activity.AccountChangeActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.util.SortType;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,9 +19,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,6 +44,7 @@ class AccountChangeActivityServiceTest {
 
     private static final Long USER_ID = 1L;
     private static final int PAGE_SIZE = 5;
+    private static final int PAGE = 0;
     private static final SortType SORT = SortType.values()[0];
 
     @Mock
@@ -86,6 +90,7 @@ class AccountChangeActivityServiceTest {
             occurredAt = LocalDateTime.of(2026, 2, 20, 12, 0);
             event = mock(AccountChangeActivityEvent.class);
             when(event.userId()).thenReturn(USER_ID);
+            when(event.type()).thenReturn(AccountChangeActivityType.PASSWORD_CHANGED);
             when(event.browser()).thenReturn("Chrome");
             when(event.ipAddress()).thenReturn("192.168.0.1");
             when(event.location()).thenReturn("Krakow");
@@ -110,7 +115,11 @@ class AccountChangeActivityServiceTest {
 
         @Test
         void shouldNotArchiveActivitiesWhenActivityCountDoesNotExceedPageSize() {
-            when(accountChangeActivityRepository.countAccountChangesByUserId(USER_ID)).thenReturn((long) PAGE_SIZE);
+            List<AccountChangeActivity> oldestActivities = new ArrayList<>();
+            for (int i = 0; i < PAGE_SIZE; i++) {
+                oldestActivities.add(accountChangeActivity);
+            }
+            when(accountChangeActivityRepository.findOldestForArchive(eq(USER_ID), any(Pageable.class))).thenReturn(oldestActivities);
 
             accountChangeActivityService.handleEvent(event);
 
@@ -120,15 +129,21 @@ class AccountChangeActivityServiceTest {
 
         @Test
         void shouldArchiveAndDeleteActivitiesWhenActivityCountExceedsPageSize() {
-            when(accountChangeActivityRepository.countAccountChangesByUserId(USER_ID)).thenReturn(PAGE_SIZE + 1L);
-            when(accountChangeActivityRepository.findFewByUserId(eq(USER_ID), any(Pageable.class)))
-                    .thenReturn(List.of(accountChangeActivity));
+            List<AccountChangeActivity> oldestActivities = new ArrayList<>();
+            for (int i = 0; i < PAGE_SIZE + 1; i++) {
+                oldestActivities.add(accountChangeActivity);
+            }
+            when(accountChangeActivityRepository.findOldestForArchive(eq(USER_ID), any(Pageable.class))).thenReturn(oldestActivities);
             when(accountChangeArchiveService.mapToArchive(accountChangeActivity)).thenReturn(accountChangeArchive);
 
             accountChangeActivityService.handleEvent(event);
 
-            verify(accountChangeArchiveService).archive(List.of(accountChangeArchive));
-            verify(accountChangeActivityRepository).deleteAll(List.of(accountChangeActivity));
+            ArgumentCaptor<List<AccountChangeArchive>> archiveCaptor = ArgumentCaptor.forClass(List.class);
+            ArgumentCaptor<List<AccountChangeActivity>> deleteCaptor = ArgumentCaptor.forClass(List.class);
+            verify(accountChangeArchiveService).archive(archiveCaptor.capture());
+            verify(accountChangeActivityRepository).deleteAll(deleteCaptor.capture());
+            assertEquals(PAGE_SIZE, archiveCaptor.getValue().size());
+            assertEquals(PAGE_SIZE, deleteCaptor.getValue().size());
         }
 
         @Test
@@ -157,7 +172,7 @@ class AccountChangeActivityServiceTest {
                     .thenReturn(List.of(accountChangeActivity));
             when(accountChangeActivityMapper.mapToDto(accountChangeActivity)).thenReturn(accountChangeActivityDto);
 
-            List<AccountChangeActivityDto> result = accountChangeActivityService.getAccountChangeActivity(USER_ID, SORT);
+            List<AccountChangeActivityDto> result = accountChangeActivityService.getAccountChangeActivity(USER_ID, SORT, PAGE);
 
             assertEquals(List.of(accountChangeActivityDto), result);
         }
@@ -168,7 +183,7 @@ class AccountChangeActivityServiceTest {
             when(accountChangeActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenReturn(List.of());
 
-            accountChangeActivityService.getAccountChangeActivity(USER_ID, SORT);
+            accountChangeActivityService.getAccountChangeActivity(USER_ID, SORT, PAGE);
 
             verify(accountChangeActivityRepository).findByUserId(eq(USER_ID), pageableCaptor.capture());
             assertEquals(PAGE_SIZE, pageableCaptor.getValue().getPageSize());
@@ -179,7 +194,7 @@ class AccountChangeActivityServiceTest {
             when(accountChangeActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenReturn(List.of());
 
-            List<AccountChangeActivityDto> result = accountChangeActivityService.getAccountChangeActivity(USER_ID, SORT);
+            List<AccountChangeActivityDto> result = accountChangeActivityService.getAccountChangeActivity(USER_ID, SORT, PAGE);
 
             assertTrue(result.isEmpty());
             verifyNoInteractions(accountChangeActivityMapper);
@@ -190,7 +205,7 @@ class AccountChangeActivityServiceTest {
             when(accountChangeActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenThrow(new IllegalStateException());
 
-            assertThrows(IllegalStateException.class, () -> accountChangeActivityService.getAccountChangeActivity(USER_ID, SORT));
+            assertThrows(IllegalStateException.class, () -> accountChangeActivityService.getAccountChangeActivity(USER_ID, SORT, PAGE));
         }
 
         @Test
@@ -199,7 +214,7 @@ class AccountChangeActivityServiceTest {
                     .thenReturn(List.of(accountChangeActivity));
             when(accountChangeActivityMapper.mapToDto(accountChangeActivity)).thenThrow(new IllegalArgumentException());
 
-            assertThrows(IllegalArgumentException.class, () -> accountChangeActivityService.getAccountChangeActivity(USER_ID, SORT));
+            assertThrows(IllegalArgumentException.class, () -> accountChangeActivityService.getAccountChangeActivity(USER_ID, SORT, PAGE));
         }
     }
 
