@@ -56,20 +56,25 @@
         </createTable>
         <addUniqueConstraint tableName="notifications" columnNames="user_id, deduplication_key"
                              constraintName="uk_notifications_user_dedup"/>
+        <createIndex tableName="notifications" indexName="idx_notifications_user_created_id">
+            <column name="user_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">
-            <column name="name" type="varchar(64)">
+            <column name="name" type="VARCHAR(64)">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="lock_until" type="timestamp(3)">
+            <column name="lock_until" type="TIMESTAMP(3)">
                 <constraints nullable="false"/>
             </column>
-            <column name="locked_at" type="timestamp(3)">
+            <column name="locked_at" type="TIMESTAMP(3)">
                 <constraints nullable="false"/>
             </column>
-            <column name="locked_by" type="varchar(255)">
+            <column name="locked_by" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
         </createTable>
