@@ -9,6 +9,8 @@ import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,16 +25,19 @@ public class FinancialPeriodService {
     private final SharedExpenseRepository sharedExpenseRepository;
     private final RevenueRepository revenueRepository;
 
-    public List<Expense> getExpensesInPeriodByCategory(Long userId, PeriodType period, ExpenseCategory category) {
+    @Value("${finance.pagination.page-size}")
+    private int pageSize;
+
+    public List<Expense> getExpensesInPeriodByCategory(Long userId, PeriodType period, ExpenseCategory category, int page) {
         LocalDate today = LocalDate.now();
         LocalDate from = period.getStartDate(today);
-        return expenseRepository.findAllByUserIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
+        return expenseRepository.findAllByUserIdAndCreatedAtBetweenAndCategory(userId, from, today, category, PageRequest.of(page, pageSize));
     }
 
-    public List<Revenue> getRevenuesInPeriodByCategory(Long userId, PeriodType period, RevenueCategory category) {
+    public List<Revenue> getRevenuesInPeriodByCategory(Long userId, PeriodType period, RevenueCategory category, int page) {
         LocalDate today = LocalDate.now();
         LocalDate from = period.getStartDate(today);
-        return revenueRepository.findAllByUserIdAndCreatedAtBetweenAndCategory(userId, from, today, category);
+        return revenueRepository.findAllByUserIdAndCreatedAtBetweenAndCategory(userId, from, today, category, PageRequest.of(page, pageSize));
     }
 
     public BigDecimal getExpensesSum(Long userId, PeriodType period, ExpenseCategory category) {
