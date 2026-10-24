@@ -63,7 +63,8 @@ public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity,
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        expenseActivityRepository.deleteByUserId(userId);
+        List<ExpenseActivity> activities = expenseActivityRepository.findAllByUserId(userId);
+        expenseActivityRepository.deleteAll(activities);
         log.info("Deleted expense activity for userId={}", userId);
     }
 }
