@@ -1,5 +1,6 @@
 package com.finovara.financeservice.piggybank.goalplanner.service;
 
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.piggybank.goalplanner.dto.GoalPlannerCompletionSummaryDto;
 import com.finovara.financeservice.piggybank.goalplanner.dto.GoalPlannerDto;
@@ -8,7 +9,7 @@ import com.finovara.financeservice.piggybank.goalplanner.mapper.GoalPlannerMappe
 import com.finovara.financeservice.piggybank.goalplanner.model.GoalPlanner;
 import com.finovara.financeservice.piggybank.goalplanner.repository.GoalPlannerRepository;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
-import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,65 +22,81 @@ import java.time.LocalDateTime;
 public class GoalPlannerService {
 
     private final GoalPlannerRepository goalPlannerRepository;
-    private final PiggyBankManagerService piggyBankManagerService;
+    private final PiggyBankRepository piggyBankRepository;
     private final GoalPlannerMapper goalPlannerMapper;
 
     @Transactional
     public Long createGoalPlanner(Long userId, GoalPlannerDto goalPlannerDto) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(goalPlannerDto.piggyBankId(), userId);
+        PiggyBank piggyBank = piggyBankRepository
+                .findByIdAndUserIdForUpdate(goalPlannerDto.piggyBankId(), userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Piggy bank not found"));
 
-        GoalPlanner goalPlanner = GoalPlanner.builder()
+        if (piggyBank.getGoalPlanner() != null) {
+            throw new EntityAlreadyExistsException("Goal planner already exists for this piggy bank");
+        }
+
+        GoalPlanner goalPlanner = goalPlannerRepository.save(GoalPlanner.builder()
                 .topic(goalPlannerDto.topic())
                 .targetDate(goalPlannerDto.targetDate())
                 .createdAt(LocalDateTime.now())
                 .userId(userId)
-                .piggyBankAssigned(piggyBank)
-                .build();
+                .build());
 
-        return goalPlannerRepository.save(goalPlanner).getId();
+        piggyBank.setGoalPlanner(goalPlanner);
+        checkAndMarkGoalCompletion(piggyBank);
+
+        return goalPlanner.getId();
     }
 
+    @Transactional(readOnly = true)
     public GoalPlannerDto getGoalPlanner(Long userId, Long piggyBankId) {
-        GoalPlanner goalPlanner = findGoalPlanner(userId, piggyBankId);
-        return goalPlannerMapper.toDto(goalPlanner);
+        PiggyBank piggyBank = findPiggyBankWithPlanner(userId, piggyBankId);
+        return goalPlannerMapper.toDto(piggyBank.getGoalPlanner(), piggyBank);
     }
 
+    @Transactional(readOnly = true)
     public GoalPlannerSummaryDto getGoalPlannerSummary(Long userId, Long piggyBankId) {
-        GoalPlanner goalPlanner = findGoalPlanner(userId, piggyBankId);
-        return goalPlannerMapper.toSummaryDto(goalPlanner);
+        PiggyBank piggyBank = findPiggyBankWithPlanner(userId, piggyBankId);
+        return goalPlannerMapper.toSummaryDto(piggyBank.getGoalPlanner(), piggyBank);
     }
 
+    @Transactional(readOnly = true)
     public GoalPlannerCompletionSummaryDto getGoalCompletionSummary(Long userId, Long piggyBankId) {
-        GoalPlanner goalPlanner = findGoalPlanner(userId, piggyBankId);
+        PiggyBank piggyBank = findPiggyBankWithPlanner(userId, piggyBankId);
+        GoalPlanner goalPlanner = piggyBank.getGoalPlanner();
 
         if (goalPlanner.getCompletedAt() == null) {
             throw new RequestedEntityNotFoundException("Goal not yet completed");
         }
 
-        return goalPlannerMapper.toCompletionDto(goalPlanner);
+        return goalPlannerMapper.toCompletionDto(goalPlanner, piggyBank);
     }
 
     @Transactional
-    public void checkAndMarkGoalCompletion(GoalPlanner goalPlanner) {
+    public void checkAndMarkGoalCompletion(PiggyBank piggyBank) {
+        GoalPlanner goalPlanner = piggyBank.getGoalPlanner();
         if (goalPlanner == null) {
             return;
         }
 
-        BigDecimal currentAmount = goalPlanner.getPiggyBankAssigned().getAmount();
-        BigDecimal goalAmount = goalPlanner.getPiggyBankAssigned().getGoalAmount();
-        boolean goalReached = currentAmount.compareTo(goalAmount) >= 0;
+        BigDecimal currentAmount = piggyBank.getAmount();
+        BigDecimal goalAmount = piggyBank.getGoalAmount();
+        boolean goalReached = goalAmount != null && currentAmount.compareTo(goalAmount) >= 0;
 
         if (goalReached && goalPlanner.getCompletedAt() == null) {
             goalPlanner.setCompletedAt(LocalDateTime.now());
-            goalPlannerRepository.save(goalPlanner);
         } else if (!goalReached && goalPlanner.getCompletedAt() != null) {
             goalPlanner.setCompletedAt(null);
-            goalPlannerRepository.save(goalPlanner);
         }
     }
 
-    private GoalPlanner findGoalPlanner(Long userId, Long piggyBankId) {
-        return goalPlannerRepository.findByPiggyBankIdAndUserId(piggyBankId, userId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("Goal planner not found"));
+    private PiggyBank findPiggyBankWithPlanner(Long userId, Long piggyBankId) {
+        PiggyBank piggyBank = piggyBankRepository.findByIdAndUserId(piggyBankId, userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Piggy bank not found"));
+
+        if (piggyBank.getGoalPlanner() == null) {
+            throw new RequestedEntityNotFoundException("Goal planner not found");
+        }
+        return piggyBank;
     }
 }
