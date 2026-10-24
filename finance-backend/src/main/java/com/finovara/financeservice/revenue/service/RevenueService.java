@@ -138,7 +138,8 @@ public class RevenueService implements UserDataDeletable {
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        revenueRepository.deleteByUserId(userId);
+        List<Revenue> revenues = revenueRepository.findAllByUserId(userId);
+        revenueRepository.deleteAll(revenues);
         log.info("Deleted revenue for userId={}", userId);
     }
 
