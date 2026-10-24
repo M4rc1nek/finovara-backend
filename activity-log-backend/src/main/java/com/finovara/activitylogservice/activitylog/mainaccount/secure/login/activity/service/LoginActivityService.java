@@ -53,9 +53,9 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
         moveToArchive(event.userId(), pageSize);
     }
 
-    @Cacheable(value = "loginActivity", key = "#userId + ':' + #sort")
-    public List<LoginActivityDto> getLoginActivity(Long userId, SortType sort) {
-        return getActivities(userId, sort, pageSize);
+    @Cacheable(value = "loginActivity", key = "#userId + ':' + #sort + ':' + #page")
+    public List<LoginActivityDto> getLoginActivity(Long userId, SortType sort, int page) {
+        return getActivities(userId, sort, page, pageSize);
     }
 
     public void confirmPassword(Long userId, ConfirmPasswordDto confirmPasswordDto) {
@@ -73,33 +73,28 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
     }
 
     @Override
-    protected void saveActivity(LoginActivity a) {
-        loginActivityRepository.save(a);
+    protected void saveActivity(LoginActivity activity) {
+        loginActivityRepository.save(activity);
     }
 
     @Override
-    protected long countActivities(Long userId) {
-        return loginActivityRepository.countActivityLoginByUserId(userId);
+    protected List<LoginActivity> findOldestForArchive(Long userId, int limit) {
+        return loginActivityRepository.findOldestForArchive(userId, PageRequest.of(0, limit));
     }
 
     @Override
-    protected List<LoginActivity> findActivitiesToArchive(Long userId, int pageSize) {
-        return loginActivityRepository.findOldestByUserId(userId, PageRequest.of(0, pageSize));
+    protected LoginActivityArchive mapToArchive(LoginActivity activity) {
+        return loginActivityArchiveService.mapToArchive(activity);
     }
 
     @Override
-    protected LoginActivityArchive mapToArchive(LoginActivity a) {
-        return loginActivityArchiveService.mapToArchive(a);
+    protected void archive(List<LoginActivityArchive> archives) {
+        loginActivityArchiveService.archive(archives);
     }
 
     @Override
-    protected void archive(List<LoginActivityArchive> a) {
-        loginActivityArchiveService.archive(a);
-    }
-
-    @Override
-    protected void deleteActivities(List<LoginActivity> a) {
-        loginActivityRepository.deleteAll(a);
+    protected void deleteActivities(List<LoginActivity> activities) {
+        loginActivityRepository.deleteAll(activities);
     }
 
     @Override
