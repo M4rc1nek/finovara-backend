@@ -127,14 +127,15 @@ public class SharedExpenseService {
         return expenseId;
     }
 
-    public List<SharedExpenseDto> getExpense(Long userId) {
-        List<SharedExpense> expenses = sharedExpenseRepository.findAllByOwnerIdOrMemberId(userId, PageRequest.of(0, pageSize));
+    @Transactional(readOnly = true)
+    public List<SharedExpenseDto> getExpense(Long userId, int page) {
+        List<SharedExpense> expenses = sharedExpenseRepository.findAllByOwnerIdOrMemberId(userId, PageRequest.of(page, pageSize));
 
         Map<Long, String> usernameById = usernameResolver.resolve(
                 expenses.stream().map(SharedExpense::getCreatedByUserId).collect(Collectors.toSet()));
 
         return expenses.stream()
-                .map(e -> sharedExpenseMapper.mapToDto(e, usernameById.get(e.getCreatedByUserId())))
+                .map(expense -> sharedExpenseMapper.mapToDto(expense, usernameById.get(expense.getCreatedByUserId())))
                 .toList();
     }
 
