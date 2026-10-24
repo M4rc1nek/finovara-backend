@@ -114,7 +114,8 @@ public class LimitManagementService implements UserDataDeletable {
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        limitRepository.deleteByUserId(userId);
+        List<Limit> limits = limitRepository.findAllByUserId(userId);
+        limitRepository.deleteAll(limits);
         log.info("Deleted limit for userId={}", userId);
     }
 }
