@@ -11,6 +11,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          batch_size: 100
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   liquibase:
     change-log: classpath:changelog/changelog.xml
@@ -135,6 +137,7 @@ secret-generator:
 shared-account:
   invitation:
     expiration-hours: 24
+    page-size: 30
   search:
     page-size: 25
   min-search-query: 3
