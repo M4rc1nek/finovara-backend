@@ -50,8 +50,8 @@ public class RiskChallengeService {
     }
 
     @Transactional
-    public ChallengeConfirmationResponse confirmPassword(Long userId, Long riskOperationId, String password) {
-        RiskOperation operation = riskOperationRepository.findByIdAndUserId(riskOperationId, userId)
+    public ChallengeConfirmationResponse confirmPassword(Long riskOperationId, String password) {
+        RiskOperation operation = riskOperationRepository.findByIdForUpdate(riskOperationId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Risk operation not found id=" + riskOperationId));
 
         if (!operation.requiresPassword()) {
@@ -73,7 +73,7 @@ public class RiskChallengeService {
 
     @Transactional
     public ChallengeConfirmationResponse confirmEmailCode(Long riskOperationId, String code) {
-        RiskOperation operation = riskOperationRepository.findById(riskOperationId)
+        RiskOperation operation = riskOperationRepository.findByIdForUpdate(riskOperationId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Risk operation not found id=" + riskOperationId));
 
         if (!operation.requiresEmailCode()) {
