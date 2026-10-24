@@ -111,5 +111,5 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             """)
     List<DailyCashDto> avgExpensesGroupedByDate(Long userId);
 
-    void deleteByUserId(Long userId);
+    List<Expense> findAllByUserId(Long userId);
 }
