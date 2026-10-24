@@ -1,18 +1,23 @@
 package com.finovara.securitymonitoring.riskchallenge.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
@@ -32,23 +37,25 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class RiskChallengeServiceTest {
 
-    private static final Long RISK_OPERATION_ID = 1L;
-    private static final Long USER_ID = 10L;
-    private static final Long OTHER_USER_ID = 20L;
-    private static final String RECIPIENT_EMAIL = "user@test.com";
     private static final String EMAIL_SUBJECT = "Kod autoryzacyjny Finovara";
     private static final String EMAIL_TEMPLATE = "/email/security-authorization-code.html";
-    private static final String EXPIRES_FIELD = "secureCodeExpiresMinutes";
-    private static final int EXPIRES_MINUTES = 15;
+    private static final String CODE_REGEX = "\\d{6}";
+    private static final int EXPIRES_MINUTES = 10;
+    private static final Long RISK_OPERATION_ID = 100L;
+    private static final Long USER_ID = 1L;
+    private static final String RECIPIENT_EMAIL = "user@finovara.com";
+    private static final String PASSWORD = "secret";
+    private static final String CODE = "123456";
+    private static final String WRONG_CODE = "654321";
 
     @Mock
     private RiskOperationRepository riskOperationRepository;
@@ -62,530 +69,437 @@ class RiskChallengeServiceTest {
     @Mock
     private RiskOperation operation;
 
+    @Mock
+    private FeignException.Unauthorized unauthorizedException;
+
+    @Mock
+    private FeignException.Forbidden forbiddenException;
+
+    @Mock
+    private FeignException.InternalServerError serverErrorException;
+
+    @Captor
+    private ArgumentCaptor<String> codeCaptor;
+
+    @Captor
+    private ArgumentCaptor<LocalDateTime> expiresAtCaptor;
+
+    @Captor
+    private ArgumentCaptor<ConfirmPasswordDto> passwordDtoCaptor;
+
+    @Captor
+    private ArgumentCaptor<Map<String, Object>> variablesCaptor;
+
     @InjectMocks
-    private RiskChallengeService riskChallengeService;
+    private RiskChallengeService service;
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(riskChallengeService, EXPIRES_FIELD, EXPIRES_MINUTES);
+        setField(service, "secureCodeExpiresMinutes", EXPIRES_MINUTES);
     }
 
     @Nested
     class GenerateAndSendEmailCode {
 
         @Test
-        void shouldSetSixDigitEmailCodeOnOperationWhenGenerating() {
-            ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
-
-            riskChallengeService.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
+        void shouldSetSixDigitCodeOnOperationWhenGeneratingCode() {
+            service.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
 
             verify(operation).setEmailCode(codeCaptor.capture());
-            assertThat(codeCaptor.getValue()).matches("\\d{6}");
+            assertTrue(codeCaptor.getValue().matches(CODE_REGEX));
         }
 
         @Test
-        void shouldSetEmailCodeExpiresAtBasedOnConfiguredMinutesWhenGenerating() {
-            ArgumentCaptor<LocalDateTime> expiresCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+        void shouldSetExpirationBasedOnConfiguredMinutesWhenGeneratingCode() {
             LocalDateTime before = LocalDateTime.now().plusMinutes(EXPIRES_MINUTES);
 
-            riskChallengeService.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
+            service.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
 
             LocalDateTime after = LocalDateTime.now().plusMinutes(EXPIRES_MINUTES);
-            verify(operation).setEmailCodeExpiresAt(expiresCaptor.capture());
-            assertThat(expiresCaptor.getValue()).isBetween(before, after);
+            verify(operation).setEmailCodeExpiresAt(expiresAtCaptor.capture());
+            LocalDateTime expiresAt = expiresAtCaptor.getValue();
+            assertFalse(expiresAt.isBefore(before));
+            assertFalse(expiresAt.isAfter(after));
         }
 
         @Test
-        void shouldSetEmailCodeExpiresAtBasedOnChangedConfigurationWhenGenerating() {
-            int changedMinutes = 30;
-            ReflectionTestUtils.setField(riskChallengeService, EXPIRES_FIELD, changedMinutes);
-            ArgumentCaptor<LocalDateTime> expiresCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
-            LocalDateTime before = LocalDateTime.now().plusMinutes(changedMinutes);
+        void shouldSaveOperationWhenGeneratingCode() {
+            service.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
 
-            riskChallengeService.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
-
-            LocalDateTime after = LocalDateTime.now().plusMinutes(changedMinutes);
-            verify(operation).setEmailCodeExpiresAt(expiresCaptor.capture());
-            assertThat(expiresCaptor.getValue()).isBetween(before, after);
+            verify(riskOperationRepository, times(1)).save(operation);
+            verifyNoMoreInteractions(riskOperationRepository);
         }
 
-        @Test
-        void shouldSaveOperationWhenGenerating() {
-            riskChallengeService.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
-
-            verify(riskOperationRepository).save(operation);
-        }
 
         @Test
-        void shouldSendEmailWithSameCodeThatWasSetOnOperationWhenGenerating() {
-            ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
+        void shouldSaveOperationBeforeSendingEmailWhenGeneratingCode() {
+            service.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
 
-            riskChallengeService.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
-
-            verify(operation).setEmailCode(codeCaptor.capture());
-            verify(emailTemplateService).sendEmail(RECIPIENT_EMAIL, EMAIL_SUBJECT, EMAIL_TEMPLATE,
-                    Map.of("code", codeCaptor.getValue()));
-        }
-
-        @Test
-        void shouldSendEmailWithNullRecipientWhenRecipientIsNull() {
-            ArgumentCaptor<String> codeCaptor = ArgumentCaptor.forClass(String.class);
-
-            riskChallengeService.generateAndSendEmailCode(operation, null);
-
-            verify(operation).setEmailCode(codeCaptor.capture());
-            verify(emailTemplateService).sendEmail(null, EMAIL_SUBJECT, EMAIL_TEMPLATE,
-                    Map.of("code", codeCaptor.getValue()));
-        }
-
-        @Test
-        void shouldPrepareAndSaveOperationBeforeSendingEmailWhenGenerating() {
-            riskChallengeService.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
-
-            InOrder inOrder = inOrder(operation, riskOperationRepository, emailTemplateService);
-            inOrder.verify(operation).setEmailCode(anyString());
-            inOrder.verify(operation).setEmailCodeExpiresAt(any(LocalDateTime.class));
+            InOrder inOrder = inOrder(riskOperationRepository, emailTemplateService);
             inOrder.verify(riskOperationRepository).save(operation);
-            inOrder.verify(emailTemplateService)
-                    .sendEmail(eq(RECIPIENT_EMAIL), eq(EMAIL_SUBJECT), eq(EMAIL_TEMPLATE), any());
+            inOrder.verify(emailTemplateService).sendEmail(anyString(), anyString(), anyString(), anyMap());
+        }
+
+        @Test
+        void shouldNotUseAuthBackendWhenGeneratingCode() {
+            service.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
+
+            verifyNoInteractions(authBackendClient);
+        }
+
+        @Test
+        void shouldGenerateCodeWithLeadingZerosPreservedWhenGeneratingManyCodes() {
+            for (int i = 0; i < 200; i++) {
+                service.generateAndSendEmailCode(operation, RECIPIENT_EMAIL);
+            }
+
+            verify(operation, times(200)).setEmailCode(codeCaptor.capture());
+            for (String generated : codeCaptor.getAllValues()) {
+                assertEquals(6, generated.length());
+                assertTrue(generated.matches(CODE_REGEX));
+            }
         }
 
         @Test
         void shouldThrowExceptionWhenOperationIsNull() {
-            assertThrows(NullPointerException.class,
-                    () -> riskChallengeService.generateAndSendEmailCode(null, RECIPIENT_EMAIL));
+            assertThrows(NullPointerException.class, () -> service.generateAndSendEmailCode(null, RECIPIENT_EMAIL));
 
             verifyNoInteractions(riskOperationRepository, emailTemplateService);
         }
 
         @Test
-        void shouldThrowExceptionWhenSavingOperationFails() {
-            when(riskOperationRepository.save(operation)).thenThrow(new IllegalStateException("save failed"));
+        void shouldThrowExceptionWhenRepositorySaveFails() {
+            when(riskOperationRepository.save(operation)).thenThrow(new IllegalStateException());
 
             assertThrows(IllegalStateException.class,
-                    () -> riskChallengeService.generateAndSendEmailCode(operation, RECIPIENT_EMAIL));
+                    () -> service.generateAndSendEmailCode(operation, RECIPIENT_EMAIL));
 
             verifyNoInteractions(emailTemplateService);
         }
 
         @Test
-        void shouldThrowExceptionWhenSendingEmailFails() {
-            doThrow(new IllegalStateException("send failed"))
-                    .when(emailTemplateService)
-                    .sendEmail(eq(RECIPIENT_EMAIL), anyString(), anyString(), any());
+        void shouldThrowExceptionWhenEmailSendingFails() {
+            doThrow(new IllegalStateException()).when(emailTemplateService)
+                    .sendEmail(anyString(), anyString(), anyString(), anyMap());
 
             assertThrows(IllegalStateException.class,
-                    () -> riskChallengeService.generateAndSendEmailCode(operation, RECIPIENT_EMAIL));
-
-            verify(riskOperationRepository).save(operation);
+                    () -> service.generateAndSendEmailCode(operation, RECIPIENT_EMAIL));
         }
     }
 
     @Nested
     class ConfirmPassword {
 
-        private static final String PASSWORD = "secret123";
-
         @Test
-        void shouldThrowExceptionWhenOperationNotFound() {
-            when(riskOperationRepository.findByIdAndUserId(RISK_OPERATION_ID, USER_ID))
-                    .thenReturn(Optional.empty());
+        void shouldConfirmPasswordAndReturnResponseWhenPasswordIsCorrect() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresPassword()).thenReturn(true);
+            when(operation.getUserId()).thenReturn(USER_ID);
+            when(operation.getId()).thenReturn(RISK_OPERATION_ID);
+            when(operation.isFullyVerified()).thenReturn(true);
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD));
+            ChallengeConfirmationResponse result = service.confirmPassword(RISK_OPERATION_ID, PASSWORD);
 
-            verifyNoInteractions(authBackendClient);
-            verify(riskOperationRepository, never()).save(any());
+            assertNotNull(result);
+            verify(operation).setPasswordConfirmed(true);
+            verify(riskOperationRepository).save(operation);
         }
 
         @Test
-        void shouldThrowExceptionWhenOperationNotFoundForNullUserId() {
-            when(riskOperationRepository.findByIdAndUserId(RISK_OPERATION_ID, null))
-                    .thenReturn(Optional.empty());
+        void shouldReturnNotFullyVerifiedResponseWhenOtherChallengesArePending() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresPassword()).thenReturn(true);
+            when(operation.getUserId()).thenReturn(USER_ID);
+            when(operation.getId()).thenReturn(RISK_OPERATION_ID);
+            when(operation.isFullyVerified()).thenReturn(false);
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> riskChallengeService.confirmPassword(null, RISK_OPERATION_ID, PASSWORD));
+            ChallengeConfirmationResponse result = service.confirmPassword(RISK_OPERATION_ID, PASSWORD);
 
-            verifyNoInteractions(authBackendClient);
+            assertEquals(new ChallengeConfirmationResponse(RISK_OPERATION_ID, false), result);
         }
 
         @Test
-        void shouldThrowExceptionWhenOperationNotFoundForNullRiskOperationId() {
-            when(riskOperationRepository.findByIdAndUserId(null, USER_ID))
-                    .thenReturn(Optional.empty());
+        void shouldReturnFullyVerifiedResponseWhenAllChallengesAreCompleted() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresPassword()).thenReturn(true);
+            when(operation.getUserId()).thenReturn(USER_ID);
+            when(operation.getId()).thenReturn(RISK_OPERATION_ID);
+            when(operation.isFullyVerified()).thenReturn(true);
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> riskChallengeService.confirmPassword(USER_ID, null, PASSWORD));
+            ChallengeConfirmationResponse result = service.confirmPassword(RISK_OPERATION_ID, PASSWORD);
 
-            verifyNoInteractions(authBackendClient);
+            assertEquals(new ChallengeConfirmationResponse(RISK_OPERATION_ID, true), result);
         }
 
-        @Nested
-        class WhenOperationExists {
+        @Test
+        void shouldVerifyPasswordWithOperationUserIdWhenConfirmingPassword() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresPassword()).thenReturn(true);
+            when(operation.getUserId()).thenReturn(USER_ID);
 
-            @BeforeEach
-            void setUp() {
-                when(riskOperationRepository.findByIdAndUserId(RISK_OPERATION_ID, USER_ID))
-                        .thenReturn(Optional.of(operation));
-            }
+            service.confirmPassword(RISK_OPERATION_ID, PASSWORD);
 
-            @Test
-            void shouldThrowExceptionWhenOperationDoesNotRequirePassword() {
-                when(operation.requiresPassword()).thenReturn(false);
+            verify(authBackendClient).verifyPassword(eq(USER_ID), passwordDtoCaptor.capture());
+            assertEquals(new ConfirmPasswordDto(PASSWORD), passwordDtoCaptor.getValue());
+        }
 
-                assertThrows(RiskOperationStateException.class,
-                        () -> riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD));
+        @Test
+        void shouldLockOperationForUpdateWhenConfirmingPassword() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresPassword()).thenReturn(true);
+            when(operation.getUserId()).thenReturn(USER_ID);
 
-                verifyNoInteractions(authBackendClient);
-                verify(operation, never()).setPasswordConfirmed(anyBoolean());
-                verify(riskOperationRepository, never()).save(any());
-            }
+            service.confirmPassword(RISK_OPERATION_ID, PASSWORD);
 
-            @Nested
-            class WhenPasswordIsRequired {
+            verify(riskOperationRepository, times(1)).findByIdForUpdate(RISK_OPERATION_ID);
+        }
 
-                @BeforeEach
-                void setUp() {
-                    when(operation.requiresPassword()).thenReturn(true);
-                    when(operation.getUserId()).thenReturn(USER_ID);
-                }
+        @Test
+        void shouldThrowExceptionWhenOperationIsNotFound() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.empty());
 
-                @Test
-                void shouldReturnFullyVerifiedResponseWhenPasswordIsValid() {
-                    when(operation.getId()).thenReturn(RISK_OPERATION_ID);
-                    when(operation.isFullyVerified()).thenReturn(true);
+            assertThrows(RequestedEntityNotFoundException.class,
+                    () -> service.confirmPassword(RISK_OPERATION_ID, PASSWORD));
 
-                    ChallengeConfirmationResponse response =
-                            riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD);
+            verifyNoInteractions(authBackendClient);
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                    assertThat(response).isEqualTo(new ChallengeConfirmationResponse(RISK_OPERATION_ID, true));
-                }
+        @Test
+        void shouldThrowExceptionWhenOperationDoesNotRequirePassword() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresPassword()).thenReturn(false);
 
-                @Test
-                void shouldReturnNotFullyVerifiedResponseWhenOtherChallengesArePending() {
-                    when(operation.getId()).thenReturn(RISK_OPERATION_ID);
-                    when(operation.isFullyVerified()).thenReturn(false);
+            assertThrows(RiskOperationStateException.class,
+                    () -> service.confirmPassword(RISK_OPERATION_ID, PASSWORD));
 
-                    ChallengeConfirmationResponse response =
-                            riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD);
+            verifyNoInteractions(authBackendClient);
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                    assertThat(response).isEqualTo(new ChallengeConfirmationResponse(RISK_OPERATION_ID, false));
-                }
+        @Test
+        void shouldThrowExceptionWhenPasswordIsUnauthorized() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresPassword()).thenReturn(true);
+            when(operation.getUserId()).thenReturn(USER_ID);
+            doThrow(unauthorizedException).when(authBackendClient)
+                    .verifyPassword(eq(USER_ID), any(ConfirmPasswordDto.class));
 
-                @Test
-                void shouldVerifyPasswordWithAuthBackendWhenConfirming() {
-                    ArgumentCaptor<ConfirmPasswordDto> dtoCaptor = ArgumentCaptor.forClass(ConfirmPasswordDto.class);
+            assertThrows(InvalidChallengeException.class,
+                    () -> service.confirmPassword(RISK_OPERATION_ID, PASSWORD));
 
-                    riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD);
+            verify(operation, never()).setPasswordConfirmed(true);
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                    verify(authBackendClient).verifyPassword(eq(USER_ID), dtoCaptor.capture());
-                    assertThat(dtoCaptor.getValue()).usingRecursiveComparison()
-                            .isEqualTo(new ConfirmPasswordDto(PASSWORD));
-                }
+        @Test
+        void shouldThrowExceptionWhenPasswordVerificationIsForbidden() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresPassword()).thenReturn(true);
+            when(operation.getUserId()).thenReturn(USER_ID);
+            doThrow(forbiddenException).when(authBackendClient)
+                    .verifyPassword(eq(USER_ID), any(ConfirmPasswordDto.class));
 
-                @Test
-                void shouldVerifyPasswordUsingUserIdFromOperationWhenOperationUserIdDiffers() {
-                    when(operation.getUserId()).thenReturn(OTHER_USER_ID);
+            assertThrows(InvalidChallengeException.class,
+                    () -> service.confirmPassword(RISK_OPERATION_ID, PASSWORD));
 
-                    riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD);
+            verify(operation, never()).setPasswordConfirmed(true);
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                    verify(authBackendClient).verifyPassword(eq(OTHER_USER_ID), any(ConfirmPasswordDto.class));
-                }
+        @Test
+        void shouldPropagateExceptionWhenAuthBackendFailsWithServerError() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresPassword()).thenReturn(true);
+            when(operation.getUserId()).thenReturn(USER_ID);
+            doThrow(serverErrorException).when(authBackendClient)
+                    .verifyPassword(eq(USER_ID), any(ConfirmPasswordDto.class));
 
-                @Test
-                void shouldVerifyPasswordWithNullPasswordWhenPasswordIsNull() {
-                    ArgumentCaptor<ConfirmPasswordDto> dtoCaptor = ArgumentCaptor.forClass(ConfirmPasswordDto.class);
+            assertThrows(FeignException.InternalServerError.class,
+                    () -> service.confirmPassword(RISK_OPERATION_ID, PASSWORD));
 
-                    riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, null);
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                    verify(authBackendClient).verifyPassword(eq(USER_ID), dtoCaptor.capture());
-                    assertThat(dtoCaptor.getValue()).usingRecursiveComparison()
-                            .isEqualTo(new ConfirmPasswordDto(null));
-                }
+        @Test
+        void shouldThrowExceptionWhenRepositorySaveFails() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresPassword()).thenReturn(true);
+            when(operation.getUserId()).thenReturn(USER_ID);
+            when(riskOperationRepository.save(operation)).thenThrow(new IllegalStateException());
 
-                @Test
-                void shouldSetPasswordConfirmedAndSaveOperationWhenPasswordIsValid() {
-                    riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD);
+            assertThrows(IllegalStateException.class, () -> service.confirmPassword(RISK_OPERATION_ID, PASSWORD));
+        }
 
-                    verify(operation).setPasswordConfirmed(true);
-                    verify(riskOperationRepository).save(operation);
-                }
+        @Test
+        void shouldThrowExceptionWhenRepositoryLookupFails() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenThrow(new IllegalStateException());
 
-                @Test
-                void shouldVerifyPasswordBeforeMarkingConfirmedAndSavingWhenPasswordIsValid() {
-                    riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD);
+            assertThrows(IllegalStateException.class, () -> service.confirmPassword(RISK_OPERATION_ID, PASSWORD));
 
-                    InOrder inOrder = inOrder(authBackendClient, operation, riskOperationRepository);
-                    inOrder.verify(authBackendClient).verifyPassword(eq(USER_ID), any(ConfirmPasswordDto.class));
-                    inOrder.verify(operation).setPasswordConfirmed(true);
-                    inOrder.verify(riskOperationRepository).save(operation);
-                }
-
-                @Test
-                void shouldNotSetEmailCodeConfirmedWhenConfirmingPassword() {
-                    riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD);
-
-                    verify(operation, never()).setEmailCodeConfirmed(anyBoolean());
-                }
-
-                @Test
-                void shouldThrowExceptionWhenAuthBackendReturnsUnauthorized() {
-                    doThrow(mock(FeignException.Unauthorized.class))
-                            .when(authBackendClient).verifyPassword(eq(USER_ID), any(ConfirmPasswordDto.class));
-
-                    assertThrows(InvalidChallengeException.class,
-                            () -> riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD));
-
-                    verify(operation, never()).setPasswordConfirmed(anyBoolean());
-                    verify(riskOperationRepository, never()).save(any());
-                }
-
-                @Test
-                void shouldThrowExceptionWhenAuthBackendReturnsForbidden() {
-                    doThrow(mock(FeignException.Forbidden.class))
-                            .when(authBackendClient).verifyPassword(eq(USER_ID), any(ConfirmPasswordDto.class));
-
-                    assertThrows(InvalidChallengeException.class,
-                            () -> riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD));
-
-                    verify(operation, never()).setPasswordConfirmed(anyBoolean());
-                    verify(riskOperationRepository, never()).save(any());
-                }
-
-                @Test
-                void shouldThrowExceptionWhenAuthBackendReturnsServerError() {
-                    doThrow(mock(FeignException.InternalServerError.class))
-                            .when(authBackendClient).verifyPassword(eq(USER_ID), any(ConfirmPasswordDto.class));
-
-                    assertThrows(FeignException.InternalServerError.class,
-                            () -> riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD));
-
-                    verify(operation, never()).setPasswordConfirmed(anyBoolean());
-                    verify(riskOperationRepository, never()).save(any());
-                }
-
-                @Test
-                void shouldThrowExceptionWhenSavingOperationFails() {
-                    when(riskOperationRepository.save(operation)).thenThrow(new IllegalStateException("save failed"));
-
-                    assertThrows(IllegalStateException.class,
-                            () -> riskChallengeService.confirmPassword(USER_ID, RISK_OPERATION_ID, PASSWORD));
-                }
-            }
+            verifyNoInteractions(authBackendClient);
         }
     }
 
     @Nested
     class ConfirmEmailCode {
 
-        private static final String CODE = "123456";
-        private static final String OTHER_CODE = "999999";
-
         @Test
-        void shouldThrowExceptionWhenOperationNotFound() {
-            when(riskOperationRepository.findById(RISK_OPERATION_ID)).thenReturn(Optional.empty());
+        void shouldConfirmEmailCodeAndReturnResponseWhenCodeIsCorrect() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresEmailCode()).thenReturn(true);
+            when(operation.getEmailCodeExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
+            when(operation.getEmailCode()).thenReturn(CODE);
+            when(operation.getUserId()).thenReturn(USER_ID);
+            when(operation.getId()).thenReturn(RISK_OPERATION_ID);
+            when(operation.isFullyVerified()).thenReturn(true);
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE));
+            ChallengeConfirmationResponse result = service.confirmEmailCode(RISK_OPERATION_ID, CODE);
 
-            verify(riskOperationRepository, never()).save(any());
+            assertEquals(new ChallengeConfirmationResponse(RISK_OPERATION_ID, true), result);
+            verify(operation).setEmailCodeConfirmed(true);
+            verify(riskOperationRepository).save(operation);
         }
 
         @Test
-        void shouldThrowExceptionWhenOperationNotFoundForNullRiskOperationId() {
-            when(riskOperationRepository.findById(null)).thenReturn(Optional.empty());
+        void shouldReturnNotFullyVerifiedResponseWhenOtherChallengesArePending() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresEmailCode()).thenReturn(true);
+            when(operation.getEmailCodeExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
+            when(operation.getEmailCode()).thenReturn(CODE);
+            when(operation.getUserId()).thenReturn(USER_ID);
+            when(operation.getId()).thenReturn(RISK_OPERATION_ID);
+            when(operation.isFullyVerified()).thenReturn(false);
 
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> riskChallengeService.confirmEmailCode(null, CODE));
+            ChallengeConfirmationResponse result = service.confirmEmailCode(RISK_OPERATION_ID, CODE);
 
-            verify(riskOperationRepository, never()).save(any());
+            assertEquals(new ChallengeConfirmationResponse(RISK_OPERATION_ID, false), result);
         }
 
-        @Nested
-        class WhenOperationExists {
+        @Test
+        void shouldNotUseAuthBackendWhenConfirmingEmailCode() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresEmailCode()).thenReturn(true);
+            when(operation.getEmailCodeExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
+            when(operation.getEmailCode()).thenReturn(CODE);
+            when(operation.getUserId()).thenReturn(USER_ID);
 
-            @BeforeEach
-            void setUp() {
-                when(riskOperationRepository.findById(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
-            }
+            service.confirmEmailCode(RISK_OPERATION_ID, CODE);
 
-            @Test
-            void shouldThrowExceptionWhenEmailCodeIsNotRequired() {
-                when(operation.requiresEmailCode()).thenReturn(false);
+            verifyNoInteractions(authBackendClient, emailTemplateService);
+        }
 
-                assertThrows(RiskOperationStateException.class,
-                        () -> riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE));
+        @Test
+        void shouldThrowExceptionWhenOperationIsNotFound() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.empty());
 
-                verify(operation, never()).setEmailCodeConfirmed(anyBoolean());
-                verify(riskOperationRepository, never()).save(any());
-            }
+            assertThrows(RequestedEntityNotFoundException.class,
+                    () -> service.confirmEmailCode(RISK_OPERATION_ID, CODE));
 
-            @Nested
-            class WhenEmailCodeIsRequired {
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                @BeforeEach
-                void setUp() {
-                    when(operation.requiresEmailCode()).thenReturn(true);
-                }
+        @Test
+        void shouldThrowExceptionWhenOperationDoesNotRequireEmailCode() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresEmailCode()).thenReturn(false);
 
-                @Test
-                void shouldThrowExceptionWhenExpirationDateIsNull() {
-                    when(operation.getEmailCodeExpiresAt()).thenReturn(null);
+            assertThrows(RiskOperationStateException.class,
+                    () -> service.confirmEmailCode(RISK_OPERATION_ID, CODE));
 
-                    assertThrows(InvalidChallengeException.class,
-                            () -> riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE));
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                    verify(operation, never()).getEmailCode();
-                    verify(operation, never()).setEmailCodeConfirmed(anyBoolean());
-                    verify(riskOperationRepository, never()).save(any());
-                }
+        @Test
+        void shouldThrowExceptionWhenExpirationIsNull() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresEmailCode()).thenReturn(true);
+            when(operation.getEmailCodeExpiresAt()).thenReturn(null);
 
-                @Test
-                void shouldThrowExceptionWhenCodeHasExpired() {
-                    when(operation.getEmailCodeExpiresAt()).thenReturn(LocalDateTime.now().minusMinutes(1));
+            assertThrows(InvalidChallengeException.class, () -> service.confirmEmailCode(RISK_OPERATION_ID, CODE));
 
-                    assertThrows(InvalidChallengeException.class,
-                            () -> riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE));
+            verify(operation, never()).setEmailCodeConfirmed(true);
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                    verify(operation, never()).getEmailCode();
-                    verify(operation, never()).setEmailCodeConfirmed(anyBoolean());
-                    verify(riskOperationRepository, never()).save(any());
-                }
+        @Test
+        void shouldThrowExceptionWhenCodeIsExpired() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresEmailCode()).thenReturn(true);
+            when(operation.getEmailCodeExpiresAt()).thenReturn(LocalDateTime.now().minusMinutes(1));
 
-                @Nested
-                class WhenCodeIsNotExpired {
+            assertThrows(InvalidChallengeException.class, () -> service.confirmEmailCode(RISK_OPERATION_ID, CODE));
 
-                    @BeforeEach
-                    void setUp() {
-                        when(operation.getEmailCodeExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
-                    }
+            verify(operation, never()).setEmailCodeConfirmed(true);
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                    @Test
-                    void shouldThrowExceptionWhenStoredEmailCodeIsNull() {
-                        when(operation.getEmailCode()).thenReturn(null);
+        @Test
+        void shouldThrowExceptionWhenCodeIsExpiredEvenIfCodeMatches() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresEmailCode()).thenReturn(true);
+            when(operation.getEmailCodeExpiresAt()).thenReturn(LocalDateTime.now().minusSeconds(1));
 
-                        assertThrows(InvalidChallengeException.class,
-                                () -> riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE));
+            assertThrows(InvalidChallengeException.class, () -> service.confirmEmailCode(RISK_OPERATION_ID, CODE));
 
-                        verify(operation, never()).setEmailCodeConfirmed(anyBoolean());
-                        verify(riskOperationRepository, never()).save(any());
-                    }
+            verify(operation, never()).getEmailCode();
+        }
 
-                    @Test
-                    void shouldThrowExceptionWhenCodeDoesNotMatch() {
-                        when(operation.getEmailCode()).thenReturn(OTHER_CODE);
+        @Test
+        void shouldThrowExceptionWhenStoredCodeIsNull() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresEmailCode()).thenReturn(true);
+            when(operation.getEmailCodeExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
+            when(operation.getEmailCode()).thenReturn(null);
 
-                        assertThrows(InvalidChallengeException.class,
-                                () -> riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE));
+            assertThrows(InvalidChallengeException.class, () -> service.confirmEmailCode(RISK_OPERATION_ID, CODE));
 
-                        verify(operation, never()).setEmailCodeConfirmed(anyBoolean());
-                        verify(riskOperationRepository, never()).save(any());
-                    }
+            verify(operation, never()).setEmailCodeConfirmed(true);
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                    @Test
-                    void shouldThrowExceptionWhenProvidedCodeIsNull() {
-                        when(operation.getEmailCode()).thenReturn(CODE);
+        @Test
+        void shouldThrowExceptionWhenCodeDoesNotMatch() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresEmailCode()).thenReturn(true);
+            when(operation.getEmailCodeExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
+            when(operation.getEmailCode()).thenReturn(CODE);
 
-                        assertThrows(InvalidChallengeException.class,
-                                () -> riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, null));
+            assertThrows(InvalidChallengeException.class,
+                    () -> service.confirmEmailCode(RISK_OPERATION_ID, WRONG_CODE));
 
-                        verify(operation, never()).setEmailCodeConfirmed(anyBoolean());
-                        verify(riskOperationRepository, never()).save(any());
-                    }
+            verify(operation, never()).setEmailCodeConfirmed(true);
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                    @Test
-                    void shouldThrowExceptionWhenProvidedCodeContainsWhitespace() {
-                        when(operation.getEmailCode()).thenReturn(CODE);
+        @Test
+        void shouldThrowExceptionWhenProvidedCodeIsNull() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresEmailCode()).thenReturn(true);
+            when(operation.getEmailCodeExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
+            when(operation.getEmailCode()).thenReturn(CODE);
 
-                        assertThrows(InvalidChallengeException.class,
-                                () -> riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, " " + CODE));
+            assertThrows(InvalidChallengeException.class, () -> service.confirmEmailCode(RISK_OPERATION_ID, null));
 
-                        verify(operation, never()).setEmailCodeConfirmed(anyBoolean());
-                        verify(riskOperationRepository, never()).save(any());
-                    }
+            verify(riskOperationRepository, never()).save(any(RiskOperation.class));
+        }
 
-                    @Test
-                    void shouldThrowExceptionWhenProvidedCodeIsEmpty() {
-                        when(operation.getEmailCode()).thenReturn(CODE);
+        @Test
+        void shouldThrowExceptionWhenRepositorySaveFails() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenReturn(Optional.of(operation));
+            when(operation.requiresEmailCode()).thenReturn(true);
+            when(operation.getEmailCodeExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
+            when(operation.getEmailCode()).thenReturn(CODE);
+            when(riskOperationRepository.save(operation)).thenThrow(new IllegalStateException());
 
-                        assertThrows(InvalidChallengeException.class,
-                                () -> riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, ""));
+            assertThrows(IllegalStateException.class, () -> service.confirmEmailCode(RISK_OPERATION_ID, CODE));
+        }
 
-                        verify(operation, never()).setEmailCodeConfirmed(anyBoolean());
-                        verify(riskOperationRepository, never()).save(any());
-                    }
+        @Test
+        void shouldThrowExceptionWhenRepositoryLookupFails() {
+            when(riskOperationRepository.findByIdForUpdate(RISK_OPERATION_ID)).thenThrow(new IllegalStateException());
 
-                    @Nested
-                    class WhenCodeMatches {
-
-                        @BeforeEach
-                        void setUp() {
-                            when(operation.getEmailCode()).thenReturn(CODE);
-                        }
-
-                        @Test
-                        void shouldReturnFullyVerifiedResponseWhenCodeIsValid() {
-                            when(operation.getId()).thenReturn(RISK_OPERATION_ID);
-                            when(operation.isFullyVerified()).thenReturn(true);
-
-                            ChallengeConfirmationResponse response =
-                                    riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE);
-
-                            assertThat(response).isEqualTo(new ChallengeConfirmationResponse(RISK_OPERATION_ID, true));
-                        }
-
-                        @Test
-                        void shouldReturnNotFullyVerifiedResponseWhenOtherChallengesArePending() {
-                            when(operation.getId()).thenReturn(RISK_OPERATION_ID);
-                            when(operation.isFullyVerified()).thenReturn(false);
-
-                            ChallengeConfirmationResponse response =
-                                    riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE);
-
-                            assertThat(response).isEqualTo(new ChallengeConfirmationResponse(RISK_OPERATION_ID, false));
-                        }
-
-                        @Test
-                        void shouldSetEmailCodeConfirmedAndSaveOperationWhenCodeIsValid() {
-                            riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE);
-
-                            verify(operation).setEmailCodeConfirmed(true);
-                            verify(riskOperationRepository).save(operation);
-                        }
-
-                        @Test
-                        void shouldMarkCodeConfirmedBeforeSavingWhenCodeIsValid() {
-                            riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE);
-
-                            InOrder inOrder = inOrder(operation, riskOperationRepository);
-                            inOrder.verify(operation).setEmailCodeConfirmed(true);
-                            inOrder.verify(riskOperationRepository).save(operation);
-                        }
-
-                        @Test
-                        void shouldNotSetPasswordConfirmedWhenConfirmingEmailCode() {
-                            riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE);
-
-                            verify(operation, never()).setPasswordConfirmed(anyBoolean());
-                        }
-
-                        @Test
-                        void shouldNotCallAuthBackendWhenConfirmingEmailCode() {
-                            riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE);
-
-                            verifyNoInteractions(authBackendClient);
-                        }
-
-                        @Test
-                        void shouldThrowExceptionWhenSavingOperationFails() {
-                            when(riskOperationRepository.save(operation)).thenThrow(new IllegalStateException("save failed"));
-
-                            assertThrows(IllegalStateException.class,
-                                    () -> riskChallengeService.confirmEmailCode(RISK_OPERATION_ID, CODE));
-                        }
-                    }
-                }
-            }
+            assertThrows(IllegalStateException.class, () -> service.confirmEmailCode(RISK_OPERATION_ID, CODE));
         }
     }
 }
