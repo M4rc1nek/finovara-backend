@@ -10,6 +10,8 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
+        jdbc:
+          batch_size: 100
         dialect: org.hibernate.dialect.PostgreSQLDialect
   liquibase:
     change-log: classpath:changelog/changelog.xml
