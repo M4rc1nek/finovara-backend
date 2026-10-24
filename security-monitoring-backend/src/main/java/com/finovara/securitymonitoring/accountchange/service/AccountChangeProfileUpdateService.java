@@ -21,7 +21,7 @@ public class AccountChangeProfileUpdateService implements UserDataDeletable {
 
     @Transactional
     public void handleAccountChangeEvent(AccountChangeActivityEvent event) {
-        AccountChangeProfile profile = accountChangeProfileRepository.findByUserId(event.userId())
+        AccountChangeProfile profile = accountChangeProfileRepository.findByUserIdForUpdate(event.userId())
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Account change profile not found for userId=" + event.userId()));
 
         switch (event.type()) {
