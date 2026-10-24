@@ -20,5 +20,4 @@ public interface AccountChangeProfileRepository extends JpaRepository<AccountCha
     @Query("SELECT ac FROM AccountChangeProfile ac WHERE ac.userId = :userId")
     Optional<AccountChangeProfile> findByUserIdForUpdate(Long userId);
 
-    void deleteByUserId(Long userId);
 }
