@@ -1,5 +1,6 @@
 package com.finovara.activitylogservice.activitylog.sharedaccount.service;
 
+import com.finovara.activitylogservice.activitylog.mainaccount.core.ActivityPageRequest;
 import com.finovara.activitylogservice.activitylog.sharedaccount.dto.SharedAccountActivityLogDto;
 import com.finovara.activitylogservice.activitylog.sharedaccount.mapper.SharedAccountActivityLogMapper;
 import com.finovara.activitylogservice.activitylog.sharedaccount.model.SharedAccountActivityLog;
@@ -48,15 +49,16 @@ public class SharedAccountActivityLogService implements UserDataDeletable {
         log.info("Saved shared account activity for user {}, type: {}", event.userId(), event.type());
     }
 
-    @Cacheable(value = "shared-account:activity", key = "#userId + ':' + #sortType")
-    public List<SharedAccountActivityLogDto> getSharedAccountLogActivity(Long userId, SortType sortType) {
-        List<SharedAccountActivityLog> activities = sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(userId, sortType.getPageable(pageSize));
+    @Cacheable(value = "shared-account:activity", key = "#userId + ':' + #sortType + ':' + #page")
+    public List<SharedAccountActivityLogDto> getSharedAccountLogActivity(Long userId, SortType sortType, int page) {
+        List<SharedAccountActivityLog> activities = sharedAccountActivityLogRepository
+                .findByOwnerIdOrMemberId(userId, ActivityPageRequest.of(sortType, page, pageSize));
 
         Map<Long, UserDataDto> users = new HashMap<>();
         activities.stream()
                 .map(SharedAccountActivityLog::getUserId)
                 .distinct()
-                .forEach(id -> users.put(id, resolveUserInfo(id)));
+                .forEach(activityUserId -> users.put(activityUserId, resolveUserInfo(activityUserId)));
 
         return activities.stream()
                 .map(activity -> sharedAccountActivityLogMapper.mapToDto(activity, users.get(activity.getUserId())))
@@ -66,8 +68,8 @@ public class SharedAccountActivityLogService implements UserDataDeletable {
     private UserDataDto resolveUserInfo(Long userId) {
         try {
             return authBackendClient.getUserSession(userId);
-        } catch (FeignException e) {
-            log.warn("Could not load user data for userId={}, status={}", userId, e.status());
+        } catch (FeignException exception) {
+            log.warn("Could not load user data for userId={}, status={}", userId, exception.status());
             return null;
         }
     }
