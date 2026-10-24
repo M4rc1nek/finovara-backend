@@ -154,8 +154,8 @@ public class ExpenseService implements UserDataDeletable {
     }
 
     @Transactional(readOnly = true)
-    public List<ExpenseDto> getExpense(Long userId) {
-        return expenseRepository.findAllByUserId(userId, PageRequest.of(0, pageSize)).stream()
+    public List<ExpenseDto> getExpense(Long userId, int page) {
+        return expenseRepository.findAllByUserId(userId, PageRequest.of(page, pageSize)).stream()
                 .map(expenseMapper::mapExpenseToDto)
                 .toList();
     }
