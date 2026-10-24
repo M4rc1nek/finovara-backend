@@ -51,5 +51,4 @@ public interface PiggyBankRepository extends JpaRepository<PiggyBank, Long> {
             """)
     boolean existsByNameIgnoreCaseExcludingId(Long userId, String name, Long excludedId);
 
-    void deleteByUserId(Long userId);
 }
