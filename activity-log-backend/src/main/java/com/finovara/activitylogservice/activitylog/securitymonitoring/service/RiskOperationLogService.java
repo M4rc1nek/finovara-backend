@@ -83,7 +83,8 @@ public class RiskOperationLogService extends AccountActivityCore<RiskOperationAc
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        riskOperationActivityRepository.deleteByUserId(userId);
+        List<RiskOperationActivity> activities = riskOperationActivityRepository.findAllByUserId(userId);
+        riskOperationActivityRepository.deleteAll(activities);
         log.info("Deleted risk operation activity for userId={}", userId);
     }
 }
