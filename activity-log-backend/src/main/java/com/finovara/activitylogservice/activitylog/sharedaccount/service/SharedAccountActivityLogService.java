@@ -77,7 +77,8 @@ public class SharedAccountActivityLogService implements UserDataDeletable {
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        sharedAccountActivityLogRepository.deleteByUserId(userId);
+        List<SharedAccountActivityLog> activities = sharedAccountActivityLogRepository.findAllByUserId(userId);
+        sharedAccountActivityLogRepository.deleteAll(activities);
         log.info("Deleted shared account activity log for userId={}", userId);
     }
 }
