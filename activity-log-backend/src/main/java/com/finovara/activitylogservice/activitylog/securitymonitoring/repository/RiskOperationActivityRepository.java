@@ -14,5 +14,5 @@ public interface RiskOperationActivityRepository extends JpaRepository<RiskOpera
 
     boolean existsBySourceEventId(String sourceEventId);
 
-    void deleteByUserId(Long userId);
+    List<RiskOperationActivity> findAllByUserId(Long userId);
 }
