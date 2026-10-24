@@ -12,6 +12,6 @@ public interface LoginActivityArchiveRepository extends JpaRepository<LoginActiv
 
     List<LoginActivityArchive> findByUserId(Long userId, Pageable pageable);
 
-    void deleteByUserId(Long userId);
+    List<LoginActivityArchive> findAllByUserId(Long userId);
 
 }
