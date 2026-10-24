@@ -31,8 +31,8 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ExpenseDto>> getExpense() {
-        return ResponseEntity.ok(expenseService.getExpense(SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<List<ExpenseDto>> getExpense(@RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(expenseService.getExpense(SecurityUtils.getCurrentUserId(), page));
     }
 
     @DeleteMapping("/{expenseId}")
