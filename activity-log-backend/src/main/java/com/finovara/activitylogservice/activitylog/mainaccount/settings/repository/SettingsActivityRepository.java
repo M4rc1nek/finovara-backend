@@ -12,5 +12,5 @@ public interface SettingsActivityRepository extends JpaRepository<SettingsActivi
 
     List<SettingsActivity> findByUserId(Long userId, Pageable pageable);
 
-    void deleteByUserId(Long userId);
+    List<SettingsActivity> findAllByUserId(Long userId);
 }
