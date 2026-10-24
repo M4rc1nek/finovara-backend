@@ -3,13 +3,13 @@ package com.finovara.activitylogservice.activitylog.securitymonitoring.repositor
 import com.finovara.activitylogservice.activitylog.securitymonitoring.model.RiskOperationActivity;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface RiskOperationActivityRepository extends JpaRepository<RiskOperationActivity, Long> {
 
-    @Query("SELECT ro FROM RiskOperationActivity ro WHERE ro.userId = :userId")
     List<RiskOperationActivity> findByUserId(Long userId, Pageable pageable);
 
     boolean existsBySourceEventId(String sourceEventId);
