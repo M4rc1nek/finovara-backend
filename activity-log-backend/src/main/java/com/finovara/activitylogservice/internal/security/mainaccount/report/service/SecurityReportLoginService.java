@@ -51,12 +51,14 @@ public class SecurityReportLoginService {
 
     private Optional<LoginActivity> findFirstLogin(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to) {
         return loginActivityRepository.findFirstLogins(userId, status, from, to, PageRequest.of(0, 1))
-                .stream().findFirst();
+                .stream()
+                .findFirst();
     }
 
     private Optional<LoginActivity> findLastLogin(Long userId, LoginActivityStatus status, LocalDateTime from, LocalDateTime to) {
         return loginActivityRepository.findLastLogins(userId, status, from, to, PageRequest.of(0, 1))
-                .stream().findFirst();
+                .stream()
+                .findFirst();
     }
 
     private String extractLocation(LoginActivity loginActivity) {
