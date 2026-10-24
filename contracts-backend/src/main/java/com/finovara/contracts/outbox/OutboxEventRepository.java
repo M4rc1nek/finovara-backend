@@ -3,7 +3,6 @@ package com.finovara.contracts.outbox;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -18,7 +17,6 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEvent, UUID> 
     @Query("SELECT oe FROM OutboxEvent oe WHERE oe.status = :status ORDER BY oe.createdAt ASC LIMIT 10")
     List<OutboxEvent> findPendingEvents(OutboxStatus status);
 
-    @Modifying
-    @Query("DELETE FROM OutboxEvent oe WHERE oe.status = :status AND oe.sentAt < :before")
-    void deleteByStatusAndSentAtBefore(OutboxStatus status, LocalDateTime before);
+    @Query("SELECT oe FROM OutboxEvent oe WHERE oe.status = :status AND oe.sentAt < :before")
+    List<OutboxEvent> findByStatusAndSentAtBefore(OutboxStatus status, LocalDateTime before);
 }
