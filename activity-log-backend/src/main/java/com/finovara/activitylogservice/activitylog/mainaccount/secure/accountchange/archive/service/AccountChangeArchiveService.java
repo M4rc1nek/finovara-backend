@@ -11,7 +11,6 @@ import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,7 +31,6 @@ public class AccountChangeArchiveService extends AccountActivityCore<AccountChan
     private int pageSize;
 
     public AccountChangeArchive mapToArchive(AccountChangeActivity accountChangeActivity) {
-        log.info("Archiving account change activity. type: {}, userId: {}", accountChangeActivity.getType(), accountChangeActivity.getUserId());
         return AccountChangeArchive.builder()
                 .userId(accountChangeActivity.getUserId())
                 .type(accountChangeActivity.getType())
@@ -47,11 +45,12 @@ public class AccountChangeArchiveService extends AccountActivityCore<AccountChan
     @Transactional
     public void archive(List<AccountChangeArchive> archiveAccountChangesActivities) {
         accountChangeArchiveRepository.saveAll(archiveAccountChangesActivities);
+        log.info("Archived {} account change activities", archiveAccountChangesActivities.size());
     }
 
-    @Cacheable(value = "accountChangeArchive", key = "#userId + ':' + #sort")
-    public List<AccountChangeArchiveDto> getAccountChangeArchive(Long userId, SortType sort) {
-        return getActivities(userId, sort, pageSize);
+    @Cacheable(value = "accountChangeArchive", key = "#userId + ':' + #sort + ':' + #page")
+    public List<AccountChangeArchiveDto> getAccountChangeArchive(Long userId, SortType sort, int page) {
+        return getActivities(userId, sort, page, pageSize);
     }
 
     @Override
