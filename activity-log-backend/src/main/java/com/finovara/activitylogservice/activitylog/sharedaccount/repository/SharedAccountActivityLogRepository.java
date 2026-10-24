@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+
 import java.util.List;
 
 @Repository
@@ -16,11 +17,9 @@ public interface SharedAccountActivityLogRepository extends JpaRepository<Shared
     @Query("SELECT a FROM SharedAccountActivityLog a WHERE a.ownerId = :userId OR a.memberId = :userId")
     List<SharedAccountActivityLog> findByOwnerIdOrMemberId(Long userId, Pageable pageable);
 
-
     void deleteByOwnerIdAndMemberId(Long ownerId, Long memberId);
 
     void deleteByUserId(Long userId);
-
 
     @Query("""
             SELECT COUNT(a)
