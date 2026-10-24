@@ -5,13 +5,12 @@ import com.finovara.activitylogservice.activitylog.mainaccount.expense.dto.Expen
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.mapper.ExpenseActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.model.ExpenseActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.repository.ExpenseActivityRepository;
-import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -44,12 +43,11 @@ public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity,
 
         expenseActivityRepository.save(expenseActivity);
         log.info("Created activity type: {}, userId: {}", event.type(), event.userId());
-
     }
 
-    @Cacheable(value = "expenseActivity", key = "#userId + ':' + #sort")
-    public List<ExpenseActivityDto> getExpenseActivity(Long userId, SortType sort) {
-        return getActivities(userId, sort, pageSize);
+    @Cacheable(value = "expenseActivity", key = "#userId + ':' + #sort + ':' + #page")
+    public List<ExpenseActivityDto> getExpenseActivity(Long userId, SortType sort, int page) {
+        return getActivities(userId, sort, page, pageSize);
     }
 
     @Override
