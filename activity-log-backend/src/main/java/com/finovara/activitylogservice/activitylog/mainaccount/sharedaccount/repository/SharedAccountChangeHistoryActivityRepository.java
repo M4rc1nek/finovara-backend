@@ -12,5 +12,5 @@ public interface SharedAccountChangeHistoryActivityRepository extends JpaReposit
 
     List<SharedAccountChangeHistoryActivity> findByUserId(Long userId, Pageable pageable);
 
-    void deleteByUserId(Long userId);
+    List<SharedAccountChangeHistoryActivity> findAllByUserId(Long userId);
 }
