@@ -67,7 +67,8 @@ public class LimitActivityService extends AccountActivityCore<LimitActivity, Lim
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        limitActivityRepository.deleteByUserId(userId);
+        List<LimitActivity> activities = limitActivityRepository.findAllByUserId(userId);
+        limitActivityRepository.deleteAll(activities);
         log.info("Deleted limit activity for userId={}", userId);
     }
 }
