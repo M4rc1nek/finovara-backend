@@ -107,7 +107,7 @@ public class TransactionProfileUpdateService implements UserDataDeletable {
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        transactionProfileRepository.deleteByUserId(userId);
+        transactionProfileRepository.delete(getProfileForUpdateOrThrow(userId));
         log.info("Deleted transaction profile for userId={}", userId);
     }
 }
