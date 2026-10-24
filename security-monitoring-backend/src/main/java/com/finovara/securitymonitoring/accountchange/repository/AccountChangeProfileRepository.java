@@ -1,7 +1,9 @@
 package com.finovara.securitymonitoring.accountchange.repository;
 
 import com.finovara.securitymonitoring.accountchange.model.AccountChangeProfile;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -14,6 +16,9 @@ public interface AccountChangeProfileRepository extends JpaRepository<AccountCha
     @Query("SELECT ac FROM AccountChangeProfile ac WHERE ac.userId = :userId")
     Optional<AccountChangeProfile> findByUserId(Long userId);
 
-    void deleteByUserId(Long userId);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT ac FROM AccountChangeProfile ac WHERE ac.userId = :userId")
+    Optional<AccountChangeProfile> findByUserIdForUpdate(Long userId);
 
+    void deleteByUserId(Long userId);
 }
