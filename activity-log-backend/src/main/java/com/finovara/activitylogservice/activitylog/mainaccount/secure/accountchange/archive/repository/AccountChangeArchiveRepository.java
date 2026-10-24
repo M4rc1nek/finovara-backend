@@ -13,5 +13,4 @@ public interface AccountChangeArchiveRepository extends JpaRepository<AccountCha
     List<AccountChangeArchive> findByUserId(Long userId, Pageable pageable);
 
     void deleteByUserId(Long userId);
-
 }
