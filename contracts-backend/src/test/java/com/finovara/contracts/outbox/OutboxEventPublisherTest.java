@@ -7,6 +7,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cglib.core.Local;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.messaging.Message;
@@ -148,23 +149,33 @@ class OutboxEventPublisherTest {
 
         @Test
         void shouldDeleteSentEventsOlderThan7Days() {
+            List<OutboxEvent> events = List.of(new OutboxEvent());
+
+            when(outboxEventRepository.findByStatusAndSentAtBefore(eq(OutboxStatus.SENT), any(LocalDateTime.class))).thenReturn(events);
+
             outboxEventPublisher.cleanOldEvents();
 
             ArgumentCaptor<LocalDateTime> dateCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
-            verify(outboxEventRepository).deleteByStatusAndSentAtBefore(eq(OutboxStatus.SENT), dateCaptor.capture());
+
+            verify(outboxEventRepository).findByStatusAndSentAtBefore(eq(OutboxStatus.SENT), dateCaptor.capture());
+
+            verify(outboxEventRepository).deleteAll(events);
 
             LocalDateTime captured = dateCaptor.getValue();
-            assertThat(captured).isBetween(LocalDateTime.now().minusDays(7).minusSeconds(5), LocalDateTime.now().minusDays(7).plusSeconds(5));
+            LocalDateTime expected = LocalDateTime.now().minusDays(7);
+
+            assertThat(captured).isBetween(expected.minusSeconds(5), expected.plusSeconds(5));
         }
 
         @Test
         void shouldDeleteOnlySentEvents() {
+            when(outboxEventRepository.findByStatusAndSentAtBefore(eq(OutboxStatus.SENT), any(LocalDateTime.class))).thenReturn(List.of());
+
             outboxEventPublisher.cleanOldEvents();
 
-            verify(outboxEventRepository).deleteByStatusAndSentAtBefore(eq(OutboxStatus.SENT), any());
+            verify(outboxEventRepository).findByStatusAndSentAtBefore(eq(OutboxStatus.SENT), any(LocalDateTime.class));
         }
     }
-
     private OutboxEvent pendingEvent(String eventType, String aggregateId) {
         return OutboxEvent.of("PiggyBank", aggregateId, eventType, "{\"value\":\"test\"}", Object.class.getName());
     }
