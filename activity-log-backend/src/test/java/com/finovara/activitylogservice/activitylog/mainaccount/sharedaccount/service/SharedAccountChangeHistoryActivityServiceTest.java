@@ -6,8 +6,8 @@ import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.mod
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.repository.SharedAccountChangeHistoryActivityRepository;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
 import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
-import com.finovara.contracts.util.SortType;
 import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
+import com.finovara.contracts.util.SortType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,6 @@ class SharedAccountChangeHistoryActivityServiceTest {
 
     @Mock
     private AuthBackendClient authBackendClient;
-
 
     private SharedAccountChangeHistoryActivityService sharedAccountChangeHistoryActivityService;
 
@@ -137,7 +136,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
                     .thenReturn(List.of(entity));
             when(sharedAccountActivityMapper.mapToSharedAccountActivity(entity)).thenReturn(dto);
 
-            List<SharedAccountChangeHistoryActivityDto> result = sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType);
+            List<SharedAccountChangeHistoryActivityDto> result = sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType, 1);
 
             assertEquals(1, result.size());
             assertEquals(dto, result.getFirst());
@@ -151,7 +150,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
             when(sharedAccountChangeHistoryActivityRepository.findByUserId(eq(userId), any(Pageable.class)))
                     .thenReturn(List.of());
 
-            List<SharedAccountChangeHistoryActivityDto> result = sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType);
+            List<SharedAccountChangeHistoryActivityDto> result = sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType, 1);
 
             assertTrue(result.isEmpty());
         }
@@ -164,7 +163,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
             when(sharedAccountChangeHistoryActivityRepository.findByUserId(eq(userId), any(Pageable.class)))
                     .thenReturn(List.of());
 
-            sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType);
+            sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType, 1);
 
             verify(sharedAccountChangeHistoryActivityRepository, times(1)).findByUserId(eq(userId), any(Pageable.class));
         }
@@ -189,7 +188,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
             when(sharedAccountActivityMapper.mapToSharedAccountActivity(firstEntity)).thenReturn(firstDto);
             when(sharedAccountActivityMapper.mapToSharedAccountActivity(secondEntity)).thenReturn(secondDto);
 
-            sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType);
+            sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType, 1);
 
             verify(sharedAccountActivityMapper, times(1)).mapToSharedAccountActivity(firstEntity);
             verify(sharedAccountActivityMapper, times(1)).mapToSharedAccountActivity(secondEntity);
@@ -203,7 +202,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
             when(sharedAccountChangeHistoryActivityRepository.findByUserId(eq(userId), any(Pageable.class)))
                     .thenThrow(new RuntimeException("query failed"));
 
-            assertThrows(RuntimeException.class, () -> sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType));
+            assertThrows(RuntimeException.class, () -> sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType, 1));
         }
 
         @Test
@@ -217,7 +216,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
             when(sharedAccountActivityMapper.mapToSharedAccountActivity(entity))
                     .thenThrow(new RuntimeException("mapping failed"));
 
-            assertThrows(RuntimeException.class, () -> sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType));
+            assertThrows(RuntimeException.class, () -> sharedAccountChangeHistoryActivityService.getSharedAccountActivity(userId, sortType, 1));
         }
 
         @Test
@@ -227,7 +226,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
             when(sharedAccountChangeHistoryActivityRepository.findByUserId(eq(null), any(Pageable.class)))
                     .thenThrow(new IllegalArgumentException("userId must not be null"));
 
-            assertThrows(IllegalArgumentException.class, () -> sharedAccountChangeHistoryActivityService.getSharedAccountActivity(null, sortType));
+            assertThrows(IllegalArgumentException.class, () -> sharedAccountChangeHistoryActivityService.getSharedAccountActivity(null, sortType, 1));
         }
     }
 
