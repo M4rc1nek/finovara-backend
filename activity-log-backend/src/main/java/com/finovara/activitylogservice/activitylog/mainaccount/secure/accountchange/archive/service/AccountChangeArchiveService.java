@@ -66,7 +66,8 @@ public class AccountChangeArchiveService extends AccountActivityCore<AccountChan
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        accountChangeArchiveRepository.deleteByUserId(userId);
+        List<AccountChangeArchive> activities = accountChangeArchiveRepository.findAllByUserId(userId);
+        accountChangeArchiveRepository.deleteAll(activities);
         log.info("Deleted account changes activity from archive for userId={}", userId);
     }
 }
