@@ -18,8 +18,10 @@ public class LoginActivityController {
     private final LoginActivityService loginActivityService;
 
     @GetMapping
-    public ResponseEntity<List<LoginActivityDto>> getUserLoginActivity(@RequestParam(defaultValue = "NEWEST") SortType sortType) {
-        return ResponseEntity.ok(loginActivityService.getLoginActivity(SecurityUtils.getCurrentUserId(), sortType));
+    public ResponseEntity<List<LoginActivityDto>> getUserLoginActivity(
+            @RequestParam(defaultValue = "NEWEST") SortType sortType,
+            @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(loginActivityService.getLoginActivity(SecurityUtils.getCurrentUserId(), sortType, page));
     }
 
     @PostMapping("/confirm-password")
