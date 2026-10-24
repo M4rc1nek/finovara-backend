@@ -19,7 +19,7 @@ public interface SharedAccountActivityLogRepository extends JpaRepository<Shared
 
     void deleteByOwnerIdAndMemberId(Long ownerId, Long memberId);
 
-    void deleteByUserId(Long userId);
+    List<SharedAccountActivityLog> findAllByUserId(Long userId);
 
     @Query("""
             SELECT COUNT(a)
