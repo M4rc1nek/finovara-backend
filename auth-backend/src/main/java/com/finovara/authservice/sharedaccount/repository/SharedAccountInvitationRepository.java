@@ -5,7 +5,6 @@ import com.finovara.authservice.sharedaccount.dto.InvitationResponse;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -32,8 +31,9 @@ public interface SharedAccountInvitationRepository extends JpaRepository<SharedA
                 FROM SharedAccountInvitation i
                 JOIN User u ON u.id = i.inviterUserId
                 WHERE i.inviteeUserId = :userId
+                ORDER BY i.expiresAt DESC, i.id DESC
             """)
-    List<InvitationResponse> findInvitationWithInviterUsername(Long userId);
+    List<InvitationResponse> findInvitationWithInviterUsername(Long userId, Pageable pageable);
 
     @Query("SELECT i FROM SharedAccountInvitation i WHERE i.inviterUserId IN :userIds OR i.inviteeUserId IN :userIds")
     List<SharedAccountInvitation> findAllInvolvingUsers(List<Long> userIds);
