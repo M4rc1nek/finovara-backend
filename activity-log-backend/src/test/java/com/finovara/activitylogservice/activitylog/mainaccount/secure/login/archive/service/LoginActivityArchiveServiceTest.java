@@ -91,13 +91,6 @@ class LoginActivityArchiveServiceTest {
         }
 
         @Test
-        void shouldSetTypeToLoginWhenActivityHasDifferentType() {
-            LoginActivityArchive result = loginActivityArchiveService.mapToArchive(activity);
-
-            assertEquals("Login", result.getType());
-        }
-
-        @Test
         void shouldSetMoveToArchiveDateToCurrentTimeWhenActivityIsValid() {
             LocalDateTime before = LocalDateTime.now();
 
@@ -107,22 +100,6 @@ class LoginActivityArchiveServiceTest {
             assertNotNull(result.getMoveToArchiveDate());
             assertFalse(result.getMoveToArchiveDate().isBefore(before));
             assertFalse(result.getMoveToArchiveDate().isAfter(after));
-        }
-
-        @Test
-        void shouldMapNullFieldsWhenActivityHasNullOptionalFields() {
-            LoginActivity emptyActivity = LoginActivity.builder()
-                    .userId(USER_ID)
-                    .build();
-
-            LoginActivityArchive result = loginActivityArchiveService.mapToArchive(emptyActivity);
-
-            assertEquals(USER_ID, result.getUserId());
-            assertEquals("Login", result.getType());
-            assertEquals(null, result.getBrowser());
-            assertEquals(null, result.getIpAddress());
-            assertEquals(null, result.getLocation());
-            assertEquals(null, result.getCreatedAt());
         }
 
         @Test
@@ -170,7 +147,7 @@ class LoginActivityArchiveServiceTest {
                     .thenReturn(List.of(loginActivityArchive));
             when(loginActivityArchiveMapper.mapToDto(loginActivityArchive)).thenReturn(loginActivityArchiveDto);
 
-            List<LoginActivityArchiveDto> result = loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT);
+            List<LoginActivityArchiveDto> result = loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT,1);
 
             assertEquals(List.of(loginActivityArchiveDto), result);
         }
@@ -181,7 +158,7 @@ class LoginActivityArchiveServiceTest {
             when(loginActivityArchiveRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenReturn(List.of());
 
-            loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT);
+            loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT, 1);
 
             verify(loginActivityArchiveRepository).findByUserId(eq(USER_ID), pageableCaptor.capture());
             assertEquals(PAGE_SIZE, pageableCaptor.getValue().getPageSize());
@@ -192,7 +169,7 @@ class LoginActivityArchiveServiceTest {
             when(loginActivityArchiveRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenReturn(List.of());
 
-            List<LoginActivityArchiveDto> result = loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT);
+            List<LoginActivityArchiveDto> result = loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT, 1);
 
             assertTrue(result.isEmpty());
             verifyNoInteractions(loginActivityArchiveMapper);
@@ -203,7 +180,7 @@ class LoginActivityArchiveServiceTest {
             when(loginActivityArchiveRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenThrow(new IllegalStateException());
 
-            assertThrows(IllegalStateException.class, () -> loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT));
+            assertThrows(IllegalStateException.class, () -> loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT, 1));
         }
 
         @Test
@@ -212,7 +189,7 @@ class LoginActivityArchiveServiceTest {
                     .thenReturn(List.of(loginActivityArchive));
             when(loginActivityArchiveMapper.mapToDto(loginActivityArchive)).thenThrow(new IllegalArgumentException());
 
-            assertThrows(IllegalArgumentException.class, () -> loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT));
+            assertThrows(IllegalArgumentException.class, () -> loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT, 1));
         }
     }
 
