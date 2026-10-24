@@ -65,8 +65,9 @@ public class SharedAccountNoteService {
         return noteId;
     }
 
-    public List<SharedAccountNoteDto> getNotes(Long userId) {
-        List<SharedAccountNote> notes = sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(userId, PageRequest.of(0, pageSize));
+    @Transactional(readOnly = true)
+    public List<SharedAccountNoteDto> getNotes(Long userId, int page) {
+        List<SharedAccountNote> notes = sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(userId, PageRequest.of(page, pageSize));
 
         Map<Long, String> usernameById = usernameResolver.resolve(
                 notes.stream().map(SharedAccountNote::getCreatedByUserId).collect(Collectors.toSet()));
