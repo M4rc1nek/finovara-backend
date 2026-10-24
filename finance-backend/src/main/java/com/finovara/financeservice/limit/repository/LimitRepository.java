@@ -25,5 +25,5 @@ public interface LimitRepository extends JpaRepository<Limit, Long> {
     @Query("SELECT l FROM Limit l WHERE l.userId = :userId AND l.periodType = :periodType AND l.category = :category AND l.isActive = true")
     Optional<Limit> findCategoryLimit(Long userId, PeriodType periodType, ExpenseCategory category);
 
-    void deleteByUserId(Long userId);
+    List<Limit> findAllByUserId(Long userId);
 }
