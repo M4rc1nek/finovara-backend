@@ -20,5 +20,4 @@ public interface LoginProfileRepository extends JpaRepository<LoginProfile, Long
     @Query("SELECT lp FROM LoginProfile lp WHERE lp.userId = :userId")
     Optional<LoginProfile> findByUserIdForUpdate(Long userId);
 
-    void deleteByUserId(Long userId);
 }
