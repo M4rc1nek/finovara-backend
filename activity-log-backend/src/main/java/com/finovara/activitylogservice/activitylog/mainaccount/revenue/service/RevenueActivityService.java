@@ -63,7 +63,8 @@ public class RevenueActivityService extends AccountActivityCore<RevenueActivity,
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        revenueActivityRepository.deleteByUserId(userId);
+        List<RevenueActivity> activities = revenueActivityRepository.findAllByUserId(userId);
+        revenueActivityRepository.deleteAll(activities);
         log.info("Deleted revenue activity for userId={}", userId);
     }
 }
