@@ -20,5 +20,4 @@ public interface TransactionProfileRepository extends JpaRepository<TransactionP
     @Query("SELECT tp FROM TransactionProfile tp WHERE tp.userId = :userId")
     Optional<TransactionProfile> findByUserIdForUpdate(Long userId);
 
-    void deleteByUserId(Long userId);
 }
