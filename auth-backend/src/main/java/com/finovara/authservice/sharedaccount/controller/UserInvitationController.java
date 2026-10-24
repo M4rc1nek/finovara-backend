@@ -27,8 +27,8 @@ public class UserInvitationController {
 
     @GetMapping("/search")
     public ResponseEntity<List<UserDataDto>> search(@RequestParam @Size(min = 3, max = 20, message = "Query must be between 3 and 20 characters")
-                                                    String query) {
-        return ResponseEntity.ok(invitationService.searchUser(query, SecurityUtils.getCurrentUserId()));
+                                                    String query, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(invitationService.searchUser(query, SecurityUtils.getCurrentUserId(), page));
     }
 
     @PostMapping("/invitations/{inviteeUserId}")
@@ -38,8 +38,8 @@ public class UserInvitationController {
     }
 
     @GetMapping("/invitations/pending")
-    public ResponseEntity<List<InvitationResponse>> getPendingInvitations() {
-        return ResponseEntity.ok(invitationService.getPendingInvitations(SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<List<InvitationResponse>> getPendingInvitations(@RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(invitationService.getPendingInvitations(SecurityUtils.getCurrentUserId(), page));
     }
 
     @PostMapping("/invitations/{invitationId}/accept")
