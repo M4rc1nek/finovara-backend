@@ -27,7 +27,7 @@ public class LoginProfileUpdateService implements UserDataDeletable {
             return;
         }
 
-        LoginProfile profile = loginProfileRepository.findByUserId(event.userId())
+        LoginProfile profile = loginProfileRepository.findByUserIdForUpdate(event.userId())
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Login profile not found for userId=" + event.userId()));
 
         if (!isKnownClient(profile, event.ipAddress(), event.browser())) {
