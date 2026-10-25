@@ -1,5 +1,17 @@
 package com.finovara.financeservice.piggybank.goalplanner.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.piggybank.goalplanner.dto.GoalPlannerCompletionSummaryDto;
 import com.finovara.financeservice.piggybank.goalplanner.dto.GoalPlannerDto;
@@ -8,74 +20,152 @@ import com.finovara.financeservice.piggybank.goalplanner.mapper.GoalPlannerMappe
 import com.finovara.financeservice.piggybank.goalplanner.model.GoalPlanner;
 import com.finovara.financeservice.piggybank.goalplanner.repository.GoalPlannerRepository;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
-import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class GoalPlannerServiceTest {
 
     private static final Long USER_ID = 1L;
-    private static final Long PIGGY_BANK_ID = 2L;
-    private static final Long GOAL_PLANNER_ID = 3L;
+    private static final Long PIGGY_BANK_ID = 10L;
+    private static final Long GOAL_PLANNER_ID = 7L;
+    private static final BigDecimal GOAL_AMOUNT = new BigDecimal("1000.00");
+    private static final LocalDateTime COMPLETED_AT = LocalDateTime.of(2024, 1, 1, 10, 0);
 
     @Mock
     private GoalPlannerRepository goalPlannerRepository;
-
     @Mock
-    private PiggyBankManagerService piggyBankManagerService;
-
+    private PiggyBankRepository piggyBankRepository;
     @Mock
     private GoalPlannerMapper goalPlannerMapper;
+    @Mock
+    private GoalPlannerDto goalPlannerDto;
+    @Mock
+    private GoalPlannerSummaryDto goalPlannerSummaryDto;
+    @Mock
+    private GoalPlannerCompletionSummaryDto goalPlannerCompletionSummaryDto;
 
     @InjectMocks
-    private GoalPlannerService goalPlannerService;
+    private GoalPlannerService service;
+
+    private PiggyBank piggyBank;
+    private GoalPlanner goalPlanner;
+
+    @BeforeEach
+    void setUp() {
+        piggyBank = PiggyBank.builder()
+                .id(PIGGY_BANK_ID)
+                .userId(USER_ID)
+                .amount(new BigDecimal("500.00"))
+                .goalAmount(GOAL_AMOUNT)
+                .build();
+        goalPlanner = GoalPlanner.builder()
+                .id(GOAL_PLANNER_ID)
+                .build();
+    }
 
     @Nested
     class CreateGoalPlanner {
 
-        @Test
-        void shouldReturnGoalPlannerIdWhenPiggyBankExists() {
-            PiggyBank piggyBank = PiggyBank.builder().id(PIGGY_BANK_ID).build();
-            GoalPlannerDto dto = new GoalPlannerDto(null, PIGGY_BANK_ID, "Wakacje", null, LocalDate.now().plusDays(30), null);
-            GoalPlanner savedGoalPlanner = GoalPlanner.builder().id(GOAL_PLANNER_ID).build();
+        @Nested
+        class WhenPiggyBankHasNoPlanner {
 
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
-            when(goalPlannerRepository.save(any(GoalPlanner.class))).thenReturn(savedGoalPlanner);
+            @BeforeEach
+            void setUp() {
+                when(goalPlannerDto.piggyBankId()).thenReturn(PIGGY_BANK_ID);
+                when(piggyBankRepository.findByIdAndUserIdForUpdate(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(piggyBank));
+                when(goalPlannerRepository.save(any(GoalPlanner.class))).thenReturn(goalPlanner);
+            }
 
-            Long result = goalPlannerService.createGoalPlanner(USER_ID, dto);
+            @Test
+            void shouldReturnGoalPlannerIdWhenPiggyBankHasNoPlanner() {
+                Long result = service.createGoalPlanner(USER_ID, goalPlannerDto);
 
-            assertEquals(GOAL_PLANNER_ID, result);
+                assertEquals(GOAL_PLANNER_ID, result);
+            }
+
+            @Test
+            void shouldAssignGoalPlannerToPiggyBankWhenPiggyBankHasNoPlanner() {
+                service.createGoalPlanner(USER_ID, goalPlannerDto);
+
+                assertSame(goalPlanner, piggyBank.getGoalPlanner());
+            }
+
+            @Test
+            void shouldSaveGoalPlannerWithUserIdAndCreationDateWhenPiggyBankHasNoPlanner() {
+                ArgumentCaptor<GoalPlanner> captor = ArgumentCaptor.forClass(GoalPlanner.class);
+
+                service.createGoalPlanner(USER_ID, goalPlannerDto);
+
+                verify(goalPlannerRepository).save(captor.capture());
+                assertEquals(USER_ID, captor.getValue().getUserId());
+                assertNotNull(captor.getValue().getCreatedAt());
+            }
+
+            @Test
+            void shouldNotMarkGoalAsCompletedWhenAmountIsBelowGoalAmount() {
+                service.createGoalPlanner(USER_ID, goalPlannerDto);
+
+                assertNull(goalPlanner.getCompletedAt());
+            }
+
+            @Test
+            void shouldMarkGoalAsCompletedWhenAmountEqualsGoalAmount() {
+                piggyBank.setAmount(GOAL_AMOUNT);
+
+                service.createGoalPlanner(USER_ID, goalPlannerDto);
+
+                assertNotNull(goalPlanner.getCompletedAt());
+            }
+
+            @Test
+            void shouldMarkGoalAsCompletedWhenAmountExceedsGoalAmount() {
+                piggyBank.setAmount(new BigDecimal("1500.00"));
+
+                service.createGoalPlanner(USER_ID, goalPlannerDto);
+
+                assertNotNull(goalPlanner.getCompletedAt());
+            }
+
+            @Test
+            void shouldNotMarkGoalAsCompletedWhenGoalAmountIsNull() {
+                piggyBank.setGoalAmount(null);
+
+                service.createGoalPlanner(USER_ID, goalPlannerDto);
+
+                assertNull(goalPlanner.getCompletedAt());
+            }
         }
 
         @Test
-        void shouldThrowExceptionWhenPiggyBankNotFound() {
-            GoalPlannerDto dto = new GoalPlannerDto(null, PIGGY_BANK_ID, "Wakacje", null, LocalDate.now().plusDays(30), null);
+        void shouldThrowExceptionWhenPiggyBankDoesNotExist() {
+            when(goalPlannerDto.piggyBankId()).thenReturn(PIGGY_BANK_ID);
+            when(piggyBankRepository.findByIdAndUserIdForUpdate(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.empty());
 
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_BANK_ID, USER_ID))
-                    .thenThrow(new RequestedEntityNotFoundException("Piggy bank not found"));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.createGoalPlanner(USER_ID, goalPlannerDto));
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> goalPlannerService.createGoalPlanner(USER_ID, dto));
+            verifyNoInteractions(goalPlannerRepository);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenGoalPlannerAlreadyExists() {
+            piggyBank.setGoalPlanner(goalPlanner);
+            when(goalPlannerDto.piggyBankId()).thenReturn(PIGGY_BANK_ID);
+            when(piggyBankRepository.findByIdAndUserIdForUpdate(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(piggyBank));
+
+            assertThrows(EntityAlreadyExistsException.class, () -> service.createGoalPlanner(USER_ID, goalPlannerDto));
+
+            verify(goalPlannerRepository, never()).save(any(GoalPlanner.class));
         }
     }
 
@@ -83,23 +173,32 @@ class GoalPlannerServiceTest {
     class GetGoalPlanner {
 
         @Test
-        void shouldReturnGoalPlannerDtoWhenExists() {
-            GoalPlanner goalPlanner = GoalPlanner.builder().id(GOAL_PLANNER_ID).build();
-            GoalPlannerDto expectedDto = new GoalPlannerDto(GOAL_PLANNER_ID, PIGGY_BANK_ID, "Wakacje", new BigDecimal("1000"), LocalDate.now().plusDays(30), LocalDateTime.now());
+        void shouldReturnGoalPlannerDtoWhenPlannerExists() {
+            piggyBank.setGoalPlanner(goalPlanner);
+            when(piggyBankRepository.findByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(piggyBank));
+            when(goalPlannerMapper.toDto(goalPlanner, piggyBank)).thenReturn(goalPlannerDto);
 
-            when(goalPlannerRepository.findByPiggyBankIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(goalPlanner));
-            when(goalPlannerMapper.toDto(goalPlanner)).thenReturn(expectedDto);
+            GoalPlannerDto result = service.getGoalPlanner(USER_ID, PIGGY_BANK_ID);
 
-            GoalPlannerDto result = goalPlannerService.getGoalPlanner(USER_ID, PIGGY_BANK_ID);
-
-            assertEquals(expectedDto, result);
+            assertSame(goalPlannerDto, result);
         }
 
         @Test
-        void shouldThrowExceptionWhenGoalPlannerNotFound() {
-            when(goalPlannerRepository.findByPiggyBankIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.empty());
+        void shouldThrowExceptionWhenPiggyBankDoesNotExist() {
+            when(piggyBankRepository.findByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> goalPlannerService.getGoalPlanner(USER_ID, PIGGY_BANK_ID));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.getGoalPlanner(USER_ID, PIGGY_BANK_ID));
+
+            verifyNoInteractions(goalPlannerMapper);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenGoalPlannerDoesNotExist() {
+            when(piggyBankRepository.findByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(piggyBank));
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.getGoalPlanner(USER_ID, PIGGY_BANK_ID));
+
+            verifyNoInteractions(goalPlannerMapper);
         }
     }
 
@@ -107,23 +206,32 @@ class GoalPlannerServiceTest {
     class GetGoalPlannerSummary {
 
         @Test
-        void shouldReturnSummaryDtoWhenGoalPlannerExists() {
-            GoalPlanner goalPlanner = GoalPlanner.builder().id(GOAL_PLANNER_ID).build();
-            GoalPlannerSummaryDto expectedDto = new GoalPlannerSummaryDto(new BigDecimal("10"), new BigDecimal("70"), new BigDecimal("300"), 15L);
+        void shouldReturnSummaryDtoWhenPlannerExists() {
+            piggyBank.setGoalPlanner(goalPlanner);
+            when(piggyBankRepository.findByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(piggyBank));
+            when(goalPlannerMapper.toSummaryDto(goalPlanner, piggyBank)).thenReturn(goalPlannerSummaryDto);
 
-            when(goalPlannerRepository.findByPiggyBankIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(goalPlanner));
-            when(goalPlannerMapper.toSummaryDto(goalPlanner)).thenReturn(expectedDto);
+            GoalPlannerSummaryDto result = service.getGoalPlannerSummary(USER_ID, PIGGY_BANK_ID);
 
-            GoalPlannerSummaryDto result = goalPlannerService.getGoalPlannerSummary(USER_ID, PIGGY_BANK_ID);
-
-            assertEquals(expectedDto, result);
+            assertSame(goalPlannerSummaryDto, result);
         }
 
         @Test
-        void shouldThrowExceptionWhenGoalPlannerNotFound() {
-            when(goalPlannerRepository.findByPiggyBankIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.empty());
+        void shouldThrowExceptionWhenPiggyBankDoesNotExist() {
+            when(piggyBankRepository.findByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> goalPlannerService.getGoalPlannerSummary(USER_ID, PIGGY_BANK_ID));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.getGoalPlannerSummary(USER_ID, PIGGY_BANK_ID));
+
+            verifyNoInteractions(goalPlannerMapper);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenGoalPlannerDoesNotExist() {
+            when(piggyBankRepository.findByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(piggyBank));
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.getGoalPlannerSummary(USER_ID, PIGGY_BANK_ID));
+
+            verifyNoInteractions(goalPlannerMapper);
         }
     }
 
@@ -132,131 +240,127 @@ class GoalPlannerServiceTest {
 
         @Test
         void shouldReturnCompletionDtoWhenGoalIsCompleted() {
-            GoalPlanner goalPlanner = GoalPlanner.builder()
-                    .id(GOAL_PLANNER_ID)
-                    .completedAt(LocalDateTime.now())
-                    .build();
-            GoalPlannerCompletionSummaryDto expectedDto = new GoalPlannerCompletionSummaryDto(10L, 240L, 14400L, new BigDecimal("1000"), LocalDateTime.now());
+            goalPlanner.setCompletedAt(COMPLETED_AT);
+            piggyBank.setGoalPlanner(goalPlanner);
+            when(piggyBankRepository.findByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(piggyBank));
+            when(goalPlannerMapper.toCompletionDto(goalPlanner, piggyBank)).thenReturn(goalPlannerCompletionSummaryDto);
 
-            when(goalPlannerRepository.findByPiggyBankIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(goalPlanner));
-            when(goalPlannerMapper.toCompletionDto(goalPlanner)).thenReturn(expectedDto);
+            GoalPlannerCompletionSummaryDto result = service.getGoalCompletionSummary(USER_ID, PIGGY_BANK_ID);
 
-            GoalPlannerCompletionSummaryDto result = goalPlannerService.getGoalCompletionSummary(USER_ID, PIGGY_BANK_ID);
-
-            assertEquals(expectedDto, result);
+            assertSame(goalPlannerCompletionSummaryDto, result);
         }
 
         @Test
-        void shouldThrowExceptionWhenGoalNotYetCompleted() {
-            GoalPlanner goalPlanner = GoalPlanner.builder()
-                    .id(GOAL_PLANNER_ID)
-                    .completedAt(null)
-                    .build();
+        void shouldThrowExceptionWhenGoalIsNotCompleted() {
+            piggyBank.setGoalPlanner(goalPlanner);
+            when(piggyBankRepository.findByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(piggyBank));
 
-            when(goalPlannerRepository.findByPiggyBankIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(goalPlanner));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.getGoalCompletionSummary(USER_ID, PIGGY_BANK_ID));
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> goalPlannerService.getGoalCompletionSummary(USER_ID, PIGGY_BANK_ID));
+            verifyNoInteractions(goalPlannerMapper);
         }
 
         @Test
-        void shouldThrowExceptionWhenGoalPlannerNotFound() {
-            when(goalPlannerRepository.findByPiggyBankIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.empty());
+        void shouldThrowExceptionWhenPiggyBankDoesNotExist() {
+            when(piggyBankRepository.findByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> goalPlannerService.getGoalCompletionSummary(USER_ID, PIGGY_BANK_ID));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.getGoalCompletionSummary(USER_ID, PIGGY_BANK_ID));
+
+            verifyNoInteractions(goalPlannerMapper);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenGoalPlannerDoesNotExist() {
+            when(piggyBankRepository.findByIdAndUserId(PIGGY_BANK_ID, USER_ID)).thenReturn(Optional.of(piggyBank));
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.getGoalCompletionSummary(USER_ID, PIGGY_BANK_ID));
+
+            verifyNoInteractions(goalPlannerMapper);
         }
     }
 
     @Nested
     class CheckAndMarkGoalCompletion {
 
+        @BeforeEach
+        void setUp() {
+            piggyBank.setGoalPlanner(goalPlanner);
+        }
+
         @Test
         void shouldDoNothingWhenGoalPlannerIsNull() {
-            goalPlannerService.checkAndMarkGoalCompletion(null);
+            piggyBank.setGoalPlanner(null);
+            piggyBank.setAmount(GOAL_AMOUNT);
 
-            verify(goalPlannerRepository, never()).save(any(GoalPlanner.class));
+            service.checkAndMarkGoalCompletion(piggyBank);
+
+            assertNull(piggyBank.getGoalPlanner());
         }
 
         @Test
-        void shouldDoNothingWhenGoalAlreadyCompletedAndAmountStillMeetsGoal() {
-            PiggyBank piggyBank = PiggyBank.builder().amount(new BigDecimal("1000")).goalAmount(new BigDecimal("1000")).build();
-            GoalPlanner goalPlanner = GoalPlanner.builder()
-                    .piggyBankAssigned(piggyBank)
-                    .completedAt(LocalDateTime.now())
-                    .build();
+        void shouldMarkGoalAsCompletedWhenAmountEqualsGoalAmount() {
+            piggyBank.setAmount(GOAL_AMOUNT);
 
-            goalPlannerService.checkAndMarkGoalCompletion(goalPlanner);
-
-            verify(goalPlannerRepository, never()).save(any(GoalPlanner.class));
-        }
-
-        @Test
-        void shouldMarkAsCompletedWhenCurrentAmountEqualsGoalAmount() {
-            PiggyBank piggyBank = PiggyBank.builder().amount(new BigDecimal("1000")).goalAmount(new BigDecimal("1000")).build();
-            GoalPlanner goalPlanner = GoalPlanner.builder()
-                    .piggyBankAssigned(piggyBank)
-                    .completedAt(null)
-                    .build();
-
-            goalPlannerService.checkAndMarkGoalCompletion(goalPlanner);
+            service.checkAndMarkGoalCompletion(piggyBank);
 
             assertNotNull(goalPlanner.getCompletedAt());
-            verify(goalPlannerRepository, times(1)).save(goalPlanner);
         }
 
         @Test
-        void shouldMarkAsCompletedWhenCurrentAmountExceedsGoalAmount() {
-            PiggyBank piggyBank = PiggyBank.builder().amount(new BigDecimal("1500")).goalAmount(new BigDecimal("1000")).build();
-            GoalPlanner goalPlanner = GoalPlanner.builder()
-                    .piggyBankAssigned(piggyBank)
-                    .completedAt(null)
-                    .build();
+        void shouldMarkGoalAsCompletedWhenAmountExceedsGoalAmount() {
+            piggyBank.setAmount(new BigDecimal("1000.01"));
 
-            goalPlannerService.checkAndMarkGoalCompletion(goalPlanner);
+            service.checkAndMarkGoalCompletion(piggyBank);
 
             assertNotNull(goalPlanner.getCompletedAt());
-            verify(goalPlannerRepository, times(1)).save(goalPlanner);
         }
 
         @Test
-        void shouldNotMarkAsCompletedWhenCurrentAmountLessThanGoalAmount() {
-            PiggyBank piggyBank = PiggyBank.builder().amount(new BigDecimal("500")).goalAmount(new BigDecimal("1000")).build();
-            GoalPlanner goalPlanner = GoalPlanner.builder()
-                    .piggyBankAssigned(piggyBank)
-                    .completedAt(null)
-                    .build();
+        void shouldKeepCompletionDateWhenGoalIsReachedAndAlreadyCompleted() {
+            goalPlanner.setCompletedAt(COMPLETED_AT);
+            piggyBank.setAmount(GOAL_AMOUNT);
 
-            goalPlannerService.checkAndMarkGoalCompletion(goalPlanner);
+            service.checkAndMarkGoalCompletion(piggyBank);
 
-            assertNull(goalPlanner.getCompletedAt());
-            verify(goalPlannerRepository, never()).save(any(GoalPlanner.class));
+            assertEquals(COMPLETED_AT, goalPlanner.getCompletedAt());
         }
 
         @Test
-        void shouldResetCompletedAtWhenCurrentAmountDropsBelowGoal() {
-            PiggyBank piggyBank = PiggyBank.builder().amount(new BigDecimal("500")).goalAmount(new BigDecimal("1000")).build();
-            GoalPlanner goalPlanner = GoalPlanner.builder()
-                    .piggyBankAssigned(piggyBank)
-                    .completedAt(LocalDateTime.now())
-                    .build();
+        void shouldResetCompletionDateWhenGoalIsNoLongerReached() {
+            goalPlanner.setCompletedAt(COMPLETED_AT);
+            piggyBank.setAmount(new BigDecimal("999.99"));
 
-            goalPlannerService.checkAndMarkGoalCompletion(goalPlanner);
+            service.checkAndMarkGoalCompletion(piggyBank);
 
             assertNull(goalPlanner.getCompletedAt());
-            verify(goalPlannerRepository, times(1)).save(goalPlanner);
         }
 
         @Test
-        void shouldResetCompletedAtWhenCurrentAmountIsZeroAndGoalIsPositive() {
-            PiggyBank piggyBank = PiggyBank.builder().amount(BigDecimal.ZERO).goalAmount(new BigDecimal("1000")).build();
-            GoalPlanner goalPlanner = GoalPlanner.builder()
-                    .piggyBankAssigned(piggyBank)
-                    .completedAt(LocalDateTime.now())
-                    .build();
+        void shouldKeepGoalNotCompletedWhenGoalIsNotReached() {
+            piggyBank.setAmount(new BigDecimal("999.99"));
 
-            goalPlannerService.checkAndMarkGoalCompletion(goalPlanner);
+            service.checkAndMarkGoalCompletion(piggyBank);
 
             assertNull(goalPlanner.getCompletedAt());
-            verify(goalPlannerRepository, times(1)).save(goalPlanner);
+        }
+
+        @Test
+        void shouldResetCompletionDateWhenGoalAmountIsNull() {
+            goalPlanner.setCompletedAt(COMPLETED_AT);
+            piggyBank.setGoalAmount(null);
+
+            service.checkAndMarkGoalCompletion(piggyBank);
+
+            assertNull(goalPlanner.getCompletedAt());
+        }
+
+        @Test
+        void shouldKeepGoalNotCompletedWhenGoalAmountIsNull() {
+            piggyBank.setGoalAmount(null);
+
+            service.checkAndMarkGoalCompletion(piggyBank);
+
+            assertNull(goalPlanner.getCompletedAt());
         }
     }
 }
