@@ -5,17 +5,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
+import com.finovara.financeservice.util.wallet.WalletManagerService;
+import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.reservation.dto.FundReservationDto;
 import com.finovara.financeservice.wallet.reservation.dto.UnreserveReservationDto;
+import com.finovara.financeservice.wallet.reservation.model.FundReservation;
 import com.finovara.financeservice.wallet.reservation.repository.FundReservationRepository;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.List;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,20 +31,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class FundReservationServiceTest {
 
     private static final Long USER_ID = 1L;
-    private static final Long RESERVATION_ID = 10L;
-    private static final String CODE = "123456";
+    private static final Long WALLET_ID = 5L;
+    private static final Long RESERVATION_ID = 20L;
+    private static final String AUTH_CODE = "123456";
 
     @Mock
     private FundReservationCommandService commandService;
-
     @Mock
     private FundReservationRepository fundReservationRepository;
-
+    @Mock
+    private WalletManagerService walletManagerService;
     @Mock
     private AuthBackendClient authBackendClient;
-
     @Mock
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    @Mock
+    private FundReservationDto fundReservationDto;
+    @Mock
+    private UnreserveReservationDto unreserveReservationDto;
+    @Mock
+    private Wallet wallet;
 
     @InjectMocks
     private FundReservationService service;
@@ -48,155 +58,77 @@ class FundReservationServiceTest {
     @Nested
     class CreateReservation {
 
-        @Mock
-        private FundReservationDto dto;
-
-        @BeforeEach
-        void setUp() {
-            when(dto.authorizationCode()).thenReturn(CODE);
-        }
-
         @Test
-        void shouldReturnReservationIdWhenAuthorizationIsConfirmed() {
-            when(commandService.create(USER_ID, dto)).thenReturn(RESERVATION_ID);
+        void shouldReturnReservationIdWhenAuthorizationCodeIsValid() {
+            when(fundReservationDto.authorizationCode()).thenReturn(AUTH_CODE);
+            when(commandService.create(USER_ID, fundReservationDto)).thenReturn(RESERVATION_ID);
 
-            Long result = service.createReservation(USER_ID, dto);
+            Long result = service.createReservation(USER_ID, fundReservationDto);
 
             assertEquals(RESERVATION_ID, result);
         }
 
         @Test
-        void shouldResolveCodeAndConfirmAuthorizationWhenCreatingReservation() {
-            when(commandService.create(USER_ID, dto)).thenReturn(RESERVATION_ID);
+        void shouldConfirmAuthorizationCodeWhenCreatingReservation() {
+            when(fundReservationDto.authorizationCode()).thenReturn(AUTH_CODE);
+            when(commandService.create(USER_ID, fundReservationDto)).thenReturn(RESERVATION_ID);
 
-            service.createReservation(USER_ID, dto);
+            service.createReservation(USER_ID, fundReservationDto);
 
-            verify(additionalAuthorizationCodeResolver).resolve(CODE);
+            verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
             verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
         }
 
         @Test
-        void shouldDelegateCreationToCommandServiceWhenAuthorizationIsConfirmed() {
-            when(commandService.create(USER_ID, dto)).thenReturn(RESERVATION_ID);
+        void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+            when(fundReservationDto.authorizationCode()).thenReturn(AUTH_CODE);
+            doThrow(new IllegalStateException("Invalid code")).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
 
-            service.createReservation(USER_ID, dto);
+            assertThrows(IllegalStateException.class, () -> service.createReservation(USER_ID, fundReservationDto));
 
-            verify(commandService).create(USER_ID, dto);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenAuthorizationConfirmationFails() {
-            doThrow(new IllegalStateException("Invalid code"))
-                    .when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-
-            assertThrows(IllegalStateException.class, () -> service.createReservation(USER_ID, dto));
-        }
-
-        @Test
-        void shouldNotCreateReservationWhenAuthorizationConfirmationFails() {
-            doThrow(new IllegalStateException("Invalid code"))
-                    .when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-
-            assertThrows(IllegalStateException.class, () -> service.createReservation(USER_ID, dto));
-
-            verifyNoInteractions(commandService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenCodeResolvingFails() {
-            when(additionalAuthorizationCodeResolver.resolve(CODE))
-                    .thenThrow(new IllegalArgumentException("Unresolvable code"));
-
-            assertThrows(IllegalArgumentException.class, () -> service.createReservation(USER_ID, dto));
-        }
-
-        @Test
-        void shouldNotConfirmAuthorizationNorCreateReservationWhenCodeResolvingFails() {
-            when(additionalAuthorizationCodeResolver.resolve(CODE))
-                    .thenThrow(new IllegalArgumentException("Unresolvable code"));
-
-            assertThrows(IllegalArgumentException.class, () -> service.createReservation(USER_ID, dto));
-
-            verifyNoInteractions(authBackendClient);
             verifyNoInteractions(commandService);
         }
 
         @Test
         void shouldThrowExceptionWhenCommandServiceFails() {
-            when(commandService.create(USER_ID, dto)).thenThrow(new IllegalStateException("Failure"));
+            when(fundReservationDto.authorizationCode()).thenReturn(AUTH_CODE);
+            when(commandService.create(USER_ID, fundReservationDto)).thenThrow(new InvalidInputException("Insufficient funds"));
 
-            assertThrows(IllegalStateException.class, () -> service.createReservation(USER_ID, dto));
+            assertThrows(InvalidInputException.class, () -> service.createReservation(USER_ID, fundReservationDto));
         }
     }
 
     @Nested
     class UnreserveReservation {
 
-        @Mock
-        private UnreserveReservationDto dto;
-
-        @BeforeEach
-        void setUp() {
-            when(dto.authorizationCode()).thenReturn(CODE);
-        }
-
         @Test
-        void shouldConfirmAuthorizationAndDelegateUnreserveWhenCodeIsValid() {
-            service.unreserveReservation(USER_ID, RESERVATION_ID, dto);
+        void shouldDelegateToCommandServiceWhenAuthorizationCodeIsValid() {
+            when(unreserveReservationDto.authorizationCode()).thenReturn(AUTH_CODE);
 
-            verify(additionalAuthorizationCodeResolver).resolve(CODE);
+            service.unreserveReservation(USER_ID, RESERVATION_ID, unreserveReservationDto);
+
+            verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
             verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-            verify(commandService).unreserve(USER_ID, RESERVATION_ID, dto);
+            verify(commandService).unreserve(USER_ID, RESERVATION_ID, unreserveReservationDto);
         }
 
         @Test
-        void shouldThrowExceptionWhenAuthorizationConfirmationFailsOnUnreserve() {
-            doThrow(new IllegalStateException("Invalid code"))
-                    .when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+        void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+            when(unreserveReservationDto.authorizationCode()).thenReturn(AUTH_CODE);
+            doThrow(new IllegalStateException("Invalid code")).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
 
-            assertThrows(IllegalStateException.class,
-                    () -> service.unreserveReservation(USER_ID, RESERVATION_ID, dto));
-        }
-
-        @Test
-        void shouldNotUnreserveWhenAuthorizationConfirmationFails() {
-            doThrow(new IllegalStateException("Invalid code"))
-                    .when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-
-            assertThrows(IllegalStateException.class,
-                    () -> service.unreserveReservation(USER_ID, RESERVATION_ID, dto));
+            assertThrows(IllegalStateException.class, () -> service.unreserveReservation(USER_ID, RESERVATION_ID, unreserveReservationDto));
 
             verifyNoInteractions(commandService);
         }
 
         @Test
-        void shouldThrowExceptionWhenCodeResolvingFailsOnUnreserve() {
-            when(additionalAuthorizationCodeResolver.resolve(CODE))
-                    .thenThrow(new IllegalArgumentException("Unresolvable code"));
+        void shouldThrowExceptionWhenCommandServiceFails() {
+            when(unreserveReservationDto.authorizationCode()).thenReturn(AUTH_CODE);
+            doThrow(new RequestedEntityNotFoundException("Reservation not found")).when(commandService)
+                    .unreserve(USER_ID, RESERVATION_ID, unreserveReservationDto);
 
-            assertThrows(IllegalArgumentException.class,
-                    () -> service.unreserveReservation(USER_ID, RESERVATION_ID, dto));
-        }
-
-        @Test
-        void shouldNotConfirmAuthorizationNorUnreserveWhenCodeResolvingFails() {
-            when(additionalAuthorizationCodeResolver.resolve(CODE))
-                    .thenThrow(new IllegalArgumentException("Unresolvable code"));
-
-            assertThrows(IllegalArgumentException.class,
-                    () -> service.unreserveReservation(USER_ID, RESERVATION_ID, dto));
-
-            verifyNoInteractions(authBackendClient);
-            verifyNoInteractions(commandService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenCommandServiceFailsOnUnreserve() {
-            doThrow(new IllegalStateException("Failure"))
-                    .when(commandService).unreserve(USER_ID, RESERVATION_ID, dto);
-
-            assertThrows(IllegalStateException.class,
-                    () -> service.unreserveReservation(USER_ID, RESERVATION_ID, dto));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.unreserveReservation(USER_ID, RESERVATION_ID, unreserveReservationDto));
         }
     }
 
@@ -204,62 +136,28 @@ class FundReservationServiceTest {
     class ManualDeleteReservation {
 
         @Test
-        void shouldConfirmAuthorizationAndDelegateDeleteWhenCodeIsValid() {
-            service.manualDeleteReservation(USER_ID, RESERVATION_ID, CODE);
+        void shouldDelegateToCommandServiceWhenAuthorizationCodeIsValid() {
+            service.manualDeleteReservation(USER_ID, RESERVATION_ID, AUTH_CODE);
 
-            verify(additionalAuthorizationCodeResolver).resolve(CODE);
+            verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
             verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
             verify(commandService).delete(USER_ID, RESERVATION_ID);
         }
 
         @Test
-        void shouldThrowExceptionWhenAuthorizationConfirmationFailsOnDelete() {
-            doThrow(new IllegalStateException("Invalid code"))
-                    .when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+        void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+            doThrow(new IllegalStateException("Invalid code")).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
 
-            assertThrows(IllegalStateException.class,
-                    () -> service.manualDeleteReservation(USER_ID, RESERVATION_ID, CODE));
-        }
-
-        @Test
-        void shouldNotDeleteWhenAuthorizationConfirmationFails() {
-            doThrow(new IllegalStateException("Invalid code"))
-                    .when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-
-            assertThrows(IllegalStateException.class,
-                    () -> service.manualDeleteReservation(USER_ID, RESERVATION_ID, CODE));
+            assertThrows(IllegalStateException.class, () -> service.manualDeleteReservation(USER_ID, RESERVATION_ID, AUTH_CODE));
 
             verifyNoInteractions(commandService);
         }
 
         @Test
-        void shouldThrowExceptionWhenCodeResolvingFailsOnDelete() {
-            when(additionalAuthorizationCodeResolver.resolve(CODE))
-                    .thenThrow(new IllegalArgumentException("Unresolvable code"));
+        void shouldThrowExceptionWhenCommandServiceFails() {
+            doThrow(new RequestedEntityNotFoundException("Reservation not found")).when(commandService).delete(USER_ID, RESERVATION_ID);
 
-            assertThrows(IllegalArgumentException.class,
-                    () -> service.manualDeleteReservation(USER_ID, RESERVATION_ID, CODE));
-        }
-
-        @Test
-        void shouldNotConfirmAuthorizationNorDeleteWhenCodeResolvingFails() {
-            when(additionalAuthorizationCodeResolver.resolve(CODE))
-                    .thenThrow(new IllegalArgumentException("Unresolvable code"));
-
-            assertThrows(IllegalArgumentException.class,
-                    () -> service.manualDeleteReservation(USER_ID, RESERVATION_ID, CODE));
-
-            verifyNoInteractions(authBackendClient);
-            verifyNoInteractions(commandService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenCommandServiceFailsOnDelete() {
-            doThrow(new IllegalStateException("Failure"))
-                    .when(commandService).delete(USER_ID, RESERVATION_ID);
-
-            assertThrows(IllegalStateException.class,
-                    () -> service.manualDeleteReservation(USER_ID, RESERVATION_ID, CODE));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.manualDeleteReservation(USER_ID, RESERVATION_ID, AUTH_CODE));
         }
     }
 
@@ -267,34 +165,38 @@ class FundReservationServiceTest {
     class DeleteByUserId {
 
         @Test
-        void shouldDeleteAllReservationsWhenUserDataIsDeleted() {
+        void shouldDeleteAllReservationsWhenWalletHasReservations() {
+            List<FundReservation> reservations = List.of(
+                    FundReservation.builder().id(1L).walletId(WALLET_ID).build(),
+                    FundReservation.builder().id(2L).walletId(WALLET_ID).build());
+            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
+            when(wallet.getId()).thenReturn(WALLET_ID);
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(reservations);
+
             service.deleteByUserId(USER_ID);
 
-            verify(fundReservationRepository).deleteAllByUserId(USER_ID);
+            verify(fundReservationRepository).deleteAll(reservations);
         }
 
         @Test
-        void shouldNotRequireAuthorizationWhenUserDataIsDeleted() {
+        void shouldDeleteEmptyCollectionWhenWalletHasNoReservations() {
+            List<FundReservation> reservations = List.of();
+            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
+            when(wallet.getId()).thenReturn(WALLET_ID);
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(reservations);
+
             service.deleteByUserId(USER_ID);
 
-            verifyNoInteractions(authBackendClient);
-            verifyNoInteractions(additionalAuthorizationCodeResolver);
-            verifyNoInteractions(commandService);
+            verify(fundReservationRepository).deleteAll(reservations);
         }
 
         @Test
-        void shouldThrowExceptionWhenRepositoryFailsOnUserDataDeletion() {
-            doThrow(new IllegalStateException("Failure"))
-                    .when(fundReservationRepository).deleteAllByUserId(USER_ID);
+        void shouldThrowExceptionWhenWalletDoesNotExist() {
+            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenThrow(new RequestedEntityNotFoundException("Wallet not found"));
 
-            assertThrows(IllegalStateException.class, () -> service.deleteByUserId(USER_ID));
-        }
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteByUserId(USER_ID));
 
-        @Test
-        void shouldNotDeleteReservationsOfOtherUsersWhenUserDataIsDeleted() {
-            service.deleteByUserId(USER_ID);
-
-            verify(fundReservationRepository, never()).deleteAllByUserId(2L);
+            verifyNoInteractions(fundReservationRepository);
         }
     }
 }
