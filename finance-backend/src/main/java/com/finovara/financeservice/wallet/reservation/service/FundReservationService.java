@@ -5,7 +5,6 @@ import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
-import com.finovara.financeservice.wallet.repository.WalletRepository;
 import com.finovara.financeservice.wallet.reservation.dto.FundReservationDto;
 import com.finovara.financeservice.wallet.reservation.dto.UnreserveReservationDto;
 import com.finovara.financeservice.wallet.reservation.model.FundReservation;
@@ -48,7 +47,7 @@ public class FundReservationService implements UserDataDeletable {
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
+        Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
         List<FundReservation> reservations = fundReservationRepository.findAllByWalletId(wallet.getId());
         fundReservationRepository.deleteAll(reservations);
     }
