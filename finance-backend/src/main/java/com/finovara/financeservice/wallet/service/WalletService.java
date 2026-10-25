@@ -81,7 +81,7 @@ public class WalletService implements UserDataDeletable {
     @Transactional
     @CacheEvict(value = "wallet:user", key = "#userId")
     public void deleteByUserId(Long userId) {
-        Wallet wallet = walletManagerService.getWalletByUserIdOrThrow(userId);
+        Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
         walletRepository.delete(wallet);
         log.info("Deleted wallet for userId={}", userId);
     }
