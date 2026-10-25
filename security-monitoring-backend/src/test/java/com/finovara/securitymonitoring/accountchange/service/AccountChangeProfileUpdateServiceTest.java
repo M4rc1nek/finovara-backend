@@ -18,17 +18,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AccountChangeProfileUpdateServiceTest {
@@ -463,24 +455,30 @@ class AccountChangeProfileUpdateServiceTest {
 
         @Test
         void shouldDeleteProfileWhenUserIdProvided() {
+            when(accountChangeProfileRepository.findByUserId(USER_ID)).thenReturn(Optional.of(profile));
+
             service.deleteByUserId(USER_ID);
 
-            verify(accountChangeProfileRepository).deleteByUserId(USER_ID);
-            verifyNoMoreInteractions(accountChangeProfileRepository);
+            verify(accountChangeProfileRepository).findByUserId(USER_ID);
+            verify(accountChangeProfileRepository).delete(profile);
         }
 
         @Test
         void shouldDeleteProfileWhenUserIdIsNull() {
+            when(accountChangeProfileRepository.findByUserId(null)).thenReturn(Optional.of(profile));
+
             service.deleteByUserId(null);
 
-            verify(accountChangeProfileRepository).deleteByUserId(null);
+            verify(accountChangeProfileRepository).findByUserId(null);
+            verify(accountChangeProfileRepository).delete(profile);
         }
 
         @Test
-        void shouldThrowExceptionWhenRepositoryFailsOnDelete() {
-            doThrow(new IllegalStateException("db error")).when(accountChangeProfileRepository).deleteByUserId(USER_ID);
+        void shouldThrowExceptionWhenProfileNotFoundOnDelete() {
+            when(accountChangeProfileRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
 
-            assertThrows(IllegalStateException.class, () -> service.deleteByUserId(USER_ID));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteByUserId(USER_ID));
+            verify(accountChangeProfileRepository, never()).delete(any(AccountChangeProfile.class));
         }
     }
 }
