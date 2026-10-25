@@ -55,10 +55,11 @@ class LimitActivityServiceTest {
     class DeleteByUserId {
 
         @Test
-        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+        void shouldDeleteUserActivitiesWhenUserIdIsValid() {
             limitActivityService.deleteByUserId(USER_ID);
 
-            verify(limitActivityRepository).deleteByUserId(USER_ID);
+            verify(limitActivityRepository).findAllByUserId(USER_ID);
+            verify(limitActivityRepository).deleteAll(any());
         }
     }
 
