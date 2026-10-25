@@ -1,23 +1,6 @@
 package com.finovara.financeservice.limit.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
-
-import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.event.limit.LimitActivityEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
@@ -27,14 +10,10 @@ import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.limit.dto.LimitDto;
 import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
-import com.finovara.financeservice.limit.model.LimitStatus;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.limit.validator.LimitExpensesValidator;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import com.finovara.financeservice.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,6 +25,24 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class LimitManagementServiceTest {
 
@@ -53,10 +50,14 @@ class LimitManagementServiceTest {
     private static final Long LIMIT_ID = 10L;
     private static final Long OTHER_LIMIT_ID = 20L;
     private static final String AUTH_CODE = "123456";
-    private static final String AGGREGATE = "Limit";
+    private static final String OUTBOX_AGGREGATE = "Limit";
     private static final String OUTBOX_TOPIC = "limit.changed";
     private static final BigDecimal AMOUNT = BigDecimal.valueOf(500);
-    private static final BigDecimal NEW_AMOUNT = BigDecimal.valueOf(700);
+    private static final BigDecimal OLD_AMOUNT = BigDecimal.valueOf(300);
+    private static final PeriodType PERIOD = PeriodType.values()[0];
+    private static final PeriodType OTHER_PERIOD = PeriodType.values()[1];
+    private static final ExpenseCategory CATEGORY = ExpenseCategory.values()[0];
+    private static final ExpenseCategory OTHER_CATEGORY = ExpenseCategory.values()[1];
 
     @Mock
     private LimitRepository limitRepository;
@@ -80,415 +81,254 @@ class LimitManagementServiceTest {
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Mock
-    private LimitStatsDto firstStats;
+    private WalletService walletService;
 
     @Mock
-    private LimitStatsDto secondStats;
+    private LimitDto limitDto;
+
+    @Mock
+    private LimitStatsDto statsDto;
 
     @Captor
     private ArgumentCaptor<Limit> limitCaptor;
 
     @Captor
-    private ArgumentCaptor<LocalDate> dateCaptor;
+    private ArgumentCaptor<List<Limit>> limitsCaptor;
 
     @InjectMocks
-    private LimitManagementService limitManagementService;
+    private LimitManagementService service;
 
-    private Limit limit;
+    private Limit existingLimit;
     private Limit savedLimit;
-    private LimitDto limitDto;
-    private LimitDto generalLimitDto;
 
     @BeforeEach
     void setUp() {
-        limit = Limit.builder()
-                .id(LIMIT_ID)
-                .userId(USER_ID)
-                .periodType(PeriodType.MONTHLY)
-                .category(ExpenseCategory.FOOD)
-                .amount(AMOUNT)
-                .isActive(true)
-                .build();
-
-        savedLimit = Limit.builder()
-                .id(LIMIT_ID)
-                .userId(USER_ID)
-                .periodType(PeriodType.MONTHLY)
-                .category(ExpenseCategory.FOOD)
-                .amount(NEW_AMOUNT)
-                .isActive(true)
-                .build();
-
-        limitDto = new LimitDto(USER_ID, LIMIT_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD, LimitStatus.LOW, NEW_AMOUNT, true, AUTH_CODE);
-        generalLimitDto = new LimitDto(USER_ID, null, PeriodType.MONTHLY, null, null, NEW_AMOUNT, true, AUTH_CODE);
+        existingLimit = Limit.builder().id(LIMIT_ID).periodType(OTHER_PERIOD).category(OTHER_CATEGORY).amount(OLD_AMOUNT).userId(USER_ID).build();
+        savedLimit = Limit.builder().id(LIMIT_ID).periodType(PERIOD).category(CATEGORY).amount(AMOUNT).userId(USER_ID).build();
     }
 
     @Nested
     class CreateLimit {
 
-        @Nested
-        class CategoryLimit {
-
-            @BeforeEach
-            void setUp() {
-                when(limitRepository.findCategoryLimit(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD))
-                        .thenReturn(Optional.empty());
-                when(limitRepository.save(any(Limit.class))).thenReturn(savedLimit);
-            }
-
-            @Test
-            void shouldReturnSavedLimitIdWhenCategoryLimitIsCreated() {
-                Long result = limitManagementService.createLimit(limitDto, USER_ID);
-
-                assertEquals(LIMIT_ID, result);
-            }
-
-            @Test
-            void shouldSaveActiveLimitWithDtoDataWhenCategoryLimitIsCreated() {
-                limitManagementService.createLimit(limitDto, USER_ID);
-
-                verify(limitRepository).save(limitCaptor.capture());
-                Limit captured = limitCaptor.getValue();
-                assertEquals(PeriodType.MONTHLY, captured.getPeriodType());
-                assertEquals(ExpenseCategory.FOOD, captured.getCategory());
-                assertEquals(NEW_AMOUNT, captured.getAmount());
-                assertEquals(USER_ID, captured.getUserId());
-                assertTrue(captured.getIsActive());
-            }
-
-            @Test
-            void shouldConfirmAuthorizationCodeBeforeValidatingExpensesWhenCategoryLimitIsCreated() {
-                limitManagementService.createLimit(limitDto, USER_ID);
-
-                InOrder inOrder = inOrder(authBackendClient, limitExpensesValidator);
-                inOrder.verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-                inOrder.verify(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, limitDto);
-                verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
-            }
-
-            @Test
-            void shouldSaveOutboxEventWhenCategoryLimitIsCreated() {
-                limitManagementService.createLimit(limitDto, USER_ID);
-
-                verify(outboxService).save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-            }
-
-            @Test
-            void shouldSaveLimitBeforeOutboxEventWhenCategoryLimitIsCreated() {
-                limitManagementService.createLimit(limitDto, USER_ID);
-
-                InOrder inOrder = inOrder(limitRepository, outboxService);
-                inOrder.verify(limitRepository).save(any(Limit.class));
-                inOrder.verify(outboxService).save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-            }
-
-            @Test
-            void shouldNotLookUpGeneralLimitWhenCategoryLimitIsCreated() {
-                limitManagementService.createLimit(limitDto, USER_ID);
-
-                verify(limitRepository, never()).findGeneralLimit(any(), any());
-            }
-        }
-
-        @Nested
-        class GeneralLimit {
-
-            @BeforeEach
-            void setUp() {
-                when(limitRepository.findGeneralLimit(USER_ID, PeriodType.MONTHLY)).thenReturn(Optional.empty());
-                when(limitRepository.save(any(Limit.class))).thenReturn(savedLimit);
-            }
-
-            @Test
-            void shouldReturnSavedLimitIdWhenGeneralLimitIsCreated() {
-                Long result = limitManagementService.createLimit(generalLimitDto, USER_ID);
-
-                assertEquals(LIMIT_ID, result);
-            }
-
-            @Test
-            void shouldSaveActiveLimitWithNullCategoryWhenGeneralLimitIsCreated() {
-                limitManagementService.createLimit(generalLimitDto, USER_ID);
-
-                verify(limitRepository).save(limitCaptor.capture());
-                Limit captured = limitCaptor.getValue();
-                assertNull(captured.getCategory());
-                assertEquals(PeriodType.MONTHLY, captured.getPeriodType());
-                assertEquals(NEW_AMOUNT, captured.getAmount());
-                assertEquals(USER_ID, captured.getUserId());
-                assertTrue(captured.getIsActive());
-            }
-
-            @Test
-            void shouldSaveOutboxEventWhenGeneralLimitIsCreated() {
-                limitManagementService.createLimit(generalLimitDto, USER_ID);
-
-                verify(outboxService).save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-            }
-
-            @Test
-            void shouldNotLookUpCategoryLimitWhenGeneralLimitIsCreated() {
-                limitManagementService.createLimit(generalLimitDto, USER_ID);
-
-                verify(limitRepository, never()).findCategoryLimit(any(), any(), any());
-            }
-        }
-
-        @Nested
-        class Failure {
-
-            @Test
-            void shouldThrowExceptionWhenDtoIsNull() {
-                assertThrows(NullPointerException.class, () -> limitManagementService.createLimit(null, USER_ID));
-
-                verifyNoInteractions(authBackendClient, limitExpensesValidator, limitRepository, outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenAuthorizationCodeConfirmationFails() {
-                doThrow(new InvalidInputException("Invalid authorization code"))
-                        .when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-
-                assertThrows(InvalidInputException.class, () -> limitManagementService.createLimit(limitDto, USER_ID));
-
-                verifyNoInteractions(limitExpensesValidator, limitRepository, outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenCurrentExpensesExceedLimit() {
-                doThrow(new InvalidInputException("Current expenses exceed limit"))
-                        .when(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, limitDto);
-
-                assertThrows(InvalidInputException.class, () -> limitManagementService.createLimit(limitDto, USER_ID));
-
-                verifyNoInteractions(limitRepository, outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenGeneralLimitAlreadyExists() {
-                when(limitRepository.findGeneralLimit(USER_ID, PeriodType.MONTHLY)).thenReturn(Optional.of(limit));
-
-                assertThrows(EntityAlreadyExistsException.class, () -> limitManagementService.createLimit(generalLimitDto, USER_ID));
-
-                verify(limitRepository, never()).save(any(Limit.class));
-                verifyNoInteractions(outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenCategoryLimitAlreadyExists() {
-                when(limitRepository.findCategoryLimit(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD))
-                        .thenReturn(Optional.of(limit));
-
-                assertThrows(EntityAlreadyExistsException.class, () -> limitManagementService.createLimit(limitDto, USER_ID));
-
-                verify(limitRepository, never()).save(any(Limit.class));
-                verifyNoInteractions(outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenLimitLookupFails() {
-                when(limitRepository.findCategoryLimit(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD))
-                        .thenThrow(new IllegalStateException("db failed"));
-
-                assertThrows(IllegalStateException.class, () -> limitManagementService.createLimit(limitDto, USER_ID));
-
-                verify(limitRepository, never()).save(any(Limit.class));
-                verifyNoInteractions(outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenRepositorySaveFails() {
-                when(limitRepository.findCategoryLimit(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD))
-                        .thenReturn(Optional.empty());
-                when(limitRepository.save(any(Limit.class))).thenThrow(new IllegalStateException("db failed"));
-
-                assertThrows(IllegalStateException.class, () -> limitManagementService.createLimit(limitDto, USER_ID));
-
-                verifyNoInteractions(outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenRepositoryReturnsNull() {
-                when(limitRepository.findCategoryLimit(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD))
-                        .thenReturn(Optional.empty());
-
-                assertThrows(NullPointerException.class, () -> limitManagementService.createLimit(limitDto, USER_ID));
-
-                verifyNoInteractions(outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenOutboxServiceFails() {
-                when(limitRepository.findCategoryLimit(USER_ID, PeriodType.MONTHLY, ExpenseCategory.FOOD))
-                        .thenReturn(Optional.empty());
-                when(limitRepository.save(any(Limit.class))).thenReturn(savedLimit);
-                doThrow(new IllegalStateException("outbox failed")).when(outboxService)
-                        .save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-
-                assertThrows(IllegalStateException.class, () -> limitManagementService.createLimit(limitDto, USER_ID));
-            }
-        }
-
         @Test
-        void shouldCreateLimitWhenPeriodTypeIsNull() {
-            LimitDto dto = new LimitDto(USER_ID, null, null, ExpenseCategory.FOOD, null, NEW_AMOUNT, true, AUTH_CODE);
-            when(limitRepository.findCategoryLimit(USER_ID, null, ExpenseCategory.FOOD)).thenReturn(Optional.empty());
+        void shouldSaveCategoryLimitAndReturnIdWhenNoDuplicateExists() {
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitDto.category()).thenReturn(CATEGORY);
+            when(limitDto.amount()).thenReturn(AMOUNT);
+            when(limitRepository.findCategoryLimit(USER_ID, PERIOD, CATEGORY)).thenReturn(Optional.empty());
             when(limitRepository.save(any(Limit.class))).thenReturn(savedLimit);
 
-            Long result = limitManagementService.createLimit(dto, USER_ID);
+            Long result = service.createLimit(limitDto, USER_ID);
 
             assertEquals(LIMIT_ID, result);
             verify(limitRepository).save(limitCaptor.capture());
-            assertNull(limitCaptor.getValue().getPeriodType());
-            verify(outboxService).save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
+            assertEquals(PERIOD, limitCaptor.getValue().getPeriodType());
+            assertEquals(CATEGORY, limitCaptor.getValue().getCategory());
+            assertEquals(AMOUNT, limitCaptor.getValue().getAmount());
+            assertEquals(USER_ID, limitCaptor.getValue().getUserId());
+            verify(limitRepository, never()).findGeneralLimit(any(), any());
+        }
+
+        @Test
+        void shouldSaveGeneralLimitWhenCategoryIsNull() {
+            Limit generalSaved = Limit.builder().id(LIMIT_ID).periodType(PERIOD).category(null).amount(AMOUNT).userId(USER_ID).build();
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitDto.amount()).thenReturn(AMOUNT);
+            when(limitRepository.findGeneralLimit(USER_ID, PERIOD)).thenReturn(Optional.empty());
+            when(limitRepository.save(any(Limit.class))).thenReturn(generalSaved);
+
+            Long result = service.createLimit(limitDto, USER_ID);
+
+            assertEquals(LIMIT_ID, result);
+            verify(limitRepository).save(limitCaptor.capture());
+            assertEquals(null, limitCaptor.getValue().getCategory());
+            verify(limitRepository, never()).findCategoryLimit(any(), any(), any());
+        }
+
+        @Test
+        void shouldConfirmAuthorizationCodeAndSaveOutboxEventWhenLimitCreated() {
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitDto.category()).thenReturn(CATEGORY);
+            when(limitDto.amount()).thenReturn(AMOUNT);
+            when(limitRepository.findCategoryLimit(USER_ID, PERIOD, CATEGORY)).thenReturn(Optional.empty());
+            when(limitRepository.save(any(Limit.class))).thenReturn(savedLimit);
+
+            service.createLimit(limitDto, USER_ID);
+
+            verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+            verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
+        }
+
+        @Test
+        void shouldLockWalletAndValidateExpensesBeforeSavingLimit() {
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitDto.category()).thenReturn(CATEGORY);
+            when(limitDto.amount()).thenReturn(AMOUNT);
+            when(limitRepository.findCategoryLimit(USER_ID, PERIOD, CATEGORY)).thenReturn(Optional.empty());
+            when(limitRepository.save(any(Limit.class))).thenReturn(savedLimit);
+
+            service.createLimit(limitDto, USER_ID);
+
+            InOrder inOrder = inOrder(authBackendClient, walletService, limitExpensesValidator, limitRepository);
+            inOrder.verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+            inOrder.verify(walletService).lockWalletForUpdate(USER_ID);
+            inOrder.verify(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, limitDto);
+            inOrder.verify(limitRepository).save(any(Limit.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenCategoryLimitAlreadyExists() {
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitDto.category()).thenReturn(CATEGORY);
+            when(limitRepository.findCategoryLimit(USER_ID, PERIOD, CATEGORY)).thenReturn(Optional.of(existingLimit));
+
+            assertThrows(EntityAlreadyExistsException.class, () -> service.createLimit(limitDto, USER_ID));
+            verify(limitRepository, never()).save(any(Limit.class));
+            verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenGeneralLimitAlreadyExists() {
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitRepository.findGeneralLimit(USER_ID, PERIOD)).thenReturn(Optional.of(existingLimit));
+
+            assertThrows(EntityAlreadyExistsException.class, () -> service.createLimit(limitDto, USER_ID));
+            verify(limitRepository, never()).save(any(Limit.class));
+            verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenCurrentExpensesExceedLimit() {
+            doThrow(new IllegalStateException()).when(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, limitDto);
+
+            assertThrows(IllegalStateException.class, () -> service.createLimit(limitDto, USER_ID));
+            verify(limitRepository, never()).save(any(Limit.class));
+            verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+            doThrow(new IllegalStateException()).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+
+            assertThrows(IllegalStateException.class, () -> service.createLimit(limitDto, USER_ID));
+            verifyNoInteractions(walletService, limitExpensesValidator, limitRepository, outboxService);
         }
     }
 
     @Nested
     class EditLimit {
 
-        @Nested
-        class Success {
+        @Test
+        void shouldUpdateLimitFieldsAndReturnIdWhenLimitExists() {
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitDto.category()).thenReturn(CATEGORY);
+            when(limitDto.amount()).thenReturn(AMOUNT);
+            when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(existingLimit);
+            when(limitRepository.findCategoryLimit(USER_ID, PERIOD, CATEGORY)).thenReturn(Optional.empty());
 
-            @BeforeEach
-            void setUp() {
-                when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(limit);
-            }
+            Long result = service.editLimit(limitDto, LIMIT_ID, USER_ID);
 
-            @Test
-            void shouldReturnLimitIdWhenLimitIsEdited() {
-                Long result = limitManagementService.editLimit(limitDto, LIMIT_ID, USER_ID);
-
-                assertEquals(LIMIT_ID, result);
-            }
-
-            @Test
-            void shouldUpdateLimitFieldsWhenLimitIsEdited() {
-                limitManagementService.editLimit(generalLimitDto, LIMIT_ID, USER_ID);
-
-                assertEquals(PeriodType.MONTHLY, limit.getPeriodType());
-                assertNull(limit.getCategory());
-                assertEquals(NEW_AMOUNT, limit.getAmount());
-                verify(limitRepository).save(limit);
-            }
-
-            @Test
-            void shouldKeepUserIdAndActiveFlagWhenLimitIsEdited() {
-                limitManagementService.editLimit(limitDto, LIMIT_ID, USER_ID);
-
-                assertEquals(USER_ID, limit.getUserId());
-                assertTrue(limit.getIsActive());
-            }
-
-            @Test
-            void shouldClearPeriodTypeWhenDtoPeriodTypeIsNull() {
-                LimitDto dto = new LimitDto(USER_ID, LIMIT_ID, null, ExpenseCategory.FOOD, null, NEW_AMOUNT, true, AUTH_CODE);
-
-                limitManagementService.editLimit(dto, LIMIT_ID, USER_ID);
-
-                assertNull(limit.getPeriodType());
-                verify(limitRepository).save(limit);
-                verify(outboxService).save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-            }
-
-            @Test
-            void shouldConfirmAuthorizationCodeBeforeLoadingAndValidatingWhenLimitIsEdited() {
-                limitManagementService.editLimit(limitDto, LIMIT_ID, USER_ID);
-
-                InOrder inOrder = inOrder(authBackendClient, limitManagerService, limitExpensesValidator);
-                inOrder.verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-                inOrder.verify(limitManagerService).getLimitByUserIdOrThrow(USER_ID, LIMIT_ID);
-                inOrder.verify(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, limitDto);
-                verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
-            }
-
-            @Test
-            void shouldSaveOutboxEventWhenLimitIsEdited() {
-                limitManagementService.editLimit(limitDto, LIMIT_ID, USER_ID);
-
-                verify(outboxService).save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-            }
-
-            @Test
-            void shouldSaveLimitBeforeOutboxEventWhenLimitIsEdited() {
-                limitManagementService.editLimit(limitDto, LIMIT_ID, USER_ID);
-
-                InOrder inOrder = inOrder(limitRepository, outboxService);
-                inOrder.verify(limitRepository).save(limit);
-                inOrder.verify(outboxService).save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-            }
+            assertEquals(LIMIT_ID, result);
+            assertEquals(PERIOD, existingLimit.getPeriodType());
+            assertEquals(CATEGORY, existingLimit.getCategory());
+            assertEquals(AMOUNT, existingLimit.getAmount());
         }
 
-        @Nested
-        class Failure {
+        @Test
+        void shouldCheckGeneralLimitWhenEditedCategoryIsNull() {
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitDto.amount()).thenReturn(AMOUNT);
+            when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(existingLimit);
+            when(limitRepository.findGeneralLimit(USER_ID, PERIOD)).thenReturn(Optional.empty());
 
-            @Test
-            void shouldThrowExceptionWhenDtoIsNull() {
-                assertThrows(NullPointerException.class, () -> limitManagementService.editLimit(null, LIMIT_ID, USER_ID));
+            Long result = service.editLimit(limitDto, LIMIT_ID, USER_ID);
 
-                verifyNoInteractions(authBackendClient, limitManagerService, limitExpensesValidator, limitRepository, outboxService);
-            }
+            assertEquals(LIMIT_ID, result);
+            assertEquals(null, existingLimit.getCategory());
+            verify(limitRepository, never()).findCategoryLimit(any(), any(), any());
+        }
 
-            @Test
-            void shouldThrowExceptionWhenAuthorizationCodeConfirmationFails() {
-                doThrow(new InvalidInputException("Invalid authorization code"))
-                        .when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+        @Test
+        void shouldNotThrowExceptionWhenDuplicateIsTheSameLimit() {
+            Limit sameLimit = Limit.builder().id(LIMIT_ID).periodType(PERIOD).category(CATEGORY).amount(OLD_AMOUNT).userId(USER_ID).build();
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitDto.category()).thenReturn(CATEGORY);
+            when(limitDto.amount()).thenReturn(AMOUNT);
+            when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(existingLimit);
+            when(limitRepository.findCategoryLimit(USER_ID, PERIOD, CATEGORY)).thenReturn(Optional.of(sameLimit));
 
-                assertThrows(InvalidInputException.class, () -> limitManagementService.editLimit(limitDto, LIMIT_ID, USER_ID));
+            Long result = service.editLimit(limitDto, LIMIT_ID, USER_ID);
 
-                verifyNoInteractions(limitManagerService, limitExpensesValidator, limitRepository, outboxService);
-            }
+            assertEquals(LIMIT_ID, result);
+            assertEquals(AMOUNT, existingLimit.getAmount());
+        }
 
-            @Test
-            void shouldThrowExceptionWhenLimitDoesNotExist() {
-                when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID))
-                        .thenThrow(new RequestedEntityNotFoundException("Limit not found"));
+        @Test
+        void shouldSaveOutboxEventAndLockWalletWhenLimitEdited() {
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitDto.category()).thenReturn(CATEGORY);
+            when(limitDto.amount()).thenReturn(AMOUNT);
+            when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(existingLimit);
+            when(limitRepository.findCategoryLimit(USER_ID, PERIOD, CATEGORY)).thenReturn(Optional.empty());
 
-                assertThrows(RequestedEntityNotFoundException.class, () -> limitManagementService.editLimit(limitDto, LIMIT_ID, USER_ID));
+            service.editLimit(limitDto, LIMIT_ID, USER_ID);
 
-                verifyNoInteractions(limitExpensesValidator, limitRepository, outboxService);
-            }
+            InOrder inOrder = inOrder(authBackendClient, walletService, limitExpensesValidator);
+            inOrder.verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+            inOrder.verify(walletService).lockWalletForUpdate(USER_ID);
+            inOrder.verify(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, limitDto);
+            verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
+        }
 
-            @Test
-            void shouldThrowExceptionWhenCurrentExpensesExceedLimit() {
-                when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(limit);
-                doThrow(new InvalidInputException("Current expenses exceed limit"))
-                        .when(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, limitDto);
+        @Test
+        void shouldThrowExceptionWhenAnotherCategoryLimitAlreadyExists() {
+            Limit anotherLimit = Limit.builder().id(OTHER_LIMIT_ID).periodType(PERIOD).category(CATEGORY).amount(OLD_AMOUNT).userId(USER_ID).build();
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitDto.category()).thenReturn(CATEGORY);
+            when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(existingLimit);
+            when(limitRepository.findCategoryLimit(USER_ID, PERIOD, CATEGORY)).thenReturn(Optional.of(anotherLimit));
 
-                assertThrows(InvalidInputException.class, () -> limitManagementService.editLimit(limitDto, LIMIT_ID, USER_ID));
+            assertThrows(EntityAlreadyExistsException.class, () -> service.editLimit(limitDto, LIMIT_ID, USER_ID));
+            assertEquals(OLD_AMOUNT, existingLimit.getAmount());
+            verifyNoInteractions(outboxService);
+        }
 
-                assertEquals(AMOUNT, limit.getAmount());
-                assertEquals(ExpenseCategory.FOOD, limit.getCategory());
-                verifyNoInteractions(limitRepository, outboxService);
-            }
+        @Test
+        void shouldThrowExceptionWhenAnotherGeneralLimitAlreadyExists() {
+            Limit anotherLimit = Limit.builder().id(OTHER_LIMIT_ID).periodType(PERIOD).category(null).amount(OLD_AMOUNT).userId(USER_ID).build();
+            when(limitDto.periodType()).thenReturn(PERIOD);
+            when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(existingLimit);
+            when(limitRepository.findGeneralLimit(USER_ID, PERIOD)).thenReturn(Optional.of(anotherLimit));
 
-            @Test
-            void shouldThrowExceptionWhenRepositorySaveFails() {
-                when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(limit);
-                when(limitRepository.save(limit)).thenThrow(new IllegalStateException("db failed"));
+            assertThrows(EntityAlreadyExistsException.class, () -> service.editLimit(limitDto, LIMIT_ID, USER_ID));
+            assertEquals(OLD_AMOUNT, existingLimit.getAmount());
+            verifyNoInteractions(outboxService);
+        }
 
-                assertThrows(IllegalStateException.class, () -> limitManagementService.editLimit(limitDto, LIMIT_ID, USER_ID));
+        @Test
+        void shouldThrowExceptionWhenCurrentExpensesExceedEditedLimit() {
+            when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(existingLimit);
+            doThrow(new IllegalStateException()).when(limitExpensesValidator).validateCurrentExpensesDoNotExceedLimit(USER_ID, limitDto);
 
-                verifyNoInteractions(outboxService);
-            }
+            assertThrows(IllegalStateException.class, () -> service.editLimit(limitDto, LIMIT_ID, USER_ID));
+            assertEquals(OLD_AMOUNT, existingLimit.getAmount());
+            verifyNoInteractions(outboxService);
+        }
 
-            @Test
-            void shouldThrowExceptionWhenLimitIdIsNull() {
-                when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, null)).thenReturn(limit);
+        @Test
+        void shouldThrowExceptionWhenLimitDoesNotExist() {
+            when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenThrow(new IllegalStateException());
 
-                assertThrows(NullPointerException.class, () -> limitManagementService.editLimit(limitDto, null, USER_ID));
+            assertThrows(IllegalStateException.class, () -> service.editLimit(limitDto, LIMIT_ID, USER_ID));
+            verifyNoInteractions(limitExpensesValidator, outboxService);
+        }
 
-                verifyNoInteractions(outboxService);
-            }
+        @Test
+        void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+            doThrow(new IllegalStateException()).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
 
-            @Test
-            void shouldThrowExceptionWhenOutboxServiceFails() {
-                when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(limit);
-                doThrow(new IllegalStateException("outbox failed")).when(outboxService)
-                        .save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-
-                assertThrows(IllegalStateException.class, () -> limitManagementService.editLimit(limitDto, LIMIT_ID, USER_ID));
-            }
+            assertThrows(IllegalStateException.class, () -> service.editLimit(limitDto, LIMIT_ID, USER_ID));
+            verifyNoInteractions(walletService, limitManagerService, limitExpensesValidator, outboxService);
         }
     }
 
@@ -496,181 +336,58 @@ class LimitManagementServiceTest {
     class GetLimitStats {
 
         @Test
-        void shouldReturnEmptyListWhenUserHasNoLimits() {
-            when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+        void shouldReturnStatsWhenActiveLimitsExist() {
+            List<Limit> limits = List.of(existingLimit, savedLimit);
+            when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+            when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of(statsDto));
 
-            List<LimitStatsDto> result = limitManagementService.getLimitStats(USER_ID);
+            List<LimitStatsDto> result = service.getLimitStats(USER_ID);
+
+            assertEquals(1, result.size());
+            assertSame(statsDto, result.get(0));
+            verify(limitCalculateService).calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class));
+        }
+
+        @Test
+        void shouldReturnEmptyListWhenNoActiveLimitsExist() {
+            when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
+            when(limitCalculateService.calculateLimitStats(eq(List.<Limit>of()), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
+
+            List<LimitStatsDto> result = service.getLimitStats(USER_ID);
 
             assertTrue(result.isEmpty());
-            verifyNoInteractions(limitCalculateService);
-        }
-
-        @Test
-        void shouldReturnStatsWhenSingleLimitExists() {
-            when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(limit));
-            when(limitCalculateService.calculateLimitStats(eq(USER_ID), eq(LIMIT_ID), any(LocalDate.class))).thenReturn(firstStats);
-
-            List<LimitStatsDto> result = limitManagementService.getLimitStats(USER_ID);
-
-            assertEquals(List.of(firstStats), result);
-        }
-
-        @Test
-        void shouldReturnStatsInRepositoryOrderWhenMultipleLimitsExist() {
-            Limit secondLimit = Limit.builder().id(OTHER_LIMIT_ID).userId(USER_ID).amount(BigDecimal.valueOf(300)).build();
-            when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(secondLimit, limit));
-            when(limitCalculateService.calculateLimitStats(eq(USER_ID), eq(LIMIT_ID), any(LocalDate.class))).thenReturn(firstStats);
-            when(limitCalculateService.calculateLimitStats(eq(USER_ID), eq(OTHER_LIMIT_ID), any(LocalDate.class))).thenReturn(secondStats);
-
-            List<LimitStatsDto> result = limitManagementService.getLimitStats(USER_ID);
-
-            assertEquals(2, result.size());
-            assertEquals(secondStats, result.get(0));
-            assertEquals(firstStats, result.get(1));
-        }
-
-        @Test
-        void shouldCalculateStatsWithSameDateForEveryLimitWhenMultipleLimitsExist() {
-            Limit secondLimit = Limit.builder().id(OTHER_LIMIT_ID).userId(USER_ID).build();
-            when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(limit, secondLimit));
-            when(limitCalculateService.calculateLimitStats(eq(USER_ID), anyLong(), any(LocalDate.class))).thenReturn(firstStats);
-
-            limitManagementService.getLimitStats(USER_ID);
-
-            verify(limitCalculateService, times(2)).calculateLimitStats(eq(USER_ID), anyLong(), dateCaptor.capture());
-            List<LocalDate> dates = dateCaptor.getAllValues();
-            assertEquals(dates.get(0), dates.get(1));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryFails() {
-            when(limitRepository.findAllByUserId(USER_ID)).thenThrow(new IllegalStateException("db failed"));
-
-            assertThrows(IllegalStateException.class, () -> limitManagementService.getLimitStats(USER_ID));
-
-            verifyNoInteractions(limitCalculateService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenCalculateServiceFails() {
-            when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(limit));
-            when(limitCalculateService.calculateLimitStats(eq(USER_ID), eq(LIMIT_ID), any(LocalDate.class)))
-                    .thenThrow(new IllegalStateException("calculation failed"));
-
-            assertThrows(IllegalStateException.class, () -> limitManagementService.getLimitStats(USER_ID));
         }
     }
 
     @Nested
     class DeleteLimit {
 
-        @Nested
-        class Success {
+        @Test
+        void shouldDeleteLimitAndSaveOutboxEventWhenLimitExists() {
+            when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(existingLimit);
 
-            @BeforeEach
-            void setUp() {
-                when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(limit);
-            }
+            service.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE);
 
-            @Test
-            void shouldDeleteLimitWhenLimitExists() {
-                limitManagementService.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE);
-
-                verify(limitRepository).delete(limit);
-            }
-
-            @Test
-            void shouldDeleteLimitWhenAuthorizationCodeIsNull() {
-                limitManagementService.deleteLimit(USER_ID, LIMIT_ID, null);
-
-                verify(limitRepository).delete(limit);
-            }
-
-            @Test
-            void shouldSaveOutboxEventWhenLimitIsDeleted() {
-                limitManagementService.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE);
-
-                verify(outboxService).save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-            }
-
-            @Test
-            void shouldSaveOutboxEventBeforeDeletingLimitWhenLimitIsDeleted() {
-                limitManagementService.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE);
-
-                InOrder inOrder = inOrder(outboxService, limitRepository);
-                inOrder.verify(outboxService).save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-                inOrder.verify(limitRepository).delete(limit);
-            }
-
-            @Test
-            void shouldConfirmAuthorizationCodeBeforeLoadingLimitWhenLimitIsDeleted() {
-                limitManagementService.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE);
-
-                InOrder inOrder = inOrder(authBackendClient, limitManagerService);
-                inOrder.verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-                inOrder.verify(limitManagerService).getLimitByUserIdOrThrow(USER_ID, LIMIT_ID);
-                verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
-            }
-
-            @Test
-            void shouldNotValidateExpensesWhenLimitIsDeleted() {
-                limitManagementService.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE);
-
-                verifyNoInteractions(limitExpensesValidator, limitCalculateService);
-            }
+            verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
+            verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+            verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
+            verify(limitRepository).delete(existingLimit);
         }
 
-        @Nested
-        class Failure {
+        @Test
+        void shouldThrowExceptionWhenLimitDoesNotExist() {
+            when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenThrow(new IllegalStateException());
 
-            @Test
-            void shouldThrowExceptionWhenAuthorizationCodeConfirmationFails() {
-                doThrow(new InvalidInputException("Invalid authorization code"))
-                        .when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+            assertThrows(IllegalStateException.class, () -> service.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE));
+            verifyNoInteractions(outboxService, limitRepository);
+        }
 
-                assertThrows(InvalidInputException.class, () -> limitManagementService.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE));
+        @Test
+        void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+            doThrow(new IllegalStateException()).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
 
-                verifyNoInteractions(limitManagerService, limitRepository, outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenLimitDoesNotExist() {
-                when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID))
-                        .thenThrow(new RequestedEntityNotFoundException("Limit not found"));
-
-                assertThrows(RequestedEntityNotFoundException.class, () -> limitManagementService.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE));
-
-                verifyNoInteractions(limitRepository, outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenLimitIdIsNull() {
-                when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, null)).thenReturn(limit);
-
-                assertThrows(NullPointerException.class, () -> limitManagementService.deleteLimit(USER_ID, null, AUTH_CODE));
-
-                verify(limitRepository, never()).delete(any(Limit.class));
-                verifyNoInteractions(outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenOutboxServiceFails() {
-                when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(limit);
-                doThrow(new IllegalStateException("outbox failed")).when(outboxService)
-                        .save(eq(AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-
-                assertThrows(IllegalStateException.class, () -> limitManagementService.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE));
-
-                verify(limitRepository, never()).delete(any(Limit.class));
-            }
-
-            @Test
-            void shouldThrowExceptionWhenRepositoryDeleteFails() {
-                when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(limit);
-                doThrow(new IllegalStateException("db failed")).when(limitRepository).delete(limit);
-
-                assertThrows(IllegalStateException.class, () -> limitManagementService.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE));
-            }
+            assertThrows(IllegalStateException.class, () -> service.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE));
+            verifyNoInteractions(limitManagerService, outboxService, limitRepository);
         }
     }
 
@@ -678,31 +395,24 @@ class LimitManagementServiceTest {
     class DeleteByUserId {
 
         @Test
-        void shouldDeleteAllUserLimitsWhenUserDataIsDeleted() {
-            limitManagementService.deleteByUserId(USER_ID);
+        void shouldDeleteAllLimitsWhenUserHasLimits() {
+            List<Limit> limits = List.of(existingLimit, savedLimit);
+            when(limitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
 
-            verify(limitRepository).deleteByUserId(USER_ID);
+            service.deleteByUserId(USER_ID);
+
+            verify(limitRepository).deleteAll(limitsCaptor.capture());
+            assertEquals(limits, limitsCaptor.getValue());
         }
 
         @Test
-        void shouldNotUseOutboxOrAuthorizationWhenUserDataIsDeleted() {
-            limitManagementService.deleteByUserId(USER_ID);
+        void shouldDeleteEmptyListWhenUserHasNoLimits() {
+            when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
 
-            verifyNoInteractions(outboxService, authBackendClient, additionalAuthorizationCodeResolver);
-        }
+            service.deleteByUserId(USER_ID);
 
-        @Test
-        void shouldDelegateToRepositoryWhenUserIdIsNull() {
-            limitManagementService.deleteByUserId(null);
-
-            verify(limitRepository).deleteByUserId(null);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryFails() {
-            doThrow(new IllegalStateException("db failed")).when(limitRepository).deleteByUserId(USER_ID);
-
-            assertThrows(IllegalStateException.class, () -> limitManagementService.deleteByUserId(USER_ID));
+            verify(limitRepository).deleteAll(limitsCaptor.capture());
+            assertTrue(limitsCaptor.getValue().isEmpty());
         }
     }
 }
