@@ -52,10 +52,11 @@ class ExpenseActivityServiceTest {
     class DeleteByUserId {
 
         @Test
-        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+        void shouldDeleteUserActivitiesWhenUserIdIsValid() {
             expenseActivityService.deleteByUserId(USER_ID);
 
-            verify(expenseActivityRepository).deleteByUserId(USER_ID);
+            verify(expenseActivityRepository).findAllByUserId(USER_ID);
+            verify(expenseActivityRepository).deleteAll(anyList());
         }
     }
 
