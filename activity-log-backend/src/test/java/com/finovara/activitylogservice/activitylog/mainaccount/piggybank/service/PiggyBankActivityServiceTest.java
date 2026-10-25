@@ -359,28 +359,38 @@ class PiggyBankActivityServiceTest {
 
         @Test
         void shouldDeleteActivitiesWhenUserIdIsProvided() {
+            when(piggyBankActivityRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstActivity));
+
             service.deleteByUserId(USER_ID);
 
-            verify(piggyBankActivityRepository).deleteByUserId(USER_ID);
+            verify(piggyBankActivityRepository).findAllByUserId(USER_ID);
+            verify(piggyBankActivityRepository).deleteAll(List.of(firstActivity));
         }
 
         @Test
         void shouldDeleteActivitiesExactlyOnceWhenUserIdIsProvided() {
+            when(piggyBankActivityRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstActivity));
+
             service.deleteByUserId(USER_ID);
 
-            verify(piggyBankActivityRepository, times(1)).deleteByUserId(USER_ID);
+            verify(piggyBankActivityRepository, times(1)).deleteAll(List.of(firstActivity));
             verifyNoMoreInteractions(piggyBankActivityRepository);
         }
 
         @Test
         void shouldDelegateDeletionWithNullWhenUserIdIsNull() {
+            when(piggyBankActivityRepository.findAllByUserId(null)).thenReturn(List.of());
+
             service.deleteByUserId(null);
 
-            verify(piggyBankActivityRepository).deleteByUserId(null);
+            verify(piggyBankActivityRepository).findAllByUserId(null);
+            verify(piggyBankActivityRepository).deleteAll(List.of());
         }
 
         @Test
         void shouldNotUseMapperWhenDeletingActivities() {
+            when(piggyBankActivityRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstActivity));
+
             service.deleteByUserId(USER_ID);
 
             verifyNoInteractions(piggyBankActivityMapper);
@@ -388,7 +398,8 @@ class PiggyBankActivityServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
-            doThrow(new IllegalStateException()).when(piggyBankActivityRepository).deleteByUserId(USER_ID);
+            when(piggyBankActivityRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstActivity));
+            doThrow(new IllegalStateException()).when(piggyBankActivityRepository).deleteAll(List.of(firstActivity));
 
             assertThrows(IllegalStateException.class, () -> service.deleteByUserId(USER_ID));
         }
