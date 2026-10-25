@@ -1,6 +1,5 @@
 package com.finovara.financeservice.settings.piggybank.roundup.service;
 
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
 import com.finovara.contracts.mainaccount.activity.model.SettingType;
@@ -15,8 +14,8 @@ import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
 import com.finovara.financeservice.settings.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.financeservice.util.transaction.expense.ExpenseManagerService;
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
-import com.finovara.financeservice.wallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -34,7 +33,7 @@ public class RoundUpService {
     private final ExpenseManagerService expenseManagerService;
     private final PiggyBankManagerService piggyBankManagerService;
     private final PiggyBankRepository piggyBankRepository;
-    private final WalletRepository walletRepository;
+    private final WalletManagerService walletManagerService;
     private final GoalCompletionService goalCompletionService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final RoundUpCore roundUpCore;
@@ -69,7 +68,7 @@ public class RoundUpService {
 
         List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserId(userId);
 
-        Wallet wallet = walletRepository.findByUserId(userId).orElseThrow(() -> new RequestedEntityNotFoundException("Wallet not found"));
+        Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
 
         if (piggyBanks == null || piggyBanks.isEmpty()) return;
 
