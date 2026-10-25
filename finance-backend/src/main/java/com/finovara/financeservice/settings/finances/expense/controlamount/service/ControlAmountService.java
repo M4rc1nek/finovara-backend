@@ -25,7 +25,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ControlAmountService {
 
-    private final ExpenseSettingsRepository expenseSettingsRepository;
     private final SettingsManager settingsManager;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final AuthBackendClient authBackendClient;
