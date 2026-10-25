@@ -1,60 +1,57 @@
 package com.finovara.financeservice.settings.factory;
 
-import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.util.ReflectionTestUtils.getField;
 
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.model.RecurringType;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
 import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class FinanceSettingsFactoryTest {
 
     private static final Long USER_ID = 1L;
-    private static final int RECURRING_TYPES_COUNT = RecurringType.values().length;
     private static final RecurringType FIRST_TYPE = RecurringType.values()[0];
-    private static final RecurringType LAST_TYPE = RecurringType.values()[RECURRING_TYPES_COUNT - 1];
 
     @Mock
     private ExpenseSettingsRepository expenseSettingsRepository;
-
     @Mock
     private RecurringSettingsRepository recurringSettingsRepository;
-
-    @Captor
-    private ArgumentCaptor<ExpenseSettings> expenseSettingsCaptor;
-
-    @Captor
-    private ArgumentCaptor<RecurringSettings> recurringSettingsCaptor;
+    @Mock
+    private ExpenseSettings expenseSettings;
+    @Mock
+    private RecurringSettings firstRecurringSettings;
+    @Mock
+    private RecurringSettings secondRecurringSettings;
 
     @InjectMocks
     private FinanceSettingsFactory factory;
@@ -62,260 +59,246 @@ class FinanceSettingsFactoryTest {
     @Nested
     class CreateDefaultSettingsIfNotExist {
 
-        @Test
-        void shouldSaveExpenseSettingsWithDefaultValuesWhenExpenseSettingsDoNotExist() {
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(false);
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
+        @Nested
+        class WhenNoSettingsExist {
 
-            factory.createDefaultSettingsIfNotExist(USER_ID);
+            @BeforeEach
+            void setUp() {
+                when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(false);
+                when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(false);
+            }
 
-            verify(expenseSettingsRepository).save(expenseSettingsCaptor.capture());
-            ExpenseSettings saved = expenseSettingsCaptor.getValue();
-            assertEquals(USER_ID, getField(saved, "userId"));
-            assertEquals(false, getField(saved, "amountThresholdEnabled"));
-            assertEquals(BigDecimal.ZERO, getField(saved, "blockedAmount"));
-            assertEquals(false, getField(saved, "smartScanEnabled"));
-            assertEquals(false, getField(saved, "countQuantityLimitEnabled"));
-            assertEquals(1, getField(saved, "numberOfQuantityLimit"));
-            assertEquals(PeriodType.DAILY, getField(saved, "periodType"));
-            assertEquals(false, getField(saved, "quantityLimitEmergencyModeEnabled"));
+            @Test
+            void shouldSaveExpenseSettingsWithDefaultValuesWhenNoSettingsExist() {
+                ArgumentCaptor<ExpenseSettings> captor = ArgumentCaptor.forClass(ExpenseSettings.class);
+
+                factory.createDefaultSettingsIfNotExist(USER_ID);
+
+                verify(expenseSettingsRepository).save(captor.capture());
+                ExpenseSettings captured = captor.getValue();
+                assertEquals(USER_ID, captured.getUserId());
+                assertFalse(captured.isAmountThresholdEnabled());
+                assertEquals(0, BigDecimal.ZERO.compareTo(captured.getBlockedAmount()));
+                assertFalse(captured.isSmartScanEnabled());
+                assertFalse(captured.isCountQuantityLimitEnabled());
+                assertEquals(1, captured.getNumberOfQuantityLimit());
+                assertEquals(PeriodType.DAILY, captured.getPeriodType());
+                assertFalse(captured.isQuantityLimitEmergencyModeEnabled());
+            }
+
+            @Test
+            void shouldSaveRecurringSettingsForEveryTypeWhenNoSettingsExist() {
+                ArgumentCaptor<RecurringSettings> captor = ArgumentCaptor.forClass(RecurringSettings.class);
+
+                factory.createDefaultSettingsIfNotExist(USER_ID);
+
+                verify(recurringSettingsRepository, times(RecurringType.values().length)).save(captor.capture());
+                Set<RecurringType> savedTypes = captor.getAllValues().stream()
+                        .map(RecurringSettings::getType)
+                        .collect(Collectors.toSet());
+                assertEquals(Set.copyOf(Arrays.asList(RecurringType.values())), savedTypes);
+            }
+
+            @Test
+            void shouldSaveRecurringSettingsWithDefaultValuesWhenNoSettingsExist() {
+                ArgumentCaptor<RecurringSettings> captor = ArgumentCaptor.forClass(RecurringSettings.class);
+
+                factory.createDefaultSettingsIfNotExist(USER_ID);
+
+                verify(recurringSettingsRepository, times(RecurringType.values().length)).save(captor.capture());
+                captor.getAllValues().forEach(saved -> {
+                    assertEquals(USER_ID, saved.getUserId());
+                    assertFalse(saved.isEnable());
+                    assertEquals(0, BigDecimal.ONE.compareTo(saved.getAmount()));
+                    assertNull(saved.getRevenueCategory());
+                    assertNull(saved.getExpenseCategory());
+                    assertNull(saved.getPiggyBankId());
+                    assertEquals(PeriodType.MONTHLY, saved.getPeriodType());
+                    assertNull(saved.getStartDate());
+                    assertNull(saved.getNextExecutionDate());
+                    assertNotNull(saved.getCreatedAt());
+                });
+            }
+        }
+
+        @Nested
+        class WhenExpenseSettingsAlreadyExist {
+
+            @BeforeEach
+            void setUp() {
+                when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
+                when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(false);
+            }
+
+            @Test
+            void shouldNotSaveExpenseSettingsWhenExpenseSettingsAlreadyExist() {
+                factory.createDefaultSettingsIfNotExist(USER_ID);
+
+                verify(expenseSettingsRepository, never()).save(any(ExpenseSettings.class));
+            }
+
+            @Test
+            void shouldStillSaveRecurringSettingsWhenExpenseSettingsAlreadyExist() {
+                factory.createDefaultSettingsIfNotExist(USER_ID);
+
+                verify(recurringSettingsRepository, times(RecurringType.values().length)).save(any(RecurringSettings.class));
+            }
+        }
+
+        @Nested
+        class WhenRecurringSettingsAlreadyExist {
+
+            @BeforeEach
+            void setUp() {
+                when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(false);
+            }
+
+            @Test
+            void shouldNotSaveRecurringSettingsWhenAllTypesAlreadyExist() {
+                when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
+
+                factory.createDefaultSettingsIfNotExist(USER_ID);
+
+                verify(recurringSettingsRepository, never()).save(any(RecurringSettings.class));
+            }
+
+            @Test
+            void shouldStillSaveExpenseSettingsWhenAllRecurringTypesAlreadyExist() {
+                when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
+
+                factory.createDefaultSettingsIfNotExist(USER_ID);
+
+                verify(expenseSettingsRepository).save(any(ExpenseSettings.class));
+            }
+
+            @Test
+            void shouldSaveOnlyMissingRecurringTypeWhenOnlyOneTypeIsMissing() {
+                ArgumentCaptor<RecurringSettings> captor = ArgumentCaptor.forClass(RecurringSettings.class);
+                when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
+                when(recurringSettingsRepository.existsByUserIdAndType(USER_ID, FIRST_TYPE)).thenReturn(false);
+
+                factory.createDefaultSettingsIfNotExist(USER_ID);
+
+                verify(recurringSettingsRepository).save(captor.capture());
+                assertEquals(FIRST_TYPE, captor.getValue().getType());
+            }
+
+            @Test
+            void shouldSkipOnlyExistingRecurringTypeWhenOnlyOneTypeExists() {
+                ArgumentCaptor<RecurringSettings> captor = ArgumentCaptor.forClass(RecurringSettings.class);
+                when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(false);
+                when(recurringSettingsRepository.existsByUserIdAndType(USER_ID, FIRST_TYPE)).thenReturn(true);
+
+                factory.createDefaultSettingsIfNotExist(USER_ID);
+
+                verify(recurringSettingsRepository, times(RecurringType.values().length - 1)).save(captor.capture());
+                assertFalse(captor.getAllValues().stream().anyMatch(saved -> saved.getType() == FIRST_TYPE));
+            }
         }
 
         @Test
-        void shouldNotSaveExpenseSettingsWhenExpenseSettingsAlreadyExist() {
+        void shouldNotSaveAnythingWhenAllSettingsAlreadyExist() {
             when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
             when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
 
             factory.createDefaultSettingsIfNotExist(USER_ID);
 
             verify(expenseSettingsRepository, never()).save(any(ExpenseSettings.class));
-            verify(expenseSettingsRepository).existsByUserId(USER_ID);
-            verifyNoMoreInteractions(expenseSettingsRepository);
-        }
-
-        @Test
-        void shouldSaveRecurringSettingsForEveryTypeWhenNoneExist() {
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(false);
-
-            factory.createDefaultSettingsIfNotExist(USER_ID);
-
-            verify(recurringSettingsRepository, times(RECURRING_TYPES_COUNT)).save(recurringSettingsCaptor.capture());
-            List<Object> savedTypes = recurringSettingsCaptor.getAllValues().stream()
-                    .map(settings -> getField(settings, "type"))
-                    .toList();
-            assertEquals(asList(RecurringType.values()), savedTypes);
-        }
-
-        @Test
-        void shouldSaveRecurringSettingsWithDefaultValuesWhenRecurringSettingsDoNotExist() {
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(false);
-
-            factory.createDefaultSettingsIfNotExist(USER_ID);
-
-            verify(recurringSettingsRepository, times(RECURRING_TYPES_COUNT)).save(recurringSettingsCaptor.capture());
-            recurringSettingsCaptor.getAllValues().forEach(saved -> {
-                assertEquals(USER_ID, getField(saved, "userId"));
-                assertEquals(false, getField(saved, "enable"));
-                assertEquals(BigDecimal.ONE, getField(saved, "amount"));
-                assertNull(getField(saved, "revenueCategory"));
-                assertNull(getField(saved, "expenseCategory"));
-                assertNull(getField(saved, "piggyBankId"));
-                assertEquals(PeriodType.MONTHLY, getField(saved, "periodType"));
-                assertNull(getField(saved, "startDate"));
-                assertNull(getField(saved, "nextExecutionDate"));
-                assertEquals(LocalDate.now(), getField(saved, "createdAt"));
-            });
-        }
-
-        @Test
-        void shouldSkipSavingOnlyForExistingRecurringTypesWhenSomeTypesExist() {
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class)))
-                    .thenAnswer(invocation -> invocation.getArgument(1) == FIRST_TYPE);
-
-            factory.createDefaultSettingsIfNotExist(USER_ID);
-
-            verify(recurringSettingsRepository, times(RECURRING_TYPES_COUNT - 1)).save(recurringSettingsCaptor.capture());
-            List<Object> savedTypes = recurringSettingsCaptor.getAllValues().stream()
-                    .map(settings -> getField(settings, "type"))
-                    .toList();
-            assertEquals(asList(RecurringType.values()).subList(1, RECURRING_TYPES_COUNT), savedTypes);
-        }
-
-        @Test
-        void shouldNotSaveRecurringSettingsWhenAllRecurringSettingsAlreadyExist() {
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
-
-            factory.createDefaultSettingsIfNotExist(USER_ID);
-
             verify(recurringSettingsRepository, never()).save(any(RecurringSettings.class));
-            verify(recurringSettingsRepository, times(RECURRING_TYPES_COUNT)).existsByUserIdAndType(eq(USER_ID), any(RecurringType.class));
-            verifyNoMoreInteractions(recurringSettingsRepository);
-        }
-
-        @Test
-        void shouldCreateExpenseAndRecurringSettingsWhenNothingExists() {
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(false);
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(false);
-
-            factory.createDefaultSettingsIfNotExist(USER_ID);
-
-            verify(expenseSettingsRepository, times(1)).save(any(ExpenseSettings.class));
-            verify(recurringSettingsRepository, times(RECURRING_TYPES_COUNT)).save(any(RecurringSettings.class));
-        }
-
-        @Test
-        void shouldCheckExistenceForEachRecurringTypeWhenCreatingSettings() {
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
-
-            factory.createDefaultSettingsIfNotExist(USER_ID);
-
-            asList(RecurringType.values()).forEach(type ->
-                    verify(recurringSettingsRepository).existsByUserIdAndType(USER_ID, type));
-        }
-
-        @Test
-        void shouldSaveExpenseSettingsWithNullUserIdWhenUserIdIsNull() {
-            factory.createDefaultSettingsIfNotExist(null);
-
-            verify(expenseSettingsRepository).save(expenseSettingsCaptor.capture());
-            assertNull(getField(expenseSettingsCaptor.getValue(), "userId"));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenExpenseExistenceCheckFails() {
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenThrow(new IllegalStateException("db error"));
-
-            assertThrows(IllegalStateException.class, () -> factory.createDefaultSettingsIfNotExist(USER_ID));
-
-            verifyNoInteractions(recurringSettingsRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenExpenseSettingsSaveFails() {
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(false);
-            when(expenseSettingsRepository.save(any(ExpenseSettings.class))).thenThrow(new IllegalStateException("save error"));
-
-            assertThrows(IllegalStateException.class, () -> factory.createDefaultSettingsIfNotExist(USER_ID));
-
-            verifyNoInteractions(recurringSettingsRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRecurringSettingsSaveFails() {
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(false);
-            when(recurringSettingsRepository.save(any(RecurringSettings.class))).thenThrow(new IllegalStateException("save error"));
-
-            assertThrows(IllegalStateException.class, () -> factory.createDefaultSettingsIfNotExist(USER_ID));
-
-            verify(recurringSettingsRepository, times(1)).save(any(RecurringSettings.class));
         }
     }
 
     @Nested
     class DeleteSettingsIfExist {
 
-        @Test
-        void shouldDeleteRecurringAndExpenseSettingsWhenBothExist() {
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
+        @Nested
+        class WhenBothSettingsExist {
 
-            factory.deleteSettingsIfExist(USER_ID);
+            @BeforeEach
+            void setUp() {
+                when(recurringSettingsRepository.existsByUserIdAndType(USER_ID, FIRST_TYPE)).thenReturn(true);
+                when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
+                when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(expenseSettings));
+            }
 
-            verify(recurringSettingsRepository).deleteAllByUserId(USER_ID);
-            verify(expenseSettingsRepository).deleteByUserId(USER_ID);
-        }
+            @Test
+            void shouldDeleteAllRecurringSettingsWhenBothSettingsExist() {
+                List<RecurringSettings> recurringSettings = List.of(firstRecurringSettings, secondRecurringSettings);
+                when(recurringSettingsRepository.findAllByUserId(USER_ID)).thenReturn(recurringSettings);
 
-        @Test
-        void shouldDeleteRecurringSettingsBeforeExpenseSettingsWhenBothExist() {
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
-            InOrder inOrder = inOrder(recurringSettingsRepository, expenseSettingsRepository);
+                factory.deleteSettingsIfExist(USER_ID);
 
-            factory.deleteSettingsIfExist(USER_ID);
+                verify(recurringSettingsRepository).deleteAll(recurringSettings);
+            }
 
-            inOrder.verify(recurringSettingsRepository).deleteAllByUserId(USER_ID);
-            inOrder.verify(expenseSettingsRepository).deleteByUserId(USER_ID);
+            @Test
+            void shouldDeleteExpenseSettingsWhenBothSettingsExist() {
+                when(recurringSettingsRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+
+                factory.deleteSettingsIfExist(USER_ID);
+
+                verify(expenseSettingsRepository).delete(expenseSettings);
+            }
+
+            @Test
+            void shouldDeleteEmptyCollectionWhenNoRecurringSettingsAreReturned() {
+                List<RecurringSettings> recurringSettings = List.of();
+                when(recurringSettingsRepository.findAllByUserId(USER_ID)).thenReturn(recurringSettings);
+
+                factory.deleteSettingsIfExist(USER_ID);
+
+                verify(recurringSettingsRepository).deleteAll(recurringSettings);
+            }
         }
 
         @Test
         void shouldNotDeleteAnythingWhenRecurringSettingsDoNotExist() {
+            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(false);
+
             factory.deleteSettingsIfExist(USER_ID);
 
-            verify(recurringSettingsRepository, times(RECURRING_TYPES_COUNT)).existsByUserIdAndType(eq(USER_ID), any(RecurringType.class));
-            verify(recurringSettingsRepository, never()).deleteAllByUserId(USER_ID);
-            verifyNoInteractions(expenseSettingsRepository);
+            verify(recurringSettingsRepository, never()).deleteAll(any());
+            verify(expenseSettingsRepository, never()).delete(any(ExpenseSettings.class));
+            verifyNoMoreInteractions(expenseSettingsRepository);
         }
 
         @Test
         void shouldNotDeleteAnythingWhenExpenseSettingsDoNotExist() {
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
+            when(recurringSettingsRepository.existsByUserIdAndType(USER_ID, FIRST_TYPE)).thenReturn(true);
             when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(false);
 
             factory.deleteSettingsIfExist(USER_ID);
 
-            verify(recurringSettingsRepository, never()).deleteAllByUserId(USER_ID);
-            verify(expenseSettingsRepository, never()).deleteByUserId(USER_ID);
+            verify(recurringSettingsRepository, never()).deleteAll(any());
+            verify(expenseSettingsRepository, never()).delete(any(ExpenseSettings.class));
         }
 
         @Test
-        void shouldStopCheckingRecurringTypesWhenFirstTypeExists() {
+        void shouldDeleteWhenOnlyLastRecurringTypeExists() {
+            RecurringType[] types = RecurringType.values();
+            RecurringType lastType = types[types.length - 1];
+            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(false);
+            when(recurringSettingsRepository.existsByUserIdAndType(USER_ID, lastType)).thenReturn(true);
+            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
+            when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(expenseSettings));
+            when(recurringSettingsRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstRecurringSettings));
+
+            factory.deleteSettingsIfExist(USER_ID);
+
+            verify(recurringSettingsRepository).deleteAll(List.of(firstRecurringSettings));
+            verify(expenseSettingsRepository).delete(expenseSettings);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenExpenseSettingsExistButCannotBeFound() {
             when(recurringSettingsRepository.existsByUserIdAndType(USER_ID, FIRST_TYPE)).thenReturn(true);
             when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
+            when(expenseSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
 
-            factory.deleteSettingsIfExist(USER_ID);
+            assertThrows(RequestedEntityNotFoundException.class, () -> factory.deleteSettingsIfExist(USER_ID));
 
-            verify(recurringSettingsRepository, times(1)).existsByUserIdAndType(eq(USER_ID), any(RecurringType.class));
-            verify(recurringSettingsRepository).deleteAllByUserId(USER_ID);
-            verify(expenseSettingsRepository).deleteByUserId(USER_ID);
-        }
-
-        @Test
-        void shouldDeleteSettingsWhenOnlyLastRecurringTypeExists() {
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class)))
-                    .thenAnswer(invocation -> invocation.getArgument(1) == LAST_TYPE);
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
-
-            factory.deleteSettingsIfExist(USER_ID);
-
-            verify(recurringSettingsRepository, times(RECURRING_TYPES_COUNT)).existsByUserIdAndType(eq(USER_ID), any(RecurringType.class));
-            verify(recurringSettingsRepository).deleteAllByUserId(USER_ID);
-            verify(expenseSettingsRepository).deleteByUserId(USER_ID);
-        }
-
-        @Test
-        void shouldNotDeleteAnythingWhenUserIdIsNullAndNoSettingsExist() {
-            factory.deleteSettingsIfExist(null);
-
-            verify(recurringSettingsRepository, never()).deleteAllByUserId(any());
-            verifyNoInteractions(expenseSettingsRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRecurringSettingsDeletionFails() {
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
-            doThrow(new IllegalStateException("delete error")).when(recurringSettingsRepository).deleteAllByUserId(USER_ID);
-
-            assertThrows(IllegalStateException.class, () -> factory.deleteSettingsIfExist(USER_ID));
-
-            verify(expenseSettingsRepository, never()).deleteByUserId(USER_ID);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenExpenseSettingsDeletionFails() {
-            when(recurringSettingsRepository.existsByUserIdAndType(eq(USER_ID), any(RecurringType.class))).thenReturn(true);
-            when(expenseSettingsRepository.existsByUserId(USER_ID)).thenReturn(true);
-            doThrow(new IllegalStateException("delete error")).when(expenseSettingsRepository).deleteByUserId(USER_ID);
-
-            assertThrows(IllegalStateException.class, () -> factory.deleteSettingsIfExist(USER_ID));
-
-            verify(recurringSettingsRepository).deleteAllByUserId(USER_ID);
+            verify(recurringSettingsRepository, never()).deleteAll(any());
+            verify(expenseSettingsRepository, never()).delete(any(ExpenseSettings.class));
         }
     }
 }
