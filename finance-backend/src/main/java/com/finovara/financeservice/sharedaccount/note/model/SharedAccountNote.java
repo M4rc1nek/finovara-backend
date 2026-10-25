@@ -22,6 +22,9 @@ public class SharedAccountNote {
     private String description;
     private LocalDateTime createdAt;
 
+    @Version
+    private Long version;
+
     @Column(nullable = false)
     private Long ownerId;
 

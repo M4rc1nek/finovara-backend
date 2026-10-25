@@ -1,47 +1,64 @@
 package com.finovara.financeservice.piggybank.service;
 
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
-import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankEditActivityEvent;
-import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
+
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankEditActivityEvent;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.util.model.PiggyBankGoalType;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.piggybank.dto.PiggyBankDto;
 import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerService;
 import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
-import com.finovara.contracts.util.model.PiggyBankGoalType;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
-import com.finovara.financeservice.settings.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.wallet.service.WalletService;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PiggyBankManagementServiceTest {
 
-    @InjectMocks
-    private PiggyBankManagementService piggyBankManagementService;
+    private static final Long USER_ID = 1L;
+    private static final Long PIGGY_BANK_ID = 10L;
+    private static final String AUTH_CODE = "123456";
+    private static final String NAME = "Vacation";
+    private static final String NEW_NAME = "New car";
+    private static final BigDecimal GOAL_AMOUNT = new BigDecimal("1000.00");
+    private static final BigDecimal NEW_GOAL_AMOUNT = new BigDecimal("2500.00");
+    private static final PiggyBankGoalType GOAL_TYPE = PiggyBankGoalType.values()[0];
+    private static final int MAX_PIGGY_BANKS = 3;
 
     @Mock
     private PiggyBankRepository piggyBankRepository;
@@ -50,209 +67,404 @@ class PiggyBankManagementServiceTest {
     @Mock
     private OutboxService outboxService;
     @Mock
-    private PiggyBankSettingsRepository piggyBankSettingsRepository;
-    @Mock
-    private PiggyBankSettingsFactory piggyBankSettingsFactory;
+    private RecurringSettingsRepository recurringSettingsRepository;
     @Mock
     private PiggyBankMapper piggyBankMapper;
     @Mock
-    private GoalPlannerService goalPlannerService;
+    private PiggyBankSettingsFactory piggyBankSettingsFactory;
     @Mock
-    private RecurringSettingsRepository recurringSettingsRepository;
+    private GoalPlannerService goalPlannerService;
     @Mock
     private AuthBackendClient authBackendClient;
     @Mock
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    @Mock
+    private WalletService walletService;
+    @Mock
+    private PiggyBankDto piggyBankDto;
+    @Mock
+    private PiggyBankDto otherPiggyBankDto;
+    @Mock
+    private PiggyBankSettings piggyBankSettings;
+    @Mock
+    private RecurringSettings recurringSettings;
 
-    private Long userId;
-    private Long piggyBankId;
-    private PiggyBankDto defaultDto;
+    @InjectMocks
+    private PiggyBankManagementService service;
+
+    private PiggyBank piggyBank;
 
     @BeforeEach
     void setUp() {
-        userId = 1L;
-        piggyBankId = 1L;
-        
-        defaultDto = new PiggyBankDto(
-                null, null, "Piggy",
-                BigDecimal.valueOf(100), null,
-                PiggyBankGoalType.GIFTS,
-                BigDecimal.valueOf(230), null, null, null
-        );
+        setField(service, "maxPiggyBanks", MAX_PIGGY_BANKS);
+        piggyBank = PiggyBank.builder()
+                .id(PIGGY_BANK_ID)
+                .name(NAME)
+                .amount(BigDecimal.ZERO)
+                .goalAmount(GOAL_AMOUNT)
+                .goalType(GOAL_TYPE)
+                .userId(USER_ID)
+                .build();
     }
 
     @Nested
-    class AddPiggyBankTests {
+    class AddPiggyBank {
 
-        @Test
-        void shouldAddPiggyBankSuccessfully() {
-            PiggyBank saved = new PiggyBank();
-            saved.setId(piggyBankId);
-            saved.setUserId(userId);
+        @Nested
+        class WhenInputIsValid {
 
-            when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
-            when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(false);
-            when(piggyBankRepository.save(any())).thenReturn(saved);
-            when(piggyBankSettingsFactory.createDefaultPiggyBankSettings(any())).thenReturn(new PiggyBankSettings());
+            @BeforeEach
+            void setUp() {
+                when(piggyBankDto.authorizationCode()).thenReturn(AUTH_CODE);
+                when(piggyBankDto.name()).thenReturn(NAME);
+                when(piggyBankDto.goalAmount()).thenReturn(GOAL_AMOUNT);
+                when(piggyBankDto.goalType()).thenReturn(GOAL_TYPE);
+                when(piggyBankRepository.findLowerCaseNamesByUserId(USER_ID)).thenReturn(List.of("first", "second"));
+                when(piggyBankSettingsFactory.createDefaultPiggyBankSettings()).thenReturn(piggyBankSettings);
+                when(piggyBankRepository.save(any(PiggyBank.class))).thenReturn(piggyBank);
+            }
 
-            Long result = piggyBankManagementService.addPiggyBank(defaultDto, userId);
+            @Test
+            void shouldReturnSavedIdWhenInputIsValid() {
+                Long result = service.addPiggyBank(piggyBankDto, USER_ID);
 
-            assertEquals(piggyBankId, result);
-            verify(piggyBankRepository).save(any());
+                assertEquals(PIGGY_BANK_ID, result);
+            }
 
-            ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-            verify(outboxService).save(eq("PiggyBank"), any(), eq("piggybank.lifecycle.changed"), eventCaptor.capture());
-            assertEquals(PiggyBankActivityType.ADDED_PIGGY_BANK, eventCaptor.getValue().type());
+            @Test
+            void shouldSavePiggyBankWithZeroAmountAndDefaultSettingsWhenInputIsValid() {
+                ArgumentCaptor<PiggyBank> captor = ArgumentCaptor.forClass(PiggyBank.class);
 
-            verify(piggyBankSettingsRepository).save(any());
+                service.addPiggyBank(piggyBankDto, USER_ID);
+
+                verify(piggyBankRepository).save(captor.capture());
+                PiggyBank captured = captor.getValue();
+                assertEquals(NAME, captured.getName());
+                assertEquals(0, BigDecimal.ZERO.compareTo(captured.getAmount()));
+                assertEquals(USER_ID, captured.getUserId());
+                assertEquals(GOAL_AMOUNT, captured.getGoalAmount());
+                assertEquals(GOAL_TYPE, captured.getGoalType());
+                assertSame(piggyBankSettings, captured.getSettings());
+                assertNotNull(captured.getCreatedAt());
+            }
+
+            @Test
+            void shouldConfirmAuthorizationCodeWhenInputIsValid() {
+                service.addPiggyBank(piggyBankDto, USER_ID);
+
+                verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
+                verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+            }
+
+            @Test
+            void shouldLockWalletWhenInputIsValid() {
+                service.addPiggyBank(piggyBankDto, USER_ID);
+
+                verify(walletService).lockWalletForUpdate(USER_ID);
+            }
+
+            @Test
+            void shouldPublishAddedEventWhenInputIsValid() {
+                service.addPiggyBank(piggyBankDto, USER_ID);
+
+                verify(outboxService).save(eq("PiggyBank"), eq(PIGGY_BANK_ID.toString()), eq("piggybank.lifecycle.changed"),
+                        any(PiggyBankActivityEvent.class));
+            }
         }
 
         @Test
-        void shouldThrowExceptionWhenMaxReached() {
-            when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(5L);
+        void shouldThrowExceptionWhenMaximumNumberOfPiggyBanksIsReached() {
+            when(piggyBankDto.authorizationCode()).thenReturn(AUTH_CODE);
+            when(piggyBankRepository.findLowerCaseNamesByUserId(USER_ID)).thenReturn(List.of("a", "b", "c"));
 
-            assertThrows(InvalidInputException.class, () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
+            assertThrows(InvalidInputException.class, () -> service.addPiggyBank(piggyBankDto, USER_ID));
 
-            verify(piggyBankRepository, never()).save(any());
+            verify(piggyBankRepository, never()).save(any(PiggyBank.class));
+            verifyNoInteractions(outboxService);
         }
 
         @Test
-        void shouldThrowExceptionWhenNameExists() {
-            when(piggyBankRepository.countPiggyBanksByUserId(userId)).thenReturn(0L);
-            when(piggyBankRepository.existsByNameIgnoreCase(eq(userId), any())).thenReturn(true);
+        void shouldThrowExceptionWhenMaximumNumberOfPiggyBanksIsExceeded() {
+            when(piggyBankDto.authorizationCode()).thenReturn(AUTH_CODE);
+            when(piggyBankRepository.findLowerCaseNamesByUserId(USER_ID)).thenReturn(List.of("a", "b", "c", "d"));
 
-            assertThrows(EntityAlreadyExistsException.class, () -> piggyBankManagementService.addPiggyBank(defaultDto, userId));
+            assertThrows(InvalidInputException.class, () -> service.addPiggyBank(piggyBankDto, USER_ID));
+
+            verify(piggyBankRepository, never()).save(any(PiggyBank.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenNameAlreadyExists() {
+            when(piggyBankDto.authorizationCode()).thenReturn(AUTH_CODE);
+            when(piggyBankDto.name()).thenReturn(NAME);
+            when(piggyBankRepository.findLowerCaseNamesByUserId(USER_ID)).thenReturn(List.of("vacation", "other"));
+
+            assertThrows(EntityAlreadyExistsException.class, () -> service.addPiggyBank(piggyBankDto, USER_ID));
+
+            verify(piggyBankRepository, never()).save(any(PiggyBank.class));
+            verifyNoInteractions(outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenNameAlreadyExistsWithDifferentLetterCase() {
+            when(piggyBankDto.authorizationCode()).thenReturn(AUTH_CODE);
+            when(piggyBankDto.name()).thenReturn("VACATION");
+            when(piggyBankRepository.findLowerCaseNamesByUserId(USER_ID)).thenReturn(List.of("vacation"));
+
+            assertThrows(EntityAlreadyExistsException.class, () -> service.addPiggyBank(piggyBankDto, USER_ID));
+
+            verify(piggyBankRepository, never()).save(any(PiggyBank.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+            when(piggyBankDto.authorizationCode()).thenReturn(AUTH_CODE);
+            doThrow(new IllegalStateException("Invalid code")).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+
+            assertThrows(IllegalStateException.class, () -> service.addPiggyBank(piggyBankDto, USER_ID));
+
+            verifyNoInteractions(walletService, piggyBankRepository, outboxService);
         }
     }
 
     @Nested
-    class EditPiggyBankTests {
+    class EditPiggyBank {
 
-        @Test
-        void shouldEditSuccessfully() {
-            PiggyBank piggyBank = new PiggyBank();
-            piggyBank.setId(piggyBankId);
-            piggyBank.setName("Old");
-            piggyBank.setGoalAmount(BigDecimal.TEN);
-            piggyBank.setGoalType(PiggyBankGoalType.GIFTS);
+        @Nested
+        class WhenInputIsValid {
 
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
-            when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(false);
-            when(piggyBankRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+            @BeforeEach
+            void setUp() {
+                when(piggyBankDto.authorizationCode()).thenReturn(AUTH_CODE);
+                when(piggyBankDto.name()).thenReturn(NEW_NAME);
+                when(piggyBankDto.goalAmount()).thenReturn(NEW_GOAL_AMOUNT);
+                when(piggyBankDto.goalType()).thenReturn(GOAL_TYPE);
+                when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
+                when(piggyBankRepository.existsByNameIgnoreCaseExcludingId(USER_ID, NEW_NAME, PIGGY_BANK_ID)).thenReturn(false);
+            }
 
-            Long result = piggyBankManagementService.editPiggyBank(userId, defaultDto, piggyBankId);
+            @Test
+            void shouldReturnPiggyBankIdWhenInputIsValid() {
+                Long result = service.editPiggyBank(USER_ID, piggyBankDto, PIGGY_BANK_ID);
 
-            assertEquals(piggyBankId, result);
-            assertEquals("Piggy", piggyBank.getName());
+                assertEquals(PIGGY_BANK_ID, result);
+            }
 
-            ArgumentCaptor<PiggyBankEditActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankEditActivityEvent.class);
-            verify(outboxService).save(eq("PiggyBank"), any(), eq("piggybank.updated"), eventCaptor.capture());
-            verify(goalPlannerService).checkAndMarkGoalCompletion(any());
-            assertEquals(PiggyBankActivityType.EDITED_PIGGY_BANK, eventCaptor.getValue().type());
+            @Test
+            void shouldUpdatePiggyBankFieldsWhenInputIsValid() {
+                service.editPiggyBank(USER_ID, piggyBankDto, PIGGY_BANK_ID);
+
+                assertEquals(NEW_NAME, piggyBank.getName());
+                assertEquals(NEW_GOAL_AMOUNT, piggyBank.getGoalAmount());
+                assertEquals(GOAL_TYPE, piggyBank.getGoalType());
+            }
+
+            @Test
+            void shouldConfirmAuthorizationCodeWhenInputIsValid() {
+                service.editPiggyBank(USER_ID, piggyBankDto, PIGGY_BANK_ID);
+
+                verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
+                verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+            }
+
+            @Test
+            void shouldCheckGoalCompletionWhenInputIsValid() {
+                service.editPiggyBank(USER_ID, piggyBankDto, PIGGY_BANK_ID);
+
+                verify(goalPlannerService).checkAndMarkGoalCompletion(piggyBank);
+            }
+
+            @Test
+            void shouldPublishEditedEventWhenInputIsValid() {
+                service.editPiggyBank(USER_ID, piggyBankDto, PIGGY_BANK_ID);
+
+                verify(outboxService).save(eq("PiggyBank"), eq(PIGGY_BANK_ID.toString()), eq("piggybank.updated"),
+                        any(PiggyBankEditActivityEvent.class));
+            }
         }
 
         @Test
-        void shouldNotThrowExceptionWhenEditingWithSameName() {
-            PiggyBank piggyBank = new PiggyBank();
-            piggyBank.setId(piggyBankId);
-            piggyBank.setName("Piggy");
-            piggyBank.setGoalAmount(BigDecimal.TEN);
-            piggyBank.setGoalType(PiggyBankGoalType.GIFTS);
+        void shouldThrowExceptionWhenNameAlreadyExistsForAnotherPiggyBank() {
+            when(piggyBankDto.authorizationCode()).thenReturn(AUTH_CODE);
+            when(piggyBankDto.name()).thenReturn(NEW_NAME);
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankRepository.existsByNameIgnoreCaseExcludingId(USER_ID, NEW_NAME, PIGGY_BANK_ID)).thenReturn(true);
 
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
-            when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(true);
-            when(piggyBankRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+            assertThrows(EntityAlreadyExistsException.class, () -> service.editPiggyBank(USER_ID, piggyBankDto, PIGGY_BANK_ID));
 
-            assertDoesNotThrow(() -> piggyBankManagementService.editPiggyBank(userId, defaultDto, piggyBankId));
+            assertEquals(NAME, piggyBank.getName());
+            verifyNoInteractions(goalPlannerService, outboxService);
         }
 
         @Test
-        void shouldThrowExceptionWhenNameExists() {
-            PiggyBank piggyBank = new PiggyBank();
-            piggyBank.setName("Old");
+        void shouldThrowExceptionWhenPiggyBankDoesNotExist() {
+            when(piggyBankDto.authorizationCode()).thenReturn(AUTH_CODE);
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID))
+                    .thenThrow(new RequestedEntityNotFoundException("Piggy bank not found"));
 
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
-            when(piggyBankRepository.existsByNameIgnoreCase(userId, defaultDto.name())).thenReturn(true);
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.editPiggyBank(USER_ID, piggyBankDto, PIGGY_BANK_ID));
 
-            assertThrows(EntityAlreadyExistsException.class, () -> piggyBankManagementService.editPiggyBank(userId, defaultDto, piggyBankId));
+            verifyNoInteractions(goalPlannerService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+            when(piggyBankDto.authorizationCode()).thenReturn(AUTH_CODE);
+            doThrow(new IllegalStateException("Invalid code")).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+
+            assertThrows(IllegalStateException.class, () -> service.editPiggyBank(USER_ID, piggyBankDto, PIGGY_BANK_ID));
+
+            verifyNoInteractions(piggyBankManagerService, goalPlannerService, outboxService);
         }
     }
 
     @Nested
-    class GetAllTests {
+    class GetAllPiggyBanks {
 
         @Test
-        void shouldReturnList() {
-            PiggyBank piggyBank = new PiggyBank();
+        void shouldReturnMappedDtosWhenUserHasPiggyBanks() {
+            PiggyBank second = PiggyBank.builder()
+                    .id(11L)
+                    .name("Second")
+                    .amount(new BigDecimal("100.00"))
+                    .goalAmount(new BigDecimal("500.00"))
+                    .goalType(GOAL_TYPE)
+                    .userId(USER_ID)
+                    .build();
+            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(List.of(piggyBank, second));
+            when(piggyBankMapper.mapToPiggyBankDto(same(piggyBank), anyDouble(), anyBoolean())).thenReturn(piggyBankDto);
+            when(piggyBankMapper.mapToPiggyBankDto(same(second), anyDouble(), anyBoolean())).thenReturn(otherPiggyBankDto);
 
-            when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of(piggyBank));
-            when(piggyBankMapper.mapToPiggyBankDto(any(), any(), anyBoolean()))
-                    .thenReturn(defaultDto);
+            List<PiggyBankDto> result = service.getAllPiggyBanks(USER_ID);
 
-            List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(userId);
-
-            assertEquals(1, result.size());
+            assertEquals(List.of(piggyBankDto, otherPiggyBankDto), result);
         }
 
         @Test
-        void shouldReturnEmpty() {
-            when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of());
+        void shouldReturnEmptyListWhenUserHasNoPiggyBanks() {
+            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
 
-            List<PiggyBankDto> result = piggyBankManagementService.getAllPiggyBanks(userId);
+            List<PiggyBankDto> result = service.getAllPiggyBanks(USER_ID);
 
-            assertTrue(result.isEmpty());
+            assertEquals(List.of(), result);
             verifyNoInteractions(piggyBankMapper);
         }
     }
 
     @Nested
-    class DeleteTests {
+    class DeletePiggyBank {
 
         @Test
-        void shouldDelete() {
-            PiggyBank piggyBank = new PiggyBank();
-            piggyBank.setAmount(BigDecimal.ZERO);
+        void shouldDeletePiggyBankWhenBalanceIsZero() {
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
+            when(recurringSettingsRepository.findByUserIdAndPiggyBankId(USER_ID, PIGGY_BANK_ID)).thenReturn(Optional.empty());
 
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
-            when(recurringSettingsRepository.findByUserIdAndPiggyBankId(userId, piggyBankId)).thenReturn(Optional.empty());
-
-            piggyBankManagementService.deletePiggyBank(userId, piggyBankId, "authCode");
+            service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE);
 
             verify(piggyBankRepository).delete(piggyBank);
-
-            ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
-            verify(outboxService).save(eq("PiggyBank"), any(), eq("piggybank.lifecycle.changed"), eventCaptor.capture());
-            assertEquals(PiggyBankActivityType.DELETED_PIGGY_BANK, eventCaptor.getValue().type());
+            verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
+            verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
         }
 
         @Test
-        void shouldThrowExceptionWhenBalanceNotZero() {
-            PiggyBank piggyBank = new PiggyBank();
-            piggyBank.setAmount(BigDecimal.TEN);
+        void shouldPublishDeletedEventWhenPiggyBankIsDeleted() {
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
+            when(recurringSettingsRepository.findByUserIdAndPiggyBankId(USER_ID, PIGGY_BANK_ID)).thenReturn(Optional.empty());
 
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
+            service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE);
 
-            assertThrows(InvalidInputException.class, () -> piggyBankManagementService.deletePiggyBank(userId, piggyBankId, "authCode"));
+            verify(outboxService).save(eq("PiggyBank"), eq(PIGGY_BANK_ID.toString()), eq("piggybank.lifecycle.changed"),
+                    any(PiggyBankActivityEvent.class));
         }
 
         @Test
-        void shouldDisableRecurring() {
-            PiggyBank piggyBank = new PiggyBank();
-            piggyBank.setAmount(BigDecimal.ZERO);
+        void shouldDisableRecurringSettingsWhenTheyAreLinkedToPiggyBank() {
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
+            when(recurringSettingsRepository.findByUserIdAndPiggyBankId(USER_ID, PIGGY_BANK_ID)).thenReturn(Optional.of(recurringSettings));
 
-            RecurringSettings settings = new RecurringSettings();
-            settings.setEnable(true);
-            settings.setNextExecutionDate(LocalDate.now());
-            settings.setPiggyBankId(piggyBankId);
+            service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE);
 
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
-            when(recurringSettingsRepository.findByUserIdAndPiggyBankId(userId, piggyBankId)).thenReturn(Optional.of(settings));
+            verify(recurringSettings).setEnable(false);
+            verify(recurringSettings).setPiggyBankId(null);
+            verify(recurringSettings).setNextExecutionDate(null);
+            verify(piggyBankRepository).delete(piggyBank);
+        }
 
-            piggyBankManagementService.deletePiggyBank(userId, piggyBankId, "authCode");
+        @Test
+        void shouldDeletePiggyBankWhenNoRecurringSettingsAreLinked() {
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
+            when(recurringSettingsRepository.findByUserIdAndPiggyBankId(USER_ID, PIGGY_BANK_ID)).thenReturn(Optional.empty());
 
-            assertFalse(settings.isEnable());
-            assertNull(settings.getNextExecutionDate());
-            assertNull(settings.getPiggyBankId());
+            service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE);
+
+            verifyNoInteractions(recurringSettings);
+            verify(piggyBankRepository).delete(piggyBank);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenPiggyBankHasBalance() {
+            piggyBank.setAmount(new BigDecimal("50.00"));
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
+
+            assertThrows(InvalidInputException.class, () -> service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE));
+
+            verify(piggyBankRepository, never()).delete(any(PiggyBank.class));
+            verifyNoInteractions(recurringSettingsRepository, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenPiggyBankHasMinimalPositiveBalance() {
+            piggyBank.setAmount(new BigDecimal("0.01"));
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
+
+            assertThrows(InvalidInputException.class, () -> service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE));
+
+            verify(piggyBankRepository, never()).delete(any(PiggyBank.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenPiggyBankDoesNotExist() {
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID))
+                    .thenThrow(new RequestedEntityNotFoundException("Piggy bank not found"));
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE));
+
+            verify(piggyBankRepository, never()).delete(any(PiggyBank.class));
+            verifyNoInteractions(recurringSettingsRepository, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+            doThrow(new IllegalStateException("Invalid code")).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+
+            assertThrows(IllegalStateException.class, () -> service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE));
+
+            verifyNoInteractions(piggyBankManagerService, recurringSettingsRepository, outboxService);
+            verify(piggyBankRepository, never()).delete(any(PiggyBank.class));
+        }
+    }
+
+    @Nested
+    class DeleteByUserId {
+
+        @Test
+        void shouldDeleteAllPiggyBanksWhenUserHasPiggyBanks() {
+            List<PiggyBank> piggyBanks = List.of(piggyBank);
+            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(piggyBanks);
+
+            service.deleteByUserId(USER_ID);
+
+            verify(piggyBankRepository).deleteAll(piggyBanks);
+        }
+
+        @Test
+        void shouldDeleteEmptyCollectionWhenUserHasNoPiggyBanks() {
+            List<PiggyBank> piggyBanks = List.of();
+            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(piggyBanks);
+
+            service.deleteByUserId(USER_ID);
+
+            verify(piggyBankRepository).deleteAll(piggyBanks);
         }
     }
 }

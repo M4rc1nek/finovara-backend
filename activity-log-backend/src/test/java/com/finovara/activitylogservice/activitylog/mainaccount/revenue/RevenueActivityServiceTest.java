@@ -55,10 +55,11 @@ class RevenueActivityServiceTest {
     class DeleteByUserId {
 
         @Test
-        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+        void shouldDeleteUserActivitiesWhenUserIdIsValid() {
             revenueActivityService.deleteByUserId(USER_ID);
 
-            verify(revenueActivityRepository).deleteByUserId(USER_ID);
+            verify(revenueActivityRepository).findAllByUserId(USER_ID);
+            verify(revenueActivityRepository).deleteAll(any());
         }
     }
 
@@ -111,7 +112,7 @@ class RevenueActivityServiceTest {
             when(revenueActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
             when(revenueActivityMapper.mapToRevenueActivity(activity)).thenReturn(dto);
 
-            List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(USER_ID, SortType.NEWEST);
+            List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(USER_ID, SortType.NEWEST, 1);
 
             assertThat(result).containsExactly(dto);
             verify(revenueActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
@@ -122,7 +123,7 @@ class RevenueActivityServiceTest {
         void shouldReturnEmptyListWhenUserHasNoActivities() {
             when(revenueActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
 
-            List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(USER_ID, SortType.OLDEST);
+            List<RevenueActivityDto> result = revenueActivityService.getRevenueActivity(USER_ID, SortType.OLDEST, 1);
 
             assertThat(result).isEmpty();
             verifyNoInteractions(revenueActivityMapper);

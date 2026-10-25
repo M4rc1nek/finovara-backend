@@ -19,8 +19,8 @@ public class SharedAccountChangeHistoryActivityController {
     private final SharedAccountChangeHistoryActivityService sharedAccountChangeHistoryActivityService;
 
     @GetMapping
-    public ResponseEntity<List<SharedAccountChangeHistoryActivityDto>> getSharedAccountActivity(@RequestParam(defaultValue = "NEWEST") SortType sort) {
-        return ResponseEntity.ok(sharedAccountChangeHistoryActivityService.getSharedAccountActivity(SecurityUtils.getCurrentUserId(), sort));
+    public ResponseEntity<List<SharedAccountChangeHistoryActivityDto>> getSharedAccountActivity(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(sharedAccountChangeHistoryActivityService.getSharedAccountActivity(SecurityUtils.getCurrentUserId(), sort, page));
     }
 
     @PostMapping("/confirm-password")

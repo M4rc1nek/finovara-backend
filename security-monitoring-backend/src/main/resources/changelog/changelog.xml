@@ -184,7 +184,13 @@
             </column>
         </createTable>
 
-        <addForeignKeyConstraint baseTableName="risk_rule_collection" baseColumnNames="risk_operation_id" referencedTableName="risk_operation" referencedColumnNames="id" constraintName="fk_risk_rule_collection_risk_operation" onDelete="CASCADE"/>
+        <addForeignKeyConstraint baseTableName="risk_rule_collection" baseColumnNames="risk_operation_id"
+                                 referencedTableName="risk_operation" referencedColumnNames="id"
+                                 constraintName="fk_risk_rule_collection_risk_operation" onDelete="CASCADE"/>
+
+        <createIndex tableName="risk_rule_collection" indexName="idx_risk_rule_collection_risk_operation">
+            <column name="risk_operation_id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">

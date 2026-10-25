@@ -12,5 +12,5 @@ public interface RevenueActivityRepository extends JpaRepository<RevenueActivity
 
     List<RevenueActivity> findByUserId(Long userId, Pageable pageable);
 
-    void deleteByUserId(Long userId);
+    List<RevenueActivity> findAllByUserId(Long userId);
 }

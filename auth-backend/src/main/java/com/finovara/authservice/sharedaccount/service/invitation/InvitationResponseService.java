@@ -1,28 +1,33 @@
 package com.finovara.authservice.sharedaccount.service.invitation;
 
+import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
 import com.finovara.authservice.sharedaccount.model.SharedAccount;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
-import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
-import com.finovara.contracts.sharedaccount.SharedRole;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountInvitationRepository;
 import com.finovara.authservice.sharedaccount.repository.SharedAccountRepository;
-import com.finovara.contracts.user.authorization.dto.UserDataDto;
-import com.finovara.authservice.util.user.service.UserManagerService;
-import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.authservice.user.repository.UserRepository;
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.event.UsersCreatedSharedAccountEvent;
 import com.finovara.contracts.sharedaccount.event.invitation.UserAcceptSharedAccountInvitationEvent;
 import com.finovara.contracts.sharedaccount.event.invitation.UserRejectSharedAccountInvitationEvent;
 import com.finovara.contracts.sharedaccount.event.settings.SharedAccountCreateDefaultSettingsEvent;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
-import com.finovara.contracts.outbox.OutboxService;
-import com.finovara.authservice.settings.security.operationauthorization.service.AdditionalAuthorizationService;
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,7 +38,7 @@ public class InvitationResponseService {
     private final SharedAccountRepository sharedAccountRepository;
     private final InvitationValidator invitationValidator;
     private final SharedAccountMemberService sharedAccountMemberService;
-    private final UserManagerService userManagerService;
+    private final UserRepository userRepository;
     private final OutboxService outboxService;
     private final AdditionalAuthorizationService additionalAuthorizationService;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
@@ -48,8 +53,9 @@ public class InvitationResponseService {
 
         invitationValidator.validateAcceptInvite(inviterUserId, inviteeUserId, invitationId);
 
-        UserDataDto inviter = userManagerService.getUserDataWithProfileImg(inviterUserId);
-        UserDataDto invitee = userManagerService.getUserDataWithProfileImg(inviteeUserId);
+        Map<Long, UserDataDto> users = loadUsers(inviterUserId, inviteeUserId);
+        UserDataDto inviter = requireUser(users, inviterUserId);
+        UserDataDto invitee = requireUser(users, inviteeUserId);
 
         sharedAccountInvitationRepository.delete(invitation);
 
@@ -58,8 +64,13 @@ public class InvitationResponseService {
                         .createdAt(LocalDateTime.now())
                         .build());
 
-        sharedAccountMemberService.createMember(sharedAccount, inviterUserId, SharedRole.OWNER);
-        sharedAccountMemberService.createMember(sharedAccount, inviteeUserId, SharedRole.MEMBER);
+        try {
+            sharedAccountMemberService.createOwnerAndMember(sharedAccount, inviterUserId, inviteeUserId);
+        } catch (DataIntegrityViolationException exception) {
+            throw new EntityAlreadyExistsException("One of the users already belongs to a shared account");
+        }
+        List<SharedAccountInvitation> sharedAccountInvitations = sharedAccountInvitationRepository.findAllInvolvingUsers(List.of(inviterUserId, inviteeUserId));
+        sharedAccountInvitationRepository.deleteAll(sharedAccountInvitations);
 
         log.info("Accepted invitation id={}, created sharedAccountId={} for inviterUserId={} and inviteeUserId={}",
                 invitationId, sharedAccount.getId(), inviterUserId, inviteeUserId);
@@ -91,8 +102,9 @@ public class InvitationResponseService {
 
         Long inviterUserId = invitation.getInviterUserId();
 
-        UserDataDto invitee = userManagerService.getUserDataWithProfileImg(inviteeUserId);
-        UserDataDto inviter = userManagerService.getUserDataWithProfileImg(inviterUserId);
+        Map<Long, UserDataDto> users = loadUsers(inviterUserId, inviteeUserId);
+        UserDataDto inviter = requireUser(users, inviterUserId);
+        UserDataDto invitee = requireUser(users, inviteeUserId);
 
         sharedAccountInvitationRepository.delete(invitation);
 
@@ -119,5 +131,19 @@ public class InvitationResponseService {
         }
 
         return invitation;
+    }
+
+    private Map<Long, UserDataDto> loadUsers(Long firstUserId, Long secondUserId) {
+        return userRepository.findBasicInfoByIds(List.of(firstUserId, secondUserId))
+                .stream()
+                .collect(Collectors.toMap(UserDataDto::id, Function.identity()));
+    }
+
+    private UserDataDto requireUser(Map<Long, UserDataDto> users, Long userId) {
+        UserDataDto user = users.get(userId);
+        if (user == null) {
+            throw new RequestedEntityNotFoundException("User not found, userId=" + userId);
+        }
+        return user;
     }
 }

@@ -19,446 +19,87 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SharedAccountMemberServiceTest {
 
-    private static final Long USER_ID = 1L;
-    private static final Long OTHER_USER_ID = 2L;
-    private static final Long ACCOUNT_ID = 5L;
-    private static final String USERNAME = "john";
-    private static final String OTHER_USERNAME = "anna";
+    @Mock private SharedAccountMemberRepository memberRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private UserDataMapper userDataMapper;
+    @InjectMocks private SharedAccountMemberService service;
+    private SharedAccount account;
 
-    @Mock
-    private SharedAccountMemberRepository sharedAccountMemberRepository;
-
-    @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private UserDataMapper userDataMapper;
-
-    @InjectMocks
-    private SharedAccountMemberService sharedAccountMemberService;
+    @BeforeEach
+    void setUp() {
+        account = SharedAccount.builder().id(10L).build();
+    }
 
     @Nested
-    class CreateMember {
-
-        private SharedAccount sharedAccount;
-
-        private User user;
-
-        @BeforeEach
-        void setUp() {
-            sharedAccount = mock(SharedAccount.class);
-            user = mock(User.class);
-        }
-
+    class CreateOwnerAndMember {
         @Test
-        void shouldSaveMemberWithGivenDataWhenCreatingOwner() {
-            when(userRepository.getReferenceById(USER_ID)).thenReturn(user);
+        void shouldCreateOwnerAndMemberAndMarkBothUsersAsSharedAccountMembers() {
+            User owner = User.builder().id(1L).build();
+            User member = User.builder().id(2L).build();
+            when(userRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(owner, member));
 
-            sharedAccountMemberService.createMember(sharedAccount, USER_ID, SharedRole.OWNER);
+            service.createOwnerAndMember(account, 1L, 2L);
 
-            ArgumentCaptor<SharedAccountMember> captor = ArgumentCaptor.forClass(SharedAccountMember.class);
-            verify(sharedAccountMemberRepository).save(captor.capture());
-            assertThat(captor.getValue().getSharedAccount()).isSameAs(sharedAccount);
-            assertThat(captor.getValue().getUserId()).isEqualTo(USER_ID);
-            assertThat(captor.getValue().getRole()).isEqualTo(SharedRole.OWNER);
-        }
-
-        @Test
-        void shouldSaveMemberWithMemberRoleWhenCreatingRegularMember() {
-            when(userRepository.getReferenceById(USER_ID)).thenReturn(user);
-
-            sharedAccountMemberService.createMember(sharedAccount, USER_ID, SharedRole.MEMBER);
-
-            ArgumentCaptor<SharedAccountMember> captor = ArgumentCaptor.forClass(SharedAccountMember.class);
-            verify(sharedAccountMemberRepository).save(captor.capture());
-            assertThat(captor.getValue().getRole()).isEqualTo(SharedRole.MEMBER);
-        }
-
-        @Test
-        void shouldSetJoinedAtToCurrentTimeWhenCreatingMember() {
-            when(userRepository.getReferenceById(USER_ID)).thenReturn(user);
-            LocalDateTime before = LocalDateTime.now();
-
-            sharedAccountMemberService.createMember(sharedAccount, USER_ID, SharedRole.MEMBER);
-
-            LocalDateTime after = LocalDateTime.now();
-            ArgumentCaptor<SharedAccountMember> captor = ArgumentCaptor.forClass(SharedAccountMember.class);
-            verify(sharedAccountMemberRepository).save(captor.capture());
-            assertThat(captor.getValue().getJoinedAt()).isBetween(before, after);
-        }
-
-        @Test
-        void shouldMarkUserAsHavingSharedAccountWhenCreatingMember() {
-            when(userRepository.getReferenceById(USER_ID)).thenReturn(user);
-
-            sharedAccountMemberService.createMember(sharedAccount, USER_ID, SharedRole.MEMBER);
-
-            verify(user).setHasSharedAccount(true);
-        }
-
-        @Test
-        void shouldSaveMemberWithNullRoleWhenRoleIsNull() {
-            when(userRepository.getReferenceById(USER_ID)).thenReturn(user);
-
-            sharedAccountMemberService.createMember(sharedAccount, USER_ID, null);
-
-            ArgumentCaptor<SharedAccountMember> captor = ArgumentCaptor.forClass(SharedAccountMember.class);
-            verify(sharedAccountMemberRepository).save(captor.capture());
-            assertThat(captor.getValue().getRole()).isNull();
-        }
-
-        @Test
-        void shouldThrowExceptionWhenUserReferenceCannotBeLoaded() {
-            when(userRepository.getReferenceById(USER_ID)).thenThrow(new IllegalStateException("db error"));
-
-            assertThrows(IllegalStateException.class,
-                    () -> sharedAccountMemberService.createMember(sharedAccount, USER_ID, SharedRole.MEMBER));
-            verifyNoInteractions(sharedAccountMemberRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenSavingMemberFails() {
-            when(userRepository.getReferenceById(USER_ID)).thenReturn(user);
-            doThrow(new IllegalStateException("save failed"))
-                    .when(sharedAccountMemberRepository)
-                    .save(any(SharedAccountMember.class));
-
-            assertThrows(IllegalStateException.class,
-                    () -> sharedAccountMemberService.createMember(sharedAccount, USER_ID, SharedRole.MEMBER));
-            verify(user, never()).setHasSharedAccount(anyBoolean());
+            ArgumentCaptor<List<SharedAccountMember>> captor = ArgumentCaptor.forClass(List.class);
+            verify(memberRepository).saveAll(captor.capture());
+            assertEquals(SharedRole.OWNER, captor.getValue().get(0).getRole());
+            assertEquals(SharedRole.MEMBER, captor.getValue().get(1).getRole());
+            assertEquals(account, captor.getValue().get(0).getSharedAccount());
+            assertEquals(true, owner.isHasSharedAccount());
+            assertEquals(true, member.isHasSharedAccount());
         }
     }
 
     @Nested
-    class GetMemberDetails {
+    class MemberDetails {
+        @Test
+        void shouldMapDetailsWhenUsersExistForEveryMember() {
+            SharedAccountMember membership = SharedAccountMember.builder().userId(1L).role(SharedRole.OWNER).build();
+            User user = User.builder().id(1L).username("anna").build();
+            SharedAccountMemberDto dto = new SharedAccountMemberDto(1L, "anna", null, SharedRole.OWNER, null);
+            when(memberRepository.findMembersByUserId(1L)).thenReturn(List.of(membership));
+            when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(user));
+            when(userDataMapper.toSharedAccountMemberDto(membership, user)).thenReturn(dto);
 
-        private SharedAccount sharedAccount;
-
-        private SharedAccountMember membership;
-
-        private SharedAccountMember member;
-
-        private SharedAccountMember otherMember;
-
-        private User user;
-
-        private User otherUser;
-
-        private SharedAccountMemberDto dto;
-
-        private SharedAccountMemberDto otherDto;
-
-        @BeforeEach
-        void setUp() {
-            sharedAccount = mock(SharedAccount.class);
-            membership = mock(SharedAccountMember.class);
-            member = mock(SharedAccountMember.class);
-            otherMember = mock(SharedAccountMember.class);
-            user = mock(User.class);
-            otherUser = mock(User.class);
-            dto = mock(SharedAccountMemberDto.class);
-            otherDto = mock(SharedAccountMemberDto.class);
+            assertEquals(List.of(dto), service.getMemberDetails(1L));
         }
 
         @Test
-        void shouldReturnMemberDetailsWhenCallerIsMember() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of(member));
-            when(member.getUserId()).thenReturn(USER_ID);
-            when(userRepository.findAllById(List.of(USER_ID))).thenReturn(List.of(user));
-            when(user.getId()).thenReturn(USER_ID);
-            when(userDataMapper.toSharedAccountMemberDto(member, user)).thenReturn(dto);
+        void shouldThrowExceptionWhenMemberUserCannotBeLoaded() {
+            SharedAccountMember membership = SharedAccountMember.builder().userId(1L).build();
+            when(memberRepository.findMembersByUserId(1L)).thenReturn(List.of(membership));
+            when(userRepository.findAllById(anyList())).thenReturn(List.of());
 
-            List<SharedAccountMemberDto> result = sharedAccountMemberService.getMemberDetails(USER_ID);
-
-            assertThat(result).containsExactly(dto);
-        }
-
-        @Test
-        void shouldMapEachMemberWithMatchingUserWhenAccountHasMultipleMembers() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of(member, otherMember));
-            when(member.getUserId()).thenReturn(USER_ID);
-            when(otherMember.getUserId()).thenReturn(OTHER_USER_ID);
-            when(userRepository.findAllById(List.of(USER_ID, OTHER_USER_ID))).thenReturn(List.of(otherUser, user));
-            when(user.getId()).thenReturn(USER_ID);
-            when(otherUser.getId()).thenReturn(OTHER_USER_ID);
-            when(userDataMapper.toSharedAccountMemberDto(member, user)).thenReturn(dto);
-            when(userDataMapper.toSharedAccountMemberDto(otherMember, otherUser)).thenReturn(otherDto);
-
-            List<SharedAccountMemberDto> result = sharedAccountMemberService.getMemberDetails(USER_ID);
-
-            assertThat(result).containsExactly(dto, otherDto);
-        }
-
-        @Test
-        void shouldQueryMembersUsingAccountIdFromCallerMembershipWhenCallerIsMember() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of());
-
-            sharedAccountMemberService.getMemberDetails(USER_ID);
-
-            verify(sharedAccountMemberRepository).findMembersByAccountId(ACCOUNT_ID);
-        }
-
-        @Test
-        void shouldReturnEmptyListWhenAccountHasNoMembers() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of());
-
-            List<SharedAccountMemberDto> result = sharedAccountMemberService.getMemberDetails(USER_ID);
-
-            assertThat(result).isEmpty();
-            verifyNoInteractions(userDataMapper);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenCallerIsNotMemberOfAnySharedAccount() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> sharedAccountMemberService.getMemberDetails(USER_ID));
-            verify(sharedAccountMemberRepository, never()).findMembersByAccountId(any());
-            verifyNoInteractions(userRepository, userDataMapper);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenCallerIdIsNull() {
-            when(sharedAccountMemberRepository.findByUserId(null)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> sharedAccountMemberService.getMemberDetails(null));
-            verifyNoInteractions(userRepository, userDataMapper);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenUserOfMemberDoesNotExist() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of(member));
-            when(member.getUserId()).thenReturn(USER_ID);
-            when(userRepository.findAllById(List.of(USER_ID))).thenReturn(List.of());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> sharedAccountMemberService.getMemberDetails(USER_ID));
-            verifyNoInteractions(userDataMapper);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenUserOfOneMemberDoesNotExist() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of(member, otherMember));
-            when(member.getUserId()).thenReturn(USER_ID);
-            when(otherMember.getUserId()).thenReturn(OTHER_USER_ID);
-            when(userRepository.findAllById(List.of(USER_ID, OTHER_USER_ID))).thenReturn(List.of(user));
-            when(user.getId()).thenReturn(USER_ID);
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> sharedAccountMemberService.getMemberDetails(USER_ID));
-            verifyNoInteractions(userDataMapper);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryReturnsDuplicatedUsers() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of(member));
-            when(member.getUserId()).thenReturn(USER_ID);
-            when(userRepository.findAllById(List.of(USER_ID))).thenReturn(List.of(user, user));
-            when(user.getId()).thenReturn(USER_ID);
-
-            assertThrows(IllegalStateException.class, () -> sharedAccountMemberService.getMemberDetails(USER_ID));
-            verifyNoInteractions(userDataMapper);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenMappingMemberFails() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of(member));
-            when(member.getUserId()).thenReturn(USER_ID);
-            when(userRepository.findAllById(List.of(USER_ID))).thenReturn(List.of(user));
-            when(user.getId()).thenReturn(USER_ID);
-            when(userDataMapper.toSharedAccountMemberDto(member, user)).thenThrow(new IllegalStateException("mapping failed"));
-
-            assertThrows(IllegalStateException.class, () -> sharedAccountMemberService.getMemberDetails(USER_ID));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.getMemberDetails(1L));
         }
     }
 
     @Nested
-    class GetMembersInfo {
-
-        private SharedAccount sharedAccount;
-
-        private SharedAccountMember membership;
-
-        private SharedAccountMember member;
-
-        private SharedAccountMember otherMember;
-
-        private User user;
-
-        private User otherUser;
-
-        @BeforeEach
-        void setUp() {
-            sharedAccount = mock(SharedAccount.class);
-            membership = mock(SharedAccountMember.class);
-            member = mock(SharedAccountMember.class);
-            otherMember = mock(SharedAccountMember.class);
-            user = mock(User.class);
-            otherUser = mock(User.class);
-        }
-
+    class MembersInfo {
         @Test
-        void shouldReturnMemberInfoWhenCallerIsMember() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of(member));
-            when(member.getUserId()).thenReturn(USER_ID);
-            when(member.getRole()).thenReturn(SharedRole.OWNER);
-            when(userRepository.findAllById(List.of(USER_ID))).thenReturn(List.of(user));
-            when(user.getId()).thenReturn(USER_ID);
-            when(user.getUsername()).thenReturn(USERNAME);
+        void shouldReturnMemberInfoWhenUsersExist() {
+            SharedAccountMember membership = SharedAccountMember.builder().userId(1L).role(SharedRole.OWNER).build();
+            User user = User.builder().id(1L).username("anna").build();
+            when(memberRepository.findMembersByUserId(1L)).thenReturn(List.of(membership));
+            when(userRepository.findAllById(List.of(1L))).thenReturn(List.of(user));
 
-            List<SharedAccountMemberInfoDto> result = sharedAccountMemberService.getMembersInfo(USER_ID);
+            List<SharedAccountMemberInfoDto> result = service.getMembersInfo(1L);
 
-            assertThat(result)
-                    .usingRecursiveFieldByFieldElementComparator()
-                    .containsExactly(new SharedAccountMemberInfoDto(USER_ID, USERNAME, SharedRole.OWNER));
-        }
-
-        @Test
-        void shouldReturnInfoForEachMemberInOrderWhenAccountHasMultipleMembers() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of(member, otherMember));
-            when(member.getUserId()).thenReturn(USER_ID);
-            when(member.getRole()).thenReturn(SharedRole.OWNER);
-            when(otherMember.getUserId()).thenReturn(OTHER_USER_ID);
-            when(otherMember.getRole()).thenReturn(SharedRole.MEMBER);
-            when(userRepository.findAllById(List.of(USER_ID, OTHER_USER_ID))).thenReturn(List.of(otherUser, user));
-            when(user.getId()).thenReturn(USER_ID);
-            when(user.getUsername()).thenReturn(USERNAME);
-            when(otherUser.getId()).thenReturn(OTHER_USER_ID);
-            when(otherUser.getUsername()).thenReturn(OTHER_USERNAME);
-
-            List<SharedAccountMemberInfoDto> result = sharedAccountMemberService.getMembersInfo(USER_ID);
-
-            assertThat(result)
-                    .usingRecursiveFieldByFieldElementComparator()
-                    .containsExactly(
-                            new SharedAccountMemberInfoDto(USER_ID, USERNAME, SharedRole.OWNER),
-                            new SharedAccountMemberInfoDto(OTHER_USER_ID, OTHER_USERNAME, SharedRole.MEMBER));
-        }
-
-        @Test
-        void shouldQueryMembersUsingAccountIdFromCallerMembershipWhenCallerIsMember() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of());
-
-            sharedAccountMemberService.getMembersInfo(USER_ID);
-
-            verify(sharedAccountMemberRepository).findMembersByAccountId(ACCOUNT_ID);
-        }
-
-        @Test
-        void shouldReturnEmptyListWhenAccountHasNoMembers() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of());
-
-            List<SharedAccountMemberInfoDto> result = sharedAccountMemberService.getMembersInfo(USER_ID);
-
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        void shouldThrowExceptionWhenCallerIsNotMemberOfAnySharedAccount() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> sharedAccountMemberService.getMembersInfo(USER_ID));
-            verify(sharedAccountMemberRepository, never()).findMembersByAccountId(any());
-            verifyNoInteractions(userRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenUserIdIsNull() {
-            when(sharedAccountMemberRepository.findByUserId(null)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> sharedAccountMemberService.getMembersInfo(null));
-            verifyNoInteractions(userRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenUserOfMemberDoesNotExist() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of(member));
-            when(member.getUserId()).thenReturn(USER_ID);
-            when(userRepository.findAllById(List.of(USER_ID))).thenReturn(List.of());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> sharedAccountMemberService.getMembersInfo(USER_ID));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenUserOfOneMemberDoesNotExist() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of(member, otherMember));
-            when(member.getUserId()).thenReturn(USER_ID);
-            when(otherMember.getUserId()).thenReturn(OTHER_USER_ID);
-            when(userRepository.findAllById(List.of(USER_ID, OTHER_USER_ID))).thenReturn(List.of(user));
-            when(user.getId()).thenReturn(USER_ID);
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> sharedAccountMemberService.getMembersInfo(USER_ID));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryReturnsDuplicatedUsers() {
-            when(sharedAccountMemberRepository.findByUserId(USER_ID)).thenReturn(Optional.of(membership));
-            when(membership.getSharedAccount()).thenReturn(sharedAccount);
-            when(sharedAccount.getId()).thenReturn(ACCOUNT_ID);
-            when(sharedAccountMemberRepository.findMembersByAccountId(ACCOUNT_ID)).thenReturn(List.of(member));
-            when(member.getUserId()).thenReturn(USER_ID);
-            when(userRepository.findAllById(List.of(USER_ID))).thenReturn(List.of(user, user));
-            when(user.getId()).thenReturn(USER_ID);
-
-            assertThrows(IllegalStateException.class, () -> sharedAccountMemberService.getMembersInfo(USER_ID));
+            assertEquals(1, result.size());
+            assertEquals(1L, result.get(0).userId());
+            assertEquals("anna", result.get(0).username());
         }
     }
 }

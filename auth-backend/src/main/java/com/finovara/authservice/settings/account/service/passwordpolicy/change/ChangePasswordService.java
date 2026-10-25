@@ -11,6 +11,7 @@ import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class ChangePasswordService {
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     private final RiskGuardService riskGuardService;
 
+    @Transactional
     public void changePassword(Long userId, ChangePasswordDto changePasswordDto, HttpServletRequest request) {
         additionalAuthorizationService.confirmAdditionalAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(changePasswordDto.authorizationCode()));
 
@@ -31,8 +33,7 @@ public class ChangePasswordService {
 
         credentialValidationService.validateNewPassword(newPassword, changePasswordDto.confirmNewPassword(), user.getPassword());
 
-        riskGuardService.guard(userId, RiskTriggerType.PASSWORD_CHANGED, user.getEmail(),
-                changePasswordDto.riskVerificationSourceEventId(), request);
+        riskGuardService.guard(userId, RiskTriggerType.PASSWORD_CHANGED, user.getEmail(), changePasswordDto.riskVerificationSourceEventId(), request);
 
         passwordUpdateService.updatePassword(user, newPassword, request);
     }

@@ -29,16 +29,15 @@ public class SharedAccountMemberService {
     private final UserDataMapper userDataMapper;
 
     @Transactional
-    public void createMember(SharedAccount sharedAccount, Long userId, SharedRole role) {
-        User user = userRepository.getReferenceById(userId);
-        sharedAccountMemberRepository.save(
-                SharedAccountMember.builder()
-                        .sharedAccount(sharedAccount)
-                        .userId(userId)
-                        .role(role)
-                        .joinedAt(LocalDateTime.now())
-                        .build());
-        user.setHasSharedAccount(true);
+    public void createOwnerAndMember(SharedAccount sharedAccount, Long ownerUserId, Long memberUserId) {
+        LocalDateTime now = LocalDateTime.now();
+
+        sharedAccountMemberRepository.saveAll(List.of(
+                buildUserToSharedAccount(sharedAccount, ownerUserId, SharedRole.OWNER, now),
+                buildUserToSharedAccount(sharedAccount, memberUserId, SharedRole.MEMBER, now)));
+
+        userRepository.findAllById(List.of(ownerUserId, memberUserId))
+                .forEach(user -> user.setHasSharedAccount(true));
     }
 
     @Transactional(readOnly = true)
@@ -64,11 +63,17 @@ public class SharedAccountMemberService {
                 .toList();
     }
 
-    private List<SharedAccountMember> loadAccountMembers(Long userId) {
-        SharedAccountMember membership = sharedAccountMemberRepository.findByUserId(userId)
-                .orElseThrow(() -> new RequestedEntityNotFoundException("User is not a member of any shared account"));
+    private SharedAccountMember buildUserToSharedAccount(SharedAccount account, Long userId, SharedRole role, LocalDateTime joinedAt) {
+        return SharedAccountMember.builder()
+                .sharedAccount(account)
+                .userId(userId)
+                .role(role)
+                .joinedAt(joinedAt)
+                .build();
+    }
 
-        return sharedAccountMemberRepository.findMembersByAccountId(membership.getSharedAccount().getId());
+    private List<SharedAccountMember> loadAccountMembers(Long userId) {
+        return sharedAccountMemberRepository.findMembersByUserId(userId);
     }
 
     private Map<Long, User> loadUsersById(List<SharedAccountMember> members) {

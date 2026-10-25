@@ -39,5 +39,4 @@ public class SharedAccountSettings {
 
     @Column(nullable = false)
     private Long memberId;
-
 }

@@ -89,6 +89,7 @@ scheduler:
   recurring-settings:
     frequency: "0 0 0 * * ?"
     max-occurrence-range-days: 180
+    batch-size: 200
   shared-account:
     notes:
       delete-cron: "0 0 1 5 * ?"
@@ -107,6 +108,13 @@ revenue:
     page-size: 5
   suggestion:
     history-size: 5
+
+piggy-bank:
+  max-piggy-banks: 5
+
+finance:
+  pagination:
+    page-size: 20
 
 shared:
   expense:

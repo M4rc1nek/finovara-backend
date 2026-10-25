@@ -71,7 +71,7 @@ public class AdditionalAuthorizationEmailVerificationService {
                 securitySettings.getAdditionalAuthorizationEmailCodeExpiresAt(),
                 dto.code(),
                 context,
-                new AdditionalAuthorizationAttemptsHandler(userId, securitySettings, securitySettingsRepository)
+                new AdditionalAuthorizationAttemptsHandler(userId, securitySettingsRepository)
         );
 
         AttemptsDto attemptsDto = attemptsTemplate.getCurrent(context, securitySettingsRepository.getAdditionalAuthorizationAttemptsByUserId(userId));

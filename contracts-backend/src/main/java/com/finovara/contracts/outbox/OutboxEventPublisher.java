@@ -53,6 +53,7 @@ public class OutboxEventPublisher {
     @Scheduled(cron = "${scheduler.clean.old-events:0 0 3 * * *}")
     @Transactional
     public void cleanOldEvents() {
-        outboxEventRepository.deleteByStatusAndSentAtBefore(OutboxStatus.SENT, LocalDateTime.now().minusDays(7));
+        List<OutboxEvent> outboxEvents = outboxEventRepository.findByStatusAndSentAtBefore(OutboxStatus.SENT, LocalDateTime.now().minusDays(7));
+        outboxEventRepository.deleteAll(outboxEvents);
     }
 }

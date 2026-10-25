@@ -2,8 +2,10 @@ package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountch
 
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangeActivity;
 import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -15,26 +17,32 @@ public interface AccountChangeActivityRepository extends JpaRepository<AccountCh
 
     List<AccountChangeActivity> findByUserId(Long userId, Pageable pageable);
 
-    @Query("SELECT COUNT(u) FROM AccountChangeActivity u WHERE u.userId = :userId")
-    long countAccountChangesByUserId(Long userId);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            SELECT a
+            FROM AccountChangeActivity a
+            WHERE a.userId = :userId
+            ORDER BY a.createdAt, a.id
+            """)
+    List<AccountChangeActivity> findOldestForArchive(Long userId, Pageable pageable);
 
     @Query("""
-            SELECT COUNT(u)
-            FROM AccountChangeActivity u
-            WHERE u.userId = :userId
-              AND u.type = :type
-              AND u.createdAt >= :from
-              AND u.createdAt <= :to
+            SELECT COUNT(a)
+            FROM AccountChangeActivity a
+            WHERE a.userId = :userId
+              AND a.type = :type
+              AND a.createdAt >= :from
+              AND a.createdAt <= :to
             """)
     long countByUserIdAndStatusAndCreatedAtBetween(Long userId, AccountChangeActivityType type, LocalDateTime from, LocalDateTime to);
 
     @Query("""
-            SELECT MAX(u.createdAt)
-            FROM AccountChangeActivity u
-            WHERE u.userId = :userId
-              AND u.type = :type
-              AND u.createdAt >= :from
-              AND u.createdAt <= :to
+            SELECT MAX(a.createdAt)
+            FROM AccountChangeActivity a
+            WHERE a.userId = :userId
+              AND a.type = :type
+              AND a.createdAt >= :from
+              AND a.createdAt <= :to
             """)
     LocalDateTime findLastChangeDateByUserIdAndStatusAndCreatedAtBetween(Long userId, AccountChangeActivityType type, LocalDateTime from, LocalDateTime to);
 
@@ -71,8 +79,5 @@ public interface AccountChangeActivityRepository extends JpaRepository<AccountCh
             """)
     List<AccountChangeActivity> findAuthorizationStatusChanges(Long userId, Pageable pageable);
 
-    @Query("SELECT u FROM AccountChangeActivity u WHERE u.userId = :userId ORDER BY u.id")
-    List<AccountChangeActivity> findFewByUserId(Long userId, Pageable pageable);
-
-    void deleteByUserId(Long userId);
+    List<AccountChangeActivity> findAllByUserId(Long userId);
 }

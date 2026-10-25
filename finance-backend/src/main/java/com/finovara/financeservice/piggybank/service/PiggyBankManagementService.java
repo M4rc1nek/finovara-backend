@@ -16,14 +16,14 @@ import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
-import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
-import com.finovara.financeservice.settings.piggybank.repository.PiggyBankSettingsRepository;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCalculator;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankValidator;
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,53 +31,55 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class PiggyBankManagementService implements UserDataDeletable {
 
+    @Value("${piggy-bank.max-piggy-banks}")
+    int maxPiggyBanks;
+
     private final PiggyBankRepository piggyBankRepository;
     private final PiggyBankManagerService piggyBankManagerService;
     private final OutboxService outboxService;
-    private final PiggyBankSettingsRepository piggyBankSettingsRepository;
     private final RecurringSettingsRepository recurringSettingsRepository;
     private final PiggyBankMapper piggyBankMapper;
     private final PiggyBankSettingsFactory piggyBankSettingsFactory;
     private final GoalPlannerService goalPlannerService;
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+    private final WalletService walletService;
 
     @Transactional
     public Long addPiggyBank(PiggyBankDto piggyBankDto, Long userId) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(piggyBankDto.authorizationCode()));
 
-        long currentPiggyBanks = piggyBankRepository.countPiggyBanksByUserId(userId);
+        walletService.lockWalletForUpdate(userId);
 
-        if (currentPiggyBanks >= 5) {
-            throw new InvalidInputException("You have reached the maximum number of piggy banks: 5");
+        List<String> existingNames = piggyBankRepository.findLowerCaseNamesByUserId(userId);
+        if (existingNames.size() >= maxPiggyBanks) {
+            throw new InvalidInputException("You have reached the maximum number of piggy banks: " + maxPiggyBanks);
         }
-
-        if (piggyBankRepository.existsByNameIgnoreCase(userId, piggyBankDto.name())) {
+        if (existingNames.contains(piggyBankDto.name().toLowerCase(Locale.ROOT))) {
             throw new EntityAlreadyExistsException("This piggy bank name already exists");
         }
 
         PiggyBankValidator.validateGoalAmount(piggyBankDto);
 
-        PiggyBank piggyBank = PiggyBank.builder()
+        PiggyBank saved = piggyBankRepository.save(PiggyBank.builder()
                 .name(piggyBankDto.name())
                 .amount(BigDecimal.ZERO)
                 .createdAt(LocalDate.now())
                 .userId(userId)
                 .goalAmount(piggyBankDto.goalAmount())
                 .goalType(piggyBankDto.goalType())
-                .build();
+                .settings(piggyBankSettingsFactory.createDefaultPiggyBankSettings())
+                .build());
 
-        PiggyBank saved = piggyBankRepository.save(piggyBank);
         outboxService.save("PiggyBank", saved.getId().toString(), "piggybank.lifecycle.changed",
-                new PiggyBankActivityEvent(userId, PiggyBankActivityType.ADDED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
-        PiggyBankSettings settings = piggyBankSettingsFactory.createDefaultPiggyBankSettings(saved);
-        piggyBankSettingsRepository.save(settings);
+                new PiggyBankActivityEvent(userId, PiggyBankActivityType.ADDED_PIGGY_BANK, saved.getName(), saved.getGoalType(), saved.getGoalAmount(), null, LocalDateTime.now()));
 
         log.info("Added a new Piggy Bank called {}, with a goal amount of {}", piggyBankDto.name(), piggyBankDto.goalAmount());
         return saved.getId();
@@ -87,10 +89,9 @@ public class PiggyBankManagementService implements UserDataDeletable {
     public Long editPiggyBank(Long userId, PiggyBankDto piggyBankDto, Long piggyBankId) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(piggyBankDto.authorizationCode()));
 
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
 
-        if (piggyBankRepository.existsByNameIgnoreCase(userId, piggyBankDto.name())
-                && !piggyBank.getName().equalsIgnoreCase(piggyBankDto.name())) {
+        if (piggyBankRepository.existsByNameIgnoreCaseExcludingId(userId, piggyBankDto.name(), piggyBankId)) {
             throw new EntityAlreadyExistsException("This piggy bank name already exists");
         }
 
@@ -104,21 +105,18 @@ public class PiggyBankManagementService implements UserDataDeletable {
         piggyBank.setGoalAmount(piggyBankDto.goalAmount());
         piggyBank.setGoalType(piggyBankDto.goalType());
 
-        PiggyBank saved = piggyBankRepository.save(piggyBank);
-        goalPlannerService.checkAndMarkGoalCompletion(saved.getGoalPlanner());
-        outboxService.save("PiggyBank", saved.getId().toString(), "piggybank.updated",
+        goalPlannerService.checkAndMarkGoalCompletion(piggyBank);
+        outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.updated",
                 new PiggyBankEditActivityEvent(userId, PiggyBankActivityType.EDITED_PIGGY_BANK, piggyBank.getName(), previousName,
                         piggyBank.getGoalType(), previousGoalType, piggyBank.getGoalAmount(), previousGoalAmount, LocalDateTime.now()));
 
         log.info("Edited Piggy Bank. New name: {}, new goal amount: {}", piggyBankDto.name(), piggyBankDto.goalAmount());
-
-        return saved.getId();
+        return piggyBankId;
     }
 
+    @Transactional(readOnly = true)
     public List<PiggyBankDto> getAllPiggyBanks(Long userId) {
-        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserId(userId);
-
-        return piggyBanks.stream()
+        return piggyBankRepository.findAllByUserId(userId).stream()
                 .map(piggyBank -> piggyBankMapper.mapToPiggyBankDto(piggyBank, PiggyBankCalculator.calculateProgress(piggyBank),
                         PiggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)))
                 .toList();
@@ -128,9 +126,9 @@ public class PiggyBankManagementService implements UserDataDeletable {
     public void deletePiggyBank(Long userId, Long piggyBankId, String authorizationCode) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
 
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
 
-        if (piggyBank == null || piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+        if (piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             throw new InvalidInputException("Cannot delete piggy bank with balance. Withdraw funds first.");
         }
 
@@ -150,7 +148,8 @@ public class PiggyBankManagementService implements UserDataDeletable {
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        piggyBankRepository.deleteByUserId(userId);
+        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserId(userId);
+        piggyBankRepository.deleteAll(piggyBanks);
         log.info("Deleted piggyBank for userId={}", userId);
     }
 }

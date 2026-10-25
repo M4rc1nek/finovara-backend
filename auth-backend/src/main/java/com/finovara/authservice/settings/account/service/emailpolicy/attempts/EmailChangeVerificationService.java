@@ -10,6 +10,7 @@ import com.finovara.authservice.util.attempts.VerificationCodeVerifier;
 import com.finovara.authservice.util.authorization.generator.SecretGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -25,6 +26,7 @@ public class EmailChangeVerificationService {
     private final AccountRepository accountRepository;
     private final VerificationCodeProperties properties;
 
+    @Transactional
     public int generateCode(AccountSettings settings, String pendingEmail) {
         int code = secretGenerator.generateSecureCode();
         settings.setEmailChangeCode(code);
@@ -38,7 +40,7 @@ public class EmailChangeVerificationService {
         AttemptsContext context = new AttemptsContext(properties.getMaxAttempts(), properties.getAttemptsExpirationMinutes(), ATTEMPTS_EXCEEDED_MESSAGE);
 
         verificationCodeVerifier.verifyAttemptsOrThrow(settings.getEmailChangeCode(), settings.getEmailChangeCodeExpiresAt(),
-                providedCode, context, new EmailChangeAttemptsHandler(userId, settings, accountRepository));
+                providedCode, context, new EmailChangeAttemptsHandler(userId, accountRepository));
     }
 
     public AttemptsDto getCurrentAttempts(Long userId) {
@@ -46,6 +48,7 @@ public class EmailChangeVerificationService {
         return attemptsTemplate.getCurrent(context, accountRepository.getEmailChangeAttemptsByUserId(userId));
     }
 
+    @Transactional
     public void removeCode(AccountSettings settings) {
         settings.setEmailChangeCode(null);
         settings.setEmailChangeCodeExpiresAt(null);

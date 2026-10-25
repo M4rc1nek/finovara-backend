@@ -55,10 +55,11 @@ class LimitActivityServiceTest {
     class DeleteByUserId {
 
         @Test
-        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+        void shouldDeleteUserActivitiesWhenUserIdIsValid() {
             limitActivityService.deleteByUserId(USER_ID);
 
-            verify(limitActivityRepository).deleteByUserId(USER_ID);
+            verify(limitActivityRepository).findAllByUserId(USER_ID);
+            verify(limitActivityRepository).deleteAll(any());
         }
     }
 
@@ -108,7 +109,7 @@ class LimitActivityServiceTest {
             when(limitActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
             when(limitActivityMapper.mapToLimitActivity(activity)).thenReturn(dto);
 
-            List<LimitActivityDto> result = limitActivityService.getLimitActivity(USER_ID, SortType.NEWEST);
+            List<LimitActivityDto> result = limitActivityService.getLimitActivity(USER_ID, SortType.NEWEST, 1);
 
             assertThat(result).containsExactly(dto);
             verify(limitActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
@@ -119,7 +120,7 @@ class LimitActivityServiceTest {
         void shouldReturnEmptyListWhenUserHasNoActivities() {
             when(limitActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
 
-            List<LimitActivityDto> result = limitActivityService.getLimitActivity(USER_ID, SortType.OLDEST);
+            List<LimitActivityDto> result = limitActivityService.getLimitActivity(USER_ID, SortType.OLDEST, 1);
 
             assertThat(result).isEmpty();
             verifyNoInteractions(limitActivityMapper);

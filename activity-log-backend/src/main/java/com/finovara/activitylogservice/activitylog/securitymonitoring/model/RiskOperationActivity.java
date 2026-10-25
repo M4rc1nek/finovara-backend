@@ -4,6 +4,9 @@ import com.finovara.contracts.securitymonitoring.model.RiskAction;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,7 +46,9 @@ public class RiskOperationActivity {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "riskOperationActivity", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "riskOperationActivity", cascade = CascadeType.PERSIST)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @BatchSize(size = 100)
     private List<RiskRuleCollectionActivity> riskRuleCollectionActivities = new ArrayList<>();
 
 }

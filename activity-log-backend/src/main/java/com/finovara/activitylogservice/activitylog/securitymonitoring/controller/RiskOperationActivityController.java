@@ -19,8 +19,8 @@ public class RiskOperationActivityController {
     private final RiskOperationLogService riskOperationLogService;
 
     @GetMapping
-    public ResponseEntity<List<RiskOperationActivityDto>> getRiskActivity(@RequestParam(defaultValue = "NEWEST") SortType sort) {
-        return ResponseEntity.ok(riskOperationLogService.getRiskActivity(SecurityUtils.getCurrentUserId(), sort));
+    public ResponseEntity<List<RiskOperationActivityDto>> getRiskActivity(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(riskOperationLogService.getRiskActivity(SecurityUtils.getCurrentUserId(), sort, page));
     }
 
     @PostMapping("/confirm-password")

@@ -4,9 +4,11 @@ import com.finovara.financeservice.piggybank.goalplanner.dto.GoalPlannerCompleti
 import com.finovara.financeservice.piggybank.goalplanner.dto.GoalPlannerDto;
 import com.finovara.financeservice.piggybank.goalplanner.dto.GoalPlannerSummaryDto;
 import com.finovara.financeservice.piggybank.goalplanner.model.GoalPlanner;
+import com.finovara.financeservice.piggybank.model.PiggyBank;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import static com.finovara.financeservice.util.transaction.piggybank.goalplanner.calculator.GoalPlannerCalculator.*;
@@ -14,38 +16,37 @@ import static com.finovara.financeservice.util.transaction.piggybank.goalplanner
 @Component
 public class GoalPlannerMapper {
 
-    public GoalPlannerDto toDto(GoalPlanner goalPlanner) {
+    public GoalPlannerDto toDto(GoalPlanner goalPlanner, PiggyBank piggyBank) {
         return new GoalPlannerDto(
                 goalPlanner.getId(),
-                goalPlanner.getPiggyBankAssigned().getId(),
+                piggyBank.getId(),
                 goalPlanner.getTopic(),
-                goalPlanner.getPiggyBankAssigned().getGoalAmount(),
+                piggyBank.getGoalAmount(),
                 goalPlanner.getTargetDate(),
                 goalPlanner.getCreatedAt()
         );
     }
 
-    public GoalPlannerSummaryDto toSummaryDto(GoalPlanner goalPlanner) {
+    public GoalPlannerSummaryDto toSummaryDto(GoalPlanner goalPlanner, PiggyBank piggyBank) {
         long daysUntilTarget = ChronoUnit.DAYS.between(LocalDate.now(), goalPlanner.getTargetDate());
         return new GoalPlannerSummaryDto(
-                calculateDailyInstallment(goalPlanner),
-                calculateWeeklyInstallment(goalPlanner),
-                calculateMonthlyInstallment(goalPlanner),
+                calculateDailyInstallment(goalPlanner, piggyBank),
+                calculateWeeklyInstallment(goalPlanner, piggyBank),
+                calculateMonthlyInstallment(goalPlanner, piggyBank),
                 daysUntilTarget
         );
     }
 
-    public GoalPlannerCompletionSummaryDto toCompletionDto(GoalPlanner goalPlanner) {
-        long durationDays = ChronoUnit.DAYS.between(goalPlanner.getCreatedAt(), goalPlanner.getCompletedAt());
-        long durationHours = ChronoUnit.HOURS.between(goalPlanner.getCreatedAt(), goalPlanner.getCompletedAt());
-        long durationMinutes = ChronoUnit.MINUTES.between(goalPlanner.getCreatedAt(), goalPlanner.getCompletedAt());
+    public GoalPlannerCompletionSummaryDto toCompletionDto(GoalPlanner goalPlanner, PiggyBank piggyBank) {
+        LocalDateTime from = goalPlanner.getCreatedAt();
+        LocalDateTime to = goalPlanner.getCompletedAt();
 
         return new GoalPlannerCompletionSummaryDto(
-                durationDays,
-                durationHours,
-                durationMinutes,
-                goalPlanner.getPiggyBankAssigned().getAmount(),
-                goalPlanner.getCompletedAt()
+                ChronoUnit.DAYS.between(from, to),
+                ChronoUnit.HOURS.between(from, to),
+                ChronoUnit.MINUTES.between(from, to),
+                piggyBank.getAmount(),
+                to
         );
     }
 }

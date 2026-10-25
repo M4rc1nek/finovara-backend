@@ -21,8 +21,8 @@ public class SharedAccountActivityLogController {
     private final SharedAccountActivityLogService sharedAccountActivityLogService;
 
     @GetMapping
-    public ResponseEntity<List<SharedAccountActivityLogDto>> getSharedAccountActivityLog(@RequestParam(defaultValue = "NEWEST") SortType sort) {
-        return ResponseEntity.ok(sharedAccountActivityLogService.getSharedAccountLogActivity(SecurityUtils.getCurrentUserId(), sort));
+    public ResponseEntity<List<SharedAccountActivityLogDto>> getSharedAccountActivityLog(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(sharedAccountActivityLogService.getSharedAccountLogActivity(SecurityUtils.getCurrentUserId(), sort, page));
     }
 
 }

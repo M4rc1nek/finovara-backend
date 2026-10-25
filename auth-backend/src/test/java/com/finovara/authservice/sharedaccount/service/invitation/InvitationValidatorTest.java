@@ -14,169 +14,68 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class InvitationValidatorTest {
 
     @Mock
-    private SharedAccountMemberRepository sharedAccountMemberRepository;
+    private SharedAccountMemberRepository memberRepository;
     @Mock
-    private SharedAccountInvitationRepository sharedAccountInvitationRepository;
-
+    private SharedAccountInvitationRepository invitationRepository;
     @InjectMocks
-    private InvitationValidator invitationValidator;
-
-    private static final Long INVITER_USER_ID = 1L;
-    private static final Long INVITEE_USER_ID = 2L;
-    private static final Long INVITATION_ID = 10L;
+    private InvitationValidator validator;
 
     @Nested
-    class ValidateSendInvitationTests {
+    class ValidateSendInvitation {
 
         @Test
-        void shouldPassWhenNoConflictsExist() {
-            when(sharedAccountMemberRepository.existsByUserId(INVITER_USER_ID)).thenReturn(false);
-            when(sharedAccountMemberRepository.existsByUserId(INVITEE_USER_ID)).thenReturn(false);
-            when(sharedAccountInvitationRepository.findInvitationBetweenUsers(INVITER_USER_ID, INVITEE_USER_ID))
-                    .thenReturn(Optional.empty());
-
-            assertDoesNotThrow(() -> invitationValidator.validateSendInvitation(INVITER_USER_ID, INVITEE_USER_ID));
+        void shouldValidateWhenUsersAreDifferentAndAvailable() {
+            when(memberRepository.existsByUserIdIn(anyList())).thenReturn(false);
+            when(invitationRepository.findInvitationBetweenUsers(1L, 2L)).thenReturn(Optional.empty());
+            assertDoesNotThrow(() -> validator.validateSendInvitation(1L, 2L));
+            verify(invitationRepository).findInvitationBetweenUsers(1L, 2L);
         }
 
         @Test
-        void shouldThrowExceptionWhenInvitingSelf() {
-            InvalidInputException exception = assertThrows(InvalidInputException.class,
-                    () -> invitationValidator.validateSendInvitation(INVITER_USER_ID, INVITER_USER_ID));
-
-            assertEquals("You cannot invite yourself", exception.getMessage());
-            verifyNoInteractions(sharedAccountMemberRepository);
-            verifyNoInteractions(sharedAccountInvitationRepository);
+        void shouldThrowExceptionWhenUserInvitesThemselves() {
+            assertThrows(InvalidInputException.class, () -> validator.validateSendInvitation(1L, 1L));
+            verify(memberRepository, never()).existsByUserIdIn(anyList());
         }
 
         @Test
-        void shouldThrowExceptionWhenInviterAlreadyHasSharedAccount() {
-            when(sharedAccountMemberRepository.existsByUserId(INVITER_USER_ID)).thenReturn(true);
+        void shouldThrowExceptionWhenAnyUserAlreadyHasSharedAccount() {
+            when(memberRepository.existsByUserIdIn(anyList())).thenReturn(true);
 
-            EntityAlreadyExistsException exception = assertThrows(EntityAlreadyExistsException.class,
-                    () -> invitationValidator.validateSendInvitation(INVITER_USER_ID, INVITEE_USER_ID));
-
-            assertEquals("One of the users already belongs to a shared account", exception.getMessage());
-            verifyNoInteractions(sharedAccountInvitationRepository);
+            assertThrows(EntityAlreadyExistsException.class, () -> validator.validateSendInvitation(1L, 2L));
+            verify(invitationRepository, never()).findInvitationBetweenUsers(1L, 2L);
         }
 
         @Test
-        void shouldThrowExceptionWhenInviteeAlreadyHasSharedAccount() {
-            when(sharedAccountMemberRepository.existsByUserId(INVITER_USER_ID)).thenReturn(false);
-            when(sharedAccountMemberRepository.existsByUserId(INVITEE_USER_ID)).thenReturn(true);
+        void shouldThrowExceptionWhenInvitationAlreadyExists() {
+            when(invitationRepository.findInvitationBetweenUsers(1L, 2L)).thenReturn(Optional.of(new SharedAccountInvitation()));
 
-            EntityAlreadyExistsException exception = assertThrows(EntityAlreadyExistsException.class,
-                    () -> invitationValidator.validateSendInvitation(INVITER_USER_ID, INVITEE_USER_ID));
-
-            assertEquals("One of the users already belongs to a shared account", exception.getMessage());
-            verifyNoInteractions(sharedAccountInvitationRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenInvitationAlreadyExistsBetweenUsers() {
-            when(sharedAccountMemberRepository.existsByUserId(INVITER_USER_ID)).thenReturn(false);
-            when(sharedAccountMemberRepository.existsByUserId(INVITEE_USER_ID)).thenReturn(false);
-
-            SharedAccountInvitation existingInvitation = SharedAccountInvitation.builder()
-                    .inviterUserId(INVITER_USER_ID)
-                    .inviteeUserId(INVITEE_USER_ID)
-                    .build();
-
-            when(sharedAccountInvitationRepository.findInvitationBetweenUsers(INVITER_USER_ID, INVITEE_USER_ID))
-                    .thenReturn(Optional.of(existingInvitation));
-
-            EntityAlreadyExistsException exception = assertThrows(EntityAlreadyExistsException.class,
-                    () -> invitationValidator.validateSendInvitation(INVITER_USER_ID, INVITEE_USER_ID));
-
-            assertEquals("Invitation already exists between these users!", exception.getMessage());
-        }
-
-        @Test
-        void shouldThrowExceptionWhenInviterUserIdIsNull() {
-            assertThrows(NullPointerException.class,
-                    () -> invitationValidator.validateSendInvitation(null, INVITEE_USER_ID));
-        }
-
-        @Test
-        void shouldNotCallInvitationRepositoryWhenMemberConflictExists() {
-            when(sharedAccountMemberRepository.existsByUserId(INVITER_USER_ID)).thenReturn(true);
-
-            assertThrows(EntityAlreadyExistsException.class,
-                    () -> invitationValidator.validateSendInvitation(INVITER_USER_ID, INVITEE_USER_ID));
-
-            verifyNoInteractions(sharedAccountInvitationRepository);
+            assertThrows(EntityAlreadyExistsException.class, () -> validator.validateSendInvitation(1L, 2L));
         }
     }
 
     @Nested
-    class ValidateAcceptInviteTests {
-
+    class ValidateAcceptInvite {
         @Test
-        void shouldPassWhenNeitherUserHasSharedAccount() {
-            when(sharedAccountMemberRepository.existsByUserId(INVITER_USER_ID)).thenReturn(false);
-            when(sharedAccountMemberRepository.existsByUserId(INVITEE_USER_ID)).thenReturn(false);
+        void shouldValidateWhenNeitherUserHasSharedAccount() {
+            when(memberRepository.existsByUserIdIn(anyList())).thenReturn(false);
 
-            assertDoesNotThrow(() ->
-                    invitationValidator.validateAcceptInvite(INVITER_USER_ID, INVITEE_USER_ID, INVITATION_ID));
+            assertDoesNotThrow(() -> validator.validateAcceptInvite(1L, 2L, 3L));
         }
 
         @Test
-        void shouldThrowExceptionWhenInviterAlreadyHasSharedAccount() {
-            when(sharedAccountMemberRepository.existsByUserId(INVITER_USER_ID)).thenReturn(true);
+        void shouldThrowExceptionWhenAnyUserAlreadyHasSharedAccount() {
+            when(memberRepository.existsByUserIdIn(anyList())).thenReturn(true);
 
-            EntityAlreadyExistsException exception = assertThrows(EntityAlreadyExistsException.class,
-                    () -> invitationValidator.validateAcceptInvite(INVITER_USER_ID, INVITEE_USER_ID, INVITATION_ID));
-
-            assertEquals("One of the users already belongs to a shared account", exception.getMessage());
-        }
-
-        @Test
-        void shouldThrowExceptionWhenInviteeAlreadyHasSharedAccount() {
-            when(sharedAccountMemberRepository.existsByUserId(INVITER_USER_ID)).thenReturn(false);
-            when(sharedAccountMemberRepository.existsByUserId(INVITEE_USER_ID)).thenReturn(true);
-
-            EntityAlreadyExistsException exception = assertThrows(EntityAlreadyExistsException.class,
-                    () -> invitationValidator.validateAcceptInvite(INVITER_USER_ID, INVITEE_USER_ID, INVITATION_ID));
-
-            assertEquals("One of the users already belongs to a shared account", exception.getMessage());
-        }
-
-        @Test
-        void shouldNotCallInvitationRepositoryWhenValidatingAccept() {
-            when(sharedAccountMemberRepository.existsByUserId(INVITER_USER_ID)).thenReturn(false);
-            when(sharedAccountMemberRepository.existsByUserId(INVITEE_USER_ID)).thenReturn(false);
-
-            invitationValidator.validateAcceptInvite(INVITER_USER_ID, INVITEE_USER_ID, INVITATION_ID);
-
-            verifyNoInteractions(sharedAccountInvitationRepository);
-        }
-
-        @Test
-        void shouldPassWhenInviterUserIdIsNullAndNeitherUserHasSharedAccount() {
-            when(sharedAccountMemberRepository.existsByUserId(null)).thenReturn(false);
-            when(sharedAccountMemberRepository.existsByUserId(INVITEE_USER_ID)).thenReturn(false);
-
-            assertDoesNotThrow(() ->
-                    invitationValidator.validateAcceptInvite(null, INVITEE_USER_ID, INVITATION_ID));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenInviterUserIdIsNullButInviteeAlreadyHasSharedAccount() {
-            when(sharedAccountMemberRepository.existsByUserId(null)).thenReturn(false);
-            when(sharedAccountMemberRepository.existsByUserId(INVITEE_USER_ID)).thenReturn(true);
-
-            EntityAlreadyExistsException exception = assertThrows(EntityAlreadyExistsException.class,
-                    () -> invitationValidator.validateAcceptInvite(null, INVITEE_USER_ID, INVITATION_ID));
-
-            assertEquals("One of the users already belongs to a shared account", exception.getMessage());
+            assertThrows(EntityAlreadyExistsException.class, () -> validator.validateAcceptInvite(1L, 2L, 3L));
         }
     }
-
 }

@@ -29,8 +29,8 @@ public class SharedAccountNoteController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SharedAccountNoteDto>> getSharedNote() {
-        return ResponseEntity.ok(sharedAccountNoteService.getNotes(SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<List<SharedAccountNoteDto>> getSharedNote(@RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(sharedAccountNoteService.getNotes(SecurityUtils.getCurrentUserId(), page));
     }
 
     @DeleteMapping("/{noteId}")

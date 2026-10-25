@@ -1,15 +1,12 @@
 package com.finovara.financeservice.expense.service;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.mainaccount.transaction.event.limit.LimitStatsEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.user.authorization.dto.ConfirmAuthorizationCodeDto;
-import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
@@ -22,6 +19,7 @@ import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.limit.service.LimitCalculateService;
+import com.finovara.financeservice.limit.service.LimitSpendingService;
 import com.finovara.financeservice.riskverification.service.RiskGuardService;
 import com.finovara.financeservice.settings.finances.expense.controlamount.service.ControlAmountService;
 import com.finovara.financeservice.settings.finances.expense.quantitylimit.dto.CountQuantityLimitDto;
@@ -30,7 +28,6 @@ import com.finovara.financeservice.settings.finances.expense.smartscan.dto.Smart
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpService;
-import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.expense.ExpenseManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
@@ -39,54 +36,43 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ExpenseServiceTest {
 
     private static final Long USER_ID = 1L;
-    private static final Long EXPENSE_ID = 3L;
-    private static final Long SAVED_EXPENSE_ID = 7L;
-    private static final String USER_EMAIL = "user@test.com";
-    private static final String RISK_SOURCE_EVENT_ID = "risk-source-event-id";
-    private static final String DESCRIPTION = "description";
-    private static final String OLD_DESCRIPTION = "old description";
-    private static final String AUTHORIZATION_CODE = "authCode";
+    private static final Long EXPENSE_ID = 5L;
+    private static final Long LIMIT_ID = 7L;
+    private static final Long OTHER_LIMIT_ID = 8L;
+    private static final String AUTH_CODE = "123456";
+    private static final String EXPENSE_AGGREGATE = "Expense";
+    private static final String EXPENSE_TOPIC = "expense.created";
+    private static final String LIMIT_AGGREGATE = "Limit";
     private static final String LIMIT_STATS_TOPIC = "limit.calculate-stats";
-    private static final String OUTBOX_AGGREGATE = "Expense";
-    private static final String OUTBOX_EVENT = "expense.created";
+    private static final int PAGE_SIZE = 10;
+    private static final BigDecimal AMOUNT = BigDecimal.TEN;
+    private static final BigDecimal LIMIT_AMOUNT = BigDecimal.valueOf(100);
     private static final ExpenseCategory CATEGORY = ExpenseCategory.values()[0];
     private static final ExpenseCategory OTHER_CATEGORY = ExpenseCategory.values()[1];
-    private static final PeriodType PERIOD_TYPE = PeriodType.MONTHLY;
-    private static final BigDecimal AMOUNT = BigDecimal.valueOf(50);
-    private static final BigDecimal OLD_AMOUNT = BigDecimal.valueOf(100);
-    private static final BigDecimal EDITED_AMOUNT = BigDecimal.valueOf(250);
-    private static final BigDecimal DELETED_AMOUNT = BigDecimal.valueOf(80);
-
-    @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private static final PeriodType PERIOD = PeriodType.values()[0];
+    private static final TransactionOrigin AUTOMATIC_ORIGIN = Arrays.stream(TransactionOrigin.values())
+            .filter(origin -> origin != TransactionOrigin.USER_MANUAL)
+            .findFirst()
+            .orElseThrow();
 
     @Mock
     private OutboxService outboxService;
@@ -99,6 +85,9 @@ class ExpenseServiceTest {
 
     @Mock
     private LimitCalculateService limitCalculateService;
+
+    @Mock
+    private LimitSpendingService limitSpendingService;
 
     @Mock
     private WalletService walletService;
@@ -122,9 +111,6 @@ class ExpenseServiceTest {
     private ExpenseMapper expenseMapper;
 
     @Mock
-    private FinancialPeriodService financialPeriodService;
-
-    @Mock
     private AuthBackendClient authBackendClient;
 
     @Mock
@@ -137,384 +123,292 @@ class ExpenseServiceTest {
     private HttpServletRequest servletRequest;
 
     @Mock
-    private ConfirmPasswordDto confirmPasswordDto;
+    private ExpenseRequestDto requestDto;
 
     @Mock
-    private ConfirmAuthorizationCodeDto confirmAuthorizationCodeDto;
+    private ExpenseDto expenseDto;
 
     @Mock
     private CountQuantityLimitDto countQuantityLimitDto;
 
     @Mock
-    private LimitStatsDto limitStatsDto;
+    private LimitStatsDto statsDto;
+
+    @Mock
+    private LimitStatsDto otherStatsDto;
+
+    @Captor
+    private ArgumentCaptor<Expense> expenseCaptor;
+
+    @Captor
+    private ArgumentCaptor<List<Expense>> expensesCaptor;
 
     @InjectMocks
-    private ExpenseService expenseService;
+    private ExpenseService service;
 
-    private ExpenseRequestDto buildRequestDto(BigDecimal amount, ExpenseCategory category) {
-        ExpenseDto expenseDto = new ExpenseDto(null, USER_ID, amount, category, LocalDate.now(), DESCRIPTION);
-
-        return new ExpenseRequestDto(expenseDto, confirmPasswordDto, confirmAuthorizationCodeDto, countQuantityLimitDto, RISK_SOURCE_EVENT_ID);
-    }
-
-    private Limit buildLimit(ExpenseCategory category, BigDecimal amount) {
-        return Limit.builder()
-                .periodType(PERIOD_TYPE)
-                .category(category)
-                .amount(amount)
-                .build();
-    }
-
-    private Expense buildExpense(Long id, BigDecimal amount, ExpenseCategory category) {
-        return Expense.builder()
-                .id(id)
-                .amount(amount)
-                .category(category)
-                .createdAt(LocalDate.now())
-                .description(OLD_DESCRIPTION)
-                .userId(USER_ID)
-                .build();
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(service, "pageSize", PAGE_SIZE);
     }
 
     @Nested
     class AddExpense {
 
-        private ExpenseRequestDto requestDto;
-
-        @BeforeEach
-        void setUp() {
-            requestDto = buildRequestDto(AMOUNT, CATEGORY);
-        }
-
         @Nested
-        class WhenRequestIsRejected {
+        class AmountValidation {
 
-            @Test
-            void shouldThrowExceptionWhenAmountIsLessThanOne() {
-                ExpenseRequestDto invalidRequestDto = buildRequestDto(BigDecimal.valueOf(0.5), CATEGORY);
-
-                assertThrows(InvalidInputException.class, () -> expenseService.addExpense(invalidRequestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM));
-
-                verifyNoInteractions(walletService, expenseRepository, smartScanService, outboxService, roundUpService, controlAmountService, kafkaTemplate);
+            @BeforeEach
+            void setUp() {
+                when(requestDto.expenseDto()).thenReturn(expenseDto);
             }
 
             @Test
-            void shouldThrowExceptionWhenAmountIsJustBelowOne() {
-                ExpenseRequestDto invalidRequestDto = buildRequestDto(BigDecimal.valueOf(0.99), CATEGORY);
-
-                assertThrows(InvalidInputException.class, () -> expenseService.addExpense(invalidRequestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM));
-
-                verifyNoInteractions(walletService, expenseRepository);
+            void shouldThrowExceptionWhenAmountIsNull() {
+                assertThrows(InvalidInputException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
+                verifyNoInteractions(riskGuardService, walletService, expenseRepository, outboxService);
             }
 
             @Test
             void shouldThrowExceptionWhenAmountIsZero() {
-                ExpenseRequestDto invalidRequestDto = buildRequestDto(BigDecimal.ZERO, CATEGORY);
+                when(expenseDto.amount()).thenReturn(BigDecimal.ZERO);
 
-                assertThrows(InvalidInputException.class, () -> expenseService.addExpense(invalidRequestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM));
+                assertThrows(InvalidInputException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
+                verifyNoInteractions(riskGuardService, walletService, expenseRepository, outboxService);
+            }
 
-                verifyNoInteractions(walletService, expenseRepository);
+            @Test
+            void shouldThrowExceptionWhenAmountIsBelowOne() {
+                when(expenseDto.amount()).thenReturn(new BigDecimal("0.99"));
+
+                assertThrows(InvalidInputException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
+                verifyNoInteractions(riskGuardService, walletService, expenseRepository, outboxService);
             }
 
             @Test
             void shouldThrowExceptionWhenAmountIsNegative() {
-                ExpenseRequestDto invalidRequestDto = buildRequestDto(BigDecimal.valueOf(-10), CATEGORY);
+                when(expenseDto.amount()).thenReturn(BigDecimal.valueOf(-5));
 
-                assertThrows(InvalidInputException.class, () -> expenseService.addExpense(invalidRequestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM));
-
-                verifyNoInteractions(walletService, expenseRepository);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenGeneralLimitIsExceeded() {
-                ExpenseRequestDto exceedingRequestDto = buildRequestDto(BigDecimal.valueOf(500), CATEGORY);
-                Limit generalLimit = buildLimit(null, BigDecimal.valueOf(400));
-
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(generalLimit));
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, null)).thenReturn(BigDecimal.ZERO);
-
-                assertThrows(MissingRequirementException.class, () -> expenseService.addExpense(exceedingRequestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM));
-
-                verifyNoInteractions(countQuantityLimitService, walletService, expenseRepository, smartScanService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenCategoryLimitIsExceeded() {
-                ExpenseRequestDto exceedingRequestDto = buildRequestDto(BigDecimal.valueOf(500), CATEGORY);
-                Limit categoryLimit = buildLimit(CATEGORY, BigDecimal.valueOf(400));
-
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(categoryLimit));
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, CATEGORY)).thenReturn(BigDecimal.ZERO);
-
-                assertThrows(MissingRequirementException.class, () -> expenseService.addExpense(exceedingRequestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM));
-
-                verifyNoInteractions(countQuantityLimitService, walletService, expenseRepository, smartScanService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenAlreadySpentAmountPlusNewAmountExceedsLimit() {
-                ExpenseRequestDto exceedingRequestDto = buildRequestDto(BigDecimal.valueOf(700), CATEGORY);
-                Limit generalLimit = buildLimit(null, BigDecimal.valueOf(1000));
-
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(generalLimit));
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, null)).thenReturn(BigDecimal.valueOf(400));
-
-                assertThrows(MissingRequirementException.class, () -> expenseService.addExpense(exceedingRequestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM));
-
-                verifyNoInteractions(walletService, expenseRepository);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenSecondLimitIsExceeded() {
-                Limit firstLimit = buildLimit(null, BigDecimal.valueOf(1000));
-                Limit secondLimit = buildLimit(CATEGORY, BigDecimal.valueOf(60));
-
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstLimit, secondLimit));
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, null)).thenReturn(BigDecimal.ZERO);
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, CATEGORY)).thenReturn(BigDecimal.valueOf(30));
-
-                assertThrows(MissingRequirementException.class, () -> expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM));
-
-                verifyNoInteractions(walletService, expenseRepository);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenRiskGuardFails() {
-                when(authBackendClient.getUserEmail(USER_ID)).thenReturn(USER_EMAIL);
-                doThrow(new IllegalStateException("risk detected")).when(riskGuardService).guard(USER_ID, RiskTriggerType.EXPENSE, AMOUNT, CATEGORY.name(), USER_EMAIL, RISK_SOURCE_EVENT_ID, servletRequest);
-
-                assertThrows(IllegalStateException.class, () -> expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
-
-                verifyNoInteractions(additionalAuthorizationCodeResolver, limitRepository, walletService, expenseRepository, outboxService);
-                verify(authBackendClient, never()).confirmAuthorizationCode(eq(USER_ID), any());
-            }
-
-            @Test
-            void shouldThrowExceptionWhenAuthorizationCodeConfirmationFails() {
-                doThrow(new IllegalStateException("invalid code")).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-
-                assertThrows(IllegalStateException.class, () -> expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
-
-                verifyNoInteractions(limitRepository, walletService, expenseRepository, outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenCountQuantityLimitServiceFails() {
-                doThrow(new IllegalStateException("quantity limit")).when(countQuantityLimitService).handleExpenseLimitExceeded(USER_ID, countQuantityLimitDto, null, confirmPasswordDto);
-
-                assertThrows(IllegalStateException.class, () -> expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM));
-
-                verifyNoInteractions(smartScanService, walletService, expenseRepository, outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenSmartScanServiceFails() {
-                doThrow(new IllegalStateException("smart scan")).when(smartScanService).handleSmartScan(USER_ID, confirmPasswordDto, AMOUNT, SmartScanMode.ADD);
-
-                assertThrows(IllegalStateException.class, () -> expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM));
-
-                verifyNoInteractions(walletService, expenseRepository, outboxService);
-            }
-
-            @Test
-            void shouldThrowExceptionWhenWalletBalanceRemovalFails() {
-                doThrow(new IllegalStateException("insufficient funds")).when(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
-
-                assertThrows(IllegalStateException.class, () -> expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM));
-
-                verifyNoInteractions(expenseRepository, outboxService, roundUpService, controlAmountService, kafkaTemplate);
+                assertThrows(InvalidInputException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
+                verifyNoInteractions(riskGuardService, walletService, expenseRepository, outboxService);
             }
         }
 
         @Nested
-        class WhenExpenseIsSaved {
+        class ValidAmount {
+
+            private Limit generalLimit;
+            private Limit categoryLimit;
+            private Expense savedExpense;
 
             @BeforeEach
             void setUp() {
-                when(expenseRepository.save(any(Expense.class))).thenAnswer(invocation -> {
-                    Expense expense = invocation.getArgument(0);
-                    expense.setId(SAVED_EXPENSE_ID);
-                    return expense;
-                });
+                when(requestDto.expenseDto()).thenReturn(expenseDto);
+                when(expenseDto.amount()).thenReturn(AMOUNT);
+                when(expenseDto.category()).thenReturn(CATEGORY);
+                generalLimit = Limit.builder().id(LIMIT_ID).periodType(PERIOD).category(null).amount(LIMIT_AMOUNT).build();
+                categoryLimit = Limit.builder().id(OTHER_LIMIT_ID).periodType(PERIOD).category(CATEGORY).amount(LIMIT_AMOUNT).build();
+                savedExpense = Expense.builder().id(EXPENSE_ID).amount(AMOUNT).category(CATEGORY).userId(USER_ID).build();
             }
 
             @Test
-            void shouldReturnSavedExpenseIdWhenRequestIsValid() {
-                Long result = expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
+            void shouldThrowExceptionWhenGeneralLimitExceeded() {
+                List<Limit> limits = List.of(generalLimit);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                        .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(91)));
 
-                assertEquals(SAVED_EXPENSE_ID, result);
+                assertThrows(MissingRequirementException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
+                verify(expenseRepository, never()).save(any(Expense.class));
+                verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                verifyNoInteractions(outboxService, countQuantityLimitService);
             }
 
             @Test
-            void shouldAddExpenseWhenAmountEqualsOne() {
-                ExpenseRequestDto boundaryRequestDto = buildRequestDto(BigDecimal.ONE, CATEGORY);
+            void shouldThrowExceptionWhenCategoryLimitExceeded() {
+                List<Limit> limits = List.of(categoryLimit);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                        .thenReturn(Map.of(OTHER_LIMIT_ID, BigDecimal.valueOf(100)));
 
-                Long result = expenseService.addExpense(boundaryRequestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
-
-                assertEquals(SAVED_EXPENSE_ID, result);
-                verify(walletService).removeBalanceFromWallet(USER_ID, BigDecimal.ONE);
+                assertThrows(MissingRequirementException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
+                verify(expenseRepository, never()).save(any(Expense.class));
+                verifyNoInteractions(outboxService, countQuantityLimitService);
             }
 
             @Test
-            void shouldSaveExpenseWithCorrectFieldsWhenAddingExpense() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+            void shouldThrowExceptionWhenRiskGuardRejectsExpense() {
+                doThrow(new IllegalStateException()).when(riskGuardService)
+                        .guard(any(), any(), any(), any(), any(), any(), any());
 
-                ArgumentCaptor<Expense> captor = ArgumentCaptor.forClass(Expense.class);
-
-                verify(expenseRepository).save(captor.capture());
-
-                Expense savedExpense = captor.getValue();
-
-                assertEquals(AMOUNT, savedExpense.getAmount());
-                assertEquals(CATEGORY, savedExpense.getCategory());
-                assertEquals(DESCRIPTION, savedExpense.getDescription());
-                assertEquals(USER_ID, savedExpense.getUserId());
-                assertEquals(LocalDate.now(), savedExpense.getCreatedAt());
+                assertThrows(IllegalStateException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
+                verify(authBackendClient, never()).confirmAuthorizationCode(any(), any());
+                verifyNoInteractions(walletService, expenseRepository, outboxService);
             }
 
             @Test
-            void shouldRemoveBalanceFromWalletWhenAddingExpense() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+            void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+                doThrow(new IllegalStateException()).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
 
-                verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+                assertThrows(IllegalStateException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
+                verifyNoInteractions(walletService, expenseRepository, outboxService);
             }
 
-            @Test
-            void shouldPassPeriodTypeFromCountQuantityLimitDtoWhenHandlingQuantityLimit() {
-                when(countQuantityLimitDto.periodType()).thenReturn(PERIOD_TYPE);
+            @Nested
+            class AfterLimitValidation {
 
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+                @BeforeEach
+                void setUp() {
+                    when(requestDto.countQuantityLimitDto()).thenReturn(countQuantityLimitDto);
+                    when(countQuantityLimitDto.periodType()).thenReturn(PERIOD);
+                }
 
-                verify(countQuantityLimitService).handleExpenseLimitExceeded(USER_ID, countQuantityLimitDto, PERIOD_TYPE, confirmPasswordDto);
-            }
+                @Test
+                void shouldSaveExpenseAndReturnIdWhenOriginIsUserManual() {
+                    when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
+                    when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
 
-            @Test
-            void shouldCallSmartScanServiceWithAddModeWhenAddingExpense() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+                    Long result = service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
-                verify(smartScanService).handleSmartScan(USER_ID, confirmPasswordDto, AMOUNT, SmartScanMode.ADD);
-            }
+                    assertEquals(EXPENSE_ID, result);
+                    verify(expenseRepository).save(expenseCaptor.capture());
+                    assertEquals(AMOUNT, expenseCaptor.getValue().getAmount());
+                    assertEquals(CATEGORY, expenseCaptor.getValue().getCategory());
+                    assertEquals(USER_ID, expenseCaptor.getValue().getUserId());
+                    assertEquals(LocalDate.now(), expenseCaptor.getValue().getCreatedAt());
+                }
 
-            @Test
-            void shouldHandleRoundUpWithApplyModeWhenAddingExpense() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+                @Test
+                void shouldGuardRiskAndConfirmAuthorizationWhenOriginIsUserManual() {
+                    when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
+                    when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
 
-                verify(roundUpService).handleExpenseForRoundUp(USER_ID, SAVED_EXPENSE_ID, PiggyBankAutomationMode.APPLY);
-            }
+                    service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
-            @Test
-            void shouldCallControlAmountServiceWhenAddingExpense() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+                    verify(riskGuardService).guard(eq(USER_ID), eq(RiskTriggerType.EXPENSE), eq(AMOUNT), eq(CATEGORY.name()), any(), any(), eq(servletRequest));
+                    verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+                }
 
-                verify(controlAmountService).handleExpenseAmountControl(USER_ID, AMOUNT);
-            }
+                @Test
+                void shouldSkipRiskGuardAndAuthorizationWhenOriginIsNotUserManual() {
+                    when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
+                    when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
 
-            @Test
-            void shouldSaveOutboxEventWhenAddingExpense() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+                    Long result = service.addExpense(requestDto, USER_ID, servletRequest, AUTOMATIC_ORIGIN);
 
-                verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(SAVED_EXPENSE_ID.toString()), eq(OUTBOX_EVENT), any(ExpenseActivityEvent.class));
-            }
+                    assertEquals(EXPENSE_ID, result);
+                    verifyNoInteractions(riskGuardService, authBackendClient, additionalAuthorizationCodeResolver);
+                }
 
-            @Test
-            void shouldSaveExpenseAfterWalletBalanceIsRemoved() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+                @Test
+                void shouldApplyAllSideEffectsWhenExpenseAdded() {
+                    when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
+                    when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
 
-                InOrder order = inOrder(walletService, expenseRepository, outboxService);
+                    service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
-                order.verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
-                order.verify(expenseRepository).save(any(Expense.class));
-                order.verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(SAVED_EXPENSE_ID.toString()), eq(OUTBOX_EVENT), any(ExpenseActivityEvent.class));
-            }
+                    verify(walletService).lockWalletForUpdate(USER_ID);
+                    verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+                    verify(countQuantityLimitService).handleExpenseLimitExceeded(eq(USER_ID), eq(countQuantityLimitDto), eq(PERIOD), any());
+                    verify(smartScanService).handleSmartScan(eq(USER_ID), any(), eq(AMOUNT), eq(SmartScanMode.ADD));
+                    verify(outboxService).save(eq(EXPENSE_AGGREGATE), eq(EXPENSE_ID.toString()), eq(EXPENSE_TOPIC), any(ExpenseActivityEvent.class));
+                    verify(roundUpService).handleExpenseForRoundUp(USER_ID, EXPENSE_ID, PiggyBankAutomationMode.APPLY);
+                    verify(controlAmountService).handleExpenseAmountControl(USER_ID, AMOUNT);
+                }
 
-            @Test
-            void shouldConfirmAuthorizationCodeWhenOriginIsUserManual() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
+                @Test
+                void shouldLockWalletBeforeValidatingLimitsAndRemovingBalance() {
+                    when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
+                    when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
 
-                verify(additionalAuthorizationCodeResolver).resolve(confirmAuthorizationCodeDto);
-                verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-            }
+                    service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
-            @Test
-            void shouldGuardAgainstRiskWhenOriginIsUserManual() {
-                when(authBackendClient.getUserEmail(USER_ID)).thenReturn(USER_EMAIL);
+                    InOrder inOrder = inOrder(walletService, limitRepository, expenseRepository);
+                    inOrder.verify(walletService).lockWalletForUpdate(USER_ID);
+                    inOrder.verify(limitRepository).findAllActiveByUserId(USER_ID);
+                    inOrder.verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+                    inOrder.verify(expenseRepository).save(any(Expense.class));
+                }
 
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
+                @Test
+                void shouldNotCalculateLimitStatsWhenNoActiveLimits() {
+                    when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
+                    when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
 
-                verify(riskGuardService).guard(USER_ID, RiskTriggerType.EXPENSE, AMOUNT, CATEGORY.name(), USER_EMAIL, RISK_SOURCE_EVENT_ID, servletRequest);
-            }
+                    service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
-            @Test
-            void shouldGuardAgainstRiskBeforeConfirmingAuthorizationCodeWhenOriginIsUserManual() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
+                    verifyNoInteractions(limitSpendingService, limitCalculateService);
+                }
 
-                InOrder order = inOrder(riskGuardService, authBackendClient);
+                @Test
+                void shouldPublishLimitStatsEventForEachLimitWhenLimitsNotExceeded() {
+                    List<Limit> limits = List.of(generalLimit, categoryLimit);
+                    when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+                    when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                            .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(20), OTHER_LIMIT_ID, BigDecimal.valueOf(30)));
+                    when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
+                    when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of(statsDto, otherStatsDto));
+                    when(statsDto.limitId()).thenReturn(LIMIT_ID);
+                    when(statsDto.percentage()).thenReturn(BigDecimal.valueOf(30));
+                    when(statsDto.periodType()).thenReturn(PERIOD);
+                    when(otherStatsDto.limitId()).thenReturn(OTHER_LIMIT_ID);
+                    when(otherStatsDto.percentage()).thenReturn(BigDecimal.valueOf(40));
+                    when(otherStatsDto.periodType()).thenReturn(PERIOD);
 
-                order.verify(riskGuardService).guard(USER_ID, RiskTriggerType.EXPENSE, AMOUNT, CATEGORY.name(), null, RISK_SOURCE_EVENT_ID, servletRequest);
-                order.verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-            }
+                    service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
-            @Test
-            void shouldSkipRiskGuardAndAuthorizationWhenOriginIsRecurringSystem() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+                    verify(outboxService).save(eq(LIMIT_AGGREGATE), eq(LIMIT_ID.toString()), eq(LIMIT_STATS_TOPIC), any(LimitStatsEvent.class));
+                    verify(outboxService).save(eq(LIMIT_AGGREGATE), eq(OTHER_LIMIT_ID.toString()), eq(LIMIT_STATS_TOPIC), any(LimitStatsEvent.class));
+                }
 
-                verifyNoInteractions(riskGuardService, authBackendClient, additionalAuthorizationCodeResolver);
-            }
+                @Test
+                void shouldSaveExpenseWhenTotalEqualsLimitAmount() {
+                    List<Limit> limits = List.of(generalLimit);
+                    when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+                    when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                            .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(90)));
+                    when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
+                    when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
 
-            @Test
-            void shouldNotPublishLimitStatsEventsWhenNoLimitsExist() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+                    Long result = service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
-                verifyNoInteractions(kafkaTemplate, limitCalculateService, financialPeriodService);
-            }
+                    assertEquals(EXPENSE_ID, result);
+                    verify(expenseRepository).save(any(Expense.class));
+                }
 
-            @Test
-            void shouldLoadLimitsForValidationAndForStatsPublishing() {
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+                @Test
+                void shouldIgnoreLimitWhenLimitCategoryDoesNotMatchExpenseCategory() {
+                    Limit otherCategoryLimit = Limit.builder().id(LIMIT_ID).periodType(PERIOD).category(OTHER_CATEGORY).amount(LIMIT_AMOUNT).build();
+                    List<Limit> limits = List.of(otherCategoryLimit);
+                    when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+                    when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                            .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(1000)));
+                    when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
+                    when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
 
-                verify(limitRepository, times(2)).findAllByUserId(USER_ID);
-            }
+                    Long result = service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
-            @Test
-            void shouldPublishLimitStatsEventForEachLimitWhenAddingExpense() {
-                Limit generalLimit = buildLimit(null, BigDecimal.valueOf(1000));
-                Limit categoryLimit = buildLimit(CATEGORY, BigDecimal.valueOf(2000));
+                    assertEquals(EXPENSE_ID, result);
+                }
 
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(generalLimit, categoryLimit));
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, null)).thenReturn(BigDecimal.ZERO);
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, CATEGORY)).thenReturn(BigDecimal.ZERO);
-                when(limitCalculateService.calculateLimitStats(any(Limit.class), eq(USER_ID), any(LocalDate.class))).thenReturn(limitStatsDto);
+                @Test
+                void shouldThrowExceptionWhenSmartScanRejectsExpense() {
+                    when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
+                    doThrow(new IllegalStateException()).when(smartScanService)
+                            .handleSmartScan(eq(USER_ID), any(), eq(AMOUNT), eq(SmartScanMode.ADD));
 
-                expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
+                    assertThrows(IllegalStateException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
+                    verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                    verifyNoInteractions(expenseRepository, outboxService);
+                }
 
-                verify(kafkaTemplate, times(2)).send(eq(LIMIT_STATS_TOPIC), any(LimitStatsEvent.class));
-            }
+                @Test
+                void shouldThrowExceptionWhenWalletBalanceIsInsufficient() {
+                    when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
+                    doThrow(new IllegalStateException()).when(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
 
-            @Test
-            void shouldAddExpenseWhenTotalEqualsLimitAmount() {
-                Limit generalLimit = buildLimit(null, BigDecimal.valueOf(100));
-
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(generalLimit));
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, null)).thenReturn(AMOUNT);
-                when(limitCalculateService.calculateLimitStats(eq(generalLimit), eq(USER_ID), any(LocalDate.class))).thenReturn(limitStatsDto);
-
-                Long result = expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
-
-                assertEquals(SAVED_EXPENSE_ID, result);
-                verify(kafkaTemplate).send(eq(LIMIT_STATS_TOPIC), any(LimitStatsEvent.class));
-            }
-
-            @Test
-            void shouldSkipLimitValidationWhenLimitCategoryDiffersFromExpenseCategory() {
-                Limit otherCategoryLimit = buildLimit(OTHER_CATEGORY, BigDecimal.ONE);
-
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(otherCategoryLimit));
-                when(limitCalculateService.calculateLimitStats(eq(otherCategoryLimit), eq(USER_ID), any(LocalDate.class))).thenReturn(limitStatsDto);
-
-                Long result = expenseService.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.RECURRING_SYSTEM);
-
-                assertEquals(SAVED_EXPENSE_ID, result);
-                verifyNoInteractions(financialPeriodService);
+                    assertThrows(IllegalStateException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
+                    verifyNoInteractions(expenseRepository, outboxService);
+                }
             }
         }
     }
@@ -522,409 +416,285 @@ class ExpenseServiceTest {
     @Nested
     class EditExpense {
 
+        @BeforeEach
+        void setUp() {
+            when(requestDto.expenseDto()).thenReturn(expenseDto);
+        }
+
         @Test
-        void shouldThrowExceptionWhenExpenseIsNotFound() {
-            ExpenseRequestDto requestDto = buildRequestDto(EDITED_AMOUNT, CATEGORY);
+        void shouldThrowExceptionWhenAmountIsNull() {
+            assertThrows(InvalidInputException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
+            verifyNoInteractions(authBackendClient, riskGuardService, walletService, expenseManagerService);
+        }
 
-            doThrow(new RequestedEntityNotFoundException("Expense not found")).when(expenseManagerService).getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID);
+        @Test
+        void shouldThrowExceptionWhenAmountIsBelowOne() {
+            when(expenseDto.amount()).thenReturn(new BigDecimal("0.5"));
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
+            assertThrows(InvalidInputException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
+            verifyNoInteractions(authBackendClient, riskGuardService, walletService, expenseManagerService);
+        }
 
-            verifyNoInteractions(authBackendClient, riskGuardService, limitRepository, walletService, roundUpService, expenseRepository, outboxService);
+        @Test
+        void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+            when(expenseDto.amount()).thenReturn(AMOUNT);
+            doThrow(new IllegalStateException()).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+
+            assertThrows(IllegalStateException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
+            verifyNoInteractions(riskGuardService, walletService, expenseManagerService, outboxService);
         }
 
         @Nested
-        class WhenExpenseExists {
+        class Authorized {
 
-            private Expense existingExpense;
-            private ExpenseRequestDto requestDto;
+            private Expense existing;
+            private Limit generalLimit;
+            private Limit categoryLimit;
 
             @BeforeEach
             void setUp() {
-                existingExpense = buildExpense(EXPENSE_ID, OLD_AMOUNT, CATEGORY);
-                requestDto = buildRequestDto(EDITED_AMOUNT, CATEGORY);
-
-                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existingExpense);
+                when(expenseDto.amount()).thenReturn(AMOUNT);
+                when(expenseDto.category()).thenReturn(CATEGORY);
+                existing = Expense.builder().id(EXPENSE_ID).amount(BigDecimal.valueOf(5)).category(CATEGORY).createdAt(LocalDate.now()).userId(USER_ID).build();
+                generalLimit = Limit.builder().id(LIMIT_ID).periodType(PERIOD).category(null).amount(LIMIT_AMOUNT).build();
+                categoryLimit = Limit.builder().id(OTHER_LIMIT_ID).periodType(PERIOD).category(CATEGORY).amount(LIMIT_AMOUNT).build();
             }
 
             @Test
-            void shouldReturnExpenseIdWhenEditIsSuccessful() {
-                Long result = expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
+            void shouldUpdateExpenseAndReturnIdWhenAmountIncreased() {
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
+
+                Long result = service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
 
                 assertEquals(EXPENSE_ID, result);
+                assertEquals(AMOUNT, existing.getAmount());
+                assertEquals(CATEGORY, existing.getCategory());
+                verify(walletService).removeBalanceFromWallet(USER_ID, BigDecimal.valueOf(5));
+                verify(walletService, never()).addBalanceToWallet(any(), any());
             }
 
             @Test
-            void shouldThrowExceptionWhenAuthorizationCodeConfirmationFails() {
-                doThrow(new IllegalStateException("invalid code")).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+            void shouldAddBalanceToWalletWhenAmountDecreased() {
+                existing.setAmount(BigDecimal.valueOf(25));
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
 
-                assertThrows(IllegalStateException.class, () -> expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
+                service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
 
-                verifyNoInteractions(riskGuardService, limitRepository, walletService, expenseRepository, outboxService);
+                verify(walletService).addBalanceToWallet(USER_ID, BigDecimal.valueOf(15));
+                verify(walletService, never()).removeBalanceFromWallet(any(), any());
             }
 
             @Test
-            void shouldThrowExceptionWhenRiskGuardFails() {
-                when(authBackendClient.getUserEmail(USER_ID)).thenReturn(USER_EMAIL);
-                doThrow(new IllegalStateException("risk detected")).when(riskGuardService).guard(USER_ID, RiskTriggerType.EXPENSE, EDITED_AMOUNT, CATEGORY.name(), USER_EMAIL, RISK_SOURCE_EVENT_ID, servletRequest);
+            void shouldNotChangeWalletBalanceWhenAmountUnchanged() {
+                existing.setAmount(AMOUNT);
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
 
-                assertThrows(IllegalStateException.class, () -> expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
+                service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
 
-                verifyNoInteractions(limitRepository, walletService, expenseRepository, outboxService);
+                verify(walletService, never()).addBalanceToWallet(any(), any());
+                verify(walletService, never()).removeBalanceFromWallet(any(), any());
             }
 
             @Test
-            void shouldThrowExceptionWhenGeneralLimitIsExceeded() {
-                ExpenseRequestDto exceedingRequestDto = buildRequestDto(BigDecimal.valueOf(900), CATEGORY);
-                Limit generalLimit = buildLimit(null, BigDecimal.valueOf(400));
+            void shouldGuardRiskAndLockWalletWhenExpenseEdited() {
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
 
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(generalLimit));
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, null)).thenReturn(BigDecimal.ZERO);
+                service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
 
-                assertThrows(MissingRequirementException.class, () -> expenseService.editExpense(exceedingRequestDto, USER_ID, EXPENSE_ID, servletRequest));
-
-                verifyNoInteractions(walletService, roundUpService, outboxService);
-                verify(expenseRepository, never()).save(any(Expense.class));
+                verify(riskGuardService).guard(eq(USER_ID), eq(RiskTriggerType.EXPENSE), eq(AMOUNT), eq(CATEGORY.name()), any(), any(), eq(servletRequest));
+                verify(walletService).lockWalletForUpdate(USER_ID);
             }
 
             @Test
-            void shouldThrowExceptionWhenCategoryLimitIsExceeded() {
-                ExpenseRequestDto exceedingRequestDto = buildRequestDto(BigDecimal.valueOf(900), CATEGORY);
-                Limit categoryLimit = buildLimit(CATEGORY, BigDecimal.valueOf(400));
+            void shouldApplyAllSideEffectsWhenExpenseEdited() {
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
 
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(categoryLimit));
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, CATEGORY)).thenReturn(BigDecimal.ZERO);
+                service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
 
-                assertThrows(MissingRequirementException.class, () -> expenseService.editExpense(exceedingRequestDto, USER_ID, EXPENSE_ID, servletRequest));
-
-                verifyNoInteractions(walletService, roundUpService, outboxService);
-                verify(expenseRepository, never()).save(any(Expense.class));
+                verify(outboxService).save(eq(EXPENSE_AGGREGATE), eq(EXPENSE_ID.toString()), eq(EXPENSE_TOPIC), any(ExpenseActivityEvent.class));
+                verify(smartScanService).handleSmartScan(eq(USER_ID), any(), eq(AMOUNT), eq(SmartScanMode.EDIT));
+                verify(controlAmountService).handleExpenseAmountControl(USER_ID, AMOUNT);
             }
 
             @Test
-            void shouldThrowExceptionWhenOldAmountDoesNotCountTowardsLimitOfNewCategory() {
-                ExpenseRequestDto categoryRequestDto = buildRequestDto(OLD_AMOUNT, CATEGORY);
-                Limit categoryLimit = buildLimit(CATEGORY, BigDecimal.valueOf(400));
+            void shouldRollbackRoundUpBeforeApplyingItAgain() {
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
 
-                existingExpense.setCategory(OTHER_CATEGORY);
+                service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
 
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(categoryLimit));
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, CATEGORY)).thenReturn(BigDecimal.valueOf(350));
-
-                assertThrows(MissingRequirementException.class, () -> expenseService.editExpense(categoryRequestDto, USER_ID, EXPENSE_ID, servletRequest));
-
-                verifyNoInteractions(walletService);
+                InOrder inOrder = inOrder(roundUpService);
+                inOrder.verify(roundUpService).handleExpenseForRoundUp(USER_ID, EXPENSE_ID, PiggyBankAutomationMode.ROLLBACK);
+                inOrder.verify(roundUpService).handleExpenseForRoundUp(USER_ID, EXPENSE_ID, PiggyBankAutomationMode.APPLY);
             }
 
             @Test
-            void shouldEditExpenseWhenOldAmountIsSubtractedAndTotalEqualsLimit() {
-                ExpenseRequestDto boundaryRequestDto = buildRequestDto(BigDecimal.valueOf(200), CATEGORY);
-                Limit generalLimit = buildLimit(null, BigDecimal.valueOf(400));
+            void shouldNotChangeExpenseWhenGeneralLimitExceeded() {
+                List<Limit> limits = List.of(generalLimit);
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                        .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(100)));
 
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(generalLimit));
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, null)).thenReturn(BigDecimal.valueOf(300));
-                when(limitCalculateService.calculateLimitStats(eq(generalLimit), eq(USER_ID), any(LocalDate.class))).thenReturn(limitStatsDto);
+                assertThrows(MissingRequirementException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
+                assertEquals(BigDecimal.valueOf(5), existing.getAmount());
+                verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                verifyNoInteractions(outboxService);
+            }
 
-                Long result = expenseService.editExpense(boundaryRequestDto, USER_ID, EXPENSE_ID, servletRequest);
+            @Test
+            void shouldSucceedWhenTotalAfterReplacingOldAmountEqualsLimit() {
+                List<Limit> limits = List.of(generalLimit);
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                        .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(95)));
+                when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
+
+                Long result = service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
 
                 assertEquals(EXPENSE_ID, result);
-                verify(expenseRepository).save(existingExpense);
+                assertEquals(AMOUNT, existing.getAmount());
             }
 
             @Test
-            void shouldSkipLimitValidationWhenNewCategoryDiffersFromLimitCategory() {
-                ExpenseRequestDto otherCategoryRequestDto = buildRequestDto(EDITED_AMOUNT, OTHER_CATEGORY);
-                Limit categoryLimit = buildLimit(CATEGORY, BigDecimal.ONE);
+            void shouldNotSubtractOldAmountWhenOldCategoryDoesNotMatchLimit() {
+                existing.setCategory(OTHER_CATEGORY);
+                List<Limit> limits = List.of(categoryLimit);
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                        .thenReturn(Map.of(OTHER_LIMIT_ID, BigDecimal.valueOf(95)));
 
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(categoryLimit));
-                when(limitCalculateService.calculateLimitStats(eq(categoryLimit), eq(USER_ID), any(LocalDate.class))).thenReturn(limitStatsDto);
+                assertThrows(MissingRequirementException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
+                verifyNoInteractions(outboxService);
+            }
 
-                Long result = expenseService.editExpense(otherCategoryRequestDto, USER_ID, EXPENSE_ID, servletRequest);
+            @Test
+            void shouldIgnoreLimitWhenExpenseWasCreatedBeforeLimitPeriodStart() {
+                existing.setCreatedAt(PERIOD.getStartDate(LocalDate.now()).minusDays(1));
+                List<Limit> limits = List.of(generalLimit);
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                        .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(1000)));
+                when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
+
+                Long result = service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
 
                 assertEquals(EXPENSE_ID, result);
-                verifyNoInteractions(financialPeriodService);
+                assertEquals(AMOUNT, existing.getAmount());
             }
 
             @Test
-            void shouldConfirmAuthorizationCodeWhenEditingExpense() {
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
+            void shouldPublishLimitStatsEventsWhenActiveLimitsExist() {
+                List<Limit> limits = List.of(generalLimit);
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
+                when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                        .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(20)));
+                when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of(statsDto));
+                when(statsDto.limitId()).thenReturn(LIMIT_ID);
+                when(statsDto.percentage()).thenReturn(BigDecimal.valueOf(20));
+                when(statsDto.periodType()).thenReturn(PERIOD);
 
-                verify(additionalAuthorizationCodeResolver).resolve(confirmAuthorizationCodeDto);
-                verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+                service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
+
+                verify(outboxService).save(eq(LIMIT_AGGREGATE), eq(LIMIT_ID.toString()), eq(LIMIT_STATS_TOPIC), any(LimitStatsEvent.class));
             }
 
             @Test
-            void shouldGuardAgainstRiskWhenEditingExpense() {
-                when(authBackendClient.getUserEmail(USER_ID)).thenReturn(USER_EMAIL);
+            void shouldThrowExceptionWhenExpenseDoesNotExist() {
+                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenThrow(new IllegalStateException());
 
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                verify(riskGuardService).guard(USER_ID, RiskTriggerType.EXPENSE, EDITED_AMOUNT, CATEGORY.name(), USER_EMAIL, RISK_SOURCE_EVENT_ID, servletRequest);
+                assertThrows(IllegalStateException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
+                verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                verifyNoInteractions(limitRepository, roundUpService, outboxService);
             }
 
             @Test
-            void shouldConfirmAuthorizationCodeBeforeGuardingAgainstRisk() {
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
+            void shouldThrowExceptionWhenRiskGuardRejectsExpense() {
+                doThrow(new IllegalStateException()).when(riskGuardService)
+                        .guard(any(), any(), any(), any(), any(), any(), any());
 
-                InOrder order = inOrder(authBackendClient, riskGuardService);
-
-                order.verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-                order.verify(riskGuardService).guard(USER_ID, RiskTriggerType.EXPENSE, EDITED_AMOUNT, CATEGORY.name(), null, RISK_SOURCE_EVENT_ID, servletRequest);
+                assertThrows(IllegalStateException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
+                verifyNoInteractions(walletService, expenseManagerService, outboxService);
             }
-
-            @Test
-            void shouldAdjustWalletBalanceWhenEditingExpense() {
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                verify(walletService).addBalanceToWallet(USER_ID, OLD_AMOUNT);
-                verify(walletService).removeBalanceFromWallet(USER_ID, EDITED_AMOUNT);
-            }
-
-            @Test
-            void shouldReturnOldAmountToWalletBeforeRemovingNewAmount() {
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                InOrder order = inOrder(walletService);
-
-                order.verify(walletService).addBalanceToWallet(USER_ID, OLD_AMOUNT);
-                order.verify(walletService).removeBalanceFromWallet(USER_ID, EDITED_AMOUNT);
-            }
-
-            @Test
-            void shouldRollbackThenApplyRoundUpWhenEditingExpense() {
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                InOrder order = inOrder(roundUpService);
-
-                order.verify(roundUpService).handleExpenseForRoundUp(USER_ID, EXPENSE_ID, PiggyBankAutomationMode.ROLLBACK);
-                order.verify(roundUpService).handleExpenseForRoundUp(USER_ID, EXPENSE_ID, PiggyBankAutomationMode.APPLY);
-            }
-
-            @Test
-            void shouldUpdateExpenseFieldsWhenEditingExpense() {
-                ExpenseRequestDto otherCategoryRequestDto = buildRequestDto(EDITED_AMOUNT, OTHER_CATEGORY);
-
-                expenseService.editExpense(otherCategoryRequestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                assertEquals(EDITED_AMOUNT, existingExpense.getAmount());
-                assertEquals(OTHER_CATEGORY, existingExpense.getCategory());
-                assertEquals(DESCRIPTION, existingExpense.getDescription());
-            }
-
-            @Test
-            void shouldSaveUpdatedExpenseWhenEditingExpense() {
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                verify(expenseRepository).save(existingExpense);
-            }
-
-            @Test
-            void shouldSaveOutboxEventWhenEditingExpense() {
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(EXPENSE_ID.toString()), eq(OUTBOX_EVENT), any(ExpenseActivityEvent.class));
-            }
-
-            @Test
-            void shouldCallSmartScanServiceWithEditModeWhenEditingExpense() {
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                verify(smartScanService).handleSmartScan(USER_ID, confirmPasswordDto, EDITED_AMOUNT, SmartScanMode.EDIT);
-            }
-
-            @Test
-            void shouldCallControlAmountServiceWhenEditingExpense() {
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                verify(controlAmountService).handleExpenseAmountControl(USER_ID, EDITED_AMOUNT);
-            }
-
-            @Test
-            void shouldNotCallCountQuantityLimitServiceWhenEditingExpense() {
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                verifyNoInteractions(countQuantityLimitService);
-            }
-
-            @Test
-            void shouldNotPublishLimitStatsEventsWhenNoLimitsExist() {
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                verifyNoInteractions(kafkaTemplate, limitCalculateService);
-            }
-
-            @Test
-            void shouldPublishLimitStatsEventsWhenEditingExpense() {
-                Limit generalLimit = buildLimit(null, BigDecimal.valueOf(1000));
-
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(generalLimit));
-                when(financialPeriodService.getExpensesSum(USER_ID, PERIOD_TYPE, null)).thenReturn(BigDecimal.ZERO);
-                when(limitCalculateService.calculateLimitStats(eq(generalLimit), eq(USER_ID), any(LocalDate.class))).thenReturn(limitStatsDto);
-
-                expenseService.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
-
-                verify(kafkaTemplate).send(eq(LIMIT_STATS_TOPIC), any(LimitStatsEvent.class));
-            }
-        }
-    }
-
-    @Nested
-    class GetExpense {
-
-        @Test
-        void shouldReturnMappedExpenseDtosWhenExpensesExist() {
-            Expense firstExpense = buildExpense(1L, BigDecimal.valueOf(50), CATEGORY);
-            Expense secondExpense = buildExpense(2L, BigDecimal.valueOf(75), OTHER_CATEGORY);
-            ExpenseDto firstDto = new ExpenseDto(1L, USER_ID, BigDecimal.valueOf(50), CATEGORY, LocalDate.now(), "first");
-            ExpenseDto secondDto = new ExpenseDto(2L, USER_ID, BigDecimal.valueOf(75), OTHER_CATEGORY, LocalDate.now(), "second");
-
-            when(expenseRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstExpense, secondExpense));
-            when(expenseMapper.mapExpenseToDto(firstExpense)).thenReturn(firstDto);
-            when(expenseMapper.mapExpenseToDto(secondExpense)).thenReturn(secondDto);
-
-            List<ExpenseDto> result = expenseService.getExpense(USER_ID);
-
-            assertEquals(List.of(firstDto, secondDto), result);
-        }
-
-        @Test
-        void shouldMapEachExpenseWhenExpensesExist() {
-            Expense firstExpense = buildExpense(1L, BigDecimal.valueOf(50), CATEGORY);
-            Expense secondExpense = buildExpense(2L, BigDecimal.valueOf(75), OTHER_CATEGORY);
-
-            when(expenseRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstExpense, secondExpense));
-
-            expenseService.getExpense(USER_ID);
-
-            verify(expenseMapper).mapExpenseToDto(firstExpense);
-            verify(expenseMapper).mapExpenseToDto(secondExpense);
-        }
-
-        @Test
-        void shouldReturnEmptyListWhenNoExpensesExist() {
-            when(expenseRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
-
-            List<ExpenseDto> result = expenseService.getExpense(USER_ID);
-
-            assertTrue(result.isEmpty());
-            verifyNoInteractions(expenseMapper);
         }
     }
 
     @Nested
     class DeleteExpense {
 
-        @Test
-        void shouldThrowExceptionWhenExpenseIsNotFound() {
-            doThrow(new RequestedEntityNotFoundException("Expense not found")).when(expenseManagerService).getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID);
+        private Expense expense;
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> expenseService.deleteExpense(EXPENSE_ID, USER_ID, AUTHORIZATION_CODE));
-
-            verifyNoInteractions(authBackendClient, roundUpService, walletService, outboxService, expenseRepository, limitRepository);
+        @BeforeEach
+        void setUp() {
+            expense = Expense.builder().id(EXPENSE_ID).amount(AMOUNT).category(CATEGORY).userId(USER_ID).build();
         }
 
-        @Nested
-        class WhenExpenseExists {
+        @Test
+        void shouldDeleteExpenseAndRestoreBalanceWhenExpenseExists() {
+            when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(expense);
+            when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
 
-            private Expense expense;
+            service.deleteExpense(EXPENSE_ID, USER_ID, AUTH_CODE);
 
-            @BeforeEach
-            void setUp() {
-                expense = buildExpense(EXPENSE_ID, DELETED_AMOUNT, CATEGORY);
+            verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
+            verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+            verify(walletService).lockWalletForUpdate(USER_ID);
+            verify(roundUpService).handleExpenseForRoundUp(USER_ID, EXPENSE_ID, PiggyBankAutomationMode.ROLLBACK);
+            verify(walletService).addBalanceToWallet(USER_ID, AMOUNT);
+            verify(outboxService).save(eq(EXPENSE_AGGREGATE), eq(EXPENSE_ID.toString()), eq(EXPENSE_TOPIC), any(ExpenseActivityEvent.class));
+            verify(expenseRepository).delete(expense);
+        }
 
-                when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(expense);
-            }
+        @Test
+        void shouldNotPublishLimitStatsWhenNoActiveLimits() {
+            when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(expense);
+            when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
 
-            @Test
-            void shouldThrowExceptionWhenAuthorizationCodeConfirmationFails() {
-                doThrow(new IllegalStateException("invalid code")).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
+            service.deleteExpense(EXPENSE_ID, USER_ID, AUTH_CODE);
 
-                assertThrows(IllegalStateException.class, () -> expenseService.deleteExpense(EXPENSE_ID, USER_ID, AUTHORIZATION_CODE));
+            verifyNoInteractions(limitCalculateService);
+        }
 
-                verifyNoInteractions(roundUpService, walletService, outboxService, expenseRepository, limitRepository);
-            }
+        @Test
+        void shouldPublishLimitStatsEventsWhenActiveLimitsExist() {
+            Limit limit = Limit.builder().id(LIMIT_ID).periodType(PERIOD).category(null).amount(LIMIT_AMOUNT).build();
+            List<Limit> limits = List.of(limit);
+            when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(expense);
+            when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
+            when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of(statsDto));
+            when(statsDto.limitId()).thenReturn(LIMIT_ID);
+            when(statsDto.percentage()).thenReturn(BigDecimal.valueOf(10));
+            when(statsDto.periodType()).thenReturn(PERIOD);
 
-            @Test
-            void shouldDeleteExpenseWhenExpenseExists() {
-                expenseService.deleteExpense(EXPENSE_ID, USER_ID, AUTHORIZATION_CODE);
+            service.deleteExpense(EXPENSE_ID, USER_ID, AUTH_CODE);
 
-                verify(expenseRepository).delete(expense);
-            }
+            verify(outboxService).save(eq(LIMIT_AGGREGATE), eq(LIMIT_ID.toString()), eq(LIMIT_STATS_TOPIC), any(LimitStatsEvent.class));
+        }
 
-            @Test
-            void shouldConfirmAuthorizationCodeWhenDeletingExpense() {
-                expenseService.deleteExpense(EXPENSE_ID, USER_ID, AUTHORIZATION_CODE);
+        @Test
+        void shouldThrowExceptionWhenExpenseDoesNotExist() {
+            when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenThrow(new IllegalStateException());
 
-                verify(additionalAuthorizationCodeResolver).resolve(AUTHORIZATION_CODE);
-                verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-            }
+            assertThrows(IllegalStateException.class, () -> service.deleteExpense(EXPENSE_ID, USER_ID, AUTH_CODE));
+            verify(walletService, never()).addBalanceToWallet(any(), any());
+            verifyNoInteractions(roundUpService, outboxService, expenseRepository, limitRepository);
+        }
 
-            @Test
-            void shouldRollbackRoundUpWhenDeletingExpense() {
-                expenseService.deleteExpense(EXPENSE_ID, USER_ID, AUTHORIZATION_CODE);
+        @Test
+        void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
+            doThrow(new IllegalStateException()).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
 
-                verify(roundUpService).handleExpenseForRoundUp(USER_ID, EXPENSE_ID, PiggyBankAutomationMode.ROLLBACK);
-            }
-
-            @Test
-            void shouldAddBalanceBackToWalletWhenDeletingExpense() {
-                expenseService.deleteExpense(EXPENSE_ID, USER_ID, AUTHORIZATION_CODE);
-
-                verify(walletService).addBalanceToWallet(USER_ID, DELETED_AMOUNT);
-            }
-
-            @Test
-            void shouldSaveOutboxEventWhenDeletingExpense() {
-                expenseService.deleteExpense(EXPENSE_ID, USER_ID, AUTHORIZATION_CODE);
-
-                verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(EXPENSE_ID.toString()), eq(OUTBOX_EVENT), any(ExpenseActivityEvent.class));
-            }
-
-            @Test
-            void shouldPerformDeletionStepsInOrderWhenDeletingExpense() {
-                expenseService.deleteExpense(EXPENSE_ID, USER_ID, AUTHORIZATION_CODE);
-
-                InOrder order = inOrder(authBackendClient, roundUpService, walletService, outboxService, expenseRepository);
-
-                order.verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-                order.verify(roundUpService).handleExpenseForRoundUp(USER_ID, EXPENSE_ID, PiggyBankAutomationMode.ROLLBACK);
-                order.verify(walletService).addBalanceToWallet(USER_ID, DELETED_AMOUNT);
-                order.verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(EXPENSE_ID.toString()), eq(OUTBOX_EVENT), any(ExpenseActivityEvent.class));
-                order.verify(expenseRepository).delete(expense);
-            }
-
-            @Test
-            void shouldNotPublishLimitStatsEventsWhenNoLimitsExist() {
-                expenseService.deleteExpense(EXPENSE_ID, USER_ID, AUTHORIZATION_CODE);
-
-                verify(limitRepository).findAllByUserId(USER_ID);
-                verifyNoInteractions(kafkaTemplate, limitCalculateService);
-            }
-
-            @Test
-            void shouldPublishLimitStatsEventsWhenDeletingExpense() {
-                Limit generalLimit = buildLimit(null, BigDecimal.valueOf(500));
-
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(generalLimit));
-                when(limitCalculateService.calculateLimitStats(eq(generalLimit), eq(USER_ID), any(LocalDate.class))).thenReturn(limitStatsDto);
-
-                expenseService.deleteExpense(EXPENSE_ID, USER_ID, AUTHORIZATION_CODE);
-
-                verify(kafkaTemplate).send(eq(LIMIT_STATS_TOPIC), any(LimitStatsEvent.class));
-            }
-
-            @Test
-            void shouldPublishLimitStatsEventForEachLimitWhenDeletingExpense() {
-                Limit firstLimit = buildLimit(null, BigDecimal.valueOf(500));
-                Limit secondLimit = buildLimit(CATEGORY, BigDecimal.valueOf(300));
-
-                when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstLimit, secondLimit));
-                when(limitCalculateService.calculateLimitStats(any(Limit.class), eq(USER_ID), any(LocalDate.class))).thenReturn(limitStatsDto);
-
-                expenseService.deleteExpense(EXPENSE_ID, USER_ID, AUTHORIZATION_CODE);
-
-                verify(kafkaTemplate, times(2)).send(eq(LIMIT_STATS_TOPIC), any(LimitStatsEvent.class));
-            }
+            assertThrows(IllegalStateException.class, () -> service.deleteExpense(EXPENSE_ID, USER_ID, AUTH_CODE));
+            verifyNoInteractions(walletService, expenseManagerService, roundUpService, outboxService, expenseRepository);
         }
     }
 
@@ -932,17 +702,24 @@ class ExpenseServiceTest {
     class DeleteByUserId {
 
         @Test
-        void shouldDeleteAllExpensesWhenUserIdIsProvided() {
-            expenseService.deleteByUserId(USER_ID);
+        void shouldDeleteAllExpensesWhenUserHasExpenses() {
+            Expense expense = Expense.builder().id(EXPENSE_ID).amount(AMOUNT).category(CATEGORY).userId(USER_ID).build();
+            when(expenseRepository.findAllByUserId(USER_ID)).thenReturn(List.of(expense));
 
-            verify(expenseRepository).deleteByUserId(USER_ID);
+            service.deleteByUserId(USER_ID);
+
+            verify(expenseRepository).deleteAll(expensesCaptor.capture());
+            assertEquals(List.of(expense), expensesCaptor.getValue());
         }
 
         @Test
-        void shouldThrowExceptionWhenRepositoryFailsOnDeleteByUserId() {
-            doThrow(new IllegalStateException("database error")).when(expenseRepository).deleteByUserId(USER_ID);
+        void shouldDeleteEmptyListWhenUserHasNoExpenses() {
+            when(expenseRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
 
-            assertThrows(IllegalStateException.class, () -> expenseService.deleteByUserId(USER_ID));
+            service.deleteByUserId(USER_ID);
+
+            verify(expenseRepository).deleteAll(expensesCaptor.capture());
+            assertTrue(expensesCaptor.getValue().isEmpty());
         }
     }
 }

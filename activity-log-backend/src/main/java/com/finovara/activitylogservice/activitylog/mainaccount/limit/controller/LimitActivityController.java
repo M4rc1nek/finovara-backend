@@ -21,8 +21,7 @@ public class LimitActivityController {
     private final LimitActivityService limitActivityService;
 
     @GetMapping
-    public ResponseEntity<List<LimitActivityDto>> getLimitActivity(@RequestParam(defaultValue = "NEWEST") SortType sort) {
-        return ResponseEntity.ok(limitActivityService.getLimitActivity(SecurityUtils.getCurrentUserId(), sort));
+    public ResponseEntity<List<LimitActivityDto>> getLimitActivity(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(limitActivityService.getLimitActivity(SecurityUtils.getCurrentUserId(), sort, page));
     }
-
 }

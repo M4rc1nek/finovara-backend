@@ -4,9 +4,10 @@ import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.settings.finances.expense.controlamount.dto.ControlAmountDto;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
-import com.finovara.financeservice.settings.finances.expense.repository.ExpenseSettingsRepository;
+
 import com.finovara.financeservice.util.settings.SettingsManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -29,16 +30,13 @@ import static org.mockito.Mockito.when;
 class ControlAmountServiceTest {
 
     @Mock
-    private ExpenseSettingsRepository expenseSettingsRepository;
-
-    @Mock
     private SettingsManager settingsManager;
 
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Mock
-    private com.finovara.financeservice.feignclient.AuthBackendClient authBackendClient;
+    private AuthBackendClient authBackendClient;
 
     @Mock
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;

@@ -21,6 +21,11 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createIndex tableName="expense_activity" indexName="idx_expense_activity_user_created">
+            <column name="user_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-revenue-activity" author="Marcin Parśniak">
@@ -38,6 +43,11 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createIndex tableName="revenue_activity" indexName="idx_revenue_activity_user_created">
+            <column name="user_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-limit-activity" author="Marcin Parśniak">
@@ -54,6 +64,11 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createIndex tableName="limit_activity" indexName="idx_limit_activity_user_created">
+            <column name="user_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-piggy-bank-activity" author="Marcin Parśniak">
@@ -75,6 +90,30 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createIndex tableName="piggy_bank_activity" indexName="idx_piggy_bank_activity_user_created">
+            <column name="user_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-settings-activity" author="Marcin Parśniak">
+        <createTable tableName="settings_activity">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="setting_type" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="settings_activity" indexName="idx_settings_activity_user_created">
+            <column name="user_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-login-activity" author="Marcin Parśniak">
@@ -92,6 +131,11 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createIndex tableName="login_activity" indexName="idx_login_activity_user_created">
+            <column name="user_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-login-activity-archive" author="Marcin Parśniak">
@@ -110,6 +154,11 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createIndex tableName="login_activity_archive" indexName="idx_login_activity_archive_user_created">
+            <column name="user_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-account-changes-activity" author="Marcin Parśniak">
@@ -126,6 +175,16 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createIndex tableName="account_change_activity" indexName="idx_account_change_activity_user_created">
+            <column name="user_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
+        <createIndex tableName="account_change_activity" indexName="idx_account_change_activity_user_type_created">
+            <column name="user_id"/>
+            <column name="type"/>
+            <column name="created_at"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-account-change-archive" author="Marcin Parśniak">
@@ -143,20 +202,11 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-    </changeSet>
-
-    <changeSet id="create-settings-activity" author="Marcin Parśniak">
-        <createTable tableName="settings_activity">
-            <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="status" type="VARCHAR(255)"/>
-            <column name="setting_type" type="VARCHAR(255)"/>
-            <column name="created_at" type="TIMESTAMP"/>
-            <column name="user_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
+        <createIndex tableName="account_change_archive" indexName="idx_account_change_archive_user_created">
+            <column name="user_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-shared-account-change-history-activity" author="Marcin Parśniak">
@@ -173,6 +223,11 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+        <createIndex tableName="shared_account_change_history_activity" indexName="idx_shared_account_change_history_user_created">
+            <column name="user_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
     </changeSet>
 
     <changeSet id="create-shared-account-activity-log" author="Marcin Parśniak">
@@ -187,8 +242,26 @@
             <column name="user_id" type="BIGINT"/>
             <column name="target_id" type="BIGINT"/>
         </createTable>
+        <createIndex tableName="shared_account_activity_log" indexName="idx_shared_account_activity_log_owner_created">
+            <column name="owner_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
+        <createIndex tableName="shared_account_activity_log" indexName="idx_shared_account_activity_log_member_created">
+            <column name="member_id"/>
+            <column name="created_at"/>
+            <column name="id"/>
+        </createIndex>
+        <createIndex tableName="shared_account_activity_log" indexName="idx_shared_account_activity_log_user_type_created">
+            <column name="user_id"/>
+            <column name="activity_type"/>
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex tableName="shared_account_activity_log" indexName="idx_shared_account_activity_log_user_created">
+            <column name="user_id"/>
+            <column name="created_at"/>
+        </createIndex>
     </changeSet>
-
 
     <changeSet id="create-risk-operation-activity" author="Marcin Parśniak">
         <createTable tableName="risk_operation_activity">
@@ -217,6 +290,7 @@
         <createIndex tableName="risk_operation_activity" indexName="idx_risk_operation_activity_user_created">
             <column name="user_id"/>
             <column name="created_at"/>
+            <column name="id"/>
         </createIndex>
     </changeSet>
 
@@ -233,7 +307,12 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <addForeignKeyConstraint constraintName="fk_risk_rule_collection_activity_operation" baseTableName="risk_rule_collection_activity" baseColumnNames="risk_operation_activity_id" referencedTableName="risk_operation_activity" referencedColumnNames="id" onDelete="CASCADE"/>
+        <addForeignKeyConstraint constraintName="fk_risk_rule_collection_activity_operation"
+                                 baseTableName="risk_rule_collection_activity"
+                                 baseColumnNames="risk_operation_activity_id"
+                                 referencedTableName="risk_operation_activity"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
         <createIndex tableName="risk_rule_collection_activity" indexName="idx_risk_rule_collection_activity_operation">
             <column name="risk_operation_activity_id"/>
         </createIndex>
@@ -241,16 +320,16 @@
 
     <changeSet id="create-shedlock-table" author="Marcin Parśniak">
         <createTable tableName="shedlock">
-            <column name="name" type="varchar(64)">
+            <column name="name" type="VARCHAR(64)">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="lock_until" type="timestamp(3)">
+            <column name="lock_until" type="TIMESTAMP(3)">
                 <constraints nullable="false"/>
             </column>
-            <column name="locked_at" type="timestamp(3)">
+            <column name="locked_at" type="TIMESTAMP(3)">
                 <constraints nullable="false"/>
             </column>
-            <column name="locked_by" type="varchar(255)">
+            <column name="locked_by" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
         </createTable>

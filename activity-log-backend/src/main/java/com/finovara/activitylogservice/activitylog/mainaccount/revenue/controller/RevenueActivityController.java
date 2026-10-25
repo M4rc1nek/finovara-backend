@@ -21,7 +21,7 @@ public class RevenueActivityController {
     private final RevenueActivityService revenueActivityService;
 
     @GetMapping
-    public ResponseEntity<List<RevenueActivityDto>> getRevenueActivity(@RequestParam(defaultValue = "NEWEST") SortType sort) {
-        return ResponseEntity.ok(revenueActivityService.getRevenueActivity(SecurityUtils.getCurrentUserId(), sort));
+    public ResponseEntity<List<RevenueActivityDto>> getRevenueActivity(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(revenueActivityService.getRevenueActivity(SecurityUtils.getCurrentUserId(), sort, page));
     }
 }

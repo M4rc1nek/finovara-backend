@@ -6,6 +6,7 @@ import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueRespon
 import com.finovara.financeservice.sharedaccount.revenue.service.SharedRevenueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,8 +29,8 @@ public class SharedRevenueController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SharedRevenueDto>> getSharedRevenue() {
-        return ResponseEntity.ok(sharedRevenueService.getRevenue(SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<List<SharedRevenueDto>> getSharedRevenue(@RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(sharedRevenueService.getRevenue(SecurityUtils.getCurrentUserId(), page));
     }
 
     @DeleteMapping("/{revenueId}")

@@ -33,6 +33,9 @@ public class Limit {
     @Column(nullable = false)
     private Boolean isActive;
 
+    @Version
+    private Long version;
+
     @Column(nullable = false)
     private Long userId;
 

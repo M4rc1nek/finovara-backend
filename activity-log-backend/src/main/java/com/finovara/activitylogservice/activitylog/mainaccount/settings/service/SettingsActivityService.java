@@ -5,13 +5,12 @@ import com.finovara.activitylogservice.activitylog.mainaccount.settings.dto.Sett
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.mapper.SettingsActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.model.SettingsActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.repository.SettingsActivityRepository;
-import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -42,9 +41,9 @@ public class SettingsActivityService extends AccountActivityCore<SettingsActivit
         settingsActivityRepository.save(settingsActivity);
     }
 
-    @Cacheable(value = "settingsActivity", key = "#userId + ':' + #sort")
-    public List<SettingsActivityDto> getSettingsActivities(Long userId, SortType sort) {
-        return getActivities(userId, sort, pageSize);
+    @Cacheable(value = "settingsActivity", key = "#userId + ':' + #sort + ':' + #page")
+    public List<SettingsActivityDto> getSettingsActivities(Long userId, SortType sort, int page) {
+        return getActivities(userId, sort, page, pageSize);
     }
 
     @Override
@@ -60,7 +59,8 @@ public class SettingsActivityService extends AccountActivityCore<SettingsActivit
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        settingsActivityRepository.deleteByUserId(userId);
+        List<SettingsActivity> activities = settingsActivityRepository.findAllByUserId(userId);
+        settingsActivityRepository.deleteAll(activities);
         log.info("Deleted settings activity for userId={}", userId);
     }
 }

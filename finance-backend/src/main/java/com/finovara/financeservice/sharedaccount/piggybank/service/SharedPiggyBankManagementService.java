@@ -11,11 +11,13 @@ import com.finovara.financeservice.sharedaccount.piggybank.dto.SharedPiggyBankDt
 import com.finovara.financeservice.sharedaccount.piggybank.mapper.SharedPiggyBankMapper;
 import com.finovara.financeservice.sharedaccount.piggybank.model.SharedPiggyBank;
 import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
+import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.sharedaccount.piggybank.SharedPiggyBankManager;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCalculator;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,103 +25,98 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SharedPiggyBankManagementService {
 
-    private static final int MAX_PIGGY_BANKS = 5;
+    @Value("${piggy-bank.max-piggy-banks}")
+    int maxPiggyBanks;
 
     private final SharedPiggyBankRepository sharedPiggyBankRepository;
     private final SharedPiggyBankManager sharedPiggyBankManager;
     private final SharedPiggyBankMapper sharedPiggyBankMapper;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
+    private final SharedWalletService sharedWalletService;
     private final OutboxService outboxService;
 
     @Transactional
-    public Long addPiggyBank(SharedPiggyBankDto sharedPiggyBankDto, Long userId) {
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
+    public Long addPiggyBank(SharedPiggyBankDto dto, Long userId) {
+        SharedAccountParticipantsResponse participants = sharedAccountParticipantsService.getParticipants(userId);
 
-        long currentPiggyBanks = sharedPiggyBankRepository.countPiggyBanksByUserId(userId);
+        sharedWalletService.lockWalletForUpdate(userId);
 
-        if (currentPiggyBanks >= MAX_PIGGY_BANKS) {
-            throw new InvalidInputException("You have reached the maximum number of piggy banks: " + MAX_PIGGY_BANKS);
+        List<String> existingNames = sharedPiggyBankRepository.findLowerCaseNamesByUserId(userId);
+        if (existingNames.size() >= maxPiggyBanks) {
+            throw new InvalidInputException("You have reached the maximum number of piggy banks: " + maxPiggyBanks);
         }
-
-        if (sharedPiggyBankRepository.existsByNameIgnoreCase(userId, sharedPiggyBankDto.name())) {
+        if (existingNames.contains(dto.name().toLowerCase(Locale.ROOT))) {
             throw new EntityAlreadyExistsException("This piggy bank name already exists");
         }
 
-        PiggyBankValidator.validateSharedPiggyBankGoalAmount(sharedPiggyBankDto);
+        PiggyBankValidator.validateSharedPiggyBankGoalAmount(dto);
 
-        SharedPiggyBank sharedPiggyBank = SharedPiggyBank.builder()
-                .name(sharedPiggyBankDto.name())
+        SharedPiggyBank saved = sharedPiggyBankRepository.save(SharedPiggyBank.builder()
+                .name(dto.name())
                 .amount(BigDecimal.ZERO)
                 .createdAt(LocalDate.now())
-                .goalAmount(sharedPiggyBankDto.goalAmount())
-                .goalType(sharedPiggyBankDto.goalType())
-                .ownerId(sharedAccountParticipantsResponse.ownerId())
-                .memberId(sharedAccountParticipantsResponse.memberId())
-                .build();
+                .goalAmount(dto.goalAmount())
+                .goalType(dto.goalType())
+                .ownerId(participants.ownerId())
+                .memberId(participants.memberId())
+                .build());
 
-        SharedPiggyBank saved = sharedPiggyBankRepository.save(sharedPiggyBank);
+        logActivity(participants, userId, saved.getId(), SharedAccountActivityLogType.PIGGY_BANK_CREATED);
 
-        outboxService.save("SharedAccountPiggyBank", saved.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.PIGGY_BANK_CREATED, LocalDateTime.now()));
-
-        log.info("Added a new Piggy Bank called {}, with a goal amount of {}", sharedPiggyBankDto.name(), sharedPiggyBankDto.goalAmount());
+        log.info("Added a new Piggy Bank called {}, with a goal amount of {}", dto.name(), dto.goalAmount());
         return saved.getId();
     }
 
     @Transactional
-    public Long editPiggyBank(Long userId, SharedPiggyBankDto sharedPiggyBankDto, Long piggyBankId) {
-        SharedPiggyBank sharedPiggyBank = sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(piggyBankId, userId);
+    public Long editPiggyBank(Long userId, SharedPiggyBankDto dto, Long piggyBankId) {
+        SharedPiggyBank piggyBank = sharedPiggyBankManager.getSharedPiggyBankForUpdateByIdAndUserId(piggyBankId, userId);
 
-        if (sharedPiggyBankRepository.existsByNameIgnoreCase(userId, sharedPiggyBankDto.name())
-                && !sharedPiggyBank.getName().equalsIgnoreCase(sharedPiggyBankDto.name())) {
+        if (sharedPiggyBankRepository.existsByNameIgnoreCaseExcludingId(userId, dto.name(), piggyBankId)) {
             throw new EntityAlreadyExistsException("This piggy bank name already exists");
         }
 
-        PiggyBankValidator.validateSharedPiggyBankGoalAmount(sharedPiggyBankDto);
+        PiggyBankValidator.validateSharedPiggyBankGoalAmount(dto);
 
-        sharedPiggyBank.setName(sharedPiggyBankDto.name());
-        sharedPiggyBank.setGoalAmount(sharedPiggyBankDto.goalAmount());
-        sharedPiggyBank.setGoalType(sharedPiggyBankDto.goalType());
+        piggyBank.setName(dto.name());
+        piggyBank.setGoalAmount(dto.goalAmount());
+        piggyBank.setGoalType(dto.goalType());
 
-        SharedPiggyBank saved = sharedPiggyBankRepository.save(sharedPiggyBank);
+        logActivity(sharedAccountParticipantsService.getParticipants(userId), userId, piggyBankId, SharedAccountActivityLogType.PIGGY_BANK_EDITED);
 
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
-        outboxService.save("SharedAccountPiggyBank", saved.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.PIGGY_BANK_EDITED, LocalDateTime.now()));
-
-        log.info("Edited Piggy Bank. New name: {}, new goal amount: {}", sharedPiggyBankDto.name(), sharedPiggyBankDto.goalAmount());
-
-        return saved.getId();
+        log.info("Edited Piggy Bank. New name: {}, new goal amount: {}", dto.name(), dto.goalAmount());
+        return piggyBankId;
     }
 
+    @Transactional(readOnly = true)
     public List<SharedPiggyBankDto> getAllPiggyBanks(Long userId) {
-        List<SharedPiggyBank> sharedPiggyBanks = sharedPiggyBankRepository.findAllByUserId(userId);
-
-        return sharedPiggyBanks.stream()
-                .map(sharedPiggyBank -> sharedPiggyBankMapper.mapToPiggyBankDto(sharedPiggyBank, PiggyBankCalculator.calculateSharedPiggyBankProgress(sharedPiggyBank)))
+        return sharedPiggyBankRepository.findAllByUserId(userId).stream()
+                .map(pb -> sharedPiggyBankMapper.mapToPiggyBankDto(pb, PiggyBankCalculator.calculateSharedPiggyBankProgress(pb)))
                 .toList();
     }
 
     @Transactional
     public void deletePiggyBank(Long userId, Long piggyBankId) {
-        SharedPiggyBank sharedPiggyBank = sharedPiggyBankManager.getSharedPiggyBankByIdAndUserId(piggyBankId, userId);
+        SharedPiggyBank piggyBank = sharedPiggyBankManager.getSharedPiggyBankForUpdateByIdAndUserId(piggyBankId, userId);
 
-        if (sharedPiggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
+        if (piggyBank.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             throw new InvalidInputException("Cannot delete piggy bank with balance. Withdraw funds first.");
         }
 
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
-        sharedPiggyBankRepository.delete(sharedPiggyBank);
-
-        outboxService.save("SharedAccountPiggyBank", piggyBankId.toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, piggyBankId, SharedAccountActivityLogType.PIGGY_BANK_DELETED, LocalDateTime.now()));
+        sharedPiggyBankRepository.delete(piggyBank);
+        logActivity(sharedAccountParticipantsService.getParticipants(userId), userId, piggyBankId, SharedAccountActivityLogType.PIGGY_BANK_DELETED);
 
         log.info("Deleted sharedPiggyBank id={} for userId={}", piggyBankId, userId);
+    }
+
+    private void logActivity(SharedAccountParticipantsResponse participants, Long userId, Long piggyBankId, SharedAccountActivityLogType type) {
+        outboxService.save("SharedAccountPiggyBank", piggyBankId.toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(participants.ownerId(), participants.memberId(), userId, piggyBankId, type, LocalDateTime.now()));
     }
 }

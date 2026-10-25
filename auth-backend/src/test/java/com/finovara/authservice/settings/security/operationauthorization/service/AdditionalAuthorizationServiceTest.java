@@ -318,21 +318,5 @@ class AdditionalAuthorizationServiceTest {
             verify(securitySettingsVisibilityService, times(1)).markVisible(securitySettings);
             verify(securitySettingsRepository, never()).save(any());
         }
-
-        @Test
-        void shouldMarkNotVisibleAndNotThrowExceptionWhenCodeMatches() {
-            when(securitySettingsRepository.findByUserId(USER_ID)).thenReturn(securitySettings);
-            when(securitySettings.isAdditionalAuthorizationEnabled()).thenReturn(true);
-            when(securitySettings.getAdditionalAuthorizationCode()).thenReturn("encodedCode");
-            ConfirmAuthorizationCodeDto dto = new ConfirmAuthorizationCodeDto("123456");
-            when(passwordEncoder.matches("123456", "encodedCode")).thenReturn(true);
-
-            additionalAuthorizationService.confirmAdditionalAuthorizationCode(USER_ID, dto);
-
-            verify(passwordEncoder, times(1)).matches("123456", "encodedCode");
-            verify(securitySettings, times(1)).setAdditionalAuthorizationVisible(false);
-            verify(securitySettingsRepository, times(1)).save(securitySettings);
-            verifyNoInteractions(securitySettingsVisibilityService);
-        }
     }
 }

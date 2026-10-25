@@ -1,5 +1,6 @@
 package com.finovara.financeservice.settings.factory;
 
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.model.RecurringType;
 import com.finovara.financeservice.settings.finances.expense.model.ExpenseSettings;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -32,8 +34,11 @@ public class FinanceSettingsFactory {
     @Transactional
     public void deleteSettingsIfExist(Long userId) {
         if (recurringSettingsExist(userId) && expenseSettingsRepository.existsByUserId(userId)) {
-            recurringSettingsRepository.deleteAllByUserId(userId);
-            expenseSettingsRepository.deleteByUserId(userId);
+            ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId)
+                    .orElseThrow(()-> new RequestedEntityNotFoundException("Expense settings not found for userId = " + userId));
+           List<RecurringSettings> recurringSettings = recurringSettingsRepository.findAllByUserId(userId);
+            recurringSettingsRepository.deleteAll(recurringSettings);
+            expenseSettingsRepository.delete(expenseSettings);
         }
     }
 

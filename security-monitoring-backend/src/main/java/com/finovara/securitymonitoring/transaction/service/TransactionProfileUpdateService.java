@@ -1,12 +1,13 @@
 package com.finovara.securitymonitoring.transaction.service;
 
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
-import com.finovara.contracts.user.datadeletable.UserDataDeletable;
-import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.model.ExpenseActivityType;
 import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.mainaccount.activity.model.RevenueActivityType;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.securitymonitoring.transaction.model.TransactionProfile;
 import com.finovara.securitymonitoring.transaction.repository.TransactionProfileRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class TransactionProfileUpdateService implements UserDataDeletable {
             return;
         }
 
-        TransactionProfile profile = getProfileOrThrow(event.userId());
+        TransactionProfile profile = getProfileForUpdateOrThrow(event.userId());
 
         BigDecimal newAverage = calculateNewAverage(profile.getAverageExpenseAmount(), profile.getExpenseCount(), event.amount());
 
@@ -51,7 +52,11 @@ public class TransactionProfileUpdateService implements UserDataDeletable {
 
     @Transactional
     public void handleRevenueEvent(RevenueActivityEvent event) {
-        TransactionProfile profile = getProfileOrThrow(event.userId());
+        if (event.type() != RevenueActivityType.ADDED_REVENUE) {
+            return;
+        }
+
+        TransactionProfile profile = getProfileForUpdateOrThrow(event.userId());
 
         BigDecimal newAverage = calculateNewAverage(profile.getAverageRevenueAmount(), profile.getRevenueCount(), event.amount());
 
@@ -65,14 +70,13 @@ public class TransactionProfileUpdateService implements UserDataDeletable {
         transactionProfileRepository.save(profile);
     }
 
-
     @Transactional
     public void handlePiggyBankEvent(PiggyBankActivityEvent event) {
         if (event.type() != PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY) {
             return;
         }
 
-        TransactionProfile profile = getProfileOrThrow(event.userId());
+        TransactionProfile profile = getProfileForUpdateOrThrow(event.userId());
 
         profile.setLastPiggyBankDepositAmount(event.amountPaid());
         profile.setLastPiggyBankDepositAt(event.occurredAt());
@@ -86,7 +90,6 @@ public class TransactionProfileUpdateService implements UserDataDeletable {
         transactionProfileRepository.save(profile);
     }
 
-
     private BigDecimal calculateNewAverage(BigDecimal currentAverage, Long currentCount, BigDecimal newValue) {
         if (currentAverage == null || currentCount == 0) {
             return newValue;
@@ -96,15 +99,15 @@ public class TransactionProfileUpdateService implements UserDataDeletable {
         return currentTotal.add(newValue).divide(totalCount, 2, RoundingMode.HALF_UP);
     }
 
-    private TransactionProfile getProfileOrThrow(Long userId) {
-        return transactionProfileRepository.findByUserId(userId).orElseThrow(()
-                -> new RequestedEntityNotFoundException("Transaction profile not found for userId=" + userId));
+    private TransactionProfile getProfileForUpdateOrThrow(Long userId) {
+        return transactionProfileRepository.findByUserIdForUpdate(userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Transaction profile not found for userId=" + userId));
     }
 
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        transactionProfileRepository.deleteByUserId(userId);
+        transactionProfileRepository.delete(getProfileForUpdateOrThrow(userId));
         log.info("Deleted transaction profile for userId={}", userId);
     }
 }

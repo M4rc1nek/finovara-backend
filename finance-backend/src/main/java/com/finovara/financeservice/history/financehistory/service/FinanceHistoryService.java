@@ -24,8 +24,8 @@ public class FinanceHistoryService {
     private final RevenueMapper revenueMapper;
 
     @Cacheable(value = "historyByCategory:revenue", key = "#userId + ':' + #periodType + ':' + #category")
-    public List<RevenueDto> getRevenueByCategory(Long userId, PeriodType periodType, RevenueCategory category) {
-        List<Revenue> revenues = financialPeriodService.getRevenuesInPeriodByCategory(userId, periodType, category);
+    public List<RevenueDto> getRevenueByCategory(Long userId, PeriodType periodType, RevenueCategory category, int page) {
+        List<Revenue> revenues = financialPeriodService.getRevenuesInPeriodByCategory(userId, periodType, category, page);
 
         return revenues.stream()
                 .map(revenueMapper::mapRevenueToDto)
@@ -33,8 +33,8 @@ public class FinanceHistoryService {
     }
 
     @Cacheable(value = "historyByCategory:expense", key = "#userId + ':' + #periodType + ':' + #category")
-    public List<ExpenseDto> getExpenseByCategory(Long userId, PeriodType periodType, ExpenseCategory category) {
-        List<Expense> expenses = financialPeriodService.getExpensesInPeriodByCategory(userId, periodType, category);
+    public List<ExpenseDto> getExpenseByCategory(Long userId, PeriodType periodType, ExpenseCategory category, int page) {
+        List<Expense> expenses = financialPeriodService.getExpensesInPeriodByCategory(userId, periodType, category, page);
 
         return expenses.stream()
                 .map(expenseMapper::mapExpenseToDto)

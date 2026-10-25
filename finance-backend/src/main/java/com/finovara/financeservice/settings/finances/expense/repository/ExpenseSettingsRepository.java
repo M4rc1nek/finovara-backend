@@ -13,7 +13,5 @@ public interface ExpenseSettingsRepository extends JpaRepository<ExpenseSettings
     @Query("SELECT es FROM ExpenseSettings es WHERE es.userId = :userId")
     Optional<ExpenseSettings> findByUserId(Long userId);
 
-    void deleteByUserId(Long userId);
-
     boolean existsByUserId(Long userId);
 }

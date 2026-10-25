@@ -4,14 +4,16 @@ import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundExceptio
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
 import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
-import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.note.dto.SharedAccountNoteDto;
 import com.finovara.financeservice.sharedaccount.note.dto.SharedAccountNoteResponse;
 import com.finovara.financeservice.sharedaccount.note.model.SharedAccountNote;
 import com.finovara.financeservice.sharedaccount.note.repository.SharedAccountNoteRepository;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
+import com.finovara.financeservice.util.sharedaccount.SharedUsernameResolver;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,55 +28,49 @@ public class SharedAccountNoteService {
 
     private final SharedAccountNoteRepository sharedAccountNoteRepository;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
-    private final AuthBackendClient authBackendClient;
+    private final SharedUsernameResolver usernameResolver;
     private final OutboxService outboxService;
 
+    @Value("${finance.pagination.page-size}")
+    private int pageSize;
+
     @Transactional
-    public SharedAccountNoteResponse createNote(Long userId, SharedAccountNoteDto sharedAccountNoteDto) {
+    public SharedAccountNoteResponse createNote(Long userId, SharedAccountNoteDto dto) {
+        SharedAccountParticipantsResponse participants = sharedAccountParticipantsService.getParticipants(userId);
+        String createdByUsername = usernameResolver.resolve(List.of(userId)).get(userId);
 
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
-        String createdByUsername = authBackendClient.getUsername(userId);
-
-        SharedAccountNote sharedAccountNote = SharedAccountNote.builder()
-                .topic(sharedAccountNoteDto.topic())
-                .description(sharedAccountNoteDto.description())
+        SharedAccountNote saved = sharedAccountNoteRepository.save(SharedAccountNote.builder()
+                .topic(dto.topic())
+                .description(dto.description())
                 .createdAt(LocalDateTime.now())
-                .ownerId(sharedAccountParticipantsResponse.ownerId())
-                .memberId(sharedAccountParticipantsResponse.memberId())
+                .ownerId(participants.ownerId())
+                .memberId(participants.memberId())
                 .createdByUserId(userId)
-                .build();
+                .build());
 
-        SharedAccountNote saved = sharedAccountNoteRepository.save(sharedAccountNote);
-
-        outboxService.save("SharedAccountNote", saved.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.NOTE_CREATED, LocalDateTime.now()));
+        logActivity(participants, userId, saved.getId(), SharedAccountActivityLogType.NOTE_CREATED);
 
         return new SharedAccountNoteResponse(saved.getId(), userId, createdByUsername);
     }
 
     @Transactional
-    public Long editNote(Long userId, Long noteId, SharedAccountNoteDto sharedAccountNoteDto) {
-        SharedAccountNote existingNote = getNoteByIdOrThrow(userId, noteId);
+    public Long editNote(Long userId, Long noteId, SharedAccountNoteDto dto) {
+        SharedAccountNote existing = getNoteByIdOrThrow(userId, noteId);
 
-        existingNote.setTopic(sharedAccountNoteDto.topic());
-        existingNote.setDescription(sharedAccountNoteDto.description());
+        existing.setTopic(dto.topic());
+        existing.setDescription(dto.description());
 
-        SharedAccountNote saved = sharedAccountNoteRepository.save(existingNote);
-
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
-        outboxService.save("SharedAccountNote", saved.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.NOTE_EDITED, LocalDateTime.now()));
+        logActivity(sharedAccountParticipantsService.getParticipants(userId), userId, noteId, SharedAccountActivityLogType.NOTE_EDITED);
 
         return noteId;
     }
 
-    public List<SharedAccountNoteDto> getNotes(Long userId) {
-        List<SharedAccountNote> notes = sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(userId);
+    @Transactional(readOnly = true)
+    public List<SharedAccountNoteDto> getNotes(Long userId, int page) {
+        List<SharedAccountNote> notes = sharedAccountNoteRepository.findAllByOwnerIdOrMemberId(userId, PageRequest.of(page, pageSize));
 
-        Map<Long, String> usernameById = notes.stream()
-                .map(SharedAccountNote::getCreatedByUserId)
-                .distinct()
-                .collect(Collectors.toMap(id -> id, authBackendClient::getUsername));
+        Map<Long, String> usernameById = usernameResolver.resolve(
+                notes.stream().map(SharedAccountNote::getCreatedByUserId).collect(Collectors.toSet()));
 
         return notes.stream()
                 .map(note -> new SharedAccountNoteDto(
@@ -83,20 +79,21 @@ public class SharedAccountNoteService {
                         note.getDescription(),
                         note.getCreatedAt(),
                         note.getCreatedByUserId(),
-                        usernameById.get(note.getCreatedByUserId())
-                ))
+                        usernameById.get(note.getCreatedByUserId())))
                 .toList();
     }
 
     @Transactional
     public void deleteNote(Long userId, Long noteId) {
-        SharedAccountNote sharedAccountNote = getNoteByIdOrThrow(userId, noteId);
+        SharedAccountNote note = getNoteByIdOrThrow(userId, noteId);
 
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
-        sharedAccountNoteRepository.delete(sharedAccountNote);
+        sharedAccountNoteRepository.delete(note);
+        logActivity(sharedAccountParticipantsService.getParticipants(userId), userId, noteId, SharedAccountActivityLogType.NOTE_DELETED);
+    }
 
-        outboxService.save("SharedAccountNote", sharedAccountNote.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, sharedAccountNote.getId(), SharedAccountActivityLogType.NOTE_DELETED, LocalDateTime.now()));
+    private void logActivity(SharedAccountParticipantsResponse participants, Long userId, Long noteId, SharedAccountActivityLogType type) {
+        outboxService.save("SharedAccountNote", noteId.toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(participants.ownerId(), participants.memberId(), userId, noteId, type, LocalDateTime.now()));
     }
 
     private SharedAccountNote getNoteByIdOrThrow(Long userId, Long noteId) {

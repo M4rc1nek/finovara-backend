@@ -30,7 +30,7 @@ public class NotificationEmailSettingsService {
                     .walletLowBalanceThreshold(BigDecimal.ZERO)
                     .build());
             log.info("Notification settings created for userId={}", userId);
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException exception) {
             log.debug("Notification settings already exist for userId={}, skipping", userId);
         }
     }

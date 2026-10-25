@@ -3,13 +3,18 @@ package com.finovara.financeservice.wallet.reservation.service;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
+import com.finovara.financeservice.util.wallet.WalletManagerService;
+import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.reservation.dto.FundReservationDto;
 import com.finovara.financeservice.wallet.reservation.dto.UnreserveReservationDto;
+import com.finovara.financeservice.wallet.reservation.model.FundReservation;
 import com.finovara.financeservice.wallet.reservation.repository.FundReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +22,7 @@ public class FundReservationService implements UserDataDeletable {
 
     private final FundReservationCommandService commandService;
     private final FundReservationRepository fundReservationRepository;
+    private final WalletManagerService walletManagerService;
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
@@ -41,7 +47,9 @@ public class FundReservationService implements UserDataDeletable {
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        fundReservationRepository.deleteAllByUserId(userId);
+        Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
+        List<FundReservation> reservations = fundReservationRepository.findAllByWalletId(wallet.getId());
+        fundReservationRepository.deleteAll(reservations);
     }
 
     private void confirmAuthorization(Long userId, String rawCode) {

@@ -1,7 +1,7 @@
 package com.finovara.securitymonitoring.login.service;
 
-import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
 import com.finovara.securitymonitoring.clientdata.model.ClientData;
 import com.finovara.securitymonitoring.login.model.LoginProfile;
@@ -10,459 +10,405 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LoginProfileUpdateServiceTest {
 
+    private static final Long USER_ID = 1L;
+    private static final String IP_ADDRESS = "192.168.0.1";
+    private static final String OTHER_IP_ADDRESS = "10.0.0.5";
+    private static final String BROWSER = "Chrome";
+    private static final String OTHER_BROWSER = "Firefox";
+    private static final String LOCATION = "Warsaw";
+    private static final LocalDateTime OCCURRED_AT = LocalDateTime.of(2025, 1, 15, 10, 30);
+
     @Mock
     private LoginProfileRepository loginProfileRepository;
 
+    @Mock
+    private LoginActivityEvent event;
+
     @InjectMocks
-    private LoginProfileUpdateService loginProfileUpdateService;
+    private LoginProfileUpdateService service;
+
+    private LoginProfile profile;
+
+    @BeforeEach
+    void setUpProfile() {
+        profile = new LoginProfile();
+        profile.setClientData(new ArrayList<>());
+        profile.setLoginCount(0L);
+    }
+
+    private ClientData createClient(String ip, String browser) {
+        return ClientData.builder()
+                .knownIpAddress(ip)
+                .knownBrowser(browser)
+                .build();
+    }
 
     @Nested
     class HandleLoginEvent {
 
-        private LoginProfile profile;
-        private LoginActivityEvent event;
-        private LocalDateTime occurredAt;
+        @Nested
+        class IgnoredEvents {
 
-        @BeforeEach
-        void setUp() {
-            occurredAt = LocalDateTime.of(2026, 1, 15, 10, 30);
+            @ParameterizedTest
+            @EnumSource(value = LoginActivityStatus.class, mode = EXCLUDE, names = "SUCCESSFUL")
+            void shouldIgnoreEventWhenStatusIsNotSuccessful(LoginActivityStatus status) {
+                when(event.status()).thenReturn(status);
 
-            profile = LoginProfile.builder()
-                    .id(1L)
-                    .userId(100L)
-                    .loginCount(5L)
-                    .clientData(new ArrayList<>())
-                    .createdAt(LocalDateTime.of(2026, 1, 1, 10, 0))
-                    .updatedAt(LocalDateTime.of(2026, 1, 10, 10, 0))
-                    .build();
+                service.handleLoginEvent(event);
 
-            event = new LoginActivityEvent(
-                    100L,
-                    LoginActivityStatus.SUCCESSFUL,
-                    "Chrome",
-                    "192.168.1.10",
-                    "Warsaw",
-                    occurredAt
-            );
+                verifyNoInteractions(loginProfileRepository);
+            }
         }
 
-        @Test
-        void shouldUpdateLoginProfileWhenSuccessfulLoginEventIsReceived() {
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
+        @Nested
+        class ProfileNotFound {
 
-            loginProfileUpdateService.handleLoginEvent(event);
+            @BeforeEach
+            void setUp() {
+                when(event.status()).thenReturn(LoginActivityStatus.SUCCESSFUL);
+                when(event.userId()).thenReturn(USER_ID);
+                when(loginProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.empty());
+            }
 
-            assertEquals("192.168.1.10", profile.getLastLoginIp());
-            assertEquals("Warsaw", profile.getLastLoginLocation());
-            assertEquals("Chrome", profile.getLastLoginBrowser());
-            assertEquals(occurredAt, profile.getLastLoginAt());
-            assertEquals(6L, profile.getLoginCount());
-            assertNotNull(profile.getUpdatedAt());
+            @Test
+            void shouldThrowExceptionWhenProfileNotFound() {
+                assertThrows(RequestedEntityNotFoundException.class, () -> service.handleLoginEvent(event));
+            }
 
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository).save(profile);
-            verifyNoMoreInteractions(loginProfileRepository);
+            @Test
+            void shouldThrowExceptionWithUserIdInMessageWhenProfileNotFound() {
+                RequestedEntityNotFoundException exception = assertThrows(
+                        RequestedEntityNotFoundException.class, () -> service.handleLoginEvent(event));
+
+                assertEquals("Login profile not found for userId=" + USER_ID, exception.getMessage());
+            }
+
+            @Test
+            void shouldNotSaveProfileWhenProfileNotFound() {
+                assertThrows(RequestedEntityNotFoundException.class, () -> service.handleLoginEvent(event));
+
+                verify(loginProfileRepository, never()).save(any(LoginProfile.class));
+            }
         }
 
-        @Test
-        void shouldAddNewClientDataWhenLoginComesFromUnknownClient() {
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
+        @Nested
+        class ProfileFound {
 
-            loginProfileUpdateService.handleLoginEvent(event);
+            @BeforeEach
+            void setUp() {
+                when(event.status()).thenReturn(LoginActivityStatus.SUCCESSFUL);
+                when(event.userId()).thenReturn(USER_ID);
+                when(event.ipAddress()).thenReturn(IP_ADDRESS);
+                when(event.browser()).thenReturn(BROWSER);
+                when(event.location()).thenReturn(LOCATION);
+                when(event.occurredAt()).thenReturn(OCCURRED_AT);
+                when(loginProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
+            }
 
-            assertEquals(1, profile.getClientData().size());
+            @Test
+            void shouldAddNewClientWhenClientDataIsEmpty() {
+                service.handleLoginEvent(event);
 
-            ClientData clientData = profile.getClientData().get(0);
+                assertEquals(1, profile.getClientData().size());
+            }
 
-            assertEquals("192.168.1.10", clientData.getKnownIpAddress());
-            assertEquals("Warsaw", clientData.getKnownLocation());
-            assertEquals("Chrome", clientData.getKnownBrowser());
-            assertEquals(profile, clientData.getLoginProfile());
+            @Test
+            void shouldAddNewClientWithEventDataWhenClientIsUnknown() {
+                service.handleLoginEvent(event);
 
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository).save(profile);
-            verifyNoMoreInteractions(loginProfileRepository);
+                ClientData addedClient = profile.getClientData().get(0);
+                assertEquals(IP_ADDRESS, addedClient.getKnownIpAddress());
+                assertEquals(LOCATION, addedClient.getKnownLocation());
+                assertEquals(BROWSER, addedClient.getKnownBrowser());
+                assertSame(profile, addedClient.getLoginProfile());
+            }
+
+            @Test
+            void shouldAddNewClientWhenIpDiffersAndBrowserIsSame() {
+                profile.getClientData().add(createClient(OTHER_IP_ADDRESS, BROWSER));
+
+                service.handleLoginEvent(event);
+
+                assertEquals(2, profile.getClientData().size());
+            }
+
+            @Test
+            void shouldAddNewClientWhenBrowserDiffersAndIpIsSame() {
+                profile.getClientData().add(createClient(IP_ADDRESS, OTHER_BROWSER));
+
+                service.handleLoginEvent(event);
+
+                assertEquals(2, profile.getClientData().size());
+            }
+
+            @Test
+            void shouldAddNewClientWhenBothIpAndBrowserDiffer() {
+                profile.getClientData().add(createClient(OTHER_IP_ADDRESS, OTHER_BROWSER));
+
+                service.handleLoginEvent(event);
+
+                assertEquals(2, profile.getClientData().size());
+            }
+
+            @Test
+            void shouldKeepExistingClientsWhenNewClientAdded() {
+                ClientData existingClient = createClient(OTHER_IP_ADDRESS, OTHER_BROWSER);
+                profile.getClientData().add(existingClient);
+
+                service.handleLoginEvent(event);
+
+                assertSame(existingClient, profile.getClientData().get(0));
+            }
+
+            @Test
+            void shouldNotAddClientWhenClientIsKnown() {
+                profile.getClientData().add(createClient(IP_ADDRESS, BROWSER));
+
+                service.handleLoginEvent(event);
+
+                assertEquals(1, profile.getClientData().size());
+            }
+
+            @Test
+            void shouldNotAddClientWhenKnownClientIsAmongMany() {
+                profile.getClientData().add(createClient(OTHER_IP_ADDRESS, OTHER_BROWSER));
+                profile.getClientData().add(createClient(IP_ADDRESS, BROWSER));
+                profile.getClientData().add(createClient(OTHER_IP_ADDRESS, BROWSER));
+
+                service.handleLoginEvent(event);
+
+                assertEquals(3, profile.getClientData().size());
+            }
+
+            @Test
+            void shouldUpdateLastLoginFieldsWhenClientIsUnknown() {
+                service.handleLoginEvent(event);
+
+                assertEquals(IP_ADDRESS, profile.getLastLoginIp());
+                assertEquals(LOCATION, profile.getLastLoginLocation());
+                assertEquals(BROWSER, profile.getLastLoginBrowser());
+                assertEquals(OCCURRED_AT, profile.getLastLoginAt());
+            }
+
+            @Test
+            void shouldUpdateLastLoginFieldsWhenClientIsKnown() {
+                profile.getClientData().add(createClient(IP_ADDRESS, BROWSER));
+
+                service.handleLoginEvent(event);
+
+                assertEquals(IP_ADDRESS, profile.getLastLoginIp());
+                assertEquals(LOCATION, profile.getLastLoginLocation());
+                assertEquals(BROWSER, profile.getLastLoginBrowser());
+                assertEquals(OCCURRED_AT, profile.getLastLoginAt());
+            }
+
+            @Test
+            void shouldOverwritePreviousLastLoginFieldsWhenProfileHadPreviousLogin() {
+                profile.setLastLoginIp(OTHER_IP_ADDRESS);
+                profile.setLastLoginBrowser(OTHER_BROWSER);
+                profile.setLastLoginLocation("Krakow");
+                profile.setLastLoginAt(OCCURRED_AT.minusDays(1));
+
+                service.handleLoginEvent(event);
+
+                assertEquals(IP_ADDRESS, profile.getLastLoginIp());
+                assertEquals(BROWSER, profile.getLastLoginBrowser());
+                assertEquals(LOCATION, profile.getLastLoginLocation());
+                assertEquals(OCCURRED_AT, profile.getLastLoginAt());
+            }
+
+            @Test
+            void shouldIncrementLoginCountWhenCountIsZero() {
+                service.handleLoginEvent(event);
+
+                assertEquals(1L, profile.getLoginCount());
+            }
+
+            @Test
+            void shouldIncrementLoginCountWhenCountIsPositive() {
+                profile.setLoginCount(5L);
+
+                service.handleLoginEvent(event);
+
+                assertEquals(6L, profile.getLoginCount());
+            }
+
+            @Test
+            void shouldIncrementLoginCountWhenClientIsKnown() {
+                profile.getClientData().add(createClient(IP_ADDRESS, BROWSER));
+                profile.setLoginCount(2L);
+
+                service.handleLoginEvent(event);
+
+                assertEquals(3L, profile.getLoginCount());
+            }
+
+            @Test
+            void shouldSetUpdatedAtWhenLoginHandled() {
+                LocalDateTime before = LocalDateTime.now();
+
+                service.handleLoginEvent(event);
+
+                assertNotNull(profile.getUpdatedAt());
+                assertFalse(profile.getUpdatedAt().isBefore(before));
+            }
+
+            @Test
+            void shouldSaveProfileWhenLoginHandled() {
+                service.handleLoginEvent(event);
+
+                verify(loginProfileRepository).findByUserIdForUpdate(USER_ID);
+                verify(loginProfileRepository).save(profile);
+                verifyNoMoreInteractions(loginProfileRepository);
+            }
+
+            @Test
+            void shouldSaveProfileWhenClientIsKnown() {
+                profile.getClientData().add(createClient(IP_ADDRESS, BROWSER));
+
+                service.handleLoginEvent(event);
+
+                verify(loginProfileRepository).save(profile);
+            }
         }
 
-        @Test
-        void shouldNotAddClientDataWhenLoginComesFromKnownClient() {
-            ClientData knownClient = ClientData.builder()
-                    .knownIpAddress("192.168.1.10")
-                    .knownBrowser("Chrome")
-                    .knownLocation("Warsaw")
-                    .loginProfile(profile)
-                    .build();
-
-            profile.setClientData(new ArrayList<>(List.of(knownClient)));
-
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-
-            loginProfileUpdateService.handleLoginEvent(event);
-
-            assertEquals(1, profile.getClientData().size());
-            assertEquals(knownClient, profile.getClientData().get(0));
-            assertEquals(6L, profile.getLoginCount());
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository).save(profile);
-            verifyNoMoreInteractions(loginProfileRepository);
-        }
-
-        @Test
-        void shouldAddNewClientDataWhenIpIsKnownButBrowserIsDifferent() {
-            ClientData knownClient = ClientData.builder()
-                    .knownIpAddress("192.168.1.10")
-                    .knownBrowser("Firefox")
-                    .knownLocation("Warsaw")
-                    .loginProfile(profile)
-                    .build();
-
-            profile.setClientData(new ArrayList<>(List.of(knownClient)));
-
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-
-            loginProfileUpdateService.handleLoginEvent(event);
-
-            assertEquals(2, profile.getClientData().size());
-            assertEquals("Chrome", profile.getClientData().get(1).getKnownBrowser());
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository).save(profile);
-            verifyNoMoreInteractions(loginProfileRepository);
-        }
-
-        @Test
-        void shouldAddNewClientDataWhenBrowserIsKnownButIpIsDifferent() {
-            ClientData knownClient = ClientData.builder()
-                    .knownIpAddress("10.0.0.1")
-                    .knownBrowser("Chrome")
-                    .knownLocation("Warsaw")
-                    .loginProfile(profile)
-                    .build();
-
-            profile.setClientData(new ArrayList<>(List.of(knownClient)));
-
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-
-            loginProfileUpdateService.handleLoginEvent(event);
-
-            assertEquals(2, profile.getClientData().size());
-            assertEquals("192.168.1.10", profile.getClientData().get(1).getKnownIpAddress());
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository).save(profile);
-            verifyNoMoreInteractions(loginProfileRepository);
-        }
-
-        @Test
-        void shouldIncrementLoginCountWhenSuccessfulLoginEventIsReceived() {
-            profile.setLoginCount(0L);
-
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-
-            loginProfileUpdateService.handleLoginEvent(event);
-
-            assertEquals(1L, profile.getLoginCount());
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository).save(profile);
-        }
-
-        @Test
-        void shouldIncrementLoginCountWhenLoginCountIsAlreadyPositive() {
-            profile.setLoginCount(99L);
-
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-
-            loginProfileUpdateService.handleLoginEvent(event);
-
-            assertEquals(100L, profile.getLoginCount());
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository).save(profile);
-        }
-
-        @Test
-        void shouldHandleLoginEventWhenClientDataContainsMultipleClients() {
-            ClientData firstClient = ClientData.builder()
-                    .knownIpAddress("10.0.0.1")
-                    .knownBrowser("Firefox")
-                    .knownLocation("Krakow")
-                    .loginProfile(profile)
-                    .build();
-
-            ClientData secondClient = ClientData.builder()
-                    .knownIpAddress("10.0.0.2")
-                    .knownBrowser("Edge")
-                    .knownLocation("Gdansk")
-                    .loginProfile(profile)
-                    .build();
-
-            profile.setClientData(new ArrayList<>(List.of(firstClient, secondClient)));
-
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-
-            loginProfileUpdateService.handleLoginEvent(event);
-
-            assertEquals(3, profile.getClientData().size());
-            assertEquals("192.168.1.10", profile.getClientData().get(2).getKnownIpAddress());
-            assertEquals("Chrome", profile.getClientData().get(2).getKnownBrowser());
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository).save(profile);
-        }
-
-        @Test
-        void shouldNotUpdateProfileWhenLoginStatusIsNotSuccessful() {
-            LoginActivityEvent unsuccessfulEvent = new LoginActivityEvent(
-                    100L,
-                    null,
-                    "Chrome",
-                    "192.168.1.10",
-                    "Warsaw",
-                    occurredAt
-            );
-
-            loginProfileUpdateService.handleLoginEvent(unsuccessfulEvent);
-
-            verifyNoInteractions(loginProfileRepository);
-        }
-
-        @Test
-        void shouldNotUpdateProfileWhenLoginStatusIsNull() {
-            LoginActivityEvent eventWithNullStatus = new LoginActivityEvent(
-                    100L,
-                    null,
-                    "Chrome",
-                    "192.168.1.10",
-                    "Warsaw",
-                    occurredAt
-            );
-
-            loginProfileUpdateService.handleLoginEvent(eventWithNullStatus);
-
-            verifyNoInteractions(loginProfileRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenLoginProfileDoesNotExist() {
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.empty());
-
-            assertThrows(
-                    RequestedEntityNotFoundException.class,
-                    () -> loginProfileUpdateService.handleLoginEvent(event)
-            );
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository, never()).save(profile);
-            verifyNoMoreInteractions(loginProfileRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryFailsToFindProfile() {
-            when(loginProfileRepository.findByUserId(100L))
-                    .thenThrow(new IllegalStateException());
-
-            assertThrows(
-                    IllegalStateException.class,
-                    () -> loginProfileUpdateService.handleLoginEvent(event)
-            );
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository, never()).save(profile);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryFailsToSaveProfile() {
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-            doThrow(new IllegalStateException())
-                    .when(loginProfileRepository)
-                    .save(profile);
-
-            assertThrows(
-                    IllegalStateException.class,
-                    () -> loginProfileUpdateService.handleLoginEvent(event)
-            );
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository).save(profile);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenLoginCountIsNull() {
-            profile.setLoginCount(null);
-
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-
-            assertThrows(
-                    NullPointerException.class,
-                    () -> loginProfileUpdateService.handleLoginEvent(event)
-            );
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository, never()).save(profile);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenClientDataIsNull() {
-            profile.setClientData(null);
-
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-
-            assertThrows(
-                    NullPointerException.class,
-                    () -> loginProfileUpdateService.handleLoginEvent(event)
-            );
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository, never()).save(profile);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenEventIsNull() {
-            assertThrows(
-                    NullPointerException.class,
-                    () -> loginProfileUpdateService.handleLoginEvent(null)
-            );
-
-            verifyNoInteractions(loginProfileRepository);
-        }
-
-        @Test
-        void shouldHandleNullLocationWhenSuccessfulLoginEventIsReceived() {
-            LoginActivityEvent eventWithNullLocation = new LoginActivityEvent(
-                    100L,
-                    LoginActivityStatus.SUCCESSFUL,
-                    "Chrome",
-                    "192.168.1.10",
-                    null,
-                    occurredAt
-            );
-
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-
-            loginProfileUpdateService.handleLoginEvent(eventWithNullLocation);
-
-            assertEquals(null, profile.getLastLoginLocation());
-            assertEquals(1, profile.getClientData().size());
-            assertEquals(null, profile.getClientData().get(0).getKnownLocation());
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository).save(profile);
-        }
-
-        @Test
-        void shouldHandleNullOccurredAtWhenSuccessfulLoginEventIsReceived() {
-            LoginActivityEvent eventWithNullOccurredAt = new LoginActivityEvent(
-                    100L,
-                    LoginActivityStatus.SUCCESSFUL,
-                    "Chrome",
-                    "192.168.1.10",
-                    "Warsaw",
-                    null
-            );
-
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-
-            loginProfileUpdateService.handleLoginEvent(eventWithNullOccurredAt);
-
-            assertEquals(null, profile.getLastLoginAt());
-            assertEquals(6L, profile.getLoginCount());
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository).save(profile);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenIpAddressIsNullAndKnownClientExists() {
-            ClientData knownClient = ClientData.builder()
-                    .knownIpAddress("192.168.1.10")
-                    .knownBrowser("Chrome")
-                    .knownLocation("Warsaw")
-                    .loginProfile(profile)
-                    .build();
-
-            profile.setClientData(new ArrayList<>(List.of(knownClient)));
-
-            LoginActivityEvent eventWithNullIp = new LoginActivityEvent(
-                    100L,
-                    LoginActivityStatus.SUCCESSFUL,
-                    "Chrome",
-                    null,
-                    "Warsaw",
-                    occurredAt
-            );
-
-            when(loginProfileRepository.findByUserId(100L)).thenReturn(Optional.of(profile));
-
-            assertThrows(
-                    NullPointerException.class,
-                    () -> loginProfileUpdateService.handleLoginEvent(eventWithNullIp)
-            );
-
-            verify(loginProfileRepository).findByUserId(100L);
-            verify(loginProfileRepository, never()).save(profile);
+        @Nested
+        class NullClientValues {
+
+            @BeforeEach
+            void setUp() {
+                when(event.status()).thenReturn(LoginActivityStatus.SUCCESSFUL);
+                when(event.userId()).thenReturn(USER_ID);
+                when(loginProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
+            }
+
+            @Test
+            void shouldAddClientWhenIpIsNullAndClientDataIsEmpty() {
+                when(event.ipAddress()).thenReturn(null);
+                when(event.browser()).thenReturn(BROWSER);
+                when(event.location()).thenReturn(LOCATION);
+                when(event.occurredAt()).thenReturn(OCCURRED_AT);
+
+                service.handleLoginEvent(event);
+
+                assertEquals(1, profile.getClientData().size());
+                assertNull(profile.getClientData().get(0).getKnownIpAddress());
+                assertNull(profile.getLastLoginIp());
+            }
+
+            @Test
+            void shouldAddClientWhenBrowserIsNullAndClientDataIsEmpty() {
+                when(event.ipAddress()).thenReturn(IP_ADDRESS);
+                when(event.browser()).thenReturn(null);
+                when(event.location()).thenReturn(LOCATION);
+                when(event.occurredAt()).thenReturn(OCCURRED_AT);
+
+                service.handleLoginEvent(event);
+
+                assertEquals(1, profile.getClientData().size());
+                assertNull(profile.getClientData().get(0).getKnownBrowser());
+                assertNull(profile.getLastLoginBrowser());
+            }
+
+            @Test
+            void shouldAddClientWhenBrowserIsNullAndIpDiffers() {
+                profile.getClientData().add(createClient(OTHER_IP_ADDRESS, BROWSER));
+                when(event.ipAddress()).thenReturn(IP_ADDRESS);
+                when(event.browser()).thenReturn(null);
+                when(event.location()).thenReturn(LOCATION);
+                when(event.occurredAt()).thenReturn(OCCURRED_AT);
+
+                service.handleLoginEvent(event);
+
+                assertEquals(2, profile.getClientData().size());
+            }
+
+            @Test
+            void shouldThrowExceptionWhenIpIsNullAndClientDataIsNotEmpty() {
+                profile.getClientData().add(createClient(IP_ADDRESS, BROWSER));
+                when(event.ipAddress()).thenReturn(null);
+                when(event.browser()).thenReturn(BROWSER);
+
+                assertThrows(NullPointerException.class, () -> service.handleLoginEvent(event));
+            }
+
+            @Test
+            void shouldThrowExceptionWhenBrowserIsNullAndIpMatchesKnownClient() {
+                profile.getClientData().add(createClient(IP_ADDRESS, BROWSER));
+                when(event.ipAddress()).thenReturn(IP_ADDRESS);
+                when(event.browser()).thenReturn(null);
+
+                assertThrows(NullPointerException.class, () -> service.handleLoginEvent(event));
+            }
+
+            @Test
+            void shouldNotSaveProfileWhenNullPointerExceptionThrown() {
+                profile.getClientData().add(createClient(IP_ADDRESS, BROWSER));
+                when(event.ipAddress()).thenReturn(null);
+                when(event.browser()).thenReturn(BROWSER);
+
+                assertThrows(NullPointerException.class, () -> service.handleLoginEvent(event));
+
+                verify(loginProfileRepository, never()).save(any(LoginProfile.class));
+            }
         }
     }
 
     @Nested
     class DeleteByUserId {
 
-        @BeforeEach
-        void setUp() {
+        @Test
+        void shouldDeleteProfileWhenUserIdProvided() {
+            when(loginProfileRepository.findByUserId(USER_ID)).thenReturn(Optional.of(profile));
+
+            service.deleteByUserId(USER_ID);
+
+            verify(loginProfileRepository).findByUserId(USER_ID);
+            verify(loginProfileRepository).delete(profile);
         }
 
         @Test
-        void shouldDeleteLoginProfileWhenUserIdIsValid() {
-            loginProfileUpdateService.deleteByUserId(100L);
+        void shouldDeleteProfileWhenUserIdIsNull() {
+            when(loginProfileRepository.findByUserId(null)).thenReturn(Optional.of(profile));
 
-            verify(loginProfileRepository).deleteByUserId(100L);
-            verifyNoMoreInteractions(loginProfileRepository);
+            service.deleteByUserId(null);
+
+            verify(loginProfileRepository).findByUserId(null);
+            verify(loginProfileRepository).delete(profile);
         }
 
         @Test
-        void shouldDeleteLoginProfileWhenUserIdIsZero() {
-            loginProfileUpdateService.deleteByUserId(0L);
+        void shouldThrowExceptionWhenProfileNotFoundOnDelete() {
+            when(loginProfileRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
 
-            verify(loginProfileRepository).deleteByUserId(0L);
-            verifyNoMoreInteractions(loginProfileRepository);
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteByUserId(USER_ID));
+            verify(loginProfileRepository, never()).delete(any(LoginProfile.class));
         }
 
         @Test
-        void shouldDeleteLoginProfileWhenUserIdIsNull() {
-            loginProfileUpdateService.deleteByUserId(null);
+        void shouldThrowExceptionWhenRepositoryFailsOnDelete() {
+            when(loginProfileRepository.findByUserId(USER_ID)).thenReturn(Optional.of(profile));
+            doThrow(new IllegalStateException("db error")).when(loginProfileRepository).delete(profile);
 
-            verify(loginProfileRepository).deleteByUserId(null);
-            verifyNoMoreInteractions(loginProfileRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryFailsToDeleteProfile() {
-            doThrow(new IllegalStateException())
-                    .when(loginProfileRepository)
-                    .deleteByUserId(100L);
-
-            assertThrows(
-                    IllegalStateException.class,
-                    () -> loginProfileUpdateService.deleteByUserId(100L)
-            );
-
-            verify(loginProfileRepository).deleteByUserId(100L);
+            assertThrows(IllegalStateException.class, () -> service.deleteByUserId(USER_ID));
         }
     }
 }

@@ -5,9 +5,9 @@ import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivity
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
-import com.finovara.financeservice.util.sharedaccount.settings.SharedSettingsManager;
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.dto.SpendControlDto;
-import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
+import com.finovara.financeservice.util.sharedaccount.settings.SharedSettingsManager;
+import com.finovara.financeservice.util.sharedaccount.wallet.SharedWalletManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -22,10 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SpendControlServiceTest {
@@ -36,7 +33,7 @@ class SpendControlServiceTest {
     private SharedSettingsManager sharedSettingsManager;
 
     @Mock
-    private SharedWalletRepository sharedWalletRepository;
+    private SharedWalletManager sharedWalletManager;
 
     @Mock
     private SharedAccountParticipantsService sharedAccountParticipantsService;
@@ -195,7 +192,7 @@ class SpendControlServiceTest {
 
             spendControlService.handleSpendControl(USER_ID, new BigDecimal("10000.00"));
 
-            verifyNoInteractions(sharedWalletRepository);
+            verifyNoInteractions(sharedWalletManager);
         }
 
         @Test
@@ -204,7 +201,7 @@ class SpendControlServiceTest {
 
             assertThrows(IllegalStateException.class, () -> spendControlService.handleSpendControl(USER_ID, new BigDecimal("100.00")));
 
-            verifyNoInteractions(sharedWalletRepository);
+            verifyNoInteractions(sharedWalletManager);
         }
 
         @Test
@@ -214,7 +211,7 @@ class SpendControlServiceTest {
                     .spendControlPercentage(new BigDecimal("50"))
                     .build();
             when(sharedSettingsManager.getSharedAccountSettingsByUserId(USER_ID)).thenReturn(settings);
-            when(sharedWalletRepository.findByUserId(USER_ID)).thenThrow(new IllegalStateException("wallet query failed"));
+            when(sharedWalletManager.getWalletForUpdateOrThrow(USER_ID)).thenThrow(new IllegalStateException("wallet query failed"));
 
             assertThrows(IllegalStateException.class, () -> spendControlService.handleSpendControl(USER_ID, new BigDecimal("100.00")));
         }

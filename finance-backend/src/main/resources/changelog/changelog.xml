@@ -13,13 +13,13 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="version" type="BIGINT" defaultValueNumeric="0">
-                <constraints nullable="false"/>
-            </column>
             <column name="balance" type="DECIMAL(19,2)">
                 <constraints nullable="false"/>
             </column>
             <column name="reserved_amount" type="DECIMAL(19,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
             <column name="user_id" type="BIGINT">
@@ -45,7 +45,8 @@
         </createTable>
         <addForeignKeyConstraint baseTableName="fund_reservation" baseColumnNames="wallet_id"
                                  constraintName="fk_fund_reservation_wallet"
-                                 referencedTableName="wallets" referencedColumnNames="id"/>
+                                 referencedTableName="wallets" referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
         <createIndex tableName="fund_reservation" indexName="idx_fund_reservation_wallet_id">
             <column name="wallet_id"/>
         </createIndex>
@@ -88,6 +89,9 @@
             <column name="created_at" type="TIMESTAMP">
                 <constraints nullable="true"/>
             </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
             <column name="owner_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
@@ -111,10 +115,13 @@
             <column name="category" type="VARCHAR(255)">
                 <constraints nullable="true"/>
             </column>
-            <column name="amount" type="DECIMAL(10,2)">
+            <column name="amount" type="DECIMAL(19,2)">
                 <constraints nullable="false"/>
             </column>
             <column name="is_active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
             <column name="user_id" type="BIGINT">
@@ -140,10 +147,13 @@
             <column name="category" type="VARCHAR(255)">
                 <constraints nullable="true"/>
             </column>
-            <column name="amount" type="DECIMAL(10,2)">
+            <column name="amount" type="DECIMAL(19,2)">
                 <constraints nullable="false"/>
             </column>
             <column name="is_active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
             <column name="owner_id" type="BIGINT">
@@ -166,10 +176,19 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="amount" type="DECIMAL(19,2)"/>
-            <column name="category" type="VARCHAR(255)"/>
-            <column name="created_at" type="DATE"/>
+            <column name="amount" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
             <column name="description" type="VARCHAR(500)"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
@@ -181,10 +200,19 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="amount" type="DECIMAL(19,2)"/>
-            <column name="category" type="VARCHAR(255)"/>
-            <column name="created_at" type="DATE"/>
+            <column name="amount" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
             <column name="description" type="VARCHAR(500)"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
             <column name="member_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
@@ -202,10 +230,19 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="amount" type="DECIMAL(19,2)"/>
-            <column name="category" type="VARCHAR(255)"/>
-            <column name="created_at" type="DATE"/>
+            <column name="amount" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
             <column name="description" type="VARCHAR(500)"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
@@ -217,10 +254,19 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="amount" type="DECIMAL(19,2)"/>
-            <column name="category" type="VARCHAR(255)"/>
-            <column name="created_at" type="DATE"/>
+            <column name="amount" type="DECIMAL(19,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="category" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="DATE">
+                <constraints nullable="false"/>
+            </column>
             <column name="description" type="VARCHAR(500)"/>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
             <column name="member_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
@@ -228,6 +274,44 @@
                 <constraints nullable="false"/>
             </column>
             <column name="created_by_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-goalplanner" author="Marcin Parśniak">
+        <createTable tableName="goalplanner">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="topic" type="VARCHAR(255)"/>
+            <column name="target_date" type="DATE"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="completed_at" type="TIMESTAMP"/>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex tableName="goalplanner" indexName="idx_goalplanner_user_id">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-piggy-bank-settings" author="Marcin Parśniak">
+        <createTable tableName="piggy_bank_settings">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="automation_active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="automation_percentage" type="DECIMAL(5,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="round_up_active" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="goal_completion_strategy" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -247,6 +331,16 @@
                 <constraints nullable="false"/>
             </column>
             <column name="goal_amount" type="DECIMAL(19,2)"/>
+            <column name="piggy_bank_settings_id" type="BIGINT">
+                <constraints nullable="true" unique="true" foreignKeyName="fk_piggybanks_settings"
+                             references="piggy_bank_settings(id)"/>
+            </column>
+            <column name="goal_planner_id" type="BIGINT">
+                <constraints nullable="true" unique="true"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
@@ -255,6 +349,10 @@
             CREATE UNIQUE INDEX unique_piggy_bank_user_name
             ON piggybanks (user_id, LOWER(name));
         </sql>
+        <addForeignKeyConstraint baseTableName="piggybanks" baseColumnNames="goal_planner_id"
+                                 constraintName="fk_piggybanks_goal_planner"
+                                 referencedTableName="goalplanner" referencedColumnNames="id"
+                                 onDelete="SET NULL"/>
     </changeSet>
 
     <changeSet id="create-shared-piggy_banks" author="Marcin Parśniak">
@@ -274,6 +372,9 @@
             <column name="goal_achieved_notified" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
             <column name="owner_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
@@ -285,28 +386,6 @@
             CREATE UNIQUE INDEX unique_shared_piggy_bank_name
             ON shared_piggybanks (owner_id, member_id, LOWER(name));
         </sql>
-    </changeSet>
-
-    <changeSet id="create-goalplanner" author="Marcin Parśniak">
-        <createTable tableName="goalplanner">
-            <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="topic" type="VARCHAR(255)"/>
-            <column name="target_date" type="DATE"/>
-            <column name="created_at" type="TIMESTAMP"/>
-            <column name="completed_at" type="TIMESTAMP"/>
-            <column name="user_id" type="BIGINT">
-                <constraints nullable="false"/>
-            </column>
-            <column name="piggy_bank_id" type="BIGINT">
-                <constraints nullable="true" unique="true" foreignKeyName="fk_goalplanner_piggybank"
-                             references="piggybanks(id)"/>
-            </column>
-        </createTable>
-        <createIndex tableName="goalplanner" indexName="idx_goalplanner_user_id">
-            <column name="user_id"/>
-        </createIndex>
     </changeSet>
 
     <changeSet id="create-expense-settings" author="Marcin Parśniak">
@@ -366,42 +445,16 @@
             <column name="created_at" type="DATE">
                 <constraints nullable="false"/>
             </column>
+            <column name="version" type="BIGINT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
             <column name="piggy_bank_id" type="BIGINT"/>
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
         </createTable>
-        <createIndex tableName="recurring_settings" indexName="idx_recurring_settings_user_id">
-            <column name="user_id"/>
-        </createIndex>
-        <createIndex tableName="recurring_settings" indexName="idx_recurring_settings_next_execution">
-            <column name="enable"/>
-            <column name="next_execution_date"/>
-        </createIndex>
-    </changeSet>
-
-    <changeSet id="create-piggy-bank-settings" author="Marcin Parśniak">
-        <createTable tableName="piggy_bank_settings">
-            <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
-            </column>
-            <column name="automation_active" type="BOOLEAN">
-                <constraints nullable="false"/>
-            </column>
-            <column name="automation_percentage" type="DECIMAL(5,2)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="round_up_active" type="BOOLEAN">
-                <constraints nullable="false"/>
-            </column>
-            <column name="goal_completion_strategy" type="VARCHAR(255)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="piggy_bank_id" type="BIGINT">
-                <constraints nullable="false" unique="true" foreignKeyName="fk_piggy_bank_settings_pb"
-                             references="piggybanks(id)"/>
-            </column>
-        </createTable>
+        <addUniqueConstraint tableName="recurring_settings" columnNames="user_id, type"
+                             constraintName="uk_recurring_settings_user_type"/>
     </changeSet>
 
     <changeSet id="create-shared-settings" author="Marcin Parśniak">
@@ -424,8 +477,8 @@
             <column name="large_expense_notification_threshold" type="DECIMAL(19,2)">
                 <constraints nullable="true"/>
             </column>
-            <column name="piggy_bank_goal_achieved_notification_enabled" type="BOOLEAN">
-                <constraints nullable="true"/>
+            <column name="piggy_bank_goal_achieved_notification_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
             </column>
             <column name="owner_id" type="BIGINT">
                 <constraints nullable="false"/>
@@ -457,47 +510,96 @@
     </changeSet>
 
     <changeSet id="create-shared-tables-owner-member-indexes" author="Marcin Parśniak">
-        <createIndex tableName="shared_wallets" indexName="idx_shared_wallets_owner_id">
-            <column name="owner_id"/>
-        </createIndex>
+        <comment>
+            Queries use "owner_id = :userId OR member_id = :userId", so both sides need an index. The owner side of
+            shared_wallets / shared_settings is already covered by the UNIQUE (owner_id, member_id) prefix, so only
+            member_id is added there. shared_limits: composite for the account-deletion lookup (it has no is_active
+            predicate, so the partial indexes cannot serve it); the active lookups use the partial indexes below.
+        </comment>
         <createIndex tableName="shared_wallets" indexName="idx_shared_wallets_member_id">
             <column name="member_id"/>
-        </createIndex>
-        <createIndex tableName="shared_revenues" indexName="idx_shared_revenues_owner_id">
-            <column name="owner_id"/>
-        </createIndex>
-        <createIndex tableName="shared_revenues" indexName="idx_shared_revenues_member_id">
-            <column name="member_id"/>
-        </createIndex>
-        <createIndex tableName="shared_expenses" indexName="idx_shared_expenses_owner_id">
-            <column name="owner_id"/>
-        </createIndex>
-        <createIndex tableName="shared_expenses" indexName="idx_shared_expenses_member_id">
-            <column name="member_id"/>
-        </createIndex>
-        <createIndex tableName="shared_piggybanks" indexName="idx_shared_piggybanks_owner_id">
-            <column name="owner_id"/>
-        </createIndex>
-        <createIndex tableName="shared_piggybanks" indexName="idx_shared_piggybanks_member_id">
-            <column name="member_id"/>
-        </createIndex>
-        <createIndex tableName="shared_limits" indexName="idx_shared_limits_owner_id">
-            <column name="owner_id"/>
-        </createIndex>
-        <createIndex tableName="shared_limits" indexName="idx_shared_limits_member_id">
-            <column name="member_id"/>
-        </createIndex>
-        <createIndex tableName="shared_notes" indexName="idx_shared_notes_owner_id">
-            <column name="owner_id"/>
-        </createIndex>
-        <createIndex tableName="shared_notes" indexName="idx_shared_notes_member_id">
-            <column name="member_id"/>
-        </createIndex>
-        <createIndex tableName="shared_settings" indexName="idx_shared_settings_owner_id">
-            <column name="owner_id"/>
         </createIndex>
         <createIndex tableName="shared_settings" indexName="idx_shared_settings_member_id">
             <column name="member_id"/>
         </createIndex>
+        <createIndex tableName="shared_limits" indexName="idx_shared_limits_owner_member">
+            <column name="owner_id"/>
+            <column name="member_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="finance-hot-path-indexes" author="Marcin Parśniak" dbms="postgresql">
+        <comment>
+            Lists: (owner|user, created_at DESC, id DESC) - consistent with the ORDER BY clauses in the repositories.
+            INCLUDE (category, amount) for expenses/revenues - enables index-only scans for category totals (limits,
+            reports)
+            without accessing the heap. Limit statistics = one such scan per distinct period.
+            Recurring: partial index on due settings (the scheduler scans only enabled rows with a next execution
+            date, keyset-paginated by id).
+        </comment>
+        <sql>
+            CREATE INDEX idx_expenses_user_created_id ON expenses (user_id, created_at DESC, id DESC) INCLUDE (category,
+            amount);
+            CREATE INDEX idx_revenues_user_created_id ON revenues (user_id, created_at DESC, id DESC) INCLUDE (category,
+            amount);
+            CREATE INDEX idx_piggybanks_user_created_id ON piggybanks (user_id, created_at DESC, id DESC);
+
+            CREATE INDEX idx_shared_expenses_owner_created_id ON shared_expenses (owner_id, created_at DESC, id DESC)
+            INCLUDE (category, amount);
+            CREATE INDEX idx_shared_expenses_member_created_id ON shared_expenses (member_id, created_at DESC, id DESC)
+            INCLUDE (category, amount);
+            CREATE INDEX idx_shared_revenues_owner_created_id ON shared_revenues (owner_id, created_at DESC, id DESC)
+            INCLUDE (category, amount);
+            CREATE INDEX idx_shared_revenues_member_created_id ON shared_revenues (member_id, created_at DESC, id DESC)
+            INCLUDE (category, amount);
+            CREATE INDEX idx_shared_piggybanks_owner_created_id ON shared_piggybanks (owner_id, created_at DESC, id
+            DESC);
+            CREATE INDEX idx_shared_piggybanks_member_created_id ON shared_piggybanks (member_id, created_at DESC, id
+            DESC);
+            CREATE INDEX idx_shared_notes_owner_created_id ON shared_notes (owner_id, created_at DESC, id DESC);
+            CREATE INDEX idx_shared_notes_member_created_id ON shared_notes (member_id, created_at DESC, id DESC);
+
+            CREATE INDEX idx_limits_active_user_id ON limits (user_id, id DESC) WHERE is_active = true;
+            CREATE INDEX idx_shared_limits_active_owner_id ON shared_limits (owner_id, id DESC) WHERE is_active = true;
+            CREATE INDEX idx_shared_limits_active_member_id ON shared_limits (member_id, id DESC) WHERE is_active =
+            true;
+
+            CREATE INDEX idx_recurring_settings_due ON recurring_settings (next_execution_date, id)
+            WHERE enable = true AND next_execution_date IS NOT NULL;
+        </sql>
+    </changeSet>
+
+    <changeSet id="finance-hot-tables-fillfactor" author="Marcin Parśniak" dbms="postgresql">
+        <comment>Frequently updated rows (balance, piggy bank amount, limit): room for HOT updates (indexed columns do
+            not change).
+        </comment>
+        <sql>
+            ALTER TABLE wallets SET (fillfactor = 90);
+            ALTER TABLE shared_wallets SET (fillfactor = 90);
+            ALTER TABLE piggybanks SET (fillfactor = 90);
+            ALTER TABLE shared_piggybanks SET (fillfactor = 90);
+            ALTER TABLE limits SET (fillfactor = 90);
+            ALTER TABLE shared_limits SET (fillfactor = 90);
+        </sql>
+    </changeSet>
+
+    <changeSet id="finance-money-integrity-checks" author="Marcin Parśniak" dbms="postgresql">
+        <comment>Last line of defense against race conditions: the database will not allow a balance or amount to drop
+            below zero, even if the code has a bug.
+        </comment>
+        <sql>
+            ALTER TABLE wallets ADD CONSTRAINT chk_wallets_non_negative CHECK (balance >= 0 AND reserved_amount >= 0);
+            ALTER TABLE shared_wallets ADD CONSTRAINT chk_shared_wallets_non_negative CHECK (balance >= 0);
+            ALTER TABLE piggybanks ADD CONSTRAINT chk_piggybanks_amount_non_negative CHECK (amount >= 0);
+            ALTER TABLE shared_piggybanks ADD CONSTRAINT chk_shared_piggybanks_amount_non_negative CHECK (amount >= 0);
+            ALTER TABLE expenses ADD CONSTRAINT chk_expenses_amount_positive CHECK (amount > 0);
+            ALTER TABLE revenues ADD CONSTRAINT chk_revenues_amount_positive CHECK (amount > 0);
+            ALTER TABLE limits ADD CONSTRAINT chk_limits_amount_positive CHECK (amount > 0);
+            ALTER TABLE fund_reservation ADD CONSTRAINT chk_fund_reservation_amount_positive CHECK (amount > 0);
+            ALTER TABLE shared_expenses ADD CONSTRAINT chk_shared_expenses_amount_positive CHECK (amount > 0);
+            ALTER TABLE shared_revenues ADD CONSTRAINT chk_shared_revenues_amount_positive CHECK (amount > 0);
+            ALTER TABLE shared_limits ADD CONSTRAINT chk_shared_limits_amount_positive CHECK (amount > 0);
+            ALTER TABLE recurring_settings ADD CONSTRAINT chk_recurring_settings_amount_positive CHECK (amount IS NULL OR amount > 0);
+        </sql>
     </changeSet>
 </databaseChangeLog>

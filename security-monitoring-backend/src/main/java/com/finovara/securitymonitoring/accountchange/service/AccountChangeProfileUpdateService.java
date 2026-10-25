@@ -21,7 +21,7 @@ public class AccountChangeProfileUpdateService implements UserDataDeletable {
 
     @Transactional
     public void handleAccountChangeEvent(AccountChangeActivityEvent event) {
-        AccountChangeProfile profile = accountChangeProfileRepository.findByUserId(event.userId())
+        AccountChangeProfile profile = accountChangeProfileRepository.findByUserIdForUpdate(event.userId())
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Account change profile not found for userId=" + event.userId()));
 
         switch (event.type()) {
@@ -54,7 +54,9 @@ public class AccountChangeProfileUpdateService implements UserDataDeletable {
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        accountChangeProfileRepository.deleteByUserId(userId);
+        AccountChangeProfile profile = accountChangeProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("Account change profile not found for userId=" + userId));
+        accountChangeProfileRepository.delete(profile);
         log.info("Deleted account-change profile for userId={}", userId);
     }
 }

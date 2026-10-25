@@ -17,7 +17,7 @@ public class NotificationController {
     private final NotificationPersistenceService notificationPersistenceService;
 
     @GetMapping
-    public ResponseEntity<List<NotificationResponse>> getAllNotifications(@RequestParam(defaultValue = "NEWEST") SortType sort) {
-        return ResponseEntity.ok(notificationPersistenceService.getUserNotifications(SecurityUtils.getCurrentUserId(), sort));
+    public ResponseEntity<List<NotificationResponse>> getAllNotifications(@RequestParam(defaultValue = "NEWEST") SortType sortType, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(notificationPersistenceService.getUserNotifications(SecurityUtils.getCurrentUserId(), sortType, page));
     }
 }

@@ -31,10 +31,9 @@ public class LoginActivityArchiveService extends AccountActivityCore<LoginActivi
     private int pageSize;
 
     public LoginActivityArchive mapToArchive(LoginActivity loginActivity) {
-        log.info("Archiving login activity. type: {}, userId: {}", loginActivity.getType(), loginActivity.getUserId());
         return LoginActivityArchive.builder()
                 .userId(loginActivity.getUserId())
-                .type("Login")
+                .type(loginActivity.getType())
                 .status(loginActivity.getStatus())
                 .moveToArchiveDate(LocalDateTime.now())
                 .createdAt(loginActivity.getCreatedAt())
@@ -47,11 +46,12 @@ public class LoginActivityArchiveService extends AccountActivityCore<LoginActivi
     @Transactional
     public void archive(List<LoginActivityArchive> activitiesToArchive) {
         loginActivityArchiveRepository.saveAll(activitiesToArchive);
+        log.info("Archived {} login activities", activitiesToArchive.size());
     }
 
-    @Cacheable(value = "loginActivityArchive", key = "#userId + ':' + #sort")
-    public List<LoginActivityArchiveDto> getLoginActivityArchive(Long userId, SortType sort) {
-        return getActivities(userId, sort, pageSize);
+    @Cacheable(value = "loginActivityArchive", key = "#userId + ':' + #sort + ':' + #page")
+    public List<LoginActivityArchiveDto> getLoginActivityArchive(Long userId, SortType sort, int page) {
+        return getActivities(userId, sort, page, pageSize);
     }
 
     @Override
@@ -67,7 +67,8 @@ public class LoginActivityArchiveService extends AccountActivityCore<LoginActivi
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        loginActivityArchiveRepository.deleteByUserId(userId);
+        List<LoginActivityArchive> activities = loginActivityArchiveRepository.findAllByUserId(userId);
+        loginActivityArchiveRepository.deleteAll(activities);
         log.info("Deleted login activity from archive for userId={}", userId);
     }
 }

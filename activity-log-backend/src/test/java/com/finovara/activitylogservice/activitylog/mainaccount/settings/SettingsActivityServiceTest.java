@@ -54,10 +54,11 @@ class SettingsActivityServiceTest {
     class DeleteByUserId {
 
         @Test
-        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+        void shouldDeleteUserActivitiesWhenUserIdIsValid() {
             settingsActivityService.deleteByUserId(USER_ID);
 
-            verify(settingsActivityRepository).deleteByUserId(USER_ID);
+            verify(settingsActivityRepository).findAllByUserId(USER_ID);
+            verify(settingsActivityRepository).deleteAll(any());
         }
     }
 
@@ -101,7 +102,7 @@ class SettingsActivityServiceTest {
             when(settingsActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
             when(settingsActivityMapper.mapToSettingActivity(activity)).thenReturn(dto);
 
-            List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(USER_ID, SortType.NEWEST);
+            List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(USER_ID, SortType.NEWEST, 1);
 
             assertThat(result).containsExactly(dto);
             verify(settingsActivityRepository).findByUserId(eq(USER_ID), any(Pageable.class));
@@ -112,7 +113,7 @@ class SettingsActivityServiceTest {
         void shouldReturnEmptyListWhenUserHasNoActivities() {
             when(settingsActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of());
 
-            List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(USER_ID, SortType.OLDEST);
+            List<SettingsActivityDto> result = settingsActivityService.getSettingsActivities(USER_ID, SortType.OLDEST, 1);
 
             assertThat(result).isEmpty();
             verifyNoInteractions(settingsActivityMapper);

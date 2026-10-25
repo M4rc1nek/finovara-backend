@@ -32,10 +32,7 @@ public class SharedAccountDeletionFinanceDataService {
     private final SharedExpenseRepository sharedExpenseRepository;
     private final SharedRevenueRepository sharedRevenueRepository;
     private final SharedWalletRepository sharedWalletRepository;
-    private final SharedPiggyBankRepository sharedPiggyBankRepository;
-    private final SharedLimitRepository sharedLimitRepository;
-    private final SharedAccountNoteRepository sharedAccountNoteRepository;
-    private final SharedAccountSettingsRepository sharedAccountSettingsRepository;
+    private final SharedAccountFinanceDeleter sharedAccountFinanceDeleter;
     private final OutboxService outboxService;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -51,7 +48,7 @@ public class SharedAccountDeletionFinanceDataService {
 
         refundContributedRevenue(event);
 
-        deleteSharedFinancialData(ownerId, memberId);
+        sharedAccountFinanceDeleter.deleteAll(ownerId, memberId);
 
         log.info("Deleted shared financial data for accountId={}, ownerId={}, memberId={}",
                 event.accountId(), ownerId, memberId);
@@ -121,16 +118,6 @@ public class SharedAccountDeletionFinanceDataService {
         boolean isNegative() {
             return net().compareTo(BigDecimal.ZERO) < 0;
         }
-    }
-
-    private void deleteSharedFinancialData(Long ownerId, Long memberId) {
-        sharedExpenseRepository.deleteAllByOwnerIdAndMemberId(ownerId, memberId);
-        sharedRevenueRepository.deleteAllByOwnerIdAndMemberId(ownerId, memberId);
-        sharedWalletRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
-        sharedPiggyBankRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
-        sharedLimitRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
-        sharedAccountNoteRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
-        sharedAccountSettingsRepository.deleteByOwnerIdAndMemberId(ownerId, memberId);
     }
 
     private record RefundInstruction(Long userId, String coFounderUsername, String coFounderEmail,

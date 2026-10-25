@@ -2,6 +2,7 @@ package com.finovara.financeservice.sharedaccount.limit.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
@@ -25,6 +27,7 @@ import com.finovara.financeservice.sharedaccount.limit.model.SharedLimit;
 import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
+import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
 import com.finovara.financeservice.util.limit.validator.LimitExpensesValidator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -63,6 +66,9 @@ class SharedLimitManagementServiceTest {
     private SharedAccountParticipantsService sharedAccountParticipantsService;
 
     @Mock
+    private SharedWalletService sharedWalletService;
+
+    @Mock
     private LimitExpensesValidator limitExpensesValidator;
 
     @Mock
@@ -79,6 +85,12 @@ class SharedLimitManagementServiceTest {
 
     @Mock
     private SharedLimit savedLimit;
+
+    @Mock
+    private SharedLimitStatsDto firstStats;
+
+    @Mock
+    private SharedLimitStatsDto secondStats;
 
     @Captor
     private ArgumentCaptor<SharedLimit> limitCaptor;
@@ -141,6 +153,17 @@ class SharedLimitManagementServiceTest {
         }
 
         @Test
+        void shouldLockWalletWhenLimitIsCreated() {
+            stubParticipants();
+            when(limitDto.amount()).thenReturn(AMOUNT);
+            stubSavedLimit();
+
+            service.createSharedLimit(limitDto, USER_ID);
+
+            verify(sharedWalletService).lockWalletForUpdate(USER_ID);
+        }
+
+        @Test
         void shouldSaveLimitWithDtoAndParticipantDataWhenGeneralLimitIsCreated() {
             stubParticipants();
             when(limitDto.amount()).thenReturn(AMOUNT);
@@ -151,7 +174,7 @@ class SharedLimitManagementServiceTest {
             verify(sharedLimitRepository).save(limitCaptor.capture());
             SharedLimit saved = limitCaptor.getValue();
             assertEquals(limitDto.periodType(), saved.getPeriodType());
-            assertEquals(null, saved.getCategory());
+            assertNull(saved.getCategory());
             assertEquals(AMOUNT, saved.getAmount());
             assertEquals(OWNER_ID, saved.getOwnerId());
             assertEquals(MEMBER_ID, saved.getMemberId());
@@ -218,17 +241,27 @@ class SharedLimitManagementServiceTest {
         }
 
         @Test
-        void shouldValidateBeforeSavingLimitAndOutboxEventWhenLimitIsCreated() {
+        void shouldLockValidateSaveAndLogInOrderWhenLimitIsCreated() {
             stubParticipants();
             when(limitDto.amount()).thenReturn(AMOUNT);
             stubSavedLimit();
 
             service.createSharedLimit(limitDto, USER_ID);
 
-            InOrder inOrder = inOrder(limitExpensesValidator, sharedLimitRepository, outboxService);
+            InOrder inOrder = inOrder(sharedWalletService, limitExpensesValidator, sharedLimitRepository, outboxService);
+            inOrder.verify(sharedWalletService).lockWalletForUpdate(USER_ID);
             inOrder.verify(limitExpensesValidator).validateCurrentSharedExpensesDoNotExceedLimit(USER_ID, limitDto);
             inOrder.verify(sharedLimitRepository).save(any(SharedLimit.class));
             inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenWalletLockFails() {
+            doThrow(new RequestedEntityNotFoundException("wallet not found")).when(sharedWalletService).lockWalletForUpdate(USER_ID);
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.createSharedLimit(limitDto, USER_ID));
+
+            verifyNoInteractions(limitExpensesValidator, sharedAccountParticipantsService, sharedLimitRepository, outboxService);
         }
 
         @Test
@@ -242,20 +275,45 @@ class SharedLimitManagementServiceTest {
         }
 
         @Test
+        void shouldThrowExceptionWhenGeneralLimitAlreadyExists() {
+            when(sharedLimitRepository.findGeneralLimit(eq(USER_ID), any())).thenReturn(Optional.of(savedLimit));
+            when(savedLimit.getId()).thenReturn(LIMIT_ID);
+
+            assertThrows(EntityAlreadyExistsException.class, () -> service.createSharedLimit(limitDto, USER_ID));
+
+            verify(sharedLimitRepository, never()).save(any(SharedLimit.class));
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenCategoryLimitAlreadyExists() {
+            when(limitDto.category()).thenReturn(CATEGORY);
+            when(sharedLimitRepository.findCategoryLimit(eq(USER_ID), any(), eq(CATEGORY))).thenReturn(Optional.of(savedLimit));
+            when(savedLimit.getId()).thenReturn(LIMIT_ID);
+
+            assertThrows(EntityAlreadyExistsException.class, () -> service.createSharedLimit(limitDto, USER_ID));
+
+            verify(sharedLimitRepository, never()).save(any(SharedLimit.class));
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
         void shouldThrowExceptionWhenParticipantsServiceFails() {
             when(sharedAccountParticipantsService.getParticipants(USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("participants not found"));
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.createSharedLimit(limitDto, USER_ID));
 
-            verifyNoInteractions(sharedLimitRepository, outboxService);
+            verify(sharedLimitRepository, never()).save(any(SharedLimit.class));
+            verifyNoInteractions(outboxService);
         }
 
         @Test
         void shouldThrowExceptionWhenLimitDtoIsNull() {
             assertThrows(NullPointerException.class, () -> service.createSharedLimit(null, USER_ID));
 
-            verifyNoInteractions(sharedLimitRepository, outboxService);
+            verify(sharedLimitRepository, never()).save(any(SharedLimit.class));
+            verifyNoInteractions(outboxService);
         }
 
         @Test
@@ -294,9 +352,6 @@ class SharedLimitManagementServiceTest {
 
         private void stubSuccessfulEdit() {
             when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
-            when(limitDto.amount()).thenReturn(AMOUNT);
-            when(sharedLimitRepository.save(existingLimit)).thenReturn(existingLimit);
-            when(existingLimit.getId()).thenReturn(LIMIT_ID);
             stubParticipants();
         }
 
@@ -310,16 +365,25 @@ class SharedLimitManagementServiceTest {
         }
 
         @Test
+        void shouldLockWalletWhenLimitIsEdited() {
+            stubSuccessfulEdit();
+
+            service.editSharedLimit(limitDto, LIMIT_ID, USER_ID);
+
+            verify(sharedWalletService).lockWalletForUpdate(USER_ID);
+        }
+
+        @Test
         void shouldUpdateLimitFieldsWhenLimitIsEdited() {
             stubSuccessfulEdit();
             when(limitDto.category()).thenReturn(CATEGORY);
+            when(limitDto.amount()).thenReturn(AMOUNT);
 
             service.editSharedLimit(limitDto, LIMIT_ID, USER_ID);
 
             verify(existingLimit).setPeriodType(limitDto.periodType());
             verify(existingLimit).setCategory(CATEGORY);
             verify(existingLimit).setAmount(AMOUNT);
-            verify(sharedLimitRepository).save(existingLimit);
         }
 
         @Test
@@ -332,6 +396,38 @@ class SharedLimitManagementServiceTest {
         }
 
         @Test
+        void shouldCheckOnlyGeneralLimitWhenEditedCategoryIsNull() {
+            stubSuccessfulEdit();
+
+            service.editSharedLimit(limitDto, LIMIT_ID, USER_ID);
+
+            verify(sharedLimitRepository).findGeneralLimit(eq(USER_ID), any());
+            verify(sharedLimitRepository, never()).findCategoryLimit(any(), any(), any());
+        }
+
+        @Test
+        void shouldCheckOnlyCategoryLimitWhenEditedCategoryIsGiven() {
+            stubSuccessfulEdit();
+            when(limitDto.category()).thenReturn(CATEGORY);
+
+            service.editSharedLimit(limitDto, LIMIT_ID, USER_ID);
+
+            verify(sharedLimitRepository).findCategoryLimit(eq(USER_ID), any(), eq(CATEGORY));
+            verify(sharedLimitRepository, never()).findGeneralLimit(any(), any());
+        }
+
+        @Test
+        void shouldAllowEditWhenFoundGeneralLimitIsTheEditedOne() {
+            stubSuccessfulEdit();
+            when(sharedLimitRepository.findGeneralLimit(eq(USER_ID), any())).thenReturn(Optional.of(existingLimit));
+            when(existingLimit.getId()).thenReturn(LIMIT_ID);
+
+            Long result = service.editSharedLimit(limitDto, LIMIT_ID, USER_ID);
+
+            assertEquals(LIMIT_ID, result);
+        }
+
+        @Test
         void shouldSaveOutboxEventWhenLimitIsEdited() {
             stubSuccessfulEdit();
 
@@ -341,15 +437,24 @@ class SharedLimitManagementServiceTest {
         }
 
         @Test
-        void shouldValidateBeforeSavingLimitAndOutboxEventWhenLimitIsEdited() {
+        void shouldLockValidateAndLogInOrderWhenLimitIsEdited() {
             stubSuccessfulEdit();
 
             service.editSharedLimit(limitDto, LIMIT_ID, USER_ID);
 
-            InOrder inOrder = inOrder(limitExpensesValidator, sharedLimitRepository, outboxService);
+            InOrder inOrder = inOrder(sharedWalletService, limitExpensesValidator, outboxService);
+            inOrder.verify(sharedWalletService).lockWalletForUpdate(USER_ID);
             inOrder.verify(limitExpensesValidator).validateCurrentSharedExpensesDoNotExceedLimit(USER_ID, limitDto);
-            inOrder.verify(sharedLimitRepository).save(existingLimit);
             inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenWalletLockFails() {
+            doThrow(new RequestedEntityNotFoundException("wallet not found")).when(sharedWalletService).lockWalletForUpdate(USER_ID);
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.editSharedLimit(limitDto, LIMIT_ID, USER_ID));
+
+            verifyNoInteractions(sharedLimitRepository, limitExpensesValidator, sharedAccountParticipantsService, outboxService);
         }
 
         @Test
@@ -371,8 +476,32 @@ class SharedLimitManagementServiceTest {
             assertThrows(IllegalStateException.class, () -> service.editSharedLimit(limitDto, LIMIT_ID, USER_ID));
 
             verify(existingLimit, never()).setAmount(any());
-            verify(sharedLimitRepository, never()).save(any(SharedLimit.class));
-            verifyNoInteractions(outboxService);
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenAnotherGeneralLimitAlreadyExists() {
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
+            when(sharedLimitRepository.findGeneralLimit(eq(USER_ID), any())).thenReturn(Optional.of(savedLimit));
+            when(savedLimit.getId()).thenReturn(SECOND_LIMIT_ID);
+
+            assertThrows(EntityAlreadyExistsException.class, () -> service.editSharedLimit(limitDto, LIMIT_ID, USER_ID));
+
+            verify(existingLimit, never()).setAmount(any());
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenAnotherCategoryLimitAlreadyExists() {
+            when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
+            when(limitDto.category()).thenReturn(CATEGORY);
+            when(sharedLimitRepository.findCategoryLimit(eq(USER_ID), any(), eq(CATEGORY))).thenReturn(Optional.of(savedLimit));
+            when(savedLimit.getId()).thenReturn(SECOND_LIMIT_ID);
+
+            assertThrows(EntityAlreadyExistsException.class, () -> service.editSharedLimit(limitDto, LIMIT_ID, USER_ID));
+
+            verify(existingLimit, never()).setAmount(any());
+            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
         }
 
         @Test
@@ -381,7 +510,7 @@ class SharedLimitManagementServiceTest {
 
             assertThrows(NullPointerException.class, () -> service.editSharedLimit(null, LIMIT_ID, USER_ID));
 
-            verify(sharedLimitRepository, never()).save(any(SharedLimit.class));
+            verify(existingLimit, never()).setAmount(any());
             verifyNoInteractions(outboxService);
         }
 
@@ -395,14 +524,14 @@ class SharedLimitManagementServiceTest {
         }
 
         @Test
-        void shouldThrowExceptionWhenRepositorySaveFails() {
+        void shouldThrowExceptionWhenParticipantsServiceFails() {
             when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
-            when(limitDto.amount()).thenReturn(AMOUNT);
-            when(sharedLimitRepository.save(existingLimit)).thenThrow(new IllegalStateException("db failed"));
+            when(sharedAccountParticipantsService.getParticipants(USER_ID))
+                    .thenThrow(new RequestedEntityNotFoundException("participants not found"));
 
-            assertThrows(IllegalStateException.class, () -> service.editSharedLimit(limitDto, LIMIT_ID, USER_ID));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.editSharedLimit(limitDto, LIMIT_ID, USER_ID));
 
-            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
+            verifyNoInteractions(outboxService);
         }
 
         @Test
@@ -425,20 +554,16 @@ class SharedLimitManagementServiceTest {
             List<SharedLimitStatsDto> result = service.getSharedLimitStats(USER_ID);
 
             assertTrue(result.isEmpty());
-            verifyNoInteractions(sharedLimitCalculateService);
+            verifyNoInteractions(sharedLimitCalculateService, sharedAccountParticipantsService);
         }
 
         @Test
-        void shouldReturnStatsForEachLimitWhenLimitsExist() {
-            SharedLimitStatsDto firstStats = org.mockito.Mockito.mock(SharedLimitStatsDto.class);
-            SharedLimitStatsDto secondStats = org.mockito.Mockito.mock(SharedLimitStatsDto.class);
-            when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(existingLimit, savedLimit));
-            when(existingLimit.getId()).thenReturn(LIMIT_ID);
-            when(savedLimit.getId()).thenReturn(SECOND_LIMIT_ID);
-            when(sharedLimitCalculateService.calculateLimitStats(eq(USER_ID), eq(LIMIT_ID), any(LocalDate.class)))
-                    .thenReturn(firstStats);
-            when(sharedLimitCalculateService.calculateLimitStats(eq(USER_ID), eq(SECOND_LIMIT_ID), any(LocalDate.class)))
-                    .thenReturn(secondStats);
+        void shouldReturnCalculatedStatsWhenLimitsExist() {
+            List<SharedLimit> limits = List.of(existingLimit, savedLimit);
+            when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+            when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
+            when(sharedLimitCalculateService.calculateLimitStats(eq(limits), eq(participantsResponse), any(LocalDate.class)))
+                    .thenReturn(List.of(firstStats, secondStats));
 
             List<SharedLimitStatsDto> result = service.getSharedLimitStats(USER_ID);
 
@@ -446,17 +571,15 @@ class SharedLimitManagementServiceTest {
         }
 
         @Test
-        void shouldUseTodayForAllLimitsWhenCalculatingStats() {
-            when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(existingLimit, savedLimit));
-            when(existingLimit.getId()).thenReturn(LIMIT_ID);
-            when(savedLimit.getId()).thenReturn(SECOND_LIMIT_ID);
+        void shouldUseTodayWhenCalculatingStats() {
+            List<SharedLimit> limits = List.of(existingLimit);
+            when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+            when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
 
             service.getSharedLimitStats(USER_ID);
 
-            verify(sharedLimitCalculateService).calculateLimitStats(eq(USER_ID), eq(LIMIT_ID), dateCaptor.capture());
-            verify(sharedLimitCalculateService).calculateLimitStats(eq(USER_ID), eq(SECOND_LIMIT_ID), dateCaptor.capture());
-            assertEquals(LocalDate.now(), dateCaptor.getAllValues().get(0));
-            assertEquals(dateCaptor.getAllValues().get(0), dateCaptor.getAllValues().get(1));
+            verify(sharedLimitCalculateService).calculateLimitStats(eq(limits), eq(participantsResponse), dateCaptor.capture());
+            assertEquals(LocalDate.now(), dateCaptor.getValue());
         }
 
         @Test
@@ -465,14 +588,26 @@ class SharedLimitManagementServiceTest {
 
             assertThrows(IllegalStateException.class, () -> service.getSharedLimitStats(USER_ID));
 
+            verifyNoInteractions(sharedAccountParticipantsService, sharedLimitCalculateService);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenParticipantsServiceFails() {
+            when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(existingLimit));
+            when(sharedAccountParticipantsService.getParticipants(USER_ID))
+                    .thenThrow(new RequestedEntityNotFoundException("participants not found"));
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.getSharedLimitStats(USER_ID));
+
             verifyNoInteractions(sharedLimitCalculateService);
         }
 
         @Test
         void shouldThrowExceptionWhenCalculateServiceFails() {
-            when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of(existingLimit));
-            when(existingLimit.getId()).thenReturn(LIMIT_ID);
-            when(sharedLimitCalculateService.calculateLimitStats(eq(USER_ID), eq(LIMIT_ID), any(LocalDate.class)))
+            List<SharedLimit> limits = List.of(existingLimit);
+            when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+            when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participantsResponse);
+            when(sharedLimitCalculateService.calculateLimitStats(eq(limits), eq(participantsResponse), any(LocalDate.class)))
                     .thenThrow(new RequestedEntityNotFoundException("Active Limit not found"));
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.getSharedLimitStats(USER_ID));
@@ -484,7 +619,6 @@ class SharedLimitManagementServiceTest {
 
         private void stubSuccessfulDelete() {
             when(sharedLimitRepository.findByIdAndOwnerIdOrMemberId(USER_ID, LIMIT_ID)).thenReturn(Optional.of(existingLimit));
-            when(existingLimit.getId()).thenReturn(LIMIT_ID);
             stubParticipants();
         }
 
@@ -523,6 +657,7 @@ class SharedLimitManagementServiceTest {
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteSharedLimit(USER_ID, LIMIT_ID));
 
+            verify(sharedLimitRepository, never()).delete(any(SharedLimit.class));
             verifyNoInteractions(sharedAccountParticipantsService, outboxService);
         }
 
@@ -543,7 +678,7 @@ class SharedLimitManagementServiceTest {
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteSharedLimit(USER_ID, LIMIT_ID));
 
-            verify(sharedLimitRepository, never()).delete(any(SharedLimit.class));
+            verify(sharedLimitRepository).delete(existingLimit);
             verifyNoInteractions(outboxService);
         }
 

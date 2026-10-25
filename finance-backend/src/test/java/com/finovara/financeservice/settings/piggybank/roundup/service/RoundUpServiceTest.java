@@ -13,8 +13,8 @@ import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
 import com.finovara.financeservice.settings.piggybank.roundup.dto.RoundUpDto;
 import com.finovara.financeservice.util.transaction.expense.ExpenseManagerService;
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
+import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.model.Wallet;
-import com.finovara.financeservice.wallet.repository.WalletRepository;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -30,8 +30,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
@@ -48,7 +46,7 @@ class RoundUpServiceTest {
     @Mock
     private PiggyBankRepository piggyBankRepository;
     @Mock
-    private WalletRepository walletRepository;
+    private WalletManagerService walletManagerService;
     @Mock
     private GoalCompletionService goalCompletionService;
     @Mock
@@ -122,8 +120,7 @@ class RoundUpServiceTest {
         @BeforeEach
         void setupHandle() {
             when(expenseManagerService.getExpenseByUserIdOrThrow(anyLong(), eq(userId))).thenReturn(expense);
-
-            when(walletRepository.findByUserId(userId)).thenReturn(Optional.of(wallet));
+            when(walletManagerService.getWalletForUpdateOrThrow(userId)).thenReturn(wallet);
 
             piggyBank.getSettings().setRoundUpActive(true);
         }
@@ -161,7 +158,7 @@ class RoundUpServiceTest {
         void shouldThrowExceptionWhenWalletMissing() {
             when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of());
 
-            when(walletRepository.findByUserId(userId)).thenReturn(Optional.empty());
+            when(walletManagerService.getWalletForUpdateOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("Wallet not found for this user"));
 
             assertThrows(RequestedEntityNotFoundException.class, () -> roundUpService.handleExpenseForRoundUp(userId, 1L, PiggyBankAutomationMode.APPLY));
 

@@ -19,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -49,7 +48,6 @@ public class RiskOperationLogService extends AccountActivityCore<RiskOperationAc
                 .action(event.action())
                 .operationDate(event.operationDate())
                 .createdAt(event.createdAt())
-                .riskRuleCollectionActivities(new ArrayList<>())
                 .build();
 
         event.riskRules().forEach(rule ->
@@ -60,16 +58,16 @@ public class RiskOperationLogService extends AccountActivityCore<RiskOperationAc
                                 .build()));
 
         riskOperationActivityRepository.save(activity);
-        log.info("Risk operation activity has been saved.");
+        log.info("Risk operation activity has been saved. userId={}", event.userId());
     }
 
     public void confirmPassword(Long userId, ConfirmPasswordDto confirmPasswordDto) {
         authBackendClient.verifyPassword(userId, confirmPasswordDto);
     }
 
-    @Cacheable(value = "riskOperationActivity", key = "#userId + ':' + #sort")
-    public List<RiskOperationActivityDto> getRiskActivity(Long userId, SortType sort) {
-        return getActivities(userId, sort, pageSize);
+    @Cacheable(value = "riskOperationActivity", key = "#userId + ':' + #sort + ':' + #page")
+    public List<RiskOperationActivityDto> getRiskActivity(Long userId, SortType sort, int page) {
+        return getActivities(userId, sort, page, pageSize);
     }
 
     @Override
@@ -85,6 +83,8 @@ public class RiskOperationLogService extends AccountActivityCore<RiskOperationAc
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        riskOperationActivityRepository.deleteByUserId(userId);
+        List<RiskOperationActivity> activities = riskOperationActivityRepository.findAllByUserId(userId);
+        riskOperationActivityRepository.deleteAll(activities);
+        log.info("Deleted risk operation activity for userId={}", userId);
     }
 }

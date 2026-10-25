@@ -169,7 +169,7 @@ class AccountChangeArchiveServiceTest {
                     .thenReturn(List.of(accountChangeArchive));
             when(accountChangeArchiveMapper.mapToDto(accountChangeArchive)).thenReturn(accountChangeArchiveDto);
 
-            List<AccountChangeArchiveDto> result = accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT);
+            List<AccountChangeArchiveDto> result = accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT,1 );
 
             assertEquals(List.of(accountChangeArchiveDto), result);
         }
@@ -180,7 +180,7 @@ class AccountChangeArchiveServiceTest {
             when(accountChangeArchiveRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenReturn(List.of());
 
-            accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT);
+            accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT, 1);
 
             verify(accountChangeArchiveRepository).findByUserId(eq(USER_ID), pageableCaptor.capture());
             assertEquals(PAGE_SIZE, pageableCaptor.getValue().getPageSize());
@@ -191,7 +191,7 @@ class AccountChangeArchiveServiceTest {
             when(accountChangeArchiveRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenReturn(List.of());
 
-            List<AccountChangeArchiveDto> result = accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT);
+            List<AccountChangeArchiveDto> result = accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT, 1);
 
             assertTrue(result.isEmpty());
             verifyNoInteractions(accountChangeArchiveMapper);
@@ -202,7 +202,7 @@ class AccountChangeArchiveServiceTest {
             when(accountChangeArchiveRepository.findByUserId(eq(USER_ID), any(Pageable.class)))
                     .thenThrow(new IllegalStateException());
 
-            assertThrows(IllegalStateException.class, () -> accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT));
+            assertThrows(IllegalStateException.class, () -> accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT, 1));
         }
 
         @Test
@@ -211,7 +211,7 @@ class AccountChangeArchiveServiceTest {
                     .thenReturn(List.of(accountChangeArchive));
             when(accountChangeArchiveMapper.mapToDto(accountChangeArchive)).thenThrow(new IllegalArgumentException());
 
-            assertThrows(IllegalArgumentException.class, () -> accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT));
+            assertThrows(IllegalArgumentException.class, () -> accountChangeArchiveService.getAccountChangeArchive(USER_ID, SORT, 1));
         }
     }
 
@@ -220,21 +220,28 @@ class AccountChangeArchiveServiceTest {
 
         @Test
         void shouldDeleteArchivesWhenUserIdIsProvided() {
+            when(accountChangeArchiveRepository.findAllByUserId(USER_ID)).thenReturn(List.of(accountChangeArchive));
+
             accountChangeArchiveService.deleteByUserId(USER_ID);
 
-            verify(accountChangeArchiveRepository).deleteByUserId(USER_ID);
+            verify(accountChangeArchiveRepository).findAllByUserId(USER_ID);
+            verify(accountChangeArchiveRepository).deleteAll(List.of(accountChangeArchive));
         }
 
         @Test
         void shouldDeleteArchivesWhenUserIdIsNull() {
+            when(accountChangeArchiveRepository.findAllByUserId(null)).thenReturn(List.of());
+
             accountChangeArchiveService.deleteByUserId(null);
 
-            verify(accountChangeArchiveRepository).deleteByUserId(null);
+            verify(accountChangeArchiveRepository).findAllByUserId(null);
+            verify(accountChangeArchiveRepository).deleteAll(List.of());
         }
 
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
-            doThrow(new IllegalStateException()).when(accountChangeArchiveRepository).deleteByUserId(USER_ID);
+            when(accountChangeArchiveRepository.findAllByUserId(USER_ID)).thenReturn(List.of(accountChangeArchive));
+            doThrow(new IllegalStateException()).when(accountChangeArchiveRepository).deleteAll(List.of(accountChangeArchive));
 
             assertThrows(IllegalStateException.class, () -> accountChangeArchiveService.deleteByUserId(USER_ID));
         }

@@ -2,16 +2,15 @@ package com.finovara.financeservice.settings.finances.recurring.service.occurren
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.util.PeriodType;
-import com.finovara.contracts.util.model.ExpenseCategory;
-import com.finovara.contracts.util.model.RevenueCategory;
+import com.finovara.contracts.util.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.dto.RecurringOccurrenceDto;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import com.finovara.contracts.util.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -20,188 +19,224 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RecurringOccurrenceServiceTest {
 
     private static final Long USER_ID = 1L;
-    private static final long MAX_RANGE_DAYS = 180;
+    private static final long MAX_RANGE_DAYS = 100000L;
+    private static final PeriodType PERIOD_TYPE = PeriodType.values()[0];
+    private static final LocalDate DATE_1 = LocalDate.of(2025, 1, 1);
+    private static final LocalDate DATE_2 = PERIOD_TYPE.addPeriod(DATE_1);
+    private static final LocalDate DATE_3 = PERIOD_TYPE.addPeriod(DATE_2);
+    private static final LocalDate DATE_4 = PERIOD_TYPE.addPeriod(DATE_3);
 
     @Mock
     private RecurringSettingsRepository recurringSettingsRepository;
 
-    private RecurringOccurrenceService recurringOccurrenceService;
+    @Mock
+    private RecurringSettings rule;
+
+    @Mock
+    private RecurringSettings otherRule;
+
+    @InjectMocks
+    private RecurringOccurrenceService service;
 
     @BeforeEach
     void setUp() {
-        recurringOccurrenceService = new RecurringOccurrenceService(recurringSettingsRepository);
-        ReflectionTestUtils.setField(recurringOccurrenceService, "maxRangeDay", MAX_RANGE_DAYS);
-    }
-
-    private RecurringSettings buildExpenseRule(LocalDate nextExecutionDate, LocalDate endDate, PeriodType periodType) {
-        RecurringSettings settings = new RecurringSettings();
-        settings.setId(1L);
-        settings.setUserId(USER_ID);
-        settings.setType(RecurringType.EXPENSE);
-        settings.setEnable(true);
-        settings.setAmount(BigDecimal.valueOf(250));
-        settings.setExpenseCategory(ExpenseCategory.HOUSING);
-        settings.setPeriodType(periodType);
-        settings.setNextExecutionDate(nextExecutionDate);
-        settings.setEndDate(endDate);
-        return settings;
+        ReflectionTestUtils.setField(service, "maxRangeDay", MAX_RANGE_DAYS);
     }
 
     @Nested
-    class ValidateDateRange {
+    class GetUpcomingOccurrences {
 
         @Test
-        void shouldThrowWhenFromIsAfterTo() {
-            LocalDate from = LocalDate.of(2026, 8, 10);
-            LocalDate to = LocalDate.of(2026, 8, 1);
-
-            assertThrows(InvalidInputException.class,
-                    () -> recurringOccurrenceService.getUpcomingOccurrences(USER_ID, from, to));
-        }
-
-        @Test
-        void shouldThrowWhenRangeExceedsMaxDays() {
-            LocalDate from = LocalDate.of(2026, 1, 1);
-            LocalDate to = from.plusDays(MAX_RANGE_DAYS + 1);
-
-            assertThrows(InvalidInputException.class,
-                    () -> recurringOccurrenceService.getUpcomingOccurrences(USER_ID, from, to));
-        }
-
-        @Test
-        void shouldNotThrowWhenRangeIsExactlyMaxDays() {
-            LocalDate from = LocalDate.of(2026, 1, 1);
-            LocalDate to = from.plusDays(MAX_RANGE_DAYS);
-
+        void shouldReturnEmptyListWhenNoEnabledRulesExist() {
             when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of());
 
-            assertThat(recurringOccurrenceService.getUpcomingOccurrences(USER_ID, from, to)).isEmpty();
-        }
-    }
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_3);
 
-    @Nested
-    class GenerateOccurrences {
+            assertTrue(result.isEmpty());
+            verify(recurringSettingsRepository).findAllEnabledByUserId(USER_ID);
+        }
 
         @Test
-        void shouldGenerateMonthlyOccurrencesWithinRange() {
-            RecurringSettings rule = buildExpenseRule(
-                    LocalDate.of(2026, 8, 5), null, PeriodType.MONTHLY);
-
+        void shouldReturnOccurrenceMappedFromRuleWhenRuleFallsInRange() {
             when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rule));
+            when(rule.getNextExecutionDate()).thenReturn(DATE_1);
+            when(rule.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(rule.getEndDate()).thenReturn(null);
+            when(rule.getType()).thenReturn(RecurringType.EXPENSE);
+            when(rule.getId()).thenReturn(10L);
+            when(rule.getPiggyBankId()).thenReturn(20L);
+            when(rule.getAmount()).thenReturn(BigDecimal.TEN);
 
-            List<RecurringOccurrenceDto> result = recurringOccurrenceService.getUpcomingOccurrences(
-                    USER_ID, LocalDate.of(2026, 8, 1), LocalDate.of(2026, 10, 31));
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_1);
 
-            assertThat(result).extracting(RecurringOccurrenceDto::date)
-                    .containsExactly(
-                            LocalDate.of(2026, 8, 5),
-                            LocalDate.of(2026, 9, 5),
-                            LocalDate.of(2026, 10, 5)
-                    );
+            assertEquals(List.of(new RecurringOccurrenceDto(DATE_1, RecurringType.EXPENSE, BigDecimal.TEN, null, null, 10L, 20L)), result);
         }
 
         @Test
-        void shouldExcludeOccurrencesBeforeFromDate() {
-            RecurringSettings rule = buildExpenseRule(
-                    LocalDate.of(2026, 7, 5), null, PeriodType.MONTHLY);
-
+        void shouldReturnOnlyOccurrencesFromRangeStartWhenNextExecutionIsBeforeFrom() {
             when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rule));
+            when(rule.getNextExecutionDate()).thenReturn(DATE_1);
+            when(rule.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(rule.getEndDate()).thenReturn(null);
 
-            List<RecurringOccurrenceDto> result = recurringOccurrenceService.getUpcomingOccurrences(
-                    USER_ID, LocalDate.of(2026, 8, 1), LocalDate.of(2026, 9, 30));
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_2, DATE_3);
 
-            assertThat(result).extracting(RecurringOccurrenceDto::date)
-                    .containsExactly(LocalDate.of(2026, 8, 5), LocalDate.of(2026, 9, 5));
+            assertEquals(List.of(DATE_2, DATE_3), result.stream().map(RecurringOccurrenceDto::date).toList());
         }
 
         @Test
-        void shouldStopGeneratingAfterEndDate() {
-            RecurringSettings rule = buildExpenseRule(
-                    LocalDate.of(2026, 8, 5), LocalDate.of(2026, 9, 5), PeriodType.MONTHLY);
-
+        void shouldStopGeneratingOccurrencesWhenEndDateIsReached() {
             when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rule));
+            when(rule.getNextExecutionDate()).thenReturn(DATE_1);
+            when(rule.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(rule.getEndDate()).thenReturn(DATE_3);
 
-            List<RecurringOccurrenceDto> result = recurringOccurrenceService.getUpcomingOccurrences(
-                    USER_ID, LocalDate.of(2026, 8, 1), LocalDate.of(2026, 12, 31));
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_4);
 
-            assertThat(result).extracting(RecurringOccurrenceDto::date)
-                    .containsExactly(LocalDate.of(2026, 8, 5), LocalDate.of(2026, 9, 5));
+            assertEquals(List.of(DATE_1, DATE_2, DATE_3), result.stream().map(RecurringOccurrenceDto::date).toList());
         }
 
         @Test
-        void shouldReturnEmptyListWhenEndDateIsBeforeFrom() {
-            RecurringSettings rule = buildExpenseRule(
-                    LocalDate.of(2026, 8, 5), LocalDate.of(2026, 8, 5), PeriodType.MONTHLY);
-
+        void shouldReturnSingleOccurrenceWhenEndDateEqualsNextExecutionDate() {
             when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rule));
+            when(rule.getNextExecutionDate()).thenReturn(DATE_1);
+            when(rule.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(rule.getEndDate()).thenReturn(DATE_1);
 
-            List<RecurringOccurrenceDto> result = recurringOccurrenceService.getUpcomingOccurrences(
-                    USER_ID, LocalDate.of(2026, 9, 1), LocalDate.of(2026, 10, 31));
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_3);
 
-            assertThat(result).isEmpty();
+            assertEquals(List.of(DATE_1), result.stream().map(RecurringOccurrenceDto::date).toList());
         }
 
         @Test
-        void shouldMergeAndSortOccurrencesFromMultipleRules() {
-            RecurringSettings rent = buildExpenseRule(LocalDate.of(2026, 8, 5), null, PeriodType.MONTHLY);
-
-            RecurringSettings salary = new RecurringSettings();
-            salary.setId(2L);
-            salary.setUserId(USER_ID);
-            salary.setType(RecurringType.REVENUE);
-            salary.setEnable(true);
-            salary.setAmount(BigDecimal.valueOf(3000));
-            salary.setRevenueCategory(RevenueCategory.SALARY);
-            salary.setPeriodType(PeriodType.MONTHLY);
-            salary.setNextExecutionDate(LocalDate.of(2026, 8, 10));
-            salary.setEndDate(null);
-
-            when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rent, salary));
-
-            List<RecurringOccurrenceDto> result = recurringOccurrenceService.getUpcomingOccurrences(
-                    USER_ID, LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 31));
-
-            assertThat(result).extracting(RecurringOccurrenceDto::date)
-                    .containsExactly(LocalDate.of(2026, 8, 5), LocalDate.of(2026, 8, 10));
-        }
-
-        @Test
-        void shouldMapAllFieldsToOccurrenceDto() {
-            RecurringSettings rule = buildExpenseRule(LocalDate.of(2026, 8, 5), null, PeriodType.MONTHLY);
-            rule.setPiggyBankId(99L);
-
+        void shouldReturnEmptyListWhenNextExecutionIsAfterRangeEnd() {
             when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rule));
+            when(rule.getNextExecutionDate()).thenReturn(DATE_3);
+            when(rule.getPeriodType()).thenReturn(PERIOD_TYPE);
 
-            List<RecurringOccurrenceDto> result = recurringOccurrenceService.getUpcomingOccurrences(
-                    USER_ID, LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 31));
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_2);
 
-            assertThat(result).hasSize(1);
-            RecurringOccurrenceDto occurrence = result.getFirst();
-            assertThat(occurrence.date()).isEqualTo(LocalDate.of(2026, 8, 5));
-            assertThat(occurrence.type()).isEqualTo(RecurringType.EXPENSE);
-            assertThat(occurrence.amount()).isEqualByComparingTo(BigDecimal.valueOf(250));
-            assertThat(occurrence.expenseCategory()).isEqualTo(ExpenseCategory.HOUSING);
-            assertThat(occurrence.revenueCategory()).isNull();
-            assertThat(occurrence.recurringSettingsId()).isEqualTo(1L);
-            assertThat(occurrence.piggyBankId()).isEqualTo(99L);
+            assertTrue(result.isEmpty());
         }
 
         @Test
-        void shouldReturnEmptyListWhenNoActiveRulesExist() {
+        void shouldReturnEmptyListWhenAllOccurrencesAreBeforeRangeStart() {
+            when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rule));
+            when(rule.getNextExecutionDate()).thenReturn(DATE_1);
+            when(rule.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(rule.getEndDate()).thenReturn(DATE_1);
+
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_2, DATE_3);
+
+            assertTrue(result.isEmpty());
+        }
+
+        @Test
+        void shouldSkipRuleWhenNextExecutionDateIsNull() {
+            when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rule));
+            when(rule.getNextExecutionDate()).thenReturn(null);
+
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_3);
+
+            assertTrue(result.isEmpty());
+        }
+
+        @Test
+        void shouldSkipRuleWhenPeriodTypeIsNull() {
+            when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rule));
+            when(rule.getNextExecutionDate()).thenReturn(DATE_1);
+            when(rule.getPeriodType()).thenReturn(null);
+
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_3);
+
+            assertTrue(result.isEmpty());
+        }
+
+        @Test
+        void shouldReturnOccurrencesSortedByDateWhenMultipleRulesExist() {
+            when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rule, otherRule));
+            when(rule.getNextExecutionDate()).thenReturn(DATE_2);
+            when(rule.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(rule.getEndDate()).thenReturn(null);
+            when(otherRule.getNextExecutionDate()).thenReturn(DATE_1);
+            when(otherRule.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(otherRule.getEndDate()).thenReturn(null);
+
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_3);
+
+            assertEquals(
+                    List.of(DATE_1, DATE_2, DATE_2, DATE_3, DATE_3),
+                    result.stream().map(RecurringOccurrenceDto::date).toList()
+            );
+        }
+
+        @Test
+        void shouldIgnoreInvalidRuleAndProcessValidRuleWhenRulesAreMixed() {
+            when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rule, otherRule));
+            when(rule.getNextExecutionDate()).thenReturn(null);
+            when(otherRule.getNextExecutionDate()).thenReturn(DATE_1);
+            when(otherRule.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(otherRule.getEndDate()).thenReturn(null);
+
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_2);
+
+            assertEquals(List.of(DATE_1, DATE_2), result.stream().map(RecurringOccurrenceDto::date).toList());
+        }
+
+        @Test
+        void shouldLimitOccurrencesToMaximumPerRuleWhenRangeIsVeryLarge() {
+            ReflectionTestUtils.setField(service, "maxRangeDay", Long.MAX_VALUE);
+            when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of(rule));
+            when(rule.getNextExecutionDate()).thenReturn(DATE_1);
+            when(rule.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(rule.getEndDate()).thenReturn(null);
+
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, LocalDate.of(9999, 12, 31));
+
+            assertEquals(1000, result.size());
+        }
+
+        @Test
+        void shouldAcceptRangeWhenFromEqualsTo() {
             when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of());
 
-            List<RecurringOccurrenceDto> result = recurringOccurrenceService.getUpcomingOccurrences(
-                    USER_ID, LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 31));
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_1);
 
-            assertThat(result).isEmpty();
+            assertTrue(result.isEmpty());
+        }
+
+        @Test
+        void shouldAcceptRangeWhenRangeEqualsMaxRangeDays() {
+            when(recurringSettingsRepository.findAllEnabledByUserId(USER_ID)).thenReturn(List.of());
+
+            List<RecurringOccurrenceDto> result = service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_1.plusDays(MAX_RANGE_DAYS));
+
+            assertTrue(result.isEmpty());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenFromIsAfterTo() {
+            assertThrows(InvalidInputException.class, () -> service.getUpcomingOccurrences(USER_ID, DATE_1.plusDays(1), DATE_1));
+
+            verifyNoInteractions(recurringSettingsRepository);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRangeExceedsMaxRangeDays() {
+            assertThrows(InvalidInputException.class, () -> service.getUpcomingOccurrences(USER_ID, DATE_1, DATE_1.plusDays(MAX_RANGE_DAYS + 1)));
+
+            verifyNoInteractions(recurringSettingsRepository);
         }
     }
 }

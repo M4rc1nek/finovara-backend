@@ -23,18 +23,18 @@ public class RecurringRevenueService {
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Transactional
-    public void saveRevenueSettings(Long userId, RecurringRevenueDto dto) {
-        RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.REVENUE);
-        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
+    public void saveRevenueSettings(Long userId, RecurringRevenueDto recurringRevenueDto) {
+        authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(recurringRevenueDto.authorizationCode()));
 
-        settings.setRevenueCategory(dto.revenueCategory());
+        RecurringSettings settings = recurringSettingsSupport.getSettingsForUpdate(userId, RecurringType.REVENUE);
+        settings.setRevenueCategory(recurringRevenueDto.revenueCategory());
         settings.setExpenseCategory(null);
         settings.setPiggyBankId(null);
 
         recurringSettingsSupport.applyCommonFields(
                 userId,
                 settings,
-                new RecurringCommonFields(dto.enable(), dto.amount(), dto.periodType(), dto.startDate(), dto.endDate()),
+                new RecurringCommonFields(recurringRevenueDto.enable(), recurringRevenueDto.amount(), recurringRevenueDto.periodType(), recurringRevenueDto.startDate(), recurringRevenueDto.endDate()),
                 SettingType.REVENUE_RECURRING
         );
 
@@ -43,6 +43,7 @@ public class RecurringRevenueService {
         }
     }
 
+    @Transactional(readOnly = true)
     public RecurringRevenueDto getRevenueSettings(Long userId) {
         RecurringSettings settings = recurringSettingsSupport.getSettings(userId, RecurringType.REVENUE);
 
@@ -58,5 +59,3 @@ public class RecurringRevenueService {
         );
     }
 }
-
-

@@ -10,6 +10,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -40,6 +41,11 @@ public class SharedWalletService {
         return toDto(wallet);
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    public SharedWallet lockWalletForUpdate(Long callerId) {
+        return sharedWalletManager.getWalletForUpdateOrThrow(callerId);
+    }
+
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "wallet:shared", key = "#result.ownerId"),
@@ -68,7 +74,6 @@ public class SharedWalletService {
         return toDto(wallet);
     }
 
-    @Transactional
     @Cacheable(value = "wallet:shared", key = "#callerId")
     public SharedWalletDto getWallet(Long callerId) {
         return toDto(sharedWalletManager.getWalletOrThrow(callerId));

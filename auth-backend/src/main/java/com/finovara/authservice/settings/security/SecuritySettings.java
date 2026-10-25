@@ -1,6 +1,5 @@
 package com.finovara.authservice.settings.security;
 
-import com.finovara.authservice.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,12 +27,11 @@ public class SecuritySettings {
     private String additionalAuthorizationCode;
 
     private Integer additionalAuthorizationEmailCode;
-    private int  additionalAuthorizationAttempts;
+    private int additionalAuthorizationAttempts;
     private LocalDateTime additionalAuthorizationEmailCodeExpiresAt;
     private LocalDateTime additionalAuthorizationAttemptsExpiresAt;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User userAssigned;
+    @Version
+    private Long version;
 }
 

@@ -1,10 +1,10 @@
 package com.finovara.financeservice.sharedaccount.settings;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -13,8 +13,7 @@ public interface SharedAccountSettingsRepository extends JpaRepository<SharedAcc
     @Query("SELECT sa FROM SharedAccountSettings sa WHERE sa.ownerId = :userId OR sa.memberId = :userId")
     Optional<SharedAccountSettings> findByOwnerIdOrMemberId(Long userId);
 
-    @Modifying
-    @Query("DELETE FROM SharedAccountSettings sa WHERE sa.ownerId = :ownerId AND sa.memberId = :memberId")
-    void deleteByOwnerIdAndMemberId(Long ownerId, Long memberId);
+    @Query("SELECT e FROM SharedAccountSettings e WHERE e.ownerId = :ownerId AND e.memberId = :memberId")
+    List<SharedAccountSettings> findAllByOwnerIdAndMemberId(Long ownerId, Long memberId);
 
 }

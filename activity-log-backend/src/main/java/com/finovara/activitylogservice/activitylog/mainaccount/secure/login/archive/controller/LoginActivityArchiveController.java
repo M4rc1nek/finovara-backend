@@ -21,8 +21,10 @@ public class LoginActivityArchiveController {
     private final LoginActivityArchiveService archiveLoginActivityService;
 
     @GetMapping
-    public ResponseEntity<List<LoginActivityArchiveDto>> getLoginActivityArchive(@RequestParam(defaultValue = "NEWEST") SortType sortType) {
-        return ResponseEntity.ok(archiveLoginActivityService.getLoginActivityArchive(SecurityUtils.getCurrentUserId(), sortType));
+    public ResponseEntity<List<LoginActivityArchiveDto>> getLoginActivityArchive(
+            @RequestParam(defaultValue = "NEWEST") SortType sortType,
+            @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(archiveLoginActivityService.getLoginActivityArchive(SecurityUtils.getCurrentUserId(), sortType, page));
     }
 
 }

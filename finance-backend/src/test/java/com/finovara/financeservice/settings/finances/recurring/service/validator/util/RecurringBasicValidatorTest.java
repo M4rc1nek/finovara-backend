@@ -3,103 +3,114 @@ package com.finovara.financeservice.settings.finances.recurring.service.validato
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class RecurringBasicValidatorTest {
 
-    private RecurringBasicValidator recurringBasicValidator;
-    private RecurringSettings recurringSettings;
+    private static final Long USER_ID = 1L;
+    private static final String CATEGORY = "CATEGORY";
+    private static final PeriodType PERIOD_TYPE = PeriodType.values()[0];
+    private static final LocalDate START_DATE = LocalDate.of(2025, 1, 1);
+    private static final LocalDate END_DATE = LocalDate.of(2025, 12, 31);
 
-    @BeforeEach
-    void setUp() {
-        recurringBasicValidator = new RecurringBasicValidator();
+    @Mock
+    private RecurringSettings settings;
 
-        recurringSettings = new RecurringSettings();
-        recurringSettings.setAmount(BigDecimal.valueOf(100));
-        recurringSettings.setStartDate(LocalDate.of(2025, 1, 1));
-        recurringSettings.setEndDate(LocalDate.of(2026, 1, 1));
-        recurringSettings.setPeriodType(PeriodType.MONTHLY);
-    }
+    @InjectMocks
+    private RecurringBasicValidator validator;
 
     @Nested
     class ValidateBasics {
 
         @Test
-        void shouldPassValidationWhenAllFieldsAreValid() {
-            recurringSettings.setUserId(1L);
+        void shouldNotThrowWhenAllFieldsAreProvided() {
+            when(settings.getUserId()).thenReturn(USER_ID);
+            when(settings.getStartDate()).thenReturn(START_DATE);
+            when(settings.getEndDate()).thenReturn(END_DATE);
+            when(settings.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(settings.getAmount()).thenReturn(BigDecimal.TEN);
 
-            assertDoesNotThrow(() -> recurringBasicValidator.validateBasics(recurringSettings, "CATEGORY"));
+            assertDoesNotThrow(() -> validator.validateBasics(settings, CATEGORY));
         }
 
         @Test
         void shouldThrowExceptionWhenUserIsNull() {
-            recurringSettings.setUserId(null);
+            when(settings.getUserId()).thenReturn(null);
 
-            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
-                    () -> recurringBasicValidator.validateBasics(recurringSettings, "CATEGORY"));
+            InvalidInputException exception = assertThrows(InvalidInputException.class, () -> validator.validateBasics(settings, CATEGORY));
 
-            assertEquals("User is required", invalidInputException.getMessage());
+            assertEquals("User is required", exception.getMessage());
         }
 
         @Test
         void shouldThrowExceptionWhenStartDateIsNull() {
-            recurringSettings.setUserId(1L);
-            recurringSettings.setStartDate(null);
+            when(settings.getUserId()).thenReturn(USER_ID);
+            when(settings.getStartDate()).thenReturn(null);
 
-            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
-                    () -> recurringBasicValidator.validateBasics(recurringSettings, "CATEGORY"));
+            InvalidInputException exception = assertThrows(InvalidInputException.class, () -> validator.validateBasics(settings, CATEGORY));
 
-            assertEquals("Start date is required", invalidInputException.getMessage());
+            assertEquals("Start date is required", exception.getMessage());
         }
 
         @Test
         void shouldThrowExceptionWhenEndDateIsNull() {
-            recurringSettings.setUserId(1L);
-            recurringSettings.setEndDate(null);
+            when(settings.getUserId()).thenReturn(USER_ID);
+            when(settings.getStartDate()).thenReturn(START_DATE);
+            when(settings.getEndDate()).thenReturn(null);
 
-            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
-                    () -> recurringBasicValidator.validateBasics(recurringSettings, "CATEGORY"));
+            InvalidInputException exception = assertThrows(InvalidInputException.class, () -> validator.validateBasics(settings, CATEGORY));
 
-            assertEquals("End date is required", invalidInputException.getMessage());
+            assertEquals("End date is required", exception.getMessage());
         }
 
         @Test
         void shouldThrowExceptionWhenCategoryIsNull() {
-            recurringSettings.setUserId(1L);
+            when(settings.getUserId()).thenReturn(USER_ID);
+            when(settings.getStartDate()).thenReturn(START_DATE);
+            when(settings.getEndDate()).thenReturn(END_DATE);
 
-            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
-                    () -> recurringBasicValidator.validateBasics(recurringSettings, null));
+            InvalidInputException exception = assertThrows(InvalidInputException.class, () -> validator.validateBasics(settings, null));
 
-            assertEquals("Category is required", invalidInputException.getMessage());
+            assertEquals("Category is required", exception.getMessage());
         }
 
         @Test
         void shouldThrowExceptionWhenPeriodTypeIsNull() {
-            recurringSettings.setUserId(1L);
-            recurringSettings.setPeriodType(null);
+            when(settings.getUserId()).thenReturn(USER_ID);
+            when(settings.getStartDate()).thenReturn(START_DATE);
+            when(settings.getEndDate()).thenReturn(END_DATE);
+            when(settings.getPeriodType()).thenReturn(null);
 
-            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
-                    () -> recurringBasicValidator.validateBasics(recurringSettings, "CATEGORY"));
+            InvalidInputException exception = assertThrows(InvalidInputException.class, () -> validator.validateBasics(settings, CATEGORY));
 
-            assertEquals("Frequency is required", invalidInputException.getMessage());
+            assertEquals("Frequency is required", exception.getMessage());
         }
 
         @Test
         void shouldThrowExceptionWhenAmountIsNull() {
-            recurringSettings.setUserId(1L);
-            recurringSettings.setAmount(null);
+            when(settings.getUserId()).thenReturn(USER_ID);
+            when(settings.getStartDate()).thenReturn(START_DATE);
+            when(settings.getEndDate()).thenReturn(END_DATE);
+            when(settings.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(settings.getAmount()).thenReturn(null);
 
-            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
-                    () -> recurringBasicValidator.validateBasics(recurringSettings, "CATEGORY"));
+            InvalidInputException exception = assertThrows(InvalidInputException.class, () -> validator.validateBasics(settings, CATEGORY));
 
-            assertEquals("Amount is required", invalidInputException.getMessage());
+            assertEquals("Amount is required", exception.getMessage());
         }
     }
 
@@ -107,64 +118,69 @@ class RecurringBasicValidatorTest {
     class ValidateBasicsWithoutCategory {
 
         @Test
-        void shouldPassValidationWhenAllFieldsAreValid() {
-            recurringSettings.setUserId(1L);
+        void shouldNotThrowWhenAllFieldsAreProvided() {
+            when(settings.getUserId()).thenReturn(USER_ID);
+            when(settings.getStartDate()).thenReturn(START_DATE);
+            when(settings.getEndDate()).thenReturn(END_DATE);
+            when(settings.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(settings.getAmount()).thenReturn(BigDecimal.TEN);
 
-            assertDoesNotThrow(() -> recurringBasicValidator.validateBasicsWithoutCategory(recurringSettings));
+            assertDoesNotThrow(() -> validator.validateBasicsWithoutCategory(settings));
         }
 
         @Test
         void shouldThrowExceptionWhenUserIsNull() {
-            recurringSettings.setUserId(null);
+            when(settings.getUserId()).thenReturn(null);
 
-            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
-                    () -> recurringBasicValidator.validateBasicsWithoutCategory(recurringSettings));
+            InvalidInputException exception = assertThrows(InvalidInputException.class, () -> validator.validateBasicsWithoutCategory(settings));
 
-            assertEquals("User is required", invalidInputException.getMessage());
+            assertEquals("User is required", exception.getMessage());
         }
 
         @Test
         void shouldThrowExceptionWhenStartDateIsNull() {
-            recurringSettings.setUserId(1L);
-            recurringSettings.setStartDate(null);
+            when(settings.getUserId()).thenReturn(USER_ID);
+            when(settings.getStartDate()).thenReturn(null);
 
-            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
-                    () -> recurringBasicValidator.validateBasicsWithoutCategory(recurringSettings));
+            InvalidInputException exception = assertThrows(InvalidInputException.class, () -> validator.validateBasicsWithoutCategory(settings));
 
-            assertEquals("Start date is required", invalidInputException.getMessage());
+            assertEquals("Start date is required", exception.getMessage());
         }
 
         @Test
         void shouldThrowExceptionWhenEndDateIsNull() {
-            recurringSettings.setUserId(1L);
-            recurringSettings.setEndDate(null);
+            when(settings.getUserId()).thenReturn(USER_ID);
+            when(settings.getStartDate()).thenReturn(START_DATE);
+            when(settings.getEndDate()).thenReturn(null);
 
-            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
-                    () -> recurringBasicValidator.validateBasics(recurringSettings, "CATEGORY"));
+            InvalidInputException exception = assertThrows(InvalidInputException.class, () -> validator.validateBasicsWithoutCategory(settings));
 
-            assertEquals("End date is required", invalidInputException.getMessage());
+            assertEquals("End date is required", exception.getMessage());
         }
 
         @Test
         void shouldThrowExceptionWhenPeriodTypeIsNull() {
-            recurringSettings.setUserId(1L);
-            recurringSettings.setPeriodType(null);
+            when(settings.getUserId()).thenReturn(USER_ID);
+            when(settings.getStartDate()).thenReturn(START_DATE);
+            when(settings.getEndDate()).thenReturn(END_DATE);
+            when(settings.getPeriodType()).thenReturn(null);
 
-            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
-                    () -> recurringBasicValidator.validateBasicsWithoutCategory(recurringSettings));
+            InvalidInputException exception = assertThrows(InvalidInputException.class, () -> validator.validateBasicsWithoutCategory(settings));
 
-            assertEquals("Frequency is required", invalidInputException.getMessage());
+            assertEquals("Frequency is required", exception.getMessage());
         }
 
         @Test
         void shouldThrowExceptionWhenAmountIsNull() {
-            recurringSettings.setUserId(1L);
-            recurringSettings.setAmount(null);
+            when(settings.getUserId()).thenReturn(USER_ID);
+            when(settings.getStartDate()).thenReturn(START_DATE);
+            when(settings.getEndDate()).thenReturn(END_DATE);
+            when(settings.getPeriodType()).thenReturn(PERIOD_TYPE);
+            when(settings.getAmount()).thenReturn(null);
 
-            InvalidInputException invalidInputException = assertThrows(InvalidInputException.class,
-                    () -> recurringBasicValidator.validateBasicsWithoutCategory(recurringSettings));
+            InvalidInputException exception = assertThrows(InvalidInputException.class, () -> validator.validateBasicsWithoutCategory(settings));
 
-            assertEquals("Amount is required", invalidInputException.getMessage());
+            assertEquals("Amount is required", exception.getMessage());
         }
     }
 }

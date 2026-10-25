@@ -12,5 +12,5 @@ public interface ExpenseActivityRepository extends JpaRepository<ExpenseActivity
 
     List<ExpenseActivity> findByUserId(Long userId, Pageable pageable);
 
-    void deleteByUserId(Long userId);
+    List<ExpenseActivity> findAllByUserId(Long userId);
 }

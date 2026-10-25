@@ -23,13 +23,13 @@ public class FinanceHistoryController {
     private final EvictFinanceDataHistoryService evictFinanceDataHistoryService;
 
     @GetMapping("/revenue")
-    public ResponseEntity<List<RevenueDto>> getRevenueHistory(@RequestParam PeriodType periodType, @RequestParam RevenueCategory category) {
-        return ResponseEntity.ok(financeHistoryService.getRevenueByCategory(SecurityUtils.getCurrentUserId(), periodType, category));
+    public ResponseEntity<List<RevenueDto>> getRevenueHistory(@RequestParam PeriodType periodType, @RequestParam RevenueCategory category, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(financeHistoryService.getRevenueByCategory(SecurityUtils.getCurrentUserId(), periodType, category, page));
     }
 
     @GetMapping("/expense")
-    public ResponseEntity<List<ExpenseDto>> getExpenseHistory(@RequestParam PeriodType periodType, @RequestParam ExpenseCategory category) {
-        return ResponseEntity.ok(financeHistoryService.getExpenseByCategory(SecurityUtils.getCurrentUserId(), periodType, category));
+    public ResponseEntity<List<ExpenseDto>> getExpenseHistory(@RequestParam PeriodType periodType, @RequestParam ExpenseCategory category, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(financeHistoryService.getExpenseByCategory(SecurityUtils.getCurrentUserId(), periodType, category, page));
     }
 
     @PostMapping("/revenue/refresh")

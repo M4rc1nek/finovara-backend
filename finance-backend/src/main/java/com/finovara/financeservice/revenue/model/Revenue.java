@@ -20,12 +20,23 @@ public class Revenue {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
+
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private RevenueCategory category;
+
+    @Column(nullable = false)
     private LocalDate createdAt;
+
+    @Column(length = 500)
     private String description;
+
+    @Version
+    private Long version;
 
     @Column(nullable = false)
     private Long userId;
+
 }

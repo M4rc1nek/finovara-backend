@@ -15,7 +15,6 @@ import com.finovara.contracts.util.SortType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -53,9 +52,9 @@ public class AccountChangeActivityService extends SecurityActivityCore<AccountCh
         moveToArchive(event.userId(), pageSize);
     }
 
-    @Cacheable(value = "accountChangeActivity", key = "#userId + ':' + #sort")
-    public List<AccountChangeActivityDto> getAccountChangeActivity(Long userId, SortType sort) {
-        return getActivities(userId, sort, pageSize);
+    @Cacheable(value = "accountChangeActivity", key = "#userId + ':' + #sort + ':' + #page")
+    public List<AccountChangeActivityDto> getAccountChangeActivity(Long userId, SortType sort, int page) {
+        return getActivities(userId, sort, page, pageSize);
     }
 
     public void confirmPassword(Long userId, ConfirmPasswordDto confirmPasswordDto) {
@@ -78,13 +77,8 @@ public class AccountChangeActivityService extends SecurityActivityCore<AccountCh
     }
 
     @Override
-    protected long countActivities(Long userId) {
-        return accountChangeActivityRepository.countAccountChangesByUserId(userId);
-    }
-
-    @Override
-    protected List<AccountChangeActivity> findActivitiesToArchive(Long userId, int pageSize) {
-        return accountChangeActivityRepository.findFewByUserId(userId, PageRequest.of(0, pageSize));
+    protected List<AccountChangeActivity> findOldestForArchive(Long userId, int limit) {
+        return accountChangeActivityRepository.findOldestForArchive(userId, PageRequest.of(0, limit));
     }
 
     @Override
@@ -105,7 +99,8 @@ public class AccountChangeActivityService extends SecurityActivityCore<AccountCh
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        accountChangeActivityRepository.deleteByUserId(userId);
+        List<AccountChangeActivity> activities = accountChangeActivityRepository.findAllByUserId(userId);
+        accountChangeActivityRepository.deleteAll(activities);
         log.info("Deleted account changes activity for userId={}", userId);
     }
 }

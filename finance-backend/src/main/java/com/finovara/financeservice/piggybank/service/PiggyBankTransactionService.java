@@ -41,16 +41,17 @@ public class PiggyBankTransactionService {
     @Transactional
     public void addBalanceToPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, PiggyBankActivityType piggyBankActivityType, String authorizationCode, String sourceEventId,
                                       HttpServletRequest servletRequest, TransactionOrigin origin) {
+        PiggyBankValidator.validateAmount(amount);
+
         if (origin == TransactionOrigin.USER_MANUAL) {
             riskGuardService.guard(userId, RiskTriggerType.PIGGY_BANK, amount, null,
                     authBackendClient.getUserEmail(userId), sourceEventId, servletRequest);
             authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         }
 
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
-
-        PiggyBankValidator.validateAmount(amount);
         walletService.removeBalanceFromWallet(userId, amount);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
+
         piggyBank.setAmount(piggyBank.getAmount().add(amount));
 
         BigDecimal percentage = calculatePercentage(piggyBank);
@@ -64,23 +65,23 @@ public class PiggyBankTransactionService {
         if (completed) {
             goalCompletionService.handleGoalCompletion(userId);
         }
-        goalPlannerService.checkAndMarkGoalCompletion(piggyBank.getGoalPlanner());
+        goalPlannerService.checkAndMarkGoalCompletion(piggyBank);
     }
 
     @Transactional
     public void removeBalanceFromPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, String authorizationCode,
                                            String sourceEventId, HttpServletRequest servletRequest) {
+        PiggyBankValidator.validateAmount(amount);
+
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         riskGuardService.guard(userId, RiskTriggerType.PIGGY_BANK, amount, null,
                 authBackendClient.getUserEmail(userId), sourceEventId, servletRequest);
 
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
-
-        PiggyBankValidator.validateAmount(amount);
-        PiggyBankValidator.validateSufficientFunds(piggyBank.getAmount(), amount);
-
-        piggyBank.setAmount(piggyBank.getAmount().subtract(amount));
         walletService.addBalanceToWallet(userId, amount);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
+
+        PiggyBankValidator.validateSufficientFunds(piggyBank.getAmount(), amount);
+        piggyBank.setAmount(piggyBank.getAmount().subtract(amount));
 
         BigDecimal percentage = calculatePercentage(piggyBank);
 
@@ -88,7 +89,7 @@ public class PiggyBankTransactionService {
                 new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
         outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.calculate-progress",
                 new PiggyBankProgressEvent(userId, piggyBankId, percentage, piggyBank.getGoalType(), piggyBank.getName()));
-        goalPlannerService.checkAndMarkGoalCompletion(piggyBank.getGoalPlanner());
+        goalPlannerService.checkAndMarkGoalCompletion(piggyBank);
     }
 
     private BigDecimal calculatePercentage(PiggyBank piggyBank) {

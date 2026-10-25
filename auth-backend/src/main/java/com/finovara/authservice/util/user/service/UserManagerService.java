@@ -1,5 +1,6 @@
 package com.finovara.authservice.util.user.service;
 
+import com.finovara.authservice.util.user.UserDataProjection;
 import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
@@ -17,10 +18,10 @@ public class UserManagerService {
 
     private final UserRepository userRepository;
 
-    public UserDataResponse getUserData(Long userId){
-        Optional<String> email = userRepository.findEmailById(userId);
-        Optional<String> username = userRepository.findUsernameById(userId);
-        return new UserDataResponse(userId, username, email);
+    public UserDataResponse getUserData(Long userId) {
+        UserDataProjection data = userRepository.findUserDataById(userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
+        return new UserDataResponse(userId, Optional.ofNullable(data.getUsername()), Optional.ofNullable(data.getEmail()));
     }
 
     public UserDataDto getUserDataWithProfileImg(Long userId) {
@@ -31,9 +32,7 @@ public class UserManagerService {
     }
 
     public List<Long> getAllUserIds() {
-        return userRepository.findAll().stream()
-                .map(User::getId)
-                .toList();
+        return userRepository.findAllUserIds();
     }
 
     public User getUserByIdOrThrow(Long userId) {

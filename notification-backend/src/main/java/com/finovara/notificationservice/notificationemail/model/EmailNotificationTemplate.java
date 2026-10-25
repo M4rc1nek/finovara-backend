@@ -7,8 +7,4 @@ public interface EmailNotificationTemplate {
     String getTemplatePath();
 
     EmailNotificationCategory getCategory();
-
-    default boolean requiresUserOptIn() {
-        return getCategory() == EmailNotificationCategory.PREFERENCE_BASED;
-    }
 }

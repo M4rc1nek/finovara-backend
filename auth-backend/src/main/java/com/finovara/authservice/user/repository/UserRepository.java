@@ -1,8 +1,9 @@
 package com.finovara.authservice.user.repository;
 
-import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.authservice.user.model.OAuthProvider;
 import com.finovara.authservice.user.model.User;
+import com.finovara.authservice.util.user.UserDataProjection;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,19 +26,27 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmailAndIdNot(String email, Long id);
 
+
+    @Query("SELECT COUNT(u) > 0 FROM User u WHERE LOWER(u.username) = LOWER(:username)")
+    boolean existsByUsernameIgnoreCase(String username);
+
+    @Query("SELECT COUNT(u) > 0 FROM User u WHERE LOWER(u.email) = LOWER(:email)")
+    boolean existsByEmailIgnoreCase(String email);
+
     @Query("""
-                SELECT new com.finovara.contracts.user.authorization.dto.UserDataDto(
-                    u.id, 
-                    u.username, 
-                    u.email, 
-                    u.profileImagePath
-                ) 
-                FROM User u 
-                WHERE (u.username LIKE %:query% OR u.email LIKE %:query%) 
-                  AND u.hasSharedAccount = false 
-                ORDER BY u.username ASC
+            SELECT new com.finovara.contracts.user.authorization.dto.UserDataDto(
+                u.id,
+                u.username,
+                u.email,
+                u.profileImagePath
+            )
+            FROM User u
+            WHERE (LOWER(u.username) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%')))
+            AND u.hasSharedAccount = false
+            AND u.id <> :userId
+            ORDER BY u.username ASC
             """)
-    List<UserDataDto> searchByUsernameOrEmail(String query, Pageable pageable);
+    List<UserDataDto> searchByUsernameOrEmail(String query, Long userId, Pageable pageable);
 
     @Query("""
                 SELECT new com.finovara.contracts.user.authorization.dto.UserDataDto(
@@ -53,4 +62,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u.email FROM User u WHERE u.id = :userId")
     Optional<String> findEmailById(Long userId);
+
+    @Query("SELECT u.id FROM User u")
+    List<Long> findAllUserIds();
+
+    @Query("""
+            SELECT u.username AS username, u.email AS email
+            FROM User u
+            WHERE u.id = :userId
+            """)
+    Optional<UserDataProjection> findUserDataById(Long userId);
 }

@@ -12,40 +12,40 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class LimitCalculateService {
     private final FinancialPeriodService financialPeriodService;
     private final LimitManagerService limitManagerService;
+    private final LimitSpendingService limitSpendingService;
     private final LimitMapper limitMapper;
 
     public LimitStatsDto calculateLimitStats(Limit limit, Long userId, LocalDate date) {
         BigDecimal spent = financialPeriodService.getExpensesSum(userId, limit.getPeriodType(), limit.getCategory());
-
-        BigDecimal remaining = limit.getAmount().subtract(spent);
-        if (remaining.compareTo(BigDecimal.ZERO) < 0) {
-            remaining = BigDecimal.ZERO;
-        }
-
-        BigDecimal percentage = CalculatePercentage.calculatePercentage(spent, limit.getAmount());
-        LimitStatus status = determineStatus(percentage);
-
-        return limitMapper.mapLimitStatsToDto(limit, spent, remaining, percentage, status, date);
+        return buildLimitStats(limit, spent, date);
     }
 
     public LimitStatsDto calculateLimitStats(Long userId, Long limitId, LocalDate date) {
         Limit limit = limitManagerService.getLimitByUserIdOrThrow(userId, limitId);
-
         return calculateLimitStats(limit, userId, date);
     }
 
-    private LimitStatus determineStatus(BigDecimal percentage) {
-        if (percentage.compareTo(BigDecimal.valueOf(80)) >= 0) return LimitStatus.HIGH;
-        if (percentage.compareTo(BigDecimal.valueOf(50)) >= 0) return LimitStatus.MEDIUM;
-        if (percentage.compareTo(BigDecimal.valueOf(25)) >= 0) return LimitStatus.LOW;
-        return LimitStatus.NONE;
+    public List<LimitStatsDto> calculateLimitStats(List<Limit> limits, Long userId, LocalDate date) {
+        Map<Long, BigDecimal> spentByLimitId = limitSpendingService.calculateSpent(userId, limits, date);
+
+        return limits.stream()
+                .map(limit -> buildLimitStats(limit, spentByLimitId.get(limit.getId()), date))
+                .toList();
     }
 
-}
+    public LimitStatsDto buildLimitStats(Limit limit, BigDecimal spent, LocalDate date) {
+        BigDecimal remaining = limit.getAmount().subtract(spent).max(BigDecimal.ZERO);
+        BigDecimal percentage = CalculatePercentage.calculatePercentage(spent, limit.getAmount());
+        LimitStatus status = LimitStatus.fromPercentage(percentage);
 
+        return limitMapper.mapLimitStatsToDto(limit, spent, remaining, percentage, status, date);
+    }
+}

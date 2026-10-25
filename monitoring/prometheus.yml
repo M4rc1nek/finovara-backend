@@ -35,3 +35,8 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['finovara-report-app:9105']
+
+  - job_name: 'security-monitoring-backend'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['finovara-security-monitoring-app:9106']

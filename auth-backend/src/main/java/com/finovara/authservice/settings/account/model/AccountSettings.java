@@ -1,6 +1,5 @@
 package com.finovara.authservice.settings.account.model;
 
-import com.finovara.authservice.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,17 +19,15 @@ public class AccountSettings {
 
     private Integer resetPasswordCode;
     private LocalDateTime resetPasswordCodeExpiresAt;
-    private int  passwordResetAttempts;
+    private int passwordResetAttempts;
     private LocalDateTime attemptsPasswordExpiresAt;
 
     private Integer emailChangeCode;
     private LocalDateTime emailChangeCodeExpiresAt;
     private String pendingEmail;
-    private int  emailChangeAttempts;
+    private int emailChangeAttempts;
     private LocalDateTime attemptsEmailExpiresAt;
 
-
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User userAssigned;
+    @Version
+    private Long version;
 }

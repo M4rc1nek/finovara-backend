@@ -1,7 +1,9 @@
 package com.finovara.authservice.sharedaccount.repository;
 
+import com.finovara.authservice.sharedaccount.dto.ExpiredInvitationDto;
 import com.finovara.authservice.sharedaccount.dto.InvitationResponse;
 import com.finovara.authservice.sharedaccount.model.SharedAccountInvitation;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -29,9 +31,22 @@ public interface SharedAccountInvitationRepository extends JpaRepository<SharedA
                 FROM SharedAccountInvitation i
                 JOIN User u ON u.id = i.inviterUserId
                 WHERE i.inviteeUserId = :userId
+                ORDER BY i.expiresAt DESC, i.id DESC
             """)
-    List<InvitationResponse> findInvitationWithInviterUsername(Long userId);
+    List<InvitationResponse> findInvitationWithInviterUsername(Long userId, Pageable pageable);
 
-    @Query("SELECT i FROM SharedAccountInvitation i WHERE i.expiresAt < :now")
-    List<SharedAccountInvitation> findAllExpired(LocalDateTime now);
+    @Query("SELECT i FROM SharedAccountInvitation i WHERE i.inviterUserId IN :userIds OR i.inviteeUserId IN :userIds")
+    List<SharedAccountInvitation> findAllInvolvingUsers(List<Long> userIds);
+
+    @Query("SELECT i FROM SharedAccountInvitation i WHERE i.id IN :ids")
+    List<SharedAccountInvitation> findByIds(List<Long> ids);
+
+    @Query("""
+            SELECT new com.finovara.authservice.sharedaccount.dto.ExpiredInvitationDto(i.id, i.inviterUserId, u.username)
+            FROM SharedAccountInvitation i
+            LEFT JOIN User u ON u.id = i.inviteeUserId
+            WHERE i.expiresAt < :now
+            ORDER BY i.id
+            """)
+    List<ExpiredInvitationDto> findExpired(LocalDateTime now, Pageable pageable);
 }

@@ -1,33 +1,41 @@
 package com.finovara.authservice.settings.account.repository;
 
 import com.finovara.authservice.settings.account.model.AccountSettings;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 @Repository
 public interface AccountRepository extends JpaRepository<AccountSettings, Long> {
 
-    @Modifying
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-                UPDATE AccountSettings a
-                SET a.emailChangeAttempts = a.emailChangeAttempts + 1
-                WHERE a.userAssigned.id = :userId AND a.emailChangeAttempts < :maxAttempts
+            SELECT a FROM AccountSettings a
+            WHERE a.id = (SELECT u.accountSettings.id FROM User u WHERE u.id = :userId)
             """)
-    int incrementEmailChangeAttempts(Long userId, int maxAttempts);
+    Optional<AccountSettings> findByUserIdForUpdate(Long userId);
 
-    @Modifying
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-                UPDATE AccountSettings a
-                SET a.passwordResetAttempts = a.passwordResetAttempts + 1
-                WHERE a.userAssigned.email = :email AND a.passwordResetAttempts < :maxAttempts
+            SELECT a FROM AccountSettings a
+            WHERE a.id = (SELECT u.accountSettings.id FROM User u WHERE LOWER(u.email) = LOWER(:email))
             """)
-    int incrementPasswordResetAttempts(String email, int maxAttempts);
+    Optional<AccountSettings> findByUserEmailForUpdate(String email);
 
-    @Query("SELECT a.emailChangeAttempts FROM AccountSettings a WHERE a.userAssigned.id = :userId")
+    @Query("""
+                SELECT a.emailChangeAttempts
+                FROM User u JOIN u.accountSettings a
+                WHERE u.id = :userId
+            """)
     int getEmailChangeAttemptsByUserId(Long userId);
 
-    @Query("SELECT a.passwordResetAttempts FROM AccountSettings a WHERE a.userAssigned.email = :email")
+    @Query("""
+                SELECT a.passwordResetAttempts
+                FROM User u JOIN u.accountSettings a
+                WHERE LOWER(u.email) = LOWER(:email)
+            """)
     int getPasswordResetAttemptsByUserEmail(String email);
 }

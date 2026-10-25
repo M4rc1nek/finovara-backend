@@ -10,6 +10,7 @@ import com.finovara.authservice.util.attempts.VerificationCodeVerifier;
 import com.finovara.authservice.util.authorization.generator.SecretGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -25,6 +26,7 @@ public class PasswordResetVerificationService {
     private final AccountRepository accountRepository;
     private final VerificationCodeProperties properties;
 
+    @Transactional
     public int generateCode(AccountSettings settings) {
         int code = secretGenerator.generateSecureCode();
         settings.setResetPasswordCode(code);
@@ -37,7 +39,7 @@ public class PasswordResetVerificationService {
         AttemptsContext context = new AttemptsContext(properties.getMaxAttempts(), properties.getAttemptsExpirationMinutes(), ATTEMPTS_EXCEEDED_MESSAGE);
 
         verificationCodeVerifier.verifyAttemptsOrThrow(settings.getResetPasswordCode(), settings.getResetPasswordCodeExpiresAt(),
-                providedCode, context, new PasswordResetAttemptsHandler(email, settings, accountRepository));
+                providedCode, context, new PasswordResetAttemptsHandler(email, accountRepository));
     }
 
     public AttemptsDto getCurrentAttempts(String email) {
@@ -45,6 +47,7 @@ public class PasswordResetVerificationService {
         return attemptsTemplate.getCurrent(context, accountRepository.getPasswordResetAttemptsByUserEmail(email));
     }
 
+    @Transactional
     public void removeCode(AccountSettings settings) {
         settings.setResetPasswordCode(null);
         settings.setResetPasswordCodeExpiresAt(null);

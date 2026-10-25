@@ -14,7 +14,7 @@ public class LimitManagerService {
     private final LimitRepository limitRepository;
 
     public List<Limit> getLimitsByUserId(Long userId) {
-        return limitRepository.findAllByUserId(userId);
+        return limitRepository.findAllActiveByUserId(userId);
     }
 
     public Limit getLimitByUserIdOrThrow(Long userId, Long limitId) {

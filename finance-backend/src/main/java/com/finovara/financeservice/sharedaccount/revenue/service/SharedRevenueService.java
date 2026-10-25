@@ -1,10 +1,10 @@
 package com.finovara.financeservice.sharedaccount.revenue.service;
 
+import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
 import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
-import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueDto;
@@ -13,11 +13,15 @@ import com.finovara.financeservice.sharedaccount.revenue.mapper.SharedRevenueMap
 import com.finovara.financeservice.sharedaccount.revenue.model.SharedRevenue;
 import com.finovara.financeservice.sharedaccount.revenue.repository.SharedRevenueRepository;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
+import com.finovara.financeservice.util.sharedaccount.SharedUsernameResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,78 +37,98 @@ public class SharedRevenueService {
     private final SharedRevenueRepository sharedRevenueRepository;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
     private final SharedWalletService sharedWalletService;
-    private final AuthBackendClient authBackendClient;
+    private final SharedUsernameResolver usernameResolver;
     private final OutboxService outboxService;
 
+    @Value("${finance.pagination.page-size}")
+    private int pageSize;
+
     @Transactional
-    public SharedRevenueResponse addSharedRevenue(SharedRevenueDto sharedRevenueDto, Long userId) {
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
-        String createdByUsername = authBackendClient.getUsername(userId);
+    public SharedRevenueResponse addSharedRevenue(SharedRevenueDto dto, Long userId) {
+        validateAmount(dto.amount());
 
-        SharedRevenue revenue = SharedRevenue.builder()
-                .amount(sharedRevenueDto.amount())
-                .category(sharedRevenueDto.category())
+        SharedAccountParticipantsResponse participants = sharedAccountParticipantsService.getParticipants(userId);
+        String createdByUsername = usernameResolver.resolve(List.of(userId)).get(userId);
+
+        sharedWalletService.addBalanceToWallet(userId, dto.amount());
+
+        SharedRevenue saved = sharedRevenueRepository.save(SharedRevenue.builder()
+                .amount(dto.amount())
+                .category(dto.category())
                 .createdAt(LocalDate.now())
-                .description(sharedRevenueDto.description())
-                .ownerId(sharedAccountParticipantsResponse.ownerId())
-                .memberId(sharedAccountParticipantsResponse.memberId())
+                .description(dto.description())
+                .ownerId(participants.ownerId())
+                .memberId(participants.memberId())
                 .createdByUserId(userId)
-                .build();
+                .build());
 
-        sharedWalletService.addBalanceToWallet(userId, revenue.getAmount());
-        SharedRevenue saved = sharedRevenueRepository.save(revenue);
-
-        outboxService.save("SharedAccountRevenue", saved.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.REVENUE_CREATED, LocalDateTime.now()));
-        return new SharedRevenueResponse(revenue.getId(), userId, createdByUsername);
+        logActivity(participants, userId, saved.getId(), SharedAccountActivityLogType.REVENUE_CREATED);
+        return new SharedRevenueResponse(saved.getId(), userId, createdByUsername);
     }
 
     @Transactional
-    public Long editRevenue(SharedRevenueDto sharedRevenueDto, Long revenueId, Long userId) {
-        SharedRevenue existingRevenue = getSharedRevenueByUserIdOrThrow(userId, revenueId);
+    public Long editRevenue(SharedRevenueDto dto, Long revenueId, Long userId) {
+        validateAmount(dto.amount());
 
-        sharedWalletService.addBalanceToWallet(userId, sharedRevenueDto.amount());
-        sharedWalletService.removeBalanceFromWallet(userId, existingRevenue.getAmount());
+        sharedWalletService.lockWalletForUpdate(userId);
+        SharedRevenue existing = getSharedRevenueByUserIdOrThrow(userId, revenueId);
 
-        existingRevenue.setAmount(sharedRevenueDto.amount());
-        existingRevenue.setCategory(sharedRevenueDto.category());
-        existingRevenue.setDescription(sharedRevenueDto.description());
+        applyWalletDelta(userId, existing.getAmount(), dto.amount());
 
-        SharedRevenue saved = sharedRevenueRepository.save(existingRevenue);
+        existing.setAmount(dto.amount());
+        existing.setCategory(dto.category());
+        existing.setDescription(dto.description());
 
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
-        outboxService.save("SharedAccountRevenue", saved.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, saved.getId(), SharedAccountActivityLogType.REVENUE_EDITED, LocalDateTime.now()));
+        logActivity(sharedAccountParticipantsService.getParticipants(userId), userId, revenueId, SharedAccountActivityLogType.REVENUE_EDITED);
 
         return revenueId;
     }
 
-    public List<SharedRevenueDto> getRevenue(Long userId) {
-        List<SharedRevenue> revenues = sharedRevenueRepository.findAllByOwnerIdOrMemberId(userId);
+    @Transactional(readOnly = true)
+    public List<SharedRevenueDto> getRevenue(Long userId, int page) {
+        List<SharedRevenue> revenues = sharedRevenueRepository.findAllByOwnerIdOrMemberId(userId, PageRequest.of(page, pageSize));
 
-        Map<Long, String> usernameById = revenues.stream()
-                .map(SharedRevenue::getCreatedByUserId)
-                .distinct()
-                .collect(Collectors.toMap(id -> id, authBackendClient::getUsername));
+        Map<Long, String> usernameById = usernameResolver.resolve(
+                revenues.stream().map(SharedRevenue::getCreatedByUserId).collect(Collectors.toSet()));
 
         return revenues.stream()
-                .map(r -> sharedRevenueMapper.mapToDto(r, usernameById.get(r.getCreatedByUserId())))
+                .map(revenue -> sharedRevenueMapper.mapToDto(revenue, usernameById.get(revenue.getCreatedByUserId())))
                 .toList();
     }
 
     @Transactional
     public void deleteRevenue(Long revenueId, Long userId) {
-        SharedRevenue sharedRevenue = getSharedRevenueByUserIdOrThrow(userId, revenueId);
-        sharedWalletService.removeBalanceFromWallet(userId, sharedRevenue.getAmount());
+        sharedWalletService.lockWalletForUpdate(userId);
+        SharedRevenue revenue = getSharedRevenueByUserIdOrThrow(userId, revenueId);
 
-        SharedAccountParticipantsResponse sharedAccountParticipantsResponse = sharedAccountParticipantsService.getParticipants(userId);
-        sharedRevenueRepository.delete(sharedRevenue);
-        outboxService.save("SharedAccountRevenue", sharedRevenue.getId().toString(), "shared-account.activity",
-                new SharedAccountActivityLogEvent(sharedAccountParticipantsResponse.ownerId(), sharedAccountParticipantsResponse.memberId(), userId, sharedRevenue.getId(), SharedAccountActivityLogType.REVENUE_DELETED, LocalDateTime.now()));
+        sharedWalletService.removeBalanceFromWallet(userId, revenue.getAmount());
+        sharedRevenueRepository.delete(revenue);
+
+        logActivity(sharedAccountParticipantsService.getParticipants(userId), userId, revenueId, SharedAccountActivityLogType.REVENUE_DELETED);
     }
 
     public SharedRevenue getSharedRevenueByUserIdOrThrow(Long userId, Long revenueId) {
         return sharedRevenueRepository.findByIdAndOwnerIdOrMemberId(revenueId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
+    }
+
+    private void applyWalletDelta(Long userId, BigDecimal oldAmount, BigDecimal newAmount) {
+        BigDecimal delta = newAmount.subtract(oldAmount);
+        if (delta.signum() > 0) {
+            sharedWalletService.addBalanceToWallet(userId, delta);
+        } else if (delta.signum() < 0) {
+            sharedWalletService.removeBalanceFromWallet(userId, delta.negate());
+        }
+    }
+
+    private void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.signum() <= 0) {
+            throw new InvalidInputException("Revenue amount must be positive");
+        }
+    }
+
+    private void logActivity(SharedAccountParticipantsResponse participants, Long userId, Long revenueId, SharedAccountActivityLogType type) {
+        outboxService.save("SharedAccountRevenue", revenueId.toString(), "shared-account.activity",
+                new SharedAccountActivityLogEvent(participants.ownerId(), participants.memberId(), userId, revenueId, type, LocalDateTime.now()));
     }
 }

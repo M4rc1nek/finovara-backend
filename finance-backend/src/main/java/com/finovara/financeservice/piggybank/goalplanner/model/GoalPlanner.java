@@ -1,6 +1,5 @@
 package com.finovara.financeservice.piggybank.goalplanner.model;
 
-import com.finovara.financeservice.piggybank.model.PiggyBank;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,8 +26,4 @@ public class GoalPlanner {
 
     @Column(nullable = false)
     private Long userId;
-
-    @OneToOne
-    @JoinColumn(name = "piggy_bank_id", unique = true)
-    private PiggyBank piggyBankAssigned;
 }

@@ -22,11 +22,12 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
 
     Optional<Revenue> findByIdAndUserId(Long revenueId, Long userId);
 
-    List<Revenue> findAllByUserId(Long userId);
+    @Query("SELECT r FROM Revenue r WHERE r.userId = :userId ORDER BY r.createdAt DESC, r.id DESC")
+    List<Revenue> findAllByUserId(Long userId, Pageable pageable);
 
-    @Query("SELECT r From Revenue r WHERE r.userId = :userId AND r.createdAt BETWEEN :startDate AND :endDate AND r.category = :category")
+    @Query("SELECT r From Revenue r WHERE r.userId = :userId AND r.createdAt BETWEEN :startDate AND :endDate AND r.category = :category ORDER BY r.createdAt DESC, r.id DESC")
     List<Revenue> findAllByUserIdAndCreatedAtBetweenAndCategory(Long userId, @Param("startDate") LocalDate from,
-                                                                @Param("endDate") LocalDate to, RevenueCategory category);
+                                                                @Param("endDate") LocalDate to, RevenueCategory category, Pageable pageable);
 
     @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userId = :userId AND r.createdAt >= :startDate AND r.createdAt <= :endDate")
     Optional<BigDecimal> sumRevenuesByUserAndDateRange(Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
@@ -41,7 +42,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
             )
             FROM Revenue r
             WHERE r.userId = :userId
-            ORDER BY r.id DESC
+            ORDER BY r.createdAt DESC, r.id DESC
             """)
     List<RevenueSuggestionDto> findLatestRevenuePairsByUserId(Long userId, Pageable pageable);
 
@@ -53,9 +54,6 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
             ORDER BY SUM(r.amount) DESC
             """)
     List<RevenueCategory> findTopRevenueCategoriesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
-
-    @Query("SELECT CAST(AVG(r.amount) AS big_decimal) FROM Revenue r WHERE r.userId = :userId AND r.createdAt BETWEEN :startDate AND :endDate")
-    Optional<BigDecimal> avgRevenuesByUserIdAndPeriod(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
 
     @Query("""
              SELECT NEW com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto(
@@ -96,6 +94,5 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
             """)
     List<DailyCashDto> avgRevenuesGroupedByDate(Long userId);
 
-    void deleteByUserId(Long userId);
-
+    List<Revenue> findAllByUserId(Long userId);
 }

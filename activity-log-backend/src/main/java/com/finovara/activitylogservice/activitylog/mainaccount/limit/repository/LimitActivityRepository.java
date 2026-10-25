@@ -12,6 +12,6 @@ public interface LimitActivityRepository extends JpaRepository<LimitActivity, Lo
 
     List<LimitActivity> findByUserId(Long userId, Pageable pageable);
 
-    void deleteByUserId(Long userId);
+    List<LimitActivity> findAllByUserId(Long userId);
 
 }

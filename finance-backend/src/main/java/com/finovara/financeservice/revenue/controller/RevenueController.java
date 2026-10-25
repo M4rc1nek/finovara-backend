@@ -29,8 +29,8 @@ public class RevenueController {
     }
 
     @GetMapping
-    public ResponseEntity<List<RevenueDto>> getRevenue() {
-        return ResponseEntity.ok(revenueService.getRevenue(SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<List<RevenueDto>> getRevenue(@RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(revenueService.getRevenue(SecurityUtils.getCurrentUserId(), page));
     }
 
     @DeleteMapping("/{revenueId}")

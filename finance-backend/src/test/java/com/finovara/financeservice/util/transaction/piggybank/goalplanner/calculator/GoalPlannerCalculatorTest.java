@@ -2,172 +2,356 @@ package com.finovara.financeservice.util.transaction.piggybank.goalplanner.calcu
 
 import com.finovara.financeservice.piggybank.goalplanner.model.GoalPlanner;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
-import com.finovara.financeservice.util.transaction.piggybank.goalplanner.calculator.GoalPlannerCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class GoalPlannerCalculatorTest {
 
+    private static final BigDecimal GOAL_AMOUNT = BigDecimal.valueOf(1000);
+    private static final BigDecimal DEPOSITED_AMOUNT = BigDecimal.valueOf(400);
+
+    @Mock
     private PiggyBank piggyBank;
+
+    @Mock
     private GoalPlanner goalPlanner;
-
-    @BeforeEach
-    void setUp() {
-        piggyBank = PiggyBank.builder()
-                .amount(new BigDecimal("200.00"))
-                .goalAmount(new BigDecimal("1000.00"))
-                .build();
-
-        goalPlanner = GoalPlanner.builder()
-                .piggyBankAssigned(piggyBank)
-                .targetDate(LocalDate.now().plusDays(10))
-                .build();
-    }
 
     @Nested
     class CalculateRemainingAmount {
 
         @Test
-        void shouldReturnDifferenceWhenDepositedLessThanGoal() {
-            BigDecimal result = GoalPlannerCalculator.calculateRemainingAmount(goalPlanner);
+        void shouldReturnDifferenceWhenGoalExceedsDeposited() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(piggyBank.getGoalAmount()).thenReturn(GOAL_AMOUNT);
 
-            assertEquals(new BigDecimal("800.00"), result);
+            BigDecimal result = GoalPlannerCalculator.calculateRemainingAmount(piggyBank);
+
+            assertEquals(BigDecimal.valueOf(600), result);
+        }
+
+        @Test
+        void shouldPreserveDecimalPartWhenAmountsHaveFractions() {
+            when(piggyBank.getAmount()).thenReturn(new BigDecimal("40.25"));
+            when(piggyBank.getGoalAmount()).thenReturn(new BigDecimal("100.50"));
+
+            BigDecimal result = GoalPlannerCalculator.calculateRemainingAmount(piggyBank);
+
+            assertEquals(new BigDecimal("60.25"), result);
         }
 
         @Test
         void shouldReturnZeroWhenDepositedEqualsGoal() {
-            piggyBank.setAmount(new BigDecimal("1000.00"));
+            when(piggyBank.getAmount()).thenReturn(GOAL_AMOUNT);
+            when(piggyBank.getGoalAmount()).thenReturn(GOAL_AMOUNT);
 
-            BigDecimal result = GoalPlannerCalculator.calculateRemainingAmount(goalPlanner);
+            BigDecimal result = GoalPlannerCalculator.calculateRemainingAmount(piggyBank);
 
-            assertThat(result).isEqualByComparingTo(BigDecimal.ZERO);
+            assertEquals(0, BigDecimal.ZERO.compareTo(result));
         }
 
         @Test
         void shouldReturnZeroWhenDepositedExceedsGoal() {
-            piggyBank.setAmount(new BigDecimal("1500.00"));
+            when(piggyBank.getAmount()).thenReturn(BigDecimal.valueOf(1500));
+            when(piggyBank.getGoalAmount()).thenReturn(GOAL_AMOUNT);
 
-            BigDecimal result = GoalPlannerCalculator.calculateRemainingAmount(goalPlanner);
+            BigDecimal result = GoalPlannerCalculator.calculateRemainingAmount(piggyBank);
 
-            assertEquals(BigDecimal.ZERO, result);
+            assertEquals(0, BigDecimal.ZERO.compareTo(result));
         }
 
         @Test
-        void shouldTreatNullDepositedAmountAsZero() {
-            piggyBank.setAmount(null);
+        void shouldReturnGoalAmountWhenDepositedIsNull() {
+            when(piggyBank.getGoalAmount()).thenReturn(GOAL_AMOUNT);
 
-            BigDecimal result = GoalPlannerCalculator.calculateRemainingAmount(goalPlanner);
+            BigDecimal result = GoalPlannerCalculator.calculateRemainingAmount(piggyBank);
 
-            assertEquals(new BigDecimal("1000.00"), result);
+            assertEquals(GOAL_AMOUNT, result);
+        }
+
+        @Test
+        void shouldReturnZeroWhenGoalAmountIsNull() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+
+            BigDecimal result = GoalPlannerCalculator.calculateRemainingAmount(piggyBank);
+
+            assertEquals(0, BigDecimal.ZERO.compareTo(result));
+        }
+
+        @Test
+        void shouldReturnZeroWhenBothAmountsAreNull() {
+            BigDecimal result = GoalPlannerCalculator.calculateRemainingAmount(piggyBank);
+
+            assertEquals(0, BigDecimal.ZERO.compareTo(result));
         }
     }
 
     @Nested
     class CalculateDailyInstallment {
 
-        @Test
-        void shouldDivideRemainingAmountByDaysLeftWhenPeriodsPositive() {
-            goalPlanner.setTargetDate(LocalDate.now().plusDays(10));
-
-            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner);
-
-            assertEquals(new BigDecimal("80.00"), result);
+        @BeforeEach
+        void setUp() {
+            when(piggyBank.getGoalAmount()).thenReturn(GOAL_AMOUNT);
         }
 
         @Test
-        void shouldReturnRemainingAmountWhenTargetDateIsToday() {
-            goalPlanner.setTargetDate(LocalDate.now());
+        void shouldDivideRemainingAmountByDaysLeftWhenTargetDateInFuture() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusDays(10));
 
-            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner);
+            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner, piggyBank);
 
-            assertEquals(new BigDecimal("800.00"), result);
-        }
-
-        @Test
-        void shouldReturnRemainingAmountWhenTargetDateInPast() {
-            goalPlanner.setTargetDate(LocalDate.now().minusDays(5));
-
-            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner);
-
-            assertEquals(new BigDecimal("800.00"), result);
+            assertEquals(new BigDecimal("60.00"), result);
         }
 
         @Test
         void shouldRoundHalfUpWhenDivisionIsNotExact() {
-            goalPlanner.setTargetDate(LocalDate.now().plusDays(3));
+            when(piggyBank.getAmount()).thenReturn(BigDecimal.valueOf(800));
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusDays(3));
 
-            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner);
+            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner, piggyBank);
 
-            assertEquals(new BigDecimal("266.67"), result);
+            assertEquals(new BigDecimal("66.67"), result);
         }
 
         @Test
-        void shouldReturnZeroWhenRemainingAmountIsZero() {
-            piggyBank.setAmount(new BigDecimal("1000.00"));
-            goalPlanner.setTargetDate(LocalDate.now().plusDays(10));
+        void shouldRoundHalfUpDownWhenRemainderIsBelowHalf() {
+            when(piggyBank.getAmount()).thenReturn(BigDecimal.valueOf(900));
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusDays(3));
 
-            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner);
+            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner, piggyBank);
 
-            assertEquals(BigDecimal.ZERO.setScale(2), result);
+            assertEquals(new BigDecimal("33.33"), result);
+        }
+
+        @Test
+        void shouldReturnWholeRemainingAmountWhenOneDayLeft() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusDays(1));
+
+            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(new BigDecimal("600.00"), result);
+        }
+
+        @Test
+        void shouldReturnRemainingAmountWhenTargetDateIsToday() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now());
+
+            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(BigDecimal.valueOf(600), result);
+        }
+
+        @Test
+        void shouldReturnRemainingAmountWhenTargetDateInPast() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().minusDays(5));
+
+            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(BigDecimal.valueOf(600), result);
+        }
+
+        @Test
+        void shouldReturnZeroWhenGoalAlreadyReached() {
+            when(piggyBank.getAmount()).thenReturn(GOAL_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusDays(10));
+
+            BigDecimal result = GoalPlannerCalculator.calculateDailyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(0, BigDecimal.ZERO.compareTo(result));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenTargetDateIsNull() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+
+            assertThrows(NullPointerException.class, () -> GoalPlannerCalculator.calculateDailyInstallment(goalPlanner, piggyBank));
         }
     }
 
     @Nested
     class CalculateWeeklyInstallment {
 
-        @Test
-        void shouldDivideRemainingAmountByWeeksLeftWhenPeriodsPositive() {
-            goalPlanner.setTargetDate(LocalDate.now().plusWeeks(2));
-
-            BigDecimal result = GoalPlannerCalculator.calculateWeeklyInstallment(goalPlanner);
-
-            assertEquals(new BigDecimal("400.00"), result);
+        @BeforeEach
+        void setUp() {
+            when(piggyBank.getGoalAmount()).thenReturn(GOAL_AMOUNT);
         }
 
         @Test
-        void shouldReturnRemainingAmountWhenTargetDateIsToday() {
-            goalPlanner.setTargetDate(LocalDate.now());
+        void shouldDivideRemainingAmountByWeeksLeftWhenTargetDateInFuture() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusWeeks(3));
 
-            BigDecimal result = GoalPlannerCalculator.calculateWeeklyInstallment(goalPlanner);
+            BigDecimal result = GoalPlannerCalculator.calculateWeeklyInstallment(goalPlanner, piggyBank);
 
-            assertEquals(new BigDecimal("800.00"), result);
+            assertEquals(new BigDecimal("200.00"), result);
+        }
+
+        @Test
+        void shouldIgnoreIncompleteWeekWhenTargetDateIsNotFullWeeksAway() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusWeeks(3).plusDays(6));
+
+            BigDecimal result = GoalPlannerCalculator.calculateWeeklyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(new BigDecimal("200.00"), result);
+        }
+
+        @Test
+        void shouldRoundHalfUpWhenDivisionIsNotExact() {
+            when(piggyBank.getAmount()).thenReturn(BigDecimal.valueOf(800));
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusWeeks(3));
+
+            BigDecimal result = GoalPlannerCalculator.calculateWeeklyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(new BigDecimal("66.67"), result);
+        }
+
+        @Test
+        void shouldReturnRemainingAmountWhenLessThanOneWeekLeft() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusDays(6));
+
+            BigDecimal result = GoalPlannerCalculator.calculateWeeklyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(BigDecimal.valueOf(600), result);
+        }
+
+        @Test
+        void shouldReturnWholeRemainingAmountWhenExactlyOneWeekLeft() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusWeeks(1));
+
+            BigDecimal result = GoalPlannerCalculator.calculateWeeklyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(new BigDecimal("600.00"), result);
         }
 
         @Test
         void shouldReturnRemainingAmountWhenTargetDateInPast() {
-            goalPlanner.setTargetDate(LocalDate.now().minusWeeks(1));
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().minusWeeks(2));
 
-            BigDecimal result = GoalPlannerCalculator.calculateWeeklyInstallment(goalPlanner);
+            BigDecimal result = GoalPlannerCalculator.calculateWeeklyInstallment(goalPlanner, piggyBank);
 
-            assertEquals(new BigDecimal("800.00"), result);
+            assertEquals(BigDecimal.valueOf(600), result);
+        }
+
+        @Test
+        void shouldReturnZeroWhenGoalAlreadyReached() {
+            when(piggyBank.getAmount()).thenReturn(BigDecimal.valueOf(1200));
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusWeeks(4));
+
+            BigDecimal result = GoalPlannerCalculator.calculateWeeklyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(0, BigDecimal.ZERO.compareTo(result));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenTargetDateIsNull() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+
+            assertThrows(NullPointerException.class, () -> GoalPlannerCalculator.calculateWeeklyInstallment(goalPlanner, piggyBank));
         }
     }
 
     @Nested
     class CalculateMonthlyInstallment {
+
+        @BeforeEach
+        void setUp() {
+            when(piggyBank.getGoalAmount()).thenReturn(GOAL_AMOUNT);
+        }
+
+        @Test
+        void shouldDivideRemainingAmountByMonthsLeftWhenTargetDateInFuture() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusMonths(2).plusDays(1));
+
+            BigDecimal result = GoalPlannerCalculator.calculateMonthlyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(new BigDecimal("300.00"), result);
+        }
+
+        @Test
+        void shouldRoundHalfUpWhenDivisionIsNotExact() {
+            when(piggyBank.getAmount()).thenReturn(BigDecimal.valueOf(800));
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusMonths(3).plusDays(1));
+
+            BigDecimal result = GoalPlannerCalculator.calculateMonthlyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(new BigDecimal("66.67"), result);
+        }
+
+        @Test
+        void shouldReturnWholeRemainingAmountWhenOneMonthLeft() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusMonths(1).plusDays(1));
+
+            BigDecimal result = GoalPlannerCalculator.calculateMonthlyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(new BigDecimal("600.00"), result);
+        }
+
+        @Test
+        void shouldReturnRemainingAmountWhenLessThanOneMonthLeft() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusDays(10));
+
+            BigDecimal result = GoalPlannerCalculator.calculateMonthlyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(BigDecimal.valueOf(600), result);
+        }
+
         @Test
         void shouldReturnRemainingAmountWhenTargetDateIsToday() {
-            goalPlanner.setTargetDate(LocalDate.now());
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now());
 
-            BigDecimal result = GoalPlannerCalculator.calculateMonthlyInstallment(goalPlanner);
+            BigDecimal result = GoalPlannerCalculator.calculateMonthlyInstallment(goalPlanner, piggyBank);
 
-            assertEquals(new BigDecimal("800.00"), result);
+            assertEquals(BigDecimal.valueOf(600), result);
         }
 
         @Test
         void shouldReturnRemainingAmountWhenTargetDateInPast() {
-            goalPlanner.setTargetDate(LocalDate.now().minusMonths(2));
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().minusMonths(3));
 
-            BigDecimal result = GoalPlannerCalculator.calculateMonthlyInstallment(goalPlanner);
+            BigDecimal result = GoalPlannerCalculator.calculateMonthlyInstallment(goalPlanner, piggyBank);
 
-            assertEquals(new BigDecimal("800.00"), result);
+            assertEquals(BigDecimal.valueOf(600), result);
+        }
+
+        @Test
+        void shouldReturnZeroWhenGoalAlreadyReached() {
+            when(piggyBank.getAmount()).thenReturn(GOAL_AMOUNT);
+            when(goalPlanner.getTargetDate()).thenReturn(LocalDate.now().plusMonths(6).plusDays(1));
+
+            BigDecimal result = GoalPlannerCalculator.calculateMonthlyInstallment(goalPlanner, piggyBank);
+
+            assertEquals(0, BigDecimal.ZERO.compareTo(result));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenTargetDateIsNull() {
+            when(piggyBank.getAmount()).thenReturn(DEPOSITED_AMOUNT);
+
+            assertThrows(NullPointerException.class, () -> GoalPlannerCalculator.calculateMonthlyInstallment(goalPlanner, piggyBank));
         }
     }
 }
