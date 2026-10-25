@@ -20,20 +20,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LoginProfileUpdateServiceTest {
@@ -387,22 +377,36 @@ class LoginProfileUpdateServiceTest {
 
         @Test
         void shouldDeleteProfileWhenUserIdProvided() {
+            when(loginProfileRepository.findByUserId(USER_ID)).thenReturn(Optional.of(profile));
+
             service.deleteByUserId(USER_ID);
 
-            verify(loginProfileRepository).deleteByUserId(USER_ID);
-            verifyNoMoreInteractions(loginProfileRepository);
+            verify(loginProfileRepository).findByUserId(USER_ID);
+            verify(loginProfileRepository).delete(profile);
         }
 
         @Test
         void shouldDeleteProfileWhenUserIdIsNull() {
+            when(loginProfileRepository.findByUserId(null)).thenReturn(Optional.of(profile));
+
             service.deleteByUserId(null);
 
-            verify(loginProfileRepository).deleteByUserId(null);
+            verify(loginProfileRepository).findByUserId(null);
+            verify(loginProfileRepository).delete(profile);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenProfileNotFoundOnDelete() {
+            when(loginProfileRepository.findByUserId(USER_ID)).thenReturn(Optional.empty());
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteByUserId(USER_ID));
+            verify(loginProfileRepository, never()).delete(any(LoginProfile.class));
         }
 
         @Test
         void shouldThrowExceptionWhenRepositoryFailsOnDelete() {
-            doThrow(new IllegalStateException("db error")).when(loginProfileRepository).deleteByUserId(USER_ID);
+            when(loginProfileRepository.findByUserId(USER_ID)).thenReturn(Optional.of(profile));
+            doThrow(new IllegalStateException("db error")).when(loginProfileRepository).delete(profile);
 
             assertThrows(IllegalStateException.class, () -> service.deleteByUserId(USER_ID));
         }
