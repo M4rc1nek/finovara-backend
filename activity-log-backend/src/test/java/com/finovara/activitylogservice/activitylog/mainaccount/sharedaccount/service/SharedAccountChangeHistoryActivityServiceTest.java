@@ -320,35 +320,42 @@ class SharedAccountChangeHistoryActivityServiceTest {
         @Test
         void shouldDeleteActivitiesWhenUserIdIsValid() {
             Long userId = 1L;
+            List<SharedAccountChangeHistoryActivity> activities = List.of(SharedAccountChangeHistoryActivity.builder().userId(userId).build());
+            when(sharedAccountChangeHistoryActivityRepository.findAllByUserId(userId)).thenReturn(activities);
 
             sharedAccountChangeHistoryActivityService.deleteByUserId(userId);
 
-            verify(sharedAccountChangeHistoryActivityRepository, times(1)).deleteByUserId(userId);
+            verify(sharedAccountChangeHistoryActivityRepository, times(1)).findAllByUserId(userId);
+            verify(sharedAccountChangeHistoryActivityRepository, times(1)).deleteAll(activities);
         }
 
         @Test
         void shouldCallRepositoryExactlyOnceWhenDeletingActivities() {
             Long userId = 2L;
+            when(sharedAccountChangeHistoryActivityRepository.findAllByUserId(userId)).thenReturn(List.of());
 
             sharedAccountChangeHistoryActivityService.deleteByUserId(userId);
 
-            verify(sharedAccountChangeHistoryActivityRepository, times(1)).deleteByUserId(anyLong());
-            verify(sharedAccountChangeHistoryActivityRepository, never()).deleteByUserId(3L);
+            verify(sharedAccountChangeHistoryActivityRepository, times(1)).findAllByUserId(anyLong());
+            verify(sharedAccountChangeHistoryActivityRepository, times(1)).deleteAll(List.of());
         }
 
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
             Long userId = 1L;
+            List<SharedAccountChangeHistoryActivity> activities = List.of(SharedAccountChangeHistoryActivity.builder().userId(userId).build());
+            when(sharedAccountChangeHistoryActivityRepository.findAllByUserId(userId)).thenReturn(activities);
             doThrow(new RuntimeException("delete failed"))
-                    .when(sharedAccountChangeHistoryActivityRepository).deleteByUserId(userId);
+                    .when(sharedAccountChangeHistoryActivityRepository).deleteAll(activities);
 
             assertThrows(RuntimeException.class, () -> sharedAccountChangeHistoryActivityService.deleteByUserId(userId));
         }
 
         @Test
         void shouldThrowExceptionWhenUserIdIsNull() {
+            when(sharedAccountChangeHistoryActivityRepository.findAllByUserId(null)).thenReturn(List.of());
             doThrow(new IllegalArgumentException("userId must not be null"))
-                    .when(sharedAccountChangeHistoryActivityRepository).deleteByUserId(null);
+                    .when(sharedAccountChangeHistoryActivityRepository).deleteAll(List.of());
 
             assertThrows(IllegalArgumentException.class, () -> sharedAccountChangeHistoryActivityService.deleteByUserId(null));
         }
@@ -356,6 +363,7 @@ class SharedAccountChangeHistoryActivityServiceTest {
         @Test
         void shouldNotCallMapperWhenDeletingActivities() {
             Long userId = 1L;
+            when(sharedAccountChangeHistoryActivityRepository.findAllByUserId(userId)).thenReturn(List.of());
 
             sharedAccountChangeHistoryActivityService.deleteByUserId(userId);
 
