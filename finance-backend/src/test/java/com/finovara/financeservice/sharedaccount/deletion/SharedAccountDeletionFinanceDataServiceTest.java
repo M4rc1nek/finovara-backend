@@ -1,17 +1,26 @@
 package com.finovara.financeservice.sharedaccount.deletion;
 
-import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
-import com.finovara.contracts.sharedaccount.event.deletion.SharedAccountDeletedEvent;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.contracts.sharedaccount.event.deletion.SharedAccountDeletedEvent;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
-import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
-import com.finovara.financeservice.sharedaccount.note.repository.SharedAccountNoteRepository;
-import com.finovara.financeservice.sharedaccount.piggybank.repository.SharedPiggyBankRepository;
 import com.finovara.financeservice.sharedaccount.revenue.repository.SharedRevenueRepository;
-import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettingsRepository;
 import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
 import com.finovara.financeservice.wallet.service.WalletService;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,363 +29,224 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class SharedAccountDeletionFinanceDataServiceTest {
 
+    private static final Long OWNER_ID = 1L;
+    private static final Long MEMBER_ID = 2L;
+    private static final String OUTBOX_AGGREGATE = "User";
+    private static final String OUTBOX_EVENT_TYPE = "shared-account.changed";
+
     @Mock
     private WalletService walletService;
-
     @Mock
     private SharedExpenseRepository sharedExpenseRepository;
-
     @Mock
     private SharedRevenueRepository sharedRevenueRepository;
-
     @Mock
     private SharedWalletRepository sharedWalletRepository;
-
     @Mock
-    private SharedPiggyBankRepository sharedPiggyBankRepository;
-
-    @Mock
-    private SharedLimitRepository sharedLimitRepository;
-
-    @Mock
-    private SharedAccountNoteRepository sharedAccountNoteRepository;
-
-    @Mock
-    private SharedAccountSettingsRepository sharedAccountSettingsRepository;
-
+    private SharedAccountFinanceDeleter sharedAccountFinanceDeleter;
     @Mock
     private OutboxService outboxService;
+    @Mock
+    private SharedAccountDeletedEvent event;
 
     @InjectMocks
-    private SharedAccountDeletionFinanceDataService financeDataService;
+    private SharedAccountDeletionFinanceDataService service;
 
-    private Long ownerId;
-    private Long memberId;
-
-    @BeforeEach
-    void setUp() {
-        financeDataService = new SharedAccountDeletionFinanceDataService(
-                walletService,
-                sharedExpenseRepository,
-                sharedRevenueRepository,
-                sharedWalletRepository,
-                sharedPiggyBankRepository,
-                sharedLimitRepository,
-                sharedAccountNoteRepository,
-                sharedAccountSettingsRepository,
-                outboxService
-                );
-        ownerId = 1L;
-        memberId = 2L;
+    private void stubContributions(String ownerRevenue, String ownerExpense, String memberRevenue, String memberExpense) {
+        when(sharedRevenueRepository.sumRevenueByCreatedByUserId(OWNER_ID, MEMBER_ID, OWNER_ID)).thenReturn(new BigDecimal(ownerRevenue));
+        when(sharedExpenseRepository.sumExpenseByCreatedByUserId(OWNER_ID, MEMBER_ID, OWNER_ID)).thenReturn(new BigDecimal(ownerExpense));
+        when(sharedRevenueRepository.sumRevenueByCreatedByUserId(OWNER_ID, MEMBER_ID, MEMBER_ID)).thenReturn(new BigDecimal(memberRevenue));
+        when(sharedExpenseRepository.sumExpenseByCreatedByUserId(OWNER_ID, MEMBER_ID, MEMBER_ID)).thenReturn(new BigDecimal(memberExpense));
     }
 
-    private SharedAccountDeletedEvent buildEvent() {
-        SharedAccountDeletedEvent event = mock(SharedAccountDeletedEvent.class);
-        when(event.ownerId()).thenReturn(ownerId);
-        when(event.memberId()).thenReturn(memberId);
-        return event;
-    }
+        @Nested
+        class WhenEventIsValid {
 
-    @Nested
-    class WhenSharedAccountAlreadyDeleted {
+            @BeforeEach
+            void setUp() {
+                when(event.ownerId()).thenReturn(OWNER_ID);
+                when(event.memberId()).thenReturn(MEMBER_ID);
+            }
 
-        @Test
-        void shouldReturnFalseWhenSharedWalletDoesNotExist() {
-            SharedAccountDeletedEvent event = buildEvent();
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(false);
+            @Test
+            void shouldReturnFalseWhenDataWasAlreadyDeleted() {
+                when(sharedWalletRepository.existsByOwnerIdAndMemberId(OWNER_ID, MEMBER_ID)).thenReturn(false);
 
-            boolean result = financeDataService.deleteData(event);
+                boolean result = service.deleteData(event);
 
-            assertThat(result).isFalse();
-        }
+                assertFalse(result);
+            }
 
-        @Test
-        void shouldNotDeleteAnyDataWhenSharedWalletDoesNotExist() {
-            SharedAccountDeletedEvent event = buildEvent();
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(false);
+            @Test
+            void shouldSkipRefundAndDeletionWhenDataWasAlreadyDeleted() {
+                when(sharedWalletRepository.existsByOwnerIdAndMemberId(OWNER_ID, MEMBER_ID)).thenReturn(false);
 
-            financeDataService.deleteData(event);
+                service.deleteData(event);
 
-            verify(sharedExpenseRepository, never()).deleteAllByOwnerIdAndMemberId(any(), any());
-            verify(sharedRevenueRepository, never()).deleteAllByOwnerIdAndMemberId(any(), any());
-            verify(sharedWalletRepository, never()).deleteByOwnerIdAndMemberId(any(), any());
-            verify(sharedPiggyBankRepository, never()).deleteByOwnerIdAndMemberId(any(), any());
-        }
+                verifyNoInteractions(walletService, outboxService, sharedAccountFinanceDeleter, sharedRevenueRepository, sharedExpenseRepository);
+            }
 
-        @Test
-        void shouldNotInteractWithWalletServiceWhenSharedWalletDoesNotExist() {
-            SharedAccountDeletedEvent event = buildEvent();
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(false);
+            @Nested
+            class WhenSharedWalletExists {
 
-            financeDataService.deleteData(event);
+                @BeforeEach
+                void setUp() {
+                    when(sharedWalletRepository.existsByOwnerIdAndMemberId(OWNER_ID, MEMBER_ID)).thenReturn(true);
+                }
 
-            verifyNoInteractions(walletService);
-            verifyNoInteractions(outboxService);
-        }
-    }
+                @Test
+                void shouldReturnTrueWhenDataIsDeleted() {
+                    stubContributions("0.00", "0.00", "0.00", "0.00");
 
-    @Nested
-    class WhenDeletingSharedAccountData {
+                    boolean result = service.deleteData(event);
 
-        @BeforeEach
-        void stubExistingAccount() {
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(true);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.ZERO);
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.ZERO);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.ZERO);
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.ZERO);
-        }
+                    assertTrue(result);
+                }
 
-        @Test
-        void shouldReturnTrueWhenSharedWalletExists() {
-            SharedAccountDeletedEvent event = buildEvent();
+                @Test
+                void shouldDeleteAllSharedDataWhenDataIsDeleted() {
+                    stubContributions("0.00", "0.00", "0.00", "0.00");
 
-            boolean result = financeDataService.deleteData(event);
+                    service.deleteData(event);
 
-            assertThat(result).isTrue();
-        }
+                    verify(sharedAccountFinanceDeleter).deleteAll(OWNER_ID, MEMBER_ID);
+                }
 
-        @Test
-        void shouldDeleteAllExpensesWhenSharedWalletExists() {
-            SharedAccountDeletedEvent event = buildEvent();
+                @Test
+                void shouldRefundBothUsersWhenBothContributionsArePositive() {
+                    stubContributions("150.00", "50.00", "70.00", "20.00");
 
-            financeDataService.deleteData(event);
+                    service.deleteData(event);
 
-            verify(sharedExpenseRepository).deleteAllByOwnerIdAndMemberId(ownerId, memberId);
-        }
+                    verify(walletService).addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"));
+                    verify(walletService).addBalanceToWallet(MEMBER_ID, new BigDecimal("50.00"));
+                }
 
-        @Test
-        void shouldDeleteAllRevenuesWhenSharedWalletExists() {
-            SharedAccountDeletedEvent event = buildEvent();
+                @Test
+                void shouldPublishHistoryEventForBothUsersWhenBothAreRefunded() {
+                    stubContributions("150.00", "50.00", "70.00", "20.00");
 
-            financeDataService.deleteData(event);
+                    service.deleteData(event);
 
-            verify(sharedRevenueRepository).deleteAllByOwnerIdAndMemberId(ownerId, memberId);
-        }
+                    verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(OWNER_ID.toString()), eq(OUTBOX_EVENT_TYPE),
+                            any(SharedAccountChangeHistoryActivityEvent.class));
+                    verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(MEMBER_ID.toString()), eq(OUTBOX_EVENT_TYPE),
+                            any(SharedAccountChangeHistoryActivityEvent.class));
+                }
 
-        @Test
-        void shouldDeleteSharedWalletWhenSharedWalletExists() {
-            SharedAccountDeletedEvent event = buildEvent();
+                @Test
+                void shouldRefundOnlyOwnerWhenMemberDidNotContribute() {
+                    stubContributions("100.00", "0.00", "0.00", "0.00");
 
-            financeDataService.deleteData(event);
+                    service.deleteData(event);
 
-            verify(sharedWalletRepository).deleteByOwnerIdAndMemberId(ownerId, memberId);
-        }
+                    verify(walletService).addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"));
+                    verify(walletService, never()).addBalanceToWallet(eq(MEMBER_ID), any(BigDecimal.class));
+                }
 
-        @Test
-        void shouldDeletePiggyBankWhenSharedWalletExists() {
-            SharedAccountDeletedEvent event = buildEvent();
+                @Test
+                void shouldReduceMemberRefundByOwnerDeficitWhenOwnerContributionIsNegative() {
+                    stubContributions("10.00", "40.00", "80.00", "30.00");
 
-            financeDataService.deleteData(event);
+                    service.deleteData(event);
 
-            verify(sharedPiggyBankRepository).deleteByOwnerIdAndMemberId(ownerId, memberId);
-        }
-    }
+                    verify(walletService).addBalanceToWallet(MEMBER_ID, new BigDecimal("20.00"));
+                    verify(walletService, never()).addBalanceToWallet(eq(OWNER_ID), any(BigDecimal.class));
+                }
 
-    @Nested
-    class WhenCalculatingRefunds {
+                @Test
+                void shouldReduceOwnerRefundByMemberDeficitWhenMemberContributionIsNegative() {
+                    stubContributions("80.00", "30.00", "10.00", "40.00");
 
-        @Test
-        void shouldRefundBothUsersWhenBothContributionsArePositive() {
-            SharedAccountDeletedEvent event = buildEvent();
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(true);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(1000));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(200));
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(500));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(100));
+                    service.deleteData(event);
 
-            financeDataService.deleteData(event);
+                    verify(walletService).addBalanceToWallet(OWNER_ID, new BigDecimal("20.00"));
+                    verify(walletService, never()).addBalanceToWallet(eq(MEMBER_ID), any(BigDecimal.class));
+                }
 
-            verify(walletService).addBalanceToWallet(ownerId, BigDecimal.valueOf(800));
-            verify(walletService).addBalanceToWallet(memberId, BigDecimal.valueOf(400));
-        }
+                @Test
+                void shouldNotRefundAnyoneWhenOwnerDeficitExceedsMemberContribution() {
+                    stubContributions("10.00", "60.00", "40.00", "20.00");
 
-        @Test
-        void shouldSendActivityEventsForBothUsersWhenBothContributionsArePositive() {
-            SharedAccountDeletedEvent event = buildEvent();
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(true);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(1000));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(200));
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(500));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(100));
+                    service.deleteData(event);
 
-            financeDataService.deleteData(event);
+                    verifyNoInteractions(walletService, outboxService);
+                }
 
-            verify(outboxService).save(eq("User"), eq(ownerId.toString()), eq("shared-account.changed"), any(SharedAccountChangeHistoryActivityEvent.class));
-            verify(outboxService).save(eq("User"), eq(memberId.toString()), eq("shared-account.changed"), any(SharedAccountChangeHistoryActivityEvent.class));
-        }
+                @Test
+                void shouldNotRefundAnyoneWhenMemberDeficitExceedsOwnerContribution() {
+                    stubContributions("40.00", "20.00", "10.00", "60.00");
 
-        @Test
-        void shouldNotRefundOwnerWhenOwnerContributionIsNegative() {
-            SharedAccountDeletedEvent event = buildEvent();
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(true);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(100));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(300));
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(500));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(100));
+                    service.deleteData(event);
 
-            financeDataService.deleteData(event);
+                    verifyNoInteractions(walletService, outboxService);
+                }
 
-            verify(walletService, never()).addBalanceToWallet(eq(ownerId), any());
-        }
+                @Test
+                void shouldNotRefundAnyoneWhenBothContributionsAreNegative() {
+                    stubContributions("10.00", "40.00", "5.00", "25.00");
 
-        @Test
-        void shouldRefundMemberWithCombinedAmountWhenOwnerContributionIsNegative() {
-            SharedAccountDeletedEvent event = buildEvent();
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(true);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(100));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(300));
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(500));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(100));
+                    service.deleteData(event);
 
-            financeDataService.deleteData(event);
+                    verifyNoInteractions(walletService, outboxService);
+                }
 
-            verify(walletService).addBalanceToWallet(memberId, BigDecimal.valueOf(200));
-        }
+                @Test
+                void shouldNotRefundAnyoneWhenBothContributionsAreZero() {
+                    stubContributions("50.00", "50.00", "0.00", "0.00");
 
-        @Test
-        void shouldNotRefundMemberWhenMemberContributionIsNegative() {
-            SharedAccountDeletedEvent event = buildEvent();
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(true);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(300));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.ZERO);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(200));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(300));
+                    service.deleteData(event);
 
-            financeDataService.deleteData(event);
+                    verifyNoInteractions(walletService, outboxService);
+                }
 
-            verify(walletService, never()).addBalanceToWallet(eq(memberId), any());
-        }
+                @Test
+                void shouldStillDeleteDataWhenNobodyIsRefunded() {
+                    stubContributions("0.00", "0.00", "0.00", "0.00");
 
-        @Test
-        void shouldRefundOwnerWithCombinedAmountWhenMemberContributionIsNegative() {
-            SharedAccountDeletedEvent event = buildEvent();
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(true);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(300));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.ZERO);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(200));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(300));
+                    service.deleteData(event);
 
-            financeDataService.deleteData(event);
+                    verify(sharedAccountFinanceDeleter).deleteAll(OWNER_ID, MEMBER_ID);
+                }
 
-            verify(walletService).addBalanceToWallet(ownerId, BigDecimal.valueOf(200));
-        }
+                @Test
+                void shouldSkipOwnerRefundAndContinueWhenOwnerWalletNoLongerExists() {
+                    stubContributions("150.00", "50.00", "70.00", "20.00");
+                    doThrow(new RequestedEntityNotFoundException("Wallet not found")).when(walletService)
+                            .addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"));
 
-        @Test
-        void shouldNotRefundAnyoneWhenCombinedNetContributionIsNegative() {
-            SharedAccountDeletedEvent event = buildEvent();
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(true);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.ZERO);
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(500));
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(100));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.ZERO);
+                    boolean result = service.deleteData(event);
 
-            financeDataService.deleteData(event);
+                    assertTrue(result);
+                    verify(walletService).addBalanceToWallet(MEMBER_ID, new BigDecimal("50.00"));
+                    verify(outboxService, never()).save(anyString(), eq(OWNER_ID.toString()), anyString(),
+                            any(SharedAccountChangeHistoryActivityEvent.class));
+                    verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(MEMBER_ID.toString()), eq(OUTBOX_EVENT_TYPE),
+                            any(SharedAccountChangeHistoryActivityEvent.class));
+                    verify(sharedAccountFinanceDeleter).deleteAll(OWNER_ID, MEMBER_ID);
+                }
 
-            verifyNoInteractions(walletService);
-        }
+                @Test
+                void shouldThrowExceptionWhenRefundFailsWithUnexpectedError() {
+                    stubContributions("150.00", "50.00", "70.00", "20.00");
+                    doThrow(new IllegalStateException("Unexpected")).when(walletService)
+                            .addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"));
 
-        @Test
-        void shouldSkipRefundWhenNetContributionIsZero() {
-            SharedAccountDeletedEvent event = buildEvent();
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(true);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(100));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(100));
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.ZERO);
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.ZERO);
+                    assertThrows(IllegalStateException.class, () -> service.deleteData(event));
 
-            financeDataService.deleteData(event);
+                    verify(sharedAccountFinanceDeleter, never()).deleteAll(any(Long.class), any(Long.class));
+                }
 
-            verify(walletService, never()).addBalanceToWallet(eq(ownerId), any());
+                @Test
+                void shouldThrowExceptionWhenDeletionFails() {
+                    stubContributions("0.00", "0.00", "0.00", "0.00");
+                    doThrow(new IllegalStateException("Deletion failed")).when(sharedAccountFinanceDeleter).deleteAll(OWNER_ID, MEMBER_ID);
+
+                    assertThrows(IllegalStateException.class, () -> service.deleteData(event));
+                }
+            }
         }
     }
-
-    @Nested
-    class WhenWalletServiceThrowsException {
-
-        @BeforeEach
-        void stubExistingAccountWithPositiveContributions() {
-            when(sharedWalletRepository.existsByOwnerIdAndMemberId(ownerId, memberId)).thenReturn(true);
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(1000));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, ownerId)).thenReturn(BigDecimal.valueOf(200));
-            when(sharedRevenueRepository.sumRevenueByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(500));
-            when(sharedExpenseRepository.sumExpenseByCreatedByUserId(ownerId, memberId, memberId)).thenReturn(BigDecimal.valueOf(100));
-        }
-
-        @Test
-        void shouldSkipOutboxEventWhenOwnerWalletDoesNotExist() {
-            SharedAccountDeletedEvent event = buildEvent();
-            doThrow(new RequestedEntityNotFoundException("wallet not found"))
-                    .when(walletService).addBalanceToWallet(eq(ownerId), any());
-
-            financeDataService.deleteData(event);
-
-            verify(outboxService, never()).save(eq("User"), eq(ownerId.toString()), any(), any());
-        }
-
-        @Test
-        void shouldStillRefundMemberWhenOwnerWalletDoesNotExist() {
-            SharedAccountDeletedEvent event = buildEvent();
-            doThrow(new RequestedEntityNotFoundException("wallet not found"))
-                    .when(walletService).addBalanceToWallet(eq(ownerId), any());
-
-            financeDataService.deleteData(event);
-
-            verify(walletService).addBalanceToWallet(memberId, BigDecimal.valueOf(400));
-        }
-
-        @Test
-        void shouldStillDeleteSharedDataWhenWalletServiceThrowsException() {
-            SharedAccountDeletedEvent event = buildEvent();
-            doThrow(new RequestedEntityNotFoundException("wallet not found"))
-                    .when(walletService).addBalanceToWallet(eq(ownerId), any());
-
-            boolean result = financeDataService.deleteData(event);
-
-            assertThat(result).isTrue();
-            verify(sharedExpenseRepository).deleteAllByOwnerIdAndMemberId(ownerId, memberId);
-        }
-    }
-
-    @Nested
-    class WhenInputIsInvalid {
-
-        @Test
-        void shouldThrowExceptionWhenOwnerIdIsNull() {
-            SharedAccountDeletedEvent event = mock(SharedAccountDeletedEvent.class);
-            when(event.ownerId()).thenReturn(null);
-
-            assertThrows(NullPointerException.class, () -> financeDataService.deleteData(event));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenMemberIdIsNull() {
-            SharedAccountDeletedEvent event = mock(SharedAccountDeletedEvent.class);
-            when(event.ownerId()).thenReturn(ownerId);
-            when(event.memberId()).thenReturn(null);
-
-            assertThrows(NullPointerException.class, () -> financeDataService.deleteData(event));
-        }
-
-        @Test
-        void shouldNotInteractWithRepositoriesWhenOwnerIdIsNull() {
-            SharedAccountDeletedEvent event = mock(SharedAccountDeletedEvent.class);
-            when(event.ownerId()).thenReturn(null);
-
-            assertThrows(NullPointerException.class, () -> financeDataService.deleteData(event));
-
-            verifyNoInteractions(sharedWalletRepository);
-        }
-    }
-}
