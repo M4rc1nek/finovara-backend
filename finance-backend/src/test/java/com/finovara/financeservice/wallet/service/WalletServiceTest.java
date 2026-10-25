@@ -262,7 +262,7 @@ class WalletServiceTest {
 
         @Test
         void shouldDeleteWalletWhenWalletExists() {
-            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
+            when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
 
             service.deleteByUserId(USER_ID);
 
@@ -271,7 +271,7 @@ class WalletServiceTest {
 
         @Test
         void shouldThrowExceptionWhenWalletDoesNotExist() {
-            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenThrow(new RequestedEntityNotFoundException("Wallet not found"));
+            when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenThrow(new RequestedEntityNotFoundException("Wallet not found"));
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteByUserId(USER_ID));
 
