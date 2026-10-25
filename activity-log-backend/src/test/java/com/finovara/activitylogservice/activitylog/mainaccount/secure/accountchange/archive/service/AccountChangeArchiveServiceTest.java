@@ -220,21 +220,28 @@ class AccountChangeArchiveServiceTest {
 
         @Test
         void shouldDeleteArchivesWhenUserIdIsProvided() {
+            when(accountChangeArchiveRepository.findAllByUserId(USER_ID)).thenReturn(List.of(accountChangeArchive));
+
             accountChangeArchiveService.deleteByUserId(USER_ID);
 
-            verify(accountChangeArchiveRepository).deleteByUserId(USER_ID);
+            verify(accountChangeArchiveRepository).findAllByUserId(USER_ID);
+            verify(accountChangeArchiveRepository).deleteAll(List.of(accountChangeArchive));
         }
 
         @Test
         void shouldDeleteArchivesWhenUserIdIsNull() {
+            when(accountChangeArchiveRepository.findAllByUserId(null)).thenReturn(List.of());
+
             accountChangeArchiveService.deleteByUserId(null);
 
-            verify(accountChangeArchiveRepository).deleteByUserId(null);
+            verify(accountChangeArchiveRepository).findAllByUserId(null);
+            verify(accountChangeArchiveRepository).deleteAll(List.of());
         }
 
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
-            doThrow(new IllegalStateException()).when(accountChangeArchiveRepository).deleteByUserId(USER_ID);
+            when(accountChangeArchiveRepository.findAllByUserId(USER_ID)).thenReturn(List.of(accountChangeArchive));
+            doThrow(new IllegalStateException()).when(accountChangeArchiveRepository).deleteAll(List.of(accountChangeArchive));
 
             assertThrows(IllegalStateException.class, () -> accountChangeArchiveService.deleteByUserId(USER_ID));
         }
