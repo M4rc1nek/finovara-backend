@@ -458,28 +458,38 @@ class SharedAccountActivityLogServiceTest {
 
         @Test
         void shouldDeleteActivitiesWhenUserIdIsProvided() {
+            when(sharedAccountActivityLogRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstActivity));
+
             service.deleteByUserId(USER_ID);
 
-            verify(sharedAccountActivityLogRepository).deleteByUserId(USER_ID);
+            verify(sharedAccountActivityLogRepository).findAllByUserId(USER_ID);
+            verify(sharedAccountActivityLogRepository).deleteAll(List.of(firstActivity));
         }
 
         @Test
         void shouldDeleteActivitiesExactlyOnceWhenUserIdIsProvided() {
+            when(sharedAccountActivityLogRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstActivity));
+
             service.deleteByUserId(USER_ID);
 
-            verify(sharedAccountActivityLogRepository, times(1)).deleteByUserId(USER_ID);
+            verify(sharedAccountActivityLogRepository, times(1)).deleteAll(List.of(firstActivity));
             verifyNoMoreInteractions(sharedAccountActivityLogRepository);
         }
 
         @Test
         void shouldDelegateDeletionWithNullWhenUserIdIsNull() {
+            when(sharedAccountActivityLogRepository.findAllByUserId(null)).thenReturn(List.of());
+
             service.deleteByUserId(null);
 
-            verify(sharedAccountActivityLogRepository).deleteByUserId(null);
+            verify(sharedAccountActivityLogRepository).findAllByUserId(null);
+            verify(sharedAccountActivityLogRepository).deleteAll(List.of());
         }
 
         @Test
         void shouldNotUseAuthBackendWhenDeletingActivities() {
+            when(sharedAccountActivityLogRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstActivity));
+
             service.deleteByUserId(USER_ID);
 
             verifyNoInteractions(authBackendClient, sharedAccountActivityLogMapper);
@@ -487,7 +497,8 @@ class SharedAccountActivityLogServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
-            doThrow(new IllegalStateException()).when(sharedAccountActivityLogRepository).deleteByUserId(USER_ID);
+            when(sharedAccountActivityLogRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstActivity));
+            doThrow(new IllegalStateException()).when(sharedAccountActivityLogRepository).deleteAll(List.of(firstActivity));
 
             assertThrows(IllegalStateException.class, () -> service.deleteByUserId(USER_ID));
         }
