@@ -55,10 +55,11 @@ class RevenueActivityServiceTest {
     class DeleteByUserId {
 
         @Test
-        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+        void shouldDeleteUserActivitiesWhenUserIdIsValid() {
             revenueActivityService.deleteByUserId(USER_ID);
 
-            verify(revenueActivityRepository).deleteByUserId(USER_ID);
+            verify(revenueActivityRepository).findAllByUserId(USER_ID);
+            verify(revenueActivityRepository).deleteAll(any());
         }
     }
 
