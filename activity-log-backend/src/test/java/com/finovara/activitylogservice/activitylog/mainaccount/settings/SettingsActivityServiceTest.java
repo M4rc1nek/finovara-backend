@@ -54,10 +54,11 @@ class SettingsActivityServiceTest {
     class DeleteByUserId {
 
         @Test
-        void shouldCallRepositoryDeleteByUserIdWhenUserIdIsValid() {
+        void shouldDeleteUserActivitiesWhenUserIdIsValid() {
             settingsActivityService.deleteByUserId(USER_ID);
 
-            verify(settingsActivityRepository).deleteByUserId(USER_ID);
+            verify(settingsActivityRepository).findAllByUserId(USER_ID);
+            verify(settingsActivityRepository).deleteAll(any());
         }
     }
 
