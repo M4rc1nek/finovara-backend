@@ -28,19 +28,8 @@ public interface PiggyBankRepository extends JpaRepository<PiggyBank, Long> {
     @Query("SELECT LOWER(pb.name) FROM PiggyBank pb WHERE pb.userId = :userId")
     List<String> findLowerCaseNamesByUserId(Long userId);
 
-    @Query("SELECT COUNT(pb) FROM PiggyBank pb WHERE pb.userId = :userId")
-    long countPiggyBanksByUserId(Long userId);
-
     @Query("SELECT COUNT(pb) FROM PiggyBank pb WHERE pb.userId = :userId AND pb.createdAt BETWEEN :startDate AND :endDate")
     long countPiggyBanksByUserIdAndCreatedAtBetween(Long userId, @Param("startDate") LocalDate from, @Param("endDate") LocalDate to);
-
-    @Query("""
-                SELECT COUNT(p) > 0
-                FROM PiggyBank p
-                WHERE LOWER(p.name) = LOWER(:name)
-                  AND p.userId = :userId
-            """)
-    boolean existsByNameIgnoreCase(Long userId, String name);
 
     @Query("""
                 SELECT COUNT(p) > 0
