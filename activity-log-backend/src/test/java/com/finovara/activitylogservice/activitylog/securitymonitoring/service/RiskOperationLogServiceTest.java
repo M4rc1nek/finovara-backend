@@ -70,15 +70,17 @@ class RiskOperationLogServiceTest {
         void shouldDeleteActivitiesWhenUserIdIsProvided() {
             riskOperationLogService.deleteByUserId(USER_ID);
 
-            verify(riskOperationActivityRepository).deleteByUserId(USER_ID);
+            verify(riskOperationActivityRepository).findAllByUserId(USER_ID);
+            verify(riskOperationActivityRepository).deleteAll(anyList());
         }
 
         @Test
         void shouldDeleteActivitiesWhenUserIdIsDifferent() {
             riskOperationLogService.deleteByUserId(OTHER_USER_ID);
 
-            verify(riskOperationActivityRepository).deleteByUserId(OTHER_USER_ID);
-            verify(riskOperationActivityRepository, never()).deleteByUserId(USER_ID);
+            verify(riskOperationActivityRepository).findAllByUserId(OTHER_USER_ID);
+            verify(riskOperationActivityRepository).deleteAll(anyList());
+            verify(riskOperationActivityRepository, never()).findAllByUserId(USER_ID);
         }
 
         @Test
@@ -90,7 +92,7 @@ class RiskOperationLogServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
-            doThrow(new IllegalStateException("delete failed")).when(riskOperationActivityRepository).deleteByUserId(USER_ID);
+            doThrow(new IllegalStateException("delete failed")).when(riskOperationActivityRepository).deleteAll(anyList());
 
             assertThrows(IllegalStateException.class, () -> riskOperationLogService.deleteByUserId(USER_ID));
         }
