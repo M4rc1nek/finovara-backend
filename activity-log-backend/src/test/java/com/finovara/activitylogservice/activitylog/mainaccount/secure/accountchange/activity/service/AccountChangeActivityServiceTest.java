@@ -164,6 +164,28 @@ class AccountChangeActivityServiceTest {
     }
 
     @Nested
+    class DeleteByUserId {
+
+        @Test
+        void shouldDeleteActivitiesWhenUserIdIsProvided() {
+            when(accountChangeActivityRepository.findAllByUserId(USER_ID)).thenReturn(List.of(accountChangeActivity));
+
+            accountChangeActivityService.deleteByUserId(USER_ID);
+
+            verify(accountChangeActivityRepository).findAllByUserId(USER_ID);
+            verify(accountChangeActivityRepository).deleteAll(List.of(accountChangeActivity));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositoryDeleteFails() {
+            when(accountChangeActivityRepository.findAllByUserId(USER_ID)).thenReturn(List.of(accountChangeActivity));
+            doThrow(new IllegalStateException()).when(accountChangeActivityRepository).deleteAll(List.of(accountChangeActivity));
+
+            assertThrows(IllegalStateException.class, () -> accountChangeActivityService.deleteByUserId(USER_ID));
+        }
+    }
+
+    @Nested
     class GetAccountChangeActivity {
 
         @Test
@@ -244,25 +266,34 @@ class AccountChangeActivityServiceTest {
     }
 
     @Nested
-    class DeleteByUserId {
+    class DeleteByUserIdFromRepository {
 
         @Test
         void shouldDeleteActivitiesWhenUserIdIsProvided() {
+            List<AccountChangeActivity> activities = List.of(accountChangeActivity);
+            when(accountChangeActivityRepository.findAllByUserId(USER_ID)).thenReturn(activities);
+
             accountChangeActivityService.deleteByUserId(USER_ID);
 
-            verify(accountChangeActivityRepository).deleteByUserId(USER_ID);
+            verify(accountChangeActivityRepository).findAllByUserId(USER_ID);
+            verify(accountChangeActivityRepository).deleteAll(activities);
         }
 
         @Test
         void shouldDeleteActivitiesWhenUserIdIsNull() {
+            when(accountChangeActivityRepository.findAllByUserId(null)).thenReturn(List.of());
+
             accountChangeActivityService.deleteByUserId(null);
 
-            verify(accountChangeActivityRepository).deleteByUserId(null);
+            verify(accountChangeActivityRepository).findAllByUserId(null);
+            verify(accountChangeActivityRepository).deleteAll(List.of());
         }
 
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
-            doThrow(new IllegalStateException()).when(accountChangeActivityRepository).deleteByUserId(USER_ID);
+            List<AccountChangeActivity> activities = List.of(accountChangeActivity);
+            when(accountChangeActivityRepository.findAllByUserId(USER_ID)).thenReturn(activities);
+            doThrow(new IllegalStateException()).when(accountChangeActivityRepository).deleteAll(activities);
 
             assertThrows(IllegalStateException.class, () -> accountChangeActivityService.deleteByUserId(USER_ID));
         }
