@@ -169,7 +169,7 @@ class FundReservationServiceTest {
             List<FundReservation> reservations = List.of(
                     FundReservation.builder().id(1L).walletId(WALLET_ID).build(),
                     FundReservation.builder().id(2L).walletId(WALLET_ID).build());
-            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
+            when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
             when(wallet.getId()).thenReturn(WALLET_ID);
             when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(reservations);
 
@@ -181,7 +181,7 @@ class FundReservationServiceTest {
         @Test
         void shouldDeleteEmptyCollectionWhenWalletHasNoReservations() {
             List<FundReservation> reservations = List.of();
-            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenReturn(wallet);
+            when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
             when(wallet.getId()).thenReturn(WALLET_ID);
             when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(reservations);
 
@@ -192,7 +192,7 @@ class FundReservationServiceTest {
 
         @Test
         void shouldThrowExceptionWhenWalletDoesNotExist() {
-            when(walletManagerService.getWalletByUserIdOrThrow(USER_ID)).thenThrow(new RequestedEntityNotFoundException("Wallet not found"));
+            when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenThrow(new RequestedEntityNotFoundException("Wallet not found"));
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteByUserId(USER_ID));
 
