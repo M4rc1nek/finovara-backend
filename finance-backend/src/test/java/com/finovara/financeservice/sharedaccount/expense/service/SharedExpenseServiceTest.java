@@ -4,10 +4,9 @@ import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.contracts.outbox.OutboxService;
-import com.finovara.contracts.sharedaccount.SharedAccountActivityLogType;
 import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
+import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.model.ExpenseCategory;
-import com.finovara.financeservice.feignclient.AuthBackendClient;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseDto;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseRequest;
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseResponse;
@@ -16,6 +15,7 @@ import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
 import com.finovara.financeservice.sharedaccount.limit.model.SharedLimit;
 import com.finovara.financeservice.sharedaccount.limit.repository.SharedLimitRepository;
+import com.finovara.financeservice.sharedaccount.limit.service.SharedLimitSpendingService;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsResponse;
 import com.finovara.financeservice.sharedaccount.participants.SharedAccountParticipantsService;
 import com.finovara.financeservice.sharedaccount.settings.expense.analysis.dto.ExpenseAnalysisMode;
@@ -23,34 +23,35 @@ import com.finovara.financeservice.sharedaccount.settings.expense.analysis.servi
 import com.finovara.financeservice.sharedaccount.settings.expense.largeexpense.service.LargeExpenseNotificationService;
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.service.SpendControlService;
 import com.finovara.financeservice.sharedaccount.wallet.service.SharedWalletService;
-import com.finovara.financeservice.util.periodbalance.FinancialPeriodService;
+import com.finovara.financeservice.util.sharedaccount.SharedUsernameResolver;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -59,20 +60,22 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class SharedExpenseServiceTest {
 
-    private static final Long OWNER_ID = 10L;
-    private static final Long MEMBER_ID = 20L;
-    private static final Long OUTSIDER_ID = 99L;
-    private static final Long EXPENSE_ID = 100L;
+    private static final Long USER_ID = 1L;
+    private static final Long OTHER_USER_ID = 3L;
+    private static final Long OWNER_ID = 1L;
+    private static final Long MEMBER_ID = 2L;
+    private static final Long EXPENSE_ID = 5L;
+    private static final Long LIMIT_ID = 7L;
     private static final String USERNAME = "john";
     private static final String OTHER_USERNAME = "anna";
-    private static final String AGGREGATE = "SharedAccountExpense";
-    private static final String TOPIC = "shared-account.activity";
-    private static final String DESCRIPTION = "Groceries";
-    private static final BigDecimal AMOUNT = new BigDecimal("50.00");
-    private static final BigDecimal OLD_AMOUNT = new BigDecimal("20.00");
-    private static final BigDecimal LIMIT_AMOUNT = new BigDecimal("100.00");
+    private static final String OUTBOX_AGGREGATE = "SharedAccountExpense";
+    private static final String OUTBOX_TOPIC = "shared-account.activity";
+    private static final int PAGE_SIZE = 10;
+    private static final BigDecimal AMOUNT = BigDecimal.TEN;
+    private static final BigDecimal LIMIT_AMOUNT = BigDecimal.valueOf(100);
     private static final ExpenseCategory CATEGORY = ExpenseCategory.values()[0];
     private static final ExpenseCategory OTHER_CATEGORY = ExpenseCategory.values()[1];
+    private static final PeriodType PERIOD = PeriodType.values()[0];
 
     @Mock
     private SharedExpenseRepository sharedExpenseRepository;
@@ -84,7 +87,7 @@ class SharedExpenseServiceTest {
     private SharedLimitRepository sharedLimitRepository;
 
     @Mock
-    private FinancialPeriodService financialPeriodService;
+    private SharedLimitSpendingService sharedLimitSpendingService;
 
     @Mock
     private SharedAccountParticipantsService sharedAccountParticipantsService;
@@ -102,663 +105,428 @@ class SharedExpenseServiceTest {
     private SharedExpenseMapper sharedExpenseMapper;
 
     @Mock
-    private AuthBackendClient authBackendClient;
+    private SharedUsernameResolver usernameResolver;
 
     @Mock
     private OutboxService outboxService;
 
     @Mock
-    private SharedExpenseRequest expenseRequest;
+    private SharedExpenseRequest request;
 
     @Mock
     private SharedExpenseDto expenseDto;
 
     @Mock
-    private SharedAccountParticipantsResponse participantsResponse;
+    private SharedExpenseDto mappedDto;
 
     @Mock
-    private SharedExpense savedExpense;
+    private SharedExpenseDto otherMappedDto;
 
     @Mock
-    private SharedExpense existingExpense;
-
-    @Mock
-    private SharedLimit limit;
-
-    @Mock
-    private SharedLimit secondLimit;
+    private SharedAccountParticipantsResponse participants;
 
     @Captor
     private ArgumentCaptor<SharedExpense> expenseCaptor;
 
-    @Captor
-    private ArgumentCaptor<SharedAccountActivityLogEvent> eventCaptor;
-
     @InjectMocks
     private SharedExpenseService service;
 
-    private void stubRequest(BigDecimal amount) {
-        when(expenseRequest.sharedExpenseDto()).thenReturn(expenseDto);
-        when(expenseDto.category()).thenReturn(CATEGORY);
-        when(expenseDto.amount()).thenReturn(amount);
-        when(expenseDto.description()).thenReturn(DESCRIPTION);
-    }
+    private SharedLimit generalLimit;
+    private SharedLimit categoryLimit;
 
-    private void stubParticipants(Long userId) {
-        when(sharedAccountParticipantsService.getParticipants(userId)).thenReturn(participantsResponse);
-        when(participantsResponse.ownerId()).thenReturn(OWNER_ID);
-        when(participantsResponse.memberId()).thenReturn(MEMBER_ID);
-    }
-
-    private void stubLimit(SharedLimit target, ExpenseCategory category, BigDecimal spent) {
-        when(target.getCategory()).thenReturn(category);
-        when(target.getAmount()).thenReturn(LIMIT_AMOUNT);
-        when(financialPeriodService.getSharedExpensesSum(OWNER_ID, target.getPeriodType(), category)).thenReturn(spent);
-    }
-
-    private void verifyOutboxEvent(Long userId, SharedAccountActivityLogType type) {
-        verify(outboxService).save(eq(AGGREGATE), eq(EXPENSE_ID.toString()), eq(TOPIC), eventCaptor.capture());
-        assertThat(eventCaptor.getValue())
-                .usingRecursiveComparison()
-                .ignoringFieldsOfTypes(LocalDateTime.class)
-                .isEqualTo(new SharedAccountActivityLogEvent(
-                        OWNER_ID, MEMBER_ID, userId, EXPENSE_ID, type, LocalDateTime.now()));
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(service, "pageSize", PAGE_SIZE);
+        generalLimit = SharedLimit.builder().id(LIMIT_ID).periodType(PERIOD).category(null).amount(LIMIT_AMOUNT).build();
+        categoryLimit = SharedLimit.builder().id(LIMIT_ID).periodType(PERIOD).category(CATEGORY).amount(LIMIT_AMOUNT).build();
     }
 
     @Nested
     class AddExpense {
 
-        private void stubSuccessfulAdd() {
-            stubRequest(AMOUNT);
-            stubParticipants(OWNER_ID);
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
-            when(sharedExpenseRepository.save(any(SharedExpense.class))).thenReturn(savedExpense);
-            when(savedExpense.getId()).thenReturn(EXPENSE_ID);
+        @BeforeEach
+        void setUp() {
+            when(request.sharedExpenseDto()).thenReturn(expenseDto);
+            when(expenseDto.category()).thenReturn(CATEGORY);
         }
 
-        @Test
-        void shouldReturnResponseWhenExpenseIsAdded() {
-            stubSuccessfulAdd();
+        @Nested
+        class AmountValidation {
 
-            SharedExpenseResponse result = service.addExpense(expenseRequest, OWNER_ID);
+            @Test
+            void shouldThrowExceptionWhenAmountIsNull() {
+                assertThrows(InvalidInputException.class, () -> service.addExpense(request, USER_ID));
+                verifyNoInteractions(sharedAccountParticipantsService, sharedWalletService, sharedExpenseRepository, outboxService);
+            }
 
-            verify(sharedExpenseRepository).save(expenseCaptor.capture());
-            assertThat(result).isEqualTo(new SharedExpenseResponse(expenseCaptor.getValue().getId(), OWNER_ID, USERNAME));
+            @Test
+            void shouldThrowExceptionWhenAmountIsBelowOne() {
+                when(expenseDto.amount()).thenReturn(new BigDecimal("0.99"));
+
+                assertThrows(InvalidInputException.class, () -> service.addExpense(request, USER_ID));
+                verifyNoInteractions(sharedAccountParticipantsService, sharedWalletService, sharedExpenseRepository, outboxService);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenAmountIsNegative() {
+                when(expenseDto.amount()).thenReturn(BigDecimal.valueOf(-3));
+
+                assertThrows(InvalidInputException.class, () -> service.addExpense(request, USER_ID));
+                verifyNoInteractions(sharedAccountParticipantsService, sharedWalletService, sharedExpenseRepository, outboxService);
+            }
         }
 
-        @Test
-        void shouldSaveExpenseWithRequestAndParticipantDataWhenExpenseIsAdded() {
-            stubSuccessfulAdd();
-
-            service.addExpense(expenseRequest, OWNER_ID);
-
-            verify(sharedExpenseRepository).save(expenseCaptor.capture());
-            SharedExpense saved = expenseCaptor.getValue();
-            assertThat(saved.getAmount()).isEqualTo(AMOUNT);
-            assertThat(saved.getCategory()).isEqualTo(CATEGORY);
-            assertThat(saved.getDescription()).isEqualTo(DESCRIPTION);
-            assertThat(saved.getOwnerId()).isEqualTo(OWNER_ID);
-            assertThat(saved.getMemberId()).isEqualTo(MEMBER_ID);
-            assertThat(saved.getCreatedByUserId()).isEqualTo(OWNER_ID);
-            assertThat(saved.getCreatedAt()).isEqualTo(LocalDate.now());
-        }
-
-        @Test
-        void shouldSaveExpenseWithMemberAsCreatorWhenMemberAddsExpense() {
-            stubRequest(AMOUNT);
-            stubParticipants(MEMBER_ID);
-            when(authBackendClient.getUsername(MEMBER_ID)).thenReturn(OTHER_USERNAME);
-            when(sharedExpenseRepository.save(any(SharedExpense.class))).thenReturn(savedExpense);
-            when(savedExpense.getId()).thenReturn(EXPENSE_ID);
-
-            SharedExpenseResponse result = service.addExpense(expenseRequest, MEMBER_ID);
-
-            verify(sharedExpenseRepository).save(expenseCaptor.capture());
-            assertThat(expenseCaptor.getValue().getCreatedByUserId()).isEqualTo(MEMBER_ID);
-            assertThat(result.equals(new SharedExpenseResponse(null, MEMBER_ID, OTHER_USERNAME))).isTrue();
-            verify(sharedWalletService).removeBalanceFromWallet(MEMBER_ID, AMOUNT);
-        }
-
-        @Test
-        void shouldRemoveAmountFromWalletWhenExpenseIsAdded() {
-            stubSuccessfulAdd();
-
-            service.addExpense(expenseRequest, OWNER_ID);
-
-            verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, AMOUNT);
-        }
-
-        @Test
-        void shouldHandleSpendControlAndAnalysisInAddModeWhenExpenseIsAdded() {
-            stubSuccessfulAdd();
-
-            service.addExpense(expenseRequest, OWNER_ID);
-
-            verify(spendControlService).handleSpendControl(OWNER_ID, AMOUNT);
-            verify(expenseAnalysisService).handleExpenseAnalysis(eq(OWNER_ID), any(), eq(AMOUNT), eq(ExpenseAnalysisMode.ADD));
-        }
-
-        @Test
-        void shouldSaveOutboxEventWhenExpenseIsAdded() {
-            stubSuccessfulAdd();
-
-            service.addExpense(expenseRequest, OWNER_ID);
-
-            verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.EXPENSE_CREATED);
-        }
-
-        @Test
-        void shouldNotifyAboutLargeExpenseWhenExpenseIsAdded() {
-            stubSuccessfulAdd();
-
-            service.addExpense(expenseRequest, OWNER_ID);
-
-            verify(sharedExpenseRepository).save(expenseCaptor.capture());
-            verify(largeExpenseNotificationService).handleLargeNotification(OWNER_ID, expenseCaptor.getValue());
-        }
-
-        @Test
-        void shouldProcessStepsInOrderWhenExpenseIsAdded() {
-            stubSuccessfulAdd();
-
-            service.addExpense(expenseRequest, OWNER_ID);
-
-            InOrder inOrder = inOrder(spendControlService, sharedLimitRepository, expenseAnalysisService,
-                    sharedWalletService, sharedExpenseRepository, outboxService, largeExpenseNotificationService);
-            inOrder.verify(spendControlService).handleSpendControl(OWNER_ID, AMOUNT);
-            inOrder.verify(sharedLimitRepository).findAllByUserId(OWNER_ID);
-            inOrder.verify(expenseAnalysisService).handleExpenseAnalysis(eq(OWNER_ID), any(), eq(AMOUNT), eq(ExpenseAnalysisMode.ADD));
-            inOrder.verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, AMOUNT);
-            inOrder.verify(sharedExpenseRepository).save(any(SharedExpense.class));
-            inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
-            inOrder.verify(largeExpenseNotificationService).handleLargeNotification(eq(OWNER_ID), any(SharedExpense.class));
-        }
-
-        @Test
-        void shouldAddExpenseWhenAmountEqualsMinimum() {
-            stubRequest(BigDecimal.ONE);
-            stubParticipants(OWNER_ID);
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
-            when(sharedExpenseRepository.save(any(SharedExpense.class))).thenReturn(savedExpense);
-            when(savedExpense.getId()).thenReturn(EXPENSE_ID);
-
-            service.addExpense(expenseRequest, OWNER_ID);
-
-            verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, BigDecimal.ONE);
-        }
-
-        @Test
-        void shouldAddExpenseWhenGeneralLimitIsNotExceeded() {
-            stubSuccessfulAdd();
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            stubLimit(limit, null, new BigDecimal("30.00"));
-
-            service.addExpense(expenseRequest, OWNER_ID);
-
-            verify(sharedExpenseRepository).save(any(SharedExpense.class));
-        }
-
-        @Test
-        void shouldAddExpenseWhenTotalEqualsLimitAmount() {
-            stubSuccessfulAdd();
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            stubLimit(limit, CATEGORY, new BigDecimal("50.00"));
-
-            service.addExpense(expenseRequest, OWNER_ID);
-
-            verify(sharedExpenseRepository).save(any(SharedExpense.class));
-        }
-
-        @Test
-        void shouldIgnoreLimitWhenLimitCategoryDiffersFromExpenseCategory() {
-            stubSuccessfulAdd();
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            when(limit.getCategory()).thenReturn(OTHER_CATEGORY);
-
-            service.addExpense(expenseRequest, OWNER_ID);
-
-            verifyNoInteractions(financialPeriodService);
-            verify(sharedExpenseRepository).save(any(SharedExpense.class));
-        }
-
-        @Test
-        void shouldCheckEveryLimitWhenMultipleLimitsExist() {
-            stubSuccessfulAdd();
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit, secondLimit));
-            stubLimit(limit, null, new BigDecimal("10.00"));
-            stubLimit(secondLimit, CATEGORY, new BigDecimal("20.00"));
-
-            service.addExpense(expenseRequest, OWNER_ID);
-
-            verify(financialPeriodService).getSharedExpensesSum(eq(OWNER_ID), isNull(), isNull());
-            verify(financialPeriodService).getSharedExpensesSum(eq(OWNER_ID), isNull(), eq(CATEGORY));
-        }
-
-        @ParameterizedTest
-        @ValueSource(strings = {"0", "0.99", "-1", "-100.50"})
-        void shouldThrowExceptionWhenAmountIsBelowMinimum(BigDecimal amount) {
-            stubRequest(amount);
-
-            assertThrows(InvalidInputException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(spendControlService, sharedLimitRepository, expenseAnalysisService, sharedWalletService,
-                    sharedExpenseRepository, outboxService, largeExpenseNotificationService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRequestIsNull() {
-            assertThrows(NullPointerException.class, () -> service.addExpense(null, OWNER_ID));
-
-            verifyNoInteractions(spendControlService, sharedExpenseRepository, outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenExpenseDtoIsNull() {
-            assertThrows(NullPointerException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(spendControlService, sharedExpenseRepository, outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenAmountIsNull() {
-            when(expenseRequest.sharedExpenseDto()).thenReturn(expenseDto);
-
-            assertThrows(NullPointerException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(spendControlService, sharedExpenseRepository, outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenGeneralLimitIsExceeded() {
-            stubRequest(AMOUNT);
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            stubLimit(limit, null, new BigDecimal("60.00"));
-
-            assertThrows(MissingRequirementException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(expenseAnalysisService, sharedWalletService, sharedExpenseRepository, outboxService,
-                    largeExpenseNotificationService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenCategoryLimitIsExceeded() {
-            stubRequest(AMOUNT);
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            stubLimit(limit, CATEGORY, new BigDecimal("60.00"));
-
-            assertThrows(MissingRequirementException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(expenseAnalysisService, sharedWalletService, sharedExpenseRepository, outboxService,
-                    largeExpenseNotificationService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenSecondLimitIsExceeded() {
-            stubRequest(AMOUNT);
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit, secondLimit));
-            stubLimit(limit, null, new BigDecimal("10.00"));
-            stubLimit(secondLimit, CATEGORY, new BigDecimal("60.00"));
-
-            assertThrows(MissingRequirementException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(sharedWalletService, sharedExpenseRepository, outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenSpendControlFails() {
-            stubRequest(AMOUNT);
-            doThrow(new IllegalStateException("spend control")).when(spendControlService).handleSpendControl(OWNER_ID, AMOUNT);
-
-            assertThrows(IllegalStateException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(sharedLimitRepository, expenseAnalysisService, sharedWalletService,
-                    sharedExpenseRepository, outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenExpenseAnalysisFails() {
-            stubRequest(AMOUNT);
-            doThrow(new IllegalStateException("analysis")).when(expenseAnalysisService)
-                    .handleExpenseAnalysis(eq(OWNER_ID), any(), eq(AMOUNT), eq(ExpenseAnalysisMode.ADD));
-
-            assertThrows(IllegalStateException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(sharedAccountParticipantsService, sharedWalletService, sharedExpenseRepository, outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenParticipantsServiceFails() {
-            stubRequest(AMOUNT);
-            when(sharedAccountParticipantsService.getParticipants(OWNER_ID))
-                    .thenThrow(new RequestedEntityNotFoundException("participants not found"));
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(authBackendClient, sharedWalletService, sharedExpenseRepository, outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenWalletUpdateFails() {
-            stubRequest(AMOUNT);
-            stubParticipants(OWNER_ID);
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
-            doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService)
-                    .removeBalanceFromWallet(OWNER_ID, AMOUNT);
-
-            assertThrows(IllegalStateException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(sharedExpenseRepository, outboxService, largeExpenseNotificationService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositorySaveFails() {
-            stubRequest(AMOUNT);
-            stubParticipants(OWNER_ID);
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
-            when(sharedExpenseRepository.save(any(SharedExpense.class))).thenThrow(new IllegalStateException("db failed"));
-
-            assertThrows(IllegalStateException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(outboxService, largeExpenseNotificationService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenOutboxServiceFails() {
-            stubSuccessfulAdd();
-            doThrow(new IllegalStateException("outbox failed")).when(outboxService)
-                    .save(anyString(), anyString(), anyString(), any());
-
-            assertThrows(IllegalStateException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
-
-            verifyNoInteractions(largeExpenseNotificationService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenLargeExpenseNotificationFails() {
-            stubSuccessfulAdd();
-            doThrow(new IllegalStateException("notification failed")).when(largeExpenseNotificationService)
-                    .handleLargeNotification(eq(OWNER_ID), any(SharedExpense.class));
-
-            assertThrows(IllegalStateException.class, () -> service.addExpense(expenseRequest, OWNER_ID));
+        @Nested
+        class ValidAmount {
+
+            @BeforeEach
+            void setUp() {
+                when(expenseDto.amount()).thenReturn(AMOUNT);
+                when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participants);
+                when(usernameResolver.resolve(List.of(USER_ID))).thenReturn(Map.of(USER_ID, USERNAME));
+            }
+
+            @Nested
+            class Persisted {
+
+                private SharedExpense savedExpense;
+
+                @BeforeEach
+                void setUp() {
+                    when(participants.ownerId()).thenReturn(OWNER_ID);
+                    when(participants.memberId()).thenReturn(MEMBER_ID);
+                    savedExpense = SharedExpense.builder().id(EXPENSE_ID).amount(AMOUNT).category(CATEGORY).createdByUserId(USER_ID).build();
+                    when(sharedExpenseRepository.save(any(SharedExpense.class))).thenReturn(savedExpense);
+                }
+
+                @Test
+                void shouldReturnResponseWithIdAndUsernameWhenExpenseAdded() {
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+
+                    SharedExpenseResponse result = service.addExpense(request, USER_ID);
+
+                    assertEquals(new SharedExpenseResponse(EXPENSE_ID, USER_ID, USERNAME), result);
+                }
+
+                @Test
+                void shouldSaveExpenseWithParticipantsAndCreatorWhenExpenseAdded() {
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+
+                    service.addExpense(request, USER_ID);
+
+                    verify(sharedExpenseRepository).save(expenseCaptor.capture());
+                    assertEquals(AMOUNT, expenseCaptor.getValue().getAmount());
+                    assertEquals(CATEGORY, expenseCaptor.getValue().getCategory());
+                    assertEquals(OWNER_ID, expenseCaptor.getValue().getOwnerId());
+                    assertEquals(MEMBER_ID, expenseCaptor.getValue().getMemberId());
+                    assertEquals(USER_ID, expenseCaptor.getValue().getCreatedByUserId());
+                    assertEquals(LocalDate.now(), expenseCaptor.getValue().getCreatedAt());
+                }
+
+                @Test
+                void shouldApplyAllSideEffectsWhenExpenseAdded() {
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+
+                    service.addExpense(request, USER_ID);
+
+                    verify(expenseAnalysisService).handleExpenseAnalysis(eq(USER_ID), any(), eq(AMOUNT), eq(ExpenseAnalysisMode.ADD));
+                    verify(spendControlService).handleSpendControl(USER_ID, AMOUNT);
+                    verify(sharedWalletService).lockWalletForUpdate(USER_ID);
+                    verify(sharedWalletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+                    verify(largeExpenseNotificationService).handleLargeNotification(USER_ID, savedExpense);
+                    verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(EXPENSE_ID.toString()), eq(OUTBOX_TOPIC), any(SharedAccountActivityLogEvent.class));
+                }
+
+                @Test
+                void shouldLockWalletBeforeSpendControlAndRemovingBalance() {
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+
+                    service.addExpense(request, USER_ID);
+
+                    InOrder inOrder = inOrder(expenseAnalysisService, sharedWalletService, spendControlService, sharedExpenseRepository);
+                    inOrder.verify(expenseAnalysisService).handleExpenseAnalysis(eq(USER_ID), any(), eq(AMOUNT), eq(ExpenseAnalysisMode.ADD));
+                    inOrder.verify(sharedWalletService).lockWalletForUpdate(USER_ID);
+                    inOrder.verify(spendControlService).handleSpendControl(USER_ID, AMOUNT);
+                    inOrder.verify(sharedWalletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+                    inOrder.verify(sharedExpenseRepository).save(any(SharedExpense.class));
+                }
+
+                @Test
+                void shouldNotCalculateSpentWhenNoLimitsDefined() {
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+
+                    service.addExpense(request, USER_ID);
+
+                    verifyNoInteractions(sharedLimitSpendingService);
+                }
+
+                @Test
+                void shouldSaveExpenseWhenTotalEqualsLimitAmount() {
+                    List<SharedLimit> limits = List.of(generalLimit);
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+                    when(sharedLimitSpendingService.calculateSpent(eq(participants), eq(limits), any(LocalDate.class)))
+                            .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(90)));
+
+                    SharedExpenseResponse result = service.addExpense(request, USER_ID);
+
+                    assertEquals(EXPENSE_ID, result.hashCode() == 0 ? null : EXPENSE_ID);
+                    verify(sharedExpenseRepository).save(any(SharedExpense.class));
+                }
+
+                @Test
+                void shouldTreatMissingSpentAsZeroWhenLimitHasNoSpentEntry() {
+                    List<SharedLimit> limits = List.of(generalLimit);
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+                    when(sharedLimitSpendingService.calculateSpent(eq(participants), eq(limits), any(LocalDate.class)))
+                            .thenReturn(Map.of());
+
+                    service.addExpense(request, USER_ID);
+
+                    verify(sharedExpenseRepository).save(any(SharedExpense.class));
+                }
+
+                @Test
+                void shouldIgnoreLimitWhenLimitCategoryDiffersFromExpenseCategory() {
+                    SharedLimit otherCategoryLimit = SharedLimit.builder().id(LIMIT_ID).periodType(PERIOD).category(OTHER_CATEGORY).amount(LIMIT_AMOUNT).build();
+                    List<SharedLimit> limits = List.of(otherCategoryLimit);
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+                    when(sharedLimitSpendingService.calculateSpent(eq(participants), eq(limits), any(LocalDate.class)))
+                            .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(1000)));
+
+                    service.addExpense(request, USER_ID);
+
+                    verify(sharedExpenseRepository).save(any(SharedExpense.class));
+                }
+            }
+
+            @Test
+            void shouldThrowExceptionWhenGeneralLimitExceeded() {
+                List<SharedLimit> limits = List.of(generalLimit);
+                when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+                when(sharedLimitSpendingService.calculateSpent(eq(participants), eq(limits), any(LocalDate.class)))
+                        .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(91)));
+
+                assertThrows(MissingRequirementException.class, () -> service.addExpense(request, USER_ID));
+                verify(sharedExpenseRepository, never()).save(any(SharedExpense.class));
+                verify(sharedWalletService, never()).removeBalanceFromWallet(any(), any());
+                verifyNoInteractions(outboxService, largeExpenseNotificationService);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenCategoryLimitExceeded() {
+                List<SharedLimit> limits = List.of(categoryLimit);
+                when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+                when(sharedLimitSpendingService.calculateSpent(eq(participants), eq(limits), any(LocalDate.class)))
+                        .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(100)));
+
+                assertThrows(MissingRequirementException.class, () -> service.addExpense(request, USER_ID));
+                verify(sharedExpenseRepository, never()).save(any(SharedExpense.class));
+                verifyNoInteractions(outboxService, largeExpenseNotificationService);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenExpenseAnalysisRejectsExpense() {
+                doThrow(new IllegalStateException()).when(expenseAnalysisService)
+                        .handleExpenseAnalysis(eq(USER_ID), any(), eq(AMOUNT), eq(ExpenseAnalysisMode.ADD));
+
+                assertThrows(IllegalStateException.class, () -> service.addExpense(request, USER_ID));
+                verifyNoInteractions(sharedWalletService, sharedExpenseRepository, outboxService);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenSpendControlRejectsExpense() {
+                doThrow(new IllegalStateException()).when(spendControlService).handleSpendControl(USER_ID, AMOUNT);
+
+                assertThrows(IllegalStateException.class, () -> service.addExpense(request, USER_ID));
+                verify(sharedWalletService, never()).removeBalanceFromWallet(any(), any());
+                verifyNoInteractions(sharedExpenseRepository, outboxService);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenWalletBalanceIsInsufficient() {
+                when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+                doThrow(new IllegalStateException()).when(sharedWalletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+
+                assertThrows(IllegalStateException.class, () -> service.addExpense(request, USER_ID));
+                verifyNoInteractions(sharedExpenseRepository, outboxService, largeExpenseNotificationService);
+            }
         }
     }
 
     @Nested
     class EditExpense {
 
-        private void stubExistingExpense(Long callerId, ExpenseCategory oldCategory) {
-            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, callerId))
-                    .thenReturn(Optional.of(existingExpense));
-            when(existingExpense.getCategory()).thenReturn(oldCategory);
-            when(existingExpense.getAmount()).thenReturn(OLD_AMOUNT);
+        @BeforeEach
+        void setUp() {
+            when(request.sharedExpenseDto()).thenReturn(expenseDto);
+            when(expenseDto.category()).thenReturn(CATEGORY);
         }
 
-        private void stubSuccessfulEdit(Long callerId, ExpenseCategory oldCategory) {
-            stubRequest(AMOUNT);
-            stubExistingExpense(callerId, oldCategory);
-            stubParticipants(callerId);
-            when(sharedExpenseRepository.save(existingExpense)).thenReturn(existingExpense);
-            when(existingExpense.getId()).thenReturn(EXPENSE_ID);
+        @Nested
+        class AmountValidation {
+
+            @Test
+            void shouldThrowExceptionWhenAmountIsNull() {
+                assertThrows(InvalidInputException.class, () -> service.editExpense(request, USER_ID, EXPENSE_ID));
+                verifyNoInteractions(sharedAccountParticipantsService, sharedWalletService, sharedExpenseRepository, outboxService);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenAmountIsBelowOne() {
+                when(expenseDto.amount()).thenReturn(new BigDecimal("0.5"));
+
+                assertThrows(InvalidInputException.class, () -> service.editExpense(request, USER_ID, EXPENSE_ID));
+                verifyNoInteractions(sharedAccountParticipantsService, sharedWalletService, sharedExpenseRepository, outboxService);
+            }
         }
 
-        @Test
-        void shouldReturnExpenseIdWhenOwnerEditsExpense() {
-            stubSuccessfulEdit(OWNER_ID, OTHER_CATEGORY);
-
-            Long result = service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID);
-
-            assertThat(result).isEqualTo(EXPENSE_ID);
-        }
-
-        @Test
-        void shouldReturnExpenseIdAndSaveEventWhenMemberEditsExpense() {
-            stubSuccessfulEdit(MEMBER_ID, OTHER_CATEGORY);
-
-            Long result = service.editExpense(expenseRequest, MEMBER_ID, EXPENSE_ID);
-
-            assertThat(result).isEqualTo(EXPENSE_ID);
-            verifyOutboxEvent(MEMBER_ID, SharedAccountActivityLogType.EXPENSE_EDITED);
-        }
-
-        @Test
-        void shouldUpdateExpenseFieldsWhenExpenseIsEdited() {
-            stubSuccessfulEdit(OWNER_ID, OTHER_CATEGORY);
-
-            service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID);
-
-            verify(existingExpense).setAmount(AMOUNT);
-            verify(existingExpense).setCategory(CATEGORY);
-            verify(existingExpense).setDescription(DESCRIPTION);
-            verify(sharedExpenseRepository).save(existingExpense);
-        }
-
-        @Test
-        void shouldReturnOldAmountAndChargeNewAmountWhenExpenseIsEdited() {
-            stubSuccessfulEdit(OWNER_ID, OTHER_CATEGORY);
-
-            service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID);
-
-            InOrder inOrder = inOrder(sharedWalletService);
-            inOrder.verify(sharedWalletService).addBalanceToWallet(OWNER_ID, OLD_AMOUNT);
-            inOrder.verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, AMOUNT);
-        }
-
-        @Test
-        void shouldHandleExpenseAnalysisInEditModeWhenExpenseIsEdited() {
-            stubSuccessfulEdit(OWNER_ID, OTHER_CATEGORY);
-
-            service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID);
-
-            verify(expenseAnalysisService).handleExpenseAnalysis(eq(OWNER_ID), any(), eq(AMOUNT), eq(ExpenseAnalysisMode.EDIT));
-            verifyNoInteractions(spendControlService, largeExpenseNotificationService);
-        }
-
-        @Test
-        void shouldSaveOutboxEventWhenExpenseIsEdited() {
-            stubSuccessfulEdit(OWNER_ID, OTHER_CATEGORY);
-
-            service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID);
-
-            verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.EXPENSE_EDITED);
-        }
-
-        @Test
-        void shouldProcessStepsInOrderWhenExpenseIsEdited() {
-            stubSuccessfulEdit(OWNER_ID, OTHER_CATEGORY);
-
-            service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID);
-
-            InOrder inOrder = inOrder(sharedExpenseRepository, sharedLimitRepository, expenseAnalysisService,
-                    sharedWalletService, sharedAccountParticipantsService, outboxService);
-            inOrder.verify(sharedExpenseRepository).findByIdAndOwnerIdOrMemberId(EXPENSE_ID, OWNER_ID);
-            inOrder.verify(sharedLimitRepository).findAllByUserId(OWNER_ID);
-            inOrder.verify(expenseAnalysisService).handleExpenseAnalysis(eq(OWNER_ID), any(), eq(AMOUNT), eq(ExpenseAnalysisMode.EDIT));
-            inOrder.verify(sharedWalletService).addBalanceToWallet(OWNER_ID, OLD_AMOUNT);
-            inOrder.verify(sharedWalletService).removeBalanceFromWallet(OWNER_ID, AMOUNT);
-            inOrder.verify(sharedAccountParticipantsService).getParticipants(OWNER_ID);
-            inOrder.verify(sharedExpenseRepository).save(existingExpense);
-            inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
-        }
-
-        @Test
-        void shouldNotSubtractOldAmountWhenOldCategoryDoesNotMatchLimitAndLimitIsNotExceeded() {
-            stubSuccessfulEdit(OWNER_ID, OTHER_CATEGORY);
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            stubLimit(limit, CATEGORY, new BigDecimal("40.00"));
-
-            service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID);
-
-            verify(sharedExpenseRepository).save(existingExpense);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenOldAmountIsNotCountedAndNewTotalExceedsLimit() {
-            stubRequest(AMOUNT);
-            stubExistingExpense(OWNER_ID, OTHER_CATEGORY);
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            stubLimit(limit, CATEGORY, new BigDecimal("60.00"));
-
-            assertThrows(MissingRequirementException.class,
-                    () -> service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID));
-
-            verifyNoInteractions(expenseAnalysisService, sharedWalletService, sharedAccountParticipantsService, outboxService);
-            verify(sharedExpenseRepository, never()).save(any(SharedExpense.class));
-        }
-
-        @Test
-        void shouldSubtractOldAmountWhenOldCategoryMatchesLimitAndTotalEqualsLimit() {
-            stubSuccessfulEdit(OWNER_ID, CATEGORY);
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            stubLimit(limit, CATEGORY, new BigDecimal("70.00"));
-
-            service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID);
-
-            verify(sharedExpenseRepository).save(existingExpense);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenOldAmountIsSubtractedAndNewTotalStillExceedsLimit() {
-            stubRequest(AMOUNT);
-            stubExistingExpense(OWNER_ID, CATEGORY);
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            stubLimit(limit, CATEGORY, new BigDecimal("80.00"));
-
-            assertThrows(MissingRequirementException.class,
-                    () -> service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID));
-
-            verifyNoInteractions(expenseAnalysisService, sharedWalletService, outboxService);
-        }
-
-        @Test
-        void shouldSubtractOldAmountWhenGeneralLimitAppliesAndTotalEqualsLimit() {
-            stubSuccessfulEdit(OWNER_ID, OTHER_CATEGORY);
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            stubLimit(limit, null, new BigDecimal("70.00"));
-
-            service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID);
-
-            verify(sharedExpenseRepository).save(existingExpense);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenEditedAmountExceedsGeneralLimit() {
-            stubRequest(AMOUNT);
-            stubExistingExpense(OWNER_ID, OTHER_CATEGORY);
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            stubLimit(limit, null, new BigDecimal("100.00"));
-
-            assertThrows(MissingRequirementException.class,
-                    () -> service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID));
-
-            verifyNoInteractions(expenseAnalysisService, sharedWalletService, outboxService);
-        }
-
-        @Test
-        void shouldIgnoreLimitWhenNewCategoryDoesNotMatchLimitCategory() {
-            stubSuccessfulEdit(OWNER_ID, OTHER_CATEGORY);
-            when(sharedLimitRepository.findAllByUserId(OWNER_ID)).thenReturn(List.of(limit));
-            when(limit.getCategory()).thenReturn(OTHER_CATEGORY);
-
-            service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID);
-
-            verifyNoInteractions(financialPeriodService);
-            verify(sharedExpenseRepository).save(existingExpense);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenUserIsNeitherOwnerNorMember() {
-            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, OUTSIDER_ID)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> service.editExpense(expenseRequest, OUTSIDER_ID, EXPENSE_ID));
-
-            verifyNoInteractions(sharedLimitRepository, expenseAnalysisService, sharedWalletService, outboxService);
-            verify(sharedExpenseRepository, never()).save(any(SharedExpense.class));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryLookupFails() {
-            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, OWNER_ID))
-                    .thenThrow(new IllegalStateException("db failed"));
-
-            assertThrows(IllegalStateException.class, () -> service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID));
-
-            verifyNoInteractions(expenseAnalysisService, sharedWalletService, outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRequestIsNull() {
-            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, OWNER_ID))
-                    .thenReturn(Optional.of(existingExpense));
-
-            assertThrows(NullPointerException.class, () -> service.editExpense(null, OWNER_ID, EXPENSE_ID));
-
-            verifyNoInteractions(sharedLimitRepository, expenseAnalysisService, sharedWalletService, outboxService);
-            verify(sharedExpenseRepository, never()).save(any(SharedExpense.class));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenExpenseAnalysisFails() {
-            stubRequest(AMOUNT);
-            stubExistingExpense(OWNER_ID, OTHER_CATEGORY);
-            doThrow(new IllegalStateException("analysis")).when(expenseAnalysisService)
-                    .handleExpenseAnalysis(eq(OWNER_ID), any(), eq(AMOUNT), eq(ExpenseAnalysisMode.EDIT));
-
-            assertThrows(IllegalStateException.class, () -> service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID));
-
-            verifyNoInteractions(sharedWalletService, sharedAccountParticipantsService, outboxService);
-            verify(sharedExpenseRepository, never()).save(any(SharedExpense.class));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenAddingBalanceToWalletFails() {
-            stubRequest(AMOUNT);
-            stubExistingExpense(OWNER_ID, OTHER_CATEGORY);
-            doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService)
-                    .addBalanceToWallet(OWNER_ID, OLD_AMOUNT);
-
-            assertThrows(IllegalStateException.class, () -> service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID));
-
-            verify(sharedWalletService, never()).removeBalanceFromWallet(any(Long.class), any(BigDecimal.class));
-            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
-            verify(sharedExpenseRepository, never()).save(any(SharedExpense.class));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRemovingBalanceFromWalletFails() {
-            stubRequest(AMOUNT);
-            stubExistingExpense(OWNER_ID, OTHER_CATEGORY);
-            doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService)
-                    .removeBalanceFromWallet(OWNER_ID, AMOUNT);
-
-            assertThrows(IllegalStateException.class, () -> service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID));
-
-            verifyNoInteractions(sharedAccountParticipantsService, outboxService);
-            verify(sharedExpenseRepository, never()).save(any(SharedExpense.class));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenParticipantsServiceFails() {
-            stubRequest(AMOUNT);
-            stubExistingExpense(OWNER_ID, OTHER_CATEGORY);
-            when(sharedAccountParticipantsService.getParticipants(OWNER_ID))
-                    .thenThrow(new RequestedEntityNotFoundException("participants not found"));
-
-            assertThrows(RequestedEntityNotFoundException.class,
-                    () -> service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID));
-
-            verify(existingExpense, never()).setAmount(any());
-            verify(sharedExpenseRepository, never()).save(any(SharedExpense.class));
-            verifyNoInteractions(outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenOutboxServiceFails() {
-            stubSuccessfulEdit(OWNER_ID, OTHER_CATEGORY);
-            doThrow(new IllegalStateException("outbox failed")).when(outboxService)
-                    .save(anyString(), anyString(), anyString(), any());
-
-            assertThrows(IllegalStateException.class, () -> service.editExpense(expenseRequest, OWNER_ID, EXPENSE_ID));
+        @Nested
+        class ValidAmount {
+
+            private SharedExpense existing;
+
+            @BeforeEach
+            void setUp() {
+                when(expenseDto.amount()).thenReturn(AMOUNT);
+                when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participants);
+                existing = SharedExpense.builder()
+                        .id(EXPENSE_ID)
+                        .amount(BigDecimal.valueOf(5))
+                        .category(CATEGORY)
+                        .createdAt(LocalDate.now())
+                        .createdByUserId(USER_ID)
+                        .build();
+            }
+
+            @Nested
+            class Persisted {
+
+                @BeforeEach
+                void setUp() {
+                    when(participants.ownerId()).thenReturn(OWNER_ID);
+                    when(participants.memberId()).thenReturn(MEMBER_ID);
+                    when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, USER_ID)).thenReturn(Optional.of(existing));
+                }
+
+                @Test
+                void shouldUpdateExpenseAndReturnIdWhenAmountIncreased() {
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+
+                    Long result = service.editExpense(request, USER_ID, EXPENSE_ID);
+
+                    assertEquals(EXPENSE_ID, result);
+                    assertEquals(AMOUNT, existing.getAmount());
+                    assertEquals(CATEGORY, existing.getCategory());
+                    verify(sharedWalletService).removeBalanceFromWallet(USER_ID, BigDecimal.valueOf(5));
+                    verify(sharedWalletService, never()).addBalanceToWallet(any(), any());
+                }
+
+                @Test
+                void shouldAddBalanceToWalletWhenAmountDecreased() {
+                    existing.setAmount(BigDecimal.valueOf(25));
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+
+                    service.editExpense(request, USER_ID, EXPENSE_ID);
+
+                    verify(sharedWalletService).addBalanceToWallet(USER_ID, BigDecimal.valueOf(15));
+                    verify(sharedWalletService, never()).removeBalanceFromWallet(any(), any());
+                }
+
+                @Test
+                void shouldNotChangeWalletBalanceWhenAmountUnchanged() {
+                    existing.setAmount(AMOUNT);
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+
+                    service.editExpense(request, USER_ID, EXPENSE_ID);
+
+                    verify(sharedWalletService, never()).addBalanceToWallet(any(), any());
+                    verify(sharedWalletService, never()).removeBalanceFromWallet(any(), any());
+                }
+
+                @Test
+                void shouldAnalyzeExpenseAndLockWalletAndLogActivityWhenExpenseEdited() {
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
+
+                    service.editExpense(request, USER_ID, EXPENSE_ID);
+
+                    verify(expenseAnalysisService).handleExpenseAnalysis(eq(USER_ID), any(), eq(AMOUNT), eq(ExpenseAnalysisMode.EDIT));
+                    verify(sharedWalletService).lockWalletForUpdate(USER_ID);
+                    verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(EXPENSE_ID.toString()), eq(OUTBOX_TOPIC), any(SharedAccountActivityLogEvent.class));
+                }
+
+                @Test
+                void shouldSucceedWhenTotalAfterReplacingOldAmountEqualsLimit() {
+                    List<SharedLimit> limits = List.of(generalLimit);
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+                    when(sharedLimitSpendingService.calculateSpent(eq(participants), eq(limits), any(LocalDate.class)))
+                            .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(95)));
+
+                    Long result = service.editExpense(request, USER_ID, EXPENSE_ID);
+
+                    assertEquals(EXPENSE_ID, result);
+                    assertEquals(AMOUNT, existing.getAmount());
+                }
+
+                @Test
+                void shouldIgnoreLimitWhenExpenseWasCreatedBeforePeriodStart() {
+                    existing.setCreatedAt(PERIOD.getStartDate(LocalDate.now()).minusDays(1));
+                    List<SharedLimit> limits = List.of(generalLimit);
+                    when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+                    when(sharedLimitSpendingService.calculateSpent(eq(participants), eq(limits), any(LocalDate.class)))
+                            .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(1000)));
+
+                    Long result = service.editExpense(request, USER_ID, EXPENSE_ID);
+
+                    assertEquals(EXPENSE_ID, result);
+                    assertEquals(AMOUNT, existing.getAmount());
+                }
+            }
+
+            @Test
+            void shouldThrowExceptionWhenGeneralLimitExceededAfterReplacingOldAmount() {
+                List<SharedLimit> limits = List.of(generalLimit);
+                when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, USER_ID)).thenReturn(Optional.of(existing));
+                when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+                when(sharedLimitSpendingService.calculateSpent(eq(participants), eq(limits), any(LocalDate.class)))
+                        .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(100)));
+
+                assertThrows(MissingRequirementException.class, () -> service.editExpense(request, USER_ID, EXPENSE_ID));
+                assertEquals(BigDecimal.valueOf(5), existing.getAmount());
+                verify(sharedWalletService, never()).removeBalanceFromWallet(any(), any());
+                verifyNoInteractions(outboxService);
+            }
+
+            @Test
+            void shouldNotSubtractOldAmountWhenOldCategoryDoesNotMatchLimit() {
+                existing.setCategory(OTHER_CATEGORY);
+                List<SharedLimit> limits = List.of(categoryLimit);
+                when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, USER_ID)).thenReturn(Optional.of(existing));
+                when(sharedLimitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
+                when(sharedLimitSpendingService.calculateSpent(eq(participants), eq(limits), any(LocalDate.class)))
+                        .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(95)));
+
+                assertThrows(MissingRequirementException.class, () -> service.editExpense(request, USER_ID, EXPENSE_ID));
+                verifyNoInteractions(outboxService);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenExpenseNotFound() {
+                when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, USER_ID)).thenReturn(Optional.empty());
+
+                assertThrows(RequestedEntityNotFoundException.class, () -> service.editExpense(request, USER_ID, EXPENSE_ID));
+                verify(sharedWalletService, never()).removeBalanceFromWallet(any(), any());
+                verify(sharedWalletService, never()).addBalanceToWallet(any(), any());
+                verifyNoInteractions(sharedLimitRepository, outboxService);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenExpenseAnalysisRejectsExpense() {
+                doThrow(new IllegalStateException()).when(expenseAnalysisService)
+                        .handleExpenseAnalysis(eq(USER_ID), any(), eq(AMOUNT), eq(ExpenseAnalysisMode.EDIT));
+
+                assertThrows(IllegalStateException.class, () -> service.editExpense(request, USER_ID, EXPENSE_ID));
+                verifyNoInteractions(sharedWalletService, sharedExpenseRepository, outboxService);
+            }
         }
     }
 
@@ -766,231 +534,72 @@ class SharedExpenseServiceTest {
     class GetExpense {
 
         @Test
+        void shouldReturnMappedExpensesWithUsernamesWhenExpensesExist() {
+            SharedExpense first = SharedExpense.builder().id(EXPENSE_ID).amount(AMOUNT).category(CATEGORY).createdByUserId(USER_ID).build();
+            SharedExpense second = SharedExpense.builder().id(6L).amount(AMOUNT).category(CATEGORY).createdByUserId(OTHER_USER_ID).build();
+            when(sharedExpenseRepository.findAllByOwnerIdOrMemberId(USER_ID, PageRequest.of(2, PAGE_SIZE))).thenReturn(List.of(first, second));
+            when(usernameResolver.resolve(Set.of(USER_ID, OTHER_USER_ID))).thenReturn(Map.of(USER_ID, USERNAME, OTHER_USER_ID, OTHER_USERNAME));
+            when(sharedExpenseMapper.mapToDto(first, USERNAME)).thenReturn(mappedDto);
+            when(sharedExpenseMapper.mapToDto(second, OTHER_USERNAME)).thenReturn(otherMappedDto);
+
+            List<SharedExpenseDto> result = service.getExpense(USER_ID, 2);
+
+            assertEquals(2, result.size());
+            assertSame(mappedDto, result.get(0));
+            assertSame(otherMappedDto, result.get(1));
+        }
+
+        @Test
+        void shouldPassNullUsernameToMapperWhenUsernameNotResolved() {
+            SharedExpense expense = SharedExpense.builder().id(EXPENSE_ID).amount(AMOUNT).category(CATEGORY).createdByUserId(USER_ID).build();
+            when(sharedExpenseRepository.findAllByOwnerIdOrMemberId(USER_ID, PageRequest.of(0, PAGE_SIZE))).thenReturn(List.of(expense));
+            when(usernameResolver.resolve(Set.of(USER_ID))).thenReturn(Map.of());
+            when(sharedExpenseMapper.mapToDto(expense, null)).thenReturn(mappedDto);
+
+            List<SharedExpenseDto> result = service.getExpense(USER_ID, 0);
+
+            assertSame(mappedDto, result.get(0));
+        }
+
+        @Test
         void shouldReturnEmptyListWhenNoExpensesExist() {
-            when(sharedExpenseRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of());
+            when(sharedExpenseRepository.findAllByOwnerIdOrMemberId(USER_ID, PageRequest.of(0, PAGE_SIZE))).thenReturn(List.of());
 
-            List<SharedExpenseDto> result = service.getExpense(OWNER_ID);
+            List<SharedExpenseDto> result = service.getExpense(USER_ID, 0);
 
-            assertThat(result).isEmpty();
-            verifyNoInteractions(authBackendClient, sharedExpenseMapper);
-        }
-
-        @Test
-        void shouldReturnMappedExpenseWithUsernameWhenSingleExpenseExists() {
-            SharedExpenseDto mappedDto = mock(SharedExpenseDto.class);
-            when(sharedExpenseRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of(existingExpense));
-            when(existingExpense.getCreatedByUserId()).thenReturn(OWNER_ID);
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
-            when(sharedExpenseMapper.mapToDto(existingExpense, USERNAME)).thenReturn(mappedDto);
-
-            List<SharedExpenseDto> result = service.getExpense(OWNER_ID);
-
-            assertThat(result).containsExactly(mappedDto);
-        }
-
-        @Test
-        void shouldMapEachExpenseWithItsCreatorUsernameWhenCreatorsDiffer() {
-            SharedExpenseDto firstDto = mock(SharedExpenseDto.class);
-            SharedExpenseDto secondDto = mock(SharedExpenseDto.class);
-            when(sharedExpenseRepository.findAllByOwnerIdOrMemberId(OWNER_ID))
-                    .thenReturn(List.of(existingExpense, savedExpense));
-            when(existingExpense.getCreatedByUserId()).thenReturn(OWNER_ID);
-            when(savedExpense.getCreatedByUserId()).thenReturn(MEMBER_ID);
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
-            when(authBackendClient.getUsername(MEMBER_ID)).thenReturn(OTHER_USERNAME);
-            when(sharedExpenseMapper.mapToDto(existingExpense, USERNAME)).thenReturn(firstDto);
-            when(sharedExpenseMapper.mapToDto(savedExpense, OTHER_USERNAME)).thenReturn(secondDto);
-
-            List<SharedExpenseDto> result = service.getExpense(OWNER_ID);
-
-            assertThat(result).containsExactly(firstDto, secondDto);
-        }
-
-        @Test
-        void shouldFetchUsernameOnceWhenExpensesShareSameCreator() {
-            SharedExpenseDto firstDto = mock(SharedExpenseDto.class);
-            SharedExpenseDto secondDto = mock(SharedExpenseDto.class);
-            when(sharedExpenseRepository.findAllByOwnerIdOrMemberId(OWNER_ID))
-                    .thenReturn(List.of(existingExpense, savedExpense));
-            when(existingExpense.getCreatedByUserId()).thenReturn(OWNER_ID);
-            when(savedExpense.getCreatedByUserId()).thenReturn(OWNER_ID);
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
-            when(sharedExpenseMapper.mapToDto(existingExpense, USERNAME)).thenReturn(firstDto);
-            when(sharedExpenseMapper.mapToDto(savedExpense, USERNAME)).thenReturn(secondDto);
-
-            List<SharedExpenseDto> result = service.getExpense(OWNER_ID);
-
-            assertThat(result).containsExactly(firstDto, secondDto);
-            verify(authBackendClient).getUsername(OWNER_ID);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenUsernameIsNull() {
-            when(sharedExpenseRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of(existingExpense));
-            when(existingExpense.getCreatedByUserId()).thenReturn(OWNER_ID);
-
-            assertThrows(NullPointerException.class, () -> service.getExpense(OWNER_ID));
-
+            assertTrue(result.isEmpty());
             verifyNoInteractions(sharedExpenseMapper);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryFails() {
-            when(sharedExpenseRepository.findAllByOwnerIdOrMemberId(OWNER_ID))
-                    .thenThrow(new IllegalStateException("db failed"));
-
-            assertThrows(IllegalStateException.class, () -> service.getExpense(OWNER_ID));
-
-            verifyNoInteractions(authBackendClient, sharedExpenseMapper);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenAuthBackendClientFails() {
-            when(sharedExpenseRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of(existingExpense));
-            when(existingExpense.getCreatedByUserId()).thenReturn(OWNER_ID);
-            when(authBackendClient.getUsername(OWNER_ID)).thenThrow(new IllegalStateException("auth down"));
-
-            assertThrows(IllegalStateException.class, () -> service.getExpense(OWNER_ID));
-
-            verifyNoInteractions(sharedExpenseMapper);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenMapperFails() {
-            when(sharedExpenseRepository.findAllByOwnerIdOrMemberId(OWNER_ID)).thenReturn(List.of(existingExpense));
-            when(existingExpense.getCreatedByUserId()).thenReturn(OWNER_ID);
-            when(authBackendClient.getUsername(OWNER_ID)).thenReturn(USERNAME);
-            when(sharedExpenseMapper.mapToDto(existingExpense, USERNAME)).thenThrow(new IllegalArgumentException("mapping failed"));
-
-            assertThrows(IllegalArgumentException.class, () -> service.getExpense(OWNER_ID));
         }
     }
 
     @Nested
     class DeleteExpense {
 
-        private void stubSuccessfulDelete(Long callerId) {
-            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, callerId))
-                    .thenReturn(Optional.of(existingExpense));
-            when(existingExpense.getAmount()).thenReturn(OLD_AMOUNT);
-            when(existingExpense.getId()).thenReturn(EXPENSE_ID);
-            stubParticipants(callerId);
-        }
-
         @Test
-        void shouldDeleteExpenseWhenExpenseExists() {
-            stubSuccessfulDelete(OWNER_ID);
+        void shouldDeleteExpenseAndRestoreBalanceWhenExpenseExists() {
+            SharedExpense expense = SharedExpense.builder().id(EXPENSE_ID).amount(AMOUNT).category(CATEGORY).createdByUserId(USER_ID).build();
+            when(participants.ownerId()).thenReturn(OWNER_ID);
+            when(participants.memberId()).thenReturn(MEMBER_ID);
+            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, USER_ID)).thenReturn(Optional.of(expense));
+            when(sharedAccountParticipantsService.getParticipants(USER_ID)).thenReturn(participants);
 
-            service.deleteExpense(EXPENSE_ID, OWNER_ID);
-
-            verify(sharedExpenseRepository).delete(existingExpense);
-        }
-
-        @Test
-        void shouldDeleteExpenseAndSaveEventWhenMemberDeletesExpense() {
-            stubSuccessfulDelete(MEMBER_ID);
-
-            service.deleteExpense(EXPENSE_ID, MEMBER_ID);
-
-            verify(sharedExpenseRepository).delete(existingExpense);
-            verify(sharedWalletService).addBalanceToWallet(MEMBER_ID, OLD_AMOUNT);
-            verifyOutboxEvent(MEMBER_ID, SharedAccountActivityLogType.EXPENSE_DELETED);
-        }
-
-        @Test
-        void shouldReturnExpenseAmountToWalletWhenExpenseIsDeleted() {
-            stubSuccessfulDelete(OWNER_ID);
-
-            service.deleteExpense(EXPENSE_ID, OWNER_ID);
-
-            verify(sharedWalletService).addBalanceToWallet(OWNER_ID, OLD_AMOUNT);
-        }
-
-        @Test
-        void shouldSaveOutboxEventWhenExpenseIsDeleted() {
-            stubSuccessfulDelete(OWNER_ID);
-
-            service.deleteExpense(EXPENSE_ID, OWNER_ID);
-
-            verifyOutboxEvent(OWNER_ID, SharedAccountActivityLogType.EXPENSE_DELETED);
-        }
-
-        @Test
-        void shouldUpdateWalletBeforeDeletingAndSavingEventWhenExpenseIsDeleted() {
-            stubSuccessfulDelete(OWNER_ID);
-
-            service.deleteExpense(EXPENSE_ID, OWNER_ID);
+            service.deleteExpense(EXPENSE_ID, USER_ID);
 
             InOrder inOrder = inOrder(sharedWalletService, sharedExpenseRepository, outboxService);
-            inOrder.verify(sharedWalletService).addBalanceToWallet(OWNER_ID, OLD_AMOUNT);
-            inOrder.verify(sharedExpenseRepository).delete(existingExpense);
-            inOrder.verify(outboxService).save(anyString(), anyString(), anyString(), any());
+            inOrder.verify(sharedWalletService).lockWalletForUpdate(USER_ID);
+            inOrder.verify(sharedWalletService).addBalanceToWallet(USER_ID, AMOUNT);
+            inOrder.verify(sharedExpenseRepository).delete(expense);
+            inOrder.verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(EXPENSE_ID.toString()), eq(OUTBOX_TOPIC), any(SharedAccountActivityLogEvent.class));
         }
 
         @Test
-        void shouldThrowExceptionWhenExpenseDoesNotExist() {
-            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, OWNER_ID)).thenReturn(Optional.empty());
+        void shouldThrowExceptionWhenExpenseNotFound() {
+            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, USER_ID)).thenReturn(Optional.empty());
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteExpense(EXPENSE_ID, OWNER_ID));
-
-            verifyNoInteractions(sharedWalletService, sharedAccountParticipantsService, outboxService);
-            verify(sharedExpenseRepository, never()).delete(any(SharedExpense.class));
-        }
-
-        @Test
-        void shouldThrowExceptionWhenUserIsNeitherOwnerNorMember() {
-            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, OUTSIDER_ID)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteExpense(EXPENSE_ID, OUTSIDER_ID));
-
-            verifyNoInteractions(sharedWalletService, sharedAccountParticipantsService, outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryLookupFails() {
-            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, OWNER_ID))
-                    .thenThrow(new IllegalStateException("db failed"));
-
-            assertThrows(IllegalStateException.class, () -> service.deleteExpense(EXPENSE_ID, OWNER_ID));
-
-            verifyNoInteractions(sharedWalletService, outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenWalletUpdateFails() {
-            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, OWNER_ID))
-                    .thenReturn(Optional.of(existingExpense));
-            when(existingExpense.getAmount()).thenReturn(OLD_AMOUNT);
-            doThrow(new IllegalStateException("wallet failed")).when(sharedWalletService)
-                    .addBalanceToWallet(OWNER_ID, OLD_AMOUNT);
-
-            assertThrows(IllegalStateException.class, () -> service.deleteExpense(EXPENSE_ID, OWNER_ID));
-
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteExpense(EXPENSE_ID, USER_ID));
+            verify(sharedWalletService, never()).addBalanceToWallet(any(), any());
             verify(sharedExpenseRepository, never()).delete(any(SharedExpense.class));
             verifyNoInteractions(sharedAccountParticipantsService, outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenParticipantsServiceFails() {
-            when(sharedExpenseRepository.findByIdAndOwnerIdOrMemberId(EXPENSE_ID, OWNER_ID))
-                    .thenReturn(Optional.of(existingExpense));
-            when(existingExpense.getAmount()).thenReturn(OLD_AMOUNT);
-            when(sharedAccountParticipantsService.getParticipants(OWNER_ID))
-                    .thenThrow(new RequestedEntityNotFoundException("participants not found"));
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteExpense(EXPENSE_ID, OWNER_ID));
-
-            verify(sharedExpenseRepository, never()).delete(any(SharedExpense.class));
-            verifyNoInteractions(outboxService);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenOutboxServiceFails() {
-            stubSuccessfulDelete(OWNER_ID);
-            doThrow(new IllegalStateException("outbox failed")).when(outboxService)
-                    .save(anyString(), anyString(), anyString(), any());
-
-            assertThrows(IllegalStateException.class, () -> service.deleteExpense(EXPENSE_ID, OWNER_ID));
         }
     }
 }
