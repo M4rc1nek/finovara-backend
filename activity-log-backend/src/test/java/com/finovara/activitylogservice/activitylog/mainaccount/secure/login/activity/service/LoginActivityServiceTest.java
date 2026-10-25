@@ -158,6 +158,29 @@ class LoginActivityServiceTest {
     }
 
     @Nested
+    class DeleteByUserId {
+
+        @Test
+        void shouldDeleteActivitiesWhenUserIdIsProvided() {
+            when(loginActivityRepository.findAllByUserId(USER_ID)).thenReturn(List.of(LoginActivity.builder().userId(USER_ID).build()));
+
+            loginActivityService.deleteByUserId(USER_ID);
+
+            verify(loginActivityRepository).findAllByUserId(USER_ID);
+            verify(loginActivityRepository).deleteAll(anyList());
+        }
+
+        @Test
+        void shouldThrowExceptionWhenRepositoryDeleteFails() {
+            List<LoginActivity> activities = List.of(LoginActivity.builder().userId(USER_ID).build());
+            when(loginActivityRepository.findAllByUserId(USER_ID)).thenReturn(activities);
+            doThrow(new IllegalStateException("delete failed")).when(loginActivityRepository).deleteAll(activities);
+
+            assertThrows(IllegalStateException.class, () -> loginActivityService.deleteByUserId(USER_ID));
+        }
+    }
+
+    @Nested
     class GetLoginActivity {
 
         @Test
@@ -240,25 +263,34 @@ class LoginActivityServiceTest {
     }
 
     @Nested
-    class DeleteByUserId {
+    class DeleteByUserIdFromRepository {
 
         @Test
         void shouldDeleteActivitiesWhenUserIdIsProvided() {
+            List<LoginActivity> activities = List.of(new LoginActivity());
+            when(loginActivityRepository.findAllByUserId(USER_ID)).thenReturn(activities);
+
             loginActivityService.deleteByUserId(USER_ID);
 
-            verify(loginActivityRepository).deleteByUserId(USER_ID);
+            verify(loginActivityRepository).findAllByUserId(USER_ID);
+            verify(loginActivityRepository).deleteAll(activities);
         }
 
         @Test
         void shouldDeleteActivitiesWhenUserIdIsNull() {
+            when(loginActivityRepository.findAllByUserId(null)).thenReturn(List.of());
+
             loginActivityService.deleteByUserId(null);
 
-            verify(loginActivityRepository).deleteByUserId(null);
+            verify(loginActivityRepository).findAllByUserId(null);
+            verify(loginActivityRepository).deleteAll(List.of());
         }
 
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
-            doThrow(new IllegalStateException("delete failed")).when(loginActivityRepository).deleteByUserId(USER_ID);
+            List<LoginActivity> activities = List.of(new LoginActivity());
+            when(loginActivityRepository.findAllByUserId(USER_ID)).thenReturn(activities);
+            doThrow(new IllegalStateException("delete failed")).when(loginActivityRepository).deleteAll(activities);
 
             assertThrows(IllegalStateException.class, () -> loginActivityService.deleteByUserId(USER_ID));
         }
