@@ -10,8 +10,8 @@ import com.finovara.financeservice.sharedaccount.participants.SharedAccountParti
 import com.finovara.financeservice.sharedaccount.settings.SharedAccountSettings;
 import com.finovara.financeservice.sharedaccount.settings.expense.spendcontrol.dto.SpendControlDto;
 import com.finovara.financeservice.sharedaccount.wallet.model.SharedWallet;
-import com.finovara.financeservice.sharedaccount.wallet.repository.SharedWalletRepository;
 import com.finovara.financeservice.util.sharedaccount.settings.SharedSettingsManager;
+import com.finovara.financeservice.util.sharedaccount.wallet.SharedWalletManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class SpendControlService {
-    private final SharedWalletRepository sharedWalletRepository;
+    private final SharedWalletManager sharedWalletManager;
     private final SharedSettingsManager sharedSettingsManager;
     private final SharedAccountParticipantsService sharedAccountParticipantsService;
     private final OutboxService outboxService;
@@ -57,7 +57,7 @@ public class SpendControlService {
 
         if (!settings.isSpendControlEnabled()) return;
 
-        SharedWallet sharedWallet = sharedWalletRepository.findByUserId(userId);
+        SharedWallet sharedWallet = sharedWalletManager.getWalletForUpdateOrThrow(userId);
 
         BigDecimal maxAllowed = CalculatePercentage.calculateValueFromPercentage(sharedWallet.getBalance(), settings.getSpendControlPercentage());
 
