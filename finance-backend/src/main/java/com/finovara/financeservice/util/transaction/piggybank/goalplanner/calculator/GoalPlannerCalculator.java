@@ -14,13 +14,9 @@ import java.time.temporal.ChronoUnit;
 public class GoalPlannerCalculator {
 
     public static BigDecimal calculateRemainingAmount(PiggyBank piggyBank) {
-        BigDecimal deposited = piggyBank.getAmount() == null
-                ? BigDecimal.ZERO
-                : piggyBank.getAmount();
+        BigDecimal deposited = piggyBank.getAmount() == null ? BigDecimal.ZERO : piggyBank.getAmount();
 
-        BigDecimal goalAmount = piggyBank.getGoalAmount() == null
-                ? BigDecimal.ZERO
-                : piggyBank.getGoalAmount();
+        BigDecimal goalAmount = piggyBank.getGoalAmount() == null ? BigDecimal.ZERO : piggyBank.getGoalAmount();
 
         return goalAmount.subtract(deposited).max(BigDecimal.ZERO);
     }
