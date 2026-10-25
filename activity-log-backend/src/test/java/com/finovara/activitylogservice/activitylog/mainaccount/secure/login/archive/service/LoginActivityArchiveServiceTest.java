@@ -198,21 +198,28 @@ class LoginActivityArchiveServiceTest {
 
         @Test
         void shouldDeleteArchivesWhenUserIdIsProvided() {
+            when(loginActivityArchiveRepository.findAllByUserId(USER_ID)).thenReturn(List.of(loginActivityArchive));
+
             loginActivityArchiveService.deleteByUserId(USER_ID);
 
-            verify(loginActivityArchiveRepository).deleteByUserId(USER_ID);
+            verify(loginActivityArchiveRepository).findAllByUserId(USER_ID);
+            verify(loginActivityArchiveRepository).deleteAll(List.of(loginActivityArchive));
         }
 
         @Test
         void shouldDeleteArchivesWhenUserIdIsNull() {
+            when(loginActivityArchiveRepository.findAllByUserId(null)).thenReturn(List.of());
+
             loginActivityArchiveService.deleteByUserId(null);
 
-            verify(loginActivityArchiveRepository).deleteByUserId(null);
+            verify(loginActivityArchiveRepository).findAllByUserId(null);
+            verify(loginActivityArchiveRepository).deleteAll(List.of());
         }
 
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
-            doThrow(new IllegalStateException()).when(loginActivityArchiveRepository).deleteByUserId(USER_ID);
+            when(loginActivityArchiveRepository.findAllByUserId(USER_ID)).thenReturn(List.of(loginActivityArchive));
+            doThrow(new IllegalStateException()).when(loginActivityArchiveRepository).deleteAll(List.of(loginActivityArchive));
 
             assertThrows(IllegalStateException.class, () -> loginActivityArchiveService.deleteByUserId(USER_ID));
         }
