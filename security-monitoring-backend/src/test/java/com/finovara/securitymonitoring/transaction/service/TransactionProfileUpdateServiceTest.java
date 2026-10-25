@@ -22,18 +22,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionProfileUpdateServiceTest {
@@ -589,24 +580,30 @@ class TransactionProfileUpdateServiceTest {
 
         @Test
         void shouldDeleteProfileWhenUserIdProvided() {
+            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(new TransactionProfile()));
+
             service.deleteByUserId(USER_ID);
 
-            verify(transactionProfileRepository).deleteByUserId(USER_ID);
-            verifyNoMoreInteractions(transactionProfileRepository);
+            verify(transactionProfileRepository).findByUserIdForUpdate(USER_ID);
+            verify(transactionProfileRepository).delete(any(TransactionProfile.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenProfileNotFoundDuringDelete() {
+            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.empty());
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteByUserId(USER_ID));
+            verify(transactionProfileRepository, never()).delete(any(TransactionProfile.class));
         }
 
         @Test
         void shouldDeleteProfileWhenUserIdIsNull() {
+            when(transactionProfileRepository.findByUserIdForUpdate(null)).thenReturn(Optional.of(new TransactionProfile()));
+
             service.deleteByUserId(null);
 
-            verify(transactionProfileRepository).deleteByUserId(null);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenRepositoryFailsOnDelete() {
-            doThrow(new IllegalStateException("db error")).when(transactionProfileRepository).deleteByUserId(USER_ID);
-
-            assertThrows(IllegalStateException.class, () -> service.deleteByUserId(USER_ID));
+            verify(transactionProfileRepository).findByUserIdForUpdate(null);
+            verify(transactionProfileRepository).delete(any(TransactionProfile.class));
         }
     }
 }
