@@ -1,15 +1,21 @@
 package com.finovara.financeservice.revenue.controller;
 
+import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.revenue.dto.RevenueDto;
+import com.finovara.financeservice.revenue.model.Revenue;
+import com.finovara.financeservice.revenue.service.RevenueFilteringService;
 import com.finovara.financeservice.revenue.service.RevenueService;
 import com.finovara.financeservice.security.SecurityUtils;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -17,6 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RevenueController {
     private final RevenueService revenueService;
+    private final RevenueFilteringService revenueFilteringService;
 
     @PostMapping
     public ResponseEntity<Long> addRevenue(@RequestBody @Valid RevenueDto revenueDto, HttpServletRequest servletRequest) {
@@ -31,6 +38,12 @@ public class RevenueController {
     @GetMapping
     public ResponseEntity<List<RevenueDto>> getRevenue(@RequestParam(defaultValue = "0") int page) {
         return ResponseEntity.ok(revenueService.getRevenue(SecurityUtils.getCurrentUserId(), page));
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<Revenue>> filterRevenues(@RequestParam Long userId, @RequestParam(required = false) RevenueCategory category,  @RequestParam(required = false) BigDecimal amount,
+                                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestParam(required = false) String description, @RequestParam(defaultValue = "0") int page) {
+        return ResponseEntity.ok(revenueFilteringService.revenueFiltering(userId, category, amount, date, description, page));
     }
 
     @DeleteMapping("/{revenueId}")
