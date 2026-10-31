@@ -39,7 +39,7 @@ import java.util.Locale;
 public class PiggyBankManagementService implements UserDataDeletable {
 
     @Value("${piggy-bank.max-piggy-banks}")
-    int maxPiggyBanks;
+    private int maxPiggyBanks;
 
     private final PiggyBankRepository piggyBankRepository;
     private final PiggyBankManagerService piggyBankManagerService;
@@ -79,7 +79,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
                 .build());
 
         outboxService.save("PiggyBank", saved.getId().toString(), "piggybank.lifecycle.changed",
-                new PiggyBankActivityEvent(userId, PiggyBankActivityType.ADDED_PIGGY_BANK, saved.getName(), saved.getGoalType(), saved.getGoalAmount(), null, LocalDateTime.now()));
+                new PiggyBankActivityEvent(userId, PiggyBankActivityType.ADDED_PIGGY_BANK, saved.getName(), saved.getGoalType(), saved.getGoalAmount(), null, null, LocalDateTime.now()));
 
         log.info("Added a new Piggy Bank called {}, with a goal amount of {}", piggyBankDto.name(), piggyBankDto.goalAmount());
         return saved.getId();
@@ -140,7 +140,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
                 });
 
         outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.lifecycle.changed",
-                new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
+                new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, null, LocalDateTime.now()));
         piggyBankRepository.delete(piggyBank);
         log.info("Manual deleted piggyBank for userId={}", userId);
     }
