@@ -2,9 +2,11 @@ package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.arc
 
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.model.LoginActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.dto.LoginActivityArchiveDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.dto.LoginActivityArchiveFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.mapper.LoginActivityArchiveMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.model.LoginActivityArchive;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.repository.LoginActivityArchiveRepository;
+import com.finovara.contracts.mainaccount.activity.model.LoginActivityStatus;
 import com.finovara.contracts.util.SortType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -16,20 +18,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith(MockitoExtension.class)
@@ -109,6 +105,42 @@ class LoginActivityArchiveServiceTest {
     }
 
     @Nested
+    class FilterLoginActivityArchive {
+
+        @Test
+        void shouldFilterArchivesUsingMoveToArchiveAndCreatedDateRanges() {
+            LoginActivityArchiveFilterDto filter = new LoginActivityArchiveFilterDto(
+                    "Login",
+                    LoginActivityStatus.SUCCESSFUL,
+                    "Safari",
+                    "172.16.0.5",
+                    "Gdansk",
+                    LocalDate.of(2026, 3, 1),
+                    LocalDate.of(2026, 3, 2)
+            );
+            LoginActivityArchive archive = LoginActivityArchive.builder().userId(USER_ID).build();
+            LoginActivityArchiveDto dto = new LoginActivityArchiveDto(
+                    "Login",
+                    LoginActivityStatus.SUCCESSFUL,
+                    LocalDateTime.of(2026, 3, 1, 8, 15),
+                    LocalDateTime.of(2026, 3, 1, 9, 0),
+                    "Safari",
+                    "Gdansk",
+                    "172.16.0.5"
+            );
+
+            when(loginActivityArchiveRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of(archive));
+            when(loginActivityArchiveMapper.mapToDto(archive)).thenReturn(dto);
+
+            List<LoginActivityArchiveDto> result = loginActivityArchiveService.filterLoginActivityArchive(USER_ID, filter, 1);
+
+            assertEquals(List.of(dto), result);
+            verify(loginActivityArchiveRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(), any(), any(Pageable.class));
+        }
+    }
+
+    @Nested
     class Archive {
 
         @Test
@@ -147,7 +179,7 @@ class LoginActivityArchiveServiceTest {
                     .thenReturn(List.of(loginActivityArchive));
             when(loginActivityArchiveMapper.mapToDto(loginActivityArchive)).thenReturn(loginActivityArchiveDto);
 
-            List<LoginActivityArchiveDto> result = loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT,1);
+            List<LoginActivityArchiveDto> result = loginActivityArchiveService.getLoginActivityArchive(USER_ID, SORT, 1);
 
             assertEquals(List.of(loginActivityArchiveDto), result);
         }
