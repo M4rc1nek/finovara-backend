@@ -8,6 +8,9 @@ import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountcha
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.service.LoginActivityService;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.service.SettingsActivityService;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service.SharedAccountChangeHistoryActivityService;
+import com.finovara.activitylogservice.activitylog.util.UserSessionResolver;
+import com.finovara.activitylogservice.cache.evict.ActivityCache;
+import com.finovara.activitylogservice.cache.evict.EvictActivityCacheService;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.limit.LimitActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
@@ -63,6 +66,11 @@ class ActivityConsumersTest {
     @Mock
     private SharedAccountChangeHistoryActivityService sharedAccountChangeHistoryActivityService;
 
+    @Mock
+    private EvictActivityCacheService evictActivityCacheService;
+
+    @Mock
+    private UserSessionResolver userSessionResolver;
 
     @InjectMocks
     private ActivityConsumers activityConsumers;
@@ -154,6 +162,8 @@ class ActivityConsumersTest {
         activityConsumers.handleAccountChanges(event);
 
         verify(accountChangeActivityService).handleEvent(event);
+        verify(evictActivityCacheService).evict(ActivityCache.SHARED_ACCOUNT_ACTIVITY_LOG, USER_ID);
+        verify(userSessionResolver).evictUserInfo(USER_ID);
     }
 
     @Test
