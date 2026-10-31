@@ -5,13 +5,15 @@ import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueDto;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueResponse;
 import com.finovara.financeservice.sharedaccount.revenue.service.SharedRevenueService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/shared-accounts/transactions/revenue")
 @RequiredArgsConstructor
@@ -29,7 +31,7 @@ public class SharedRevenueController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SharedRevenueDto>> getSharedRevenue(@RequestParam(defaultValue = "0") int page) {
+    public ResponseEntity<List<SharedRevenueDto>> getSharedRevenue(@RequestParam(defaultValue = "0") @Min(0) int page) {
         return ResponseEntity.ok(sharedRevenueService.getRevenue(SecurityUtils.getCurrentUserId(), page));
     }
 
