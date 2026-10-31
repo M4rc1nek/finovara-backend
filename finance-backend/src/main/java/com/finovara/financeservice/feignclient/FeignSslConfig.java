@@ -8,6 +8,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.cert.X509Certificate;
+import java.security.SecureRandom;
 
 /**
  * DEV ONLY - Disables SSL certificate verification for Feign clients.
@@ -28,7 +29,7 @@ public class FeignSslConfig {
                     public void checkClientTrusted(X509Certificate[] certs, String authType) {}
                     public void checkServerTrusted(X509Certificate[] certs, String authType) {}
                 }
-        }, new java.security.SecureRandom());
+        }, new SecureRandom());
 
         return new Client.Default(
                 sslContext.getSocketFactory(),
