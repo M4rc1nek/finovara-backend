@@ -1,6 +1,7 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.dto.SharedAccountChangeHistoryActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.dto.SharedAccountChangeHistoryActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.mapper.SharedAccountActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.model.SharedAccountChangeHistoryActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.repository.SharedAccountChangeHistoryActivityRepository;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,6 +30,8 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SharedAccountChangeHistoryActivityServiceTest {
+
+    private static final Long USER_ID = 1L;
 
     @Mock
     private SharedAccountChangeHistoryActivityRepository sharedAccountChangeHistoryActivityRepository;
@@ -311,6 +315,38 @@ class SharedAccountChangeHistoryActivityServiceTest {
                     .thenThrow(new RuntimeException("mapping error"));
 
             assertThrows(RuntimeException.class, () -> sharedAccountChangeHistoryActivityService.mapToDto(entity));
+        }
+    }
+
+    @Nested
+    class FilterSharedAccountChangeHistoryActivity {
+
+        @Test
+        void shouldFilterActivitiesUsingCreatedDateRangeAndRepository() {
+            SharedAccountChangeHistoryActivityFilterDto filter = new SharedAccountChangeHistoryActivityFilterDto(
+                    SharedAccountChangeHistoryActivityType.LEFT_SHARED_ACCOUNT,
+                    BigDecimal.TEN,
+                    "cofounder",
+                    "cofounder@finovara.com",
+                    LocalDate.of(2026, 2, 12)
+            );
+            SharedAccountChangeHistoryActivity activity = SharedAccountChangeHistoryActivity.builder().userId(USER_ID).build();
+            SharedAccountChangeHistoryActivityDto dto = new SharedAccountChangeHistoryActivityDto(
+                    SharedAccountChangeHistoryActivityType.LEFT_SHARED_ACCOUNT,
+                    BigDecimal.TEN,
+                    "cofounder",
+                    "cofounder@finovara.com",
+                    LocalDateTime.of(2026, 2, 12, 3, 2)
+            );
+
+            when(sharedAccountChangeHistoryActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of(activity));
+            when(sharedAccountActivityMapper.mapToSharedAccountActivity(activity)).thenReturn(dto);
+
+            List<SharedAccountChangeHistoryActivityDto> result = sharedAccountChangeHistoryActivityService.filterSharedAccountActivity(USER_ID, filter, 1);
+
+            assertEquals(List.of(dto), result);
+            verify(sharedAccountChangeHistoryActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
         }
     }
 
