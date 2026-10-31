@@ -276,7 +276,7 @@ class PiggyBankTransactionServiceTest {
 
             @Test
             void shouldDecreasePiggyBankAmountWhenFundsAreSufficient() {
-                service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
+                service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
 
                 assertEquals(0, new BigDecimal("400.00").compareTo(piggyBank.getAmount()));
             }
@@ -285,14 +285,14 @@ class PiggyBankTransactionServiceTest {
             void shouldLeaveZeroBalanceWhenRemovingWholeAmount() {
                 piggyBank.setAmount(AMOUNT);
 
-                service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
+                service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
 
                 assertEquals(0, BigDecimal.ZERO.compareTo(piggyBank.getAmount()));
             }
 
             @Test
             void shouldConfirmAuthorizationCodeWhenFundsAreSufficient() {
-                service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
+                service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
 
                 verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
                 verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
@@ -300,21 +300,21 @@ class PiggyBankTransactionServiceTest {
 
             @Test
             void shouldGuardRiskWhenFundsAreSufficient() {
-                service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
+                service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
 
                 verify(riskGuardService).guard(USER_ID, RiskTriggerType.PIGGY_BANK, AMOUNT, null, EMAIL, SOURCE_EVENT_ID, servletRequest);
             }
 
             @Test
             void shouldAddBalanceToWalletWhenFundsAreSufficient() {
-                service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
+                service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
 
                 verify(walletService).addBalanceToWallet(USER_ID, AMOUNT);
             }
 
             @Test
             void shouldPublishTransactionAndProgressEventsWhenFundsAreSufficient() {
-                service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
+                service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
 
                 verify(outboxService).save(eq("PiggyBank"), eq(PIGGY_BANK_ID.toString()), eq("piggybank.transaction.created"),
                         any(PiggyBankActivityEvent.class));
@@ -324,7 +324,7 @@ class PiggyBankTransactionServiceTest {
 
             @Test
             void shouldCheckGoalPlannerCompletionWhenFundsAreSufficient() {
-                service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
+                service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
 
                 verify(goalPlannerService).checkAndMarkGoalCompletion(piggyBank);
             }
@@ -336,7 +336,7 @@ class PiggyBankTransactionServiceTest {
             when(authBackendClient.getUserEmail(USER_ID)).thenReturn(EMAIL);
             when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
 
-            assertThrows(InvalidInputException.class, () -> service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE,
+            assertThrows(InvalidInputException.class, () -> service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE,
                     SOURCE_EVENT_ID, servletRequest));
 
             assertEquals(0, new BigDecimal("50.00").compareTo(piggyBank.getAmount()));
@@ -345,7 +345,7 @@ class PiggyBankTransactionServiceTest {
 
         @Test
         void shouldThrowExceptionWhenAmountIsZero() {
-            assertThrows(InvalidInputException.class, () -> service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, BigDecimal.ZERO, AUTH_CODE,
+            assertThrows(InvalidInputException.class, () -> service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, BigDecimal.ZERO, AUTH_CODE,
                     SOURCE_EVENT_ID, servletRequest));
 
             verifyNoInteractions(walletService, piggyBankManagerService, riskGuardService, authBackendClient, outboxService);
@@ -353,7 +353,7 @@ class PiggyBankTransactionServiceTest {
 
         @Test
         void shouldThrowExceptionWhenAmountIsNegative() {
-            assertThrows(InvalidInputException.class, () -> service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, new BigDecimal("-5.00"), AUTH_CODE,
+            assertThrows(InvalidInputException.class, () -> service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, new BigDecimal("-5.00"), AUTH_CODE,
                     SOURCE_EVENT_ID, servletRequest));
 
             verifyNoInteractions(walletService, piggyBankManagerService, riskGuardService, authBackendClient, outboxService);
@@ -363,7 +363,7 @@ class PiggyBankTransactionServiceTest {
         void shouldThrowExceptionWhenAuthorizationCodeIsInvalid() {
             doThrow(new IllegalStateException("Invalid code")).when(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
 
-            assertThrows(IllegalStateException.class, () -> service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE,
+            assertThrows(IllegalStateException.class, () -> service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE,
                     SOURCE_EVENT_ID, servletRequest));
 
             verifyNoInteractions(riskGuardService, walletService, piggyBankManagerService, outboxService);
@@ -375,7 +375,7 @@ class PiggyBankTransactionServiceTest {
             doThrow(new IllegalStateException("Risk")).when(riskGuardService)
                     .guard(USER_ID, RiskTriggerType.PIGGY_BANK, AMOUNT, null, EMAIL, SOURCE_EVENT_ID, servletRequest);
 
-            assertThrows(IllegalStateException.class, () -> service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE,
+            assertThrows(IllegalStateException.class, () -> service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE,
                     SOURCE_EVENT_ID, servletRequest));
 
             verifyNoInteractions(walletService, piggyBankManagerService, outboxService);
@@ -387,7 +387,7 @@ class PiggyBankTransactionServiceTest {
             when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("Piggy bank not found"));
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.removeBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE,
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE,
                     SOURCE_EVENT_ID, servletRequest));
 
             verifyNoInteractions(outboxService, goalPlannerService);
