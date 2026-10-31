@@ -18,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 
@@ -256,7 +257,7 @@ class SecurityReportLoginServiceTest {
 
         @Test
         void shouldUseFirstElementWhenRepositoryReturnsMultipleFirstLogins() {
-            LoginActivity secondLogin = org.mockito.Mockito.mock(LoginActivity.class);
+            LoginActivity secondLogin = Mockito.mock(LoginActivity.class);
             when(firstLogin.getLocation()).thenReturn("Warsaw");
             when(firstLogin.getCreatedAt()).thenReturn(FIRST_LOGIN_AT);
             when(loginActivityRepository.findFirstLogins(eq(USER_ID), eq(LoginActivityStatus.SUCCESSFUL), any(LocalDateTime.class), any(LocalDateTime.class), eq(FIRST_ELEMENT))).thenReturn(List.of(firstLogin, secondLogin));
