@@ -8,10 +8,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class SharedAccountActivityDataDeleterTest {
@@ -30,9 +30,10 @@ class SharedAccountActivityDataDeleterTest {
 
         @Test
         void shouldDeleteActivityLogsWhenOwnerIdAndMemberIdAreProvided() {
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdAndMemberId(OWNER_ID, MEMBER_ID)).thenReturn(List.of());
             sharedAccountActivityDataDeleter.deleteSharedAccountActivityLogData(OWNER_ID, MEMBER_ID);
 
-            verify(sharedAccountActivityLogRepository).deleteByOwnerIdAndMemberId(OWNER_ID, MEMBER_ID);
+            verify(sharedAccountActivityLogRepository).deleteAll(anyList());
             verifyNoMoreInteractions(sharedAccountActivityLogRepository);
         }
 
@@ -40,37 +41,38 @@ class SharedAccountActivityDataDeleterTest {
         void shouldDeleteActivityLogsWhenOwnerIdIsNull() {
             sharedAccountActivityDataDeleter.deleteSharedAccountActivityLogData(null, MEMBER_ID);
 
-            verify(sharedAccountActivityLogRepository).deleteByOwnerIdAndMemberId(null, MEMBER_ID);
+            verify(sharedAccountActivityLogRepository).deleteAll(anyList());
         }
 
         @Test
         void shouldDeleteActivityLogsWhenMemberIdIsNull() {
             sharedAccountActivityDataDeleter.deleteSharedAccountActivityLogData(OWNER_ID, null);
 
-            verify(sharedAccountActivityLogRepository).deleteByOwnerIdAndMemberId(OWNER_ID, null);
+            verify(sharedAccountActivityLogRepository).deleteAll(anyList());
+
         }
 
         @Test
         void shouldDeleteActivityLogsWhenOwnerIdAndMemberIdAreNull() {
             sharedAccountActivityDataDeleter.deleteSharedAccountActivityLogData(null, null);
 
-            verify(sharedAccountActivityLogRepository).deleteByOwnerIdAndMemberId(null, null);
+            verify(sharedAccountActivityLogRepository).deleteAll(anyList());
+
         }
 
         @Test
         void shouldDeleteActivityLogsWhenOwnerIdEqualsMemberId() {
             sharedAccountActivityDataDeleter.deleteSharedAccountActivityLogData(OWNER_ID, OWNER_ID);
 
-            verify(sharedAccountActivityLogRepository).deleteByOwnerIdAndMemberId(OWNER_ID, OWNER_ID);
+            verify(sharedAccountActivityLogRepository).deleteAll(anyList());
         }
 
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
             doThrow(new IllegalStateException()).when(sharedAccountActivityLogRepository)
-                    .deleteByOwnerIdAndMemberId(OWNER_ID, MEMBER_ID);
+                            .findAllByOwnerIdAndMemberId(OWNER_ID, MEMBER_ID);
 
-            assertThrows(IllegalStateException.class,
-                    () -> sharedAccountActivityDataDeleter.deleteSharedAccountActivityLogData(OWNER_ID, MEMBER_ID));
+            assertThrows(IllegalStateException.class, () -> sharedAccountActivityDataDeleter.deleteSharedAccountActivityLogData(OWNER_ID, MEMBER_ID));
         }
     }
 }
