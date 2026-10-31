@@ -1,6 +1,7 @@
 package com.finovara.activitylogservice.activitylog.securitymonitoring.service;
 
 import com.finovara.activitylogservice.activitylog.securitymonitoring.dto.RiskOperationActivityDto;
+import com.finovara.activitylogservice.activitylog.securitymonitoring.dto.RiskOperationActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.mapper.RiskOperationActivityMapper;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.model.RiskOperationActivity;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.repository.RiskOperationActivityRepository;
@@ -187,6 +188,52 @@ class RiskOperationLogServiceTest {
 
             assertThrows(IllegalArgumentException.class,
                     () -> riskOperationLogService.confirmPassword(USER_ID, confirmPasswordDto));
+        }
+    }
+
+    @Nested
+    class FilterRiskActivity {
+
+        @Test
+        void shouldReturnMappedFilteredDtosAndUseConfiguredPageSize() {
+            RiskOperationActivityFilterDto filter = new RiskOperationActivityFilterDto(
+                    SOURCE_EVENT_ID,
+                    TRIGGER_TYPE,
+                    SCORE,
+                    ACTION,
+                    OPERATION_DATE,
+                    LocalDate.of(2026, 5, 20)
+            );
+            RiskOperationActivity activity = RiskOperationActivity.builder()
+                    .userId(USER_ID)
+                    .sourceEventId(SOURCE_EVENT_ID)
+                    .triggerType(TRIGGER_TYPE)
+                    .score(SCORE)
+                    .action(ACTION)
+                    .operationDate(OPERATION_DATE)
+                    .createdAt(CREATED_AT)
+                    .build();
+            RiskOperationActivityDto dto = new RiskOperationActivityDto(
+                    SOURCE_EVENT_ID,
+                    TRIGGER_TYPE,
+                    SCORE,
+                    ACTION,
+                    List.of(),
+                    CREATED_AT,
+                    OPERATION_DATE
+            );
+
+            when(riskOperationActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(LocalDateTime.class), any(LocalDateTime.class), any(Pageable.class)))
+                    .thenReturn(List.of(activity));
+            when(riskOperationActivityMapper.mapToRiskOperationActivity(activity)).thenReturn(dto);
+
+            List<RiskOperationActivityDto> result = riskOperationLogService.filterRiskActivity(USER_ID, filter, 2);
+
+            assertEquals(List.of(dto), result);
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            verify(riskOperationActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(LocalDateTime.class), any(LocalDateTime.class), captor.capture());
+            assertEquals(PAGE_SIZE, captor.getValue().getPageSize());
+            assertEquals(2, captor.getValue().getPageNumber());
         }
     }
 
