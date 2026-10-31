@@ -9,6 +9,7 @@ import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationRequest;
 import com.finovara.contracts.securitymonitoring.dto.RiskEvaluationResponse;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -54,7 +55,7 @@ class RiskGuardServiceTest {
     }
 
     private RiskAction nonLogOnlyAction() {
-        return java.util.Arrays.stream(RiskAction.values()).filter(action -> action != RiskAction.LOG_ONLY).findFirst().orElseThrow();
+        return Arrays.stream(RiskAction.values()).filter(action -> action != RiskAction.LOG_ONLY).findFirst().orElseThrow();
     }
 
     @Nested
@@ -99,7 +100,7 @@ class RiskGuardServiceTest {
 
             riskGuardService.guard(USER_ID, TRIGGER_TYPE, EMAIL, SOURCE_EVENT_ID, request);
 
-            verify(response, org.mockito.Mockito.never()).isFullyVerified();
+            verify(response, never()).isFullyVerified();
         }
 
         @Test
@@ -163,7 +164,7 @@ class RiskGuardServiceTest {
 
             riskGuardService.guard(USER_ID, TRIGGER_TYPE, EMAIL, SOURCE_EVENT_ID, request);
 
-            verify(securityMonitoringClient, org.mockito.Mockito.times(1)).evaluate(any(RiskEvaluationRequest.class));
+            verify(securityMonitoringClient, times(1)).evaluate(any(RiskEvaluationRequest.class));
         }
 
         @Test
