@@ -9,15 +9,18 @@ import com.finovara.financeservice.security.SecurityUtils;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/transactions/revenue")
 @RequiredArgsConstructor
@@ -36,14 +39,14 @@ public class RevenueController {
     }
 
     @GetMapping
-    public ResponseEntity<List<RevenueDto>> getRevenue(@RequestParam(defaultValue = "0") int page) {
+    public ResponseEntity<List<RevenueDto>> getRevenue(@RequestParam(defaultValue = "0") @Min(0) int page) {
         return ResponseEntity.ok(revenueService.getRevenue(SecurityUtils.getCurrentUserId(), page));
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<List<Revenue>> filterRevenues(@RequestParam Long userId, @RequestParam(required = false) RevenueCategory category,  @RequestParam(required = false) BigDecimal amount,
-                                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestParam(required = false) String description, @RequestParam(defaultValue = "0") int page) {
-        return ResponseEntity.ok(revenueFilteringService.revenueFiltering(userId, category, amount, date, description, page));
+    public ResponseEntity<List<Revenue>> filterRevenues(@RequestParam(required = false) RevenueCategory category, @RequestParam(required = false) BigDecimal amount,
+                                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestParam(required = false) String description, @RequestParam(defaultValue = "0") @Min(0) int page) {
+        return ResponseEntity.ok(revenueFilteringService.revenueFiltering(SecurityUtils.getCurrentUserId(), category, amount, date, description, page));
     }
 
     @DeleteMapping("/{revenueId}")
