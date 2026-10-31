@@ -13,7 +13,7 @@ public class RiskOperationConsumer {
     private final RiskOperationLogService riskOperationLogService;
 
     @KafkaListener(topics = "risk-operation.created")
-    public void handleSettings(RiskOperationCreatedEvent event) {
+    public void handleRiskOperation(RiskOperationCreatedEvent event) {
         riskOperationLogService.handleEvent(event);
     }
 
