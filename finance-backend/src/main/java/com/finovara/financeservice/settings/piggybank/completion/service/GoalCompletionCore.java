@@ -40,7 +40,7 @@ public class GoalCompletionCore {
         BigDecimal amountToTransfer = piggyBank.getAmount();
         transferFunds(piggyBank, wallet);
 
-        kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amountToTransfer, LocalDateTime.now()));
+        kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, amountToTransfer, LocalDateTime.now()));
     }
 
     private void withdrawAndDelete(Long userId, PiggyBank piggyBank, Wallet wallet) {
@@ -48,7 +48,7 @@ public class GoalCompletionCore {
 
         transferFunds(piggyBank, wallet);
 
-        kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amountToTransfer, LocalDateTime.now()));
+        kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, amountToTransfer, LocalDateTime.now()));
 
         recurringSettingsRepository.findByUserIdAndPiggyBankId(userId, piggyBank.getId()).ifPresent(settings -> {
             settings.setEnable(false);
@@ -57,7 +57,7 @@ public class GoalCompletionCore {
         });
 
         outboxService.save("SharedPiggyBank", piggyBank.getId().toString(), "piggybank.transaction.created",
-                new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, LocalDateTime.now()));
+                new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, null, LocalDateTime.now()));
 
         piggyBankRepository.delete(piggyBank);
     }

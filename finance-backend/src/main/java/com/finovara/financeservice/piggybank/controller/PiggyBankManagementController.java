@@ -52,7 +52,7 @@ public class PiggyBankManagementController {
 
     @PostMapping("/{piggyBankId}/withdraw")
     public ResponseEntity<Void> removeBalanceFromPiggyBank(@PathVariable Long piggyBankId, @RequestParam BigDecimal amount, @RequestParam(required = false) String authorizationCode, @RequestParam String sourceEventId, HttpServletRequest servletRequest) {
-        piggyBankTransactionService.removeBalanceFromPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, authorizationCode, sourceEventId, servletRequest);
+        piggyBankTransactionService.withdrawBalanceFromPiggyBank(SecurityUtils.getCurrentUserId(), piggyBankId, amount, authorizationCode, sourceEventId, servletRequest);
         return ResponseEntity.noContent().build();
     }
 

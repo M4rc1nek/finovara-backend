@@ -1,5 +1,6 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository;
 
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangeActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangeActivity;
 import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import jakarta.persistence.LockModeType;
@@ -16,6 +17,20 @@ import java.util.List;
 public interface AccountChangeActivityRepository extends JpaRepository<AccountChangeActivity, Long> {
 
     List<AccountChangeActivity> findByUserId(Long userId, Pageable pageable);
+
+    @Query("""
+            SELECT a FROM AccountChangeActivity a
+            WHERE a.userId = :userId
+              AND (CAST(:#{#filter.type} AS string) IS NULL OR a.type = :#{#filter.type})
+              AND (CAST(:#{#filter.browser} AS string) IS NULL OR :#{#filter.browser} = '' OR LOWER(a.browser) LIKE LOWER(CONCAT('%', :#{#filter.browser}, '%')))
+              AND (CAST(:#{#filter.ipAddress} AS string) IS NULL OR :#{#filter.ipAddress} = '' OR LOWER(a.ipAddress) LIKE LOWER(CONCAT('%', :#{#filter.ipAddress}, '%')))
+              AND (CAST(:#{#filter.location} AS string) IS NULL OR :#{#filter.location} = '' OR LOWER(a.location) LIKE LOWER(CONCAT('%', :#{#filter.location}, '%')))
+              AND (CAST(:createdFrom AS timestamp) IS NULL OR a.createdAt >= :createdFrom)
+              AND (CAST(:createdTo AS timestamp) IS NULL OR a.createdAt < :createdTo)
+            ORDER BY a.createdAt DESC, a.id DESC
+            """)
+    List<AccountChangeActivity> findFilteredActivities( Long userId, AccountChangeActivityFilterDto filter, LocalDateTime createdFrom, LocalDateTime createdTo,
+                                                       Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

@@ -1,16 +1,20 @@
 package com.finovara.activitylogservice.activitylog.securitymonitoring.controller;
 
 import com.finovara.activitylogservice.activitylog.securitymonitoring.dto.RiskOperationActivityDto;
+import com.finovara.activitylogservice.activitylog.securitymonitoring.dto.RiskOperationActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.service.RiskOperationLogService;
 import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.user.authorization.dto.ConfirmPasswordDto;
 import com.finovara.contracts.util.SortType;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/account-activity/risk-operation")
 @RequiredArgsConstructor
@@ -19,8 +23,13 @@ public class RiskOperationActivityController {
     private final RiskOperationLogService riskOperationLogService;
 
     @GetMapping
-    public ResponseEntity<List<RiskOperationActivityDto>> getRiskActivity(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") int page) {
+    public ResponseEntity<List<RiskOperationActivityDto>> getRiskActivity(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") @Min(0) int page) {
         return ResponseEntity.ok(riskOperationLogService.getRiskActivity(SecurityUtils.getCurrentUserId(), sort, page));
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<RiskOperationActivityDto>> filterRiskActivity(@ModelAttribute RiskOperationActivityFilterDto filter, @RequestParam(defaultValue = "0") @Min(0) int page) {
+        return ResponseEntity.ok(riskOperationLogService.filterRiskActivity(SecurityUtils.getCurrentUserId(), filter, page));
     }
 
     @PostMapping("/confirm-password")

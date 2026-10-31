@@ -1,8 +1,10 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangeActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.dto.AccountChangeArchiveDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.dto.AccountChangeArchiveFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.mapper.AccountChangeArchiveMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.repository.AccountChangeArchiveRepository;
@@ -12,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +55,16 @@ public class AccountChangeArchiveService extends AccountActivityCore<AccountChan
     @Cacheable(value = "accountChangeArchive", key = "#userId + ':' + #sort + ':' + #page")
     public List<AccountChangeArchiveDto> getAccountChangeArchive(Long userId, SortType sort, int page) {
         return getActivities(userId, sort, page, pageSize);
+    }
+
+    public List<AccountChangeArchiveDto> filterAccountChangeArchive(Long userId, AccountChangeArchiveFilterDto filter, int page) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
+        DateRange archived = DateRange.of(filter.moveToArchiveDate());
+        DateRange created = DateRange.of(filter.createdAt());
+        return accountChangeArchiveRepository.findFilteredActivities(userId, filter, archived.from(), archived.to(), created.from(), created.to(), pageable)
+                .stream()
+                .map(accountChangeArchiveMapper::mapToDto)
+                .toList();
     }
 
     @Override

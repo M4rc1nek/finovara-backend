@@ -8,14 +8,17 @@ import com.finovara.authservice.sharedaccount.service.invitation.InvitationRespo
 import com.finovara.authservice.sharedaccount.service.invitation.InvitationService;
 import com.finovara.authservice.sharedaccount.service.invitation.SharedAccountMemberService;
 import com.finovara.contracts.user.authorization.dto.UserDataDto;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/shared-accounts/users")
 @RequiredArgsConstructor
@@ -27,7 +30,7 @@ public class UserInvitationController {
 
     @GetMapping("/search")
     public ResponseEntity<List<UserDataDto>> search(@RequestParam @Size(min = 3, max = 20, message = "Query must be between 3 and 20 characters")
-                                                    String query, @RequestParam(defaultValue = "0") int page) {
+                                                    String query, @RequestParam(defaultValue = "0") @Min(0) int page) {
         return ResponseEntity.ok(invitationService.searchUser(query, SecurityUtils.getCurrentUserId(), page));
     }
 
@@ -38,7 +41,7 @@ public class UserInvitationController {
     }
 
     @GetMapping("/invitations/pending")
-    public ResponseEntity<List<InvitationResponse>> getPendingInvitations(@RequestParam(defaultValue = "0") int page) {
+    public ResponseEntity<List<InvitationResponse>> getPendingInvitations(@RequestParam(defaultValue = "0") @Min(0)  int page) {
         return ResponseEntity.ok(invitationService.getPendingInvitations(SecurityUtils.getCurrentUserId(), page));
     }
 

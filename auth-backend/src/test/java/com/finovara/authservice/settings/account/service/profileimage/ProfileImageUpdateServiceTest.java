@@ -20,20 +20,27 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProfileImageUpdateServiceTest {
 
-    @Mock private UserManagerService userManagerService;
-    @Mock private OutboxService outboxService;
-    @Mock private AdditionalAuthorizationService authorizationService;
-    @Mock private AdditionalAuthorizationCodeResolver codeResolver;
-    @Mock private RiskGuardService riskGuardService;
-    @Mock private HttpServletRequest request;
-    @InjectMocks private ProfileImageUpdateService service;
+    @Mock
+    private UserManagerService userManagerService;
+    @Mock
+    private OutboxService outboxService;
+    @Mock
+    private AdditionalAuthorizationService authorizationService;
+    @Mock
+    private AdditionalAuthorizationCodeResolver codeResolver;
+    @Mock
+    private RiskGuardService riskGuardService;
+    @Mock
+    private HttpServletRequest request;
+
+    @InjectMocks
+    private ProfileImageUpdateService service;
+
     private User user;
 
     @BeforeEach

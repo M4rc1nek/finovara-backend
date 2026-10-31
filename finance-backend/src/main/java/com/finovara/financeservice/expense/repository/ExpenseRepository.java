@@ -33,7 +33,16 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT e From Expense e WHERE e.userId = :userId AND e.createdAt BETWEEN :startDate AND :endDate")
     List<Expense> findAllByUserIdAndCreatedAtBetween(Long userId, @Param("startDate") LocalDate from,
                                                      @Param("endDate") LocalDate to);
-
+    @Query("""
+        SELECT e FROM Expense e
+        WHERE e.userId = :userId
+          AND (COALESCE(:category, e.category) = e.category)
+          AND (COALESCE(:amount, e.amount) = e.amount)
+          AND (COALESCE(:createdAt, e.createdAt) = e.createdAt)
+          AND (COALESCE(:query, '') = '' OR LOWER(e.description) LIKE LOWER(CONCAT('%', :query, '%')))
+        ORDER BY e.createdAt DESC
+        """)
+    List<Expense> findFilteredExpenses(Long userId, ExpenseCategory category, BigDecimal amount, LocalDate createdAt, String query, Pageable pageable);
     @Query("""
             SELECT new com.finovara.financeservice.expense.suggestions.dto.ExpenseSuggestionDto(
                 e.category,

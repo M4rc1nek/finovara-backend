@@ -23,6 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -103,7 +105,7 @@ class RiskGuardServiceTest {
 
             riskGuardService.guard(USER_ID, TRIGGER_TYPE, AMOUNT, CATEGORY, EMAIL, SOURCE_EVENT_ID, request);
 
-            verify(response, org.mockito.Mockito.never()).isFullyVerified();
+            verify(response, never()).isFullyVerified();
         }
 
         @Test
@@ -168,7 +170,7 @@ class RiskGuardServiceTest {
 
             riskGuardService.guard(USER_ID, TRIGGER_TYPE, AMOUNT, CATEGORY, EMAIL, SOURCE_EVENT_ID, request);
 
-            verify(securityMonitoringClient, org.mockito.Mockito.times(1)).evaluate(any(RiskEvaluationRequest.class));
+            verify(securityMonitoringClient, times(1)).evaluate(any(RiskEvaluationRequest.class));
         }
     }
 }

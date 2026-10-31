@@ -36,6 +36,17 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     List<Revenue> findTopRevenuesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
+        SELECT r FROM Revenue r
+        WHERE r.userId = :userId
+          AND (COALESCE(:category, r.category) = r.category)
+          AND (COALESCE(:amount, r.amount) = r.amount)
+          AND (COALESCE(:createdAt, r.createdAt) = r.createdAt)
+          AND (COALESCE(:query, '') = '' OR LOWER(r.description) LIKE LOWER(CONCAT('%', :query, '%')))
+        ORDER BY r.createdAt DESC
+        """)
+    List<Revenue> findFilteredRevenues(Long userId, RevenueCategory category, BigDecimal amount, LocalDate createdAt, String query, Pageable pageable);
+
+    @Query("""
             SELECT new com.finovara.financeservice.revenue.suggestions.dto.RevenueSuggestionDto(
                 r.category,
                 r.amount

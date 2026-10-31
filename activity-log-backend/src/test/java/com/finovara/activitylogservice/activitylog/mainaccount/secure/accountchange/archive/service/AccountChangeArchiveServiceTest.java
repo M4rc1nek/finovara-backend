@@ -2,10 +2,12 @@ package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountch
 
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangeActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.dto.AccountChangeArchiveDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.dto.AccountChangeArchiveFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.mapper.AccountChangeArchiveMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.model.AccountChangeArchive;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.archive.repository.AccountChangeArchiveRepository;
 import com.finovara.contracts.util.SortType;
+import com.finovara.contracts.mainaccount.activity.model.AccountChangeActivityType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -127,6 +130,40 @@ class AccountChangeArchiveServiceTest {
         @Test
         void shouldThrowExceptionWhenActivityIsNull() {
             assertThrows(NullPointerException.class, () -> accountChangeArchiveService.mapToArchive(null));
+        }
+    }
+
+    @Nested
+    class FilterAccountChangeArchive {
+
+        @Test
+        void shouldFilterArchivesUsingMoveToArchiveAndCreatedDateRanges() {
+            AccountChangeArchiveFilterDto filter = new AccountChangeArchiveFilterDto(
+                    AccountChangeActivityType.PASSWORD_CHANGED,
+                    "Firefox",
+                    "10.0.0.1",
+                    "Warsaw",
+                    LocalDate.of(2026, 1, 15),
+                    LocalDate.of(2026, 1, 20)
+            );
+            AccountChangeArchive archive = AccountChangeArchive.builder().userId(USER_ID).build();
+            AccountChangeArchiveDto dto = new AccountChangeArchiveDto(
+                    AccountChangeActivityType.PASSWORD_CHANGED,
+                    LocalDateTime.of(2026, 1, 16, 12, 0),
+                    LocalDateTime.of(2026, 1, 15, 10, 30),
+                    "Firefox",
+                    "10.0.0.1",
+                    "Warsaw"
+            );
+
+            when(accountChangeArchiveRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of(archive));
+            when(accountChangeArchiveMapper.mapToDto(archive)).thenReturn(dto);
+
+            List<AccountChangeArchiveDto> result = accountChangeArchiveService.filterAccountChangeArchive(USER_ID, filter, 1);
+
+            assertEquals(List.of(dto), result);
+            verify(accountChangeArchiveRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(), any(), any(Pageable.class));
         }
     }
 

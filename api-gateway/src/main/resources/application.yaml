@@ -47,7 +47,7 @@ spring:
             - id: activity-log-backend
               uri: ${ACTIVITY_LOG_BACKEND_URL}
               predicates:
-                - Path=/api/account-activity/**,/api/shared-accounts/activity,/api/activity-log/refresh/**,/api/archive-activities/**
+                - Path=/api/account-activity/**,/api/shared-accounts/activity/**,/api/activity-log/refresh/**,/api/archive-activities/**
 
             - id: notification-backend
               uri: ${NOTIFICATION_BACKEND_URL}

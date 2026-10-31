@@ -96,7 +96,7 @@ class ActivityConsumersTest {
 
     @Test
     void shouldDelegatePiggyBankLifeCycleEventToService() {
-        PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID, PiggyBankActivityType.ADDED_PIGGY_BANK, "Gift fund", PiggyBankGoalType.GIFTS, new BigDecimal("100.00"), null, OCCURRED_AT);
+        PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID, PiggyBankActivityType.ADDED_PIGGY_BANK, "Gift fund", PiggyBankGoalType.GIFTS, new BigDecimal("100.00"), null,null, OCCURRED_AT);
 
         activityConsumers.handlePiggyBank(event);
 
@@ -158,7 +158,7 @@ class ActivityConsumersTest {
 
     @Test
     void shouldDelegatePiggyBankTransactionEventToService() {
-        PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, "Gift fund", PiggyBankGoalType.GIFTS, new BigDecimal("100.00"), new BigDecimal("50.00"), OCCURRED_AT);
+        PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, "Gift fund", PiggyBankGoalType.GIFTS, new BigDecimal("100.00"), new BigDecimal("50.00"), null, OCCURRED_AT);
 
         activityConsumers.handlePiggyBankTransaction(event);
 

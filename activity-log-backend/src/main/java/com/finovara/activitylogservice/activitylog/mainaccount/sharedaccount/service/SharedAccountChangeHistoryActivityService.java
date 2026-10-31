@@ -1,7 +1,9 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.dto.SharedAccountChangeHistoryActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.dto.SharedAccountChangeHistoryActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.mapper.SharedAccountActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.model.SharedAccountChangeHistoryActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.repository.SharedAccountChangeHistoryActivityRepository;
@@ -14,7 +16,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +54,15 @@ public class SharedAccountChangeHistoryActivityService extends AccountActivityCo
     @Cacheable(value = "sharedAccountChangeHistoryActivity", key = "#userId + ':' + #sort + ':' + #page")
     public List<SharedAccountChangeHistoryActivityDto> getSharedAccountActivity(Long userId, SortType sort, int page) {
         return getActivities(userId, sort, page, pageSize);
+    }
+
+    public List<SharedAccountChangeHistoryActivityDto> filterSharedAccountActivity(Long userId, SharedAccountChangeHistoryActivityFilterDto filter, int page) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
+        DateRange created = DateRange.of(filter.createdAt());
+        return sharedAccountChangeHistoryActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+                .stream()
+                .map(sharedAccountActivityMapper::mapToSharedAccountActivity)
+                .toList();
     }
 
     public void confirmPassword(Long userId, ConfirmPasswordDto confirmPasswordDto) {

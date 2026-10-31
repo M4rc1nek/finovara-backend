@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -124,6 +125,6 @@ class LimitExpensesValidatorTest {
     }
 
     private static SharedLimitDto mock(Class<SharedLimitDto> clazz) {
-        return org.mockito.Mockito.mock(clazz);
+        return Mockito.mock(clazz);
     }
 }

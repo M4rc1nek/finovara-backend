@@ -1,6 +1,7 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.revenue;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.mapper.RevenueActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.model.RevenueActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.repository.RevenueActivityRepository;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -49,6 +51,40 @@ class RevenueActivityServiceTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(revenueActivityService, "pageSize", 10);
+    }
+
+    @Nested
+    class FilterRevenueActivity {
+
+        @Test
+        void shouldFilterRevenueUsingCreatedDateRange() {
+            RevenueActivityFilterDto filter = new RevenueActivityFilterDto(
+                    RevenueActivityType.ADDED_REVENUE,
+                    new BigDecimal("1000.00"),
+                    new BigDecimal("900.00"),
+                    RevenueCategory.SALARY,
+                    RevenueCategory.BONUS,
+                   LocalDate.of(2026, 5, 25)
+            );
+            RevenueActivity activity = RevenueActivity.builder().userId(USER_ID).build();
+            RevenueActivityDto dto = new RevenueActivityDto(
+                    RevenueActivityType.ADDED_REVENUE,
+                    new BigDecimal("1000.00"),
+                    new BigDecimal("900.00"),
+                    RevenueCategory.SALARY,
+                    RevenueCategory.BONUS,
+                    OCCURRED_AT
+            );
+
+            when(revenueActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of(activity));
+            when(revenueActivityMapper.mapToRevenueActivity(activity)).thenReturn(dto);
+
+            List<RevenueActivityDto> result = revenueActivityService.filterRevenueActivity(USER_ID, filter, 1);
+
+            assertThat(result).containsExactly(dto);
+            verify(revenueActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+        }
     }
 
     @Nested

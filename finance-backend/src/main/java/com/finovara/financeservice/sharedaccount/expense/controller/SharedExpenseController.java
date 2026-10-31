@@ -6,12 +6,15 @@ import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseReques
 import com.finovara.financeservice.sharedaccount.expense.dto.SharedExpenseResponse;
 import com.finovara.financeservice.sharedaccount.expense.service.SharedExpenseService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/shared-accounts/transactions/expense")
 @RequiredArgsConstructor
@@ -30,7 +33,7 @@ public class SharedExpenseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<SharedExpenseDto>> getSharedExpense(@RequestParam(defaultValue = "0") int page) {
+    public ResponseEntity<List<SharedExpenseDto>> getSharedExpense(@RequestParam(defaultValue = "0") @Min(0) int page) {
         return ResponseEntity.ok(expenseService.getExpense(SecurityUtils.getCurrentUserId(), page));
     }
 

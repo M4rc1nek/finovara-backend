@@ -1,6 +1,7 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.expense.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.dto.ExpenseActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.expense.dto.ExpenseActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.mapper.ExpenseActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.model.ExpenseActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.repository.ExpenseActivityRepository;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -46,6 +48,40 @@ class ExpenseActivityServiceTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(expenseActivityService, "pageSize", 10);
+    }
+
+    @Nested
+    class FilterExpenseActivity {
+
+        @Test
+        void shouldFilterExpensesUsingCreatedDateRange() {
+            ExpenseActivityFilterDto filter = new ExpenseActivityFilterDto(
+                    ExpenseActivityType.ADDED_EXPENSE,
+                    new BigDecimal("100.00"),
+                    new BigDecimal("90.00"),
+                    ExpenseCategory.FOOD,
+                    ExpenseCategory.TRANSPORT,
+                    LocalDate.of(2026, 5, 25)
+            );
+            ExpenseActivity activity = ExpenseActivity.builder().userId(USER_ID).build();
+            ExpenseActivityDto dto = new ExpenseActivityDto(
+                    ExpenseActivityType.ADDED_EXPENSE,
+                    new BigDecimal("100.00"),
+                    new BigDecimal("90.00"),
+                    ExpenseCategory.FOOD,
+                    ExpenseCategory.TRANSPORT,
+                    OCCURRED_AT
+            );
+
+            when(expenseActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of(activity));
+            when(expenseActivityMapper.mapToExpenseActivity(activity)).thenReturn(dto);
+
+            List<ExpenseActivityDto> result = expenseActivityService.filterExpenseActivity(USER_ID, filter, 1);
+
+            assertThat(result).containsExactly(dto);
+            verify(expenseActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+        }
     }
 
     @Nested

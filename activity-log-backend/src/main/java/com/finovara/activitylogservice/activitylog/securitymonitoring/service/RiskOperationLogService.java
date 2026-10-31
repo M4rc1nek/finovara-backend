@@ -1,7 +1,9 @@
 package com.finovara.activitylogservice.activitylog.securitymonitoring.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.dto.RiskOperationActivityDto;
+import com.finovara.activitylogservice.activitylog.securitymonitoring.dto.RiskOperationActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.mapper.RiskOperationActivityMapper;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.model.RiskOperationActivity;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.model.RiskRuleCollectionActivity;
@@ -15,7 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -68,6 +72,15 @@ public class RiskOperationLogService extends AccountActivityCore<RiskOperationAc
     @Cacheable(value = "riskOperationActivity", key = "#userId + ':' + #sort + ':' + #page")
     public List<RiskOperationActivityDto> getRiskActivity(Long userId, SortType sort, int page) {
         return getActivities(userId, sort, page, pageSize);
+    }
+
+    public List<RiskOperationActivityDto> filterRiskActivity(Long userId, RiskOperationActivityFilterDto filter, int page) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
+        DateRange created = DateRange.of(filter.createdAt());
+        return riskOperationActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+                .stream()
+                .map(riskOperationActivityMapper::mapToRiskOperationActivity)
+                .toList();
     }
 
     @Override

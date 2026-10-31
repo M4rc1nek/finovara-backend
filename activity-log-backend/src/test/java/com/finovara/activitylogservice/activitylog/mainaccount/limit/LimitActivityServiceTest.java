@@ -1,6 +1,7 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.limit;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.dto.LimitActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.dto.LimitActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.mapper.LimitActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.model.LimitActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.repository.LimitActivityRepository;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -49,6 +51,38 @@ class LimitActivityServiceTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(limitActivityService, "pageSize", 10);
+    }
+
+    @Nested
+    class FilterLimitActivity {
+
+        @Test
+        void shouldFilterLimitActivitiesUsingCreatedDateRange() {
+            LimitActivityFilterDto filter = new LimitActivityFilterDto(
+                    LimitActivityType.ADDED_LIMIT,
+                    PeriodType.MONTHLY,
+                    new BigDecimal("2500.00"),
+                    new BigDecimal("2400.00"),
+                    LocalDate.of(2026, 5, 25)
+            );
+            LimitActivity activity = LimitActivity.builder().userId(USER_ID).build();
+            LimitActivityDto dto = new LimitActivityDto(
+                    LimitActivityType.ADDED_LIMIT,
+                    PeriodType.MONTHLY,
+                    new BigDecimal("2500.00"),
+                    new BigDecimal("2400.00"),
+                    OCCURRED_AT
+            );
+
+            when(limitActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of(activity));
+            when(limitActivityMapper.mapToLimitActivity(activity)).thenReturn(dto);
+
+            List<LimitActivityDto> result = limitActivityService.filterLimitActivity(USER_ID, filter, 1);
+
+            assertThat(result).containsExactly(dto);
+            verify(limitActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+        }
     }
 
     @Nested

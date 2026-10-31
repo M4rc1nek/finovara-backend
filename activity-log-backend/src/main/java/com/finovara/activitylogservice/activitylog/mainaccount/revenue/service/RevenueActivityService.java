@@ -1,7 +1,9 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.revenue.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.mapper.RevenueActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.model.RevenueActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.repository.RevenueActivityRepository;
@@ -12,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +52,15 @@ public class RevenueActivityService extends AccountActivityCore<RevenueActivity,
     @Cacheable(value = "revenueActivity", key = "#userId + ':' + #sort + ':' + #page")
     public List<RevenueActivityDto> getRevenueActivity(Long userId, SortType sort, int page) {
         return getActivities(userId, sort, page, pageSize);
+    }
+
+    public List<RevenueActivityDto> filterRevenueActivity(Long userId, RevenueActivityFilterDto filter, int page) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
+        DateRange created = DateRange.of(filter.createdAt());
+        return revenueActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+                .stream()
+                .map(revenueActivityMapper::mapToRevenueActivity)
+                .toList();
     }
 
     @Override

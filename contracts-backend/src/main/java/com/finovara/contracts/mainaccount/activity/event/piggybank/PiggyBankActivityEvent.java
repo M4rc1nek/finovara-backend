@@ -13,5 +13,6 @@ public record PiggyBankActivityEvent(
         PiggyBankGoalType goalType,
         BigDecimal goalAmount,
         BigDecimal amountPaid,
+        BigDecimal amountPaidOut,
         LocalDateTime occurredAt
 ) {}

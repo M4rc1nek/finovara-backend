@@ -1,7 +1,9 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.settings.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.dto.SettingsActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.settings.dto.SettingsActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.mapper.SettingsActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.model.SettingsActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.repository.SettingsActivityRepository;
@@ -12,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +48,15 @@ public class SettingsActivityService extends AccountActivityCore<SettingsActivit
     @Cacheable(value = "settingsActivity", key = "#userId + ':' + #sort + ':' + #page")
     public List<SettingsActivityDto> getSettingsActivities(Long userId, SortType sort, int page) {
         return getActivities(userId, sort, page, pageSize);
+    }
+
+    public List<SettingsActivityDto> filterSettingsActivity(Long userId, SettingsActivityFilterDto filter, int page) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
+        DateRange created = DateRange.of(filter.createdAt());
+        return settingsActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+                .stream()
+                .map(settingsActivityMapper::mapToSettingActivity)
+                .toList();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangeActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangeActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.mapper.AccountChangeActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.model.AccountChangeActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.repository.AccountChangeActivityRepository;
@@ -22,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -237,6 +239,38 @@ class AccountChangeActivityServiceTest {
             when(accountChangeActivityMapper.mapToDto(accountChangeActivity)).thenThrow(new IllegalArgumentException());
 
             assertThrows(IllegalArgumentException.class, () -> accountChangeActivityService.getAccountChangeActivity(USER_ID, SORT, PAGE));
+        }
+    }
+
+    @Nested
+    class FilterAccountChangeActivity {
+
+        @Test
+        void shouldFilterActivitiesUsingCreatedDateRangeAndPageable() {
+            AccountChangeActivityFilterDto filter = new AccountChangeActivityFilterDto(
+                    AccountChangeActivityType.PASSWORD_CHANGED,
+                    "Chrome",
+                    "192.168.0.1",
+                    "Krakow",
+                    LocalDate.of(2026, 2, 20)
+            );
+            AccountChangeActivity activity = AccountChangeActivity.builder().userId(USER_ID).build();
+            AccountChangeActivityDto dto = new AccountChangeActivityDto(
+                    AccountChangeActivityType.PASSWORD_CHANGED,
+                    LocalDateTime.of(2026, 2, 20, 12, 0),
+                    "Chrome",
+                    "192.168.0.1",
+                    "Krakow"
+            );
+
+            when(accountChangeActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of(activity));
+            when(accountChangeActivityMapper.mapToDto(activity)).thenReturn(dto);
+
+            List<AccountChangeActivityDto> result = accountChangeActivityService.filterAccountChangeActivity(USER_ID, filter, 0);
+
+            assertEquals(List.of(dto), result);
+            verify(accountChangeActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
         }
     }
 

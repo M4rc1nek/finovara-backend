@@ -72,18 +72,23 @@ public class TransactionProfileUpdateService implements UserDataDeletable {
 
     @Transactional
     public void handlePiggyBankEvent(PiggyBankActivityEvent event) {
-        if (event.type() != PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY) {
+        if (event == null || event.type() != PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY) {
+            return;
+        }
+
+        BigDecimal amount = event.amountPaid();
+        if (amount == null) {
+            log.warn("Ignoring piggy bank deposit event with no amount for userId={}", event.userId());
             return;
         }
 
         TransactionProfile profile = getProfileForUpdateOrThrow(event.userId());
 
-        profile.setLastPiggyBankDepositAmount(event.amountPaid());
+        profile.setLastPiggyBankDepositAmount(amount);
         profile.setLastPiggyBankDepositAt(event.occurredAt());
 
-        if (profile.getLargestPiggyBankDeposit() == null
-                || event.amountPaid().compareTo(profile.getLargestPiggyBankDeposit()) > 0) {
-            profile.setLargestPiggyBankDeposit(event.amountPaid());
+        if (profile.getLargestPiggyBankDeposit() == null || amount.compareTo(profile.getLargestPiggyBankDeposit()) > 0) {
+            profile.setLargestPiggyBankDeposit(amount);
         }
 
         profile.setUpdatedAt(LocalDateTime.now());

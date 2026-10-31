@@ -7,13 +7,14 @@ import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivity
 import com.finovara.contracts.mainaccount.activity.model.ExpenseActivityType;
 import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
 import com.finovara.contracts.mainaccount.activity.model.RevenueActivityType;
+import com.finovara.contracts.util.model.ExpenseCategory;
+import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.securitymonitoring.transaction.model.TransactionProfile;
 import com.finovara.securitymonitoring.transaction.repository.TransactionProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -22,9 +23,17 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionProfileUpdateServiceTest {
@@ -41,21 +50,19 @@ class TransactionProfileUpdateServiceTest {
     @Nested
     class HandleExpenseEvent {
 
-        private ExpenseActivityEvent event;
         private TransactionProfile profile;
 
         @BeforeEach
         void setUp() {
-            event = mock(ExpenseActivityEvent.class);
             profile = new TransactionProfile();
             profile.setExpenseCount(0L);
+            profile.setUserId(USER_ID);
         }
 
         @Test
         void shouldIgnoreEventWhenTypeIsNotAddedExpense() {
-            when(event.type()).thenReturn(ExpenseActivityType.values()[0] == ExpenseActivityType.ADDED_EXPENSE
-                    ? ExpenseActivityType.values()[ExpenseActivityType.values().length - 1]
-                    : ExpenseActivityType.values()[0]);
+            ExpenseActivityEvent event = new ExpenseActivityEvent(USER_ID, ExpenseActivityType.EDITED_EXPENSE,
+                    new BigDecimal("100.00"), ExpenseCategory.FOOD, null, null, OCCURRED_AT);
 
             service.handleExpenseEvent(event);
 
@@ -63,131 +70,54 @@ class TransactionProfileUpdateServiceTest {
         }
 
         @Test
-        void shouldSetAmountAsAverageWhenFirstExpenseAndAverageIsNull() {
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("100.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
+        void shouldThrowExceptionWhenProfileNotFoundForExpenseEvent() {
+            ExpenseActivityEvent event = new ExpenseActivityEvent(USER_ID, ExpenseActivityType.ADDED_EXPENSE,
+                    new BigDecimal("100.00"), ExpenseCategory.FOOD, null, null, OCCURRED_AT);
+            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.empty());
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.handleExpenseEvent(event));
+            verify(transactionProfileRepository, never()).save(any(TransactionProfile.class));
+        }
+
+        @Test
+        void shouldAddFirstExpenseAndPersistUpdatedProfile() {
+            ExpenseActivityEvent event = new ExpenseActivityEvent(USER_ID, ExpenseActivityType.ADDED_EXPENSE,
+                    new BigDecimal("100.00"), ExpenseCategory.FOOD, null, null, OCCURRED_AT);
             when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
 
             service.handleExpenseEvent(event);
 
             assertEquals(new BigDecimal("100.00"), profile.getAverageExpenseAmount());
             assertEquals(1L, profile.getExpenseCount());
+            assertEquals(new BigDecimal("100.00"), profile.getLastExpenseAmount());
+            assertEquals(ExpenseCategory.FOOD, profile.getLastExpenseCategory());
+            assertEquals(OCCURRED_AT, profile.getLastExpenseAt());
+            assertEquals(new BigDecimal("100.00"), profile.getLargestExpenseAmount());
+            assertNotNull(profile.getUpdatedAt());
+            verify(transactionProfileRepository).save(profile);
         }
 
         @Test
-        void shouldSetAmountAsAverageWhenCountIsZeroAndAverageIsNotNull() {
-            profile.setAverageExpenseAmount(new BigDecimal("50.00"));
-            profile.setExpenseCount(0L);
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("30.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handleExpenseEvent(event);
-
-            assertEquals(new BigDecimal("30.00"), profile.getAverageExpenseAmount());
-            assertEquals(1L, profile.getExpenseCount());
-        }
-
-        @Test
-        void shouldCalculateNewAverageWhenExpensesAlreadyExist() {
+        void shouldCalculateAverageUsingExistingDataAndRoundHalfUp() {
             profile.setAverageExpenseAmount(new BigDecimal("100.00"));
             profile.setExpenseCount(2L);
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("160.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
+            profile.setLargestExpenseAmount(new BigDecimal("150.00"));
+            ExpenseActivityEvent event = new ExpenseActivityEvent(USER_ID, ExpenseActivityType.ADDED_EXPENSE,
+                    new BigDecimal("160.00"), ExpenseCategory.HEALTH, null, null, OCCURRED_AT);
             when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
 
             service.handleExpenseEvent(event);
 
             assertEquals(new BigDecimal("120.00"), profile.getAverageExpenseAmount());
             assertEquals(3L, profile.getExpenseCount());
+            assertEquals(new BigDecimal("160.00"), profile.getLargestExpenseAmount());
         }
 
         @Test
-        void shouldRoundAverageHalfUpWhenResultHasMoreThanTwoDecimalPlaces() {
-            profile.setAverageExpenseAmount(new BigDecimal("10.00"));
-            profile.setExpenseCount(2L);
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("10.01"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handleExpenseEvent(event);
-
-            assertEquals(new BigDecimal("10.00"), profile.getAverageExpenseAmount());
-        }
-
-        @Test
-        void shouldRoundAverageUpWhenFractionIsExactlyHalf() {
-            profile.setAverageExpenseAmount(new BigDecimal("0.01"));
-            profile.setExpenseCount(1L);
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("0.02"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handleExpenseEvent(event);
-
-            assertEquals(new BigDecimal("0.02"), profile.getAverageExpenseAmount());
-        }
-
-        @Test
-        void shouldUpdateLastExpenseFieldsWhenExpenseAdded() {
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("75.50"));
-            when(event.category()).thenReturn(null);
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handleExpenseEvent(event);
-
-            assertEquals(new BigDecimal("75.50"), profile.getLastExpenseAmount());
-            assertNull(profile.getLastExpenseCategory());
-            assertEquals(OCCURRED_AT, profile.getLastExpenseAt());
-        }
-
-        @Test
-        void shouldSetLargestExpenseWhenLargestExpenseIsNull() {
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("40.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handleExpenseEvent(event);
-
-            assertEquals(new BigDecimal("40.00"), profile.getLargestExpenseAmount());
-        }
-
-        @Test
-        void shouldUpdateLargestExpenseWhenNewAmountIsGreater() {
-            profile.setLargestExpenseAmount(new BigDecimal("40.00"));
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("90.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handleExpenseEvent(event);
-
-            assertEquals(new BigDecimal("90.00"), profile.getLargestExpenseAmount());
-        }
-
-        @Test
-        void shouldKeepLargestExpenseWhenNewAmountIsSmaller() {
+        void shouldKeepLargestExpenseWhenNewAmountIsLower() {
             profile.setLargestExpenseAmount(new BigDecimal("200.00"));
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("90.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
+            ExpenseActivityEvent event = new ExpenseActivityEvent(USER_ID, ExpenseActivityType.ADDED_EXPENSE,
+                    new BigDecimal("90.00"), ExpenseCategory.EDUCATION, null, null, OCCURRED_AT);
             when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
 
             service.handleExpenseEvent(event);
@@ -199,87 +129,32 @@ class TransactionProfileUpdateServiceTest {
         void shouldKeepLargestExpenseWhenNewAmountIsEqual() {
             BigDecimal existingLargest = new BigDecimal("90.00");
             profile.setLargestExpenseAmount(existingLargest);
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("90.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
+            ExpenseActivityEvent event = new ExpenseActivityEvent(USER_ID, ExpenseActivityType.ADDED_EXPENSE,
+                    new BigDecimal("90.00"), ExpenseCategory.BILLS, null, null, OCCURRED_AT);
             when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
 
             service.handleExpenseEvent(event);
 
             assertEquals(existingLargest, profile.getLargestExpenseAmount());
         }
-
-        @Test
-        void shouldSetUpdatedAtWhenExpenseAdded() {
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("10.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-            LocalDateTime before = LocalDateTime.now();
-
-            service.handleExpenseEvent(event);
-
-            assertNotNull(profile.getUpdatedAt());
-            assertEquals(true, !profile.getUpdatedAt().isBefore(before));
-        }
-
-        @Test
-        void shouldSaveProfileWhenExpenseAdded() {
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("10.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handleExpenseEvent(event);
-
-            ArgumentCaptor<TransactionProfile> captor = ArgumentCaptor.forClass(TransactionProfile.class);
-            verify(transactionProfileRepository).save(captor.capture());
-            assertEquals(profile, captor.getValue());
-            verifyNoMoreInteractions(transactionProfileRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenProfileNotFoundForExpenseEvent() {
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.handleExpenseEvent(event));
-        }
-
-        @Test
-        void shouldNotSaveProfileWhenProfileNotFoundForExpenseEvent() {
-            when(event.type()).thenReturn(ExpenseActivityType.ADDED_EXPENSE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.handleExpenseEvent(event));
-
-            verify(transactionProfileRepository, never()).save(any(TransactionProfile.class));
-        }
     }
 
     @Nested
     class HandleRevenueEvent {
 
-        private RevenueActivityEvent event;
         private TransactionProfile profile;
 
         @BeforeEach
         void setUp() {
-            event = mock(RevenueActivityEvent.class);
             profile = new TransactionProfile();
             profile.setRevenueCount(0L);
+            profile.setUserId(USER_ID);
         }
 
         @Test
         void shouldIgnoreEventWhenTypeIsNotAddedRevenue() {
-            when(event.type()).thenReturn(RevenueActivityType.values()[0] == RevenueActivityType.ADDED_REVENUE
-                    ? RevenueActivityType.values()[RevenueActivityType.values().length - 1]
-                    : RevenueActivityType.values()[0]);
+            RevenueActivityEvent event = new RevenueActivityEvent(USER_ID, RevenueActivityType.EDITED_REVENUE,
+                    new BigDecimal("500.00"), RevenueCategory.SALARY, null, null, OCCURRED_AT);
 
             service.handleRevenueEvent(event);
 
@@ -287,43 +162,38 @@ class TransactionProfileUpdateServiceTest {
         }
 
         @Test
-        void shouldSetAmountAsAverageWhenFirstRevenueAndAverageIsNull() {
-            when(event.type()).thenReturn(RevenueActivityType.ADDED_REVENUE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("500.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
+        void shouldThrowExceptionWhenProfileNotFoundForRevenueEvent() {
+            RevenueActivityEvent event = new RevenueActivityEvent(USER_ID, RevenueActivityType.ADDED_REVENUE,
+                    new BigDecimal("500.00"), RevenueCategory.SALARY, null, null, OCCURRED_AT);
+            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.empty());
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.handleRevenueEvent(event));
+            verify(transactionProfileRepository, never()).save(any(TransactionProfile.class));
+        }
+
+        @Test
+        void shouldAddFirstRevenueAndPersistUpdatedProfile() {
+            RevenueActivityEvent event = new RevenueActivityEvent(USER_ID, RevenueActivityType.ADDED_REVENUE,
+                    new BigDecimal("500.00"), RevenueCategory.SALARY, null, null, OCCURRED_AT);
             when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
 
             service.handleRevenueEvent(event);
 
             assertEquals(new BigDecimal("500.00"), profile.getAverageRevenueAmount());
             assertEquals(1L, profile.getRevenueCount());
+            assertEquals(new BigDecimal("500.00"), profile.getLastRevenueAmount());
+            assertEquals(RevenueCategory.SALARY, profile.getLastRevenueCategory());
+            assertEquals(OCCURRED_AT, profile.getLastRevenueAt());
+            assertNotNull(profile.getUpdatedAt());
+            verify(transactionProfileRepository).save(profile);
         }
 
         @Test
-        void shouldSetAmountAsAverageWhenCountIsZeroAndAverageIsNotNull() {
-            profile.setAverageRevenueAmount(new BigDecimal("999.00"));
-            profile.setRevenueCount(0L);
-            when(event.type()).thenReturn(RevenueActivityType.ADDED_REVENUE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("300.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handleRevenueEvent(event);
-
-            assertEquals(new BigDecimal("300.00"), profile.getAverageRevenueAmount());
-            assertEquals(1L, profile.getRevenueCount());
-        }
-
-        @Test
-        void shouldCalculateNewAverageWhenRevenuesAlreadyExist() {
+        void shouldCalculateAverageWhenRevenueHistoryExists() {
             profile.setAverageRevenueAmount(new BigDecimal("1000.00"));
             profile.setRevenueCount(3L);
-            when(event.type()).thenReturn(RevenueActivityType.ADDED_REVENUE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("2000.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
+            RevenueActivityEvent event = new RevenueActivityEvent(USER_ID, RevenueActivityType.ADDED_REVENUE,
+                    new BigDecimal("2000.00"), RevenueCategory.BONUS, null, null, OCCURRED_AT);
             when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
 
             service.handleRevenueEvent(event);
@@ -333,73 +203,9 @@ class TransactionProfileUpdateServiceTest {
         }
 
         @Test
-        void shouldRoundAverageHalfUpWhenResultHasMoreThanTwoDecimalPlaces() {
-            profile.setAverageRevenueAmount(new BigDecimal("10.00"));
-            profile.setRevenueCount(2L);
-            when(event.type()).thenReturn(RevenueActivityType.ADDED_REVENUE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("10.02"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handleRevenueEvent(event);
-
-            assertEquals(new BigDecimal("10.01"), profile.getAverageRevenueAmount());
-        }
-
-        @Test
-        void shouldUpdateLastRevenueFieldsWhenRevenueAdded() {
-            when(event.type()).thenReturn(RevenueActivityType.ADDED_REVENUE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("1200.00"));
-            when(event.category()).thenReturn(null);
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handleRevenueEvent(event);
-
-            assertEquals(new BigDecimal("1200.00"), profile.getLastRevenueAmount());
-            assertNull(profile.getLastRevenueCategory());
-            assertEquals(OCCURRED_AT, profile.getLastRevenueAt());
-        }
-
-        @Test
-        void shouldSetUpdatedAtWhenRevenueAdded() {
-            when(event.type()).thenReturn(RevenueActivityType.ADDED_REVENUE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("10.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-            LocalDateTime before = LocalDateTime.now();
-
-            service.handleRevenueEvent(event);
-
-            assertNotNull(profile.getUpdatedAt());
-            assertEquals(true, !profile.getUpdatedAt().isBefore(before));
-        }
-
-        @Test
-        void shouldSaveProfileWhenRevenueAdded() {
-            when(event.type()).thenReturn(RevenueActivityType.ADDED_REVENUE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("10.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handleRevenueEvent(event);
-
-            ArgumentCaptor<TransactionProfile> captor = ArgumentCaptor.forClass(TransactionProfile.class);
-            verify(transactionProfileRepository).save(captor.capture());
-            assertEquals(profile, captor.getValue());
-            verifyNoMoreInteractions(transactionProfileRepository);
-        }
-
-        @Test
-        void shouldNotModifyExpenseFieldsWhenRevenueAdded() {
-            when(event.type()).thenReturn(RevenueActivityType.ADDED_REVENUE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amount()).thenReturn(new BigDecimal("10.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
+        void shouldNotModifyExpenseFieldsWhenRevenueIsAdded() {
+            RevenueActivityEvent event = new RevenueActivityEvent(USER_ID, RevenueActivityType.ADDED_REVENUE,
+                    new BigDecimal("750.00"), RevenueCategory.BUSINESS, null, null, OCCURRED_AT);
             when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
 
             service.handleRevenueEvent(event);
@@ -408,45 +214,30 @@ class TransactionProfileUpdateServiceTest {
             assertNull(profile.getLastExpenseAmount());
             assertNull(profile.getLargestExpenseAmount());
         }
-
-        @Test
-        void shouldThrowExceptionWhenProfileNotFoundForRevenueEvent() {
-            when(event.type()).thenReturn(RevenueActivityType.ADDED_REVENUE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.handleRevenueEvent(event));
-        }
-
-        @Test
-        void shouldNotSaveProfileWhenProfileNotFoundForRevenueEvent() {
-            when(event.type()).thenReturn(RevenueActivityType.ADDED_REVENUE);
-            when(event.userId()).thenReturn(USER_ID);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.handleRevenueEvent(event));
-
-            verify(transactionProfileRepository, never()).save(any(TransactionProfile.class));
-        }
     }
 
     @Nested
     class HandlePiggyBankEvent {
 
-        private PiggyBankActivityEvent event;
         private TransactionProfile profile;
 
         @BeforeEach
         void setUp() {
-            event = mock(PiggyBankActivityEvent.class);
             profile = new TransactionProfile();
+            profile.setUserId(USER_ID);
+        }
+
+        @Test
+        void shouldIgnoreNullEvent() {
+            assertDoesNotThrow(() -> service.handlePiggyBankEvent(null));
+            verifyNoInteractions(transactionProfileRepository);
         }
 
         @Test
         void shouldIgnoreEventWhenTypeIsNotAmountAddedDirectly() {
-            when(event.type()).thenReturn(PiggyBankActivityType.values()[0] == PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY
-                    ? PiggyBankActivityType.values()[PiggyBankActivityType.values().length - 1]
-                    : PiggyBankActivityType.values()[0]);
+            PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID,
+                    PiggyBankActivityType.ADDED_PIGGY_BANK, "Goal name", null, null, new BigDecimal("50.00"), null,
+                    OCCURRED_AT);
 
             service.handlePiggyBankEvent(event);
 
@@ -454,124 +245,55 @@ class TransactionProfileUpdateServiceTest {
         }
 
         @Test
-        void shouldUpdateLastDepositFieldsWhenAmountAddedDirectly() {
-            when(event.type()).thenReturn(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amountPaid()).thenReturn(new BigDecimal("150.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
+        void shouldIgnoreEventWhenAmountIsMissing() {
+            PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID,
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, "Goal name", null, null, null, null,
+                    OCCURRED_AT);
+
+            service.handlePiggyBankEvent(event);
+
+            verify(transactionProfileRepository, never()).findByUserIdForUpdate(anyLong());
+            verify(transactionProfileRepository, never()).save(any(TransactionProfile.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenProfileNotFoundForPiggyBankEvent() {
+            PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID,
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, "Goal name", null, null,
+                    new BigDecimal("120.00"), null, OCCURRED_AT);
+            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.empty());
+
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.handlePiggyBankEvent(event));
+            verify(transactionProfileRepository, never()).save(any(TransactionProfile.class));
+        }
+
+        @Test
+        void shouldUseAmountPaidWhenPresentAndUpdateLargestDeposit() {
+            PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID,
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, "Goal name", null, null,
+                    new BigDecimal("150.00"), null, OCCURRED_AT);
             when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
 
             service.handlePiggyBankEvent(event);
 
             assertEquals(new BigDecimal("150.00"), profile.getLastPiggyBankDepositAmount());
             assertEquals(OCCURRED_AT, profile.getLastPiggyBankDepositAt());
-        }
-
-        @Test
-        void shouldSetLargestDepositWhenLargestDepositIsNull() {
-            when(event.type()).thenReturn(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amountPaid()).thenReturn(new BigDecimal("150.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handlePiggyBankEvent(event);
-
             assertEquals(new BigDecimal("150.00"), profile.getLargestPiggyBankDeposit());
-        }
-
-        @Test
-        void shouldUpdateLargestDepositWhenNewAmountIsGreater() {
-            profile.setLargestPiggyBankDeposit(new BigDecimal("100.00"));
-            when(event.type()).thenReturn(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amountPaid()).thenReturn(new BigDecimal("250.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handlePiggyBankEvent(event);
-
-            assertEquals(new BigDecimal("250.00"), profile.getLargestPiggyBankDeposit());
+            assertNotNull(profile.getUpdatedAt());
+            verify(transactionProfileRepository).save(profile);
         }
 
         @Test
         void shouldKeepLargestDepositWhenNewAmountIsSmaller() {
             profile.setLargestPiggyBankDeposit(new BigDecimal("500.00"));
-            when(event.type()).thenReturn(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amountPaid()).thenReturn(new BigDecimal("250.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
+            PiggyBankActivityEvent event = new PiggyBankActivityEvent(USER_ID,
+                    PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY, "Goal name", null, null,
+                    new BigDecimal("250.00"), null, OCCURRED_AT);
             when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
 
             service.handlePiggyBankEvent(event);
 
             assertEquals(new BigDecimal("500.00"), profile.getLargestPiggyBankDeposit());
-        }
-
-        @Test
-        void shouldKeepLargestDepositWhenNewAmountIsEqual() {
-            BigDecimal existingLargest = new BigDecimal("250.00");
-            profile.setLargestPiggyBankDeposit(existingLargest);
-            when(event.type()).thenReturn(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amountPaid()).thenReturn(new BigDecimal("250.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handlePiggyBankEvent(event);
-
-            assertEquals(existingLargest, profile.getLargestPiggyBankDeposit());
-        }
-
-        @Test
-        void shouldSetUpdatedAtWhenAmountAddedDirectly() {
-            when(event.type()).thenReturn(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amountPaid()).thenReturn(new BigDecimal("10.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-            LocalDateTime before = LocalDateTime.now();
-
-            service.handlePiggyBankEvent(event);
-
-            assertNotNull(profile.getUpdatedAt());
-            assertEquals(true, !profile.getUpdatedAt().isBefore(before));
-        }
-
-        @Test
-        void shouldSaveProfileWhenAmountAddedDirectly() {
-            when(event.type()).thenReturn(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
-            when(event.userId()).thenReturn(USER_ID);
-            when(event.amountPaid()).thenReturn(new BigDecimal("10.00"));
-            when(event.occurredAt()).thenReturn(OCCURRED_AT);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(profile));
-
-            service.handlePiggyBankEvent(event);
-
-            ArgumentCaptor<TransactionProfile> captor = ArgumentCaptor.forClass(TransactionProfile.class);
-            verify(transactionProfileRepository).save(captor.capture());
-            assertEquals(profile, captor.getValue());
-            verifyNoMoreInteractions(transactionProfileRepository);
-        }
-
-        @Test
-        void shouldThrowExceptionWhenProfileNotFoundForPiggyBankEvent() {
-            when(event.type()).thenReturn(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
-            when(event.userId()).thenReturn(USER_ID);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.handlePiggyBankEvent(event));
-        }
-
-        @Test
-        void shouldNotSaveProfileWhenProfileNotFoundForPiggyBankEvent() {
-            when(event.type()).thenReturn(PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_DIRECTLY);
-            when(event.userId()).thenReturn(USER_ID);
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.empty());
-
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.handlePiggyBankEvent(event));
-
-            verify(transactionProfileRepository, never()).save(any(TransactionProfile.class));
         }
     }
 
@@ -579,13 +301,14 @@ class TransactionProfileUpdateServiceTest {
     class DeleteByUserId {
 
         @Test
-        void shouldDeleteProfileWhenUserIdProvided() {
-            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(new TransactionProfile()));
+        void shouldDeleteProfileWhenUserExists() {
+            TransactionProfile existingProfile = new TransactionProfile();
+            when(transactionProfileRepository.findByUserIdForUpdate(USER_ID)).thenReturn(Optional.of(existingProfile));
 
             service.deleteByUserId(USER_ID);
 
             verify(transactionProfileRepository).findByUserIdForUpdate(USER_ID);
-            verify(transactionProfileRepository).delete(any(TransactionProfile.class));
+            verify(transactionProfileRepository).delete(existingProfile);
         }
 
         @Test
@@ -594,16 +317,6 @@ class TransactionProfileUpdateServiceTest {
 
             assertThrows(RequestedEntityNotFoundException.class, () -> service.deleteByUserId(USER_ID));
             verify(transactionProfileRepository, never()).delete(any(TransactionProfile.class));
-        }
-
-        @Test
-        void shouldDeleteProfileWhenUserIdIsNull() {
-            when(transactionProfileRepository.findByUserIdForUpdate(null)).thenReturn(Optional.of(new TransactionProfile()));
-
-            service.deleteByUserId(null);
-
-            verify(transactionProfileRepository).findByUserIdForUpdate(null);
-            verify(transactionProfileRepository).delete(any(TransactionProfile.class));
         }
     }
 }

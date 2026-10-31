@@ -1,18 +1,23 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.revenue.controller;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.service.RevenueActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.util.SortType;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/account-activity/revenue")
 @RequiredArgsConstructor
@@ -21,7 +26,12 @@ public class RevenueActivityController {
     private final RevenueActivityService revenueActivityService;
 
     @GetMapping
-    public ResponseEntity<List<RevenueActivityDto>> getRevenueActivity(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") int page) {
+    public ResponseEntity<List<RevenueActivityDto>> getRevenueActivity(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") @Min(0) int page) {
         return ResponseEntity.ok(revenueActivityService.getRevenueActivity(SecurityUtils.getCurrentUserId(), sort, page));
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<RevenueActivityDto>> filterRevenueActivity(@ModelAttribute RevenueActivityFilterDto filter, @RequestParam(defaultValue = "0") @Min(0) int page) {
+        return ResponseEntity.ok(revenueActivityService.filterRevenueActivity(SecurityUtils.getCurrentUserId(), filter, page));
     }
 }
