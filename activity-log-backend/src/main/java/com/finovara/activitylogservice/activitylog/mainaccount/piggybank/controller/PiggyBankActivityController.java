@@ -1,18 +1,23 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.piggybank.controller;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.dto.PiggyBankActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.dto.PiggyBankActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.service.PiggyBankActivityService;
 import com.finovara.activitylogservice.security.SecurityUtils;
 import com.finovara.contracts.util.SortType;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/account-activity/piggy-bank")
 @RequiredArgsConstructor
@@ -21,7 +26,12 @@ public class PiggyBankActivityController {
     private final PiggyBankActivityService piggyBankActivityService;
 
     @GetMapping
-    public ResponseEntity<List<PiggyBankActivityDto>> getPiggyBanksActivities(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") int page) {
+    public ResponseEntity<List<PiggyBankActivityDto>> getPiggyBanksActivities(@RequestParam(defaultValue = "NEWEST") SortType sort, @RequestParam(defaultValue = "0") @Min(0) int page) {
         return ResponseEntity.ok(piggyBankActivityService.getPiggyBankActivities(SecurityUtils.getCurrentUserId(), sort, page));
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<PiggyBankActivityDto>> filterPiggyBankActivity(@ModelAttribute PiggyBankActivityFilterDto filter, @RequestParam(defaultValue = "0") @Min(0) int page) {
+        return ResponseEntity.ok(piggyBankActivityService.filterPiggyBankActivity(SecurityUtils.getCurrentUserId(), filter, page));
     }
 }
