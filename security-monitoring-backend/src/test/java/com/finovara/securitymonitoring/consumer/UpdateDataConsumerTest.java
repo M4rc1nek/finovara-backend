@@ -250,7 +250,7 @@ class UpdateDataConsumerTest {
 
         @BeforeEach
         void setUp() {
-            event = new PiggyBankActivityEvent(123L, null, "Holiday", null, new BigDecimal("5000.00"), new BigDecimal("250.00"), LocalDateTime.of(2026, 1, 1, 12, 0));
+            event = new PiggyBankActivityEvent(123L, null, "Holiday", null, new BigDecimal("5000.00"), new BigDecimal("250.00"), null, LocalDateTime.of(2026, 1, 1, 12, 0));
         }
 
         @Test
@@ -273,7 +273,7 @@ class UpdateDataConsumerTest {
 
         @Test
         void shouldHandlePiggyBankEventWhenAmountsAreZero() {
-            PiggyBankActivityEvent zeroAmountEvent = new PiggyBankActivityEvent(0L, null, "", null, BigDecimal.ZERO, BigDecimal.ZERO, LocalDateTime.MIN);
+            PiggyBankActivityEvent zeroAmountEvent = new PiggyBankActivityEvent(0L, null, "", null, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, LocalDateTime.MIN);
 
             updateDataConsumer.handlePiggyBankTransaction(zeroAmountEvent);
 
@@ -283,7 +283,7 @@ class UpdateDataConsumerTest {
 
         @Test
         void shouldHandlePiggyBankEventWhenOptionalValuesAreNull() {
-            PiggyBankActivityEvent eventWithNullValues = new PiggyBankActivityEvent(null, null, null, null, null, null, null);
+            PiggyBankActivityEvent eventWithNullValues = new PiggyBankActivityEvent(null, null, null, null, null, null, null, null);
 
             updateDataConsumer.handlePiggyBankTransaction(eventWithNullValues);
 
