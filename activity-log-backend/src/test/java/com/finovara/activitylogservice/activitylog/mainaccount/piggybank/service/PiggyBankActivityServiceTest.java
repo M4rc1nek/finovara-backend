@@ -1,28 +1,15 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.piggybank.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
-
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.dto.PiggyBankActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.dto.PiggyBankActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.mapper.PiggyBankActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.model.PiggyBankActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.repository.PiggyBankActivityRepository;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankEditActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
 import com.finovara.contracts.util.SortType;
-import java.util.List;
+import com.finovara.contracts.util.model.PiggyBankGoalType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -33,6 +20,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith(MockitoExtension.class)
 class PiggyBankActivityServiceTest {
@@ -351,6 +349,41 @@ class PiggyBankActivityServiceTest {
                     () -> service.getPiggyBankActivities(USER_ID, null, PAGE));
 
             verifyNoInteractions(piggyBankActivityRepository, piggyBankActivityMapper);
+        }
+    }
+
+    @Nested
+    class FilterPiggyBankActivity {
+
+        @Test
+        void shouldFilterActivitiesUsingCreatedDateRangeAndRepository() {
+            PiggyBankActivityFilterDto filter = new PiggyBankActivityFilterDto(
+                    PiggyBankActivityType.ADDED_PIGGY_BANK,
+                    "Vacation",
+                    PiggyBankGoalType.VACATION,
+                    new BigDecimal("1000.00"),
+                    new BigDecimal("250.00"),
+                    new BigDecimal("500.00"),
+                    LocalDate.of(2026, 5, 25));
+            PiggyBankActivity activity = PiggyBankActivity.builder().userId(USER_ID).build();
+            PiggyBankActivityDto dto = new PiggyBankActivityDto(NAME, PREVIOUS_NAME, PiggyBankActivityType.ADDED_PIGGY_BANK,
+                    PiggyBankGoalType.VACATION,
+                    PiggyBankGoalType.VACATION,
+                    new BigDecimal("1000.00"),
+                    new BigDecimal("900.00"),
+                    new BigDecimal("250.00"),
+                    new BigDecimal("500.00"),
+                    LocalDateTime.of(2026, 5, 25, 15, 30)
+            );
+
+            when(piggyBankActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of(activity));
+            when(piggyBankActivityMapper.mapToPiggyBankActivity(activity)).thenReturn(dto);
+
+            List<PiggyBankActivityDto> result = service.filterPiggyBankActivity(USER_ID, filter, 1);
+
+            assertEquals(List.of(dto), result);
+            verify(piggyBankActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
         }
     }
 
