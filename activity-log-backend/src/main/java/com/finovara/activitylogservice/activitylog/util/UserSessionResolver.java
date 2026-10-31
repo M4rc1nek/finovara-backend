@@ -5,6 +5,7 @@ import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class UserSessionResolver {
     private final AuthBackendClient authBackendClient;
 
-    @Cacheable(value = "user-info", key = "#userId", unless = "#result == null")
+    @Cacheable(value = "shared-account:user-info", key = "#userId", unless = "#result == null")
     public UserDataDto getUserInfo(Long userId) {
         try {
             return authBackendClient.getUserSession(userId);
@@ -22,5 +23,10 @@ public class UserSessionResolver {
             log.warn("Could not load user data for userId={}, status={}", userId, exception.status());
             return null;
         }
+    }
+
+    @CacheEvict(value = "shared-account:user-info", key = "#userId")
+    public void evictUserInfo(Long userId) {
+        log.info("Evicted shared-account:user-info cache for userId={}", userId);
     }
 }
