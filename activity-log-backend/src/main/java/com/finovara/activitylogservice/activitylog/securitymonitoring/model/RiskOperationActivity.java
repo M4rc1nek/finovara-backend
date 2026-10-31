@@ -49,6 +49,7 @@ public class RiskOperationActivity {
     @OneToMany(mappedBy = "riskOperationActivity", cascade = CascadeType.PERSIST)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @BatchSize(size = 100)
+    @Builder.Default
     private List<RiskRuleCollectionActivity> riskRuleCollectionActivities = new ArrayList<>();
 
 }
