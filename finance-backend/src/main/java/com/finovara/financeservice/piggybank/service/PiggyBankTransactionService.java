@@ -58,7 +58,7 @@ public class PiggyBankTransactionService {
         boolean completed = PiggyBankCheckGoalCompletion.isGoalCompleted(piggyBank);
 
         outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.transaction.created",
-                new PiggyBankActivityEvent(userId, piggyBankActivityType, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
+                new PiggyBankActivityEvent(userId, piggyBankActivityType, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amount, null, LocalDateTime.now()));
         outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.calculate-progress",
                 new PiggyBankProgressEvent(userId, piggyBankId, percentage, piggyBank.getGoalType(), piggyBank.getName()));
 
@@ -69,24 +69,24 @@ public class PiggyBankTransactionService {
     }
 
     @Transactional
-    public void removeBalanceFromPiggyBank(Long userId, Long piggyBankId, BigDecimal amount, String authorizationCode,
-                                           String sourceEventId, HttpServletRequest servletRequest) {
-        PiggyBankValidator.validateAmount(amount);
+    public void withdrawBalanceFromPiggyBank(Long userId, Long piggyBankId, BigDecimal amountPaidOut, String authorizationCode,
+                                             String sourceEventId, HttpServletRequest servletRequest) {
+        PiggyBankValidator.validateAmount(amountPaidOut);
 
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
-        riskGuardService.guard(userId, RiskTriggerType.PIGGY_BANK, amount, null,
+        riskGuardService.guard(userId, RiskTriggerType.PIGGY_BANK, amountPaidOut, null,
                 authBackendClient.getUserEmail(userId), sourceEventId, servletRequest);
 
-        walletService.addBalanceToWallet(userId, amount);
+        walletService.addBalanceToWallet(userId, amountPaidOut);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
 
-        PiggyBankValidator.validateSufficientFunds(piggyBank.getAmount(), amount);
-        piggyBank.setAmount(piggyBank.getAmount().subtract(amount));
+        PiggyBankValidator.validateSufficientFunds(piggyBank.getAmount(), amountPaidOut);
+        piggyBank.setAmount(piggyBank.getAmount().subtract(amountPaidOut));
 
         BigDecimal percentage = calculatePercentage(piggyBank);
 
         outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.transaction.created",
-                new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), amount, LocalDateTime.now()));
+                new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, amountPaidOut, LocalDateTime.now()));
         outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.calculate-progress",
                 new PiggyBankProgressEvent(userId, piggyBankId, percentage, piggyBank.getGoalType(), piggyBank.getName()));
         goalPlannerService.checkAndMarkGoalCompletion(piggyBank);
