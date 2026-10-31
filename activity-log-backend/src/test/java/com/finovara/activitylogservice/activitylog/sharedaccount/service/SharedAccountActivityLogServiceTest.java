@@ -1,29 +1,17 @@
 package com.finovara.activitylogservice.activitylog.sharedaccount.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
-
 import com.finovara.activitylogservice.activitylog.sharedaccount.dto.SharedAccountActivityLogDto;
+import com.finovara.activitylogservice.activitylog.sharedaccount.dto.SharedAccountActivityLogFilterDto;
 import com.finovara.activitylogservice.activitylog.sharedaccount.mapper.SharedAccountActivityLogMapper;
 import com.finovara.activitylogservice.activitylog.sharedaccount.model.SharedAccountActivityLog;
 import com.finovara.activitylogservice.activitylog.sharedaccount.repository.SharedAccountActivityLogRepository;
+import com.finovara.activitylogservice.activitylog.util.UserSessionResolver;
 import com.finovara.activitylogservice.feignclient.AuthBackendClient;
+import com.finovara.contracts.sharedaccount.SharedRole;
+import com.finovara.contracts.sharedaccount.SharedAccountMemberInfoDto;
 import com.finovara.contracts.sharedaccount.event.activity.SharedAccountActivityLogEvent;
 import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.contracts.util.SortType;
-import feign.FeignException;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,6 +22,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith(MockitoExtension.class)
 class SharedAccountActivityLogServiceTest {
@@ -56,6 +52,9 @@ class SharedAccountActivityLogServiceTest {
 
     @Mock
     private AuthBackendClient authBackendClient;
+
+    @Mock
+    private UserSessionResolver userSessionResolver;
 
     @Mock
     private SharedAccountActivityLogEvent event;
@@ -86,15 +85,6 @@ class SharedAccountActivityLogServiceTest {
 
     @Mock
     private UserDataDto thirdUserData;
-
-    @Mock
-    private FeignException.NotFound notFoundException;
-
-    @Mock
-    private FeignException.InternalServerError serverErrorException;
-
-    @Mock
-    private FeignException.BadRequest badRequestException;
 
     @Captor
     private ArgumentCaptor<SharedAccountActivityLog> activityCaptor;
@@ -195,25 +185,25 @@ class SharedAccountActivityLogServiceTest {
 
         @Test
         void shouldReturnMappedDtosWhenActivitiesExist() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of(firstActivity, secondActivity));
             when(firstActivity.getUserId()).thenReturn(USER_ID);
             when(secondActivity.getUserId()).thenReturn(OTHER_USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenReturn(userData);
-            when(authBackendClient.getUserSession(OTHER_USER_ID)).thenReturn(otherUserData);
+            when(userSessionResolver.getUserInfo(USER_ID)).thenReturn(userData);
+            when(userSessionResolver.getUserInfo(OTHER_USER_ID)).thenReturn(otherUserData);
             when(sharedAccountActivityLogMapper.mapToDto(firstActivity, userData)).thenReturn(firstDto);
             when(sharedAccountActivityLogMapper.mapToDto(secondActivity, otherUserData)).thenReturn(secondDto);
 
             List<SharedAccountActivityLogDto> result = service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
 
             assertEquals(2, result.size());
-            assertSame(firstDto, result.get(0));
+            assertSame(firstDto, result.getFirst());
             assertSame(secondDto, result.get(1));
         }
 
         @Test
         void shouldReturnEmptyListWhenNoActivitiesFound() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of());
 
             List<SharedAccountActivityLogDto> result = service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
@@ -224,32 +214,32 @@ class SharedAccountActivityLogServiceTest {
 
         @Test
         void shouldRequestPageableWithConfiguredPageSizeWhenFetchingActivities() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of());
 
             service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
 
             verify(sharedAccountActivityLogRepository)
-                    .findByOwnerIdOrMemberId(any(Long.class), pageableCaptor.capture());
+                    .findAllByOwnerIdOrMemberId(any(Long.class), pageableCaptor.capture());
             assertEquals(PAGE_SIZE, pageableCaptor.getValue().getPageSize());
         }
 
         @Test
         void shouldRequestActivitiesForGivenUserWhenFetchingActivities() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of());
 
             service.getSharedAccountLogActivity(OTHER_USER_ID, SORT, PAGE);
 
             verify(sharedAccountActivityLogRepository)
-                    .findByOwnerIdOrMemberId(any(Long.class), pageableCaptor.capture());
+                    .findAllByOwnerIdOrMemberId(any(Long.class), pageableCaptor.capture());
             verify(sharedAccountActivityLogRepository, times(1))
-                    .findByOwnerIdOrMemberId(OTHER_USER_ID, pageableCaptor.getValue());
+                    .findAllByOwnerIdOrMemberId(OTHER_USER_ID, pageableCaptor.getValue());
         }
 
         @Test
         void shouldReturnEmptyListWhenUserIdIsNull() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(), any(Pageable.class)))
                     .thenReturn(List.of());
 
             List<SharedAccountActivityLogDto> result = service.getSharedAccountLogActivity(null, SORT, PAGE);
@@ -259,29 +249,29 @@ class SharedAccountActivityLogServiceTest {
 
         @Test
         void shouldFetchUserDataOnlyOnceWhenActivitiesShareSameUser() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of(firstActivity, secondActivity));
             when(firstActivity.getUserId()).thenReturn(USER_ID);
             when(secondActivity.getUserId()).thenReturn(USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenReturn(userData);
+            when(userSessionResolver.getUserInfo(USER_ID)).thenReturn(userData);
             when(sharedAccountActivityLogMapper.mapToDto(firstActivity, userData)).thenReturn(firstDto);
             when(sharedAccountActivityLogMapper.mapToDto(secondActivity, userData)).thenReturn(secondDto);
 
             List<SharedAccountActivityLogDto> result = service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
 
             assertEquals(2, result.size());
-            verify(authBackendClient, times(1)).getUserSession(USER_ID);
+            verify(userSessionResolver, times(1)).getUserInfo(USER_ID);
         }
 
         @Test
         void shouldFetchUserDataOncePerDistinctUserWhenActivitiesHaveMixedUsers() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of(firstActivity, secondActivity, thirdActivity));
             when(firstActivity.getUserId()).thenReturn(USER_ID);
             when(secondActivity.getUserId()).thenReturn(OTHER_USER_ID);
             when(thirdActivity.getUserId()).thenReturn(USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenReturn(userData);
-            when(authBackendClient.getUserSession(OTHER_USER_ID)).thenReturn(otherUserData);
+            when(userSessionResolver.getUserInfo(USER_ID)).thenReturn(userData);
+            when(userSessionResolver.getUserInfo(OTHER_USER_ID)).thenReturn(otherUserData);
             when(sharedAccountActivityLogMapper.mapToDto(firstActivity, userData)).thenReturn(firstDto);
             when(sharedAccountActivityLogMapper.mapToDto(secondActivity, otherUserData)).thenReturn(secondDto);
             when(sharedAccountActivityLogMapper.mapToDto(thirdActivity, userData)).thenReturn(thirdDto);
@@ -289,24 +279,24 @@ class SharedAccountActivityLogServiceTest {
             List<SharedAccountActivityLogDto> result = service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
 
             assertEquals(3, result.size());
-            assertSame(firstDto, result.get(0));
+            assertSame(firstDto, result.getFirst());
             assertSame(secondDto, result.get(1));
             assertSame(thirdDto, result.get(2));
-            verify(authBackendClient, times(1)).getUserSession(USER_ID);
-            verify(authBackendClient, times(1)).getUserSession(OTHER_USER_ID);
+            verify(userSessionResolver, times(1)).getUserInfo(USER_ID);
+            verify(userSessionResolver, times(1)).getUserInfo(OTHER_USER_ID);
             verifyNoMoreInteractions(authBackendClient);
         }
 
         @Test
         void shouldMapEachActivityWithMatchingUserDataWhenThreeDistinctUsersExist() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of(firstActivity, secondActivity, thirdActivity));
             when(firstActivity.getUserId()).thenReturn(USER_ID);
             when(secondActivity.getUserId()).thenReturn(OTHER_USER_ID);
             when(thirdActivity.getUserId()).thenReturn(THIRD_USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenReturn(userData);
-            when(authBackendClient.getUserSession(OTHER_USER_ID)).thenReturn(otherUserData);
-            when(authBackendClient.getUserSession(THIRD_USER_ID)).thenReturn(thirdUserData);
+            when(userSessionResolver.getUserInfo(USER_ID)).thenReturn(userData);
+            when(userSessionResolver.getUserInfo(OTHER_USER_ID)).thenReturn(otherUserData);
+            when(userSessionResolver.getUserInfo(THIRD_USER_ID)).thenReturn(thirdUserData);
             when(sharedAccountActivityLogMapper.mapToDto(firstActivity, userData)).thenReturn(firstDto);
             when(sharedAccountActivityLogMapper.mapToDto(secondActivity, otherUserData)).thenReturn(secondDto);
             when(sharedAccountActivityLogMapper.mapToDto(thirdActivity, thirdUserData)).thenReturn(thirdDto);
@@ -318,29 +308,29 @@ class SharedAccountActivityLogServiceTest {
 
         @Test
         void shouldPreserveRepositoryOrderWhenMappingActivities() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of(secondActivity, firstActivity));
             when(firstActivity.getUserId()).thenReturn(USER_ID);
             when(secondActivity.getUserId()).thenReturn(OTHER_USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenReturn(userData);
-            when(authBackendClient.getUserSession(OTHER_USER_ID)).thenReturn(otherUserData);
+            when(userSessionResolver.getUserInfo(USER_ID)).thenReturn(userData);
+            when(userSessionResolver.getUserInfo(OTHER_USER_ID)).thenReturn(otherUserData);
             when(sharedAccountActivityLogMapper.mapToDto(firstActivity, userData)).thenReturn(firstDto);
             when(sharedAccountActivityLogMapper.mapToDto(secondActivity, otherUserData)).thenReturn(secondDto);
 
             List<SharedAccountActivityLogDto> result = service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
 
-            assertSame(secondDto, result.get(0));
+            assertSame(secondDto, result.getFirst());
             assertSame(firstDto, result.get(1));
         }
 
         @Test
         void shouldMapEachActivityExactlyOnceWhenActivitiesExist() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of(firstActivity, secondActivity));
             when(firstActivity.getUserId()).thenReturn(USER_ID);
             when(secondActivity.getUserId()).thenReturn(OTHER_USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenReturn(userData);
-            when(authBackendClient.getUserSession(OTHER_USER_ID)).thenReturn(otherUserData);
+            when(userSessionResolver.getUserInfo(USER_ID)).thenReturn(userData);
+            when(userSessionResolver.getUserInfo(OTHER_USER_ID)).thenReturn(otherUserData);
 
             service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
 
@@ -350,69 +340,43 @@ class SharedAccountActivityLogServiceTest {
         }
 
         @Test
-        void shouldMapWithNullUserDataWhenUserIsNotFound() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+        void shouldMapWithNullUserDataWhenResolverReturnsNull() {
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of(firstActivity));
             when(firstActivity.getUserId()).thenReturn(USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenThrow(notFoundException);
+            when(userSessionResolver.getUserInfo(USER_ID)).thenReturn(null);
             when(sharedAccountActivityLogMapper.mapToDto(firstActivity, null)).thenReturn(firstDto);
 
             List<SharedAccountActivityLogDto> result = service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
 
             assertEquals(1, result.size());
-            assertSame(firstDto, result.get(0));
+            assertSame(firstDto, result.getFirst());
         }
 
         @Test
-        void shouldMapWithNullUserDataWhenAuthBackendFailsWithServerError() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
-                    .thenReturn(List.of(firstActivity));
-            when(firstActivity.getUserId()).thenReturn(USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenThrow(serverErrorException);
-            when(sharedAccountActivityLogMapper.mapToDto(firstActivity, null)).thenReturn(firstDto);
-
-            List<SharedAccountActivityLogDto> result = service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
-
-            assertSame(firstDto, result.get(0));
-        }
-
-        @Test
-        void shouldMapWithNullUserDataWhenAuthBackendFailsWithBadRequest() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
-                    .thenReturn(List.of(firstActivity));
-            when(firstActivity.getUserId()).thenReturn(USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenThrow(badRequestException);
-            when(sharedAccountActivityLogMapper.mapToDto(firstActivity, null)).thenReturn(firstDto);
-
-            List<SharedAccountActivityLogDto> result = service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
-
-            assertSame(firstDto, result.get(0));
-        }
-
-        @Test
-        void shouldResolveRemainingUsersWhenOneUserLookupFails() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+        void shouldResolveRemainingUsersWhenOneUserIsNotResolved() {
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of(firstActivity, secondActivity));
             when(firstActivity.getUserId()).thenReturn(USER_ID);
             when(secondActivity.getUserId()).thenReturn(OTHER_USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenThrow(notFoundException);
-            when(authBackendClient.getUserSession(OTHER_USER_ID)).thenReturn(otherUserData);
+            when(userSessionResolver.getUserInfo(USER_ID)).thenReturn(null);
+            when(userSessionResolver.getUserInfo(OTHER_USER_ID)).thenReturn(otherUserData);
             when(sharedAccountActivityLogMapper.mapToDto(firstActivity, null)).thenReturn(firstDto);
             when(sharedAccountActivityLogMapper.mapToDto(secondActivity, otherUserData)).thenReturn(secondDto);
 
             List<SharedAccountActivityLogDto> result = service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
 
             assertEquals(2, result.size());
-            assertSame(firstDto, result.get(0));
+            assertSame(firstDto, result.getFirst());
             assertSame(secondDto, result.get(1));
         }
 
         @Test
-        void shouldPropagateExceptionWhenAuthBackendFailsWithNonFeignException() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+        void shouldPropagateExceptionWhenUserResolverFails() {
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of(firstActivity));
             when(firstActivity.getUserId()).thenReturn(USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenThrow(new IllegalStateException());
+            when(userSessionResolver.getUserInfo(USER_ID)).thenThrow(new IllegalStateException());
 
             assertThrows(IllegalStateException.class,
                     () -> service.getSharedAccountLogActivity(USER_ID, SORT, PAGE));
@@ -422,10 +386,10 @@ class SharedAccountActivityLogServiceTest {
 
         @Test
         void shouldThrowExceptionWhenMapperFails() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenReturn(List.of(firstActivity));
             when(firstActivity.getUserId()).thenReturn(USER_ID);
-            when(authBackendClient.getUserSession(USER_ID)).thenReturn(userData);
+            when(userSessionResolver.getUserInfo(USER_ID)).thenReturn(userData);
             when(sharedAccountActivityLogMapper.mapToDto(firstActivity, userData))
                     .thenThrow(new IllegalStateException());
 
@@ -435,7 +399,7 @@ class SharedAccountActivityLogServiceTest {
 
         @Test
         void shouldThrowExceptionWhenRepositoryFails() {
-            when(sharedAccountActivityLogRepository.findByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findAllByOwnerIdOrMemberId(any(Long.class), any(Pageable.class)))
                     .thenThrow(new IllegalStateException());
 
             assertThrows(IllegalStateException.class,
@@ -450,6 +414,59 @@ class SharedAccountActivityLogServiceTest {
                     () -> service.getSharedAccountLogActivity(USER_ID, null, PAGE));
 
             verifyNoInteractions(sharedAccountActivityLogRepository, authBackendClient, sharedAccountActivityLogMapper);
+        }
+    }
+
+    @Nested
+    class FilterSharedAccountLogActivity {
+
+        @Test
+        void shouldResolveMemberByRoleAndCallRepositoryWithRoleActorId() {
+         SharedAccountActivityLogFilterDto filter =
+                    new SharedAccountActivityLogFilterDto(
+                            null,
+                            null,
+                            null,
+                           SharedRole.OWNER,
+                            LocalDate.now()
+                    );
+            SharedAccountActivityLog activity = mock(SharedAccountActivityLog.class);
+            when(sharedAccountActivityLogRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(OWNER_ID), any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of(activity));
+            when(activity.getUserId()).thenReturn(USER_ID);
+            when(userSessionResolver.getUserInfo(USER_ID)).thenReturn(userData);
+            when(sharedAccountActivityLogMapper.mapToDto(activity, userData)).thenReturn(firstDto);
+            when(authBackendClient.getSharedAccountMembers(USER_ID)).thenReturn(List.of(
+                    new SharedAccountMemberInfoDto(OWNER_ID, "owner", SharedRole.OWNER),
+                    new SharedAccountMemberInfoDto(OTHER_USER_ID, "member", SharedRole.MEMBER)
+            ));
+
+            List<SharedAccountActivityLogDto> result = service.filterSharedAccountLogActivity(USER_ID, filter, 2);
+
+            assertEquals(List.of(firstDto), result);
+            verify(authBackendClient).getSharedAccountMembers(USER_ID);
+            verify(sharedAccountActivityLogRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(OWNER_ID), any(), any(), any(Pageable.class));
+        }
+
+        @Test
+        void shouldReturnEmptyListWhenRequestedRoleIsMissingFromSharedAccountMembers() {
+            SharedAccountActivityLogFilterDto filter =
+                    new SharedAccountActivityLogFilterDto(
+                            null,
+                            null,
+                            null,
+                            SharedRole.MEMBER,
+                            LocalDate.now()
+                    );
+            when(authBackendClient.getSharedAccountMembers(USER_ID)).thenReturn(List.of(
+                    new SharedAccountMemberInfoDto(OWNER_ID, "owner", SharedRole.OWNER)
+            ));
+
+            List<SharedAccountActivityLogDto> result = service.filterSharedAccountLogActivity(USER_ID, filter, 0);
+
+            assertTrue(result.isEmpty());
+            verify(authBackendClient).getSharedAccountMembers(USER_ID);
+            verifyNoInteractions(sharedAccountActivityLogRepository);
         }
     }
 
@@ -498,7 +515,8 @@ class SharedAccountActivityLogServiceTest {
         @Test
         void shouldThrowExceptionWhenRepositoryDeleteFails() {
             when(sharedAccountActivityLogRepository.findAllByUserId(USER_ID)).thenReturn(List.of(firstActivity));
-            doThrow(new IllegalStateException()).when(sharedAccountActivityLogRepository).deleteAll(List.of(firstActivity));
+            doThrow(new IllegalStateException()).when(sharedAccountActivityLogRepository)
+                    .deleteAll(List.of(firstActivity));
 
             assertThrows(IllegalStateException.class, () -> service.deleteByUserId(USER_ID));
         }
