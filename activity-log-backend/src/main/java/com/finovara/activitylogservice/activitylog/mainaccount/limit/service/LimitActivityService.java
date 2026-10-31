@@ -1,7 +1,9 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.limit.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.dto.LimitActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.limit.dto.LimitActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.mapper.LimitActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.model.LimitActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.repository.LimitActivityRepository;
@@ -13,7 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +52,15 @@ public class LimitActivityService extends AccountActivityCore<LimitActivity, Lim
     @Cacheable(value = "limitActivity", key = "#userId + ':' + #sort + ':' + #page")
     public List<LimitActivityDto> getLimitActivity(Long userId, SortType sort, int page) {
         return getActivities(userId, sort, page, pageSize);
+    }
+
+    public List<LimitActivityDto> filterLimitActivity(Long userId, LimitActivityFilterDto filter, int page) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
+        DateRange created = DateRange.of(filter.createdAt());
+        return limitActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+                .stream()
+                .map(limitActivityMapper::mapToLimitActivity)
+                .toList();
     }
 
     @Override
