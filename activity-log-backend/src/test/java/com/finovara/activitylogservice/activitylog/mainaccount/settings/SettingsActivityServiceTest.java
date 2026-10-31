@@ -1,6 +1,7 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.settings;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.dto.SettingsActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.settings.dto.SettingsActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.mapper.SettingsActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.model.SettingsActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.repository.SettingsActivityRepository;
@@ -20,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -48,6 +50,34 @@ class SettingsActivityServiceTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(settingsActivityService, "pageSize", 10);
+    }
+
+    @Nested
+    class FilterSettingsActivity {
+
+        @Test
+        void shouldFilterActivitiesUsingCreatedDateRangeAndPageable() {
+            SettingsActivityFilterDto filter = new SettingsActivityFilterDto(
+                   SettingActivityStatus.ENABLED,
+                   SettingType.NOTIFICATION_PASSWORD_CHANGED,
+                    LocalDate.of(2026, 5, 25)
+            );
+            SettingsActivity activity = SettingsActivity.builder().userId(USER_ID).build();
+            SettingsActivityDto dto = new SettingsActivityDto(
+                    SettingActivityStatus.ENABLED,
+                    SettingType.NOTIFICATION_PASSWORD_CHANGED,
+                    OCCURRED_AT
+            );
+
+            when(settingsActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of(activity));
+            when(settingsActivityMapper.mapToSettingActivity(activity)).thenReturn(dto);
+
+            List<SettingsActivityDto> result = settingsActivityService.filterSettingsActivity(USER_ID, filter, 2);
+
+            assertThat(result).containsExactly(dto);
+            verify(settingsActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+        }
     }
 
     @Nested
