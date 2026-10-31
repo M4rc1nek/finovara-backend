@@ -1,6 +1,7 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.dto.LoginActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.dto.LoginActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.mapper.LoginActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.model.LoginActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.repository.LoginActivityRepository;
@@ -22,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -154,6 +156,33 @@ class LoginActivityServiceTest {
 
             assertThrows(IllegalStateException.class, () -> loginActivityService.handleEvent(event));
             verifyNoInteractions(loginActivityArchiveService);
+        }
+    }
+
+    @Nested
+    class FilterLoginActivity {
+
+        @Test
+        void shouldFilterActivitiesUsingCreatedDateRangeAndRepository() {
+            LoginActivityFilterDto filter = new LoginActivityFilterDto(
+                    "Login",
+                    LoginActivityStatus.SUCCESSFUL,
+                    "Edge",
+                    "203.0.113.7",
+                    "Wroclaw",
+                    LocalDate.of(2026, 4, 10)
+            );
+            LoginActivity activity = LoginActivity.builder().userId(USER_ID).build();
+            LoginActivityDto dto = new LoginActivityDto("Login", LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Edge", "203.0.113.7", "Wroclaw");
+
+            when(loginActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+                    .thenReturn(List.of(activity));
+            when(loginActivityMapper.mapToDto(activity)).thenReturn(dto);
+
+            List<LoginActivityDto> result = loginActivityService.filterLoginActivity(USER_ID, filter, 1);
+
+            assertEquals(List.of(dto), result);
+            verify(loginActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
         }
     }
 
