@@ -2,7 +2,10 @@ package com.finovara.notificationservice.notificationemail.util.emailtemplate;
 
 import com.finovara.contracts.exception.serviceunavailable.ServiceUnavailableException;
 import jakarta.mail.Session;
+import jakarta.mail.Address;
+import jakarta.mail.Message;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -22,7 +25,7 @@ class EmailTemplateServiceTest {
     private static final String SUBJECT = "Test subject";
     private static final String TEMPLATE_PATH = "com/finovara/notificationservice/notificationemail/util/emailtemplate/EmailTemplateService.class";
 
-    private org.springframework.mail.javamail.JavaMailSender javaMailSender;
+    private JavaMailSender javaMailSender;
     private EmailTemplateService service;
     private MimeMessage mimeMessage;
 
@@ -31,7 +34,7 @@ class EmailTemplateServiceTest {
 
         @BeforeEach
         void setUp() {
-            javaMailSender = mock(org.springframework.mail.javamail.JavaMailSender.class);
+            javaMailSender = mock(JavaMailSender.class);
             mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
             service = new EmailTemplateService(javaMailSender);
 
@@ -111,7 +114,7 @@ class EmailTemplateServiceTest {
         void shouldSetRecipientWhenEmailIsSent() {
             service.sendEmail(RECIPIENT_EMAIL, SUBJECT, TEMPLATE_PATH, Collections.emptyMap());
 
-            jakarta.mail.Address[] recipients = assertDoesNotThrow(() -> mimeMessage.getRecipients(jakarta.mail.Message.RecipientType.TO));
+            Address[] recipients = assertDoesNotThrow(() -> mimeMessage.getRecipients(Message.RecipientType.TO));
 
             assertNotNull(recipients);
             assertEquals(1, recipients.length);
@@ -129,7 +132,7 @@ class EmailTemplateServiceTest {
         void shouldSetSenderWhenEmailIsSent() {
             service.sendEmail(RECIPIENT_EMAIL, SUBJECT, TEMPLATE_PATH, Collections.emptyMap());
 
-            jakarta.mail.Address[] from = assertDoesNotThrow(() -> mimeMessage.getFrom());
+            Address[] from = assertDoesNotThrow(() -> mimeMessage.getFrom());
 
             assertNotNull(from);
             assertEquals(1, from.length);
@@ -140,7 +143,7 @@ class EmailTemplateServiceTest {
         void shouldSetReplyToWhenEmailIsSent() {
             service.sendEmail(RECIPIENT_EMAIL, SUBJECT, TEMPLATE_PATH, Collections.emptyMap());
 
-            jakarta.mail.Address[] replyTo = assertDoesNotThrow(() -> mimeMessage.getReplyTo());
+            Address[] replyTo = assertDoesNotThrow(() -> mimeMessage.getReplyTo());
 
             assertNotNull(replyTo);
             assertEquals(1, replyTo.length);
