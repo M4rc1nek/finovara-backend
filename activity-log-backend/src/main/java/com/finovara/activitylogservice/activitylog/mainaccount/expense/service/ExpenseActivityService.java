@@ -1,7 +1,9 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.expense.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
+import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.dto.ExpenseActivityDto;
+import com.finovara.activitylogservice.activitylog.mainaccount.expense.dto.ExpenseActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.mapper.ExpenseActivityMapper;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.model.ExpenseActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.repository.ExpenseActivityRepository;
@@ -12,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +52,15 @@ public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity,
     @Cacheable(value = "expenseActivity", key = "#userId + ':' + #sort + ':' + #page")
     public List<ExpenseActivityDto> getExpenseActivity(Long userId, SortType sort, int page) {
         return getActivities(userId, sort, page, pageSize);
+    }
+
+    public List<ExpenseActivityDto> filterExpenseActivity(Long userId, ExpenseActivityFilterDto filter, int page) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
+        DateRange created = DateRange.of(filter.createdAt());
+        return expenseActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+                .stream()
+                .map(expenseActivityMapper::mapToExpenseActivity)
+                .toList();
     }
 
     @Override
