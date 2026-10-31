@@ -8,8 +8,9 @@ import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountcha
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.service.LoginActivityService;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.service.SettingsActivityService;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service.SharedAccountChangeHistoryActivityService;
+import com.finovara.activitylogservice.activitylog.util.UserSessionResolver;
+import com.finovara.activitylogservice.cache.evict.ActivityCache;
 import com.finovara.activitylogservice.cache.evict.EvictActivityCacheService;
-import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.limit.LimitActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
@@ -19,6 +20,7 @@ import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.ac
 import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
+import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.user.event.account.UserAccountDeletedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -39,6 +41,7 @@ public class ActivityConsumers {
     private final AccountChangeActivityService accountChangeActivityService;
     private final SharedAccountChangeHistoryActivityService sharedAccountChangeHistoryActivityService;
     private final EvictActivityCacheService evictActivityCacheService;
+    private final UserSessionResolver userSessionResolver;
     private final List<UserDataDeletable> deletableServices;
 
     @KafkaListener(topics = "settings.changed")
@@ -84,6 +87,8 @@ public class ActivityConsumers {
     @KafkaListener(topics = "account.changed")
     public void handleAccountChanges(AccountChangeActivityEvent event) {
         accountChangeActivityService.handleEvent(event);
+        evictActivityCacheService.evict(ActivityCache.SHARED_ACCOUNT_ACTIVITY_LOG, event.userId());
+        userSessionResolver.evictUserInfo(event.userId());
     }
 
     @KafkaListener(topics = "shared-account.changed")
