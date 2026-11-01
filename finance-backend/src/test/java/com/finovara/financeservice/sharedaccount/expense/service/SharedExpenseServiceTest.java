@@ -570,6 +570,7 @@ class SharedExpenseServiceTest {
             assertTrue(result.isEmpty());
             verifyNoInteractions(sharedExpenseMapper);
         }
+
     }
 
     @Nested
