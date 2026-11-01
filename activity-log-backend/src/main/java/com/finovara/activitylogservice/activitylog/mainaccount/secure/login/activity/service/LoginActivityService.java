@@ -43,7 +43,6 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
     public void handleEvent(LoginActivityEvent event) {
         LoginActivity activity = LoginActivity.builder()
                 .userId(event.userId())
-                .type("Login")
                 .status(event.status())
                 .browser(event.browser())
                 .ipAddress(event.ipAddress())
@@ -52,7 +51,7 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
                 .build();
 
         saveActivity(activity);
-        log.info("Created activity type: {}, userId: {}", activity.getType(), event.userId());
+        log.info("Created login activity for userId={}", event.userId());
         moveToArchive(event.userId(), pageSize);
     }
 
