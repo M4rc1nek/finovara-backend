@@ -54,7 +54,15 @@ class LoginRiskServiceTest {
 
         @Test
         void shouldReturnEmptyListWhenTriggerTypeIsNotLogin() {
-            RiskContext context = buildContext(RiskTriggerType.PASSWORD_CHANGED, IP, LOCATION, BROWSER, null);
+            ClientData knownDevice = ClientData.builder()
+                    .knownIpAddress("10.0.0.1")
+                    .knownBrowser("Firefox")
+                    .knownLocation("Krakow, PL")
+                    .build();
+            LoginProfile profile = LoginProfile.builder()
+                    .clientData(List.of(knownDevice))
+                    .build();
+            RiskContext context = buildContext(RiskTriggerType.PASSWORD_CHANGED, IP, LOCATION, BROWSER, profile);
 
             List<TriggeredRule> result = loginRiskService.evaluate(context);
 
