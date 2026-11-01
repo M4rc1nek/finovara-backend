@@ -1,16 +1,22 @@
 package com.finovara.financeservice.sharedaccount.revenue.controller;
 
+import com.finovara.contracts.sharedaccount.SharedRole;
+import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.security.SecurityUtils;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueDto;
 import com.finovara.financeservice.sharedaccount.revenue.dto.SharedRevenueResponse;
+import com.finovara.financeservice.sharedaccount.revenue.service.SharedRevenueFilteringService;
 import com.finovara.financeservice.sharedaccount.revenue.service.SharedRevenueService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Validated
@@ -19,6 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SharedRevenueController {
     private final SharedRevenueService sharedRevenueService;
+    private final SharedRevenueFilteringService sharedRevenueFilteringService;
 
     @PostMapping
     public ResponseEntity<SharedRevenueResponse> addSharedRevenue(@RequestBody @Valid SharedRevenueDto sharedRevenueDto) {
@@ -35,10 +42,15 @@ public class SharedRevenueController {
         return ResponseEntity.ok(sharedRevenueService.getRevenue(SecurityUtils.getCurrentUserId(), page));
     }
 
+    @GetMapping("/filter")
+    public ResponseEntity<List<SharedRevenueDto>> filterSharedRevenues(@RequestParam(required = false) RevenueCategory category, @RequestParam(required = false) BigDecimal amount,
+                                                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestParam(required = false) String description, @RequestParam(required = false) SharedRole role, @RequestParam(defaultValue = "0") @Min(0) int page) {
+        return ResponseEntity.ok(sharedRevenueFilteringService.filterRevenues(SecurityUtils.getCurrentUserId(), category, amount, date, description, role, page));
+    }
+
     @DeleteMapping("/{revenueId}")
     public ResponseEntity<Void> deleteSharedRevenue(@PathVariable Long revenueId) {
         sharedRevenueService.deleteRevenue(revenueId, SecurityUtils.getCurrentUserId());
         return ResponseEntity.noContent().build();
     }
 }
-

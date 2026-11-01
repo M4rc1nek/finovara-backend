@@ -88,6 +88,10 @@ public class SharedRevenueService {
     public List<SharedRevenueDto> getRevenue(Long userId, int page) {
         List<SharedRevenue> revenues = sharedRevenueRepository.findAllByOwnerIdOrMemberId(userId, PageRequest.of(page, pageSize));
 
+        return mapToDtos(revenues);
+    }
+
+    private List<SharedRevenueDto> mapToDtos(List<SharedRevenue> revenues) {
         Map<Long, String> usernameById = usernameResolver.resolve(
                 revenues.stream().map(SharedRevenue::getCreatedByUserId).collect(Collectors.toSet()));
 

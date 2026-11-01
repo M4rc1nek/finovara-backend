@@ -8,7 +8,6 @@ import com.finovara.financeservice.sharedaccount.expense.model.SharedExpense;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,13 +17,13 @@ import java.util.Optional;
 public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Long> {
 
     @Query("SELECT se FROM SharedExpense se WHERE se.ownerId = :userId OR se.memberId = :userId")
-    List<SharedExpense> findAllByOwnerIdOrMemberId(@Param("userId") Long userId);
+    List<SharedExpense> findAllByOwnerIdOrMemberId(Long userId);
 
     @Query("SELECT e FROM SharedExpense e WHERE e.ownerId = :ownerId AND e.memberId = :memberId")
     List<SharedExpense> findAllByOwnerIdAndMemberId(Long ownerId, Long memberId);
 
     @Query("SELECT se FROM SharedExpense se WHERE se.id = :expenseId AND (se.ownerId = :userId OR se.memberId = :userId)")
-    Optional<SharedExpense> findByIdAndOwnerIdOrMemberId(@Param("expenseId") Long expenseId, @Param("userId") Long userId);
+    Optional<SharedExpense> findByIdAndOwnerIdOrMemberId(Long expenseId, Long userId);
 
     @Query("SELECT SUM(e.amount) FROM SharedExpense e WHERE (e.ownerId = :userId OR e.memberId = :userId) AND e.createdAt >= :startDate AND e.createdAt <= :endDate")
     Optional<BigDecimal> sumExpensesByUsersAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
@@ -36,7 +35,7 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
             SELECT COALESCE(SUM(e.amount), 0) FROM SharedExpense e
             WHERE e.ownerId = :ownerId AND e.memberId = :memberId AND e.createdByUserId = :userId
             """)
-    BigDecimal sumExpenseByCreatedByUserId(Long ownerId, Long memberId, @Param("userId") Long userId);
+    BigDecimal sumExpenseByCreatedByUserId(Long ownerId, Long memberId, Long userId);
 
     @Query("""
             SELECT NEW com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto(
@@ -48,7 +47,7 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
             AND e.createdAt BETWEEN :from AND :to
             GROUP BY e.category
             """)
-    List<ExpenseCategorySumDto> sumExpensesGroupedByCategoryForOwnerIdOrMemberId(@Param("ownerId") Long ownerId, @Param("memberId") Long memberId, @Param("from") LocalDate from, @Param("to") LocalDate to);
+    List<ExpenseCategorySumDto> sumExpensesGroupedByCategoryForOwnerIdOrMemberId(Long ownerId, Long memberId, LocalDate from, LocalDate to);
 
     @Query("""
              SELECT NEW com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto(
@@ -60,7 +59,7 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
             AND e.createdAt BETWEEN :from AND :to
             ORDER BY e.amount DESC
             """)
-    List<HighestExpenseDto> findHighestExpensesByOwnerIdOrMemberIdAndPeriod(Long ownerId, Long memberId, @Param("from") LocalDate from, @Param("to") LocalDate to, Pageable pageable);
+    List<HighestExpenseDto> findHighestExpensesByOwnerIdOrMemberIdAndPeriod(Long ownerId, Long memberId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
                 SELECT new com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto(
@@ -91,6 +90,20 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
     long countExpensesByUserId(Long userId);
 
     @Query("SELECT se FROM SharedExpense se WHERE se.ownerId = :userId OR se.memberId = :userId ORDER BY se.createdAt DESC, se.id DESC")
-    List<SharedExpense> findAllByOwnerIdOrMemberId(@Param("userId") Long userId, Pageable pageable);
+    List<SharedExpense> findAllByOwnerIdOrMemberId(Long userId, Pageable pageable);
+
+    @Query("""
+            SELECT e FROM SharedExpense e
+            WHERE (e.ownerId = :userId OR e.memberId = :userId)
+              AND (:createdByUserId IS NULL OR e.createdByUserId = :createdByUserId)
+              AND (COALESCE(:category, e.category) = e.category)
+              AND (COALESCE(:amount, e.amount) = e.amount)
+              AND (COALESCE(:createdAt, e.createdAt) = e.createdAt)
+              AND (COALESCE(:query, '') = '' OR LOWER(e.description) LIKE LOWER(CONCAT('%', :query, '%')))
+            ORDER BY e.createdAt DESC, e.id DESC
+            """)
+    List<SharedExpense> findFilteredExpenses(Long userId, Long createdByUserId,
+                                            ExpenseCategory category, BigDecimal amount,
+                                            LocalDate createdAt, String query, Pageable pageable);
 
 }

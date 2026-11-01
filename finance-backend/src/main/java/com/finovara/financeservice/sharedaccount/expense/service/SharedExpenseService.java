@@ -131,6 +131,10 @@ public class SharedExpenseService {
     public List<SharedExpenseDto> getExpense(Long userId, int page) {
         List<SharedExpense> expenses = sharedExpenseRepository.findAllByOwnerIdOrMemberId(userId, PageRequest.of(page, pageSize));
 
+        return mapToDtos(expenses);
+    }
+
+    private List<SharedExpenseDto> mapToDtos(List<SharedExpense> expenses) {
         Map<Long, String> usernameById = usernameResolver.resolve(
                 expenses.stream().map(SharedExpense::getCreatedByUserId).collect(Collectors.toSet()));
 
