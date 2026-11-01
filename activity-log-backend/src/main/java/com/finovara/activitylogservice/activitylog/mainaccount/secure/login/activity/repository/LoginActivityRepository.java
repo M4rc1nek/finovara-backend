@@ -23,7 +23,6 @@ public interface LoginActivityRepository extends JpaRepository<LoginActivity, Lo
     @Query("""
             SELECT l FROM LoginActivity l
             WHERE l.userId = :userId
-              AND (CAST(:#{#filter.type} AS string) IS NULL OR :#{#filter.type} = '' OR LOWER(CAST(l.type AS string)) LIKE LOWER(CONCAT('%', CAST(:#{#filter.type} AS string), '%')))
               AND (CAST(:#{#filter.status} AS string) IS NULL OR CAST(l.status AS string) = CAST(:#{#filter.status} AS string))
               AND (CAST(:#{#filter.browser} AS string) IS NULL OR :#{#filter.browser} = '' OR LOWER(l.browser) LIKE LOWER(CONCAT('%', :#{#filter.browser}, '%')))
               AND (CAST(:#{#filter.ipAddress} AS string) IS NULL OR :#{#filter.ipAddress} = '' OR LOWER(l.ipAddress) LIKE LOWER(CONCAT('%', :#{#filter.ipAddress}, '%')))
