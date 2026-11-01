@@ -37,7 +37,6 @@ public class LoginActivityArchiveService extends AccountActivityCore<LoginActivi
     public LoginActivityArchive mapToArchive(LoginActivity loginActivity) {
         return LoginActivityArchive.builder()
                 .userId(loginActivity.getUserId())
-                .type(loginActivity.getType())
                 .status(loginActivity.getStatus())
                 .moveToArchiveDate(LocalDateTime.now())
                 .createdAt(loginActivity.getCreatedAt())
