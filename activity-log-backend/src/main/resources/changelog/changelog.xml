@@ -121,7 +121,6 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="type" type="VARCHAR(255)"/>
             <column name="status" type="VARCHAR(255)"/>
             <column name="created_at" type="TIMESTAMP"/>
             <column name="browser" type="VARCHAR(255)"/>
@@ -143,7 +142,6 @@
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="type" type="VARCHAR(255)"/>
             <column name="status" type="VARCHAR(255)"/>
             <column name="browser" type="VARCHAR(255)"/>
             <column name="ip_address" type="VARCHAR(255)"/>
