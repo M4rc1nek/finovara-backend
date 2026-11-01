@@ -19,8 +19,6 @@ public class LoginActivityArchive {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String type;
-
     @Enumerated(EnumType.STRING)
     private LoginActivityStatus status;
 
