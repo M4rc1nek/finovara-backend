@@ -9,7 +9,6 @@ public class LoginActivityMapper {
 
     public LoginActivityDto mapToDto(LoginActivity loginActivity) {
         return new LoginActivityDto(
-                loginActivity.getType(),
                 loginActivity.getStatus(),
                 loginActivity.getCreatedAt(),
                 loginActivity.getBrowser(),
