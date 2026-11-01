@@ -82,8 +82,15 @@ class TransactionRiskServiceTest {
 
         @Test
         void shouldReturnEmptyListWhenTriggerTypeIsNotHandled() {
-            TransactionProfile profile = defaultProfile().build();
-            RiskContext riskContext = context(RiskTriggerType.LOGIN, BigDecimal.TEN, null, profile);
+            TransactionProfile profile = defaultProfile()
+                    .expenseCount(0L)
+                    .build();
+            RiskContext riskContext = context(
+                    RiskTriggerType.LOGIN,
+                    EXPENSE_HIGH_AMOUNT.add(BigDecimal.ONE),
+                    ExpenseCategory.TRANSPORT.name(),
+                    profile
+            );
 
             List<TriggeredRule> result = transactionRiskService.evaluate(riskContext);
 
