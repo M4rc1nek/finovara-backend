@@ -66,7 +66,6 @@ class LoginActivityArchiveServiceTest {
             createdAt = LocalDateTime.of(2026, 3, 1, 8, 15);
             activity = LoginActivity.builder()
                     .userId(USER_ID)
-                    .type("Other")
                     .browser("Safari")
                     .ipAddress("172.16.0.5")
                     .location("Gdansk")
@@ -110,7 +109,6 @@ class LoginActivityArchiveServiceTest {
         @Test
         void shouldFilterArchivesUsingMoveToArchiveAndCreatedDateRanges() {
             LoginActivityArchiveFilterDto filter = new LoginActivityArchiveFilterDto(
-                    "Login",
                     LoginActivityStatus.SUCCESSFUL,
                     "Safari",
                     "172.16.0.5",
@@ -120,7 +118,6 @@ class LoginActivityArchiveServiceTest {
             );
             LoginActivityArchive archive = LoginActivityArchive.builder().userId(USER_ID).build();
             LoginActivityArchiveDto dto = new LoginActivityArchiveDto(
-                    "Login",
                     LoginActivityStatus.SUCCESSFUL,
                     LocalDateTime.of(2026, 3, 1, 8, 15),
                     LocalDateTime.of(2026, 3, 1, 9, 0),
