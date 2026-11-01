@@ -3,6 +3,7 @@ package com.finovara.securitymonitoring.transaction.service;
 import com.finovara.securitymonitoring.riskengine.dto.RiskContext;
 import com.finovara.contracts.securitymonitoring.model.RiskRule;
 import com.finovara.contracts.securitymonitoring.dto.TriggeredRule;
+import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.securitymonitoring.transaction.config.TransactionRiskProperties;
 import com.finovara.securitymonitoring.transaction.model.TransactionProfile;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class TransactionRiskService {
 
     public List<TriggeredRule> evaluate(RiskContext context) {
         TransactionProfile profile = context.transactionProfile();
-        if (profile == null) {
+        if (profile == null || !isTransactionTrigger(context.triggerType())) {
             return List.of();
         }
 
@@ -39,6 +40,12 @@ public class TransactionRiskService {
                 context.userId(), triggered.stream().mapToInt(TriggeredRule::points).sum());
 
         return triggered;
+    }
+
+    private boolean isTransactionTrigger(RiskTriggerType type) {
+        return type == RiskTriggerType.EXPENSE
+                || type == RiskTriggerType.REVENUE
+                || type == RiskTriggerType.PIGGY_BANK;
     }
 
     private List<TriggeredRule> evaluateExpenseRules(RiskContext context, TransactionProfile profile) {
