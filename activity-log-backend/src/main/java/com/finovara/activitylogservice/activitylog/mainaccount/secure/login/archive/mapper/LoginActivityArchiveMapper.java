@@ -9,7 +9,6 @@ public class LoginActivityArchiveMapper {
 
     public LoginActivityArchiveDto mapToDto(LoginActivityArchive activityArchive) {
         return new LoginActivityArchiveDto(
-                activityArchive.getType(),
                 activityArchive.getStatus(),
                 activityArchive.getMoveToArchiveDate(),
                 activityArchive.getCreatedAt(),
