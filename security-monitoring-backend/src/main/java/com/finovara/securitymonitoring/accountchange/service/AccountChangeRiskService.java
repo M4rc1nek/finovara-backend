@@ -25,7 +25,7 @@ public class AccountChangeRiskService {
 
     public List<TriggeredRule> evaluate(RiskContext context) {
         AccountChangeProfile profile = context.accountChangeProfile();
-        if (profile == null) {
+        if (profile == null || !isAccountChangeTrigger(context.triggerType())) {
             return List.of();
         }
 
@@ -49,6 +49,13 @@ public class AccountChangeRiskService {
                 context.userId(), triggered.stream().mapToInt(TriggeredRule::points).sum());
 
         return triggered;
+    }
+
+    private boolean isAccountChangeTrigger(RiskTriggerType type) {
+        return switch (type) {
+            case PASSWORD_CHANGED, EMAIL_CHANGED, USERNAME_CHANGED, PROFILE_IMAGE_CHANGED -> true;
+            default -> false;
+        };
     }
 
     private boolean isRepeatChange(RiskContext context, AccountChangeProfile profile) {
