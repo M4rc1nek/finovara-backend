@@ -18,7 +18,6 @@ public interface LoginActivityArchiveRepository extends JpaRepository<LoginActiv
     @Query("""
             SELECT a FROM LoginActivityArchive a
             WHERE a.userId = :userId
-              AND (CAST(:#{#filter.type} AS string) IS NULL OR :#{#filter.type} = '' OR LOWER(CAST(a.type AS string)) LIKE LOWER(CONCAT('%', CAST(:#{#filter.type} AS string), '%')))
               AND (CAST(:#{#filter.status} AS string) IS NULL OR CAST(a.status AS string) = CAST(:#{#filter.status} AS string))
               AND (CAST(:#{#filter.browser} AS string) IS NULL OR :#{#filter.browser} = '' OR LOWER(a.browser) LIKE LOWER(CONCAT('%', :#{#filter.browser}, '%')))
               AND (CAST(:#{#filter.ipAddress} AS string) IS NULL OR :#{#filter.ipAddress} = '' OR LOWER(a.ipAddress) LIKE LOWER(CONCAT('%', :#{#filter.ipAddress}, '%')))
