@@ -106,10 +106,13 @@ class AccountChangeRiskServiceTest {
         }
 
         @Test
-        void shouldNotTriggerRepeatChangeRuleWhenTriggerTypeHasNoTrackedLastChangeTime() {
-            when(context.accountChangeProfile()).thenReturn(profile);
+        void shouldNotTriggerAccountChangeRulesForLoginEvenWhenNewAccountCriteriaAreMet() {
+            AccountChangeProfile qualifyingProfile = AccountChangeProfile.builder()
+                    .createdAt(LocalDateTime.now().minusDays(1))
+                    .totalChangeCount(10L)
+                    .build();
+            when(context.accountChangeProfile()).thenReturn(qualifyingProfile);
             when(context.triggerType()).thenReturn(RiskTriggerType.LOGIN);
-            when(profile.getCreatedAt()).thenReturn(null);
 
             List<TriggeredRule> result = accountChangeRiskService.evaluate(context);
 
