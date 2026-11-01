@@ -6,7 +6,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 
 public record LoginActivityFilterDto(
-       String type,
        LoginActivityStatus status,
        String browser,
        String ipAddress,
