@@ -79,7 +79,6 @@ class LoginActivityServiceTest {
             event = new LoginActivityEvent(USER_ID, LoginActivityStatus.SUCCESSFUL, "Edge", "203.0.113.7", "Wroclaw", OCCURRED_AT);
             oldestActivity = LoginActivity.builder()
                     .userId(USER_ID)
-                    .type("Login")
                     .status(LoginActivityStatus.SUCCESSFUL)
                     .browser("Chrome")
                     .ipAddress("198.51.100.42")
@@ -88,7 +87,6 @@ class LoginActivityServiceTest {
                     .build();
             archivedActivity = LoginActivityArchive.builder()
                     .userId(USER_ID)
-                    .type("Login")
                     .status(LoginActivityStatus.SUCCESSFUL)
                     .browser("Chrome")
                     .ipAddress("198.51.100.42")
@@ -106,7 +104,6 @@ class LoginActivityServiceTest {
             verify(loginActivityRepository).save(captor.capture());
             LoginActivity saved = captor.getValue();
             assertEquals(USER_ID, saved.getUserId());
-            assertEquals("Login", saved.getType());
             assertEquals(LoginActivityStatus.SUCCESSFUL, saved.getStatus());
             assertEquals("Edge", saved.getBrowser());
             assertEquals("203.0.113.7", saved.getIpAddress());
@@ -165,7 +162,6 @@ class LoginActivityServiceTest {
         @Test
         void shouldFilterActivitiesUsingCreatedDateRangeAndRepository() {
             LoginActivityFilterDto filter = new LoginActivityFilterDto(
-                    "Login",
                     LoginActivityStatus.SUCCESSFUL,
                     "Edge",
                     "203.0.113.7",
@@ -173,7 +169,7 @@ class LoginActivityServiceTest {
                     LocalDate.of(2026, 4, 10)
             );
             LoginActivity activity = LoginActivity.builder().userId(USER_ID).build();
-            LoginActivityDto dto = new LoginActivityDto("Login", LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Edge", "203.0.113.7", "Wroclaw");
+            LoginActivityDto dto = new LoginActivityDto(LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Edge", "203.0.113.7", "Wroclaw");
 
             when(loginActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
                     .thenReturn(List.of(activity));
@@ -214,13 +210,13 @@ class LoginActivityServiceTest {
 
         @Test
         void shouldReturnMappedDtosWhenActivitiesExist() {
-            LoginActivity activity = LoginActivity.builder().userId(USER_ID).type("Login").status(LoginActivityStatus.SUCCESSFUL).build();
+            LoginActivity activity = LoginActivity.builder().userId(USER_ID).status(LoginActivityStatus.SUCCESSFUL).build();
             when(loginActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
-            when(loginActivityMapper.mapToDto(activity)).thenReturn(new LoginActivityDto("Login", LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Edge", "203.0.113.7", "Wroclaw"));
+            when(loginActivityMapper.mapToDto(activity)).thenReturn(new LoginActivityDto(LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Edge", "203.0.113.7", "Wroclaw"));
 
             List<LoginActivityDto> result = loginActivityService.getLoginActivity(USER_ID, SORT, 1);
 
-            assertEquals(List.of(new LoginActivityDto("Login", LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Edge", "203.0.113.7", "Wroclaw")), result);
+            assertEquals(List.of(new LoginActivityDto(LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Edge", "203.0.113.7", "Wroclaw")), result);
         }
 
         @Test
@@ -254,7 +250,7 @@ class LoginActivityServiceTest {
 
         @Test
         void shouldThrowExceptionWhenMapperFails() {
-            LoginActivity activity = LoginActivity.builder().userId(USER_ID).type("Login").status(LoginActivityStatus.SUCCESSFUL).build();
+            LoginActivity activity = LoginActivity.builder().userId(USER_ID).status(LoginActivityStatus.SUCCESSFUL).build();
             when(loginActivityRepository.findByUserId(eq(USER_ID), any(Pageable.class))).thenReturn(List.of(activity));
             when(loginActivityMapper.mapToDto(activity)).thenThrow(new IllegalArgumentException("mapping failed"));
 
