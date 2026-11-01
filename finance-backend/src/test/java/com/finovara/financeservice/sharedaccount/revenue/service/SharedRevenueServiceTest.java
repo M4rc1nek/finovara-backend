@@ -403,6 +403,7 @@ class SharedRevenueServiceTest {
             assertEquals(List.of(dto, otherDto), result);
             verify(usernameResolver).resolve(Set.of(USER_ID));
         }
+
     }
 
     @Nested
