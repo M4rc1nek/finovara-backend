@@ -86,6 +86,10 @@ security-monitoring-backend:
   url: ${SECURITY_MONITORING_URL}
 
 scheduler:
+  delete-all-revenues: "0 0 0 ? * 1L"
+  delete-all-expenses: "0 5 0 ? * 1L"
+  delete-all-shared-revenues: "0 10 0 ? * 1L"
+  delete-all-shared-expenses: "0 15 0 ? * 1L"
   recurring-settings:
     frequency: "0 0 0 * * ?"
     max-occurrence-range-days: 180
