@@ -1,7 +1,7 @@
-package com.finovara.notificationservice.notificationemail.service.settings;
+package com.finovara.notificationservice.notificationemail.settings;
 
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
-import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
+import com.finovara.notificationservice.notificationemail.settings.repository.NotificationEmailSettingsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
