@@ -2,12 +2,15 @@ package com.finovara.financeservice.settings.piggybank.completion.service;
 
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.mainaccount.activity.model.TransactionType;
+import com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.financeservice.settings.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.financeservice.wallet.model.Wallet;
+import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,7 @@ public class GoalCompletionCore {
     private final OutboxService outboxService;
     private final RecurringSettingsRepository recurringSettingsRepository;
     private final PiggyBankRepository piggyBankRepository;
+    private final WalletService walletService;
 
     public void apply(Long userId, PiggyBank piggyBank, Wallet wallet, GoalCompletionStrategy strategy) {
 
@@ -70,7 +74,7 @@ public class GoalCompletionCore {
         }
 
         wallet.deposit(amount);
+        walletService.publishStatusChange(wallet.getUserId(), wallet, TransactionType.DEPOSIT, WalletTransactionReason.PIGGY_BANK_GOAL_COMPLETION, amount);
         piggyBank.setAmount(BigDecimal.ZERO);
     }
 }
-
