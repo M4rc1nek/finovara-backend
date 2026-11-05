@@ -1,6 +1,6 @@
-package com.finovara.notificationservice.notificationemail.service.digest.report.finance.scheduler;
+package com.finovara.notificationservice.notificationemail.digest.report.finance.scheduler;
 
-import com.finovara.notificationservice.notificationemail.service.digest.report.finance.processor.WeeklyFinanceDigestReportEmailProcessor;
+import com.finovara.notificationservice.notificationemail.digest.report.finance.processor.WeeklyFinanceDigestReportEmailProcessor;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
