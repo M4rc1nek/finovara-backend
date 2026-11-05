@@ -1,11 +1,12 @@
-package com.finovara.notificationservice.notificationemail.service.digest.report.security.processor;
+package com.finovara.notificationservice.notificationemail.digest.report.security.processor;
 
 import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.contracts.mainaccount.report.digest.security.WeeklySecurityDigestReportDto;
 import com.finovara.notificationservice.feignclient.ActivityLogBackendClient;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ScheduledEmailNotificationType;
-import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
+import com.finovara.notificationservice.notificationemail.util.EmailNotifier;
+import com.finovara.notificationservice.util.time.PolishTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -77,6 +78,8 @@ public class WeeklySecurityDigestReportEmailProcessor {
     }
 
     private String formatDate(LocalDateTime value) {
-        return Optional.ofNullable(value).map(DATE_FORMATTER::format).orElse(NOT_AVAILABLE);
+        return Optional.ofNullable(value)
+                .map(dateTime -> PolishTime.formatUtcAsPolish(dateTime, DATE_FORMATTER))
+                .orElse(NOT_AVAILABLE);
     }
 }
