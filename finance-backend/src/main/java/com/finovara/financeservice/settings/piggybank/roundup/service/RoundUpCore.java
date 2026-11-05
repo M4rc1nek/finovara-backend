@@ -2,9 +2,12 @@ package com.finovara.financeservice.settings.piggybank.roundup.service;
 
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.mainaccount.activity.model.TransactionType;
+import com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.wallet.model.Wallet;
+import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import java.time.LocalDateTime;
 public class RoundUpCore {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final WalletService walletService;
 
     public void process(Long userId, PiggyBank piggyBank, Wallet wallet, BigDecimal roundUpAmount, PiggyBankAutomationMode mode) {
 
@@ -32,6 +36,8 @@ public class RoundUpCore {
 
         piggyBank.setAmount(piggyBank.getAmount().add(roundUpAmount));
         wallet.withdraw(roundUpAmount);
+        walletService.publishStatusChange(userId, wallet, TransactionType.WITHDRAWAL,
+                WalletTransactionReason.PIGGY_BANK_ROUND_UP, roundUpAmount);
 
         kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), roundUpAmount, null, LocalDateTime.now()));
     }
@@ -44,6 +50,7 @@ public class RoundUpCore {
 
         piggyBank.setAmount(piggyBank.getAmount().subtract(amountToRollback));
         wallet.deposit(amountToRollback);
+        walletService.publishStatusChange(userId, wallet, TransactionType.REFUND, WalletTransactionReason.PIGGY_BANK_ROUND_UP, amountToRollback);
 
         kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, amountToRollback, LocalDateTime.now()));
     }
