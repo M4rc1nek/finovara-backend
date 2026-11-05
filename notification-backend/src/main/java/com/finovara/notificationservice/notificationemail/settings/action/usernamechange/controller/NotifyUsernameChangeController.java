@@ -1,7 +1,7 @@
-package com.finovara.notificationservice.notificationemail.service.settings.action.usernamechange.controller;
+package com.finovara.notificationservice.notificationemail.settings.action.usernamechange.controller;
 
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
-import com.finovara.notificationservice.notificationemail.service.settings.action.usernamechange.service.NotifyUsernameChangeServiceAction;
+import com.finovara.notificationservice.notificationemail.settings.action.usernamechange.service.NotifyUsernameChangeServiceAction;
 import com.finovara.notificationservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
