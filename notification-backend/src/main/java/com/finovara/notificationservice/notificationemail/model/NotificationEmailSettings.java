@@ -33,6 +33,9 @@ public class NotificationEmailSettings {
     @Column(nullable = false)
     private boolean notifyOnWalletLowBalance;
 
+    @Column(nullable = false)
+    private boolean notifyOnNewLogin;
+
     private BigDecimal walletLowBalanceThreshold;
 
     @Column(nullable = false, unique = true)
