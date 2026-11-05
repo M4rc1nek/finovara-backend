@@ -1,5 +1,8 @@
 package com.finovara.financeservice.revenue.service;
 
+import static com.finovara.contracts.mainaccount.activity.model.TransactionType.*;
+import static com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason.*;
+
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
 import com.finovara.contracts.outbox.OutboxService;
@@ -194,7 +197,8 @@ class RevenueServiceTest {
 
                 service.addRevenue(revenueDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
-                verify(walletService).addBalanceToWallet(USER_ID, AMOUNT);
+                verify(walletService).addBalanceToWallet(USER_ID, AMOUNT,
+                        DEPOSIT, REVENUE);
                 verify(outboxService).save(eq(REVENUE_AGGREGATE), eq(REVENUE_ID.toString()), eq(REVENUE_TOPIC), any(RevenueActivityEvent.class));
                 verify(autoPaymentsService).handleRevenuePiggyBankAutomation(USER_ID, AMOUNT, PiggyBankAutomationMode.APPLY);
             }
@@ -232,7 +236,8 @@ class RevenueServiceTest {
                 Long result = service.addRevenue(revenueDto, USER_ID, servletRequest, AUTOMATIC_ORIGIN);
 
                 assertEquals(REVENUE_ID, result);
-                verify(walletService).addBalanceToWallet(USER_ID, smallestAmount);
+                verify(walletService).addBalanceToWallet(USER_ID, smallestAmount,
+                        DEPOSIT, REVENUE);
             }
         }
     }
@@ -292,8 +297,9 @@ class RevenueServiceTest {
                 assertEquals(REVENUE_ID, result);
                 assertEquals(AMOUNT, existing.getAmount());
                 assertEquals(CATEGORY, existing.getCategory());
-                verify(walletService).addBalanceToWallet(USER_ID, BigDecimal.valueOf(5));
-                verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                verify(walletService).addBalanceToWallet(USER_ID, BigDecimal.valueOf(5),
+                        DEPOSIT, REVENUE);
+                verify(walletService, never()).removeBalanceFromWallet(any(), any(), any(), any());
             }
 
             @Test
@@ -303,8 +309,9 @@ class RevenueServiceTest {
 
                 service.editRevenue(revenueDto, REVENUE_ID, USER_ID, servletRequest);
 
-                verify(walletService).removeBalanceFromWallet(USER_ID, BigDecimal.valueOf(15));
-                verify(walletService, never()).addBalanceToWallet(any(), any());
+                verify(walletService).removeBalanceFromWallet(USER_ID, BigDecimal.valueOf(15),
+                        WITHDRAWAL, REVENUE);
+                verify(walletService, never()).addBalanceToWallet(any(), any(), any(), any());
             }
 
             @Test
@@ -314,8 +321,8 @@ class RevenueServiceTest {
 
                 service.editRevenue(revenueDto, REVENUE_ID, USER_ID, servletRequest);
 
-                verify(walletService, never()).addBalanceToWallet(any(), any());
-                verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                verify(walletService, never()).addBalanceToWallet(any(), any(), any(), any());
+                verify(walletService, never()).removeBalanceFromWallet(any(), any(), any(), any());
             }
 
             @Test
@@ -353,8 +360,8 @@ class RevenueServiceTest {
                 when(revenueManagerService.getRevenueByUserIdOrThrow(REVENUE_ID, USER_ID)).thenThrow(new IllegalStateException());
 
                 assertThrows(IllegalStateException.class, () -> service.editRevenue(revenueDto, REVENUE_ID, USER_ID, servletRequest));
-                verify(walletService, never()).addBalanceToWallet(any(), any());
-                verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                verify(walletService, never()).addBalanceToWallet(any(), any(), any(), any());
+                verify(walletService, never()).removeBalanceFromWallet(any(), any(), any(), any());
                 verifyNoInteractions(autoPaymentsService, outboxService);
             }
 
@@ -389,7 +396,8 @@ class RevenueServiceTest {
             verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
             verify(walletService).lockWalletForUpdate(USER_ID);
             verify(autoPaymentsService).handleRevenuePiggyBankAutomation(USER_ID, AMOUNT, PiggyBankAutomationMode.ROLLBACK);
-            verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+            verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT,
+                    WITHDRAWAL, REVENUE);
             verify(outboxService).save(eq(REVENUE_AGGREGATE), eq(REVENUE_ID.toString()), eq(REVENUE_TOPIC), any(RevenueActivityEvent.class));
             verify(revenueRepository).delete(revenue);
         }
@@ -402,7 +410,8 @@ class RevenueServiceTest {
 
             InOrder inOrder = inOrder(autoPaymentsService, walletService, revenueRepository);
             inOrder.verify(autoPaymentsService).handleRevenuePiggyBankAutomation(USER_ID, AMOUNT, PiggyBankAutomationMode.ROLLBACK);
-            inOrder.verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+            inOrder.verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT,
+                    WITHDRAWAL, REVENUE);
             inOrder.verify(revenueRepository).delete(revenue);
         }
 
@@ -411,7 +420,7 @@ class RevenueServiceTest {
             when(revenueManagerService.getRevenueByUserIdOrThrow(REVENUE_ID, USER_ID)).thenThrow(new IllegalStateException());
 
             assertThrows(IllegalStateException.class, () -> service.deleteRevenue(REVENUE_ID, USER_ID, AUTH_CODE));
-            verify(walletService, never()).removeBalanceFromWallet(any(), any());
+            verify(walletService, never()).removeBalanceFromWallet(any(), any(), any(), any());
             verifyNoInteractions(autoPaymentsService, outboxService, revenueRepository);
         }
 
