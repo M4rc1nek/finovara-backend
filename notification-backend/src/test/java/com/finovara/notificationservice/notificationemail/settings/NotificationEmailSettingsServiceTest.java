@@ -1,7 +1,7 @@
-package com.finovara.notificationservice.notificationemail.service.settings;
+package com.finovara.notificationservice.notificationemail.settings;
 
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
-import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
+import com.finovara.notificationservice.notificationemail.settings.repository.NotificationEmailSettingsRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
