@@ -2,6 +2,8 @@ package com.finovara.financeservice.piggybank.service;
 
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.mainaccount.activity.model.TransactionType;
+import com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason;
 import com.finovara.contracts.mainaccount.transaction.event.piggybank.PiggyBankProgressEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
@@ -49,7 +51,10 @@ public class PiggyBankTransactionService {
             authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
         }
 
-        walletService.removeBalanceFromWallet(userId, amount);
+        WalletTransactionReason reason = origin == TransactionOrigin.RECURRING_SYSTEM
+                ? WalletTransactionReason.PIGGY_BANK_RECURRING_SAVING
+                : WalletTransactionReason.PIGGY_BANK_CONTRIBUTION;
+        walletService.removeBalanceFromWallet(userId, amount, TransactionType.WITHDRAWAL, reason);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
 
         piggyBank.setAmount(piggyBank.getAmount().add(amount));
@@ -77,7 +82,7 @@ public class PiggyBankTransactionService {
         riskGuardService.guard(userId, RiskTriggerType.PIGGY_BANK, amountPaidOut, null,
                 authBackendClient.getUserEmail(userId), sourceEventId, servletRequest);
 
-        walletService.addBalanceToWallet(userId, amountPaidOut);
+        walletService.addBalanceToWallet(userId, amountPaidOut, TransactionType.DEPOSIT, WalletTransactionReason.PIGGY_BANK_WITHDRAWAL);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
 
         PiggyBankValidator.validateSufficientFunds(piggyBank.getAmount(), amountPaidOut);
