@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notificationemail.service.digest.report.finance.processor;
+package com.finovara.notificationservice.notificationemail.digest.report.finance.processor;
 
 import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.contracts.mainaccount.report.digest.finance.PiggyBankSummaryDto;
@@ -6,7 +6,7 @@ import com.finovara.contracts.mainaccount.report.digest.finance.WeeklyFinanceDig
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.feignclient.FinanceBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ScheduledEmailNotificationType;
-import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
+import com.finovara.notificationservice.notificationemail.util.EmailNotifier;
 import com.finovara.notificationservice.notificationemail.util.CategoryLabelResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
