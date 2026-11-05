@@ -52,6 +52,12 @@ public class EvictActivityCacheController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/wallet")
+    public ResponseEntity<Void> refreshWalletActivity() {
+        evictService.evict(ActivityCache.WALLET_STATUS, SecurityUtils.getCurrentUserId());
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/limit")
     public ResponseEntity<Void> refreshLimit() {
         evictService.evict(ActivityCache.LIMIT, SecurityUtils.getCurrentUserId());
