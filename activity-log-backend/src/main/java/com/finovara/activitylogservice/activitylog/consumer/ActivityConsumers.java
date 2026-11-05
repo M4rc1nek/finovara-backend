@@ -8,6 +8,7 @@ import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountcha
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.service.LoginActivityService;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.service.SettingsActivityService;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service.SharedAccountChangeHistoryActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.wallet.service.WalletStatusActivityService;
 import com.finovara.activitylogservice.activitylog.util.UserSessionResolver;
 import com.finovara.activitylogservice.cache.evict.ActivityCache;
 import com.finovara.activitylogservice.cache.evict.EvictActivityCacheService;
@@ -20,6 +21,7 @@ import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.ac
 import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.wallet.WalletStatusActivityEvent;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.contracts.user.event.account.UserAccountDeletedEvent;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +42,7 @@ public class ActivityConsumers {
     private final ExpenseActivityService expenseActivityService;
     private final AccountChangeActivityService accountChangeActivityService;
     private final SharedAccountChangeHistoryActivityService sharedAccountChangeHistoryActivityService;
+    private final WalletStatusActivityService walletStatusActivityService;
     private final EvictActivityCacheService evictActivityCacheService;
     private final UserSessionResolver userSessionResolver;
     private final List<UserDataDeletable> deletableServices;
@@ -82,6 +85,12 @@ public class ActivityConsumers {
     @KafkaListener(topics = "expense.created")
     public void handleExpense(ExpenseActivityEvent event) {
         expenseActivityService.handleEvent(event);
+    }
+
+    @KafkaListener(topics = "wallet-status.changed")
+    public void handleWalletStatus(WalletStatusActivityEvent event) {
+        walletStatusActivityService.handleEvent(event);
+        evictActivityCacheService.evict(ActivityCache.WALLET_STATUS, event.userId());
     }
 
     @KafkaListener(topics = "account.changed")
