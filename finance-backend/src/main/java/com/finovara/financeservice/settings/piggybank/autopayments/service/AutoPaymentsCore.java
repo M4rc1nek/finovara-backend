@@ -2,9 +2,12 @@ package com.finovara.financeservice.settings.piggybank.autopayments.service;
 
 import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.mainaccount.activity.model.TransactionType;
+import com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.wallet.model.Wallet;
+import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AutoPaymentsCore {
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final WalletService walletService;
 
     public void process(Long userId, PiggyBank piggyBank, Wallet wallet, BigDecimal automationAmount, PiggyBankAutomationMode mode) {
         switch (mode) {
@@ -30,6 +34,8 @@ public class AutoPaymentsCore {
         piggyBank.setAmount(piggyBank.getAmount().add(availableToTransfer));
         if (availableToTransfer.signum() > 0) {
             wallet.withdraw(availableToTransfer);
+            walletService.publishStatusChange(userId, wallet, TransactionType.WITHDRAWAL,
+                    WalletTransactionReason.PIGGY_BANK_AUTOMATIC_SAVING, availableToTransfer);
         }
 
         kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_ADDED_TO_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), availableToTransfer, null, LocalDateTime.now()));
@@ -41,9 +47,10 @@ public class AutoPaymentsCore {
         piggyBank.setAmount(piggyBank.getAmount().subtract(amountToRollback));
         if (amountToRollback.signum() > 0) {
             wallet.deposit(amountToRollback);
+            walletService.publishStatusChange(userId, wallet, TransactionType.REFUND,
+                    WalletTransactionReason.PIGGY_BANK_AUTOMATIC_SAVING, amountToRollback);
         }
 
         kafkaTemplate.send("piggybank.transaction.created", new PiggyBankActivityEvent(userId, PiggyBankActivityType.AMOUNT_REMOVED_FROM_PIGGY_BANK_BY_SETTING, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, amountToRollback, LocalDateTime.now()));
     }
 }
-
