@@ -1,29 +1,23 @@
-package com.finovara.notificationservice.notificationemail.service.settings.action.wallet.lowbalance.service;
+package com.finovara.notificationservice.notificationemail.settings.action.wallet.lowbalance.service;
 
-import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
 import com.finovara.contracts.mainaccount.activity.model.SettingType;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
-import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
-import com.finovara.notificationservice.notificationemail.service.settings.action.core.AbstractActionNotificationEmailService;
-import com.finovara.notificationservice.notificationemail.service.settings.action.wallet.lowbalance.dto.WalletLowBalanceDto;
-import org.springframework.kafka.core.KafkaTemplate;
+import com.finovara.notificationservice.notificationemail.settings.repository.NotificationEmailSettingsRepository;
+import com.finovara.notificationservice.notificationemail.settings.action.core.AbstractActionNotificationEmailService;
+import com.finovara.notificationservice.notificationemail.settings.action.wallet.lowbalance.dto.WalletLowBalanceDto;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 @Service
 public class NotifyWalletLowBalanceServiceAction extends AbstractActionNotificationEmailService<WalletLowBalanceDto, WalletLowBalanceDto> {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
-
     public NotifyWalletLowBalanceServiceAction(NotificationEmailSettingsRepository repository,
                                                AuthBackendClient authBackendClient,
-                                               KafkaTemplate<String, Object> kafkaTemplate,
+                                               OutboxService outboxService,
                                                AdditionalAuthorizationCodeResolver resolver) {
-        super(repository, authBackendClient, resolver);
-        this.kafkaTemplate = kafkaTemplate;
+        super(repository, authBackendClient, resolver, outboxService);
     }
 
     @Override
@@ -39,8 +33,6 @@ public class NotifyWalletLowBalanceServiceAction extends AbstractActionNotificat
 
     @Override
     protected void handleActivity(Long userId, boolean enabled) {
-        kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.NOTIFICATION_WALLET_LOW_BALANCE,
-                enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED,
-                LocalDateTime.now()));
+        publishActivity(userId, SettingType.NOTIFICATION_WALLET_LOW_BALANCE, enabled);
     }
 }
