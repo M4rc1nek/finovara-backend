@@ -1,5 +1,7 @@
 package com.finovara.financeservice.sharedaccount.deletion;
 
+import static com.finovara.contracts.mainaccount.activity.model.TransactionType.REFUND;
+import static com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason.SHARED_ACCOUNT_REFUND;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -121,8 +123,10 @@ class SharedAccountDeletionFinanceDataServiceTest {
 
                     service.deleteData(event);
 
-                    verify(walletService).addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"));
-                    verify(walletService).addBalanceToWallet(MEMBER_ID, new BigDecimal("50.00"));
+                    verify(walletService).addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"),
+                            REFUND, SHARED_ACCOUNT_REFUND);
+                    verify(walletService).addBalanceToWallet(MEMBER_ID, new BigDecimal("50.00"),
+                            REFUND, SHARED_ACCOUNT_REFUND);
                 }
 
                 @Test
@@ -143,8 +147,9 @@ class SharedAccountDeletionFinanceDataServiceTest {
 
                     service.deleteData(event);
 
-                    verify(walletService).addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"));
-                    verify(walletService, never()).addBalanceToWallet(eq(MEMBER_ID), any(BigDecimal.class));
+                    verify(walletService).addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"),
+                            REFUND, SHARED_ACCOUNT_REFUND);
+                    verify(walletService, never()).addBalanceToWallet(eq(MEMBER_ID), any(BigDecimal.class), any(), any());
                 }
 
                 @Test
@@ -153,8 +158,9 @@ class SharedAccountDeletionFinanceDataServiceTest {
 
                     service.deleteData(event);
 
-                    verify(walletService).addBalanceToWallet(MEMBER_ID, new BigDecimal("20.00"));
-                    verify(walletService, never()).addBalanceToWallet(eq(OWNER_ID), any(BigDecimal.class));
+                    verify(walletService).addBalanceToWallet(MEMBER_ID, new BigDecimal("20.00"),
+                            REFUND, SHARED_ACCOUNT_REFUND);
+                    verify(walletService, never()).addBalanceToWallet(eq(OWNER_ID), any(BigDecimal.class), any(), any());
                 }
 
                 @Test
@@ -163,8 +169,9 @@ class SharedAccountDeletionFinanceDataServiceTest {
 
                     service.deleteData(event);
 
-                    verify(walletService).addBalanceToWallet(OWNER_ID, new BigDecimal("20.00"));
-                    verify(walletService, never()).addBalanceToWallet(eq(MEMBER_ID), any(BigDecimal.class));
+                    verify(walletService).addBalanceToWallet(OWNER_ID, new BigDecimal("20.00"),
+                            REFUND, SHARED_ACCOUNT_REFUND);
+                    verify(walletService, never()).addBalanceToWallet(eq(MEMBER_ID), any(BigDecimal.class), any(), any());
                 }
 
                 @Test
@@ -216,12 +223,13 @@ class SharedAccountDeletionFinanceDataServiceTest {
                 void shouldSkipOwnerRefundAndContinueWhenOwnerWalletNoLongerExists() {
                     stubContributions("150.00", "50.00", "70.00", "20.00");
                     doThrow(new RequestedEntityNotFoundException("Wallet not found")).when(walletService)
-                            .addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"));
+                            .addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"), REFUND, SHARED_ACCOUNT_REFUND);
 
                     boolean result = service.deleteData(event);
 
                     assertTrue(result);
-                    verify(walletService).addBalanceToWallet(MEMBER_ID, new BigDecimal("50.00"));
+                    verify(walletService).addBalanceToWallet(MEMBER_ID, new BigDecimal("50.00"),
+                            REFUND, SHARED_ACCOUNT_REFUND);
                     verify(outboxService, never()).save(anyString(), eq(OWNER_ID.toString()), anyString(),
                             any(SharedAccountChangeHistoryActivityEvent.class));
                     verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(MEMBER_ID.toString()), eq(OUTBOX_EVENT_TYPE),
@@ -233,7 +241,7 @@ class SharedAccountDeletionFinanceDataServiceTest {
                 void shouldThrowExceptionWhenRefundFailsWithUnexpectedError() {
                     stubContributions("150.00", "50.00", "70.00", "20.00");
                     doThrow(new IllegalStateException("Unexpected")).when(walletService)
-                            .addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"));
+                            .addBalanceToWallet(OWNER_ID, new BigDecimal("100.00"), REFUND, SHARED_ACCOUNT_REFUND);
 
                     assertThrows(IllegalStateException.class, () -> service.deleteData(event));
 
