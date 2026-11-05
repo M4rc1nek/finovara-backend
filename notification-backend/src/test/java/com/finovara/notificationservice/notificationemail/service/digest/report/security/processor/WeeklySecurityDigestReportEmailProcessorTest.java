@@ -5,7 +5,8 @@ import com.finovara.contracts.mainaccount.report.digest.security.WeeklySecurityD
 import com.finovara.notificationservice.feignclient.ActivityLogBackendClient;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ScheduledEmailNotificationType;
-import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
+import com.finovara.notificationservice.notificationemail.digest.report.security.processor.WeeklySecurityDigestReportEmailProcessor;
+import com.finovara.notificationservice.notificationemail.util.EmailNotifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
