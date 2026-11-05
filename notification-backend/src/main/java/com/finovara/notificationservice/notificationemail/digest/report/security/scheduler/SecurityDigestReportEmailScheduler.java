@@ -1,6 +1,6 @@
-package com.finovara.notificationservice.notificationemail.service.digest.report.security.scheduler;
+package com.finovara.notificationservice.notificationemail.digest.report.security.scheduler;
 
-import com.finovara.notificationservice.notificationemail.service.digest.report.security.processor.WeeklySecurityDigestReportEmailProcessor;
+import com.finovara.notificationservice.notificationemail.digest.report.security.processor.WeeklySecurityDigestReportEmailProcessor;
 import lombok.RequiredArgsConstructor;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
