@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notificationemail.service.settings.action.wallet.lowbalance.dto;
+package com.finovara.notificationservice.notificationemail.settings.action.wallet.lowbalance.dto;
 
 import com.finovara.notificationservice.notificationemail.model.EmailNotificationSettingRequest;
 import jakarta.validation.constraints.DecimalMax;
