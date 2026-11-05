@@ -28,6 +28,11 @@ public enum ActionEmailNotificationType implements EmailNotificationTemplate {
             "email/wallet-low-balance.html",
             EmailNotificationCategory.SYSTEM),
 
+    NEW_LOGIN(
+            "Finovara - Nowe logowanie do konta",
+            "email/new-login.html",
+            EmailNotificationCategory.SYSTEM),
+
     SHARED_ACCOUNT_LARGE_EXPENSE_DETECTED(
             "Finovara - Wykryto duży wydatek",
             "email/large-expense-detected.html",
