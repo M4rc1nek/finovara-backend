@@ -1,30 +1,23 @@
-package com.finovara.notificationservice.notificationemail.service.settings.action.passwordchange.service;
+package com.finovara.notificationservice.notificationemail.settings.action.passwordchange.service;
 
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
-import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
-import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
 import com.finovara.contracts.mainaccount.activity.model.SettingType;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
-import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
-import com.finovara.notificationservice.notificationemail.service.settings.action.core.AbstractActionNotificationEmailService;
-import org.springframework.kafka.core.KafkaTemplate;
+import com.finovara.notificationservice.notificationemail.settings.repository.NotificationEmailSettingsRepository;
+import com.finovara.notificationservice.notificationemail.settings.action.core.AbstractActionNotificationEmailService;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 public class NotifyPasswordChangeServiceAction extends AbstractActionNotificationEmailService<NotificationEmailDto, NotificationEmailDto> {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
-
     public NotifyPasswordChangeServiceAction(NotificationEmailSettingsRepository notificationEmailSettingsRepository,
                                              AuthBackendClient authBackendClient,
-                                             KafkaTemplate<String, Object> kafkaTemplate,
+                                             OutboxService outboxService,
                                              AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver) {
-        super(notificationEmailSettingsRepository, authBackendClient, additionalAuthorizationCodeResolver);
-        this.kafkaTemplate = kafkaTemplate;
+        super(notificationEmailSettingsRepository, authBackendClient, additionalAuthorizationCodeResolver, outboxService);
     }
 
     @Override
@@ -39,7 +32,6 @@ public class NotifyPasswordChangeServiceAction extends AbstractActionNotificatio
 
     @Override
     protected void handleActivity(Long userId, boolean enabled) {
-        kafkaTemplate.send("settings.changed", new SettingsActivityEvent(userId, SettingType.NOTIFICATION_PASSWORD_CHANGED,
-                enabled ? SettingActivityStatus.ENABLED : SettingActivityStatus.DISABLED, LocalDateTime.now()));
+        publishActivity(userId, SettingType.NOTIFICATION_PASSWORD_CHANGED, enabled);
     }
 }
