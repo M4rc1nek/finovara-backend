@@ -51,6 +51,7 @@ class NotificationEmailSettingsServiceTest {
             assertFalse(savedSettings.isNotifyOnUsernameChange());
             assertFalse(savedSettings.isNotifyOnEmailChange());
             assertFalse(savedSettings.isNotifyOnAccountDeleted());
+            assertFalse(savedSettings.isNotifyOnNewLogin());
         }
 
         @Test

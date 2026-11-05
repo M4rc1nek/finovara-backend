@@ -15,8 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 @Service
-public class NotifyPasswordChangeServiceAction
-        extends AbstractActionNotificationEmailService<NotificationEmailDto, NotificationEmailDto> {
+public class NotifyPasswordChangeServiceAction extends AbstractActionNotificationEmailService<NotificationEmailDto, NotificationEmailDto> {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 

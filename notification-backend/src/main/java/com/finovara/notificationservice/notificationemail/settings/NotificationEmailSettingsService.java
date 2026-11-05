@@ -27,6 +27,7 @@ public class NotificationEmailSettingsService {
                     .notifyOnEmailChange(false)
                     .notifyOnAccountDeleted(false)
                     .notifyOnWalletLowBalance(false)
+                    .notifyOnNewLogin(false)
                     .walletLowBalanceThreshold(BigDecimal.ZERO)
                     .build());
             log.info("Notification settings created for userId={}", userId);
