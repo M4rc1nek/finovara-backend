@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.consumer.notificationemail;
+package com.finovara.notificationservice.consumer.notificationemail.sharedaccount;
 
 import com.finovara.contracts.sharedaccount.event.notification.LargeExpenseNotificationEvent;
 import com.finovara.notificationservice.notificationemail.sharedaccount.transaction.largeexpense.service.LargeExpenseNotificationHandler;
