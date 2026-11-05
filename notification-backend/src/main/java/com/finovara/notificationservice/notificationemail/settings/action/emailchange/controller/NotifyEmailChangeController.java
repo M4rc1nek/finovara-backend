@@ -1,7 +1,7 @@
-package com.finovara.notificationservice.notificationemail.service.settings.action.emailchange.controller;
+package com.finovara.notificationservice.notificationemail.settings.action.emailchange.controller;
 
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
-import com.finovara.notificationservice.notificationemail.service.settings.action.emailchange.service.NotifyEmailChangeServiceAction;
+import com.finovara.notificationservice.notificationemail.settings.action.emailchange.service.NotifyEmailChangeServiceAction;
 import com.finovara.notificationservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
