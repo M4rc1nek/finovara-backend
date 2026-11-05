@@ -1,5 +1,9 @@
 package com.finovara.financeservice.wallet.service;
 
+import static com.finovara.contracts.mainaccount.activity.model.TransactionType.DEPOSIT;
+import static com.finovara.contracts.mainaccount.activity.model.TransactionType.WITHDRAWAL;
+import static com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason.EXPENSE;
+import static com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason.REVENUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,10 +13,13 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.mainaccount.activity.event.wallet.WalletStatusActivityEvent;
 import com.finovara.contracts.mainaccount.transaction.event.wallet.WalletBalanceChangedEvent;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.dto.WalletDto;
 import com.finovara.financeservice.wallet.dto.WalletResponse;
@@ -29,6 +36,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -53,6 +61,8 @@ class WalletServiceTest {
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
     @Mock
+    private OutboxService outboxService;
+    @Mock
     private Wallet wallet;
     @Mock
     private FundReservation firstReservation;
@@ -61,6 +71,11 @@ class WalletServiceTest {
 
     @InjectMocks
     private WalletService service;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(wallet.getId()).thenReturn(WALLET_ID);
+    }
 
     @Nested
     class AddBalanceToWallet {
@@ -72,7 +87,7 @@ class WalletServiceTest {
             when(wallet.getBalance()).thenReturn(BALANCE);
             when(wallet.getReservedAmount()).thenReturn(RESERVED);
 
-            WalletDto result = service.addBalanceToWallet(USER_ID, AMOUNT);
+            WalletDto result = service.addBalanceToWallet(USER_ID, AMOUNT, DEPOSIT, REVENUE);
 
             assertEquals(new WalletDto(WALLET_ID, USER_ID, BALANCE, RESERVED, AVAILABLE), result);
         }
@@ -83,7 +98,7 @@ class WalletServiceTest {
             when(wallet.getBalance()).thenReturn(BALANCE);
             when(wallet.getReservedAmount()).thenReturn(RESERVED);
 
-            service.addBalanceToWallet(USER_ID, AMOUNT);
+            service.addBalanceToWallet(USER_ID, AMOUNT, DEPOSIT, REVENUE);
 
             verify(wallet).deposit(AMOUNT);
         }
@@ -94,16 +109,22 @@ class WalletServiceTest {
             when(wallet.getBalance()).thenReturn(BALANCE);
             when(wallet.getReservedAmount()).thenReturn(RESERVED);
 
-            service.addBalanceToWallet(USER_ID, AMOUNT);
+            service.addBalanceToWallet(USER_ID, AMOUNT, DEPOSIT, REVENUE);
 
             verifyNoInteractions(kafkaTemplate);
+            ArgumentCaptor<WalletStatusActivityEvent> captor = ArgumentCaptor.forClass(WalletStatusActivityEvent.class);
+            verify(outboxService).save(eq("Wallet"), eq(WALLET_ID.toString()), eq("wallet-status.changed"), captor.capture());
+            assertEquals(USER_ID, captor.getValue().userId());
+            assertEquals(DEPOSIT, captor.getValue().type());
+            assertEquals(REVENUE, captor.getValue().reason());
+            assertEquals(AMOUNT, captor.getValue().amount());
         }
 
         @Test
         void shouldThrowExceptionWhenWalletDoesNotExist() {
             when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenThrow(new RequestedEntityNotFoundException("Wallet not found"));
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.addBalanceToWallet(USER_ID, AMOUNT));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.addBalanceToWallet(USER_ID, AMOUNT, DEPOSIT, REVENUE));
 
             verifyNoInteractions(kafkaTemplate);
         }
@@ -113,7 +134,7 @@ class WalletServiceTest {
             when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
             doThrow(new InvalidInputException("Invalid amount")).when(wallet).deposit(AMOUNT);
 
-            assertThrows(InvalidInputException.class, () -> service.addBalanceToWallet(USER_ID, AMOUNT));
+            assertThrows(InvalidInputException.class, () -> service.addBalanceToWallet(USER_ID, AMOUNT, DEPOSIT, REVENUE));
 
             verifyNoInteractions(kafkaTemplate);
         }
@@ -129,7 +150,7 @@ class WalletServiceTest {
             when(wallet.getBalance()).thenReturn(BALANCE, BALANCE_AFTER_WITHDRAWAL);
             when(wallet.getReservedAmount()).thenReturn(RESERVED);
 
-            WalletDto result = service.removeBalanceFromWallet(USER_ID, AMOUNT);
+            WalletDto result = service.removeBalanceFromWallet(USER_ID, AMOUNT, WITHDRAWAL, EXPENSE);
 
             assertEquals(new WalletDto(WALLET_ID, USER_ID, BALANCE_AFTER_WITHDRAWAL, RESERVED, BALANCE_AFTER_WITHDRAWAL.subtract(RESERVED)), result);
         }
@@ -140,7 +161,7 @@ class WalletServiceTest {
             when(wallet.getBalance()).thenReturn(BALANCE, BALANCE_AFTER_WITHDRAWAL);
             when(wallet.getReservedAmount()).thenReturn(RESERVED);
 
-            service.removeBalanceFromWallet(USER_ID, AMOUNT);
+            service.removeBalanceFromWallet(USER_ID, AMOUNT, WITHDRAWAL, EXPENSE);
 
             verify(wallet).withdraw(AMOUNT);
         }
@@ -151,7 +172,7 @@ class WalletServiceTest {
             when(wallet.getBalance()).thenReturn(BALANCE, BALANCE_AFTER_WITHDRAWAL);
             when(wallet.getReservedAmount()).thenReturn(RESERVED);
 
-            service.removeBalanceFromWallet(USER_ID, AMOUNT);
+            service.removeBalanceFromWallet(USER_ID, AMOUNT, WITHDRAWAL, EXPENSE);
 
             verify(kafkaTemplate).send(eq("wallet.balance-changed"), any(WalletBalanceChangedEvent.class));
         }
@@ -160,7 +181,7 @@ class WalletServiceTest {
         void shouldThrowExceptionWhenWalletDoesNotExist() {
             when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenThrow(new RequestedEntityNotFoundException("Wallet not found"));
 
-            assertThrows(RequestedEntityNotFoundException.class, () -> service.removeBalanceFromWallet(USER_ID, AMOUNT));
+            assertThrows(RequestedEntityNotFoundException.class, () -> service.removeBalanceFromWallet(USER_ID, AMOUNT, WITHDRAWAL, EXPENSE));
 
             verifyNoInteractions(kafkaTemplate);
         }
@@ -170,7 +191,7 @@ class WalletServiceTest {
             when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
             doThrow(new InvalidInputException("Insufficient funds")).when(wallet).withdraw(AMOUNT);
 
-            assertThrows(InvalidInputException.class, () -> service.removeBalanceFromWallet(USER_ID, AMOUNT));
+            assertThrows(InvalidInputException.class, () -> service.removeBalanceFromWallet(USER_ID, AMOUNT, WITHDRAWAL, EXPENSE));
 
             verifyNoInteractions(kafkaTemplate);
         }
