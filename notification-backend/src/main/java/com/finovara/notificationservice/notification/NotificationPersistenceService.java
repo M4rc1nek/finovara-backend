@@ -1,12 +1,15 @@
 package com.finovara.notificationservice.notification;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.util.SortType;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
 import com.finovara.notificationservice.notification.model.Notification;
 import com.finovara.notificationservice.notification.repository.NotificationRepository;
+import com.finovara.notificationservice.util.time.PolishTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +22,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 
 @Slf4j
 @Service
@@ -65,11 +70,12 @@ public class NotificationPersistenceService {
 
         List<NotificationResponse> result = new ArrayList<>();
         for (Notification notification : notifications) {
-            if (notification.getPayload() == null || notification.getPayload().isBlank()) {
+            String payload = notification.getPayload();
+            if (payload == null || payload.isBlank()) {
                 log.warn("Notification {} has empty payload and will be skipped", notification.getId());
                 continue;
             }
-            result.add(fromJson(notification.getPayload(), notification.getId()));
+            result.add(fromJson(payload, notification.getId()));
         }
         return result;
     }
@@ -104,8 +110,13 @@ public class NotificationPersistenceService {
 
     private NotificationResponse fromJson(String payload, Long notificationId) {
         try {
-            return objectMapper.readValue(payload, NotificationResponse.class);
-        } catch (JsonProcessingException exception) {
+            JsonNode notificationJson = objectMapper.readTree(payload);
+            if (notificationJson instanceof ObjectNode objectNode && objectNode.hasNonNull("createdAt")) {
+                LocalDateTime utcCreatedAt = LocalDateTime.parse(objectNode.get("createdAt").asText());
+                objectNode.put("createdAt", PolishTime.toPolishLocalDateTime(utcCreatedAt).toString());
+            }
+            return objectMapper.treeToValue(notificationJson, NotificationResponse.class);
+        } catch (JsonProcessingException | DateTimeParseException exception) {
             throw new IllegalStateException("Cannot deserialize notification payload for notification id: " + notificationId, exception);
         }
     }
