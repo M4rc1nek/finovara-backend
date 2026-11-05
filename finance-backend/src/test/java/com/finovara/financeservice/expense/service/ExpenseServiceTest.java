@@ -1,5 +1,8 @@
 package com.finovara.financeservice.expense.service;
 
+import static com.finovara.contracts.mainaccount.activity.model.TransactionType.*;
+import static com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason.*;
+
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
@@ -219,7 +222,7 @@ class ExpenseServiceTest {
 
                 assertThrows(MissingRequirementException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
                 verify(expenseRepository, never()).save(any(Expense.class));
-                verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                verify(walletService, never()).removeBalanceFromWallet(any(), any(), any(), any());
                 verifyNoInteractions(outboxService, countQuantityLimitService);
             }
 
@@ -307,7 +310,8 @@ class ExpenseServiceTest {
                     service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL);
 
                     verify(walletService).lockWalletForUpdate(USER_ID);
-                    verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+                    verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT,
+                            WITHDRAWAL, EXPENSE);
                     verify(countQuantityLimitService).handleExpenseLimitExceeded(eq(USER_ID), eq(countQuantityLimitDto), eq(PERIOD), any());
                     verify(smartScanService).handleSmartScan(eq(USER_ID), any(), eq(AMOUNT), eq(SmartScanMode.ADD));
                     verify(outboxService).save(eq(EXPENSE_AGGREGATE), eq(EXPENSE_ID.toString()), eq(EXPENSE_TOPIC), any(ExpenseActivityEvent.class));
@@ -325,7 +329,8 @@ class ExpenseServiceTest {
                     InOrder inOrder = inOrder(walletService, limitRepository, expenseRepository);
                     inOrder.verify(walletService).lockWalletForUpdate(USER_ID);
                     inOrder.verify(limitRepository).findAllActiveByUserId(USER_ID);
-                    inOrder.verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+                    inOrder.verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT,
+                            WITHDRAWAL, EXPENSE);
                     inOrder.verify(expenseRepository).save(any(Expense.class));
                 }
 
@@ -397,14 +402,15 @@ class ExpenseServiceTest {
                             .handleSmartScan(eq(USER_ID), any(), eq(AMOUNT), eq(SmartScanMode.ADD));
 
                     assertThrows(IllegalStateException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
-                    verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                    verify(walletService, never()).removeBalanceFromWallet(any(), any(), any(), any());
                     verifyNoInteractions(expenseRepository, outboxService);
                 }
 
                 @Test
                 void shouldThrowExceptionWhenWalletBalanceIsInsufficient() {
                     when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(List.of());
-                    doThrow(new IllegalStateException()).when(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+                    doThrow(new IllegalStateException()).when(walletService).removeBalanceFromWallet(
+                            USER_ID, AMOUNT, WITHDRAWAL, EXPENSE);
 
                     assertThrows(IllegalStateException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
                     verifyNoInteractions(expenseRepository, outboxService);
@@ -470,8 +476,9 @@ class ExpenseServiceTest {
                 assertEquals(EXPENSE_ID, result);
                 assertEquals(AMOUNT, existing.getAmount());
                 assertEquals(CATEGORY, existing.getCategory());
-                verify(walletService).removeBalanceFromWallet(USER_ID, BigDecimal.valueOf(5));
-                verify(walletService, never()).addBalanceToWallet(any(), any());
+                verify(walletService).removeBalanceFromWallet(USER_ID, BigDecimal.valueOf(5),
+                        WITHDRAWAL, EXPENSE);
+                verify(walletService, never()).addBalanceToWallet(any(), any(), any(), any());
             }
 
             @Test
@@ -482,8 +489,9 @@ class ExpenseServiceTest {
 
                 service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
 
-                verify(walletService).addBalanceToWallet(USER_ID, BigDecimal.valueOf(15));
-                verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                verify(walletService).addBalanceToWallet(USER_ID, BigDecimal.valueOf(15),
+                        REFUND, EXPENSE);
+                verify(walletService, never()).removeBalanceFromWallet(any(), any(), any(), any());
             }
 
             @Test
@@ -494,8 +502,8 @@ class ExpenseServiceTest {
 
                 service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest);
 
-                verify(walletService, never()).addBalanceToWallet(any(), any());
-                verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                verify(walletService, never()).addBalanceToWallet(any(), any(), any(), any());
+                verify(walletService, never()).removeBalanceFromWallet(any(), any(), any(), any());
             }
 
             @Test
@@ -543,7 +551,7 @@ class ExpenseServiceTest {
 
                 assertThrows(MissingRequirementException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
                 assertEquals(BigDecimal.valueOf(5), existing.getAmount());
-                verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                verify(walletService, never()).removeBalanceFromWallet(any(), any(), any(), any());
                 verifyNoInteractions(outboxService);
             }
 
@@ -613,7 +621,7 @@ class ExpenseServiceTest {
                 when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenThrow(new IllegalStateException());
 
                 assertThrows(IllegalStateException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
-                verify(walletService, never()).removeBalanceFromWallet(any(), any());
+                verify(walletService, never()).removeBalanceFromWallet(any(), any(), any(), any());
                 verifyNoInteractions(limitRepository, roundUpService, outboxService);
             }
 
@@ -649,7 +657,8 @@ class ExpenseServiceTest {
             verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
             verify(walletService).lockWalletForUpdate(USER_ID);
             verify(roundUpService).handleExpenseForRoundUp(USER_ID, EXPENSE_ID, PiggyBankAutomationMode.ROLLBACK);
-            verify(walletService).addBalanceToWallet(USER_ID, AMOUNT);
+            verify(walletService).addBalanceToWallet(USER_ID, AMOUNT,
+                    REFUND, EXPENSE);
             verify(outboxService).save(eq(EXPENSE_AGGREGATE), eq(EXPENSE_ID.toString()), eq(EXPENSE_TOPIC), any(ExpenseActivityEvent.class));
             verify(expenseRepository).delete(expense);
         }
@@ -685,7 +694,7 @@ class ExpenseServiceTest {
             when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenThrow(new IllegalStateException());
 
             assertThrows(IllegalStateException.class, () -> service.deleteExpense(EXPENSE_ID, USER_ID, AUTH_CODE));
-            verify(walletService, never()).addBalanceToWallet(any(), any());
+            verify(walletService, never()).addBalanceToWallet(any(), any(), any(), any());
             verifyNoInteractions(roundUpService, outboxService, expenseRepository, limitRepository);
         }
 
