@@ -4,6 +4,8 @@ import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.unprocessablecontent.MissingRequirementException;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.ExpenseActivityType;
+import com.finovara.contracts.mainaccount.activity.model.TransactionType;
+import com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason;
 import com.finovara.contracts.mainaccount.transaction.event.limit.LimitStatsEvent;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
@@ -94,7 +96,7 @@ public class ExpenseService implements UserDataDeletable {
                 dto.countQuantityLimitDto().periodType(), dto.confirmPasswordDto());
         smartScanService.handleSmartScan(userId, dto.confirmPasswordDto(), expenseDto.amount(), SmartScanMode.ADD);
 
-        walletService.removeBalanceFromWallet(userId, expenseDto.amount());
+        walletService.removeBalanceFromWallet(userId, expenseDto.amount(), TransactionType.WITHDRAWAL, WalletTransactionReason.EXPENSE);
 
         Expense expense = expenseRepository.save(Expense.builder()
                 .amount(expenseDto.amount())
@@ -169,7 +171,7 @@ public class ExpenseService implements UserDataDeletable {
         Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, userId);
 
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
-        walletService.addBalanceToWallet(userId, expense.getAmount());
+        walletService.addBalanceToWallet(userId, expense.getAmount(), TransactionType.REFUND, WalletTransactionReason.EXPENSE);
         outboxService.save("Expense", expenseId.toString(), "expense.created",
                 new ExpenseActivityEvent(userId, ExpenseActivityType.DELETED_EXPENSE, expense.getAmount(), expense.getCategory(), null, null, LocalDateTime.now()));
         expenseRepository.delete(expense);
@@ -194,9 +196,9 @@ public class ExpenseService implements UserDataDeletable {
     private void applyWalletDelta(Long userId, BigDecimal oldAmount, BigDecimal newAmount) {
         BigDecimal delta = newAmount.subtract(oldAmount);
         if (delta.signum() > 0) {
-            walletService.removeBalanceFromWallet(userId, delta);
+            walletService.removeBalanceFromWallet(userId, delta, TransactionType.WITHDRAWAL, WalletTransactionReason.EXPENSE);
         } else if (delta.signum() < 0) {
-            walletService.addBalanceToWallet(userId, delta.negate());
+            walletService.addBalanceToWallet(userId, delta.negate(), TransactionType.REFUND, WalletTransactionReason.EXPENSE);
         }
     }
 
