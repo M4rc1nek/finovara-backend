@@ -1,6 +1,6 @@
-package com.finovara.notificationservice.notificationemail.service.settings.action.accountdeleted.controller;
+package com.finovara.notificationservice.notificationemail.settings.action.accountdeleted.controller;
 
-import com.finovara.notificationservice.notificationemail.service.settings.action.accountdeleted.service.NotifyOnAccountDeletedServiceAction;
+import com.finovara.notificationservice.notificationemail.settings.action.accountdeleted.service.NotifyOnAccountDeletedServiceAction;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
