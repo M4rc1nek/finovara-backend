@@ -1,9 +1,7 @@
-package com.finovara.notificationservice.notificationemail.service.settings.action.wallet.lowbalance.controller;
+package com.finovara.notificationservice.notificationemail.settings.action.wallet.lowbalance.controller;
 
-import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
-import com.finovara.notificationservice.notificationemail.service.settings.action.usernamechange.service.NotifyUsernameChangeServiceAction;
-import com.finovara.notificationservice.notificationemail.service.settings.action.wallet.lowbalance.dto.WalletLowBalanceDto;
-import com.finovara.notificationservice.notificationemail.service.settings.action.wallet.lowbalance.service.NotifyWalletLowBalanceServiceAction;
+import com.finovara.notificationservice.notificationemail.settings.action.wallet.lowbalance.dto.WalletLowBalanceDto;
+import com.finovara.notificationservice.notificationemail.settings.action.wallet.lowbalance.service.NotifyWalletLowBalanceServiceAction;
 import com.finovara.notificationservice.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
