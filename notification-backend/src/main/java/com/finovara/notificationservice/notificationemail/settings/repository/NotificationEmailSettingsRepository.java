@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notificationemail.repository;
+package com.finovara.notificationservice.notificationemail.settings.repository;
 
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
 import org.springframework.data.jpa.repository.JpaRepository;
