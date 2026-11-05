@@ -1,10 +1,11 @@
-package com.finovara.notificationservice.notificationemail.service.settings.action.usernamechange.service;
+package com.finovara.notificationservice.notificationemail.settings.action.usernamechange.service;
 
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
-import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
+import com.finovara.notificationservice.notificationemail.settings.repository.NotificationEmailSettingsRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.Optional;
 
@@ -36,7 +36,7 @@ class NotifyUsernameChangeServiceActionTest {
     private AuthBackendClient authBackendClient;
 
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private OutboxService outboxService;
 
     @Mock
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
@@ -48,7 +48,7 @@ class NotifyUsernameChangeServiceActionTest {
 
     @BeforeEach
     void setUp() {
-        action = new NotifyUsernameChangeServiceAction(notificationEmailSettingsRepository, authBackendClient, kafkaTemplate, additionalAuthorizationCodeResolver);
+        action = new NotifyUsernameChangeServiceAction(notificationEmailSettingsRepository, authBackendClient, outboxService, additionalAuthorizationCodeResolver);
     }
 
     @Nested
@@ -102,14 +102,14 @@ class NotifyUsernameChangeServiceActionTest {
         void shouldSendKafkaEventWhenHandlingActivity() {
             action.handleActivity(USER_ID, true);
 
-            verify(kafkaTemplate).send(eq("settings.changed"), any());
+            verify(outboxService).save(eq("NotificationSettings"), eq(USER_ID.toString()), eq("settings.changed"), any());
         }
 
         @Test
         void shouldSendKafkaEventWhenDisabled() {
             action.handleActivity(USER_ID, false);
 
-            verify(kafkaTemplate).send(eq("settings.changed"), any());
+            verify(outboxService).save(eq("NotificationSettings"), eq(USER_ID.toString()), eq("settings.changed"), any());
         }
     }
 
@@ -126,7 +126,7 @@ class NotifyUsernameChangeServiceActionTest {
 
             verify(notificationEmailSettings).setNotifyOnUsernameChange(true);
             verify(notificationEmailSettingsRepository).save(notificationEmailSettings);
-            verify(kafkaTemplate).send(eq("settings.changed"), any());
+            verify(outboxService).save(eq("NotificationSettings"), eq(USER_ID.toString()), eq("settings.changed"), any());
         }
     }
 }
