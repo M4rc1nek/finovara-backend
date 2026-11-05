@@ -1,0 +1,14 @@
+package com.finovara.contracts.mainaccount.activity.model;
+
+public enum WalletTransactionReason {
+    EXPENSE,
+    REVENUE,
+    PIGGY_BANK_CONTRIBUTION,
+    PIGGY_BANK_RECURRING_SAVING,
+    PIGGY_BANK_WITHDRAWAL,
+    PIGGY_BANK_ROUND_UP,
+    PIGGY_BANK_AUTOMATIC_SAVING,
+    PIGGY_BANK_GOAL_COMPLETION,
+    FUND_RESERVATION,
+    SHARED_ACCOUNT_REFUND
+}
