@@ -1,4 +1,4 @@
-package com.finovara.notificationservice.notificationemail.service;
+package com.finovara.notificationservice.notificationemail.util;
 
 import com.finovara.notificationservice.notificationemail.model.EmailNotificationTemplate;
 import com.finovara.notificationservice.notificationemail.util.emailtemplate.EmailTemplateService;
