@@ -1,6 +1,10 @@
 package com.finovara.financeservice.wallet.service;
 
+import com.finovara.contracts.mainaccount.activity.event.wallet.WalletStatusActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.TransactionType;
+import com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason;
 import com.finovara.contracts.mainaccount.transaction.event.wallet.WalletBalanceChangedEvent;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
 import com.finovara.financeservice.wallet.dto.WalletDto;
@@ -31,13 +35,15 @@ public class WalletService implements UserDataDeletable {
     private final WalletManagerService walletManagerService;
     private final FundReservationRepository fundReservationRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final OutboxService outboxService;
 
     @Transactional
     @CacheEvict(value = "wallet:user", key = "#userId")
-    public WalletDto addBalanceToWallet(Long userId, BigDecimal amount) {
+    public WalletDto addBalanceToWallet(Long userId, BigDecimal amount, TransactionType type, WalletTransactionReason reason) {
         Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
 
         wallet.deposit(amount);
+        publishStatusChange(userId, wallet, type, reason, amount);
         log.info("Adding balance to wallet for userId: {}", userId);
 
         return returnNewWalletDto(userId, wallet);
@@ -45,16 +51,22 @@ public class WalletService implements UserDataDeletable {
 
     @Transactional
     @CacheEvict(value = "wallet:user", key = "#userId")
-    public WalletDto removeBalanceFromWallet(Long userId, BigDecimal amount) {
+    public WalletDto removeBalanceFromWallet(Long userId, BigDecimal amount, TransactionType type, WalletTransactionReason reason) {
         Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
 
         BigDecimal previousBalance = wallet.getBalance();
         wallet.withdraw(amount);
+        publishStatusChange(userId, wallet, type, reason, amount);
         log.info("Withdrawing balance from wallet for userId: {}", userId);
 
         kafkaTemplate.send("wallet.balance-changed", new WalletBalanceChangedEvent(userId, previousBalance, wallet.getBalance(), LocalDateTime.now()));
 
         return returnNewWalletDto(userId, wallet);
+    }
+
+    public void publishStatusChange(Long userId, Wallet wallet, TransactionType type, WalletTransactionReason reason, BigDecimal amount) {
+        outboxService.save("Wallet", wallet.getId().toString(), "wallet-status.changed",
+                new WalletStatusActivityEvent(userId, type, reason, amount, LocalDateTime.now()));
     }
 
     @Transactional(propagation = Propagation.MANDATORY)

@@ -9,6 +9,7 @@ import com.finovara.financeservice.settings.finances.recurring.model.RecurringSe
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.financeservice.settings.piggybank.completion.model.GoalCompletionStrategy;
 import com.finovara.financeservice.wallet.model.Wallet;
+import com.finovara.financeservice.wallet.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +41,9 @@ class GoalCompletionCoreTest {
 
     @Mock
     private PiggyBankRepository piggyBankRepository;
+
+    @Mock
+    private WalletService walletService;
 
     @InjectMocks
     private GoalCompletionCore goalCompletionCore;

@@ -3,6 +3,8 @@ package com.finovara.financeservice.sharedaccount.deletion;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.SharedAccountChangeHistoryActivityType;
+import com.finovara.contracts.mainaccount.activity.model.TransactionType;
+import com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.sharedaccount.event.deletion.SharedAccountDeletedEvent;
 import com.finovara.financeservice.sharedaccount.expense.repository.SharedExpenseRepository;
@@ -95,7 +97,8 @@ public class SharedAccountDeletionFinanceDataService {
         }
 
         try {
-            walletService.addBalanceToWallet(instruction.userId(), instruction.amount());
+            walletService.addBalanceToWallet(instruction.userId(), instruction.amount(),
+                    TransactionType.REFUND, WalletTransactionReason.SHARED_ACCOUNT_REFUND);
         } catch (RequestedEntityNotFoundException ex) {
             log.warn("Refund skipped for userId={}  personal wallet no longer exists " +
                     "(likely concurrent full account deletion). amount={}", instruction.userId(), instruction.amount());

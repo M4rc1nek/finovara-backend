@@ -3,6 +3,8 @@ package com.finovara.financeservice.revenue.service;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.RevenueActivityType;
+import com.finovara.contracts.mainaccount.activity.model.TransactionType;
+import com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason;
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.contracts.securitymonitoring.model.RiskTriggerType;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
@@ -62,7 +64,7 @@ public class RevenueService implements UserDataDeletable {
             authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(revenueDto.authorizationCode()));
         }
 
-        walletService.addBalanceToWallet(userId, revenueDto.amount());
+        walletService.addBalanceToWallet(userId, revenueDto.amount(), TransactionType.DEPOSIT, WalletTransactionReason.REVENUE);
         Revenue revenue = revenueRepository.save(Revenue.builder()
                 .amount(revenueDto.amount())
                 .category(revenueDto.category())
@@ -97,9 +99,9 @@ public class RevenueService implements UserDataDeletable {
 
         BigDecimal delta = newAmount.subtract(oldAmount);
         if (delta.signum() > 0) {
-            walletService.addBalanceToWallet(userId, delta);
+            walletService.addBalanceToWallet(userId, delta, TransactionType.DEPOSIT, WalletTransactionReason.REVENUE);
         } else if (delta.signum() < 0) {
-            walletService.removeBalanceFromWallet(userId, delta.negate());
+            walletService.removeBalanceFromWallet(userId, delta.negate(), TransactionType.WITHDRAWAL, WalletTransactionReason.REVENUE);
         }
 
         existing.setAmount(newAmount);
@@ -129,7 +131,7 @@ public class RevenueService implements UserDataDeletable {
         Revenue revenue = revenueManagerService.getRevenueByUserIdOrThrow(revenueId, userId);
 
         autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
-        walletService.removeBalanceFromWallet(userId, revenue.getAmount());
+        walletService.removeBalanceFromWallet(userId, revenue.getAmount(), TransactionType.WITHDRAWAL, WalletTransactionReason.REVENUE);
         outboxService.save("Revenue", revenueId.toString(), "revenue.created",
                 new RevenueActivityEvent(userId, RevenueActivityType.DELETED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
         revenueRepository.delete(revenue);

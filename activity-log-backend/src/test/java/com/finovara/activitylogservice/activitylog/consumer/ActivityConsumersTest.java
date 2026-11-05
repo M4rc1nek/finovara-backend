@@ -8,6 +8,7 @@ import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountcha
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.service.LoginActivityService;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.service.SettingsActivityService;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service.SharedAccountChangeHistoryActivityService;
+import com.finovara.activitylogservice.activitylog.mainaccount.wallet.service.WalletStatusActivityService;
 import com.finovara.activitylogservice.activitylog.util.UserSessionResolver;
 import com.finovara.activitylogservice.cache.evict.ActivityCache;
 import com.finovara.activitylogservice.cache.evict.EvictActivityCacheService;
@@ -20,6 +21,7 @@ import com.finovara.contracts.mainaccount.activity.event.secure.accountchange.ac
 import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.mainaccount.activity.event.sharedaccount.SharedAccountChangeHistoryActivityEvent;
+import com.finovara.contracts.mainaccount.activity.event.wallet.WalletStatusActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.*;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.model.ExpenseCategory;
@@ -65,6 +67,9 @@ class ActivityConsumersTest {
 
     @Mock
     private SharedAccountChangeHistoryActivityService sharedAccountChangeHistoryActivityService;
+
+    @Mock
+    private WalletStatusActivityService walletStatusActivityService;
 
     @Mock
     private EvictActivityCacheService evictActivityCacheService;
@@ -173,5 +178,20 @@ class ActivityConsumersTest {
         activityConsumers.handlePiggyBankTransaction(event);
 
         verify(piggyBankActivityService).handleEvent(event);
+    }
+
+    @Test
+    void shouldDelegateWalletStatusEventToService() {
+        WalletStatusActivityEvent event = new WalletStatusActivityEvent(
+                USER_ID,
+                TransactionType.WITHDRAWAL,
+                WalletTransactionReason.EXPENSE,
+                new BigDecimal("10.00"),
+                OCCURRED_AT);
+
+        activityConsumers.handleWalletStatus(event);
+
+        verify(walletStatusActivityService).handleEvent(event);
+        verify(evictActivityCacheService).evict(ActivityCache.WALLET_STATUS, USER_ID);
     }
 }

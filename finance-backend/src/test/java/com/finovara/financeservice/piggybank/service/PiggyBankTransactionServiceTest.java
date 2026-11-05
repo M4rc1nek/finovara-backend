@@ -1,5 +1,7 @@
 package com.finovara.financeservice.piggybank.service;
 
+import static com.finovara.contracts.mainaccount.activity.model.TransactionType.*;
+import static com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -129,7 +131,8 @@ class PiggyBankTransactionServiceTest {
             void shouldRemoveBalanceFromWalletWhenOriginIsUserManual() {
                 service.addBalanceToPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, ACTIVITY_TYPE, AUTH_CODE, SOURCE_EVENT_ID, servletRequest, MANUAL_ORIGIN);
 
-                verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+                verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT,
+                        WITHDRAWAL, PIGGY_BANK_CONTRIBUTION);
             }
 
             @Test
@@ -186,7 +189,8 @@ class PiggyBankTransactionServiceTest {
                 service.addBalanceToPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, ACTIVITY_TYPE, null, SOURCE_EVENT_ID, null, AUTOMATIC_ORIGIN);
 
                 assertEquals(0, AMOUNT.compareTo(piggyBank.getAmount()));
-                verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+                verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT,
+                        WITHDRAWAL, PIGGY_BANK_RECURRING_SAVING);
             }
 
             @Test
@@ -241,7 +245,8 @@ class PiggyBankTransactionServiceTest {
 
         @Test
         void shouldThrowExceptionWhenWalletRemovalFails() {
-            doThrow(new IllegalStateException("Insufficient wallet funds")).when(walletService).removeBalanceFromWallet(USER_ID, AMOUNT);
+            doThrow(new IllegalStateException("Insufficient wallet funds")).when(walletService).removeBalanceFromWallet(
+                    USER_ID, AMOUNT, WITHDRAWAL, PIGGY_BANK_RECURRING_SAVING);
 
             assertThrows(IllegalStateException.class, () -> service.addBalanceToPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, ACTIVITY_TYPE,
                     null, SOURCE_EVENT_ID, null, AUTOMATIC_ORIGIN));
@@ -309,7 +314,8 @@ class PiggyBankTransactionServiceTest {
             void shouldAddBalanceToWalletWhenFundsAreSufficient() {
                 service.withdrawBalanceFromPiggyBank(USER_ID, PIGGY_BANK_ID, AMOUNT, AUTH_CODE, SOURCE_EVENT_ID, servletRequest);
 
-                verify(walletService).addBalanceToWallet(USER_ID, AMOUNT);
+                verify(walletService).addBalanceToWallet(USER_ID, AMOUNT,
+                        DEPOSIT, PIGGY_BANK_WITHDRAWAL);
             }
 
             @Test

@@ -13,6 +13,7 @@ public enum ActivityCache {
     ACCOUNT_CHANGE_ARCHIVE("accountChangeArchive"),
     EXPENSE("expenseActivity"),
     REVENUE("revenueActivity"),
+    WALLET_STATUS("walletStatusActivity"),
     LIMIT("limitActivity"),
     PIGGY_BANK("piggyBankActivity"),
     SETTINGS("settingsActivity"),

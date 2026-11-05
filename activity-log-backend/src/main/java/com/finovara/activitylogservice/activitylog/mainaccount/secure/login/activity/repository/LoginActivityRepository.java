@@ -31,7 +31,7 @@ public interface LoginActivityRepository extends JpaRepository<LoginActivity, Lo
               AND (CAST(:createdTo AS timestamp) IS NULL OR l.createdAt < :createdTo)
             ORDER BY l.createdAt DESC, l.id DESC
             """)
-    List<LoginActivity> findFilteredActivities( Long userId, LoginActivityFilterDto filter, LocalDateTime createdFrom, LocalDateTime createdTo,
+    List<LoginActivity> findFilteredActivities(Long userId, LoginActivityFilterDto filter, LocalDateTime createdFrom, LocalDateTime createdTo,
                                               Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

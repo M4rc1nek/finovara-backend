@@ -5,6 +5,7 @@ import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.wallet.model.Wallet;
+import com.finovara.financeservice.wallet.service.WalletService;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,9 @@ class AutoPaymentsCoreTest {
 
     @Mock
     private KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Mock
+    private WalletService walletService;
 
     @InjectMocks
     private AutoPaymentsCore autoPaymentsCore;

@@ -17,6 +17,7 @@ import com.finovara.financeservice.wallet.reservation.dto.FundReservationDto;
 import com.finovara.financeservice.wallet.reservation.dto.UnreserveReservationDto;
 import com.finovara.financeservice.wallet.reservation.model.FundReservation;
 import com.finovara.financeservice.wallet.reservation.repository.FundReservationRepository;
+import com.finovara.financeservice.wallet.service.WalletService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +41,8 @@ class FundReservationCommandServiceTest {
     private WalletManagerService walletManagerService;
     @Mock
     private FundReservationRepository fundReservationRepository;
+    @Mock
+    private WalletService walletService;
     @Mock
     private Wallet wallet;
     @Mock
