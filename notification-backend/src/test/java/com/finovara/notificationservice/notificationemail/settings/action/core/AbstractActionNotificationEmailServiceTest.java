@@ -1,11 +1,12 @@
-package com.finovara.notificationservice.notificationemail.service.settings.action.core;
+package com.finovara.notificationservice.notificationemail.settings.action.core;
 
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
-import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
+import com.finovara.notificationservice.notificationemail.settings.repository.NotificationEmailSettingsRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -41,6 +42,9 @@ class AbstractActionNotificationEmailServiceTest {
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
 
     @Mock
+    private OutboxService outboxService;
+
+    @Mock
     private NotificationEmailSettings notificationEmailSettings;
 
     private TestActionNotificationEmailService service;
@@ -50,8 +54,9 @@ class AbstractActionNotificationEmailServiceTest {
 
         TestActionNotificationEmailService(NotificationEmailSettingsRepository repository,
                                            AuthBackendClient authBackendClient,
-                                           AdditionalAuthorizationCodeResolver resolver) {
-            super(repository, authBackendClient, resolver);
+                                           AdditionalAuthorizationCodeResolver resolver,
+                                           OutboxService outboxService) {
+            super(repository, authBackendClient, resolver, outboxService);
         }
 
         @Override
@@ -63,11 +68,16 @@ class AbstractActionNotificationEmailServiceTest {
         protected NotificationEmailDto mapToDto(NotificationEmailSettings settings) {
             return new NotificationEmailDto(settings.isNotifyOnUsernameChange(), null);
         }
+
+        @Override
+        protected void handleActivity(Long userId, boolean enabled) {
+        }
     }
 
     @BeforeEach
     void setUp() {
-        service = new TestActionNotificationEmailService(notificationEmailSettingsRepository, authBackendClient, additionalAuthorizationCodeResolver);
+        service = new TestActionNotificationEmailService(
+                notificationEmailSettingsRepository, authBackendClient, additionalAuthorizationCodeResolver, outboxService);
     }
 
     @Nested
