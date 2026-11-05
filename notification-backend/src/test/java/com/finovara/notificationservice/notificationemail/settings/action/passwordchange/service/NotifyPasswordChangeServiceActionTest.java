@@ -1,0 +1,133 @@
+package com.finovara.notificationservice.notificationemail.settings.action.passwordchange.service;
+
+import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.outbox.OutboxService;
+import com.finovara.notificationservice.feignclient.AuthBackendClient;
+import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
+import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
+import com.finovara.notificationservice.notificationemail.settings.repository.NotificationEmailSettingsRepository;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class NotifyPasswordChangeServiceActionTest {
+
+    private static final Long USER_ID = 1L;
+    private static final String AUTH_CODE = "AUTH123";
+
+    @Mock
+    private NotificationEmailSettingsRepository notificationEmailSettingsRepository;
+
+    @Mock
+    private AuthBackendClient authBackendClient;
+
+    @Mock
+    private OutboxService outboxService;
+
+    @Mock
+    private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
+
+    @Mock
+    private NotificationEmailSettings notificationEmailSettings;
+
+    private NotifyPasswordChangeServiceAction action;
+
+    @BeforeEach
+    void setUp() {
+        action = new NotifyPasswordChangeServiceAction(notificationEmailSettingsRepository, authBackendClient, outboxService, additionalAuthorizationCodeResolver);
+    }
+
+    @Nested
+    class ApplySetting {
+
+        @Test
+        void shouldSetNotifyOnPasswordChangeToTrue() {
+            NotificationEmailDto dto = new NotificationEmailDto(true, null);
+
+            action.applySetting(notificationEmailSettings, dto);
+
+            verify(notificationEmailSettings).setNotifyOnPasswordChange(true);
+        }
+
+        @Test
+        void shouldSetNotifyOnPasswordChangeToFalse() {
+            NotificationEmailDto dto = new NotificationEmailDto(false, null);
+
+            action.applySetting(notificationEmailSettings, dto);
+
+            verify(notificationEmailSettings).setNotifyOnPasswordChange(false);
+        }
+    }
+
+    @Nested
+    class MapToDto {
+
+        @Test
+        void shouldMapEnabledTrueFromSettings() {
+            when(notificationEmailSettings.isNotifyOnPasswordChange()).thenReturn(true);
+
+            NotificationEmailDto dto = action.mapToDto(notificationEmailSettings);
+
+            assertTrue(dto.enabled());
+        }
+
+        @Test
+        void shouldMapEnabledFalseFromSettings() {
+            when(notificationEmailSettings.isNotifyOnPasswordChange()).thenReturn(false);
+
+            NotificationEmailDto dto = action.mapToDto(notificationEmailSettings);
+
+            assertFalse(dto.enabled());
+        }
+    }
+
+    @Nested
+    class HandleActivity {
+
+        @Test
+        void shouldSendKafkaEventWhenHandlingActivity() {
+            action.handleActivity(USER_ID, true);
+
+            verify(outboxService).save(eq("NotificationSettings"), eq(USER_ID.toString()), eq("settings.changed"), any());
+        }
+
+        @Test
+        void shouldSendKafkaEventWhenDisabled() {
+            action.handleActivity(USER_ID, false);
+
+            verify(outboxService).save(eq("NotificationSettings"), eq(USER_ID.toString()), eq("settings.changed"), any());
+        }
+    }
+
+    @Nested
+    class SaveEmailNotificationIntegration {
+
+        @Test
+        void shouldApplySettingAndTriggerKafkaEventWhenSaving() {
+            NotificationEmailDto dto = new NotificationEmailDto(true, AUTH_CODE);
+
+            when(notificationEmailSettingsRepository.findByUserId(USER_ID)).thenReturn(Optional.of(notificationEmailSettings));
+
+            action.saveEmailNotification(USER_ID, dto);
+
+            verify(notificationEmailSettings).setNotifyOnPasswordChange(true);
+            verify(notificationEmailSettingsRepository).save(notificationEmailSettings);
+            verify(outboxService).save(eq("NotificationSettings"), eq(USER_ID.toString()), eq("settings.changed"), any());
+        }
+
+    }
+}

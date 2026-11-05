@@ -1,6 +1,7 @@
 package com.finovara.notificationservice.notificationemail.service;
 
 import com.finovara.notificationservice.notificationemail.model.EmailNotificationTemplate;
+import com.finovara.notificationservice.notificationemail.util.EmailNotifier;
 import com.finovara.notificationservice.notificationemail.util.emailtemplate.EmailTemplateService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;

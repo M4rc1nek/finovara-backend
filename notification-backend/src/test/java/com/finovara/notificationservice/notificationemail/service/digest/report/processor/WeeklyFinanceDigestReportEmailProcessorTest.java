@@ -6,8 +6,8 @@ import com.finovara.contracts.mainaccount.report.digest.finance.WeeklyFinanceDig
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.feignclient.FinanceBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ScheduledEmailNotificationType;
-import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
-import com.finovara.notificationservice.notificationemail.service.digest.report.finance.processor.WeeklyFinanceDigestReportEmailProcessor;
+import com.finovara.notificationservice.notificationemail.util.EmailNotifier;
+import com.finovara.notificationservice.notificationemail.digest.report.finance.processor.WeeklyFinanceDigestReportEmailProcessor;
 import com.finovara.notificationservice.notificationemail.util.CategoryLabelResolver;
 
 import org.junit.jupiter.api.BeforeEach;

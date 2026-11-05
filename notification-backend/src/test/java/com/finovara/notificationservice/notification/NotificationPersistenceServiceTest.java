@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -15,7 +16,10 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.finovara.contracts.util.SortType;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
 import com.finovara.notificationservice.notification.model.Notification;
@@ -259,7 +263,7 @@ class NotificationPersistenceServiceTest {
         void shouldReturnNewestNotificationsWhenSortTypeIsNewest() throws JsonProcessingException {
             when(notificationRepository.findNewestByUserId(USER_ID, pageRequest)).thenReturn(List.of(firstNotification));
             when(firstNotification.getPayload()).thenReturn(PAYLOAD);
-            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenReturn(firstDto);
+            stubPayload(PAYLOAD, firstDto);
 
             List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
 
@@ -272,7 +276,7 @@ class NotificationPersistenceServiceTest {
         void shouldReturnOldestNotificationsWhenSortTypeIsOldest() throws JsonProcessingException {
             when(notificationRepository.findOldestByUserId(USER_ID, pageRequest)).thenReturn(List.of(firstNotification));
             when(firstNotification.getPayload()).thenReturn(PAYLOAD);
-            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenReturn(firstDto);
+            stubPayload(PAYLOAD, firstDto);
 
             List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.OLDEST, PAGE);
 
@@ -306,8 +310,8 @@ class NotificationPersistenceServiceTest {
                     .thenReturn(List.of(secondNotification, firstNotification));
             when(firstNotification.getPayload()).thenReturn(PAYLOAD);
             when(secondNotification.getPayload()).thenReturn(OTHER_PAYLOAD);
-            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenReturn(firstDto);
-            when(objectMapper.readValue(OTHER_PAYLOAD, NotificationResponse.class)).thenReturn(secondDto);
+            stubPayload(PAYLOAD, firstDto);
+            stubPayload(OTHER_PAYLOAD, secondDto);
 
             List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
 
@@ -353,7 +357,7 @@ class NotificationPersistenceServiceTest {
                     .thenReturn(List.of(firstNotification, secondNotification));
             when(firstNotification.getPayload()).thenReturn(null);
             when(secondNotification.getPayload()).thenReturn(PAYLOAD);
-            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenReturn(secondDto);
+            stubPayload(PAYLOAD, secondDto);
 
             List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
 
@@ -367,14 +371,31 @@ class NotificationPersistenceServiceTest {
                     .thenReturn(List.of(firstNotification, secondNotification));
             when(firstNotification.getPayload()).thenReturn(PAYLOAD);
             when(secondNotification.getPayload()).thenReturn(OTHER_PAYLOAD);
-            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenReturn(firstDto);
-            when(objectMapper.readValue(OTHER_PAYLOAD, NotificationResponse.class)).thenReturn(secondDto);
+            stubPayload(PAYLOAD, firstDto);
+            stubPayload(OTHER_PAYLOAD, secondDto);
 
             service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
 
-            verify(objectMapper, times(1)).readValue(PAYLOAD, NotificationResponse.class);
-            verify(objectMapper, times(1)).readValue(OTHER_PAYLOAD, NotificationResponse.class);
+            verify(objectMapper, times(1)).readTree(PAYLOAD);
+            verify(objectMapper, times(1)).readTree(OTHER_PAYLOAD);
+            verify(objectMapper, times(2)).treeToValue(any(JsonNode.class), eq(NotificationResponse.class));
             verifyNoMoreInteractions(objectMapper);
+        }
+
+        @Test
+        void shouldConvertCreatedAtToPolishTimeWithoutChangingStoredPayload() throws JsonProcessingException {
+            ObjectNode notificationJson = JsonNodeFactory.instance.objectNode();
+            notificationJson.put("createdAt", "2026-11-05T10:15:30");
+            when(notificationRepository.findNewestByUserId(USER_ID, pageRequest)).thenReturn(List.of(firstNotification));
+            when(firstNotification.getPayload()).thenReturn(PAYLOAD);
+            when(firstNotification.getId()).thenReturn(NOTIFICATION_ID);
+            when(objectMapper.readTree(PAYLOAD)).thenReturn(notificationJson);
+            when(objectMapper.treeToValue(notificationJson, NotificationResponse.class)).thenReturn(firstDto);
+
+            List<NotificationResponse> result = service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE);
+
+            assertSame(firstDto, result.get(0));
+            assertEquals("2026-11-05T11:15:30", notificationJson.get("createdAt").asText());
         }
 
         @Test
@@ -382,7 +403,7 @@ class NotificationPersistenceServiceTest {
             when(notificationRepository.findNewestByUserId(USER_ID, pageRequest)).thenReturn(List.of(firstNotification));
             when(firstNotification.getId()).thenReturn(NOTIFICATION_ID);
             when(firstNotification.getPayload()).thenReturn(PAYLOAD);
-            when(objectMapper.readValue(PAYLOAD, NotificationResponse.class)).thenThrow(jsonProcessingException);
+            when(objectMapper.readTree(PAYLOAD)).thenThrow(jsonProcessingException);
 
             assertThrows(IllegalStateException.class,
                     () -> service.getUserNotifications(USER_ID, SortType.NEWEST, PAGE));
@@ -413,6 +434,13 @@ class NotificationPersistenceServiceTest {
             assertThrows(NullPointerException.class, () -> service.getUserNotifications(USER_ID, null, PAGE));
 
             verifyNoInteractions(notificationRepository, objectMapper);
+        }
+
+        private void stubPayload(String payload, NotificationResponse dto) throws JsonProcessingException {
+            ObjectNode notificationJson = JsonNodeFactory.instance.objectNode();
+            notificationJson.put("payload", payload);
+            when(objectMapper.readTree(payload)).thenReturn(notificationJson);
+            when(objectMapper.treeToValue(notificationJson, NotificationResponse.class)).thenReturn(dto);
         }
     }
 

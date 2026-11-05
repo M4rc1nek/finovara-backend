@@ -4,7 +4,8 @@ import com.finovara.contracts.sharedaccount.event.notification.GoalAchievedNotif
 import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
-import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
+import com.finovara.notificationservice.notificationemail.util.EmailNotifier;
+import com.finovara.notificationservice.util.time.PolishTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -51,7 +52,7 @@ public class GoalAchievedNotificationHandler {
                         "triggeredByUsername", triggeredByUsername,
                         "currentAmount", event.currentAmount().toPlainString(),
                         "goalAmount", event.goalAmount().toPlainString(),
-                        "occurredAt", event.occurredAt().format(OCCURRED_AT_FORMATTER)
+                        "occurredAt", PolishTime.formatUtcAsPolish(event.occurredAt(), OCCURRED_AT_FORMATTER)
                 )
         );
     }

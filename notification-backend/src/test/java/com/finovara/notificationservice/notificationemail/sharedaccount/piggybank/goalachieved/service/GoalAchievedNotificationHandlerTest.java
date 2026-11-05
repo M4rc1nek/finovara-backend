@@ -15,7 +15,7 @@ import com.finovara.contracts.sharedaccount.event.notification.GoalAchievedNotif
 import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ActionEmailNotificationType;
-import com.finovara.notificationservice.notificationemail.service.EmailNotifier;
+import com.finovara.notificationservice.notificationemail.util.EmailNotifier;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -47,7 +47,7 @@ class GoalAchievedNotificationHandlerTest {
     private static final String FORMATTED_CURRENT_AMOUNT = "2000";
     private static final String FORMATTED_GOAL_AMOUNT = "1500.00";
     private static final LocalDateTime OCCURRED_AT = LocalDateTime.of(2026, 10, 24, 14, 30);
-    private static final String FORMATTED_OCCURRED_AT = "24.10.2026 14:30";
+    private static final String FORMATTED_OCCURRED_AT = "24.10.2026 16:30";
 
     @Mock
     private AuthBackendClient authBackendClient;
@@ -231,7 +231,7 @@ class GoalAchievedNotificationHandlerTest {
                     "triggeredByUsername", OWNER_NAME,
                     "currentAmount", FORMATTED_CURRENT_AMOUNT,
                     "goalAmount", FORMATTED_GOAL_AMOUNT,
-                    "occurredAt", "05.01.2026 00:00"));
+                    "occurredAt", "05.01.2026 01:00"));
         }
 
         @Test
