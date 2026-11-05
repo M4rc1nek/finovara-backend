@@ -1,5 +1,7 @@
 package com.finovara.financeservice.wallet.reservation.service;
 
+import com.finovara.contracts.mainaccount.activity.model.TransactionType;
+import com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason;
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.financeservice.util.wallet.WalletManagerService;
@@ -8,6 +10,7 @@ import com.finovara.financeservice.wallet.reservation.dto.FundReservationDto;
 import com.finovara.financeservice.wallet.reservation.dto.UnreserveReservationDto;
 import com.finovara.financeservice.wallet.reservation.model.FundReservation;
 import com.finovara.financeservice.wallet.reservation.repository.FundReservationRepository;
+import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,11 +23,14 @@ public class FundReservationCommandService {
 
     private final WalletManagerService walletManagerService;
     private final FundReservationRepository fundReservationRepository;
+    private final WalletService walletService;
 
     @Transactional
     public Long create(Long userId, FundReservationDto dto) {
         Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
         wallet.reserve(dto.amount());
+        walletService.publishStatusChange(userId, wallet, TransactionType.RESERVATION,
+                WalletTransactionReason.FUND_RESERVATION, dto.amount());
 
         FundReservation reservation = FundReservation.builder()
                 .category(dto.category())
@@ -45,6 +51,8 @@ public class FundReservationCommandService {
         }
 
         wallet.unreserve(dto.amount());
+        walletService.publishStatusChange(userId, wallet, TransactionType.RESERVATION_RELEASE,
+                WalletTransactionReason.FUND_RESERVATION, dto.amount());
 
         BigDecimal remaining = reservation.getAmount().subtract(dto.amount());
         if (remaining.signum() == 0) {
@@ -60,6 +68,8 @@ public class FundReservationCommandService {
         FundReservation reservation = getOwnedReservationOrThrow(reservationId, wallet.getId());
 
         wallet.unreserve(reservation.getAmount());
+        walletService.publishStatusChange(userId, wallet, TransactionType.RESERVATION_RELEASE,
+                WalletTransactionReason.FUND_RESERVATION, reservation.getAmount());
         fundReservationRepository.delete(reservation);
     }
 
