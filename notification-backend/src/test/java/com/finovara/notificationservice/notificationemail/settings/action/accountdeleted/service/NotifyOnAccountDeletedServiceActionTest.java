@@ -1,13 +1,14 @@
-package com.finovara.notificationservice.notificationemail.service.settings.action.accountdeleted.service;
+package com.finovara.notificationservice.notificationemail.settings.action.accountdeleted.service;
 
 import com.finovara.contracts.mainaccount.activity.event.settings.SettingsActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.SettingActivityStatus;
 import com.finovara.contracts.mainaccount.activity.model.SettingType;
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.dto.NotificationEmailDto;
 import com.finovara.notificationservice.notificationemail.model.NotificationEmailSettings;
-import com.finovara.notificationservice.notificationemail.repository.NotificationEmailSettingsRepository;
+import com.finovara.notificationservice.notificationemail.settings.repository.NotificationEmailSettingsRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.Optional;
 
@@ -41,7 +41,7 @@ class NotifyOnAccountDeletedServiceActionTest {
     private AuthBackendClient authBackendClient;
 
     @Mock
-    private KafkaTemplate<String, Object> kafkaTemplate;
+    private OutboxService outboxService;
 
     @Mock
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
@@ -53,7 +53,7 @@ class NotifyOnAccountDeletedServiceActionTest {
 
     @BeforeEach
     void setUp() {
-        service = new NotifyOnAccountDeletedServiceAction(notificationEmailSettingsRepository, authBackendClient, kafkaTemplate, additionalAuthorizationCodeResolver);
+        service = new NotifyOnAccountDeletedServiceAction(notificationEmailSettingsRepository, authBackendClient, outboxService, additionalAuthorizationCodeResolver);
     }
 
     @Nested
@@ -109,7 +109,7 @@ class NotifyOnAccountDeletedServiceActionTest {
             service.handleActivity(USER_ID, true);
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-            verify(kafkaTemplate).send(eq(TOPIC), eventCaptor.capture());
+            verify(outboxService).save(eq("NotificationSettings"), eq(USER_ID.toString()), eq(TOPIC), eventCaptor.capture());
             SettingsActivityEvent event = eventCaptor.getValue();
             assertEquals(USER_ID, event.userId());
             assertEquals(SettingType.NOTIFICATION_ACCOUNT_DELETED, event.settingType());
@@ -121,7 +121,7 @@ class NotifyOnAccountDeletedServiceActionTest {
             service.handleActivity(USER_ID, false);
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-            verify(kafkaTemplate).send(eq(TOPIC), eventCaptor.capture());
+            verify(outboxService).save(eq("NotificationSettings"), eq(USER_ID.toString()), eq(TOPIC), eventCaptor.capture());
             SettingsActivityEvent event = eventCaptor.getValue();
             assertEquals(SettingActivityStatus.DISABLED, event.status());
         }
@@ -131,7 +131,7 @@ class NotifyOnAccountDeletedServiceActionTest {
             service.handleActivity(USER_ID, true);
 
             ArgumentCaptor<SettingsActivityEvent> eventCaptor = ArgumentCaptor.forClass(SettingsActivityEvent.class);
-            verify(kafkaTemplate).send(eq(TOPIC), eventCaptor.capture());
+            verify(outboxService).save(eq("NotificationSettings"), eq(USER_ID.toString()), eq(TOPIC), eventCaptor.capture());
             assertEquals(USER_ID, eventCaptor.getValue().userId());
         }
     }
@@ -148,7 +148,7 @@ class NotifyOnAccountDeletedServiceActionTest {
 
             verify(notificationEmailSettings).setNotifyOnAccountDeleted(true);
             verify(notificationEmailSettingsRepository).save(notificationEmailSettings);
-            verify(kafkaTemplate).send(eq(TOPIC), any(SettingsActivityEvent.class));
+            verify(outboxService).save(eq("NotificationSettings"), eq(USER_ID.toString()), eq(TOPIC), any(SettingsActivityEvent.class));
         }
     }
 }
