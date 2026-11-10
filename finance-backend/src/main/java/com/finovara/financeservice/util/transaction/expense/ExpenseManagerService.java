@@ -12,9 +12,8 @@ public class ExpenseManagerService {
     private final ExpenseRepository expenseRepository;
 
     public Expense getExpenseByUserIdOrThrow(Long expenseId, Long userId) {
-        return expenseRepository.findByIdAndUserId(expenseId, userId)
+        return expenseRepository.findByIdAndUserIdAndDeletedAtIsNull(expenseId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Expense not found"));
     }
 
 }
-
