@@ -10,6 +10,7 @@ import com.finovara.financeservice.wallet.reservation.dto.FundReservationDto;
 import com.finovara.financeservice.wallet.reservation.dto.UnreserveReservationDto;
 import com.finovara.financeservice.wallet.reservation.model.FundReservation;
 import com.finovara.financeservice.wallet.reservation.repository.FundReservationRepository;
+import com.finovara.financeservice.trash.service.TrashMoverService;
 import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class FundReservationCommandService {
     private final WalletManagerService walletManagerService;
     private final FundReservationRepository fundReservationRepository;
     private final WalletService walletService;
+    private final TrashMoverService trashMoverService;
 
     @Transactional
     public Long create(Long userId, FundReservationDto dto) {
@@ -50,15 +52,15 @@ public class FundReservationCommandService {
             throw new InvalidInputException("Cannot unreserve more than reserved amount");
         }
 
-        wallet.unreserve(dto.amount());
-        walletService.publishStatusChange(userId, wallet, TransactionType.RESERVATION_RELEASE,
-                WalletTransactionReason.FUND_RESERVATION, dto.amount());
-
         BigDecimal remaining = reservation.getAmount().subtract(dto.amount());
         if (remaining.signum() == 0) {
-            fundReservationRepository.delete(reservation);
+            trashMoverService.moveFundReservationToTrash(reservation, wallet, userId);
         } else {
+            wallet.unreserve(dto.amount());
+            walletService.publishStatusChange(userId, wallet, TransactionType.RESERVATION_RELEASE,
+                    WalletTransactionReason.FUND_RESERVATION, dto.amount());
             reservation.setAmount(remaining);
+            fundReservationRepository.save(reservation);
         }
     }
 
@@ -67,10 +69,7 @@ public class FundReservationCommandService {
         Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
         FundReservation reservation = getOwnedReservationOrThrow(reservationId, wallet.getId());
 
-        wallet.unreserve(reservation.getAmount());
-        walletService.publishStatusChange(userId, wallet, TransactionType.RESERVATION_RELEASE,
-                WalletTransactionReason.FUND_RESERVATION, reservation.getAmount());
-        fundReservationRepository.delete(reservation);
+        trashMoverService.moveFundReservationToTrash(reservation, wallet, userId);
     }
 
     private FundReservation getOwnedReservationOrThrow(Long reservationId, Long walletId) {
