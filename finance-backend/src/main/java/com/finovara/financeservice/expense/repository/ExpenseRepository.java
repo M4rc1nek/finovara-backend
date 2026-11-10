@@ -6,7 +6,7 @@ import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.suggestions.dto.ExpenseSuggestionDto;
 import com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto;
-import com.finovara.financeservice.internal.report.util.dto.UserExpenseCategorySumDto;
+import com.finovara.financeservice.limit.dto.LimitSpendingDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -95,7 +95,7 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     @Query("""
                 SELECT new com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto(
-                    e.createdAt,ó
+                    e.createdAt,
                     SUM(e.amount)
                 )
                 FROM Expense e
@@ -113,14 +113,17 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<ExpenseCategorySumDto> sumExpensesGroupedByCategory(Long userId, LocalDate from, LocalDate to);
 
     @Query("""
-            SELECT new com.finovara.financeservice.internal.report.util.dto.UserExpenseCategorySumDto(
-                e.userId, e.category, SUM(e.amount))
-            FROM Expense e
-            WHERE e.userId IN :userIds AND e.deletedAt IS NULL AND e.createdAt BETWEEN :from AND :to
-            GROUP BY e.userId, e.category
+            SELECT new com.finovara.financeservice.limit.dto.LimitSpendingDto(
+                spendingLimit.id, SUM(expense.amount))
+            FROM Limit spendingLimit
+            LEFT JOIN Expense expense ON expense.userId = spendingLimit.userId
+                AND expense.deletedAt IS NULL
+                AND expense.createdAt BETWEEN :from AND :to
+                AND (spendingLimit.category IS NULL OR expense.category = spendingLimit.category)
+            WHERE spendingLimit.id IN :limitIds
+            GROUP BY spendingLimit.id
             """)
-    List<UserExpenseCategorySumDto> sumExpensesGroupedByUserAndCategory(
-            List<Long> userIds, LocalDate from, LocalDate to);
+    List<LimitSpendingDto> sumExpensesByLimitIds(List<Long> limitIds, LocalDate from, LocalDate to);
 
     @Query("""
                 SELECT new com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto(
