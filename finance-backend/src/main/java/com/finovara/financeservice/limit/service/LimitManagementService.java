@@ -11,6 +11,7 @@ import com.finovara.financeservice.limit.dto.LimitDto;
 import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
+import com.finovara.financeservice.trash.service.TrashMoverService;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.limit.validator.LimitExpensesValidator;
 import com.finovara.financeservice.wallet.service.WalletService;
@@ -37,6 +38,7 @@ public class LimitManagementService implements UserDataDeletable {
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     private final WalletService walletService;
+    private final TrashMoverService trashMoverService;
 
     @Transactional
     public Long createLimit(LimitDto limitDto, Long userId) {
@@ -94,11 +96,10 @@ public class LimitManagementService implements UserDataDeletable {
     public void deleteLimit(Long userId, Long limitId, String authorizationCode) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
 
+        walletService.lockWalletForUpdate(userId);
         Limit limit = limitManagerService.getLimitByUserIdOrThrow(userId, limitId);
 
-        outboxService.save("Limit", limitId.toString(), "limit.changed",
-                new LimitActivityEvent(userId, LimitActivityType.DELETED_LIMIT, limit.getPeriodType().name(), limit.getAmount(), null, LocalDateTime.now()));
-        limitRepository.delete(limit);
+        trashMoverService.moveLimitToTrash(limit, userId);
     }
 
     private void throwIfLimitAlreadyExists(Long userId, LimitDto limitDto, Long editedLimitId) {
