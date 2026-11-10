@@ -4,6 +4,7 @@ import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto;
+import com.finovara.financeservice.internal.report.util.dto.UserExpenseCategorySumDto;
 import com.finovara.financeservice.limit.model.Limit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.when;
 class LimitSpendingServiceTest {
 
     private static final Long USER_ID = 1L;
+    private static final Long OTHER_USER_ID = 2L;
     private static final Long GENERAL_LIMIT_ID = 10L;
     private static final Long CATEGORY_LIMIT_ID = 11L;
     private static final Long OTHER_PERIOD_LIMIT_ID = 12L;
@@ -159,6 +161,46 @@ class LimitSpendingServiceTest {
                     .thenThrow(new IllegalStateException());
 
             assertThrows(IllegalStateException.class, () -> service.calculateSpent(USER_ID, List.of(generalLimit), TODAY));
+        }
+    }
+
+    @Nested
+    class CalculateSpentForUsers {
+
+        @Test
+        void shouldQuerySharedPeriodOnceForMultipleUsers() {
+            Limit otherUsersLimit = Limit.builder()
+                    .id(20L)
+                    .userId(OTHER_USER_ID)
+                    .periodType(PERIOD)
+                    .category(CATEGORY)
+                    .amount(LIMIT_AMOUNT)
+                    .build();
+            Map<Long, List<Limit>> limitsByUser = Map.of(
+                    USER_ID, List.of(generalLimit, categoryLimit),
+                    OTHER_USER_ID, List.of(otherUsersLimit));
+            when(expenseRepository.sumExpensesGroupedByUserAndCategory(
+                    List.of(USER_ID, OTHER_USER_ID), PERIOD.getStartDate(TODAY), TODAY))
+                    .thenReturn(List.of(
+                            new UserExpenseCategorySumDto(USER_ID, CATEGORY, BigDecimal.TEN),
+                            new UserExpenseCategorySumDto(USER_ID, OTHER_CATEGORY, BigDecimal.valueOf(20)),
+                            new UserExpenseCategorySumDto(OTHER_USER_ID, CATEGORY, BigDecimal.valueOf(40))));
+
+            Map<Long, Map<Long, BigDecimal>> result = service.calculateSpent(limitsByUser, TODAY);
+
+            assertEquals(BigDecimal.valueOf(30), result.get(USER_ID).get(GENERAL_LIMIT_ID));
+            assertEquals(BigDecimal.TEN, result.get(USER_ID).get(CATEGORY_LIMIT_ID));
+            assertEquals(BigDecimal.valueOf(40), result.get(OTHER_USER_ID).get(20L));
+            verify(expenseRepository).sumExpensesGroupedByUserAndCategory(
+                    List.of(USER_ID, OTHER_USER_ID), PERIOD.getStartDate(TODAY), TODAY);
+        }
+
+        @Test
+        void shouldReturnEmptyMapWithoutQueryWhenNoUsersHaveLimits() {
+            Map<Long, Map<Long, BigDecimal>> result = service.calculateSpent(Map.of(), TODAY);
+
+            assertTrue(result.isEmpty());
+            verifyNoInteractions(expenseRepository);
         }
     }
 }
