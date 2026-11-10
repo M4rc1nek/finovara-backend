@@ -3,8 +3,7 @@ package com.finovara.financeservice.limit.service;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
-import com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto;
-import com.finovara.financeservice.internal.report.util.dto.UserExpenseCategorySumDto;
+import com.finovara.financeservice.limit.dto.LimitSpendingDto;
 import com.finovara.financeservice.limit.model.Limit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -22,7 +21,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -32,15 +31,11 @@ class LimitSpendingServiceTest {
 
     private static final Long USER_ID = 1L;
     private static final Long OTHER_USER_ID = 2L;
-    private static final Long GENERAL_LIMIT_ID = 10L;
-    private static final Long CATEGORY_LIMIT_ID = 11L;
-    private static final Long OTHER_PERIOD_LIMIT_ID = 12L;
+    private static final Long LIMIT_ID = 10L;
+    private static final Long OTHER_LIMIT_ID = 11L;
     private static final LocalDate TODAY = LocalDate.of(2026, 10, 15);
     private static final PeriodType PERIOD = PeriodType.values()[0];
     private static final PeriodType OTHER_PERIOD = PeriodType.values()[1];
-    private static final ExpenseCategory CATEGORY = ExpenseCategory.values()[0];
-    private static final ExpenseCategory OTHER_CATEGORY = ExpenseCategory.values()[1];
-    private static final BigDecimal LIMIT_AMOUNT = BigDecimal.valueOf(1000);
 
     @Mock
     private ExpenseRepository expenseRepository;
@@ -48,159 +43,80 @@ class LimitSpendingServiceTest {
     @InjectMocks
     private LimitSpendingService service;
 
-    private Limit generalLimit;
-    private Limit categoryLimit;
+    private Limit userLimit;
+    private Limit otherUserLimit;
     private Limit otherPeriodLimit;
 
     @BeforeEach
     void setUp() {
-        generalLimit = Limit.builder().id(GENERAL_LIMIT_ID).periodType(PERIOD).category(null).amount(LIMIT_AMOUNT).build();
-        categoryLimit = Limit.builder().id(CATEGORY_LIMIT_ID).periodType(PERIOD).category(CATEGORY).amount(LIMIT_AMOUNT).build();
-        otherPeriodLimit = Limit.builder().id(OTHER_PERIOD_LIMIT_ID).periodType(OTHER_PERIOD).category(null).amount(LIMIT_AMOUNT).build();
+        userLimit = limit(LIMIT_ID, USER_ID, PERIOD);
+        otherUserLimit = limit(OTHER_LIMIT_ID, OTHER_USER_ID, PERIOD);
+        otherPeriodLimit = limit(12L, USER_ID, OTHER_PERIOD);
     }
 
     @Nested
     class CalculateSpent {
 
         @Test
-        void shouldSumAllCategoriesWhenGeneralLimit() {
-            when(expenseRepository.sumExpensesGroupedByCategory(USER_ID, PERIOD.getStartDate(TODAY), TODAY))
+        void shouldQueryOncePerPeriodAndReturnSpendingForEveryLimit() {
+            List<Limit> limits = List.of(userLimit, otherUserLimit, otherPeriodLimit);
+            when(expenseRepository.sumExpensesByLimitIds(
+                    List.of(LIMIT_ID, OTHER_LIMIT_ID), PERIOD.getStartDate(TODAY), TODAY))
                     .thenReturn(List.of(
-                            new ExpenseCategorySumDto(CATEGORY, BigDecimal.valueOf(10)),
-                            new ExpenseCategorySumDto(OTHER_CATEGORY, BigDecimal.valueOf(20))));
+                            new LimitSpendingDto(LIMIT_ID, BigDecimal.TEN),
+                            new LimitSpendingDto(OTHER_LIMIT_ID, BigDecimal.valueOf(20))));
+            when(expenseRepository.sumExpensesByLimitIds(
+                    List.of(12L), OTHER_PERIOD.getStartDate(TODAY), TODAY))
+                    .thenReturn(List.of(new LimitSpendingDto(12L, BigDecimal.valueOf(30))));
 
-            Map<Long, BigDecimal> result = service.calculateSpent(USER_ID, List.of(generalLimit), TODAY);
+            Map<Long, BigDecimal> result = service.calculateSpent(limits, TODAY);
 
-            assertEquals(BigDecimal.valueOf(30), result.get(GENERAL_LIMIT_ID));
+            assertEquals(Map.of(
+                    LIMIT_ID, BigDecimal.TEN,
+                    OTHER_LIMIT_ID, BigDecimal.valueOf(20),
+                    12L, BigDecimal.valueOf(30)), result);
+            verify(expenseRepository).sumExpensesByLimitIds(
+                    List.of(LIMIT_ID, OTHER_LIMIT_ID), PERIOD.getStartDate(TODAY), TODAY);
+            verify(expenseRepository).sumExpensesByLimitIds(
+                    List.of(12L), OTHER_PERIOD.getStartDate(TODAY), TODAY);
         }
 
         @Test
-        void shouldSumOnlyMatchingCategoryWhenCategoryLimit() {
-            when(expenseRepository.sumExpensesGroupedByCategory(USER_ID, PERIOD.getStartDate(TODAY), TODAY))
-                    .thenReturn(List.of(
-                            new ExpenseCategorySumDto(CATEGORY, BigDecimal.valueOf(10)),
-                            new ExpenseCategorySumDto(OTHER_CATEGORY, BigDecimal.valueOf(20))));
+        void shouldReturnZeroForLimitWithoutExpenses() {
+            when(expenseRepository.sumExpensesByLimitIds(
+                    List.of(LIMIT_ID), PERIOD.getStartDate(TODAY), TODAY))
+                    .thenReturn(List.of(new LimitSpendingDto(LIMIT_ID, null)));
 
-            Map<Long, BigDecimal> result = service.calculateSpent(USER_ID, List.of(categoryLimit), TODAY);
+            Map<Long, BigDecimal> result = service.calculateSpent(List.of(userLimit), TODAY);
 
-            assertEquals(BigDecimal.valueOf(10), result.get(CATEGORY_LIMIT_ID));
+            assertEquals(BigDecimal.ZERO, result.get(LIMIT_ID));
         }
 
         @Test
-        void shouldReturnZeroWhenNoCategoryMatchesLimit() {
-            when(expenseRepository.sumExpensesGroupedByCategory(USER_ID, PERIOD.getStartDate(TODAY), TODAY))
-                    .thenReturn(List.of(new ExpenseCategorySumDto(OTHER_CATEGORY, BigDecimal.valueOf(20))));
-
-            Map<Long, BigDecimal> result = service.calculateSpent(USER_ID, List.of(categoryLimit), TODAY);
-
-            assertEquals(BigDecimal.ZERO, result.get(CATEGORY_LIMIT_ID));
-        }
-
-        @Test
-        void shouldReturnZeroWhenNoExpensesFound() {
-            when(expenseRepository.sumExpensesGroupedByCategory(USER_ID, PERIOD.getStartDate(TODAY), TODAY))
-                    .thenReturn(List.of());
-
-            Map<Long, BigDecimal> result = service.calculateSpent(USER_ID, List.of(generalLimit), TODAY);
-
-            assertEquals(BigDecimal.ZERO, result.get(GENERAL_LIMIT_ID));
-        }
-
-        @Test
-        void shouldSumMultipleEntriesOfSameCategoryWhenCategoryLimit() {
-            when(expenseRepository.sumExpensesGroupedByCategory(USER_ID, PERIOD.getStartDate(TODAY), TODAY))
-                    .thenReturn(List.of(
-                            new ExpenseCategorySumDto(CATEGORY, BigDecimal.valueOf(10)),
-                            new ExpenseCategorySumDto(CATEGORY, BigDecimal.valueOf(15))));
-
-            Map<Long, BigDecimal> result = service.calculateSpent(USER_ID, List.of(categoryLimit), TODAY);
-
-            assertEquals(BigDecimal.valueOf(25), result.get(CATEGORY_LIMIT_ID));
-        }
-
-        @Test
-        void shouldQueryRepositoryOnceWhenLimitsShareSamePeriod() {
-            when(expenseRepository.sumExpensesGroupedByCategory(USER_ID, PERIOD.getStartDate(TODAY), TODAY))
-                    .thenReturn(List.of(
-                            new ExpenseCategorySumDto(CATEGORY, BigDecimal.valueOf(10)),
-                            new ExpenseCategorySumDto(OTHER_CATEGORY, BigDecimal.valueOf(20))));
-
-            Map<Long, BigDecimal> result = service.calculateSpent(USER_ID, List.of(generalLimit, categoryLimit), TODAY);
-
-            assertEquals(BigDecimal.valueOf(30), result.get(GENERAL_LIMIT_ID));
-            assertEquals(BigDecimal.valueOf(10), result.get(CATEGORY_LIMIT_ID));
-            verify(expenseRepository, times(1)).sumExpensesGroupedByCategory(USER_ID, PERIOD.getStartDate(TODAY), TODAY);
-        }
-
-        @Test
-        void shouldQueryRepositoryForEachPeriodWhenLimitsHaveDifferentPeriods() {
-            when(expenseRepository.sumExpensesGroupedByCategory(USER_ID, PERIOD.getStartDate(TODAY), TODAY))
-                    .thenReturn(List.of(new ExpenseCategorySumDto(CATEGORY, BigDecimal.valueOf(10))));
-            when(expenseRepository.sumExpensesGroupedByCategory(USER_ID, OTHER_PERIOD.getStartDate(TODAY), TODAY))
-                    .thenReturn(List.of(new ExpenseCategorySumDto(CATEGORY, BigDecimal.valueOf(40))));
-
-            Map<Long, BigDecimal> result = service.calculateSpent(USER_ID, List.of(generalLimit, otherPeriodLimit), TODAY);
-
-            assertEquals(BigDecimal.valueOf(10), result.get(GENERAL_LIMIT_ID));
-            assertEquals(BigDecimal.valueOf(40), result.get(OTHER_PERIOD_LIMIT_ID));
-            verify(expenseRepository).sumExpensesGroupedByCategory(USER_ID, PERIOD.getStartDate(TODAY), TODAY);
-            verify(expenseRepository).sumExpensesGroupedByCategory(USER_ID, OTHER_PERIOD.getStartDate(TODAY), TODAY);
-        }
-
-        @Test
-        void shouldReturnEmptyMapWhenNoLimitsProvided() {
-            Map<Long, BigDecimal> result = service.calculateSpent(USER_ID, List.of(), TODAY);
+        void shouldNotQueryWhenNoLimitsAreProvided() {
+            Map<Long, BigDecimal> result = service.calculateSpent(List.of(), TODAY);
 
             assertTrue(result.isEmpty());
             verifyNoInteractions(expenseRepository);
         }
 
         @Test
-        void shouldThrowExceptionWhenRepositoryFails() {
-            when(expenseRepository.sumExpensesGroupedByCategory(USER_ID, PERIOD.getStartDate(TODAY), TODAY))
+        void shouldPropagateRepositoryFailure() {
+            when(expenseRepository.sumExpensesByLimitIds(
+                    List.of(LIMIT_ID), PERIOD.getStartDate(TODAY), TODAY))
                     .thenThrow(new IllegalStateException());
 
-            assertThrows(IllegalStateException.class, () -> service.calculateSpent(USER_ID, List.of(generalLimit), TODAY));
+            assertThrows(IllegalStateException.class, () -> service.calculateSpent(List.of(userLimit), TODAY));
         }
     }
 
-    @Nested
-    class CalculateSpentForUsers {
-
-        @Test
-        void shouldQuerySharedPeriodOnceForMultipleUsers() {
-            Limit otherUsersLimit = Limit.builder()
-                    .id(20L)
-                    .userId(OTHER_USER_ID)
-                    .periodType(PERIOD)
-                    .category(CATEGORY)
-                    .amount(LIMIT_AMOUNT)
-                    .build();
-            Map<Long, List<Limit>> limitsByUser = Map.of(
-                    USER_ID, List.of(generalLimit, categoryLimit),
-                    OTHER_USER_ID, List.of(otherUsersLimit));
-            when(expenseRepository.sumExpensesGroupedByUserAndCategory(
-                    List.of(USER_ID, OTHER_USER_ID), PERIOD.getStartDate(TODAY), TODAY))
-                    .thenReturn(List.of(
-                            new UserExpenseCategorySumDto(USER_ID, CATEGORY, BigDecimal.TEN),
-                            new UserExpenseCategorySumDto(USER_ID, OTHER_CATEGORY, BigDecimal.valueOf(20)),
-                            new UserExpenseCategorySumDto(OTHER_USER_ID, CATEGORY, BigDecimal.valueOf(40))));
-
-            Map<Long, Map<Long, BigDecimal>> result = service.calculateSpent(limitsByUser, TODAY);
-
-            assertEquals(BigDecimal.valueOf(30), result.get(USER_ID).get(GENERAL_LIMIT_ID));
-            assertEquals(BigDecimal.TEN, result.get(USER_ID).get(CATEGORY_LIMIT_ID));
-            assertEquals(BigDecimal.valueOf(40), result.get(OTHER_USER_ID).get(20L));
-            verify(expenseRepository).sumExpensesGroupedByUserAndCategory(
-                    List.of(USER_ID, OTHER_USER_ID), PERIOD.getStartDate(TODAY), TODAY);
-        }
-
-        @Test
-        void shouldReturnEmptyMapWithoutQueryWhenNoUsersHaveLimits() {
-            Map<Long, Map<Long, BigDecimal>> result = service.calculateSpent(Map.of(), TODAY);
-
-            assertTrue(result.isEmpty());
-            verifyNoInteractions(expenseRepository);
-        }
+    private Limit limit(Long id, Long userId, PeriodType period) {
+        return Limit.builder()
+                .id(id)
+                .userId(userId)
+                .periodType(period)
+                .category(ExpenseCategory.values()[0])
+                .amount(BigDecimal.valueOf(100))
+                .build();
     }
 }
