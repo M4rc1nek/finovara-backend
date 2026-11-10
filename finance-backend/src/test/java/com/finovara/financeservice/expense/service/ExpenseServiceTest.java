@@ -221,7 +221,7 @@ class ExpenseServiceTest {
             void shouldThrowExceptionWhenGeneralLimitExceeded() {
                 List<Limit> limits = List.of(generalLimit);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(91)));
 
                 assertThrows(MissingRequirementException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
@@ -234,7 +234,7 @@ class ExpenseServiceTest {
             void shouldThrowExceptionWhenCategoryLimitExceeded() {
                 List<Limit> limits = List.of(categoryLimit);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(OTHER_LIMIT_ID, BigDecimal.valueOf(100)));
 
                 assertThrows(MissingRequirementException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
@@ -352,7 +352,7 @@ class ExpenseServiceTest {
                 void shouldPublishLimitStatsEventForEachLimitWhenLimitsNotExceeded() {
                     List<Limit> limits = List.of(generalLimit, categoryLimit);
                     when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                    when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                    when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                             .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(20), OTHER_LIMIT_ID, BigDecimal.valueOf(30)));
                     when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
                     when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of(statsDto, otherStatsDto));
@@ -373,7 +373,7 @@ class ExpenseServiceTest {
                 void shouldSaveExpenseWhenTotalEqualsLimitAmount() {
                     List<Limit> limits = List.of(generalLimit);
                     when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                    when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                    when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                             .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(90)));
                     when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
                     when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
@@ -389,7 +389,7 @@ class ExpenseServiceTest {
                     Limit otherCategoryLimit = Limit.builder().id(LIMIT_ID).periodType(PERIOD).category(OTHER_CATEGORY).amount(LIMIT_AMOUNT).build();
                     List<Limit> limits = List.of(otherCategoryLimit);
                     when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                    when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                    when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                             .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(1000)));
                     when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
                     when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
@@ -550,7 +550,7 @@ class ExpenseServiceTest {
                 List<Limit> limits = List.of(generalLimit);
                 when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(100)));
 
                 assertThrows(MissingRequirementException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
@@ -564,7 +564,7 @@ class ExpenseServiceTest {
                 List<Limit> limits = List.of(generalLimit);
                 when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(95)));
                 when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
 
@@ -580,7 +580,7 @@ class ExpenseServiceTest {
                 List<Limit> limits = List.of(categoryLimit);
                 when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(OTHER_LIMIT_ID, BigDecimal.valueOf(95)));
 
                 assertThrows(MissingRequirementException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
@@ -593,7 +593,7 @@ class ExpenseServiceTest {
                 List<Limit> limits = List.of(generalLimit);
                 when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(1000)));
                 when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
 
@@ -608,7 +608,7 @@ class ExpenseServiceTest {
                 List<Limit> limits = List.of(generalLimit);
                 when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(20)));
                 when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of(statsDto));
                 when(statsDto.limitId()).thenReturn(LIMIT_ID);
