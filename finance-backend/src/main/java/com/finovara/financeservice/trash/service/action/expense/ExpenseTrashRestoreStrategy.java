@@ -1,4 +1,4 @@
-package com.finovara.financeservice.trash.service.action;
+package com.finovara.financeservice.trash.service.action.expense;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.event.expense.ExpenseActivityEvent;
@@ -9,6 +9,7 @@ import com.finovara.contracts.mainaccount.transaction.event.limit.LimitStatsEven
 import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
+import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.limit.service.LimitCalculateService;
@@ -63,7 +64,7 @@ public class ExpenseTrashRestoreStrategy implements TrashRestoreStrategy {
     }
 
     private void restoreFinancialEffects(TrashItem item, Expense expense) {
-        if (Boolean.FALSE.equals(item.getFinancialEffectsReverted())) {
+        if (!Boolean.TRUE.equals(item.getFinancialEffectsReverted())) {
             return;
         }
         walletService.removeBalanceFromWallet(item.getUserId(), expense.getAmount(),
@@ -79,8 +80,11 @@ public class ExpenseTrashRestoreStrategy implements TrashRestoreStrategy {
 
     private void publishLimitStatsEvents(Long userId) {
         List<Limit> limits = limitRepository.findAllActiveByUserId(userId);
-        limitCalculateService.calculateLimitStats(limits, userId, LocalDate.now()).forEach(stats ->
-                outboxService.save("Limit", stats.limitId().toString(), LIMIT_STATS_TOPIC,
-                        new LimitStatsEvent(userId, stats.limitId(), stats.percentage(), stats.periodType())));
+        List<LimitStatsDto> stats = limitCalculateService.calculateLimitStats(limits, userId, LocalDate.now());
+        for (LimitStatsDto limitStats : stats) {
+            LimitStatsEvent event = new LimitStatsEvent(userId, limitStats.limitId(), limitStats.percentage(),
+                    limitStats.periodType());
+            outboxService.save("Limit", limitStats.limitId().toString(), LIMIT_STATS_TOPIC, event);
+        }
     }
 }
