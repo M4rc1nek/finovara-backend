@@ -31,34 +31,34 @@ class ExpenseManagerServiceTest {
     void shouldReturnExpenseByUserIdAndExpenseId() {
         Expense expense = new Expense();
 
-        when(expenseRepository.findByIdAndUserId(EXPENSE_ID, USER_ID)).thenReturn(Optional.of(expense));
+        when(expenseRepository.findByIdAndUserIdAndDeletedAtIsNull(EXPENSE_ID, USER_ID)).thenReturn(Optional.of(expense));
 
         expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID);
 
-        verify(expenseRepository).findByIdAndUserId(EXPENSE_ID, USER_ID);
+        verify(expenseRepository).findByIdAndUserIdAndDeletedAtIsNull(EXPENSE_ID, USER_ID);
     }
 
     @Test
     void shouldThrowExceptionWhenExpenseByUserIdNotFound() {
-        when(expenseRepository.findByIdAndUserId(EXPENSE_ID, USER_ID)).thenReturn(Optional.empty());
+        when(expenseRepository.findByIdAndUserIdAndDeletedAtIsNull(EXPENSE_ID, USER_ID)).thenReturn(Optional.empty());
 
         assertThrows(RequestedEntityNotFoundException.class, () -> expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID));
 
-        verify(expenseRepository).findByIdAndUserId(EXPENSE_ID, USER_ID);
+        verify(expenseRepository).findByIdAndUserIdAndDeletedAtIsNull(EXPENSE_ID, USER_ID);
     }
 
     @Test
     void shouldReturnExpenseById() {
         Expense expense = new Expense();
 
-        when(expenseRepository.findByIdAndUserId(EXPENSE_ID, USER_ID)).thenReturn(Optional.of(expense));
+        when(expenseRepository.findByIdAndUserIdAndDeletedAtIsNull(EXPENSE_ID, USER_ID)).thenReturn(Optional.of(expense));
 
         expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID);
     }
 
     @Test
     void shouldThrowExceptionWhenExpenseByIdNotFound() {
-        when(expenseRepository.findByIdAndUserId(EXPENSE_ID, USER_ID)).thenReturn(Optional.empty());
+        when(expenseRepository.findByIdAndUserIdAndDeletedAtIsNull(EXPENSE_ID, USER_ID)).thenReturn(Optional.empty());
 
         assertThrows(RequestedEntityNotFoundException.class, () -> expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID));
     }
