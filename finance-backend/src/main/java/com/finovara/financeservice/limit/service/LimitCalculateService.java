@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +40,21 @@ public class LimitCalculateService {
         return limits.stream()
                 .map(limit -> buildLimitStats(limit, spentByLimitId.get(limit.getId()), date))
                 .toList();
+    }
+
+    public Map<Long, List<LimitStatsDto>> calculateLimitStatsForUsers(
+            Map<Long, List<Limit>> limitsByUserId, LocalDate date) {
+        Map<Long, Map<Long, BigDecimal>> spentByUserAndLimit = limitSpendingService.calculateSpent(limitsByUserId, date);
+        Map<Long, List<LimitStatsDto>> statsByUserId = new HashMap<>();
+        for (Map.Entry<Long, List<Limit>> entry : limitsByUserId.entrySet()) {
+            Map<Long, BigDecimal> userSpent = spentByUserAndLimit.getOrDefault(entry.getKey(), Map.of());
+            List<LimitStatsDto> userStats = entry.getValue().stream()
+                    .map(limit -> buildLimitStats(limit,
+                            userSpent.getOrDefault(limit.getId(), BigDecimal.ZERO), date))
+                    .toList();
+            statsByUserId.put(entry.getKey(), userStats);
+        }
+        return statsByUserId;
     }
 
     public LimitStatsDto buildLimitStats(Limit limit, BigDecimal spent, LocalDate date) {
