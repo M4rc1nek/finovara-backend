@@ -86,7 +86,7 @@ public interface SharedRevenueRepository extends JpaRepository<SharedRevenue, Lo
     @Query("""
                 SELECT new com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto(
                     r.createdAt,
-                    CAST(AVG(r.amount) AS big_decimal)
+                    CAST(AVG(r.amount) AS BigDecimal)
                 )
                 FROM SharedRevenue r
                 WHERE r.ownerId = :ownerId OR r.memberId = :memberId
