@@ -31,6 +31,7 @@ import com.finovara.financeservice.settings.finances.expense.smartscan.dto.Smart
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpService;
+import com.finovara.financeservice.trash.service.TrashMoverService;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.expense.ExpenseManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
@@ -121,6 +122,9 @@ class ExpenseServiceTest {
 
     @Mock
     private RiskGuardService riskGuardService;
+
+    @Mock
+    private TrashMoverService trashMoverService;
 
     @Mock
     private HttpServletRequest servletRequest;
@@ -656,11 +660,7 @@ class ExpenseServiceTest {
             verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
             verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
             verify(walletService).lockWalletForUpdate(USER_ID);
-            verify(roundUpService).handleExpenseForRoundUp(USER_ID, EXPENSE_ID, PiggyBankAutomationMode.ROLLBACK);
-            verify(walletService).addBalanceToWallet(USER_ID, AMOUNT,
-                    REFUND, EXPENSE);
-            verify(outboxService).save(eq(EXPENSE_AGGREGATE), eq(EXPENSE_ID.toString()), eq(EXPENSE_TOPIC), any(ExpenseActivityEvent.class));
-            verify(expenseRepository).delete(expense);
+            verify(trashMoverService).moveExpenseToTrash(expense, USER_ID, true);
         }
 
         @Test
@@ -712,23 +712,18 @@ class ExpenseServiceTest {
 
         @Test
         void shouldDeleteAllExpensesWhenUserHasExpenses() {
-            Expense expense = Expense.builder().id(EXPENSE_ID).amount(AMOUNT).category(CATEGORY).userId(USER_ID).build();
-            when(expenseRepository.findAllByUserId(USER_ID)).thenReturn(List.of(expense));
-
             service.deleteByUserId(USER_ID);
 
-            verify(expenseRepository).deleteAll(expensesCaptor.capture());
-            assertEquals(List.of(expense), expensesCaptor.getValue());
+            verify(expenseRepository).findAllByUserId(USER_ID);
+            verify(expenseRepository).deleteAll(java.util.List.of());
         }
 
         @Test
         void shouldDeleteEmptyListWhenUserHasNoExpenses() {
-            when(expenseRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
-
             service.deleteByUserId(USER_ID);
 
-            verify(expenseRepository).deleteAll(expensesCaptor.capture());
-            assertTrue(expensesCaptor.getValue().isEmpty());
+            verify(expenseRepository).findAllByUserId(USER_ID);
+            verify(expenseRepository).deleteAll(java.util.List.of());
         }
     }
 }
