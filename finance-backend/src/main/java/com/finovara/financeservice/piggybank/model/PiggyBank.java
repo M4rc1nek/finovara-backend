@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Builder
 @AllArgsConstructor
@@ -49,4 +50,5 @@ public class PiggyBank {
     @JoinColumn(name = "goal_planner_id", unique = true)
     private GoalPlanner goalPlanner;
 
+    private LocalDateTime deletedAt;
 }
