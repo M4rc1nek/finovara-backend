@@ -6,10 +6,11 @@ import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.internal.report.util.dto.RevenueCategorySumDto;
 import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.suggestions.dto.RevenueSuggestionDto;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -20,24 +21,25 @@ import java.util.Optional;
 @Repository
 public interface RevenueRepository extends JpaRepository<Revenue, Long> {
 
-    Optional<Revenue> findByIdAndUserId(Long revenueId, Long userId);
+    Optional<Revenue> findByIdAndUserIdAndDeletedAtIsNull(Long revenueId, Long userId);
 
-    @Query("SELECT r FROM Revenue r WHERE r.userId = :userId ORDER BY r.createdAt DESC, r.id DESC")
+    @Query("SELECT r FROM Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL ORDER BY r.createdAt DESC, r.id DESC")
     List<Revenue> findAllByUserId(Long userId, Pageable pageable);
 
-    @Query("SELECT r From Revenue r WHERE r.userId = :userId AND r.createdAt BETWEEN :startDate AND :endDate AND r.category = :category ORDER BY r.createdAt DESC, r.id DESC")
-    List<Revenue> findAllByUserIdAndCreatedAtBetweenAndCategory(Long userId, @Param("startDate") LocalDate from,
-                                                                @Param("endDate") LocalDate to, RevenueCategory category, Pageable pageable);
+    @Query("SELECT r From Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL AND r.createdAt BETWEEN :startDate AND :endDate AND r.category = :category ORDER BY r.createdAt DESC, r.id DESC")
+    List<Revenue> findAllByUserIdAndCreatedAtBetweenAndCategory(Long userId, LocalDate from,
+                                                                LocalDate to, RevenueCategory category, Pageable pageable);
 
-    @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userId = :userId AND r.createdAt >= :startDate AND r.createdAt <= :endDate")
-    Optional<BigDecimal> sumRevenuesByUserAndDateRange(Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL AND r.createdAt >= :startDate AND r.createdAt <= :endDate")
+    Optional<BigDecimal> sumRevenuesByUserAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
 
-    @Query("SELECT r FROM Revenue r WHERE r.userId = :userId AND r.createdAt BETWEEN :from AND :to ORDER BY r.amount DESC")
+    @Query("SELECT r FROM Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL AND r.createdAt BETWEEN :from AND :to ORDER BY r.amount DESC")
     List<Revenue> findTopRevenuesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
     @Query("""
         SELECT r FROM Revenue r
         WHERE r.userId = :userId
+          AND r.deletedAt IS NULL
           AND (COALESCE(:category, r.category) = r.category)
           AND (COALESCE(:amount, r.amount) = r.amount)
           AND (COALESCE(:createdAt, r.createdAt) = r.createdAt)
@@ -53,6 +55,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
             )
             FROM Revenue r
             WHERE r.userId = :userId
+              AND r.deletedAt IS NULL
             ORDER BY r.createdAt DESC, r.id DESC
             """)
     List<RevenueSuggestionDto> findLatestRevenuePairsByUserId(Long userId, Pageable pageable);
@@ -60,7 +63,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     @Query("""
             SELECT r.category
             FROM Revenue r
-            WHERE r.userId = :userId AND r.createdAt BETWEEN :from AND :to
+            WHERE r.userId = :userId AND r.deletedAt IS NULL AND r.createdAt BETWEEN :from AND :to
             GROUP BY r.category
             ORDER BY SUM(r.amount) DESC
             """)
@@ -71,7 +74,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
              r.category,
              r.amount
             )
-            FROM Revenue r WHERE r.userId = :userId AND r.createdAt BETWEEN :from AND :to ORDER BY r.amount DESC
+            FROM Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL AND r.createdAt BETWEEN :from AND :to ORDER BY r.amount DESC
             """)
     List<HighestRevenueDto> findHighestRevenuesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
 
@@ -81,7 +84,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
                     SUM(r.amount)
                 )
                 FROM Revenue r
-                WHERE r.userId = :userId
+                WHERE r.userId = :userId AND r.deletedAt IS NULL
                 GROUP BY r.createdAt
             """)
     List<DailyCashDto> sumRevenuesGroupedByDate(Long userId);
@@ -89,7 +92,7 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     @Query("""
             SELECT new com.finovara.financeservice.internal.report.util.dto.RevenueCategorySumDto(r.category, SUM(r.amount))
             FROM Revenue r
-            WHERE r.userId = :userId AND r.createdAt BETWEEN :from AND :to
+            WHERE r.userId = :userId AND r.deletedAt IS NULL AND r.createdAt BETWEEN :from AND :to
             GROUP BY r.category
             """)
     List<RevenueCategorySumDto> sumRevenuesGroupedByCategory(Long userId, LocalDate from, LocalDate to);
@@ -97,13 +100,28 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     @Query("""
                 SELECT new com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto(
                     r.createdAt,
-                    CAST(AVG(r.amount) AS big_decimal)
+                    CAST(AVG(r.amount) AS BigDecimal)
                 )
                 FROM Revenue r
-                WHERE r.userId = :userId
+                WHERE r.userId = :userId AND r.deletedAt IS NULL
                 GROUP BY r.createdAt
             """)
     List<DailyCashDto> avgRevenuesGroupedByDate(Long userId);
 
     List<Revenue> findAllByUserId(Long userId);
+
+    @Query("SELECT DISTINCT r.userId FROM Revenue r WHERE r.deletedAt IS NULL")
+    List<Long> findUserIdsWithActiveRevenues();
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Revenue r WHERE r.userId IN :userIds AND r.deletedAt IS NULL ORDER BY r.userId, r.id")
+    List<Revenue> findAllActiveByUserIdInForUpdate(List<Long> userIds);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Revenue r WHERE r.id = :id AND r.userId = :userId AND r.deletedAt IS NOT NULL")
+    Optional<Revenue> findTrashedByIdAndUserIdForUpdate(Long id, Long userId);
+
+    @Query("SELECT revenue FROM Revenue revenue WHERE revenue.id IN :ids AND revenue.deletedAt IS NOT NULL")
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<Revenue> findAllByIdInAndDeletedAtIsNotNull(List<Long> ids);
 }
