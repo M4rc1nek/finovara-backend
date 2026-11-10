@@ -92,7 +92,7 @@ public class ExpenseService implements UserDataDeletable {
         walletService.lockWalletForUpdate(userId);
 
         List<Limit> limits = limitRepository.findAllActiveByUserId(userId);
-        validateLimits(userId, limits, today, today, expenseDto.category(), expenseDto.amount(), null);
+        validateLimits(limits, today, today, expenseDto.category(), expenseDto.amount(), null);
 
         countQuantityLimitService.handleExpenseLimitExceeded(userId, dto.countQuantityLimitDto(),
                 dto.countQuantityLimitDto().periodType(), dto.confirmPasswordDto());
@@ -137,7 +137,7 @@ public class ExpenseService implements UserDataDeletable {
         ExpenseCategory oldCategory = existing.getCategory();
 
         List<Limit> limits = limitRepository.findAllActiveByUserId(userId);
-        validateLimits(userId, limits, today, existing.getCreatedAt(), expenseDto.category(), expenseDto.amount(), existing);
+        validateLimits(limits, today, existing.getCreatedAt(), expenseDto.category(), expenseDto.amount(), existing);
 
         applyWalletDelta(userId, oldAmount, expenseDto.amount());
         roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
@@ -199,12 +199,12 @@ public class ExpenseService implements UserDataDeletable {
         }
     }
 
-    private void validateLimits(Long userId, List<Limit> limits, LocalDate today, LocalDate expenseDate,
+    private void validateLimits(List<Limit> limits, LocalDate today, LocalDate expenseDate,
                                 ExpenseCategory newCategory, BigDecimal newAmount, Expense oldExpense) {
         if (limits.isEmpty()) {
             return;
         }
-        Map<Long, BigDecimal> spentByLimitId = limitSpendingService.calculateSpent(userId, limits, today);
+        Map<Long, BigDecimal> spentByLimitId = limitSpendingService.calculateSpent(limits, today);
 
         for (Limit limit : limits) {
             if (!isCountedInLimit(limit, newCategory, expenseDate, today)) {
