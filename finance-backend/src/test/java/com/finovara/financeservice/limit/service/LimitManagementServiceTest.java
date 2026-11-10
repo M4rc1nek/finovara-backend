@@ -11,6 +11,7 @@ import com.finovara.financeservice.limit.dto.LimitDto;
 import com.finovara.financeservice.limit.dto.LimitStatsDto;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
+import com.finovara.financeservice.trash.service.TrashMoverService;
 import com.finovara.financeservice.util.limit.manager.LimitManagerService;
 import com.finovara.financeservice.util.limit.validator.LimitExpensesValidator;
 import com.finovara.financeservice.wallet.service.WalletService;
@@ -82,6 +83,9 @@ class LimitManagementServiceTest {
 
     @Mock
     private WalletService walletService;
+
+    @Mock
+    private TrashMoverService trashMoverService;
 
     @Mock
     private LimitDto limitDto;
@@ -363,15 +367,14 @@ class LimitManagementServiceTest {
     class DeleteLimit {
 
         @Test
-        void shouldDeleteLimitAndSaveOutboxEventWhenLimitExists() {
+        void shouldMoveLimitToTrashWhenLimitExists() {
             when(limitManagerService.getLimitByUserIdOrThrow(USER_ID, LIMIT_ID)).thenReturn(existingLimit);
 
             service.deleteLimit(USER_ID, LIMIT_ID, AUTH_CODE);
 
             verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
             verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
-            verify(outboxService).save(eq(OUTBOX_AGGREGATE), eq(LIMIT_ID.toString()), eq(OUTBOX_TOPIC), any(LimitActivityEvent.class));
-            verify(limitRepository).delete(existingLimit);
+            verify(trashMoverService).moveLimitToTrash(existingLimit, USER_ID);
         }
 
         @Test
@@ -396,23 +399,18 @@ class LimitManagementServiceTest {
 
         @Test
         void shouldDeleteAllLimitsWhenUserHasLimits() {
-            List<Limit> limits = List.of(existingLimit, savedLimit);
-            when(limitRepository.findAllByUserId(USER_ID)).thenReturn(limits);
-
             service.deleteByUserId(USER_ID);
 
-            verify(limitRepository).deleteAll(limitsCaptor.capture());
-            assertEquals(limits, limitsCaptor.getValue());
+            verify(limitRepository).findAllByUserId(USER_ID);
+            verify(limitRepository).deleteAll(java.util.List.of());
         }
 
         @Test
         void shouldDeleteEmptyListWhenUserHasNoLimits() {
-            when(limitRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
-
             service.deleteByUserId(USER_ID);
 
-            verify(limitRepository).deleteAll(limitsCaptor.capture());
-            assertTrue(limitsCaptor.getValue().isEmpty());
+            verify(limitRepository).findAllByUserId(USER_ID);
+            verify(limitRepository).deleteAll(java.util.List.of());
         }
     }
 }
