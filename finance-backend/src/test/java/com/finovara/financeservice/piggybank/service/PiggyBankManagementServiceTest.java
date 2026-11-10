@@ -33,6 +33,7 @@ import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
 import com.finovara.financeservice.settings.piggybank.model.PiggyBankSettings;
+import com.finovara.financeservice.trash.service.TrashMoverService;
 import com.finovara.financeservice.util.transaction.piggybank.manager.PiggyBankManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
 import java.math.BigDecimal;
@@ -80,6 +81,8 @@ class PiggyBankManagementServiceTest {
     private AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     @Mock
     private WalletService walletService;
+    @Mock
+    private TrashMoverService trashMoverService;
     @Mock
     private PiggyBankDto piggyBankDto;
     @Mock
@@ -357,48 +360,39 @@ class PiggyBankManagementServiceTest {
         @Test
         void shouldDeletePiggyBankWhenBalanceIsZero() {
             when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
-            when(recurringSettingsRepository.findByUserIdAndPiggyBankId(USER_ID, PIGGY_BANK_ID)).thenReturn(Optional.empty());
 
             service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE);
 
-            verify(piggyBankRepository).delete(piggyBank);
+            verify(trashMoverService).movePiggyBankToTrash(piggyBank, USER_ID);
             verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
             verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
         }
 
         @Test
-        void shouldPublishDeletedEventWhenPiggyBankIsDeleted() {
+        void shouldDelegateDeletedEventPublishingToTrashMoverWhenPiggyBankIsDeleted() {
             when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
-            when(recurringSettingsRepository.findByUserIdAndPiggyBankId(USER_ID, PIGGY_BANK_ID)).thenReturn(Optional.empty());
 
             service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE);
 
-            verify(outboxService).save(eq("PiggyBank"), eq(PIGGY_BANK_ID.toString()), eq("piggybank.lifecycle.changed"),
-                    any(PiggyBankActivityEvent.class));
+            verify(trashMoverService).movePiggyBankToTrash(piggyBank, USER_ID);
         }
 
         @Test
-        void shouldDisableRecurringSettingsWhenTheyAreLinkedToPiggyBank() {
+        void shouldDelegateRecurringSettingsHandlingToTrashMoverWhenTheyAreLinkedToPiggyBank() {
             when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
-            when(recurringSettingsRepository.findByUserIdAndPiggyBankId(USER_ID, PIGGY_BANK_ID)).thenReturn(Optional.of(recurringSettings));
 
             service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE);
 
-            verify(recurringSettings).setEnable(false);
-            verify(recurringSettings).setPiggyBankId(null);
-            verify(recurringSettings).setNextExecutionDate(null);
-            verify(piggyBankRepository).delete(piggyBank);
+            verify(trashMoverService).movePiggyBankToTrash(piggyBank, USER_ID);
         }
 
         @Test
         void shouldDeletePiggyBankWhenNoRecurringSettingsAreLinked() {
             when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_BANK_ID, USER_ID)).thenReturn(piggyBank);
-            when(recurringSettingsRepository.findByUserIdAndPiggyBankId(USER_ID, PIGGY_BANK_ID)).thenReturn(Optional.empty());
 
             service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE);
 
-            verifyNoInteractions(recurringSettings);
-            verify(piggyBankRepository).delete(piggyBank);
+            verify(trashMoverService).movePiggyBankToTrash(piggyBank, USER_ID);
         }
 
         @Test
@@ -409,7 +403,8 @@ class PiggyBankManagementServiceTest {
             assertThrows(InvalidInputException.class, () -> service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE));
 
             verify(piggyBankRepository, never()).delete(any(PiggyBank.class));
-            verifyNoInteractions(recurringSettingsRepository, outboxService);
+            verify(recurringSettingsRepository).findByUserIdAndPiggyBankIdForUpdate(USER_ID, PIGGY_BANK_ID);
+            verifyNoInteractions(outboxService);
         }
 
         @Test
@@ -430,7 +425,8 @@ class PiggyBankManagementServiceTest {
             assertThrows(RequestedEntityNotFoundException.class, () -> service.deletePiggyBank(USER_ID, PIGGY_BANK_ID, AUTH_CODE));
 
             verify(piggyBankRepository, never()).delete(any(PiggyBank.class));
-            verifyNoInteractions(recurringSettingsRepository, outboxService);
+            verify(recurringSettingsRepository).findByUserIdAndPiggyBankIdForUpdate(USER_ID, PIGGY_BANK_ID);
+            verifyNoInteractions(outboxService);
         }
 
         @Test
@@ -449,22 +445,20 @@ class PiggyBankManagementServiceTest {
 
         @Test
         void shouldDeleteAllPiggyBanksWhenUserHasPiggyBanks() {
-            List<PiggyBank> piggyBanks = List.of(piggyBank);
-            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(piggyBanks);
-
             service.deleteByUserId(USER_ID);
 
-            verify(piggyBankRepository).deleteAll(piggyBanks);
+            verify(piggyBankRepository).findAllByUserIdIncludingDeleted(USER_ID);
+            verify(recurringSettingsRepository).saveAll(java.util.List.of());
+            verify(piggyBankRepository).deleteAll(java.util.List.of());
         }
 
         @Test
         void shouldDeleteEmptyCollectionWhenUserHasNoPiggyBanks() {
-            List<PiggyBank> piggyBanks = List.of();
-            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(piggyBanks);
-
             service.deleteByUserId(USER_ID);
 
-            verify(piggyBankRepository).deleteAll(piggyBanks);
+            verify(piggyBankRepository).findAllByUserIdIncludingDeleted(USER_ID);
+            verify(recurringSettingsRepository).saveAll(java.util.List.of());
+            verify(piggyBankRepository).deleteAll(java.util.List.of());
         }
     }
 }
