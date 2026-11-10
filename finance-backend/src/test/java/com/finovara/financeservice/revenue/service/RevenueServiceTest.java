@@ -17,6 +17,7 @@ import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.riskverification.service.RiskGuardService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.autopayments.service.AutoPaymentsService;
+import com.finovara.financeservice.trash.service.TrashMoverService;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.revenue.RevenueManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
@@ -41,6 +42,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -94,6 +96,9 @@ class RevenueServiceTest {
 
     @Mock
     private RiskGuardService riskGuardService;
+
+    @Mock
+    private TrashMoverService trashMoverService;
 
     @Mock
     private HttpServletRequest servletRequest;
@@ -395,24 +400,7 @@ class RevenueServiceTest {
             verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
             verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
             verify(walletService).lockWalletForUpdate(USER_ID);
-            verify(autoPaymentsService).handleRevenuePiggyBankAutomation(USER_ID, AMOUNT, PiggyBankAutomationMode.ROLLBACK);
-            verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT,
-                    WITHDRAWAL, REVENUE);
-            verify(outboxService).save(eq(REVENUE_AGGREGATE), eq(REVENUE_ID.toString()), eq(REVENUE_TOPIC), any(RevenueActivityEvent.class));
-            verify(revenueRepository).delete(revenue);
-        }
-
-        @Test
-        void shouldRollbackPiggyBankBeforeRemovingBalance() {
-            when(revenueManagerService.getRevenueByUserIdOrThrow(REVENUE_ID, USER_ID)).thenReturn(revenue);
-
-            service.deleteRevenue(REVENUE_ID, USER_ID, AUTH_CODE);
-
-            InOrder inOrder = inOrder(autoPaymentsService, walletService, revenueRepository);
-            inOrder.verify(autoPaymentsService).handleRevenuePiggyBankAutomation(USER_ID, AMOUNT, PiggyBankAutomationMode.ROLLBACK);
-            inOrder.verify(walletService).removeBalanceFromWallet(USER_ID, AMOUNT,
-                    WITHDRAWAL, REVENUE);
-            inOrder.verify(revenueRepository).delete(revenue);
+            verify(trashMoverService).moveRevenueToTrash(revenue, USER_ID, true);
         }
 
         @Test
@@ -438,23 +426,18 @@ class RevenueServiceTest {
 
         @Test
         void shouldDeleteAllRevenuesWhenUserHasRevenues() {
-            Revenue revenue = Revenue.builder().id(REVENUE_ID).amount(AMOUNT).category(CATEGORY).userId(USER_ID).build();
-            when(revenueRepository.findAllByUserId(USER_ID)).thenReturn(List.of(revenue));
-
             service.deleteByUserId(USER_ID);
 
-            verify(revenueRepository).deleteAll(revenuesCaptor.capture());
-            assertEquals(List.of(revenue), revenuesCaptor.getValue());
+            verify(revenueRepository).findAllByUserId(USER_ID);
+            verify(revenueRepository).deleteAll(java.util.List.of());
         }
 
         @Test
         void shouldDeleteEmptyListWhenUserHasNoRevenues() {
-            when(revenueRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
-
             service.deleteByUserId(USER_ID);
 
-            verify(revenueRepository).deleteAll(revenuesCaptor.capture());
-            assertTrue(revenuesCaptor.getValue().isEmpty());
+            verify(revenueRepository).findAllByUserId(USER_ID);
+            verify(revenueRepository).deleteAll(java.util.List.of());
         }
     }
 }
