@@ -29,6 +29,7 @@ import com.finovara.financeservice.settings.finances.expense.smartscan.dto.Smart
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpService;
+import com.finovara.financeservice.trash.service.TrashMoverService;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.expense.ExpenseManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
@@ -66,6 +67,7 @@ public class ExpenseService implements UserDataDeletable {
     private final SmartScanService smartScanService;
     private final ExpenseManagerService expenseManagerService;
     private final ExpenseMapper expenseMapper;
+    private final TrashMoverService trashMoverService;
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     private final RiskGuardService riskGuardService;
@@ -170,12 +172,7 @@ public class ExpenseService implements UserDataDeletable {
         walletService.lockWalletForUpdate(userId);
         Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, userId);
 
-        roundUpService.handleExpenseForRoundUp(userId, expenseId, PiggyBankAutomationMode.ROLLBACK);
-        walletService.addBalanceToWallet(userId, expense.getAmount(), TransactionType.REFUND, WalletTransactionReason.EXPENSE);
-        outboxService.save("Expense", expenseId.toString(), "expense.created",
-                new ExpenseActivityEvent(userId, ExpenseActivityType.DELETED_EXPENSE, expense.getAmount(), expense.getCategory(), null, null, LocalDateTime.now()));
-        expenseRepository.delete(expense);
-
+        trashMoverService.moveExpenseToTrash(expense, userId, true);
         publishLimitStatsEvents(userId, limitRepository.findAllActiveByUserId(userId), LocalDate.now());
     }
 
