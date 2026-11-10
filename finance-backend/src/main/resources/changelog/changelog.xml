@@ -355,6 +355,49 @@
                                  onDelete="SET NULL"/>
     </changeSet>
 
+
+    <changeSet id="add-main-account-trash" author="Marcin Parśniak">
+        <addColumn tableName="expenses">
+            <column name="deleted_at" type="TIMESTAMP"/>
+        </addColumn>
+        <addColumn tableName="revenues">
+            <column name="deleted_at" type="TIMESTAMP"/>
+        </addColumn>
+        <addColumn tableName="piggybanks">
+            <column name="deleted_at" type="TIMESTAMP"/>
+        </addColumn>
+        <addColumn tableName="limits">
+            <column name="deleted_at" type="TIMESTAMP"/>
+        </addColumn>
+        <addColumn tableName="fund_reservation">
+            <column name="deleted_at" type="TIMESTAMP"/>
+        </addColumn>
+        <createTable tableName="trash_items">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="entity_type" type="VARCHAR(32)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="entity_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="restore_recurring_enabled" type="BOOLEAN"/>
+            <column name="financial_effects_reverted" type="BOOLEAN"/>
+        </createTable>
+        <addUniqueConstraint tableName="trash_items" columnNames="entity_type, entity_id"
+                             constraintName="uk_trash_entity"/>
+        <createIndex tableName="trash_items" indexName="idx_trash_user_deleted">
+            <column name="user_id"/>
+            <column name="deleted_at" descending="true"/>
+        </createIndex>
+    </changeSet>
     <changeSet id="create-shared-piggy_banks" author="Marcin Parśniak">
         <createTable tableName="shared_piggybanks">
             <column name="id" type="BIGINT" autoIncrement="true">
@@ -509,6 +552,41 @@
         </createTable>
     </changeSet>
 
+
+    <changeSet id="finance-hot-tables-fillfactor" author="Marcin Parśniak" dbms="postgresql">
+        <comment>Frequently updated rows (balance, piggy bank amount, limit): room for HOT updates (indexed columns do
+            not change).
+        </comment>
+        <sql>
+            ALTER TABLE wallets SET (fillfactor = 90);
+            ALTER TABLE shared_wallets SET (fillfactor = 90);
+            ALTER TABLE piggybanks SET (fillfactor = 90);
+            ALTER TABLE shared_piggybanks SET (fillfactor = 90);
+            ALTER TABLE limits SET (fillfactor = 90);
+            ALTER TABLE shared_limits SET (fillfactor = 90);
+        </sql>
+    </changeSet>
+
+    <changeSet id="finance-money-integrity-checks" author="Marcin Parśniak" dbms="postgresql">
+        <comment>Last line of defense against race conditions: the database will not allow a balance or amount to drop
+            below zero, even if the code has a bug.
+        </comment>
+        <sql>
+            ALTER TABLE wallets ADD CONSTRAINT chk_wallets_non_negative CHECK (balance >= 0 AND reserved_amount >= 0);
+            ALTER TABLE shared_wallets ADD CONSTRAINT chk_shared_wallets_non_negative CHECK (balance >= 0);
+            ALTER TABLE piggybanks ADD CONSTRAINT chk_piggybanks_amount_non_negative CHECK (amount >= 0);
+            ALTER TABLE shared_piggybanks ADD CONSTRAINT chk_shared_piggybanks_amount_non_negative CHECK (amount >= 0);
+            ALTER TABLE expenses ADD CONSTRAINT chk_expenses_amount_positive CHECK (amount > 0);
+            ALTER TABLE revenues ADD CONSTRAINT chk_revenues_amount_positive CHECK (amount > 0);
+            ALTER TABLE limits ADD CONSTRAINT chk_limits_amount_positive CHECK (amount > 0);
+            ALTER TABLE fund_reservation ADD CONSTRAINT chk_fund_reservation_amount_positive CHECK (amount > 0);
+            ALTER TABLE shared_expenses ADD CONSTRAINT chk_shared_expenses_amount_positive CHECK (amount > 0);
+            ALTER TABLE shared_revenues ADD CONSTRAINT chk_shared_revenues_amount_positive CHECK (amount > 0);
+            ALTER TABLE shared_limits ADD CONSTRAINT chk_shared_limits_amount_positive CHECK (amount > 0);
+            ALTER TABLE recurring_settings ADD CONSTRAINT chk_recurring_settings_amount_positive CHECK (amount IS NULL OR amount > 0);
+        </sql>
+    </changeSet>
+
     <changeSet id="create-shared-tables-owner-member-indexes" author="Marcin Parśniak">
         <comment>
             Queries use "owner_id = :userId OR member_id = :userId", so both sides need an index. The owner side of
@@ -569,37 +647,5 @@
         </sql>
     </changeSet>
 
-    <changeSet id="finance-hot-tables-fillfactor" author="Marcin Parśniak" dbms="postgresql">
-        <comment>Frequently updated rows (balance, piggy bank amount, limit): room for HOT updates (indexed columns do
-            not change).
-        </comment>
-        <sql>
-            ALTER TABLE wallets SET (fillfactor = 90);
-            ALTER TABLE shared_wallets SET (fillfactor = 90);
-            ALTER TABLE piggybanks SET (fillfactor = 90);
-            ALTER TABLE shared_piggybanks SET (fillfactor = 90);
-            ALTER TABLE limits SET (fillfactor = 90);
-            ALTER TABLE shared_limits SET (fillfactor = 90);
-        </sql>
-    </changeSet>
 
-    <changeSet id="finance-money-integrity-checks" author="Marcin Parśniak" dbms="postgresql">
-        <comment>Last line of defense against race conditions: the database will not allow a balance or amount to drop
-            below zero, even if the code has a bug.
-        </comment>
-        <sql>
-            ALTER TABLE wallets ADD CONSTRAINT chk_wallets_non_negative CHECK (balance >= 0 AND reserved_amount >= 0);
-            ALTER TABLE shared_wallets ADD CONSTRAINT chk_shared_wallets_non_negative CHECK (balance >= 0);
-            ALTER TABLE piggybanks ADD CONSTRAINT chk_piggybanks_amount_non_negative CHECK (amount >= 0);
-            ALTER TABLE shared_piggybanks ADD CONSTRAINT chk_shared_piggybanks_amount_non_negative CHECK (amount >= 0);
-            ALTER TABLE expenses ADD CONSTRAINT chk_expenses_amount_positive CHECK (amount > 0);
-            ALTER TABLE revenues ADD CONSTRAINT chk_revenues_amount_positive CHECK (amount > 0);
-            ALTER TABLE limits ADD CONSTRAINT chk_limits_amount_positive CHECK (amount > 0);
-            ALTER TABLE fund_reservation ADD CONSTRAINT chk_fund_reservation_amount_positive CHECK (amount > 0);
-            ALTER TABLE shared_expenses ADD CONSTRAINT chk_shared_expenses_amount_positive CHECK (amount > 0);
-            ALTER TABLE shared_revenues ADD CONSTRAINT chk_shared_revenues_amount_positive CHECK (amount > 0);
-            ALTER TABLE shared_limits ADD CONSTRAINT chk_shared_limits_amount_positive CHECK (amount > 0);
-            ALTER TABLE recurring_settings ADD CONSTRAINT chk_recurring_settings_amount_positive CHECK (amount IS NULL OR amount > 0);
-        </sql>
-    </changeSet>
 </databaseChangeLog>
