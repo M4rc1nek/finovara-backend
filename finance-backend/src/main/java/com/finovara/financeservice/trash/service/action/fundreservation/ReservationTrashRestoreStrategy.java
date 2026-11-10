@@ -1,4 +1,4 @@
-package com.finovara.financeservice.trash.service.action;
+package com.finovara.financeservice.trash.service.action.fundreservation;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.model.TransactionType;
@@ -30,12 +30,23 @@ public class ReservationTrashRestoreStrategy implements TrashRestoreStrategy {
     @Override
     public void restore(TrashItem item) {
         Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(item.getUserId());
-        FundReservation reservation = fundReservationRepository
-                .findTrashedByIdAndWalletIdForUpdate(item.getEntityId(), wallet.getId())
+        FundReservation reservation = getReservation(item, wallet);
+        restoreReservation(wallet, reservation);
+        publishRestoredStatus(item, wallet, reservation);
+    }
+
+    private FundReservation getReservation(TrashItem item, Wallet wallet) {
+        return fundReservationRepository.findTrashedByIdAndWalletIdForUpdate(item.getEntityId(), wallet.getId())
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Reservation not found in trash"));
+    }
+
+    private void restoreReservation(Wallet wallet, FundReservation reservation) {
         wallet.reserve(reservation.getAmount());
         reservation.setDeletedAt(null);
         fundReservationRepository.save(reservation);
+    }
+
+    private void publishRestoredStatus(TrashItem item, Wallet wallet, FundReservation reservation) {
         walletService.publishStatusChange(item.getUserId(), wallet, TransactionType.RESERVATION,
                 WalletTransactionReason.FUND_RESERVATION, reservation.getAmount());
     }
