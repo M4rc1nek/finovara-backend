@@ -2,6 +2,7 @@ package com.finovara.financeservice.sharedaccount.deletion;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,7 @@ public class WalletCacheEvictionService {
 
     private void evictIfPresent(String cacheName, Object key) {
         try {
-            var cache = cacheManager.getCache(cacheName);
+            Cache cache = cacheManager.getCache(cacheName);
             if (cache != null) {
                 cache.evict(key);
             }
