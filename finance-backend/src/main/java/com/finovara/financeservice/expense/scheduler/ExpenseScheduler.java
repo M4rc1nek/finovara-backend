@@ -13,8 +13,8 @@ public class ExpenseScheduler {
     private final ExpenseProcessor expenseProcessor;
 
     @Scheduled(cron = "${scheduler.delete-all-expenses}", zone = "Europe/Warsaw")
-    @SchedulerLock(name = "deleteAllExpenses", lockAtMostFor = "10m", lockAtLeastFor = "30s")
-    public void deleteAllExpenses() {
-        expenseProcessor.deleteAllExpenses();
+    @SchedulerLock(name = "moveAllExpensesToTrash", lockAtMostFor = "10m", lockAtLeastFor = "30s")
+    public void moveAllExpensesToTrash() {
+        expenseProcessor.moveAllExpensesToTrash();
     }
 }
