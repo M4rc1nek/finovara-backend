@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 class LimitCalculateServiceTest {
 
     private static final Long USER_ID = 1L;
+    private static final Long OTHER_USER_ID = 2L;
     private static final Long LIMIT_ID = 10L;
     private static final Long OTHER_LIMIT_ID = 11L;
     private static final LocalDate DATE = LocalDate.of(2026, 10, 15);
@@ -186,6 +187,48 @@ class LimitCalculateServiceTest {
             when(limitSpendingService.calculateSpent(USER_ID, limits, DATE)).thenReturn(Map.of());
 
             assertThrows(NullPointerException.class, () -> service.calculateLimitStats(limits, USER_ID, DATE));
+            verifyNoInteractions(limitMapper);
+        }
+    }
+
+    @Nested
+    class CalculateLimitStatsForUsers {
+
+        @Test
+        void shouldReturnStatsForEachUserWhenSpentIsCalculatedInBatch() {
+            Limit otherUserLimit = Limit.builder()
+                    .id(20L)
+                    .userId(OTHER_USER_ID)
+                    .periodType(PERIOD)
+                    .category(CATEGORY)
+                    .amount(LIMIT_AMOUNT)
+                    .build();
+            Map<Long, List<Limit>> limitsByUser = Map.of(
+                    USER_ID, List.of(categoryLimit),
+                    OTHER_USER_ID, List.of(otherUserLimit));
+            when(limitSpendingService.calculateSpent(limitsByUser, DATE)).thenReturn(Map.of(
+                    USER_ID, Map.of(LIMIT_ID, BigDecimal.valueOf(40)),
+                    OTHER_USER_ID, Map.of(20L, BigDecimal.valueOf(70))));
+            when(limitMapper.mapLimitStatsToDto(eq(categoryLimit), eq(BigDecimal.valueOf(40)),
+                    eq(BigDecimal.valueOf(60)), any(BigDecimal.class), any(LimitStatus.class), eq(DATE)))
+                    .thenReturn(statsDto);
+            when(limitMapper.mapLimitStatsToDto(eq(otherUserLimit), eq(BigDecimal.valueOf(70)),
+                    eq(BigDecimal.valueOf(30)), any(BigDecimal.class), any(LimitStatus.class), eq(DATE)))
+                    .thenReturn(otherStatsDto);
+
+            Map<Long, List<LimitStatsDto>> result = service.calculateLimitStatsForUsers(limitsByUser, DATE);
+
+            assertEquals(List.of(statsDto), result.get(USER_ID));
+            assertEquals(List.of(otherStatsDto), result.get(OTHER_USER_ID));
+            verify(limitSpendingService).calculateSpent(limitsByUser, DATE);
+        }
+
+        @Test
+        void shouldReturnEmptyMapWhenNoUsersHaveLimits() {
+            Map<Long, List<LimitStatsDto>> result = service.calculateLimitStatsForUsers(Map.of(), DATE);
+
+            assertTrue(result.isEmpty());
+            verify(limitSpendingService).calculateSpent(Map.of(), DATE);
             verifyNoInteractions(limitMapper);
         }
     }
