@@ -1,4 +1,4 @@
-package com.finovara.financeservice.trash.service.action;
+package com.finovara.financeservice.trash.service.action.revenue;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.event.revenue.RevenueActivityEvent;
@@ -35,16 +35,31 @@ public class RevenueTrashRestoreStrategy implements TrashRestoreStrategy {
 
     @Override
     public void restore(TrashItem item) {
-        Revenue revenue = revenueRepository.findTrashedByIdAndUserIdForUpdate(item.getEntityId(), item.getUserId())
+        Revenue revenue = getRevenue(item);
+        restoreRevenue(revenue);
+        restoreFinancialEffects(item, revenue);
+        publishRevenueCreatedEvent(item, revenue);
+    }
+
+    private Revenue getRevenue(TrashItem item) {
+        return revenueRepository.findTrashedByIdAndUserIdForUpdate(item.getEntityId(), item.getUserId())
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found in trash"));
+    }
+
+    private void restoreRevenue(Revenue revenue) {
         revenue.setDeletedAt(null);
         revenueRepository.save(revenue);
-        if (!Boolean.FALSE.equals(item.getFinancialEffectsReverted())) {
-            walletService.addBalanceToWallet(item.getUserId(), revenue.getAmount(),
-                    TransactionType.DEPOSIT, WalletTransactionReason.REVENUE);
-            autoPaymentsService.handleRevenuePiggyBankAutomation(item.getUserId(), revenue.getAmount(),
-                    PiggyBankAutomationMode.APPLY);
+    }
+
+    private void restoreFinancialEffects(TrashItem item, Revenue revenue) {
+        if (!Boolean.TRUE.equals(item.getFinancialEffectsReverted())) {
+            return;
         }
+        walletService.addBalanceToWallet(item.getUserId(), revenue.getAmount(), TransactionType.DEPOSIT, WalletTransactionReason.REVENUE);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(item.getUserId(), revenue.getAmount(), PiggyBankAutomationMode.APPLY);
+    }
+
+    private void publishRevenueCreatedEvent(TrashItem item, Revenue revenue) {
         outboxService.save("Revenue", revenue.getId().toString(), "revenue.created",
                 new RevenueActivityEvent(item.getUserId(), RevenueActivityType.ADDED_REVENUE, revenue.getAmount(),
                         revenue.getCategory(), null, null, LocalDateTime.now()));
