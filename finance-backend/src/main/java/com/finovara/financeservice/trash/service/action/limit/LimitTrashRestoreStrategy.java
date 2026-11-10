@@ -1,4 +1,4 @@
-package com.finovara.financeservice.trash.service.action;
+package com.finovara.financeservice.trash.service.action.limit;
 
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
@@ -29,17 +29,33 @@ public class LimitTrashRestoreStrategy implements TrashRestoreStrategy {
 
     @Override
     public void restore(TrashItem item) {
-        Limit limit = limitRepository.findTrashedByIdAndUserIdForUpdate(item.getEntityId(), item.getUserId())
+        Limit limit = getLimit(item);
+        validateNoDuplicate(item, limit);
+        restoreLimit(limit);
+        publishLimitRestoredEvent(item, limit);
+    }
+
+    private Limit getLimit(TrashItem item) {
+        return limitRepository.findTrashedByIdAndUserIdForUpdate(item.getEntityId(), item.getUserId())
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Limit not found in trash"));
+    }
+
+    private void validateNoDuplicate(TrashItem item, Limit limit) {
         boolean duplicate = limit.getCategory() == null
                 ? limitRepository.findGeneralLimit(item.getUserId(), limit.getPeriodType()).isPresent()
                 : limitRepository.findCategoryLimit(item.getUserId(), limit.getPeriodType(), limit.getCategory()).isPresent();
-        if (duplicate) {
-            throw new EntityAlreadyExistsException(limit.getCategory() == null
-                    ? "General limit already exists" : "Category limit already exists");
+        if (!duplicate) {
+            return;
         }
+        throw new EntityAlreadyExistsException(limit.getCategory() == null ? "General limit already exists" : "Category limit already exists");
+    }
+
+    private void restoreLimit(Limit limit) {
         limit.setDeletedAt(null);
         limitRepository.save(limit);
+    }
+
+    private void publishLimitRestoredEvent(TrashItem item, Limit limit) {
         outboxService.save("Limit", limit.getId().toString(), "limit.changed",
                 new LimitActivityEvent(item.getUserId(), LimitActivityType.ADDED_LIMIT, limit.getPeriodType().name(),
                         limit.getAmount(), null, LocalDateTime.now()));
