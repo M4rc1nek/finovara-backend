@@ -3,12 +3,10 @@ package com.finovara.financeservice.settings.finances.recurring.repository;
 import com.finovara.contracts.util.model.RecurringType;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import jakarta.persistence.LockModeType;
-import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -52,8 +50,25 @@ public interface RecurringSettingsRepository extends JpaRepository<RecurringSett
 
     Optional<RecurringSettings> findByUserIdAndPiggyBankId(Long userId, Long piggyBankId);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+                SELECT recurringSettings FROM RecurringSettings recurringSettings
+                WHERE recurringSettings.userId = :userId AND recurringSettings.piggyBankId = :piggyBankId
+            """)
+    Optional<RecurringSettings> findByUserIdAndPiggyBankIdForUpdate(Long userId, Long piggyBankId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+                SELECT recurringSettings FROM RecurringSettings recurringSettings
+                WHERE recurringSettings.piggyBankId IN :piggyBankIds
+        ORDER BY recurringSettings.id ASC
+    """)
+    List<RecurringSettings> findAllByPiggyBankIdInForUpdate(List<Long> piggyBankIds);
+
     @Query("SELECT recurringSettings FROM RecurringSettings recurringSettings WHERE recurringSettings.enable = true AND recurringSettings.userId = :userId")
     List<RecurringSettings> findAllEnabledByUserId(Long userId);
 
     boolean existsByUserIdAndType(Long userId, RecurringType type);
+
+    List<RecurringSettings> findAllByPiggyBankIdIn(List<Long> piggyBankIds);
 }
