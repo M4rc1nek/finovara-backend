@@ -15,7 +15,9 @@ import com.finovara.financeservice.piggybank.goalplanner.service.GoalPlannerServ
 import com.finovara.financeservice.piggybank.mapper.PiggyBankMapper;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
+import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
 import com.finovara.financeservice.settings.finances.recurring.repository.RecurringSettingsRepository;
+import com.finovara.financeservice.trash.service.TrashMoverService;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCalculator;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankCheckGoalCompletion;
 import com.finovara.financeservice.util.transaction.piggybank.PiggyBankValidator;
@@ -51,6 +53,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
     private final WalletService walletService;
+    private final TrashMoverService trashMoverService;
 
     @Transactional
     public Long addPiggyBank(PiggyBankDto piggyBankDto, Long userId) {
@@ -125,6 +128,8 @@ public class PiggyBankManagementService implements UserDataDeletable {
     @Transactional
     public void deletePiggyBank(Long userId, Long piggyBankId, String authorizationCode) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(authorizationCode));
+        recurringSettingsRepository.findByUserIdAndPiggyBankIdForUpdate(userId, piggyBankId);
+        walletService.lockWalletForUpdate(userId);
 
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
 
@@ -132,23 +137,23 @@ public class PiggyBankManagementService implements UserDataDeletable {
             throw new InvalidInputException("Cannot delete piggy bank with balance. Withdraw funds first.");
         }
 
-        recurringSettingsRepository.findByUserIdAndPiggyBankId(userId, piggyBankId)
-                .ifPresent(settings -> {
-                    settings.setEnable(false);
-                    settings.setPiggyBankId(null);
-                    settings.setNextExecutionDate(null);
-                });
-
-        outboxService.save("PiggyBank", piggyBankId.toString(), "piggybank.lifecycle.changed",
-                new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK, piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(), null, null, LocalDateTime.now()));
-        piggyBankRepository.delete(piggyBank);
+        trashMoverService.movePiggyBankToTrash(piggyBank, userId);
         log.info("Manual deleted piggyBank for userId={}", userId);
     }
 
     @Override
     @Transactional
     public void deleteByUserId(Long userId) {
-        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserId(userId);
+        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserIdIncludingDeleted(userId);
+        List<Long> piggyBankIds = piggyBanks.stream().map(PiggyBank::getId).toList();
+        List<RecurringSettings> settings =
+                piggyBankIds.isEmpty() ? List.of() : recurringSettingsRepository.findAllByPiggyBankIdIn(piggyBankIds);
+        settings.forEach(setting -> {
+            setting.setEnable(false);
+            setting.setPiggyBankId(null);
+            setting.setNextExecutionDate(null);
+        });
+        recurringSettingsRepository.saveAll(settings);
         piggyBankRepository.deleteAll(piggyBanks);
         log.info("Deleted piggyBank for userId={}", userId);
     }
