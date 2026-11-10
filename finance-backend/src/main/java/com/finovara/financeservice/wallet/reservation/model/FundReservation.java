@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -27,4 +28,6 @@ public class FundReservation {
 
     @Column(nullable = false)
     private Long walletId;
+
+    private LocalDateTime deletedAt;
 }
