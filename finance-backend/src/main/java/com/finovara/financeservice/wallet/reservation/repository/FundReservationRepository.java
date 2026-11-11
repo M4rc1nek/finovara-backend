@@ -14,9 +14,6 @@ public interface FundReservationRepository extends JpaRepository<FundReservation
     @Query("SELECT fr FROM FundReservation fr WHERE fr.walletId = :walletId AND fr.deletedAt IS NULL")
     List<FundReservation> findAllByWalletId(Long walletId);
 
-    @Query("SELECT fr FROM FundReservation fr WHERE fr.walletId = :walletId")
-    List<FundReservation> findAllIncludingDeletedByWalletId(Long walletId);
-
     @Query("SELECT fr FROM FundReservation fr, Wallet w WHERE fr.walletId = w.id AND w.userId = :userId")
     List<FundReservation> findAllByUserId(Long userId);
 
