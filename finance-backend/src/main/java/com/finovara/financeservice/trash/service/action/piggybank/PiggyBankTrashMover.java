@@ -31,7 +31,7 @@ public class PiggyBankTrashMover {
         LocalDateTime deletedAt = LocalDateTime.now();
         piggyBank.setDeletedAt(deletedAt);
         piggyBankRepository.save(piggyBank);
-        publishDeletedEvent(piggyBank, userId, deletedAt);
+        publishAddedToTrashEvent(piggyBank, userId, deletedAt);
         trashService.add(TrashEntityType.PIGGY_BANK, piggyBank.getId(), userId, deletedAt,
                 recurringWasEnabled, false);
     }
@@ -49,9 +49,9 @@ public class PiggyBankTrashMover {
         return wasEnabled;
     }
 
-    private void publishDeletedEvent(PiggyBank piggyBank, Long userId, LocalDateTime deletedAt) {
-        outboxService.save("PiggyBank", piggyBank.getId().toString(), "piggybank.lifecycle.changed",
-                new PiggyBankActivityEvent(userId, PiggyBankActivityType.DELETED_PIGGY_BANK,
+    private void publishAddedToTrashEvent(PiggyBank piggyBank, Long userId, LocalDateTime deletedAt) {
+        outboxService.save("PiggyBank", piggyBank.getId().toString(), "trash.piggybank.activity",
+                new PiggyBankActivityEvent(userId, PiggyBankActivityType.ADDED_TO_TRASH,
                         piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(),
                         null, null, deletedAt));
     }
