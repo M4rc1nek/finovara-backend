@@ -14,7 +14,6 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@Transactional
 public class PiggyBankPermanentDeletionStrategy implements TrashPermanentDeletionStrategy {
 
     private final PiggyBankRepository piggyBankRepository;
@@ -26,12 +25,18 @@ public class PiggyBankPermanentDeletionStrategy implements TrashPermanentDeletio
     }
 
     @Override
+    @Transactional
     public void delete(TrashItem item) {
-        deleteAll(List.of(item));
+        deleteAllPiggyBanks(List.of(item));
     }
 
     @Override
+    @Transactional
     public void deleteAll(List<TrashItem> items) {
+        deleteAllPiggyBanks(items);
+    }
+
+    private void deleteAllPiggyBanks(List<TrashItem> items) {
         List<Long> piggyBankIds = entityIds(items);
         List<RecurringSettings> recurringSettings =
                 recurringSettingsRepository.findAllByPiggyBankIdInForUpdate(piggyBankIds);
@@ -42,7 +47,7 @@ public class PiggyBankPermanentDeletionStrategy implements TrashPermanentDeletio
 
         unlinkRecurringSettings(recurringSettings);
         recurringSettingsRepository.saveAll(recurringSettings);
-        piggyBankRepository.deleteAll(piggyBanks);
+        piggyBankRepository.deleteAllInBatch(piggyBanks);
     }
 
     private void unlinkRecurringSettings(List<RecurringSettings> settings) {
