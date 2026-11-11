@@ -39,7 +39,7 @@ public class RevenueTrashMover {
         LocalDateTime deletedAt = LocalDateTime.now();
         revenue.setDeletedAt(deletedAt);
         revenueRepository.save(revenue);
-        publishDeletedEvent(revenue, userId, deletedAt);
+        publishAddedToTrashEvent(revenue, userId, deletedAt);
         trashService.add(TrashEntityType.REVENUE, revenue.getId(), userId, deletedAt, null, revertFinancialEffects);
     }
 
@@ -52,7 +52,7 @@ public class RevenueTrashMover {
         LocalDateTime deletedAt = LocalDateTime.now();
         revenues.forEach(revenue -> revenue.setDeletedAt(deletedAt));
         revenueRepository.saveAll(revenues);
-        revenues.forEach(revenue -> publishDeletedEvent(revenue, revenue.getUserId(), deletedAt));
+        revenues.forEach(revenue -> publishAddedToTrashEvent(revenue, revenue.getUserId(), deletedAt));
         trashService.addAll(revenues.stream()
                 .map(revenue -> trashItem(revenue, deletedAt))
                 .toList());
@@ -63,9 +63,9 @@ public class RevenueTrashMover {
         walletService.removeBalanceFromWallet(userId, revenue.getAmount(), TransactionType.WITHDRAWAL, WalletTransactionReason.REVENUE);
     }
 
-    private void publishDeletedEvent(Revenue revenue, Long userId, LocalDateTime deletedAt) {
-        outboxService.save("Revenue", revenue.getId().toString(), "revenue.created",
-                new RevenueActivityEvent(userId, RevenueActivityType.DELETED_REVENUE, revenue.getAmount(),
+    private void publishAddedToTrashEvent(Revenue revenue, Long userId, LocalDateTime deletedAt) {
+        outboxService.save("Revenue", revenue.getId().toString(), "trash.revenue.activity",
+                new RevenueActivityEvent(userId, RevenueActivityType.ADDED_TO_TRASH, revenue.getAmount(),
                         revenue.getCategory(), null, null, deletedAt));
     }
 
