@@ -251,6 +251,7 @@ class PiggyBankManagementServiceTest {
                 Long result = service.editPiggyBank(USER_ID, piggyBankDto, PIGGY_BANK_ID);
 
                 assertEquals(PIGGY_BANK_ID, result);
+                verify(walletService).lockWalletForUpdate(USER_ID);
             }
 
             @Test
