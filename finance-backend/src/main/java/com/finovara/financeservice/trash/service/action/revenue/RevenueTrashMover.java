@@ -22,7 +22,6 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@Transactional
 public class RevenueTrashMover {
 
     private final RevenueRepository revenueRepository;
@@ -31,6 +30,7 @@ public class RevenueTrashMover {
     private final OutboxService outboxService;
     private final TrashService trashService;
 
+    @Transactional
     public void move(Revenue revenue, Long userId, boolean revertFinancialEffects) {
         if (revertFinancialEffects) {
             reverseRevenueFinancialTransactions(revenue, userId);
@@ -40,9 +40,10 @@ public class RevenueTrashMover {
         revenue.setDeletedAt(deletedAt);
         revenueRepository.save(revenue);
         publishDeletedEvent(revenue, userId, deletedAt);
-        addTrashItem(revenue, userId, deletedAt, revertFinancialEffects);
+        trashService.add(TrashEntityType.REVENUE, revenue.getId(), userId, deletedAt, null, revertFinancialEffects);
     }
 
+    @Transactional
     public void moveAll(List<Revenue> revenues) {
         if (revenues.isEmpty()) {
             return;
@@ -52,16 +53,14 @@ public class RevenueTrashMover {
         revenues.forEach(revenue -> revenue.setDeletedAt(deletedAt));
         revenueRepository.saveAll(revenues);
         revenues.forEach(revenue -> publishDeletedEvent(revenue, revenue.getUserId(), deletedAt));
-        trashService.addForAutomaticArchive(revenues.stream()
-                .map(revenue -> trashItem(revenue, revenue.getUserId(), deletedAt))
+        trashService.addAll(revenues.stream()
+                .map(revenue -> trashItem(revenue, deletedAt))
                 .toList());
     }
 
     private void reverseRevenueFinancialTransactions(Revenue revenue, Long userId) {
-        autoPaymentsService.handleRevenuePiggyBankAutomation(
-                userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
-        walletService.removeBalanceFromWallet(
-                userId, revenue.getAmount(), TransactionType.WITHDRAWAL, WalletTransactionReason.REVENUE);
+        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
+        walletService.removeBalanceFromWallet(userId, revenue.getAmount(), TransactionType.WITHDRAWAL, WalletTransactionReason.REVENUE);
     }
 
     private void publishDeletedEvent(Revenue revenue, Long userId, LocalDateTime deletedAt) {
@@ -70,21 +69,13 @@ public class RevenueTrashMover {
                         revenue.getCategory(), null, null, deletedAt));
     }
 
-    private void addTrashItem(Revenue revenue, Long userId, LocalDateTime deletedAt,
-                              boolean financialEffectsReverted) {
-        if (financialEffectsReverted) {
-            trashService.add(TrashEntityType.REVENUE, revenue.getId(), userId, deletedAt, null, true);
-            return;
-        }
-        trashService.addForAutomaticArchive(List.of(trashItem(revenue, userId, deletedAt)));
-    }
-
-    private TrashItem trashItem(Revenue revenue, Long userId, LocalDateTime deletedAt) {
+    private TrashItem trashItem(Revenue revenue, LocalDateTime deletedAt) {
         return TrashItem.builder()
                 .entityType(TrashEntityType.REVENUE)
                 .entityId(revenue.getId())
-                .userId(userId)
+                .userId(revenue.getUserId())
                 .deletedAt(deletedAt)
+                .financialEffectsReverted(false)
                 .build();
     }
 }
