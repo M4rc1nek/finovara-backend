@@ -13,13 +13,11 @@ import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.reservation.model.FundReservation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class TrashMoverService {
 
     private final ExpenseTrashMover expenseTrashMover;
