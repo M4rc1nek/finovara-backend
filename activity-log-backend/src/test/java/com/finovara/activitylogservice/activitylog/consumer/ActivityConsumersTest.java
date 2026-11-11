@@ -87,6 +87,7 @@ class ActivityConsumersTest {
         activityConsumers.handleExpense(event);
 
         verify(expenseActivityService).handleEvent(event);
+        verify(evictActivityCacheService).evict(ActivityCache.EXPENSE, USER_ID);
     }
 
     @Test
@@ -96,6 +97,7 @@ class ActivityConsumersTest {
         activityConsumers.handleRevenue(event);
 
         verify(revenueActivityService).handleEvent(event);
+        verify(evictActivityCacheService).evict(ActivityCache.REVENUE, USER_ID);
     }
 
     @Test
@@ -105,6 +107,7 @@ class ActivityConsumersTest {
         activityConsumers.handleLimit(event);
 
         verify(limitActivityService).handleEvent(event);
+        verify(evictActivityCacheService).evict(ActivityCache.LIMIT, USER_ID);
     }
 
     @Test
@@ -114,6 +117,7 @@ class ActivityConsumersTest {
         activityConsumers.handlePiggyBank(event);
 
         verify(piggyBankActivityService).handleEvent(event);
+        verify(evictActivityCacheService).evict(ActivityCache.PIGGY_BANK, USER_ID);
     }
 
     @Test
@@ -131,6 +135,7 @@ class ActivityConsumersTest {
         activityConsumers.handleEditPiggyBank(event);
 
         verify(piggyBankActivityService).handleEditEvent(event);
+        verify(evictActivityCacheService).evict(ActivityCache.PIGGY_BANK, USER_ID);
     }
 
     @Test
@@ -178,6 +183,7 @@ class ActivityConsumersTest {
         activityConsumers.handlePiggyBankTransaction(event);
 
         verify(piggyBankActivityService).handleEvent(event);
+        verify(evictActivityCacheService).evict(ActivityCache.PIGGY_BANK, USER_ID);
     }
 
     @Test
