@@ -12,7 +12,6 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@Transactional
 public class ExpensePermanentDeletionStrategy implements TrashPermanentDeletionStrategy {
 
     private final ExpenseRepository expenseRepository;
@@ -23,21 +22,26 @@ public class ExpensePermanentDeletionStrategy implements TrashPermanentDeletionS
     }
 
     @Override
+    @Transactional
     public void delete(TrashItem item) {
-        deleteAll(List.of(item));
+        deleteAllExpenses(List.of(item));
     }
 
     @Override
+    @Transactional
     public void deleteAll(List<TrashItem> items) {
+        deleteAllExpenses(items);
+    }
+
+    private void deleteAllExpenses(List<TrashItem> items) {
         List<Expense> expenses = expenseRepository.findAllByIdInAndDeletedAtIsNotNull(entityIds(items));
         if (expenses.size() != items.size()) {
             throw new IllegalStateException("One or more expenses for trash items no longer exist");
         }
-        expenseRepository.deleteAll(expenses);
+        expenseRepository.deleteAllInBatch(expenses);
     }
 
     private List<Long> entityIds(List<TrashItem> items) {
         return items.stream().map(TrashItem::getEntityId).toList();
     }
-
 }
