@@ -1,5 +1,8 @@
 package com.finovara.financeservice.trash.service.deletion;
 
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -18,6 +22,7 @@ public class PiggyBankPermanentDeletionStrategy implements TrashPermanentDeletio
 
     private final PiggyBankRepository piggyBankRepository;
     private final RecurringSettingsRepository recurringSettingsRepository;
+    private final OutboxService outboxService;
 
     @Override
     public boolean supports(TrashEntityType entityType) {
@@ -45,6 +50,10 @@ public class PiggyBankPermanentDeletionStrategy implements TrashPermanentDeletio
             throw new IllegalStateException("One or more piggy banks for trash items no longer exist");
         }
 
+        piggyBanks.forEach(piggyBank -> outboxService.save("PiggyBank", piggyBank.getId().toString(),
+                "trash.piggybank.activity", new PiggyBankActivityEvent(piggyBank.getUserId(),
+                        PiggyBankActivityType.PERMANENTLY_DELETED, piggyBank.getName(), piggyBank.getGoalType(),
+                        piggyBank.getGoalAmount(), null, null, LocalDateTime.now())));
         unlinkRecurringSettings(recurringSettings);
         recurringSettingsRepository.saveAll(recurringSettings);
         piggyBankRepository.deleteAllInBatch(piggyBanks);
