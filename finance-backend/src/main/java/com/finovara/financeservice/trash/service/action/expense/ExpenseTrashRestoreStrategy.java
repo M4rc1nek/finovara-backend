@@ -30,8 +30,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ExpenseTrashRestoreStrategy implements TrashRestoreStrategy {
 
-    private static final String LIMIT_STATS_TOPIC = "limit.calculate-stats";
-
     private final ExpenseRepository expenseRepository;
     private final LimitRepository limitRepository;
     private final LimitCalculateService limitCalculateService;
@@ -84,7 +82,7 @@ public class ExpenseTrashRestoreStrategy implements TrashRestoreStrategy {
         for (LimitStatsDto limitStats : stats) {
             LimitStatsEvent event = new LimitStatsEvent(userId, limitStats.limitId(), limitStats.percentage(),
                     limitStats.periodType());
-            outboxService.save("Limit", limitStats.limitId().toString(), LIMIT_STATS_TOPIC, event);
+            outboxService.save("Limit", limitStats.limitId().toString(), "limit.calculate-stats", event);
         }
     }
 }
