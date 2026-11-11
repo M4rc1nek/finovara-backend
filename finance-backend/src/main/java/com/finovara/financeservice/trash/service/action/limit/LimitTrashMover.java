@@ -15,13 +15,13 @@ import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
-@Transactional
 public class LimitTrashMover {
 
     private final LimitRepository limitRepository;
     private final OutboxService outboxService;
     private final TrashService trashService;
 
+    @Transactional
     public void move(Limit limit, Long userId) {
         LocalDateTime deletedAt = LocalDateTime.now();
         limit.setDeletedAt(deletedAt);
