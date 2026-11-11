@@ -647,5 +647,42 @@
         </sql>
     </changeSet>
 
+    <changeSet id="finance-soft-delete-and-lookup-indexes" author="Marcin Parśniak" dbms="postgresql">
+        <comment>
+            Active-name and active-limit uniqueness excludes soft-deleted rows. Recurring settings are also queried
+            by piggy_bank_id, while trash lookups sort by entity type and deletion date or by row id.
+        </comment>
+        <sql>
+            DROP INDEX unique_piggy_bank_user_name;
+            CREATE UNIQUE INDEX unique_piggy_bank_user_name
+            ON piggybanks (user_id, LOWER(name))
+            WHERE deleted_at IS NULL;
+
+            DROP INDEX uq_limit_general;
+            CREATE UNIQUE INDEX uq_limit_general
+            ON limits (user_id, period_type)
+            WHERE category IS NULL AND is_active = true AND deleted_at IS NULL;
+
+            DROP INDEX uq_limit_category;
+            CREATE UNIQUE INDEX uq_limit_category
+            ON limits (user_id, period_type, category)
+            WHERE category IS NOT NULL AND is_active = true AND deleted_at IS NULL;
+
+            DROP INDEX idx_limits_active_user_id;
+            CREATE INDEX idx_limits_active_user_id
+            ON limits (user_id, id DESC)
+            WHERE is_active = true AND deleted_at IS NULL;
+
+            CREATE INDEX idx_recurring_settings_piggy_bank_id
+            ON recurring_settings (piggy_bank_id)
+            WHERE piggy_bank_id IS NOT NULL;
+
+            DROP INDEX idx_trash_user_deleted;
+            CREATE INDEX idx_trash_user_entity_deleted
+            ON trash_items (user_id, entity_type, deleted_at DESC);
+            CREATE INDEX idx_trash_user_id
+            ON trash_items (user_id, id);
+        </sql>
+    </changeSet>
 
 </databaseChangeLog>
