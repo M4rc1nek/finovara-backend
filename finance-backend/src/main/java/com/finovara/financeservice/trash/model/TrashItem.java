@@ -8,7 +8,10 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "trash_items",
         uniqueConstraints = @UniqueConstraint(name = "uk_trash_entity", columnNames = {"entity_type", "entity_id"}),
-        indexes = @Index(name = "idx_trash_user_deleted", columnList = "user_id, deleted_at DESC"))
+        indexes = {
+                @Index(name = "idx_trash_user_entity_deleted", columnList = "user_id, entity_type, deleted_at DESC"),
+                @Index(name = "idx_trash_user_id", columnList = "user_id, id")
+        })
 @Getter
 @Setter
 @Builder
