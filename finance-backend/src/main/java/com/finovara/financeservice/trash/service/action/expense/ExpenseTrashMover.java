@@ -39,7 +39,7 @@ public class ExpenseTrashMover {
         LocalDateTime deletedAt = LocalDateTime.now();
         expense.setDeletedAt(deletedAt);
         expenseRepository.save(expense);
-        publishDeletedEvent(expense, userId, deletedAt);
+        publishAddedToTrashEvent(expense, userId, deletedAt);
         trashService.add(TrashEntityType.EXPENSE, expense.getId(), userId, deletedAt, null, revertFinancialEffects);
     }
 
@@ -52,7 +52,7 @@ public class ExpenseTrashMover {
         LocalDateTime deletedAt = LocalDateTime.now();
         expenses.forEach(expense -> expense.setDeletedAt(deletedAt));
         expenseRepository.saveAll(expenses);
-        expenses.forEach(expense -> publishDeletedEvent(expense, expense.getUserId(), deletedAt));
+        expenses.forEach(expense -> publishAddedToTrashEvent(expense, expense.getUserId(), deletedAt));
         trashService.addAll(expenses.stream()
                 .map(expense -> trashItem(expense, deletedAt))
                 .toList());
@@ -64,9 +64,9 @@ public class ExpenseTrashMover {
                 TransactionType.REFUND, WalletTransactionReason.EXPENSE);
     }
 
-    private void publishDeletedEvent(Expense expense, Long userId, LocalDateTime deletedAt) {
-        outboxService.save("Expense", expense.getId().toString(), "expense.created",
-                new ExpenseActivityEvent(userId, ExpenseActivityType.DELETED_EXPENSE, expense.getAmount(),
+    private void publishAddedToTrashEvent(Expense expense, Long userId, LocalDateTime deletedAt) {
+        outboxService.save("Expense", expense.getId().toString(), "trash.expense.activity",
+                new ExpenseActivityEvent(userId, ExpenseActivityType.ADDED_TO_TRASH, expense.getAmount(),
                         expense.getCategory(), null, null, deletedAt));
     }
 
