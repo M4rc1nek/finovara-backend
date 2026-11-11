@@ -1,5 +1,8 @@
 package com.finovara.financeservice.trash.service.deletion;
 
+import com.finovara.contracts.mainaccount.activity.event.limit.LimitActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.LimitActivityType;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.limit.model.Limit;
 import com.finovara.financeservice.limit.repository.LimitRepository;
 import com.finovara.financeservice.trash.model.TrashEntityType;
@@ -9,12 +12,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
 public class LimitPermanentDeletionStrategy implements TrashPermanentDeletionStrategy {
 
     private final LimitRepository limitRepository;
+    private final OutboxService outboxService;
 
     @Override
     public boolean supports(TrashEntityType entityType) {
@@ -38,6 +43,10 @@ public class LimitPermanentDeletionStrategy implements TrashPermanentDeletionStr
         if (limits.size() != items.size()) {
             throw new IllegalStateException("One or more limits for trash items no longer exist");
         }
+        limits.forEach(limit -> outboxService.save("Limit", limit.getId().toString(),
+                "trash.limit.activity", new LimitActivityEvent(limit.getUserId(),
+                        LimitActivityType.PERMANENTLY_DELETED, limit.getPeriodType().name(),
+                        limit.getAmount(), null, LocalDateTime.now())));
         limitRepository.deleteAllInBatch(limits);
     }
 
