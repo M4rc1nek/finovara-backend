@@ -1,8 +1,10 @@
 package com.finovara.financeservice.trash.service.action.fundreservation;
 
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
+import com.finovara.contracts.mainaccount.activity.event.wallet.WalletStatusActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.TransactionType;
 import com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.trash.model.TrashEntityType;
 import com.finovara.financeservice.trash.model.TrashItem;
 import com.finovara.financeservice.trash.service.TrashRestoreStrategy;
@@ -14,6 +16,8 @@ import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Component
 @RequiredArgsConstructor
 public class ReservationTrashRestoreStrategy implements TrashRestoreStrategy {
@@ -21,6 +25,7 @@ public class ReservationTrashRestoreStrategy implements TrashRestoreStrategy {
     private final FundReservationRepository fundReservationRepository;
     private final WalletManagerService walletManagerService;
     private final WalletService walletService;
+    private final OutboxService outboxService;
 
     @Override
     public boolean supports(TrashEntityType entityType) {
@@ -49,5 +54,8 @@ public class ReservationTrashRestoreStrategy implements TrashRestoreStrategy {
     private void publishRestoredStatus(TrashItem item, Wallet wallet, FundReservation reservation) {
         walletService.publishStatusChange(item.getUserId(), wallet, TransactionType.RESERVATION,
                 WalletTransactionReason.FUND_RESERVATION, reservation.getAmount());
+        outboxService.save("FundReservation", reservation.getId().toString(), "trash.reservation.activity",
+                new WalletStatusActivityEvent(item.getUserId(), TransactionType.RESERVATION_RESTORED_FROM_TRASH,
+                        WalletTransactionReason.FUND_RESERVATION, reservation.getAmount(), LocalDateTime.now()));
     }
 }
