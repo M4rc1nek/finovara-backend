@@ -47,7 +47,7 @@ public class ExpenseTrashRestoreStrategy implements TrashRestoreStrategy {
         Expense expense = getExpense(item);
         restoreExpense(expense);
         restoreFinancialEffects(item, expense);
-        publishExpenseCreatedEvent(item, expense);
+        publishExpenseRestoredEvent(item, expense);
         publishLimitStatsEvents(item.getUserId());
     }
 
@@ -70,9 +70,9 @@ public class ExpenseTrashRestoreStrategy implements TrashRestoreStrategy {
         roundUpService.handleExpenseForRoundUp(item.getUserId(), expense.getId(), PiggyBankAutomationMode.APPLY);
     }
 
-    private void publishExpenseCreatedEvent(TrashItem item, Expense expense) {
-        outboxService.save("Expense", expense.getId().toString(), "expense.created",
-                new ExpenseActivityEvent(item.getUserId(), ExpenseActivityType.ADDED_EXPENSE, expense.getAmount(),
+    private void publishExpenseRestoredEvent(TrashItem item, Expense expense) {
+        outboxService.save("Expense", expense.getId().toString(), "trash.expense.activity",
+                new ExpenseActivityEvent(item.getUserId(), ExpenseActivityType.RESTORED_FROM_TRASH, expense.getAmount(),
                         expense.getCategory(), null, null, LocalDateTime.now()));
     }
 
