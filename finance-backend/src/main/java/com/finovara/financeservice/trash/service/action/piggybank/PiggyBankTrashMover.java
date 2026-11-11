@@ -18,7 +18,6 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-@Transactional
 public class PiggyBankTrashMover {
 
     private final PiggyBankRepository piggyBankRepository;
@@ -26,6 +25,7 @@ public class PiggyBankTrashMover {
     private final OutboxService outboxService;
     private final TrashService trashService;
 
+    @Transactional
     public void move(PiggyBank piggyBank, Long userId) {
         boolean recurringWasEnabled = pauseRecurringSettings(userId, piggyBank.getId());
         LocalDateTime deletedAt = LocalDateTime.now();
@@ -37,8 +37,7 @@ public class PiggyBankTrashMover {
     }
 
     private boolean pauseRecurringSettings(Long userId, Long piggyBankId) {
-        Optional<RecurringSettings> recurringSettings =
-                recurringSettingsRepository.findByUserIdAndPiggyBankIdForUpdate(userId, piggyBankId);
+        Optional<RecurringSettings> recurringSettings = recurringSettingsRepository.findByUserIdAndPiggyBankIdForUpdate(userId, piggyBankId);
         if (recurringSettings.isEmpty()) {
             return false;
         }
