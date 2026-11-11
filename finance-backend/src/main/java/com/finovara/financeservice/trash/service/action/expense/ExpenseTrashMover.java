@@ -22,7 +22,6 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@Transactional
 public class ExpenseTrashMover {
 
     private final ExpenseRepository expenseRepository;
@@ -31,18 +30,20 @@ public class ExpenseTrashMover {
     private final OutboxService outboxService;
     private final TrashService trashService;
 
+    @Transactional
     public void move(Expense expense, Long userId, boolean revertFinancialEffects) {
         if (revertFinancialEffects) {
-            revertFinancialEffects(expense, userId);
+            reverseExpenseFinancialTransactions(expense, userId);
         }
 
         LocalDateTime deletedAt = LocalDateTime.now();
         expense.setDeletedAt(deletedAt);
         expenseRepository.save(expense);
         publishDeletedEvent(expense, userId, deletedAt);
-        addTrashItem(expense, userId, deletedAt, revertFinancialEffects);
+        trashService.add(TrashEntityType.EXPENSE, expense.getId(), userId, deletedAt, null, revertFinancialEffects);
     }
 
+    @Transactional
     public void moveAll(List<Expense> expenses) {
         if (expenses.isEmpty()) {
             return;
@@ -52,12 +53,12 @@ public class ExpenseTrashMover {
         expenses.forEach(expense -> expense.setDeletedAt(deletedAt));
         expenseRepository.saveAll(expenses);
         expenses.forEach(expense -> publishDeletedEvent(expense, expense.getUserId(), deletedAt));
-        trashService.addForAutomaticArchive(expenses.stream()
-                .map(expense -> trashItem(expense, expense.getUserId(), deletedAt))
+        trashService.addAll(expenses.stream()
+                .map(expense -> trashItem(expense, deletedAt))
                 .toList());
     }
 
-    private void revertFinancialEffects(Expense expense, Long userId) {
+    private void reverseExpenseFinancialTransactions(Expense expense, Long userId) {
         roundUpService.handleExpenseForRoundUp(userId, expense.getId(), PiggyBankAutomationMode.ROLLBACK);
         walletService.addBalanceToWallet(userId, expense.getAmount(),
                 TransactionType.REFUND, WalletTransactionReason.EXPENSE);
@@ -69,21 +70,13 @@ public class ExpenseTrashMover {
                         expense.getCategory(), null, null, deletedAt));
     }
 
-    private void addTrashItem(Expense expense, Long userId, LocalDateTime deletedAt,
-                              boolean financialEffectsReverted) {
-        if (financialEffectsReverted) {
-            trashService.add(TrashEntityType.EXPENSE, expense.getId(), userId, deletedAt, null, true);
-            return;
-        }
-        trashService.addForAutomaticArchive(List.of(trashItem(expense, userId, deletedAt)));
-    }
-
-    private TrashItem trashItem(Expense expense, Long userId, LocalDateTime deletedAt) {
+    private TrashItem trashItem(Expense expense, LocalDateTime deletedAt) {
         return TrashItem.builder()
                 .entityType(TrashEntityType.EXPENSE)
                 .entityId(expense.getId())
-                .userId(userId)
+                .userId(expense.getUserId())
                 .deletedAt(deletedAt)
+                .financialEffectsReverted(false)
                 .build();
     }
 }
