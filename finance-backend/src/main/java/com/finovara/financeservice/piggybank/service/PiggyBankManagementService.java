@@ -92,6 +92,7 @@ public class PiggyBankManagementService implements UserDataDeletable {
     public Long editPiggyBank(Long userId, PiggyBankDto piggyBankDto, Long piggyBankId) {
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(piggyBankDto.authorizationCode()));
 
+        walletService.lockWalletForUpdate(userId);
         PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
 
         if (piggyBankRepository.existsByNameIgnoreCaseExcludingId(userId, piggyBankDto.name(), piggyBankId)) {
