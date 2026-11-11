@@ -68,7 +68,7 @@ class PiggyBankPermanentDeletionStrategyTest {
             inOrder.verify(recurringSettingsRepository).findAllByPiggyBankIdInForUpdate(List.of(PIGGY_BANK_ID));
             inOrder.verify(piggyBankRepository).findAllByIdInAndDeletedAtIsNotNull(List.of(PIGGY_BANK_ID));
             inOrder.verify(recurringSettingsRepository).saveAll(List.of(recurringSettings));
-            inOrder.verify(piggyBankRepository).deleteAll(List.of(piggyBank));
+            inOrder.verify(piggyBankRepository).deleteAllInBatch(List.of(piggyBank));
             assertFalse(recurringSettings.isEnable());
         }
 
@@ -79,7 +79,7 @@ class PiggyBankPermanentDeletionStrategyTest {
 
             assertThrows(IllegalStateException.class, () -> strategy.deleteAll(List.of(item)));
 
-            verify(piggyBankRepository, never()).deleteAll(List.of(piggyBank));
+            verify(piggyBankRepository, never()).deleteAllInBatch(List.of(piggyBank));
             verify(recurringSettingsRepository, never()).saveAll(List.of(recurringSettings));
         }
     }
