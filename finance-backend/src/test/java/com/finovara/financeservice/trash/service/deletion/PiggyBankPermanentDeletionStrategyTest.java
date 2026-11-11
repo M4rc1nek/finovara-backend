@@ -1,5 +1,8 @@
 package com.finovara.financeservice.trash.service.deletion;
 
+import com.finovara.contracts.mainaccount.activity.event.piggybank.PiggyBankActivityEvent;
+import com.finovara.contracts.mainaccount.activity.model.PiggyBankActivityType;
+import com.finovara.contracts.outbox.OutboxService;
 import com.finovara.financeservice.piggybank.model.PiggyBank;
 import com.finovara.financeservice.piggybank.repository.PiggyBankRepository;
 import com.finovara.financeservice.settings.finances.recurring.model.RecurringSettings;
@@ -12,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.InOrder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,7 +23,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -35,6 +41,8 @@ class PiggyBankPermanentDeletionStrategyTest {
     private PiggyBankRepository piggyBankRepository;
     @Mock
     private RecurringSettingsRepository recurringSettingsRepository;
+    @Mock
+    private OutboxService outboxService;
 
     @InjectMocks
     private PiggyBankPermanentDeletionStrategy strategy;
@@ -70,6 +78,11 @@ class PiggyBankPermanentDeletionStrategyTest {
             inOrder.verify(recurringSettingsRepository).saveAll(List.of(recurringSettings));
             inOrder.verify(piggyBankRepository).deleteAllInBatch(List.of(piggyBank));
             assertFalse(recurringSettings.isEnable());
+
+            ArgumentCaptor<PiggyBankActivityEvent> eventCaptor = ArgumentCaptor.forClass(PiggyBankActivityEvent.class);
+            verify(outboxService).save(eq("PiggyBank"), eq(PIGGY_BANK_ID.toString()),
+                    eq("trash.piggybank.activity"), eventCaptor.capture());
+            assertEquals(PiggyBankActivityType.PERMANENTLY_DELETED, eventCaptor.getValue().type());
         }
 
         @Test
