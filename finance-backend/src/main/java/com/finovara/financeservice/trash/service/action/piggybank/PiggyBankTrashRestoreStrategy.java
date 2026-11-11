@@ -71,8 +71,8 @@ public class PiggyBankTrashRestoreStrategy implements TrashRestoreStrategy {
     }
 
     private void publishPiggyBankRestoredEvent(TrashItem item, PiggyBank piggyBank) {
-        outboxService.save("PiggyBank", piggyBank.getId().toString(), "piggybank.lifecycle.changed",
-                new PiggyBankActivityEvent(item.getUserId(), PiggyBankActivityType.ADDED_PIGGY_BANK,
+        outboxService.save("PiggyBank", piggyBank.getId().toString(), "trash.piggybank.activity",
+                new PiggyBankActivityEvent(item.getUserId(), PiggyBankActivityType.RESTORED_FROM_TRASH,
                         piggyBank.getName(), piggyBank.getGoalType(), piggyBank.getGoalAmount(),
                         null, null, LocalDateTime.now()));
     }
