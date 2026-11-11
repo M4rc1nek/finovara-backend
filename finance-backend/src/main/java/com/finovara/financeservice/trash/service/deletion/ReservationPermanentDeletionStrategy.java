@@ -12,7 +12,6 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@Transactional
 public class ReservationPermanentDeletionStrategy implements TrashPermanentDeletionStrategy {
 
     private final FundReservationRepository fundReservationRepository;
@@ -23,18 +22,23 @@ public class ReservationPermanentDeletionStrategy implements TrashPermanentDelet
     }
 
     @Override
+    @Transactional
     public void delete(TrashItem item) {
-        deleteAll(List.of(item));
+        deleteAllReservations(List.of(item));
     }
 
     @Override
+    @Transactional
     public void deleteAll(List<TrashItem> items) {
-        List<FundReservation> reservations =
-                fundReservationRepository.findAllByIdInAndDeletedAtIsNotNull(entityIds(items));
+        deleteAllReservations(items);
+    }
+
+    private void deleteAllReservations(List<TrashItem> items) {
+        List<FundReservation> reservations = fundReservationRepository.findAllByIdInAndDeletedAtIsNotNull(entityIds(items));
         if (reservations.size() != items.size()) {
             throw new IllegalStateException("One or more reservations for trash items no longer exist");
         }
-        fundReservationRepository.deleteAll(reservations);
+        fundReservationRepository.deleteAllInBatch(reservations);
     }
 
     private List<Long> entityIds(List<TrashItem> items) {
