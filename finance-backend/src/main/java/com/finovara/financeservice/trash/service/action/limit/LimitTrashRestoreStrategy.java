@@ -56,8 +56,8 @@ public class LimitTrashRestoreStrategy implements TrashRestoreStrategy {
     }
 
     private void publishLimitRestoredEvent(TrashItem item, Limit limit) {
-        outboxService.save("Limit", limit.getId().toString(), "limit.changed",
-                new LimitActivityEvent(item.getUserId(), LimitActivityType.ADDED_LIMIT, limit.getPeriodType().name(),
+        outboxService.save("Limit", limit.getId().toString(), "trash.limit.activity",
+                new LimitActivityEvent(item.getUserId(), LimitActivityType.RESTORED_FROM_TRASH, limit.getPeriodType().name(),
                         limit.getAmount(), null, LocalDateTime.now()));
     }
 }
