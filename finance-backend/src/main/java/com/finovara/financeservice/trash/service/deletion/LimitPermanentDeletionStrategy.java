@@ -12,7 +12,6 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@Transactional
 public class LimitPermanentDeletionStrategy implements TrashPermanentDeletionStrategy {
 
     private final LimitRepository limitRepository;
@@ -23,17 +22,23 @@ public class LimitPermanentDeletionStrategy implements TrashPermanentDeletionStr
     }
 
     @Override
+    @Transactional
     public void delete(TrashItem item) {
-        deleteAll(List.of(item));
+        deleteAllLimits(List.of(item));
     }
 
     @Override
+    @Transactional
     public void deleteAll(List<TrashItem> items) {
+        deleteAllLimits(items);
+    }
+
+    private void deleteAllLimits(List<TrashItem> items) {
         List<Limit> limits = limitRepository.findAllByIdInAndDeletedAtIsNotNull(entityIds(items));
         if (limits.size() != items.size()) {
             throw new IllegalStateException("One or more limits for trash items no longer exist");
         }
-        limitRepository.deleteAll(limits);
+        limitRepository.deleteAllInBatch(limits);
     }
 
     private List<Long> entityIds(List<TrashItem> items) {
