@@ -29,8 +29,7 @@ public class TrashService implements UserDataDeletable {
     private final AdditionalAuthorizationCodeResolver authorizationCodeResolver;
 
     @Transactional
-    public void add(TrashEntityType type, Long entityId, Long userId, LocalDateTime deletedAt,
-                    Boolean restoreRecurringEnabled, boolean financialEffectsReverted) {
+    public void add(TrashEntityType type, Long entityId, Long userId, LocalDateTime deletedAt, Boolean restoreRecurringEnabled, boolean financialEffectsReverted) {
         trashItemRepository.save(TrashItem.builder()
                 .entityType(type)
                 .entityId(entityId)
@@ -42,19 +41,7 @@ public class TrashService implements UserDataDeletable {
     }
 
     @Transactional
-    public void addForAutomaticArchive(TrashEntityType type, Long entityId, Long userId, LocalDateTime deletedAt) {
-        trashItemRepository.save(TrashItem.builder()
-                .entityType(type)
-                .entityId(entityId)
-                .userId(userId)
-                .deletedAt(deletedAt)
-                .financialEffectsReverted(false)
-                .build());
-    }
-
-    @Transactional
-    public void addForAutomaticArchive(List<TrashItem> items) {
-        items.forEach(item -> item.setFinancialEffectsReverted(false));
+    public void addAll(List<TrashItem> items) {
         trashItemRepository.saveAll(items);
     }
 
@@ -68,7 +55,7 @@ public class TrashService implements UserDataDeletable {
     public void restore(Long userId, Long trashItemId, String authorizationCode) {
         authBackendClient.confirmAuthorizationCode(userId, authorizationCodeResolver.resolve(authorizationCode));
         TrashItem item = getItemForUpdate(userId, trashItemId);
-        lockWalletUnlessPiggyBank(userId, item);
+        walletService.lockWalletForUpdate(userId);
         trashRestoreService.restore(item);
         trashItemRepository.delete(item);
     }
@@ -87,7 +74,7 @@ public class TrashService implements UserDataDeletable {
     @Transactional
     public void deleteByUserId(Long userId) {
         List<TrashItem> items = trashItemRepository.findAllForUserForUpdate(userId);
-        trashItemRepository.deleteAll(items);
+        trashItemRepository.deleteAllInBatch(items);
     }
 
     private TrashItem getItemForUpdate(Long userId, Long trashItemId) {
