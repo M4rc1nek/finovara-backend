@@ -16,13 +16,13 @@ import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
-@Transactional
 public class FundReservationTrashMover {
 
     private final FundReservationRepository fundReservationRepository;
     private final WalletService walletService;
     private final TrashService trashService;
 
+    @Transactional
     public void move(FundReservation reservation, Wallet wallet, Long userId) {
         wallet.unreserve(reservation.getAmount());
         walletService.publishStatusChange(userId, wallet, TransactionType.RESERVATION_RELEASE,
