@@ -26,8 +26,8 @@ public class LimitTrashMover {
         LocalDateTime deletedAt = LocalDateTime.now();
         limit.setDeletedAt(deletedAt);
         limitRepository.save(limit);
-        outboxService.save("Limit", limit.getId().toString(), "limit.changed",
-                new LimitActivityEvent(userId, LimitActivityType.DELETED_LIMIT, limit.getPeriodType().name(),
+        outboxService.save("Limit", limit.getId().toString(), "trash.limit.activity",
+                new LimitActivityEvent(userId, LimitActivityType.ADDED_TO_TRASH, limit.getPeriodType().name(),
                         limit.getAmount(), null, deletedAt));
         trashService.add(TrashEntityType.LIMIT, limit.getId(), userId, deletedAt, null, false);
     }
