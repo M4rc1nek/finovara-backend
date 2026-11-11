@@ -52,24 +52,28 @@ public class ActivityConsumers {
         settingsActivityService.handleEvent(event);
     }
 
-    @KafkaListener(topics = "revenue.created")
+    @KafkaListener(topics = {"revenue.created", "trash.revenue.activity"})
     public void handleRevenue(RevenueActivityEvent event) {
         revenueActivityService.handleEvent(event);
+        evictActivityCacheService.evict(ActivityCache.REVENUE, event.userId());
     }
 
-    @KafkaListener(topics = "piggybank.lifecycle.changed")
+    @KafkaListener(topics = {"piggybank.lifecycle.changed", "trash.piggybank.activity"})
     public void handlePiggyBank(PiggyBankActivityEvent event) {
         piggyBankActivityService.handleEvent(event);
+        evictActivityCacheService.evict(ActivityCache.PIGGY_BANK, event.userId());
     }
 
     @KafkaListener(topics = "piggybank.updated")
     public void handleEditPiggyBank(PiggyBankEditActivityEvent event) {
         piggyBankActivityService.handleEditEvent(event);
+        evictActivityCacheService.evict(ActivityCache.PIGGY_BANK, event.userId());
     }
 
     @KafkaListener(topics = "piggybank.transaction.created")
     public void handlePiggyBankTransaction(PiggyBankActivityEvent event) {
         piggyBankActivityService.handleEvent(event);
+        evictActivityCacheService.evict(ActivityCache.PIGGY_BANK, event.userId());
     }
 
     @KafkaListener(topics = "user.logged-in")
@@ -77,17 +81,19 @@ public class ActivityConsumers {
         loginActivityService.handleEvent(event);
     }
 
-    @KafkaListener(topics = "limit.changed")
+    @KafkaListener(topics = {"limit.changed", "trash.limit.activity"})
     public void handleLimit(LimitActivityEvent event) {
         limitActivityService.handleEvent(event);
+        evictActivityCacheService.evict(ActivityCache.LIMIT, event.userId());
     }
 
-    @KafkaListener(topics = "expense.created")
+    @KafkaListener(topics = {"expense.created", "trash.expense.activity"})
     public void handleExpense(ExpenseActivityEvent event) {
         expenseActivityService.handleEvent(event);
+        evictActivityCacheService.evict(ActivityCache.EXPENSE, event.userId());
     }
 
-    @KafkaListener(topics = "wallet-status.changed")
+    @KafkaListener(topics = {"wallet-status.changed", "trash.reservation.activity"})
     public void handleWalletStatus(WalletStatusActivityEvent event) {
         walletStatusActivityService.handleEvent(event);
         evictActivityCacheService.evict(ActivityCache.WALLET_STATUS, event.userId());
