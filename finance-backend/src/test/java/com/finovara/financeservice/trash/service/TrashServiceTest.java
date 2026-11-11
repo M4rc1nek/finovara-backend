@@ -78,25 +78,31 @@ class TrashServiceTest {
         }
 
         @Test
-        void shouldRecordUnrevertedFinancialEffectsWhenAutomaticallyArchived() {
+        void shouldSaveSingleAutomaticallyArchivedItem() {
             LocalDateTime deletedAt = LocalDateTime.now();
+            TrashItem item = TrashItem.builder()
+                    .entityType(TrashEntityType.EXPENSE)
+                    .entityId(EXPENSE_ID)
+                    .userId(USER_ID)
+                    .deletedAt(deletedAt)
+                    .financialEffectsReverted(false)
+                    .build();
 
-            service.addForAutomaticArchive(TrashEntityType.EXPENSE, EXPENSE_ID, USER_ID, deletedAt);
+            service.addAll(List.of(item));
 
-            ArgumentCaptor<TrashItem> itemCaptor = ArgumentCaptor.forClass(TrashItem.class);
-            verify(trashItemRepository).save(itemCaptor.capture());
-            assertEquals(false, itemCaptor.getValue().getFinancialEffectsReverted());
+            verify(trashItemRepository).saveAll(List.of(item));
+            assertEquals(false, item.getFinancialEffectsReverted());
         }
 
         @Test
-        void shouldSaveMultipleMetadataItemsTogetherWhenAutomaticallyArchived() {
+        void shouldSaveMultipleAutomaticallyArchivedItemsTogether() {
             List<TrashItem> items = List.of(
                     TrashItem.builder().entityType(TrashEntityType.EXPENSE).entityId(EXPENSE_ID)
-                            .userId(USER_ID).deletedAt(LocalDateTime.now()).build(),
+                            .userId(USER_ID).deletedAt(LocalDateTime.now()).financialEffectsReverted(false).build(),
                     TrashItem.builder().entityType(TrashEntityType.REVENUE).entityId(REVENUE_ID)
-                            .userId(USER_ID).deletedAt(LocalDateTime.now()).build());
+                            .userId(USER_ID).deletedAt(LocalDateTime.now()).financialEffectsReverted(false).build());
 
-            service.addForAutomaticArchive(items);
+            service.addAll(items);
 
             verify(trashItemRepository).saveAll(itemsCaptor.capture());
             assertEquals(2, itemsCaptor.getValue().size());
@@ -132,7 +138,7 @@ class TrashServiceTest {
             service.deleteByUserId(USER_ID);
 
             verify(trashItemRepository).findAllForUserForUpdate(USER_ID);
-            verify(trashItemRepository).deleteAll(List.of(item));
+            verify(trashItemRepository).deleteAllInBatch(List.of(item));
         }
     }
 
@@ -155,7 +161,7 @@ class TrashServiceTest {
         }
 
         @Test
-        void shouldNotLockWalletWhenRestoringPiggyBank() {
+        void shouldLockWalletWhenRestoringPiggyBank() {
             TrashItem item = TrashItem.builder()
                     .id(TRASH_ITEM_ID)
                     .entityId(40L)
@@ -167,8 +173,8 @@ class TrashServiceTest {
 
             service.restore(USER_ID, TRASH_ITEM_ID, AUTHORIZATION_CODE);
 
+            verify(walletService).lockWalletForUpdate(USER_ID);
             verify(trashRestoreService).restore(item);
-            verify(walletService, never()).lockWalletForUpdate(USER_ID);
         }
     }
 
