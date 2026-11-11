@@ -38,7 +38,7 @@ public class RevenueTrashRestoreStrategy implements TrashRestoreStrategy {
         Revenue revenue = getRevenue(item);
         restoreRevenue(revenue);
         restoreFinancialEffects(item, revenue);
-        publishRevenueCreatedEvent(item, revenue);
+        publishRevenueRestoredEvent(item, revenue);
     }
 
     private Revenue getRevenue(TrashItem item) {
@@ -59,9 +59,9 @@ public class RevenueTrashRestoreStrategy implements TrashRestoreStrategy {
         autoPaymentsService.handleRevenuePiggyBankAutomation(item.getUserId(), revenue.getAmount(), PiggyBankAutomationMode.APPLY);
     }
 
-    private void publishRevenueCreatedEvent(TrashItem item, Revenue revenue) {
-        outboxService.save("Revenue", revenue.getId().toString(), "revenue.created",
-                new RevenueActivityEvent(item.getUserId(), RevenueActivityType.ADDED_REVENUE, revenue.getAmount(),
+    private void publishRevenueRestoredEvent(TrashItem item, Revenue revenue) {
+        outboxService.save("Revenue", revenue.getId().toString(), "trash.revenue.activity",
+                new RevenueActivityEvent(item.getUserId(), RevenueActivityType.RESTORED_FROM_TRASH, revenue.getAmount(),
                         revenue.getCategory(), null, null, LocalDateTime.now()));
     }
 }
