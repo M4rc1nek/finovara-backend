@@ -1,7 +1,6 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.wallet.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.wallet.dto.WalletStatusActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.wallet.dto.WalletStatusActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.wallet.mapper.WalletStatusActivityMapper;
@@ -55,8 +54,7 @@ public class WalletStatusActivityService extends AccountActivityCore<WalletStatu
 
     public List<WalletStatusActivityDto> filterWalletActivity(Long userId, WalletStatusActivityFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange created = DateRange.of(filter.createdAt());
-        return walletStatusActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+        return walletStatusActivityRepository.findFilteredActivities(userId, filter, filter.createdAt(), pageable)
                 .stream()
                 .map(walletStatusActivityMapper::mapToDto)
                 .toList();
