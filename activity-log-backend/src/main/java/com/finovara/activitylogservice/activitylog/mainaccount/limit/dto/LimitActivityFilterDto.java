@@ -12,5 +12,5 @@ public record LimitActivityFilterDto(
        PeriodType periodType,
        BigDecimal amount,
        BigDecimal previousAmount,
-       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdAt
+       @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate createdAt
 ) {}
