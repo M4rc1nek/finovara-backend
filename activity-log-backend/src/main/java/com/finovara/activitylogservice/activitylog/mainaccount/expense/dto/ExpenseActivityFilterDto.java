@@ -13,5 +13,5 @@ public record ExpenseActivityFilterDto(
        BigDecimal previousAmount,
        ExpenseCategory category,
        ExpenseCategory previousCategory,
-       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdAt
+       @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate createdAt
 ) {}
