@@ -1,6 +1,5 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.service;
 
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.core.SecurityActivityCore;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.dto.LoginActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.dto.LoginActivityFilterDto;
@@ -62,8 +61,7 @@ public class LoginActivityService extends SecurityActivityCore<LoginActivity, Lo
 
     public List<LoginActivityDto> filterLoginActivity(Long userId, LoginActivityFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange created = DateRange.of(filter.createdAt());
-        return loginActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+        return loginActivityRepository.findFilteredActivities(userId, filter, filter.createdAt(), pageable)
                 .stream()
                 .map(loginActivityMapper::mapToDto)
                 .toList();
