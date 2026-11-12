@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -23,11 +23,10 @@ public interface ExpenseActivityRepository extends JpaRepository<ExpenseActivity
               AND (CAST(:#{#filter.previousAmount} AS string) IS NULL OR e.previousAmount = :#{#filter.previousAmount})
               AND (CAST(:#{#filter.category} AS string) IS NULL OR e.category = :#{#filter.category})
               AND (CAST(:#{#filter.previousCategory} AS string) IS NULL OR e.previousCategory = :#{#filter.previousCategory})
-              AND (CAST(:createdFrom AS timestamp) IS NULL OR e.createdAt >= :createdFrom)
-              AND (CAST(:createdTo AS timestamp) IS NULL OR e.createdAt < :createdTo)
+              AND (CAST(:createdAt AS date) IS NULL OR CAST(e.createdAt AS date) = :createdAt)
             ORDER BY e.createdAt DESC, e.id DESC
             """)
-    List<ExpenseActivity> findFilteredActivities(Long userId, ExpenseActivityFilterDto filter, LocalDateTime createdFrom, LocalDateTime createdTo, Pageable pageable);
+    List<ExpenseActivity> findFilteredActivities(Long userId, ExpenseActivityFilterDto filter, LocalDate createdAt, Pageable pageable);
 
     List<ExpenseActivity> findAllByUserId(Long userId);
 }
