@@ -156,14 +156,14 @@ class AccountChangeArchiveServiceTest {
                     "Warsaw"
             );
 
-            when(accountChangeArchiveRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(), any(), any(Pageable.class)))
+            when(accountChangeArchiveRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.moveToArchiveDate()), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(archive));
             when(accountChangeArchiveMapper.mapToDto(archive)).thenReturn(dto);
 
             List<AccountChangeArchiveDto> result = accountChangeArchiveService.filterAccountChangeArchive(USER_ID, filter, 1);
 
             assertEquals(List.of(dto), result);
-            verify(accountChangeArchiveRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(), any(), any(Pageable.class));
+            verify(accountChangeArchiveRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.moveToArchiveDate()), eq(filter.createdAt()), any(Pageable.class));
         }
     }
 

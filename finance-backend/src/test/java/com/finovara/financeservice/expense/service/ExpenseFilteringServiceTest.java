@@ -1,6 +1,8 @@
 package com.finovara.financeservice.expense.service;
 
 import com.finovara.contracts.util.model.ExpenseCategory;
+import com.finovara.financeservice.expense.dto.ExpenseDto;
+import com.finovara.financeservice.expense.mapper.ExpenseMapper;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +22,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -38,6 +39,8 @@ class ExpenseFilteringServiceTest {
 
     @Mock
     private ExpenseRepository expenseRepository;
+    @Mock
+    private ExpenseMapper expenseMapper;
 
     @Captor
     private ArgumentCaptor<Pageable> pageableCaptor;
@@ -63,11 +66,13 @@ class ExpenseFilteringServiceTest {
 
         when(expenseRepository.findFilteredExpenses(eq(USER_ID), eq(CATEGORY), eq(AMOUNT), eq(DATE), eq(DESCRIPTION), any(Pageable.class)))
                 .thenReturn(List.of(expense));
+        ExpenseDto dto = new ExpenseDto(99L, USER_ID, AMOUNT, CATEGORY, DATE, DESCRIPTION);
+        when(expenseMapper.mapExpenseToDto(expense)).thenReturn(dto);
 
-        List<Expense> result = service.expenseFiltering(USER_ID, CATEGORY, AMOUNT, DATE, DESCRIPTION, 0);
+        List<ExpenseDto> result = service.expenseFiltering(USER_ID, CATEGORY, AMOUNT, DATE, DESCRIPTION, 0);
 
         assertEquals(1, result.size());
-        assertSame(expense, result.get(0));
+        assertEquals(dto, result.get(0));
 
         verify(expenseRepository).findFilteredExpenses(eq(USER_ID), eq(CATEGORY), eq(AMOUNT), eq(DATE), eq(DESCRIPTION), pageableCaptor.capture());
 

@@ -2,7 +2,6 @@ package com.finovara.financeservice.revenue.controller;
 
 import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.revenue.dto.RevenueDto;
-import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.service.RevenueFilteringService;
 import com.finovara.financeservice.revenue.service.RevenueService;
 import com.finovara.financeservice.security.SecurityUtils;
@@ -44,8 +43,7 @@ public class RevenueController {
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<List<Revenue>> filterRevenues(@RequestParam(required = false) RevenueCategory category, @RequestParam(required = false) BigDecimal amount,
-                                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestParam(required = false) String description, @RequestParam(defaultValue = "0") @Min(0) int page) {
+    public ResponseEntity<List<RevenueDto>> filterRevenues(@RequestParam(required = false) RevenueCategory category, @RequestParam(required = false) BigDecimal amount, @RequestParam(required = false) @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate date, @RequestParam(required = false) String description, @RequestParam(defaultValue = "0") @Min(0) int page) {
         return ResponseEntity.ok(revenueFilteringService.revenueFiltering(SecurityUtils.getCurrentUserId(), category, amount, date, description, page));
     }
 
@@ -55,4 +53,3 @@ public class RevenueController {
         return ResponseEntity.noContent().build();
     }
 }
-

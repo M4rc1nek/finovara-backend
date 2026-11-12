@@ -1,6 +1,8 @@
 package com.finovara.financeservice.revenue.service;
 
 import com.finovara.contracts.util.model.RevenueCategory;
+import com.finovara.financeservice.revenue.dto.RevenueDto;
+import com.finovara.financeservice.revenue.mapper.RevenueMapper;
 import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +21,17 @@ import java.util.List;
 public class RevenueFilteringService {
 
     private final RevenueRepository revenueRepository;
+    private final RevenueMapper revenueMapper;
 
     @Value("${finance.pagination.page-size}")
     private int pageSize;
 
-    public List<Revenue> revenueFiltering(Long userId, RevenueCategory category, BigDecimal amount, LocalDate date, String description, int page) {
+    public List<RevenueDto> revenueFiltering(Long userId, RevenueCategory category, BigDecimal amount, LocalDate date, String description, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
 
-        return revenueRepository.findFilteredRevenues(userId, category, amount, date, description, pageable);
+        return revenueRepository.findFilteredRevenues(userId, category, amount, date, description, pageable)
+                .stream()
+                .map(revenueMapper::mapRevenueToDto)
+                .toList();
     }
 }

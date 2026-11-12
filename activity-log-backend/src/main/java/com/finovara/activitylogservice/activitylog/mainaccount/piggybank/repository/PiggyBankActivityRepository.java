@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -24,12 +24,10 @@ public interface PiggyBankActivityRepository extends JpaRepository<PiggyBankActi
               AND (CAST(:#{#filter.goalAmount} AS string) IS NULL OR p.goalAmount = :#{#filter.goalAmount})
               AND (CAST(:#{#filter.amountPaid} AS string) IS NULL OR p.amountPaid = :#{#filter.amountPaid})
               AND (CAST(:#{#filter.amountPaidOut} AS string) IS NULL OR p.amountPaidOut = :#{#filter.amountPaidOut})
-              AND (CAST(:createdFrom AS timestamp) IS NULL OR p.createdAt >= :createdFrom)
-              AND (CAST(:createdTo AS timestamp) IS NULL OR p.createdAt < :createdTo)
+              AND (CAST(:createdAt AS date) IS NULL OR CAST(p.createdAt AS date) = :createdAt)
             ORDER BY p.createdAt DESC, p.id DESC
             """)
-    List<PiggyBankActivity> findFilteredActivities(Long userId, PiggyBankActivityFilterDto filter, LocalDateTime createdFrom, LocalDateTime createdTo,
-                                                   Pageable pageable);
+    List<PiggyBankActivity> findFilteredActivities(Long userId, PiggyBankActivityFilterDto filter, LocalDate createdAt, Pageable pageable);
 
     List<PiggyBankActivity> findAllByUserId(Long userId);
 }

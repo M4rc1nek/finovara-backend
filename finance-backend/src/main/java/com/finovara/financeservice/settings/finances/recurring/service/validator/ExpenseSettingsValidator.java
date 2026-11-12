@@ -110,7 +110,7 @@ public class ExpenseSettingsValidator {
         }
 
         Map<Long, BigDecimal> spentByLimitId = limitSpendingService.calculateSpent(
-                recurringSettings.getUserId(), applicableLimits, LocalDate.now());
+                applicableLimits, LocalDate.now());
 
         for (Limit limit : applicableLimits) {
             BigDecimal spent = spentByLimitId.getOrDefault(limit.getId(), BigDecimal.ZERO);

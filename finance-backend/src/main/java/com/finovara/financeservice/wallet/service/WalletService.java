@@ -1,5 +1,6 @@
 package com.finovara.financeservice.wallet.service;
 
+import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
 import com.finovara.contracts.mainaccount.activity.event.wallet.WalletStatusActivityEvent;
 import com.finovara.contracts.mainaccount.activity.model.TransactionType;
 import com.finovara.contracts.mainaccount.activity.model.WalletTransactionReason;
@@ -72,6 +73,17 @@ public class WalletService implements UserDataDeletable {
     @Transactional(propagation = Propagation.MANDATORY)
     public void lockWalletForUpdate(Long userId) {
         walletManagerService.getWalletForUpdateOrThrow(userId);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void lockWalletsForUpdate(List<Long> userIds) {
+        if (userIds.isEmpty()) {
+            return;
+        }
+        List<Wallet> wallets = walletRepository.findAllByUserIdInForUpdate(userIds);
+        if (wallets.size() != userIds.size()) {
+            throw new RequestedEntityNotFoundException("Wallet not found for one or more users");
+        }
     }
 
     @Transactional

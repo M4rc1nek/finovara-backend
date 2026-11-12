@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -21,13 +21,10 @@ public interface WalletStatusActivityRepository extends JpaRepository<WalletStat
               AND (CAST(:#{#filter.type} AS string) IS NULL OR a.type = :#{#filter.type})
               AND (CAST(:#{#filter.reason} AS string) IS NULL OR a.reason = :#{#filter.reason})
               AND (CAST(:#{#filter.amount} AS string) IS NULL OR a.amount = :#{#filter.amount})
-              AND (CAST(:createdFrom AS timestamp) IS NULL OR a.createdAt >= :createdFrom)
-              AND (CAST(:createdTo AS timestamp) IS NULL OR a.createdAt < :createdTo)
+              AND (CAST(:createdAt AS date) IS NULL OR CAST(a.createdAt AS date) = :createdAt)
             ORDER BY a.createdAt DESC, a.id DESC
             """)
-    List<WalletStatusActivity> findFilteredActivities(Long userId, WalletStatusActivityFilterDto filter,
-                                                       LocalDateTime createdFrom, LocalDateTime createdTo,
-                                                       Pageable pageable);
+    List<WalletStatusActivity> findFilteredActivities(Long userId, WalletStatusActivityFilterDto filter, LocalDate createdAt, Pageable pageable);
 
     List<WalletStatusActivity> findAllByUserId(Long userId);
 }

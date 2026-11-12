@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -27,12 +28,10 @@ public interface LoginActivityRepository extends JpaRepository<LoginActivity, Lo
               AND (CAST(:#{#filter.browser} AS string) IS NULL OR :#{#filter.browser} = '' OR LOWER(l.browser) LIKE LOWER(CONCAT('%', :#{#filter.browser}, '%')))
               AND (CAST(:#{#filter.ipAddress} AS string) IS NULL OR :#{#filter.ipAddress} = '' OR LOWER(l.ipAddress) LIKE LOWER(CONCAT('%', :#{#filter.ipAddress}, '%')))
               AND (CAST(:#{#filter.location} AS string) IS NULL OR :#{#filter.location} = '' OR LOWER(l.location) LIKE LOWER(CONCAT('%', :#{#filter.location}, '%')))
-              AND (CAST(:createdFrom AS timestamp) IS NULL OR l.createdAt >= :createdFrom)
-              AND (CAST(:createdTo AS timestamp) IS NULL OR l.createdAt < :createdTo)
+              AND (CAST(:createdAt AS date) IS NULL OR CAST(l.createdAt AS date) = :createdAt)
             ORDER BY l.createdAt DESC, l.id DESC
             """)
-    List<LoginActivity> findFilteredActivities(Long userId, LoginActivityFilterDto filter, LocalDateTime createdFrom, LocalDateTime createdTo,
-                                              Pageable pageable);
+    List<LoginActivity> findFilteredActivities(Long userId, LoginActivityFilterDto filter, LocalDate createdAt, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

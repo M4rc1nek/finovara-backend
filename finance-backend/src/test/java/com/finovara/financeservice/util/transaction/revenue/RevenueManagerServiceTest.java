@@ -32,7 +32,7 @@ class RevenueManagerServiceTest {
 
         Revenue revenue = new Revenue();
 
-        when(revenueRepository.findByIdAndUserId(revenueId, userId)).thenReturn(Optional.of(revenue));
+        when(revenueRepository.findByIdAndUserIdAndDeletedAtIsNull(revenueId, userId)).thenReturn(Optional.of(revenue));
 
         Revenue result = revenueManagerService.getRevenueByUserIdOrThrow(revenueId, userId);
 
@@ -44,9 +44,9 @@ class RevenueManagerServiceTest {
         Long revenueId = 1L;
         Long userId = 2L;
 
-        when(revenueRepository.findByIdAndUserId(revenueId, userId)).thenReturn(Optional.empty());
+        when(revenueRepository.findByIdAndUserIdAndDeletedAtIsNull(revenueId, userId)).thenReturn(Optional.empty());
 
         assertThrows(RequestedEntityNotFoundException.class, () -> revenueManagerService.getRevenueByUserIdOrThrow(revenueId, 2L));
-        verify(revenueRepository).findByIdAndUserId(revenueId,userId);
+        verify(revenueRepository).findByIdAndUserIdAndDeletedAtIsNull(revenueId, userId);
     }
 }

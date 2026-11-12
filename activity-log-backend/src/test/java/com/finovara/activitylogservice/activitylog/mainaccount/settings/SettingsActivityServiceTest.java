@@ -69,14 +69,14 @@ class SettingsActivityServiceTest {
                     OCCURRED_AT
             );
 
-            when(settingsActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+            when(settingsActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(activity));
             when(settingsActivityMapper.mapToSettingActivity(activity)).thenReturn(dto);
 
             List<SettingsActivityDto> result = settingsActivityService.filterSettingsActivity(USER_ID, filter, 2);
 
             assertThat(result).containsExactly(dto);
-            verify(settingsActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+            verify(settingsActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class));
         }
     }
 

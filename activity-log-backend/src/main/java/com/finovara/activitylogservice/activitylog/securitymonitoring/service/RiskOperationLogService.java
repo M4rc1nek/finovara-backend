@@ -1,7 +1,6 @@
 package com.finovara.activitylogservice.activitylog.securitymonitoring.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.dto.RiskOperationActivityDto;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.dto.RiskOperationActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.securitymonitoring.mapper.RiskOperationActivityMapper;
@@ -76,8 +75,7 @@ public class RiskOperationLogService extends AccountActivityCore<RiskOperationAc
 
     public List<RiskOperationActivityDto> filterRiskActivity(Long userId, RiskOperationActivityFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange created = DateRange.of(filter.createdAt());
-        return riskOperationActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+        return riskOperationActivityRepository.findFilteredActivities(userId, filter, filter.createdAt(), pageable)
                 .stream()
                 .map(riskOperationActivityMapper::mapToRiskOperationActivity)
                 .toList();

@@ -74,14 +74,14 @@ class LimitActivityServiceTest {
                     OCCURRED_AT
             );
 
-            when(limitActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+            when(limitActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(activity));
             when(limitActivityMapper.mapToLimitActivity(activity)).thenReturn(dto);
 
             List<LimitActivityDto> result = limitActivityService.filterLimitActivity(USER_ID, filter, 1);
 
             assertThat(result).containsExactly(dto);
-            verify(limitActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+            verify(limitActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class));
         }
     }
 

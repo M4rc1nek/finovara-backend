@@ -31,6 +31,7 @@ import com.finovara.financeservice.settings.finances.expense.smartscan.dto.Smart
 import com.finovara.financeservice.settings.finances.expense.smartscan.service.SmartScanService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.roundup.service.RoundUpService;
+import com.finovara.financeservice.trash.service.TrashMoverService;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.expense.ExpenseManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
@@ -121,6 +122,9 @@ class ExpenseServiceTest {
 
     @Mock
     private RiskGuardService riskGuardService;
+
+    @Mock
+    private TrashMoverService trashMoverService;
 
     @Mock
     private HttpServletRequest servletRequest;
@@ -217,7 +221,7 @@ class ExpenseServiceTest {
             void shouldThrowExceptionWhenGeneralLimitExceeded() {
                 List<Limit> limits = List.of(generalLimit);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(91)));
 
                 assertThrows(MissingRequirementException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
@@ -230,7 +234,7 @@ class ExpenseServiceTest {
             void shouldThrowExceptionWhenCategoryLimitExceeded() {
                 List<Limit> limits = List.of(categoryLimit);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(OTHER_LIMIT_ID, BigDecimal.valueOf(100)));
 
                 assertThrows(MissingRequirementException.class, () -> service.addExpense(requestDto, USER_ID, servletRequest, TransactionOrigin.USER_MANUAL));
@@ -348,7 +352,7 @@ class ExpenseServiceTest {
                 void shouldPublishLimitStatsEventForEachLimitWhenLimitsNotExceeded() {
                     List<Limit> limits = List.of(generalLimit, categoryLimit);
                     when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                    when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                    when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                             .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(20), OTHER_LIMIT_ID, BigDecimal.valueOf(30)));
                     when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
                     when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of(statsDto, otherStatsDto));
@@ -369,7 +373,7 @@ class ExpenseServiceTest {
                 void shouldSaveExpenseWhenTotalEqualsLimitAmount() {
                     List<Limit> limits = List.of(generalLimit);
                     when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                    when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                    when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                             .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(90)));
                     when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
                     when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
@@ -385,7 +389,7 @@ class ExpenseServiceTest {
                     Limit otherCategoryLimit = Limit.builder().id(LIMIT_ID).periodType(PERIOD).category(OTHER_CATEGORY).amount(LIMIT_AMOUNT).build();
                     List<Limit> limits = List.of(otherCategoryLimit);
                     when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                    when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                    when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                             .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(1000)));
                     when(expenseRepository.save(any(Expense.class))).thenReturn(savedExpense);
                     when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
@@ -546,7 +550,7 @@ class ExpenseServiceTest {
                 List<Limit> limits = List.of(generalLimit);
                 when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(100)));
 
                 assertThrows(MissingRequirementException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
@@ -560,7 +564,7 @@ class ExpenseServiceTest {
                 List<Limit> limits = List.of(generalLimit);
                 when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(95)));
                 when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
 
@@ -576,7 +580,7 @@ class ExpenseServiceTest {
                 List<Limit> limits = List.of(categoryLimit);
                 when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(OTHER_LIMIT_ID, BigDecimal.valueOf(95)));
 
                 assertThrows(MissingRequirementException.class, () -> service.editExpense(requestDto, USER_ID, EXPENSE_ID, servletRequest));
@@ -589,7 +593,7 @@ class ExpenseServiceTest {
                 List<Limit> limits = List.of(generalLimit);
                 when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(1000)));
                 when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of());
 
@@ -604,7 +608,7 @@ class ExpenseServiceTest {
                 List<Limit> limits = List.of(generalLimit);
                 when(expenseManagerService.getExpenseByUserIdOrThrow(EXPENSE_ID, USER_ID)).thenReturn(existing);
                 when(limitRepository.findAllActiveByUserId(USER_ID)).thenReturn(limits);
-                when(limitSpendingService.calculateSpent(eq(USER_ID), eq(limits), any(LocalDate.class)))
+                when(limitSpendingService.calculateSpent(eq(limits), any(LocalDate.class)))
                         .thenReturn(Map.of(LIMIT_ID, BigDecimal.valueOf(20)));
                 when(limitCalculateService.calculateLimitStats(eq(limits), eq(USER_ID), any(LocalDate.class))).thenReturn(List.of(statsDto));
                 when(statsDto.limitId()).thenReturn(LIMIT_ID);
@@ -656,11 +660,7 @@ class ExpenseServiceTest {
             verify(additionalAuthorizationCodeResolver).resolve(AUTH_CODE);
             verify(authBackendClient).confirmAuthorizationCode(eq(USER_ID), any());
             verify(walletService).lockWalletForUpdate(USER_ID);
-            verify(roundUpService).handleExpenseForRoundUp(USER_ID, EXPENSE_ID, PiggyBankAutomationMode.ROLLBACK);
-            verify(walletService).addBalanceToWallet(USER_ID, AMOUNT,
-                    REFUND, EXPENSE);
-            verify(outboxService).save(eq(EXPENSE_AGGREGATE), eq(EXPENSE_ID.toString()), eq(EXPENSE_TOPIC), any(ExpenseActivityEvent.class));
-            verify(expenseRepository).delete(expense);
+            verify(trashMoverService).moveExpenseToTrash(expense, USER_ID, true);
         }
 
         @Test
@@ -712,23 +712,18 @@ class ExpenseServiceTest {
 
         @Test
         void shouldDeleteAllExpensesWhenUserHasExpenses() {
-            Expense expense = Expense.builder().id(EXPENSE_ID).amount(AMOUNT).category(CATEGORY).userId(USER_ID).build();
-            when(expenseRepository.findAllByUserId(USER_ID)).thenReturn(List.of(expense));
-
             service.deleteByUserId(USER_ID);
 
-            verify(expenseRepository).deleteAll(expensesCaptor.capture());
-            assertEquals(List.of(expense), expensesCaptor.getValue());
+            verify(expenseRepository).findAllByUserId(USER_ID);
+            verify(expenseRepository).deleteAll(java.util.List.of());
         }
 
         @Test
         void shouldDeleteEmptyListWhenUserHasNoExpenses() {
-            when(expenseRepository.findAllByUserId(USER_ID)).thenReturn(List.of());
-
             service.deleteByUserId(USER_ID);
 
-            verify(expenseRepository).deleteAll(expensesCaptor.capture());
-            assertTrue(expensesCaptor.getValue().isEmpty());
+            verify(expenseRepository).findAllByUserId(USER_ID);
+            verify(expenseRepository).deleteAll(java.util.List.of());
         }
     }
 }

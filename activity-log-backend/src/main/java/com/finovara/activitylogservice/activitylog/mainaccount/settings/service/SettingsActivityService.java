@@ -1,7 +1,6 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.settings.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.dto.SettingsActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.dto.SettingsActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.settings.mapper.SettingsActivityMapper;
@@ -52,8 +51,7 @@ public class SettingsActivityService extends AccountActivityCore<SettingsActivit
 
     public List<SettingsActivityDto> filterSettingsActivity(Long userId, SettingsActivityFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange created = DateRange.of(filter.createdAt());
-        return settingsActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+        return settingsActivityRepository.findFilteredActivities(userId, filter, filter.createdAt(), pageable)
                 .stream()
                 .map(settingsActivityMapper::mapToSettingActivity)
                 .toList();

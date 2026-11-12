@@ -13,7 +13,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.lenient;
 
 import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundException;
@@ -65,17 +64,14 @@ class WalletServiceTest {
     @Mock
     private Wallet wallet;
     @Mock
+    private Wallet secondWallet;
+    @Mock
     private FundReservation firstReservation;
     @Mock
     private FundReservation secondReservation;
 
     @InjectMocks
     private WalletService service;
-
-    @BeforeEach
-    void setUp() {
-        lenient().when(wallet.getId()).thenReturn(WALLET_ID);
-    }
 
     @Nested
     class AddBalanceToWallet {
@@ -106,6 +102,7 @@ class WalletServiceTest {
         @Test
         void shouldNotSendKafkaEventWhenAddingBalance() {
             when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
+            when(wallet.getId()).thenReturn(WALLET_ID);
             when(wallet.getBalance()).thenReturn(BALANCE);
             when(wallet.getReservedAmount()).thenReturn(RESERVED);
 
@@ -207,6 +204,36 @@ class WalletServiceTest {
             service.lockWalletForUpdate(USER_ID);
 
             verify(walletManagerService).getWalletForUpdateOrThrow(USER_ID);
+        }
+
+        @Nested
+        class LockWalletsForUpdate {
+
+            @Test
+            void shouldLockAllWalletsWhenUserIdsAreProvided() {
+                List<Long> userIds = List.of(USER_ID, 2L);
+                List<Wallet> wallets = List.of(wallet, secondWallet);
+                when(walletRepository.findAllByUserIdInForUpdate(userIds)).thenReturn(wallets);
+
+                service.lockWalletsForUpdate(userIds);
+
+                verify(walletRepository).findAllByUserIdInForUpdate(userIds);
+            }
+
+            @Test
+            void shouldDoNothingWhenUserIdsAreEmpty() {
+                service.lockWalletsForUpdate(List.of());
+
+                verifyNoInteractions(walletRepository);
+            }
+
+            @Test
+            void shouldThrowExceptionWhenWalletIsMissing() {
+                when(walletRepository.findAllByUserIdInForUpdate(List.of(USER_ID))).thenReturn(List.of());
+
+                assertThrows(RequestedEntityNotFoundException.class,
+                        () -> service.lockWalletsForUpdate(List.of(USER_ID)));
+            }
         }
 
         @Test

@@ -14,5 +14,5 @@ public record PiggyBankActivityFilterDto(
        BigDecimal goalAmount,
        BigDecimal amountPaid,
        BigDecimal amountPaidOut,
-       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdAt
+       @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate createdAt
 ) {}

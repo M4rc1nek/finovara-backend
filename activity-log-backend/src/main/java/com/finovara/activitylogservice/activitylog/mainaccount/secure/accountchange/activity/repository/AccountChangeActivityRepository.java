@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,12 +26,10 @@ public interface AccountChangeActivityRepository extends JpaRepository<AccountCh
               AND (CAST(:#{#filter.browser} AS string) IS NULL OR :#{#filter.browser} = '' OR LOWER(a.browser) LIKE LOWER(CONCAT('%', :#{#filter.browser}, '%')))
               AND (CAST(:#{#filter.ipAddress} AS string) IS NULL OR :#{#filter.ipAddress} = '' OR LOWER(a.ipAddress) LIKE LOWER(CONCAT('%', :#{#filter.ipAddress}, '%')))
               AND (CAST(:#{#filter.location} AS string) IS NULL OR :#{#filter.location} = '' OR LOWER(a.location) LIKE LOWER(CONCAT('%', :#{#filter.location}, '%')))
-              AND (CAST(:createdFrom AS timestamp) IS NULL OR a.createdAt >= :createdFrom)
-              AND (CAST(:createdTo AS timestamp) IS NULL OR a.createdAt < :createdTo)
+              AND (CAST(:createdAt AS date) IS NULL OR CAST(a.createdAt AS date) = :createdAt)
             ORDER BY a.createdAt DESC, a.id DESC
             """)
-    List<AccountChangeActivity> findFilteredActivities( Long userId, AccountChangeActivityFilterDto filter, LocalDateTime createdFrom, LocalDateTime createdTo,
-                                                       Pageable pageable);
+    List<AccountChangeActivity> findFilteredActivities(Long userId, AccountChangeActivityFilterDto filter, LocalDate createdAt, Pageable pageable);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""

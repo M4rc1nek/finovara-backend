@@ -12,9 +12,8 @@ public class RevenueManagerService {
     private final RevenueRepository revenueRepository;
 
     public Revenue getRevenueByUserIdOrThrow(Long revenueId, Long userId) {
-        return revenueRepository.findByIdAndUserId(revenueId, userId)
+        return revenueRepository.findByIdAndUserIdAndDeletedAtIsNull(revenueId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Revenue not found"));
     }
 
 }
-

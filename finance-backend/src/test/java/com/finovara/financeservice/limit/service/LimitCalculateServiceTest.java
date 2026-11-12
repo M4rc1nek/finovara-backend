@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.when;
 class LimitCalculateServiceTest {
 
     private static final Long USER_ID = 1L;
+    private static final Long OTHER_USER_ID = 2L;
     private static final Long LIMIT_ID = 10L;
     private static final Long OTHER_LIMIT_ID = 11L;
     private static final LocalDate DATE = LocalDate.of(2026, 10, 15);
@@ -156,7 +158,7 @@ class LimitCalculateServiceTest {
             List<Limit> limits = List.of(categoryLimit, generalLimit);
             BigDecimal firstSpent = BigDecimal.valueOf(10);
             BigDecimal secondSpent = BigDecimal.valueOf(90);
-            when(limitSpendingService.calculateSpent(USER_ID, limits, DATE))
+            when(limitSpendingService.calculateSpent(limits, DATE))
                     .thenReturn(Map.of(LIMIT_ID, firstSpent, OTHER_LIMIT_ID, secondSpent));
             when(limitMapper.mapLimitStatsToDto(eq(categoryLimit), eq(firstSpent), eq(BigDecimal.valueOf(90)), any(BigDecimal.class), any(LimitStatus.class), eq(DATE)))
                     .thenReturn(statsDto);
@@ -166,13 +168,13 @@ class LimitCalculateServiceTest {
             List<LimitStatsDto> result = service.calculateLimitStats(limits, USER_ID, DATE);
 
             assertEquals(List.of(statsDto, otherStatsDto), result);
-            verify(limitSpendingService).calculateSpent(USER_ID, limits, DATE);
+            verify(limitSpendingService).calculateSpent(limits, DATE);
         }
 
         @Test
         void shouldReturnEmptyListWhenNoLimitsProvided() {
             List<Limit> limits = List.of();
-            when(limitSpendingService.calculateSpent(USER_ID, limits, DATE)).thenReturn(Map.of());
+            when(limitSpendingService.calculateSpent(limits, DATE)).thenReturn(Map.of());
 
             List<LimitStatsDto> result = service.calculateLimitStats(limits, USER_ID, DATE);
 
@@ -181,11 +183,58 @@ class LimitCalculateServiceTest {
         }
 
         @Test
-        void shouldThrowExceptionWhenSpentMissingForLimit() {
+        void shouldUseZeroSpentWhenLimitHasNoExpenseSum() {
             List<Limit> limits = List.of(categoryLimit);
-            when(limitSpendingService.calculateSpent(USER_ID, limits, DATE)).thenReturn(Map.of());
+            when(limitSpendingService.calculateSpent(limits, DATE)).thenReturn(Map.of());
 
-            assertThrows(NullPointerException.class, () -> service.calculateLimitStats(limits, USER_ID, DATE));
+            when(limitMapper.mapLimitStatsToDto(eq(categoryLimit), eq(BigDecimal.ZERO),
+                    eq(LIMIT_AMOUNT), any(BigDecimal.class), any(LimitStatus.class), eq(DATE)))
+                    .thenReturn(statsDto);
+
+            List<LimitStatsDto> result = service.calculateLimitStats(limits, USER_ID, DATE);
+
+            assertEquals(List.of(statsDto), result);
+        }
+    }
+
+    @Nested
+    class CalculateLimitStatsForUsers {
+
+        @Test
+        void shouldReturnStatsForEachUserWhenSpentIsCalculatedInBatch() {
+            Limit otherUserLimit = Limit.builder()
+                    .id(20L)
+                    .userId(OTHER_USER_ID)
+                    .periodType(PERIOD)
+                    .category(CATEGORY)
+                    .amount(LIMIT_AMOUNT)
+                    .build();
+            Map<Long, List<Limit>> limitsByUser = Map.of(
+                    USER_ID, List.of(categoryLimit),
+                    OTHER_USER_ID, List.of(otherUserLimit));
+            when(limitSpendingService.calculateSpent(anyList(), eq(DATE))).thenReturn(Map.of(
+                    LIMIT_ID, BigDecimal.valueOf(40),
+                    20L, BigDecimal.valueOf(70)));
+            when(limitMapper.mapLimitStatsToDto(eq(categoryLimit), eq(BigDecimal.valueOf(40)),
+                    eq(BigDecimal.valueOf(60)), any(BigDecimal.class), any(LimitStatus.class), eq(DATE)))
+                    .thenReturn(statsDto);
+            when(limitMapper.mapLimitStatsToDto(eq(otherUserLimit), eq(BigDecimal.valueOf(70)),
+                    eq(BigDecimal.valueOf(30)), any(BigDecimal.class), any(LimitStatus.class), eq(DATE)))
+                    .thenReturn(otherStatsDto);
+
+            Map<Long, List<LimitStatsDto>> result = service.calculateLimitStatsForUsers(limitsByUser, DATE);
+
+            assertEquals(List.of(statsDto), result.get(USER_ID));
+            assertEquals(List.of(otherStatsDto), result.get(OTHER_USER_ID));
+            verify(limitSpendingService).calculateSpent(anyList(), eq(DATE));
+        }
+
+        @Test
+        void shouldReturnEmptyMapWhenNoUsersHaveLimits() {
+            Map<Long, List<LimitStatsDto>> result = service.calculateLimitStatsForUsers(Map.of(), DATE);
+
+            assertTrue(result.isEmpty());
+            verify(limitSpendingService).calculateSpent(List.of(), DATE);
             verifyNoInteractions(limitMapper);
         }
     }

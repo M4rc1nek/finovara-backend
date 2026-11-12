@@ -84,8 +84,7 @@ class WalletStatusActivityServiceTest {
                 .build();
         WalletStatusActivityDto dto = new WalletStatusActivityDto(
                 filter.type(), filter.reason(), filter.amount(), OCCURRED_AT);
-        when(repository.findFilteredActivities(USER_ID, filter, OCCURRED_AT.toLocalDate().atStartOfDay(),
-                OCCURRED_AT.toLocalDate().plusDays(1).atStartOfDay(), PageRequest.of(0, 100, Sort.unsorted())))
+        when(repository.findFilteredActivities(USER_ID, filter, filter.createdAt(), PageRequest.of(0, 100, Sort.unsorted())))
                 .thenReturn(List.of(activity));
         when(mapper.mapToDto(activity)).thenReturn(dto);
 

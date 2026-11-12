@@ -75,7 +75,7 @@ public interface SharedExpenseRepository extends JpaRepository<SharedExpense, Lo
     @Query("""
                 SELECT new com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto(
                     e.createdAt,
-                    CAST(AVG(e.amount) AS big_decimal)
+                    CAST(AVG(e.amount) AS BigDecimal)
                 )
                 FROM SharedExpense e
                 WHERE e.ownerId = :ownerId OR e.memberId = :memberId

@@ -171,14 +171,14 @@ class LoginActivityServiceTest {
             LoginActivity activity = LoginActivity.builder().userId(USER_ID).build();
             LoginActivityDto dto = new LoginActivityDto(LoginActivityStatus.SUCCESSFUL, OCCURRED_AT, "Edge", "203.0.113.7", "Wroclaw");
 
-            when(loginActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+            when(loginActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(activity));
             when(loginActivityMapper.mapToDto(activity)).thenReturn(dto);
 
             List<LoginActivityDto> result = loginActivityService.filterLoginActivity(USER_ID, filter, 1);
 
             assertEquals(List.of(dto), result);
-            verify(loginActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+            verify(loginActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class));
         }
     }
 

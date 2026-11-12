@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -20,12 +20,10 @@ public interface SettingsActivityRepository extends JpaRepository<SettingsActivi
             WHERE s.userId = :userId
               AND (CAST(:#{#filter.status} AS string) IS NULL OR s.status = :#{#filter.status})
               AND (CAST(:#{#filter.settingType} AS string) IS NULL OR s.settingType = :#{#filter.settingType})
-              AND (CAST(:createdFrom AS timestamp) IS NULL OR s.createdAt >= :createdFrom)
-              AND (CAST(:createdTo AS timestamp) IS NULL OR s.createdAt < :createdTo)
+              AND (CAST(:createdAt AS date) IS NULL OR CAST(s.createdAt AS date) = :createdAt)
             ORDER BY s.createdAt DESC, s.id DESC
             """)
-    List<SettingsActivity> findFilteredActivities( Long userId, SettingsActivityFilterDto filter, LocalDateTime createdFrom, LocalDateTime createdTo,
-                                                  Pageable pageable);
+    List<SettingsActivity> findFilteredActivities(Long userId, SettingsActivityFilterDto filter, LocalDate createdAt, Pageable pageable);
 
     List<SettingsActivity> findAllByUserId(Long userId);
 }

@@ -1,6 +1,8 @@
 package com.finovara.financeservice.revenue.service;
 
 import com.finovara.contracts.util.model.RevenueCategory;
+import com.finovara.financeservice.revenue.dto.RevenueDto;
+import com.finovara.financeservice.revenue.mapper.RevenueMapper;
 import com.finovara.financeservice.revenue.model.Revenue;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +18,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -34,6 +35,8 @@ class RevenueFilteringServiceTest {
 
     @Mock
     private RevenueRepository revenueRepository;
+    @Mock
+    private RevenueMapper revenueMapper;
 
     @InjectMocks
     private RevenueFilteringService service;
@@ -56,11 +59,13 @@ class RevenueFilteringServiceTest {
 
         when(revenueRepository.findFilteredRevenues(eq(USER_ID), eq(CATEGORY), eq(AMOUNT), eq(DATE), eq(DESCRIPTION), any()))
                 .thenReturn(List.of(revenue));
+        RevenueDto dto = new RevenueDto(99L, USER_ID, AMOUNT, CATEGORY, DATE, DESCRIPTION, null, null);
+        when(revenueMapper.mapRevenueToDto(revenue)).thenReturn(dto);
 
-        List<Revenue> result = service.revenueFiltering(USER_ID, CATEGORY, AMOUNT, DATE, DESCRIPTION, 0);
+        List<RevenueDto> result = service.revenueFiltering(USER_ID, CATEGORY, AMOUNT, DATE, DESCRIPTION, 0);
 
         assertEquals(1, result.size());
-        assertSame(revenue, result.get(0));
+        assertEquals(dto, result.get(0));
         verify(revenueRepository).findFilteredRevenues(eq(USER_ID), eq(CATEGORY), eq(AMOUNT), eq(DATE), eq(DESCRIPTION), any());
     }
 

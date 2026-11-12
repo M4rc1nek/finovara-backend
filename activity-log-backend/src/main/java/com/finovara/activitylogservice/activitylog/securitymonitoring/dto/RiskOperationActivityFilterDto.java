@@ -11,6 +11,6 @@ public record RiskOperationActivityFilterDto(
        RiskTriggerType triggerType,
        Integer score,
        RiskAction action,
-       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate operationDate,
-       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdAt
+       @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate operationDate,
+       @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate createdAt
 ) {}

@@ -9,5 +9,5 @@ import java.time.LocalDate;
 public record SettingsActivityFilterDto(
        SettingActivityStatus status,
        SettingType settingType,
-       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdAt
+       @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate createdAt
 ) {}

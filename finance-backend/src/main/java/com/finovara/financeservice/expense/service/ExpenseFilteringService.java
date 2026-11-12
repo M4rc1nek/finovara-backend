@@ -1,6 +1,8 @@
 package com.finovara.financeservice.expense.service;
 
 import com.finovara.contracts.util.model.ExpenseCategory;
+import com.finovara.financeservice.expense.dto.ExpenseDto;
+import com.finovara.financeservice.expense.mapper.ExpenseMapper;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +21,17 @@ import java.util.List;
 public class ExpenseFilteringService {
 
     private final ExpenseRepository expenseRepository;
+    private final ExpenseMapper expenseMapper;
 
     @Value("${finance.pagination.page-size}")
     private int pageSize;
 
-    public List<Expense> expenseFiltering(Long userId, ExpenseCategory category, BigDecimal amount, LocalDate date, String description, int page) {
+    public List<ExpenseDto> expenseFiltering(Long userId, ExpenseCategory category, BigDecimal amount, LocalDate date, String description, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
 
-        return expenseRepository.findFilteredExpenses(userId, category, amount, date, description, pageable);
+        return expenseRepository.findFilteredExpenses(userId, category, amount, date, description, pageable)
+                .stream()
+                .map(expenseMapper::mapExpenseToDto)
+                .toList();
     }
 }

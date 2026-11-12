@@ -18,6 +18,7 @@ import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.riskverification.service.RiskGuardService;
 import com.finovara.financeservice.settings.piggybank.autopayments.model.PiggyBankAutomationMode;
 import com.finovara.financeservice.settings.piggybank.autopayments.service.AutoPaymentsService;
+import com.finovara.financeservice.trash.service.TrashMoverService;
 import com.finovara.financeservice.util.transaction.TransactionOrigin;
 import com.finovara.financeservice.util.transaction.revenue.RevenueManagerService;
 import com.finovara.financeservice.wallet.service.WalletService;
@@ -45,6 +46,7 @@ public class RevenueService implements UserDataDeletable {
     private final WalletService walletService;
     private final RevenueManagerService revenueManagerService;
     private final RevenueMapper revenueMapper;
+    private final TrashMoverService trashMoverService;
     private final AutoPaymentsService autoPaymentsService;
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver additionalAuthorizationCodeResolver;
@@ -130,11 +132,7 @@ public class RevenueService implements UserDataDeletable {
         walletService.lockWalletForUpdate(userId);
         Revenue revenue = revenueManagerService.getRevenueByUserIdOrThrow(revenueId, userId);
 
-        autoPaymentsService.handleRevenuePiggyBankAutomation(userId, revenue.getAmount(), PiggyBankAutomationMode.ROLLBACK);
-        walletService.removeBalanceFromWallet(userId, revenue.getAmount(), TransactionType.WITHDRAWAL, WalletTransactionReason.REVENUE);
-        outboxService.save("Revenue", revenueId.toString(), "revenue.created",
-                new RevenueActivityEvent(userId, RevenueActivityType.DELETED_REVENUE, revenue.getAmount(), revenue.getCategory(), null, null, LocalDateTime.now()));
-        revenueRepository.delete(revenue);
+        trashMoverService.moveRevenueToTrash(revenue, userId, true);
     }
 
     @Override

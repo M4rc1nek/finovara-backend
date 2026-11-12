@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -23,12 +23,10 @@ public interface RevenueActivityRepository extends JpaRepository<RevenueActivity
               AND (CAST(:#{#filter.previousAmount} AS string) IS NULL OR r.previousAmount = :#{#filter.previousAmount})
               AND (CAST(:#{#filter.category} AS string) IS NULL OR r.category = :#{#filter.category})
               AND (CAST(:#{#filter.previousCategory} AS string) IS NULL OR r.previousCategory = :#{#filter.previousCategory})
-              AND (CAST(:createdFrom AS timestamp) IS NULL OR r.createdAt >= :createdFrom)
-              AND (CAST(:createdTo AS timestamp) IS NULL OR r.createdAt < :createdTo)
+              AND (CAST(:createdAt AS date) IS NULL OR CAST(r.createdAt AS date) = :createdAt)
             ORDER BY r.createdAt DESC, r.id DESC
             """)
-    List<RevenueActivity> findFilteredActivities( Long userId, RevenueActivityFilterDto filter, LocalDateTime createdFrom, LocalDateTime createdTo,
-                                                 Pageable pageable);
+    List<RevenueActivity> findFilteredActivities(Long userId, RevenueActivityFilterDto filter, LocalDate createdAt, Pageable pageable);
 
     List<RevenueActivity> findAllByUserId(Long userId);
 }

@@ -76,14 +76,14 @@ class RevenueActivityServiceTest {
                     OCCURRED_AT
             );
 
-            when(revenueActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+            when(revenueActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(activity));
             when(revenueActivityMapper.mapToRevenueActivity(activity)).thenReturn(dto);
 
             List<RevenueActivityDto> result = revenueActivityService.filterRevenueActivity(USER_ID, filter, 1);
 
             assertThat(result).containsExactly(dto);
-            verify(revenueActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+            verify(revenueActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class));
         }
     }
 

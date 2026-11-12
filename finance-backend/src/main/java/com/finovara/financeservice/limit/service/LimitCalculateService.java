@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -34,10 +35,32 @@ public class LimitCalculateService {
     }
 
     public List<LimitStatsDto> calculateLimitStats(List<Limit> limits, Long userId, LocalDate date) {
-        Map<Long, BigDecimal> spentByLimitId = limitSpendingService.calculateSpent(userId, limits, date);
+        Map<Long, BigDecimal> spentByLimitId = limitSpendingService.calculateSpent(limits, date);
 
         return limits.stream()
-                .map(limit -> buildLimitStats(limit, spentByLimitId.get(limit.getId()), date))
+                .map(limit -> buildLimitStats(
+                        limit, spentByLimitId.getOrDefault(limit.getId(), BigDecimal.ZERO), date))
+                .toList();
+    }
+
+    public Map<Long, List<LimitStatsDto>> calculateLimitStatsForUsers(Map<Long, List<Limit>> limitsByUserId, LocalDate date) {
+        List<Limit> limits = limitsByUserId.values().stream()
+                .flatMap(List::stream)
+                .toList();
+        Map<Long, BigDecimal> spentByLimitId = limitSpendingService.calculateSpent(limits, date);
+
+        return limitsByUserId.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> calculateUserStats(entry.getValue(), spentByLimitId, date)));
+    }
+
+    private List<LimitStatsDto> calculateUserStats(List<Limit> limits,
+                                                   Map<Long, BigDecimal> spentByLimitId,
+            LocalDate date) {
+        return limits.stream()
+                .map(limit -> buildLimitStats(limit,
+                        spentByLimitId.getOrDefault(limit.getId(), BigDecimal.ZERO), date))
                 .toList();
     }
 

@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "expenses")
@@ -39,4 +40,5 @@ public class Expense {
     @Column(nullable = false)
     private Long userId;
 
+    private LocalDateTime deletedAt;
 }

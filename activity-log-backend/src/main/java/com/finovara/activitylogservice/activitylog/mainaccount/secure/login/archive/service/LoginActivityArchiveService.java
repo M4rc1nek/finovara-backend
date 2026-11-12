@@ -1,7 +1,6 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.activity.model.LoginActivity;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.dto.LoginActivityArchiveDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.login.archive.dto.LoginActivityArchiveFilterDto;
@@ -59,9 +58,7 @@ public class LoginActivityArchiveService extends AccountActivityCore<LoginActivi
 
     public List<LoginActivityArchiveDto> filterLoginActivityArchive(Long userId, LoginActivityArchiveFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange archived = DateRange.of(filter.moveToArchiveDate());
-        DateRange created = DateRange.of(filter.createdAt());
-        return loginActivityArchiveRepository.findFilteredActivities(userId, filter, archived.from(), archived.to(), created.from(), created.to(), pageable)
+        return loginActivityArchiveRepository.findFilteredActivities(userId, filter, filter.moveToArchiveDate(), filter.createdAt(), pageable)
                 .stream()
                 .map(loginActivityArchiveMapper::mapToDto)
                 .toList();

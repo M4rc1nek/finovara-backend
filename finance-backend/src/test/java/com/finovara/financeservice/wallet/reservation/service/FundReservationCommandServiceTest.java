@@ -18,6 +18,7 @@ import com.finovara.financeservice.wallet.reservation.dto.UnreserveReservationDt
 import com.finovara.financeservice.wallet.reservation.model.FundReservation;
 import com.finovara.financeservice.wallet.reservation.repository.FundReservationRepository;
 import com.finovara.financeservice.wallet.service.WalletService;
+import com.finovara.financeservice.trash.service.TrashMoverService;
 import java.math.BigDecimal;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,8 @@ class FundReservationCommandServiceTest {
     private FundReservationRepository fundReservationRepository;
     @Mock
     private WalletService walletService;
+    @Mock
+    private TrashMoverService trashMoverService;
     @Mock
     private Wallet wallet;
     @Mock
@@ -145,7 +148,7 @@ class FundReservationCommandServiceTest {
 
             assertEquals(0, new BigDecimal("60.00").compareTo(reservation.getAmount()));
             verify(wallet).unreserve(new BigDecimal("40.00"));
-            verify(fundReservationRepository, never()).delete(any(FundReservation.class));
+            verify(trashMoverService, never()).moveFundReservationToTrash(any(), any(), any());
         }
 
         @Test
@@ -155,8 +158,7 @@ class FundReservationCommandServiceTest {
 
             service.unreserve(USER_ID, RESERVATION_ID, unreserveReservationDto);
 
-            verify(wallet).unreserve(RESERVED_AMOUNT);
-            verify(fundReservationRepository).delete(reservation);
+            verify(trashMoverService).moveFundReservationToTrash(reservation, wallet, USER_ID);
         }
 
         @Test
@@ -217,8 +219,7 @@ class FundReservationCommandServiceTest {
 
             service.delete(USER_ID, RESERVATION_ID);
 
-            verify(wallet).unreserve(RESERVED_AMOUNT);
-            verify(fundReservationRepository).delete(reservation);
+            verify(trashMoverService).moveFundReservationToTrash(reservation, wallet, USER_ID);
         }
 
         @Test

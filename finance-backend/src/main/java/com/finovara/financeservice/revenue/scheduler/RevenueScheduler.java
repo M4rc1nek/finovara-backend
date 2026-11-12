@@ -13,8 +13,8 @@ public class RevenueScheduler {
     private final RevenueProcessor revenueProcessor;
 
     @Scheduled(cron = "${scheduler.delete-all-revenues}", zone = "Europe/Warsaw")
-    @SchedulerLock(name = "deleteAllRevenues", lockAtMostFor = "10m", lockAtLeastFor = "30s")
-    public void deleteAllRevenues() {
-        revenueProcessor.deleteAllRevenues();
+    @SchedulerLock(name = "moveAllRevenuesToTrash", lockAtMostFor = "10m", lockAtLeastFor = "30s")
+    public void moveAllRevenuesToTrash() {
+        revenueProcessor.moveAllRevenuesToTrash();
     }
 }

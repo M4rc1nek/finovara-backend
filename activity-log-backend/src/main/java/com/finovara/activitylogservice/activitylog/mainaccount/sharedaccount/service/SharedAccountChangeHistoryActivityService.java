@@ -1,7 +1,6 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.dto.SharedAccountChangeHistoryActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.dto.SharedAccountChangeHistoryActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.sharedaccount.mapper.SharedAccountActivityMapper;
@@ -58,8 +57,7 @@ public class SharedAccountChangeHistoryActivityService extends AccountActivityCo
 
     public List<SharedAccountChangeHistoryActivityDto> filterSharedAccountActivity(Long userId, SharedAccountChangeHistoryActivityFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange created = DateRange.of(filter.createdAt());
-        return sharedAccountChangeHistoryActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+        return sharedAccountChangeHistoryActivityRepository.findFilteredActivities(userId, filter, filter.createdAt(), pageable)
                 .stream()
                 .map(sharedAccountActivityMapper::mapToSharedAccountActivity)
                 .toList();

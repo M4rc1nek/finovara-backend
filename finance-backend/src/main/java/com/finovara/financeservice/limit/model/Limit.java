@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Builder
 @AllArgsConstructor
@@ -38,5 +39,7 @@ public class Limit {
 
     @Column(nullable = false)
     private Long userId;
+
+    private LocalDateTime deletedAt;
 
 }

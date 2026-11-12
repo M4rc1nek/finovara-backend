@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,11 +27,10 @@ public interface SharedAccountActivityLogRepository extends JpaRepository<Shared
           AND (CAST(:#{#filter.type} AS string) IS NULL OR a.activityType = :#{#filter.type})
           AND (CAST(:#{#filter.targetId} AS string) IS NULL OR a.targetId = :#{#filter.targetId})
           AND (CAST(:actorId AS string) IS NULL OR a.userId = :actorId)
-          AND (CAST(:createdFrom AS timestamp) IS NULL OR a.createdAt >= :createdFrom)
-          AND (CAST(:createdTo AS timestamp) IS NULL OR a.createdAt < :createdTo)
+          AND (CAST(:createdAt AS date) IS NULL OR CAST(a.createdAt AS date) = :createdAt)
         ORDER BY a.createdAt DESC, a.id DESC
         """)
-    List<SharedAccountActivityLog> findFilteredActivities(Long userId, SharedAccountActivityLogFilterDto filter, Long actorId, LocalDateTime createdFrom, LocalDateTime createdTo, Pageable pageable);
+    List<SharedAccountActivityLog> findFilteredActivities(Long userId, SharedAccountActivityLogFilterDto filter, Long actorId, LocalDate createdAt, Pageable pageable);
 
     List<SharedAccountActivityLog> findAllByUserId(Long userId);
 

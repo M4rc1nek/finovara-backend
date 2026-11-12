@@ -13,5 +13,5 @@ public record RevenueActivityFilterDto(
        BigDecimal previousAmount,
        RevenueCategory category,
        RevenueCategory previousCategory,
-       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdAt
+       @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate createdAt
 ) {}
