@@ -339,14 +339,14 @@ class SharedAccountChangeHistoryActivityServiceTest {
                     LocalDateTime.of(2026, 2, 12, 3, 2)
             );
 
-            when(sharedAccountChangeHistoryActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+            when(sharedAccountChangeHistoryActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(activity));
             when(sharedAccountActivityMapper.mapToSharedAccountActivity(activity)).thenReturn(dto);
 
             List<SharedAccountChangeHistoryActivityDto> result = sharedAccountChangeHistoryActivityService.filterSharedAccountActivity(USER_ID, filter, 1);
 
             assertEquals(List.of(dto), result);
-            verify(sharedAccountChangeHistoryActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+            verify(sharedAccountChangeHistoryActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class));
         }
     }
 
