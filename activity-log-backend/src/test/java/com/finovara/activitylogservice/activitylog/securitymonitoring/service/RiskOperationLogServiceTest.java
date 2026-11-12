@@ -223,7 +223,7 @@ class RiskOperationLogServiceTest {
                     OPERATION_DATE
             );
 
-            when(riskOperationActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(LocalDateTime.class), any(LocalDateTime.class), any(Pageable.class)))
+            when(riskOperationActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(activity));
             when(riskOperationActivityMapper.mapToRiskOperationActivity(activity)).thenReturn(dto);
 
@@ -231,7 +231,7 @@ class RiskOperationLogServiceTest {
 
             assertEquals(List.of(dto), result);
             ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
-            verify(riskOperationActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(LocalDateTime.class), any(LocalDateTime.class), captor.capture());
+            verify(riskOperationActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), captor.capture());
             assertEquals(PAGE_SIZE, captor.getValue().getPageSize());
             assertEquals(2, captor.getValue().getPageNumber());
         }
