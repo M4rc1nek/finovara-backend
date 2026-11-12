@@ -10,5 +10,5 @@ public record AccountChangeActivityFilterDto(
        String browser,
        String ipAddress,
        String location,
-       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdAt
+       @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate createdAt
 ) {}
