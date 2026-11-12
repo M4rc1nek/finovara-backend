@@ -4,13 +4,18 @@ import com.finovara.contracts.exception.notfound.RequestedEntityNotFoundExceptio
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.contracts.user.datadeletable.UserDataDeletable;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
+import com.finovara.financeservice.trash.dto.TrashFilterDto;
 import com.finovara.financeservice.trash.dto.TrashItemDto;
 import com.finovara.financeservice.trash.model.TrashEntityType;
 import com.finovara.financeservice.trash.model.TrashItem;
 import com.finovara.financeservice.trash.repository.TrashItemRepository;
 import com.finovara.financeservice.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +32,10 @@ public class TrashService implements UserDataDeletable {
     private final WalletService walletService;
     private final AuthBackendClient authBackendClient;
     private final AdditionalAuthorizationCodeResolver authorizationCodeResolver;
+
+    @Value("${finance.pagination.page-size}")
+    private int pageSize;
+
 
     @Transactional
     public void add(TrashEntityType type, Long entityId, Long userId, LocalDateTime deletedAt, Boolean restoreRecurringEnabled, boolean financialEffectsReverted) {
@@ -45,9 +54,14 @@ public class TrashService implements UserDataDeletable {
         trashItemRepository.saveAll(items);
     }
 
-    @Transactional(readOnly = true)
-    public List<TrashItemDto> getTrash(Long userId) {
-        return trashItemRepository.findAllForUser(userId);
+    public List<TrashItemDto> getTrash(Long userId, int page) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
+        return trashItemRepository.findAllForUser(userId, pageable);
+    }
+
+    public List<TrashItemDto> filterTrash(Long userId, TrashFilterDto filter, int page) {
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
+        return trashItemRepository.findFilteredForUser(userId, filter, filter.deletedAt(), pageable);
     }
 
     @Transactional
