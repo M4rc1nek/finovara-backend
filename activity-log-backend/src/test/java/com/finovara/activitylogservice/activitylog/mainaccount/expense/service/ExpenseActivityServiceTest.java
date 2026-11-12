@@ -73,14 +73,14 @@ class ExpenseActivityServiceTest {
                     OCCURRED_AT
             );
 
-            when(expenseActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+            when(expenseActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(activity));
             when(expenseActivityMapper.mapToExpenseActivity(activity)).thenReturn(dto);
 
             List<ExpenseActivityDto> result = expenseActivityService.filterExpenseActivity(USER_ID, filter, 1);
 
             assertThat(result).containsExactly(dto);
-            verify(expenseActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+            verify(expenseActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class));
         }
     }
 
