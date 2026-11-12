@@ -11,5 +11,5 @@ public record SharedAccountChangeHistoryActivityFilterDto(
        BigDecimal refundedBalance,
        String coFounderUsername,
        String coFounderEmail,
-       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdAt
+       @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate createdAt
 ) {}
