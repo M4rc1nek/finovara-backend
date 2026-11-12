@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -22,12 +22,10 @@ public interface LimitActivityRepository extends JpaRepository<LimitActivity, Lo
               AND (CAST(:#{#filter.periodType} AS string) IS NULL OR l.periodType = :#{#filter.periodType})
               AND (CAST(:#{#filter.amount} AS string) IS NULL OR l.amount = :#{#filter.amount})
               AND (CAST(:#{#filter.previousAmount} AS string) IS NULL OR l.previousAmount = :#{#filter.previousAmount})
-              AND (CAST(:createdFrom AS timestamp) IS NULL OR l.createdAt >= :createdFrom)
-              AND (CAST(:createdTo AS timestamp) IS NULL OR l.createdAt < :createdTo)
+              AND (CAST(:createdAt AS date) IS NULL OR CAST(l.createdAt AS date) = :createdAt)
             ORDER BY l.createdAt DESC, l.id DESC
             """)
-    List<LimitActivity> findFilteredActivities( Long userId, LimitActivityFilterDto filter, LocalDateTime createdFrom, LocalDateTime createdTo,
-                                               Pageable pageable);
+    List<LimitActivity> findFilteredActivities(Long userId, LimitActivityFilterDto filter, LocalDate createdAt, Pageable pageable);
 
     List<LimitActivity> findAllByUserId(Long userId);
 
