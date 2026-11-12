@@ -126,14 +126,14 @@ class LoginActivityArchiveServiceTest {
                     "172.16.0.5"
             );
 
-            when(loginActivityArchiveRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(), any(), any(Pageable.class)))
+            when(loginActivityArchiveRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.moveToArchiveDate()), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(archive));
             when(loginActivityArchiveMapper.mapToDto(archive)).thenReturn(dto);
 
             List<LoginActivityArchiveDto> result = loginActivityArchiveService.filterLoginActivityArchive(USER_ID, filter, 1);
 
             assertEquals(List.of(dto), result);
-            verify(loginActivityArchiveRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(), any(), any(Pageable.class));
+            verify(loginActivityArchiveRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.moveToArchiveDate()), eq(filter.createdAt()), any(Pageable.class));
         }
     }
 
