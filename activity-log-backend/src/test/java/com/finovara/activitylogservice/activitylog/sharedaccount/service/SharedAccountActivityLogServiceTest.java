@@ -431,7 +431,7 @@ class SharedAccountActivityLogServiceTest {
                             LocalDate.now()
                     );
             SharedAccountActivityLog activity = mock(SharedAccountActivityLog.class);
-            when(sharedAccountActivityLogRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(OWNER_ID), any(), any(), any(Pageable.class)))
+            when(sharedAccountActivityLogRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(OWNER_ID), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(activity));
             when(activity.getUserId()).thenReturn(USER_ID);
             when(userSessionResolver.getUserInfo(USER_ID)).thenReturn(userData);
@@ -445,7 +445,7 @@ class SharedAccountActivityLogServiceTest {
 
             assertEquals(List.of(firstDto), result);
             verify(authBackendClient).getSharedAccountMembers(USER_ID);
-            verify(sharedAccountActivityLogRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(OWNER_ID), any(), any(), any(Pageable.class));
+            verify(sharedAccountActivityLogRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(OWNER_ID), eq(filter.createdAt()), any(Pageable.class));
         }
 
         @Test
