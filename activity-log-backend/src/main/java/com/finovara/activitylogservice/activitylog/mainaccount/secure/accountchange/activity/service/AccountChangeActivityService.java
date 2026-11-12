@@ -1,6 +1,5 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.service;
 
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangeActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.dto.AccountChangeActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.secure.accountchange.activity.mapper.AccountChangeActivityMapper;
@@ -62,8 +61,7 @@ public class AccountChangeActivityService extends SecurityActivityCore<AccountCh
 
     public List<AccountChangeActivityDto> filterAccountChangeActivity(Long userId, AccountChangeActivityFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange created = DateRange.of(filter.createdAt());
-        return accountChangeActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+        return accountChangeActivityRepository.findFilteredActivities(userId, filter, filter.createdAt(), pageable)
                 .stream()
                 .map(accountChangeActivityMapper::mapToDto)
                 .toList();
