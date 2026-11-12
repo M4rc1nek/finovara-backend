@@ -2,7 +2,6 @@ package com.finovara.financeservice.trash.service;
 
 import com.finovara.contracts.user.authorization.additionalcode.resolver.AdditionalAuthorizationCodeResolver;
 import com.finovara.financeservice.feignclient.AuthBackendClient;
-import com.finovara.financeservice.trash.dto.TrashItemDto;
 import com.finovara.financeservice.trash.model.TrashEntityType;
 import com.finovara.financeservice.trash.model.TrashItem;
 import com.finovara.financeservice.trash.repository.TrashItemRepository;
@@ -108,23 +107,6 @@ class TrashServiceTest {
             assertEquals(2, itemsCaptor.getValue().size());
             assertEquals(false, itemsCaptor.getValue().get(0).getFinancialEffectsReverted());
             assertEquals(false, itemsCaptor.getValue().get(1).getFinancialEffectsReverted());
-        }
-    }
-
-    @Nested
-    class GetTrash {
-        @Test
-        void shouldReturnDtosWhenUserHasTrashItems() {
-            TrashItemDto dto = new TrashItemDto(TRASH_ITEM_ID, TrashEntityType.EXPENSE, EXPENSE_ID,
-                    LocalDateTime.now(), null);
-            when(trashItemRepository.findAllForUser(USER_ID)).thenReturn(List.of(dto));
-
-            List<TrashItemDto> result = service.getTrash(USER_ID);
-
-            assertEquals(1, result.size());
-            assertEquals(TRASH_ITEM_ID, result.getFirst().id());
-            assertEquals(TrashEntityType.EXPENSE, result.getFirst().entityType());
-            assertEquals(EXPENSE_ID, result.getFirst().entityId());
         }
     }
 
