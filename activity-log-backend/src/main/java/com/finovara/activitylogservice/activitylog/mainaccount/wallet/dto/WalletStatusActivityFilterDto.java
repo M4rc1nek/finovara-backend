@@ -11,6 +11,6 @@ public record WalletStatusActivityFilterDto(
         TransactionType type,
         WalletTransactionReason reason,
         BigDecimal amount,
-        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate createdAt
+        @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate createdAt
 ) {
 }
