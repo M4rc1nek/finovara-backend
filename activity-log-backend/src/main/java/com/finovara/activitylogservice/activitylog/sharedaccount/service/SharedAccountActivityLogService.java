@@ -1,7 +1,6 @@
 package com.finovara.activitylogservice.activitylog.sharedaccount.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.ActivityPageRequest;
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.sharedaccount.dto.SharedAccountActivityLogDto;
 import com.finovara.activitylogservice.activitylog.sharedaccount.dto.SharedAccountActivityLogFilterDto;
 import com.finovara.activitylogservice.activitylog.sharedaccount.mapper.SharedAccountActivityLogMapper;
@@ -74,8 +73,6 @@ public class SharedAccountActivityLogService implements UserDataDeletable {
 
     public List<SharedAccountActivityLogDto> filterSharedAccountLogActivity(Long userId, SharedAccountActivityLogFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange created = DateRange.of(filter.createdAt());
-
         Long actorId = filter.userId();
 
         if (filter.role() != null) {
@@ -90,7 +87,7 @@ public class SharedAccountActivityLogService implements UserDataDeletable {
             }
         }
 
-        List<SharedAccountActivityLog> activities = sharedAccountActivityLogRepository.findFilteredActivities(userId, filter, actorId, created.from(), created.to(), pageable);
+        List<SharedAccountActivityLog> activities = sharedAccountActivityLogRepository.findFilteredActivities(userId, filter, actorId, filter.createdAt(), pageable);
 
         Map<Long, UserDataDto> users = new HashMap<>();
         activities.stream()
