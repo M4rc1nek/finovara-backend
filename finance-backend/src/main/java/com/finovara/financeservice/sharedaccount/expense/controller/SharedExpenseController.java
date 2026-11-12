@@ -45,8 +45,7 @@ public class SharedExpenseController {
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<List<SharedExpenseDto>> filterSharedExpenses(@RequestParam(required = false) ExpenseCategory category, @RequestParam(required = false) BigDecimal amount,
-                                                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestParam(required = false) String description, @RequestParam(required = false) SharedRole role, @RequestParam(defaultValue = "0") @Min(0) int page) {
+    public ResponseEntity<List<SharedExpenseDto>> filterSharedExpenses(@RequestParam(required = false) ExpenseCategory category, @RequestParam(required = false) BigDecimal amount, @RequestParam(required = false) @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate date, @RequestParam(required = false) String description, @RequestParam(required = false) SharedRole role, @RequestParam(defaultValue = "0") @Min(0) int page) {
         return ResponseEntity.ok(expenseFilteringService.filterExpenses(SecurityUtils.getCurrentUserId(), category, amount, date, description, role, page));
     }
 
