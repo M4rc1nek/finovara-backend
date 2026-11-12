@@ -263,14 +263,14 @@ class AccountChangeActivityServiceTest {
                     "Krakow"
             );
 
-            when(accountChangeActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+            when(accountChangeActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(activity));
             when(accountChangeActivityMapper.mapToDto(activity)).thenReturn(dto);
 
             List<AccountChangeActivityDto> result = accountChangeActivityService.filterAccountChangeActivity(USER_ID, filter, 0);
 
             assertEquals(List.of(dto), result);
-            verify(accountChangeActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+            verify(accountChangeActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class));
         }
     }
 
