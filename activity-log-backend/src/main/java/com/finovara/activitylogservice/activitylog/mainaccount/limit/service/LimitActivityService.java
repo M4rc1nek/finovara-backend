@@ -1,7 +1,6 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.limit.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.dto.LimitActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.dto.LimitActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.limit.mapper.LimitActivityMapper;
@@ -56,8 +55,7 @@ public class LimitActivityService extends AccountActivityCore<LimitActivity, Lim
 
     public List<LimitActivityDto> filterLimitActivity(Long userId, LimitActivityFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange created = DateRange.of(filter.createdAt());
-        return limitActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+        return limitActivityRepository.findFilteredActivities(userId, filter, filter.createdAt(), pageable)
                 .stream()
                 .map(limitActivityMapper::mapToLimitActivity)
                 .toList();
