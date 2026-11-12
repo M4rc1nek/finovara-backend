@@ -1,7 +1,6 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.revenue.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.dto.RevenueActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.revenue.mapper.RevenueActivityMapper;
@@ -56,8 +55,7 @@ public class RevenueActivityService extends AccountActivityCore<RevenueActivity,
 
     public List<RevenueActivityDto> filterRevenueActivity(Long userId, RevenueActivityFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange created = DateRange.of(filter.createdAt());
-        return revenueActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+        return revenueActivityRepository.findFilteredActivities(userId, filter, filter.createdAt(), pageable)
                 .stream()
                 .map(revenueActivityMapper::mapToRevenueActivity)
                 .toList();
