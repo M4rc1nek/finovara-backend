@@ -376,14 +376,14 @@ class PiggyBankActivityServiceTest {
                     LocalDateTime.of(2026, 5, 25, 15, 30)
             );
 
-            when(piggyBankActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class)))
+            when(piggyBankActivityRepository.findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class)))
                     .thenReturn(List.of(activity));
             when(piggyBankActivityMapper.mapToPiggyBankActivity(activity)).thenReturn(dto);
 
             List<PiggyBankActivityDto> result = service.filterPiggyBankActivity(USER_ID, filter, 1);
 
             assertEquals(List.of(dto), result);
-            verify(piggyBankActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), any(), any(), any(Pageable.class));
+            verify(piggyBankActivityRepository).findFilteredActivities(eq(USER_ID), eq(filter), eq(filter.createdAt()), any(Pageable.class));
         }
     }
 
