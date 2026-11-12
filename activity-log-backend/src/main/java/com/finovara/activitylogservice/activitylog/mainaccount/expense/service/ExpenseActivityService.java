@@ -1,7 +1,6 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.expense.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.dto.ExpenseActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.dto.ExpenseActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.expense.mapper.ExpenseActivityMapper;
@@ -56,8 +55,7 @@ public class ExpenseActivityService extends AccountActivityCore<ExpenseActivity,
 
     public List<ExpenseActivityDto> filterExpenseActivity(Long userId, ExpenseActivityFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange created = DateRange.of(filter.createdAt());
-        return expenseActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+        return expenseActivityRepository.findFilteredActivities(userId, filter, filter.createdAt(), pageable)
                 .stream()
                 .map(expenseActivityMapper::mapToExpenseActivity)
                 .toList();
