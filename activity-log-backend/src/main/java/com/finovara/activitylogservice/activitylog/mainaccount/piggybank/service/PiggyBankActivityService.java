@@ -1,7 +1,6 @@
 package com.finovara.activitylogservice.activitylog.mainaccount.piggybank.service;
 
 import com.finovara.activitylogservice.activitylog.mainaccount.core.AccountActivityCore;
-import com.finovara.activitylogservice.activitylog.mainaccount.core.DateRange;
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.dto.PiggyBankActivityDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.dto.PiggyBankActivityFilterDto;
 import com.finovara.activitylogservice.activitylog.mainaccount.piggybank.mapper.PiggyBankActivityMapper;
@@ -76,8 +75,7 @@ public class PiggyBankActivityService extends AccountActivityCore<PiggyBankActiv
 
     public List<PiggyBankActivityDto> filterPiggyBankActivity(Long userId, PiggyBankActivityFilterDto filter, int page) {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.unsorted());
-        DateRange created = DateRange.of(filter.createdAt());
-        return piggyBankActivityRepository.findFilteredActivities(userId, filter, created.from(), created.to(), pageable)
+        return piggyBankActivityRepository.findFilteredActivities(userId, filter, filter.createdAt(), pageable)
                 .stream()
                 .map(piggyBankActivityMapper::mapToPiggyBankActivity)
                 .toList();
