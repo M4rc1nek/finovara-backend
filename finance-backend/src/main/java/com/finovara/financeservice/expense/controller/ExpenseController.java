@@ -3,7 +3,6 @@ package com.finovara.financeservice.expense.controller;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.expense.dto.ExpenseDto;
 import com.finovara.financeservice.expense.dto.ExpenseRequestDto;
-import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.service.ExpenseFilteringService;
 import com.finovara.financeservice.expense.service.ExpenseService;
 import com.finovara.financeservice.security.SecurityUtils;
@@ -46,8 +45,7 @@ public class ExpenseController {
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<List<Expense>> filterExpenses(@RequestParam(required = false) ExpenseCategory category, @RequestParam(required = false) BigDecimal amount,
-                                                        @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, @RequestParam(required = false) String description, @RequestParam(defaultValue = "0") @Min(0) int page) {
+    public ResponseEntity<List<ExpenseDto>> filterExpenses(@RequestParam(required = false) ExpenseCategory category, @RequestParam(required = false) BigDecimal amount,  @RequestParam(required = false) @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate date, @RequestParam(required = false) String description, @RequestParam(defaultValue = "0") @Min(0) int page) {
         return ResponseEntity.ok(expenseFilteringService.expenseFiltering(SecurityUtils.getCurrentUserId(), category, amount, date, description, page));
     }
 
@@ -58,6 +56,5 @@ public class ExpenseController {
     }
 
 }
-
 
 
