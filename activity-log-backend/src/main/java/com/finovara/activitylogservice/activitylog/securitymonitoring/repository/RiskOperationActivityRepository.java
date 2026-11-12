@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -23,12 +23,10 @@ public interface RiskOperationActivityRepository extends JpaRepository<RiskOpera
               AND (CAST(:#{#filter.score} AS string) IS NULL OR r.score = :#{#filter.score})
               AND (CAST(:#{#filter.action} AS string) IS NULL OR r.action = :#{#filter.action})
               AND (CAST(:#{#filter.operationDate} AS string) IS NULL OR r.operationDate = :#{#filter.operationDate})
-              AND (CAST(:createdFrom AS timestamp) IS NULL OR r.createdAt >= :createdFrom)
-              AND (CAST(:createdTo AS timestamp) IS NULL OR r.createdAt < :createdTo)
+              AND (CAST(:createdAt AS date) IS NULL OR CAST(r.createdAt AS date) = :createdAt)
             ORDER BY r.createdAt DESC, r.id DESC
             """)
-    List<RiskOperationActivity> findFilteredActivities( Long userId, RiskOperationActivityFilterDto filter, LocalDateTime createdFrom, LocalDateTime createdTo,
-                                                       Pageable pageable);
+    List<RiskOperationActivity> findFilteredActivities(Long userId, RiskOperationActivityFilterDto filter, LocalDate createdAt, Pageable pageable);
 
     boolean existsBySourceEventId(String sourceEventId);
 
