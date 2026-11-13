@@ -3,6 +3,7 @@ package com.finovara.financeservice.expense.dto;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -15,7 +16,7 @@ public record ExpenseDto(
         @DecimalMin("1") @DecimalMax("999999") BigDecimal amount,
         ExpenseCategory category,
         LocalDate createdAt,
-        String description
+        @Size(max = 500) String description
 
 ) {
 }
