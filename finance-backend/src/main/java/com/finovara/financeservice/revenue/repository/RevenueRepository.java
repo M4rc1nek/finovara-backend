@@ -26,12 +26,11 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
     @Query("SELECT r FROM Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL ORDER BY r.createdAt DESC, r.id DESC")
     List<Revenue> findAllByUserId(Long userId, Pageable pageable);
 
-    @Query("SELECT r From Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL AND r.createdAt BETWEEN :startDate AND :endDate AND r.category = :category ORDER BY r.createdAt DESC, r.id DESC")
-    List<Revenue> findAllByUserIdAndCreatedAtBetweenAndCategory(Long userId, LocalDate from,
-                                                                LocalDate to, RevenueCategory category, Pageable pageable);
+    @Query("SELECT r From Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL AND r.createdAt BETWEEN :from AND :to AND r.category = :category ORDER BY r.createdAt DESC, r.id DESC")
+    List<Revenue> findAllByUserIdAndCreatedAtBetweenAndCategory(Long userId, LocalDate from, LocalDate to, RevenueCategory category, Pageable pageable);
 
-    @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL AND r.createdAt >= :startDate AND r.createdAt <= :endDate")
-    Optional<BigDecimal> sumRevenuesByUserAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
+    @Query("SELECT SUM(r.amount) FROM Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL AND r.createdAt >= :from AND r.createdAt <= :to")
+    Optional<BigDecimal> sumRevenuesByUserAndDateRange(Long userId, LocalDate from, LocalDate to);
 
     @Query("SELECT r FROM Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL AND r.createdAt BETWEEN :from AND :to ORDER BY r.amount DESC")
     List<Revenue> findTopRevenuesByUserIdAndPeriod(Long userId, LocalDate from, LocalDate to, Pageable pageable);
