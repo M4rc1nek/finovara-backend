@@ -27,12 +27,10 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT e FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL ORDER BY e.createdAt DESC, e.id DESC")
     List<Expense> findAllByUserId(Long userId, Pageable pageable);
 
-    @Query("SELECT e FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt BETWEEN :startDate AND :endDate AND e.category = :category " +
-            "ORDER BY e.createdAt DESC, e.id DESC")
-    List<Expense> findAllByUserIdAndCreatedAtBetweenAndCategory(Long userId, LocalDate from,
-                                                                LocalDate to, ExpenseCategory category, Pageable pageable);
+    @Query("SELECT e FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt BETWEEN :from AND :to AND e.category = :category ORDER BY e.createdAt DESC, e.id DESC")
+    List<Expense> findAllByUserIdAndCreatedAtBetweenAndCategory(Long userId, LocalDate from, LocalDate to, ExpenseCategory category, Pageable pageable);
 
-    @Query("SELECT e From Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt BETWEEN :startDate AND :endDate")
+    @Query("SELECT e From Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt BETWEEN :from AND :to")
     List<Expense> findAllByUserIdAndCreatedAtBetween(Long userId, LocalDate from, LocalDate to);
     @Query("""
         SELECT e FROM Expense e
@@ -63,14 +61,14 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT COUNT(e) FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL")
     long countExpensesByUserId(Long userId);
 
-    @Query("SELECT COUNT(e) FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt BETWEEN :startDate AND :endDate")
+    @Query("SELECT COUNT(e) FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt BETWEEN :from AND :to")
     long countExpensesByUserIdAndCreatedAtBetween(Long userId, LocalDate from, LocalDate to);
 
-    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt >= :startDate AND e.createdAt <= :endDate")
-    Optional<BigDecimal> sumExpensesByUserAndDateRange(Long userId, LocalDate startDate, LocalDate endDate);
+    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt >= :from AND e.createdAt <= :to")
+    Optional<BigDecimal> sumExpensesByUserAndDateRange(Long userId, LocalDate from, LocalDate to);
 
-    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt >= :startDate AND e.createdAt <= :endDate AND e.category = :expenseCategory")
-    Optional<BigDecimal> sumExpensesByUserAndDateRangeAndCategory(Long userId, LocalDate startDate, LocalDate endDate, ExpenseCategory expenseCategory);
+    @Query("SELECT SUM(e.amount) FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt >= :from AND e.createdAt <= :to AND e.category = :expenseCategory")
+    Optional<BigDecimal> sumExpensesByUserAndDateRangeAndCategory(Long userId, LocalDate from, LocalDate to, ExpenseCategory expenseCategory);
 
     @Query("""
              SELECT NEW com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto(
