@@ -15,8 +15,7 @@ public record SharedExpenseDto(
         @DecimalMin("1") @DecimalMax("999999") BigDecimal amount,
         ExpenseCategory category,
         LocalDate createdAt,
-        @Size(max = 100)
-        String description,
+        @Size(max = 100) String description,
         Long expenseCreatorId,
         String expenseCreatorUsername
 
