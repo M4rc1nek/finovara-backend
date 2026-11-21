@@ -41,9 +41,10 @@ public class AutoPaymentsService {
 
     @Transactional
     public void saveAutoPaymentsPiggyBank(Long userId, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
+        piggyBankManagerService.checkPiggyBankExistsOrThrow(piggyBankId, userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(autoPaymentsDto.authorizationCode()));
 
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         validatePercentage(autoPaymentsDto);
@@ -68,9 +69,10 @@ public class AutoPaymentsService {
 
     @Transactional
     public void createAutomation(Long userId, Long piggyBankId, AutoPaymentsDto autoPaymentsDto) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
+        piggyBankManagerService.checkPiggyBankExistsOrThrow(piggyBankId, userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(autoPaymentsDto.authorizationCode()));
 
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         piggyBankSettings.setAutomationActive(autoPaymentsDto.isAutomationActive());
@@ -87,7 +89,7 @@ public class AutoPaymentsService {
     @Transactional
     public void handleRevenuePiggyBankAutomation(Long userId, BigDecimal revenueAmount, PiggyBankAutomationMode mode) {
         Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
-        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserId(userId);
+        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserIdWithSettings(userId);
 
         if (piggyBanks == null || piggyBanks.isEmpty()) return;
 
@@ -112,4 +114,3 @@ public class AutoPaymentsService {
     }
 
 }
-
