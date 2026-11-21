@@ -32,6 +32,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -235,6 +236,35 @@ class RiskEngineServiceTest {
             riskEngineService.evaluate(request);
 
             verifyNoInteractions(outboxService);
+        }
+    }
+
+    @Nested
+    class EvaluateWhenConcurrentDuplicateIsInserted {
+
+        @Test
+        void shouldReturnExistingOperationWhenUniqueConstraintRejectsConcurrentDuplicate() {
+            RiskOperation existingOperation = RiskOperation.builder()
+                    .id(100L)
+                    .sourceEventId(SOURCE_EVENT_ID)
+                    .triggerType(RiskTriggerType.EXPENSE)
+                    .score(45)
+                    .action(RiskAction.SOFT_CHALLENGE)
+                    .userId(USER_ID)
+                    .build();
+            when(riskOperationRepository.findBySourceEventId(SOURCE_EVENT_ID))
+                    .thenReturn(Optional.empty(), Optional.of(existingOperation));
+            stubEmptyProfiles();
+            stubNoRiskRulesTriggered();
+            stubNonLoginThresholds();
+            when(riskOperationRepository.save(any(RiskOperation.class)))
+                    .thenThrow(new DataIntegrityViolationException("duplicate source event"));
+
+            RiskEvaluationResponse response = riskEngineService.evaluate(requestWithTriggerType(RiskTriggerType.EXPENSE));
+
+            assertEquals(100L, response.riskOperationId());
+            assertEquals(45, response.score());
+            assertEquals(RiskAction.SOFT_CHALLENGE, response.action());
         }
     }
 
