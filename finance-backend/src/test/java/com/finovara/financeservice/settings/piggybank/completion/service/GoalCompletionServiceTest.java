@@ -59,7 +59,7 @@ class GoalCompletionServiceTest {
         void shouldThrowExceptionWhenGoalNotSet() {
             PiggyBank piggyBank = createPiggyBank(null, null, null);
 
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(1L, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(1L, USER_ID)).thenReturn(piggyBank);
 
             GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_KEEP, null);
 
@@ -70,7 +70,7 @@ class GoalCompletionServiceTest {
         void shouldSaveGoalCompletionStrategy() {
             PiggyBank piggyBank = createPiggyBank(BigDecimal.valueOf(100), BigDecimal.valueOf(1000), null);
 
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(1L, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(1L, USER_ID)).thenReturn(piggyBank);
 
             GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_KEEP, null);
 
@@ -90,7 +90,7 @@ class GoalCompletionServiceTest {
         void shouldSetStrategy() {
             PiggyBank piggyBank = createPiggyBank(null, null, null);
 
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(1L, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(1L, USER_ID)).thenReturn(piggyBank);
 
             GoalCompletionDto dto = new GoalCompletionDto(GoalCompletionStrategy.WITHDRAW_AND_DELETE, null);
 
@@ -110,7 +110,7 @@ class GoalCompletionServiceTest {
             PiggyBank piggyBank = createPiggyBank(BigDecimal.valueOf(100), BigDecimal.valueOf(200), GoalCompletionStrategy.WITHDRAW_AND_KEEP);
 
             when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
-            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(List.of(piggyBank));
+            when(piggyBankRepository.findAllByUserIdWithSettings(USER_ID)).thenReturn(List.of(piggyBank));
 
             goalCompletionService.handleGoalCompletion(USER_ID);
 
@@ -125,7 +125,7 @@ class GoalCompletionServiceTest {
             PiggyBank piggyBank = createPiggyBank(BigDecimal.valueOf(200), BigDecimal.valueOf(200), GoalCompletionStrategy.WITHDRAW_AND_KEEP);
 
             when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
-            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(List.of(piggyBank));
+            when(piggyBankRepository.findAllByUserIdWithSettings(USER_ID)).thenReturn(List.of(piggyBank));
 
             goalCompletionService.handleGoalCompletion(USER_ID);
 
@@ -140,7 +140,7 @@ class GoalCompletionServiceTest {
             PiggyBank piggyBank = createPiggyBank(BigDecimal.valueOf(200), BigDecimal.valueOf(200), null);
 
             when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
-            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(List.of(piggyBank));
+            when(piggyBankRepository.findAllByUserIdWithSettings(USER_ID)).thenReturn(List.of(piggyBank));
 
             goalCompletionService.handleGoalCompletion(USER_ID);
 
@@ -156,7 +156,7 @@ class GoalCompletionServiceTest {
             PiggyBank second = createPiggyBank(BigDecimal.valueOf(200), BigDecimal.valueOf(200), GoalCompletionStrategy.NONE);
 
             when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
-            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(List.of(first, second));
+            when(piggyBankRepository.findAllByUserIdWithSettings(USER_ID)).thenReturn(List.of(first, second));
 
             goalCompletionService.handleGoalCompletion(USER_ID);
 
