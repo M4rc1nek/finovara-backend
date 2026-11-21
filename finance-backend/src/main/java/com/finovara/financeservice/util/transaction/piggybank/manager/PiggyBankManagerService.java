@@ -16,9 +16,14 @@ public class PiggyBankManagerService {
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Piggy Bank not found"));
     }
 
+    public void checkPiggyBankExistsOrThrow(Long piggyBankId, Long userId) {
+        if (!piggyBankRepository.existsByIdAndUserIdAndDeletedAtIsNull(piggyBankId, userId)) {
+            throw new RequestedEntityNotFoundException("Piggy Bank not found");
+        }
+    }
+
     public PiggyBank getPiggyBankForUpdateOrThrow(Long piggyBankId, Long userId) {
         return piggyBankRepository.findByIdAndUserIdForUpdate(piggyBankId, userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("Piggy bank not found"));
     }
 }
-
