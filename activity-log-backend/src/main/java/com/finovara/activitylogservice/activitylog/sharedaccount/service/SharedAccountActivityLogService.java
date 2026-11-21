@@ -23,7 +23,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,11 +59,7 @@ public class SharedAccountActivityLogService implements UserDataDeletable {
         List<SharedAccountActivityLog> activities = sharedAccountActivityLogRepository
                 .findAllByOwnerIdOrMemberId(userId, ActivityPageRequest.of(sortType, page, pageSize));
 
-        Map<Long, UserDataDto> users = new HashMap<>();
-        activities.stream()
-                .map(SharedAccountActivityLog::getUserId)
-                .distinct()
-                .forEach(activityUserId -> users.put(activityUserId, userSessionResolver.getUserInfo(activityUserId)));
+        Map<Long, UserDataDto> users = loadUsers(activities);
 
         return activities.stream()
                 .map(activity -> sharedAccountActivityLogMapper.mapToDto(activity, users.get(activity.getUserId())))
@@ -89,15 +84,23 @@ public class SharedAccountActivityLogService implements UserDataDeletable {
 
         List<SharedAccountActivityLog> activities = sharedAccountActivityLogRepository.findFilteredActivities(userId, filter, actorId, filter.createdAt(), pageable);
 
-        Map<Long, UserDataDto> users = new HashMap<>();
-        activities.stream()
-                .map(SharedAccountActivityLog::getUserId)
-                .distinct()
-                .forEach(id -> users.put(id, userSessionResolver.getUserInfo(id)));
+        Map<Long, UserDataDto> users = loadUsers(activities);
 
         return activities.stream()
                 .map(a -> sharedAccountActivityLogMapper.mapToDto(a, users.get(a.getUserId())))
                 .toList();
+    }
+
+    private Map<Long, UserDataDto> loadUsers(List<SharedAccountActivityLog> activities) {
+        if (activities.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Long> userIds = activities.stream()
+                .map(SharedAccountActivityLog::getUserId)
+                .distinct()
+                .toList();
+        return userSessionResolver.getUserInfoByIds(userIds);
     }
 
     @Override
