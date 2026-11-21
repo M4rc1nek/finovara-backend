@@ -15,10 +15,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -67,15 +64,9 @@ public class ExpenseDigestService {
     }
 
     private int calculateDaysWithoutExpense(Long userId, LocalDate from, LocalDate to) {
-        List<Expense> expensesInPeriod = expenseRepository.findAllByUserIdAndCreatedAtBetween(userId, from, to);
-
-        Set<LocalDate> daysWithExpense = expensesInPeriod.stream()
-                .map(Expense::getCreatedAt)
-                .collect(Collectors.toSet());
-
         int daysInPeriod = (int) ChronoUnit.DAYS.between(from, to) + 1;
-
-        return daysInPeriod - daysWithExpense.size();
+        long daysWithExpense = expenseRepository.countDistinctExpenseDaysByUserIdAndCreatedAtBetween(userId, from, to);
+        return daysInPeriod - Math.toIntExact(daysWithExpense);
     }
 
     private BigDecimal calculateRemainingMonthlyBudget(Long userId) {
