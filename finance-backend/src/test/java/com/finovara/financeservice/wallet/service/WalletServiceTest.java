@@ -38,6 +38,7 @@ import org.mockito.InjectMocks;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.core.KafkaTemplate;
 
 @ExtendWith(MockitoExtension.class)
@@ -302,6 +303,20 @@ class WalletServiceTest {
 
             verify(walletRepository).save(any(Wallet.class));
             assertEquals(new WalletResponse(WALLET_ID, USER_ID, BALANCE, RESERVED, AVAILABLE, List.of()), result);
+        }
+
+        @Test
+        void shouldLoadWalletCreatedConcurrentlyWhenInsertConflicts() {
+            when(walletRepository.findByUserId(USER_ID))
+                    .thenReturn(Optional.empty(), Optional.of(wallet));
+            when(walletRepository.save(any(Wallet.class)))
+                    .thenThrow(new DataIntegrityViolationException("wallet already created"));
+            when(fundReservationRepository.findAllByWalletId(WALLET_ID)).thenReturn(List.of());
+
+            WalletResponse result = service.getWalletWithReservations(USER_ID);
+
+            assertEquals(new WalletResponse(WALLET_ID, USER_ID, BALANCE, RESERVED, AVAILABLE, List.of()), result);
+            verify(walletRepository, org.mockito.Mockito.times(2)).findByUserId(USER_ID);
         }
     }
 
