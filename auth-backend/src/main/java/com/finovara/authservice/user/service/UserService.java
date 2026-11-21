@@ -109,7 +109,7 @@ public class UserService {
                 user.setAccountSettings(settingsFactory.createDefaultAccountSettings());
                 user.setSecuritySettings(settingsFactory.createDefaultSecuritySettings());
 
-                userRepository.saveAndFlush(user);
+                userRepository.save(user);
 
                 outboxService.save("User", user.getId().toString(), "user.created",
                         new UserCreatedEvent(user.getId(), user.getUsername(), user.getEmail(), user.getCreatedAt()));
