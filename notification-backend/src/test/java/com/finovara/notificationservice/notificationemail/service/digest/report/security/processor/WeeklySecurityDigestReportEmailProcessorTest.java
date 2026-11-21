@@ -1,6 +1,7 @@
 package com.finovara.notificationservice.notificationemail.service.digest.report.security.processor;
 
 import com.finovara.contracts.user.authorization.dto.UserDataResponse;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.contracts.mainaccount.report.digest.security.WeeklySecurityDigestReportDto;
 import com.finovara.notificationservice.feignclient.ActivityLogBackendClient;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
@@ -24,7 +25,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -64,6 +67,13 @@ class WeeklySecurityDigestReportEmailProcessorTest {
     @BeforeEach
     void setUp() {
         processor = new WeeklySecurityDigestReportEmailProcessor(authBackendClient, activityLogBackendClient, emailNotifier);
+        lenient().when(authBackendClient.getUserSessions(anyList())).thenAnswer(invocation -> {
+            List<Long> userIds = invocation.getArgument(0);
+            return userIds.stream().map(userId -> {
+                UserDataResponse user = authBackendClient.getUserData(userId);
+                return new UserDataDto(userId, user.username().orElse(null), user.email().orElse(null), null);
+            }).toList();
+        });
     }
 
     private void stubFullReport(WeeklySecurityDigestReportDto reportMock, Long userId) {
@@ -224,8 +234,7 @@ class WeeklySecurityDigestReportEmailProcessorTest {
 
             processor.sendWeeklySecurityDigestEmail();
 
-            verify(authBackendClient, times(1)).getUserData(USER_ID);
-            verify(authBackendClient, times(1)).getUserData(OTHER_USER_ID);
+            verify(authBackendClient, times(1)).getUserSessions(List.of(USER_ID, OTHER_USER_ID));
             verify(emailNotifier, times(2)).send(eq(ScheduledEmailNotificationType.WEEKLY_SECURITY_DIGEST_REPORT_EMAIL), anyString(), anyMap());
         }
     }

@@ -17,12 +17,22 @@ public interface PiggyBankRepository extends JpaRepository<PiggyBank, Long> {
     @Query("SELECT pb FROM PiggyBank pb WHERE pb.id = :piggyBankId AND pb.userId = :userId AND pb.deletedAt IS NULL")
     Optional<PiggyBank> findByIdAndUserId(Long piggyBankId, Long userId);
 
+    boolean existsByIdAndUserIdAndDeletedAtIsNull(Long piggyBankId, Long userId);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT pb FROM PiggyBank pb WHERE pb.id = :piggyBankId AND pb.userId = :userId AND pb.deletedAt IS NULL")
     Optional<PiggyBank> findByIdAndUserIdForUpdate(Long piggyBankId, Long userId);
 
     @Query("SELECT pb FROM PiggyBank pb WHERE pb.userId = :userId AND pb.deletedAt IS NULL ORDER BY pb.createdAt DESC, pb.id DESC")
     List<PiggyBank> findAllByUserId(Long userId);
+
+    @Query("""
+            SELECT pb FROM PiggyBank pb
+            LEFT JOIN FETCH pb.settings
+            WHERE pb.userId = :userId AND pb.deletedAt IS NULL
+            ORDER BY pb.createdAt DESC, pb.id DESC
+            """)
+    List<PiggyBank> findAllByUserIdWithSettings(Long userId);
 
     @Query("SELECT pb FROM PiggyBank pb WHERE pb.userId = :userId")
     List<PiggyBank> findAllByUserIdIncludingDeleted(Long userId);

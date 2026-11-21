@@ -21,8 +21,8 @@ import com.finovara.securitymonitoring.transaction.repository.TransactionProfile
 import com.finovara.securitymonitoring.transaction.service.TransactionRiskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -46,7 +46,6 @@ public class RiskEngineService {
     private final RiskChallengeService riskChallengeService;
     private final OutboxService outboxService;
 
-    @Transactional
     public RiskEvaluationResponse evaluate(RiskEvaluationRequest request) {
         log.info("Starting risk check for userId={} type={}", request.userId(), request.triggerType());
 
@@ -86,7 +85,13 @@ public class RiskEngineService {
                 new RiskOperationCreatedEvent(operation.getUserId(), request.sourceEventId(), request.triggerType(), totalScore, action,
                         LocalDate.now(), LocalDateTime.now(), extractRiskRules(ruleCollections)));
 
-        riskOperationRepository.save(operation);
+        try {
+            riskOperationRepository.save(operation);
+        } catch (DataIntegrityViolationException exception) {
+            return riskOperationRepository.findBySourceEventId(request.sourceEventId())
+                    .map(this::toResponse)
+                    .orElseThrow(() -> exception);
+        }
 
         if (operation.requiresEmailCode()) {
             riskChallengeService.generateAndSendEmailCode(operation, request.email());

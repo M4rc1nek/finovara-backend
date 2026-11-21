@@ -54,7 +54,7 @@ public class AccountService {
 
         user.setUsername(newUsername);
         try {
-            userRepository.saveAndFlush(user);
+            userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
             throw new EntityAlreadyExistsException("Username is already taken");
         }

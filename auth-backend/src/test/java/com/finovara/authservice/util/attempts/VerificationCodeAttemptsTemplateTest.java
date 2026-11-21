@@ -48,7 +48,7 @@ class VerificationCodeAttemptsTemplateTest {
             when(attemptsHandler.incrementAttempts(3)).thenReturn(1);
             when(attemptsHandler.getCurrentAttempts()).thenReturn(1);
 
-            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.registerAttempt(attemptsContext, attemptsHandler);
+            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
 
             verify(attemptsHandler, times(1)).resetAttempts(eq(0), any(LocalDateTime.class));
             assertFalse(result.limitExceeded());
@@ -60,7 +60,7 @@ class VerificationCodeAttemptsTemplateTest {
             when(attemptsHandler.incrementAttempts(3)).thenReturn(1);
             when(attemptsHandler.getCurrentAttempts()).thenReturn(1);
 
-            verificationCodeAttemptsTemplate.registerAttempt(attemptsContext, attemptsHandler);
+            verificationCodeAttemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
 
             verify(attemptsHandler, times(1)).resetAttempts(eq(0), any(LocalDateTime.class));
         }
@@ -71,7 +71,7 @@ class VerificationCodeAttemptsTemplateTest {
             when(attemptsHandler.incrementAttempts(3)).thenReturn(1);
             when(attemptsHandler.getCurrentAttempts()).thenReturn(1);
 
-            verificationCodeAttemptsTemplate.registerAttempt(attemptsContext, attemptsHandler);
+            verificationCodeAttemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
 
             verify(attemptsHandler, never()).resetAttempts(anyInt(), any(LocalDateTime.class));
         }
@@ -82,7 +82,7 @@ class VerificationCodeAttemptsTemplateTest {
             when(attemptsHandler.incrementAttempts(3)).thenReturn(1);
             when(attemptsHandler.getCurrentAttempts()).thenReturn(2);
 
-            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.registerAttempt(attemptsContext, attemptsHandler);
+            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
 
             assertFalse(result.limitExceeded());
         }
@@ -91,9 +91,9 @@ class VerificationCodeAttemptsTemplateTest {
         void shouldReturnLimitExceededWhenIncrementFails() {
             when(attemptsHandler.getAttemptsExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
             when(attemptsHandler.incrementAttempts(3)).thenReturn(0);
-            when(attemptsHandler.getCurrentAttempts()).thenReturn(3);
+            when(attemptsHandler.getCurrentAttempts()).thenReturn(2, 3);
 
-            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.registerAttempt(attemptsContext, attemptsHandler);
+            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
 
             assertTrue(result.limitExceeded());
         }
@@ -102,9 +102,9 @@ class VerificationCodeAttemptsTemplateTest {
         void shouldReturnZeroRemainingWhenAttemptsEqualMaxAttempts() {
             when(attemptsHandler.getAttemptsExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
             when(attemptsHandler.incrementAttempts(3)).thenReturn(0);
-            when(attemptsHandler.getCurrentAttempts()).thenReturn(3);
+            when(attemptsHandler.getCurrentAttempts()).thenReturn(2, 3);
 
-            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.registerAttempt(attemptsContext, attemptsHandler);
+            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
 
             assertEquals(0, result.attempts().remaining());
         }
@@ -115,9 +115,34 @@ class VerificationCodeAttemptsTemplateTest {
             when(attemptsHandler.incrementAttempts(3)).thenReturn(1);
             when(attemptsHandler.getCurrentAttempts()).thenReturn(1);
 
-            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.registerAttempt(attemptsContext, attemptsHandler);
+            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
 
             assertEquals(2, result.attempts().remaining());
+        }
+
+        @Test
+        void shouldRejectAtLimitWithoutIncrementingAgain() {
+            when(attemptsHandler.getAttemptsExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
+            when(attemptsHandler.getCurrentAttempts()).thenReturn(3);
+
+            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
+
+            assertTrue(result.limitExceeded());
+            assertEquals(0, result.attempts().remaining());
+            verify(attemptsHandler, never()).incrementAttempts(anyInt());
+        }
+
+        @Test
+        void shouldNotIncrementWhenAttemptIsValid() {
+            when(attemptsHandler.getAttemptsExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
+            when(attemptsHandler.getCurrentAttempts()).thenReturn(1);
+
+            AttemptsRegistrationResult result = verificationCodeAttemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, false);
+
+            assertFalse(result.limitExceeded());
+            assertEquals(2, result.attempts().remaining());
+            verify(attemptsHandler, never()).incrementAttempts(anyInt());
+            verify(attemptsHandler, never()).resetAttempts(anyInt(), any(LocalDateTime.class));
         }
     }
 

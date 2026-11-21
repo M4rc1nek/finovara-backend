@@ -50,9 +50,10 @@ public class RoundUpService {
 
     @Transactional
     public void saveRoundUpPiggyBank(Long userId, Long piggyBankId, RoundUpDto dto) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
+        piggyBankManagerService.checkPiggyBankExistsOrThrow(piggyBankId, userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(dto.authorizationCode()));
 
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
         PiggyBankSettings settings = piggyBank.getSettings();
         settings.setRoundUpActive(dto.roundUpActive());
         if (settings.isRoundUpActive()) {
@@ -66,7 +67,7 @@ public class RoundUpService {
     public void handleExpenseForRoundUp(Long userId, Long expenseId, PiggyBankAutomationMode mode) {
         Expense expense = expenseManagerService.getExpenseByUserIdOrThrow(expenseId, userId);
 
-        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserId(userId);
+        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserIdWithSettings(userId);
 
         Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
 
@@ -92,4 +93,3 @@ public class RoundUpService {
     }
 
 }
-

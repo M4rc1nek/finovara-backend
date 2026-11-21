@@ -1,7 +1,8 @@
 package com.finovara.notificationservice.notificationemail.digest.report.security.processor;
 
-import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.contracts.mainaccount.report.digest.security.WeeklySecurityDigestReportDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
+import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.notificationservice.feignclient.ActivityLogBackendClient;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ScheduledEmailNotificationType;
@@ -16,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -31,11 +33,32 @@ public class WeeklySecurityDigestReportEmailProcessor {
 
     public void sendWeeklySecurityDigestEmail() {
         List<WeeklySecurityDigestReportDto> reports = activityLogBackendClient.getSecurityDigestReport();
-        reports.forEach(this::sendForUser);
+        if (reports.isEmpty()) {
+            return;
+        }
+
+        List<Long> userIds = reports.stream()
+                .map(WeeklySecurityDigestReportDto::userId)
+                .distinct()
+                .toList();
+        Map<Long, UserDataDto> usersById = authBackendClient.getUserSessions(userIds).stream()
+                .collect(Collectors.toMap(UserDataDto::id, user -> user));
+
+        reports.forEach(report -> {
+            UserDataDto user = usersById.get(report.userId());
+            if (user == null) {
+                log.warn("Skipping security digest email - no user found for userId={}", report.userId());
+                return;
+            }
+            sendForUser(report, getUser(user));
+        });
     }
 
-    private void sendForUser(WeeklySecurityDigestReportDto report) {
-        UserDataResponse userDataResponse = authBackendClient.getUserData(report.userId());
+    private UserDataResponse getUser(UserDataDto user) {
+        return new UserDataResponse(user.id(), Optional.ofNullable(user.username()), Optional.ofNullable(user.email()));
+    }
+
+    private void sendForUser(WeeklySecurityDigestReportDto report, UserDataResponse userDataResponse) {
         if (userDataResponse.email().isEmpty()) {
             log.warn("Skipping security digest email - no email found for userId={}", report.userId());
             return;

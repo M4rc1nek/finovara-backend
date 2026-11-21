@@ -1,6 +1,7 @@
 package com.finovara.notificationservice.notificationemail.service.digest.report.processor;
 
 import com.finovara.contracts.user.authorization.dto.UserDataResponse;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
 import com.finovara.contracts.mainaccount.report.digest.finance.PiggyBankSummaryDto;
 import com.finovara.contracts.mainaccount.report.digest.finance.WeeklyFinanceDigestReportDto;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
@@ -27,9 +28,11 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -58,6 +61,13 @@ class WeeklyFinanceDigestReportEmailProcessorTest {
     @BeforeEach
     void setUp() {
         processor = new WeeklyFinanceDigestReportEmailProcessor(authBackendClient, financeBackendClient, emailNotifier, categoryLabelResolver);
+        lenient().when(authBackendClient.getUserSessions(anyList())).thenAnswer(invocation -> {
+            List<Long> userIds = invocation.getArgument(0);
+            return userIds.stream().map(userId -> {
+                UserDataResponse user = authBackendClient.getUserData(userId);
+                return new UserDataDto(userId, user.username().orElse(null), user.email().orElse(null), null);
+            }).toList();
+        });
     }
 
     private WeeklyFinanceDigestReportDto fullReport() {
@@ -168,6 +178,7 @@ class WeeklyFinanceDigestReportEmailProcessorTest {
             processor.sendWeeklyFinanceDigestEmail();
 
             verify(emailNotifier, times(2)).send(any(), any(), any());
+            verify(authBackendClient).getUserSessions(List.of(USER_ID, 2L));
         }
 
         @Test

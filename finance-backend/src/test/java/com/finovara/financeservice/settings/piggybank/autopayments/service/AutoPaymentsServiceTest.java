@@ -80,7 +80,7 @@ class AutoPaymentsServiceTest {
 
         @Test
         void shouldActivateAutomationWithPercentage() {
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
             autoPaymentsService.createAutomation(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, BigDecimal.valueOf(20), null));
 
@@ -90,7 +90,7 @@ class AutoPaymentsServiceTest {
 
         @Test
         void shouldDeactivateAutomationAndResetPercentage() {
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
             autoPaymentsService.createAutomation(USER_ID, PIGGY_ID, new AutoPaymentsDto(false, null, null));
 
@@ -100,7 +100,7 @@ class AutoPaymentsServiceTest {
 
         @Test
         void shouldSaveAutomationAndCreateActivity() {
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
             autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, BigDecimal.TEN, null));
 
@@ -111,7 +111,7 @@ class AutoPaymentsServiceTest {
 
         @Test
         void shouldThrowExceptionWhenActiveWithoutPercentage() {
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(PIGGY_ID, USER_ID)).thenReturn(piggyBank);
 
             assertThrows(IllegalArgumentException.class, () -> autoPaymentsService.saveAutoPaymentsPiggyBank(USER_ID, PIGGY_ID, new AutoPaymentsDto(true, null, null)));
         }
@@ -156,7 +156,7 @@ class AutoPaymentsServiceTest {
 
         @Test
         void shouldDoNothingWhenNoPiggyBanks() {
-            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(Collections.emptyList());
+            when(piggyBankRepository.findAllByUserIdWithSettings(USER_ID)).thenReturn(Collections.emptyList());
 
             autoPaymentsService.handleRevenuePiggyBankAutomation(USER_ID, BigDecimal.TEN, PiggyBankAutomationMode.APPLY);
 
@@ -173,7 +173,7 @@ class AutoPaymentsServiceTest {
             PiggyBank piggy = new PiggyBank();
             piggy.setSettings(settings);
 
-            when(piggyBankRepository.findAllByUserId(USER_ID)).thenReturn(List.of(piggy));
+            when(piggyBankRepository.findAllByUserIdWithSettings(USER_ID)).thenReturn(List.of(piggy));
             when(walletManagerService.getWalletForUpdateOrThrow(USER_ID)).thenReturn(wallet);
 
             autoPaymentsService.handleRevenuePiggyBankAutomation(USER_ID, BigDecimal.TEN, mode);

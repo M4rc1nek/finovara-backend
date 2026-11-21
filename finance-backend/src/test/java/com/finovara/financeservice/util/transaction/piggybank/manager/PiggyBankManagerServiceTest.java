@@ -51,4 +51,27 @@ class PiggyBankManagerServiceTest {
 
         verify(piggyBankRepository).findByIdAndUserId(piggyBankId, userId);
     }
+
+    @Test
+    void shouldCheckPiggyBankExistsWithoutLoadingIt() {
+        Long piggyBankId = 1L;
+        Long userId = 100L;
+        when(piggyBankRepository.existsByIdAndUserIdAndDeletedAtIsNull(piggyBankId, userId)).thenReturn(true);
+
+        piggyBankManagerService.checkPiggyBankExistsOrThrow(piggyBankId, userId);
+
+        verify(piggyBankRepository).existsByIdAndUserIdAndDeletedAtIsNull(piggyBankId, userId);
+    }
+
+    @Test
+    void shouldThrowWhenPiggyBankDoesNotExistForExistenceCheck() {
+        Long piggyBankId = 1L;
+        Long userId = 100L;
+        when(piggyBankRepository.existsByIdAndUserIdAndDeletedAtIsNull(piggyBankId, userId)).thenReturn(false);
+
+        assertThrows(RequestedEntityNotFoundException.class,
+                () -> piggyBankManagerService.checkPiggyBankExistsOrThrow(piggyBankId, userId));
+
+        verify(piggyBankRepository).existsByIdAndUserIdAndDeletedAtIsNull(piggyBankId, userId);
+    }
 }

@@ -5,7 +5,6 @@ import com.finovara.authservice.exception.tomanyrequest.VerificationAttemptsExce
 import com.finovara.authservice.settings.account.dto.AttemptsDto;
 import com.finovara.authservice.util.attempts.dto.AttemptsContext;
 import com.finovara.authservice.util.attempts.dto.AttemptsRegistrationResult;
-import com.finovara.contracts.exception.badrequest.InvalidInputException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,36 +41,41 @@ class VerificationCodeVerifierTest {
     }
 
     @Nested
-    class VerifyOrThrow {
+    class VerifyAttemptsOrThrowValidation {
 
         @Test
-        void shouldNotThrowExceptionWhenCodeIsCorrect() {
-            assertDoesNotThrow(() -> verificationCodeVerifier.verifyOrThrow(123456, LocalDateTime.now().plusMinutes(5), 123456));
+        void shouldRegisterFailedAttemptWhenProvidedCodeIsNull() {
+            assertInvalidCodeAttempt(123456, LocalDateTime.now().plusMinutes(5), null);
         }
 
         @Test
-        void shouldThrowExceptionWhenProvidedCodeIsNull() {
-            assertThrows(InvalidInputException.class, () -> verificationCodeVerifier.verifyOrThrow(123456, LocalDateTime.now().plusMinutes(5), null));
+        void shouldRegisterFailedAttemptWhenStoredCodeIsNull() {
+            assertInvalidCodeAttempt(null, LocalDateTime.now().plusMinutes(5), 123456);
         }
 
         @Test
-        void shouldThrowExceptionWhenStoredCodeIsNull() {
-            assertThrows(InvalidInputException.class, () -> verificationCodeVerifier.verifyOrThrow(null, LocalDateTime.now().plusMinutes(5), 123456));
+        void shouldRegisterFailedAttemptWhenExpiresAtIsNull() {
+            assertInvalidCodeAttempt(123456, null, 123456);
         }
 
         @Test
-        void shouldThrowExceptionWhenExpiresAtIsNull() {
-            assertThrows(InvalidInputException.class, () -> verificationCodeVerifier.verifyOrThrow(123456, null, 123456));
+        void shouldRegisterFailedAttemptWhenCodeIsExpired() {
+            assertInvalidCodeAttempt(123456, LocalDateTime.now().minusMinutes(1), 123456);
         }
 
         @Test
-        void shouldThrowExceptionWhenExpiresAtIsInThePast() {
-            assertThrows(InvalidInputException.class, () -> verificationCodeVerifier.verifyOrThrow(123456, LocalDateTime.now().minusMinutes(1), 123456));
+        void shouldRegisterFailedAttemptWhenCodesDoNotMatch() {
+            assertInvalidCodeAttempt(123456, LocalDateTime.now().plusMinutes(5), 654321);
         }
 
-        @Test
-        void shouldThrowExceptionWhenCodesDoNotMatch() {
-            assertThrows(InvalidInputException.class, () -> verificationCodeVerifier.verifyOrThrow(123456, LocalDateTime.now().plusMinutes(5), 654321));
+        private void assertInvalidCodeAttempt(Integer storedCode, LocalDateTime expiresAt, Integer providedCode) {
+            when(attemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true))
+                    .thenReturn(new AttemptsRegistrationResult(new AttemptsDto(1, 3, 2), false));
+
+            assertThrows(InvalidVerificationCodeException.class, () ->
+                    verificationCodeVerifier.verifyAttemptsOrThrow(storedCode, expiresAt, providedCode, attemptsContext, attemptsHandler));
+
+            verify(attemptsTemplate).checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
         }
     }
 
@@ -81,89 +84,89 @@ class VerificationCodeVerifierTest {
 
         @Test
         void shouldNotRegisterAttemptWhenCodeIsCorrect() {
+            when(attemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, false))
+                    .thenReturn(new AttemptsRegistrationResult(new AttemptsDto(0, 3, 3), false));
+
             verificationCodeVerifier.verifyAttemptsOrThrow(123456, LocalDateTime.now().plusMinutes(5), 123456, attemptsContext, attemptsHandler);
 
-            verifyNoInteractions(attemptsTemplate);
+            verify(attemptsTemplate).checkAndRegisterAttempt(attemptsContext, attemptsHandler, false);
         }
 
         @Test
         void shouldThrowVerificationAttemptsExceededExceptionWhenLimitExceededDuringRegistration() {
             AttemptsDto attemptsDto = new AttemptsDto(3, 3, 0);
             AttemptsRegistrationResult registrationResult = new AttemptsRegistrationResult(attemptsDto, true);
-            when(attemptsTemplate.registerAttempt(attemptsContext, attemptsHandler)).thenReturn(registrationResult);
+            when(attemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true)).thenReturn(registrationResult);
 
             assertThrows(VerificationAttemptsExceededException.class, () -> verificationCodeVerifier.verifyAttemptsOrThrow(123456, LocalDateTime.now().plusMinutes(5), 654321, attemptsContext, attemptsHandler));
 
-            verify(attemptsTemplate, times(1)).registerAttempt(attemptsContext, attemptsHandler);
+            verify(attemptsTemplate, times(1)).checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
         }
 
         @Test
         void shouldThrowInvalidVerificationCodeExceptionWhenLimitNotExceeded() {
             AttemptsDto attemptsDto = new AttemptsDto(1, 3, 2);
             AttemptsRegistrationResult registrationResult = new AttemptsRegistrationResult(attemptsDto, false);
-            when(attemptsTemplate.registerAttempt(attemptsContext, attemptsHandler)).thenReturn(registrationResult);
+            when(attemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true)).thenReturn(registrationResult);
 
             assertThrows(InvalidVerificationCodeException.class, () -> verificationCodeVerifier.verifyAttemptsOrThrow(123456, LocalDateTime.now().plusMinutes(5), 654321, attemptsContext, attemptsHandler));
 
-            verify(attemptsTemplate, times(1)).registerAttempt(attemptsContext, attemptsHandler);
+            verify(attemptsTemplate, times(1)).checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
         }
 
         @Test
         void shouldRegisterAttemptWhenProvidedCodeIsNull() {
             AttemptsDto attemptsDto = new AttemptsDto(1, 3, 2);
             AttemptsRegistrationResult registrationResult = new AttemptsRegistrationResult(attemptsDto, false);
-            when(attemptsTemplate.registerAttempt(attemptsContext, attemptsHandler)).thenReturn(registrationResult);
+            when(attemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true)).thenReturn(registrationResult);
 
             assertThrows(InvalidVerificationCodeException.class, () -> verificationCodeVerifier.verifyAttemptsOrThrow(123456, LocalDateTime.now().plusMinutes(5), null, attemptsContext, attemptsHandler));
 
-            verify(attemptsTemplate, times(1)).registerAttempt(attemptsContext, attemptsHandler);
+            verify(attemptsTemplate, times(1)).checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
         }
 
         @Test
         void shouldRegisterAttemptWhenCodeExpired() {
             AttemptsDto attemptsDto = new AttemptsDto(1, 3, 2);
             AttemptsRegistrationResult registrationResult = new AttemptsRegistrationResult(attemptsDto, false);
-            when(attemptsTemplate.registerAttempt(attemptsContext, attemptsHandler)).thenReturn(registrationResult);
+            when(attemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true)).thenReturn(registrationResult);
 
             assertThrows(InvalidVerificationCodeException.class, () -> verificationCodeVerifier.verifyAttemptsOrThrow(123456, LocalDateTime.now().minusMinutes(1), 123456, attemptsContext, attemptsHandler));
 
-            verify(attemptsTemplate, times(1)).registerAttempt(attemptsContext, attemptsHandler);
+            verify(attemptsTemplate, times(1)).checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
         }
 
         @Test
         void shouldThrowVerificationAttemptsExceededExceptionWhenWindowActiveAndAlreadyAtLimit() {
-            when(attemptsHandler.getAttemptsExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
-            when(attemptsHandler.getCurrentAttempts()).thenReturn(3);
             AttemptsDto attemptsDto = new AttemptsDto(3, 3, 0);
-            when(attemptsTemplate.getCurrent(attemptsContext, 3)).thenReturn(attemptsDto);
+            when(attemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true))
+                    .thenReturn(new AttemptsRegistrationResult(attemptsDto, true));
 
             assertThrows(VerificationAttemptsExceededException.class, () -> verificationCodeVerifier.verifyAttemptsOrThrow(123456, LocalDateTime.now().plusMinutes(5), 654321, attemptsContext, attemptsHandler));
 
-            verify(attemptsTemplate, times(1)).getCurrent(attemptsContext, 3);
-            verify(attemptsTemplate, never()).registerAttempt(attemptsContext, attemptsHandler);
+            verify(attemptsTemplate, times(1)).checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
+            verify(attemptsTemplate, never()).checkAndRegisterAttempt(attemptsContext, attemptsHandler, false);
         }
 
         @Test
         void shouldNotThrowWhenWindowExpiredEvenIfPreviousAttemptsReachedLimit() {
-            when(attemptsHandler.getAttemptsExpiresAt()).thenReturn(LocalDateTime.now().minusMinutes(1));
+            when(attemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, false))
+                    .thenReturn(new AttemptsRegistrationResult(new AttemptsDto(3, 3, 0), false));
 
             assertDoesNotThrow(() -> verificationCodeVerifier.verifyAttemptsOrThrow(123456, LocalDateTime.now().plusMinutes(5), 123456, attemptsContext, attemptsHandler));
 
-            verifyNoInteractions(attemptsTemplate);
+            verify(attemptsTemplate).checkAndRegisterAttempt(attemptsContext, attemptsHandler, false);
         }
 
         @Test
         void shouldRegisterAttemptWhenWindowActiveButBelowLimit() {
-            when(attemptsHandler.getAttemptsExpiresAt()).thenReturn(LocalDateTime.now().plusMinutes(5));
-            when(attemptsHandler.getCurrentAttempts()).thenReturn(1);
             AttemptsDto attemptsDto = new AttemptsDto(2, 3, 1);
             AttemptsRegistrationResult registrationResult = new AttemptsRegistrationResult(attemptsDto, false);
-            when(attemptsTemplate.registerAttempt(attemptsContext, attemptsHandler)).thenReturn(registrationResult);
+            when(attemptsTemplate.checkAndRegisterAttempt(attemptsContext, attemptsHandler, true)).thenReturn(registrationResult);
 
             assertThrows(InvalidVerificationCodeException.class, () -> verificationCodeVerifier.verifyAttemptsOrThrow(123456, LocalDateTime.now().plusMinutes(5), 654321, attemptsContext, attemptsHandler));
 
-            verify(attemptsTemplate, times(1)).registerAttempt(attemptsContext, attemptsHandler);
-            verify(attemptsTemplate, never()).getCurrent(attemptsContext, 1);
+            verify(attemptsTemplate, times(1)).checkAndRegisterAttempt(attemptsContext, attemptsHandler, true);
         }
     }
 }

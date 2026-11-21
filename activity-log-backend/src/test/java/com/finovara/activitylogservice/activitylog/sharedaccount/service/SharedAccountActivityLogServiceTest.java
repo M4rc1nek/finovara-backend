@@ -24,11 +24,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith(MockitoExtension.class)
@@ -98,6 +102,17 @@ class SharedAccountActivityLogServiceTest {
     @BeforeEach
     void setUp() {
         setField(service, "pageSize", PAGE_SIZE);
+        lenient().when(userSessionResolver.getUserInfoByIds(anyList())).thenAnswer(invocation -> {
+            List<Long> userIds = invocation.getArgument(0);
+            Map<Long, UserDataDto> usersById = new HashMap<>();
+            for (Long userId : userIds) {
+                UserDataDto user = userSessionResolver.getUserInfo(userId);
+                if (user != null) {
+                    usersById.put(userId, user);
+                }
+            }
+            return usersById;
+        });
     }
 
     @Nested
@@ -260,7 +275,7 @@ class SharedAccountActivityLogServiceTest {
             List<SharedAccountActivityLogDto> result = service.getSharedAccountLogActivity(USER_ID, SORT, PAGE);
 
             assertEquals(2, result.size());
-            verify(userSessionResolver, times(1)).getUserInfo(USER_ID);
+            verify(userSessionResolver).getUserInfoByIds(List.of(USER_ID));
         }
 
         @Test
@@ -282,8 +297,7 @@ class SharedAccountActivityLogServiceTest {
             assertSame(firstDto, result.getFirst());
             assertSame(secondDto, result.get(1));
             assertSame(thirdDto, result.get(2));
-            verify(userSessionResolver, times(1)).getUserInfo(USER_ID);
-            verify(userSessionResolver, times(1)).getUserInfo(OTHER_USER_ID);
+            verify(userSessionResolver).getUserInfoByIds(List.of(USER_ID, OTHER_USER_ID));
             verifyNoMoreInteractions(authBackendClient);
         }
 

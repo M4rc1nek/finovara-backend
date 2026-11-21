@@ -66,7 +66,7 @@ class ExpenseDigestServiceTest {
             when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, FROM, TO)).thenReturn(Optional.of(new BigDecimal("400")));
             when(expenseRepository.findTopExpenseCategoriesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of(ExpenseCategory.FOOD));
             when(expenseRepository.findTopExpensesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of(highestExpense));
-            when(expenseRepository.findAllByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(List.of(highestExpense));
+            when(expenseRepository.countDistinctExpenseDaysByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(1L);
 
             ExpenseSummary result = service.calculateSummary(USER_ID, FROM, TO);
 
@@ -82,7 +82,7 @@ class ExpenseDigestServiceTest {
             when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, FROM, TO)).thenReturn(Optional.empty());
             when(expenseRepository.findTopExpenseCategoriesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
             when(expenseRepository.findTopExpensesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
-            when(expenseRepository.findAllByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(List.of());
+            when(expenseRepository.countDistinctExpenseDaysByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(0L);
 
             ExpenseSummary result = service.calculateSummary(USER_ID, FROM, TO);
 
@@ -94,7 +94,7 @@ class ExpenseDigestServiceTest {
             when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, FROM, TO)).thenReturn(Optional.of(BigDecimal.ZERO));
             when(expenseRepository.findTopExpenseCategoriesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
             when(expenseRepository.findTopExpensesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
-            when(expenseRepository.findAllByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(List.of());
+            when(expenseRepository.countDistinctExpenseDaysByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(0L);
 
             ExpenseSummary result = service.calculateSummary(USER_ID, FROM, TO);
 
@@ -106,7 +106,7 @@ class ExpenseDigestServiceTest {
             when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, FROM, TO)).thenReturn(Optional.of(BigDecimal.ZERO));
             when(expenseRepository.findTopExpenseCategoriesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
             when(expenseRepository.findTopExpensesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
-            when(expenseRepository.findAllByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(List.of());
+            when(expenseRepository.countDistinctExpenseDaysByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(0L);
 
             ExpenseSummary result = service.calculateSummary(USER_ID, FROM, TO);
 
@@ -120,7 +120,7 @@ class ExpenseDigestServiceTest {
             when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, FROM, TO)).thenReturn(Optional.of(BigDecimal.ZERO));
             when(expenseRepository.findTopExpenseCategoriesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
             when(expenseRepository.findTopExpensesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
-            when(expenseRepository.findAllByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(List.of());
+            when(expenseRepository.countDistinctExpenseDaysByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(0L);
 
             ExpenseSummary result = service.calculateSummary(USER_ID, FROM, TO);
 
@@ -132,7 +132,7 @@ class ExpenseDigestServiceTest {
             when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, FROM, TO)).thenReturn(Optional.of(BigDecimal.ZERO));
             when(expenseRepository.findTopExpenseCategoriesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
             when(expenseRepository.findTopExpensesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
-            when(expenseRepository.findAllByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(List.of());
+            when(expenseRepository.countDistinctExpenseDaysByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(0L);
 
             ExpenseSummary result = service.calculateSummary(USER_ID, FROM, TO);
 
@@ -148,7 +148,7 @@ class ExpenseDigestServiceTest {
             when(expenseRepository.sumExpensesByUserAndDateRange(eq(USER_ID), any(LocalDate.class), any(LocalDate.class))).thenReturn(Optional.of(new BigDecimal("50")));
             when(expenseRepository.findTopExpenseCategoriesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
             when(expenseRepository.findTopExpensesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
-            when(expenseRepository.findAllByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(List.of());
+            when(expenseRepository.countDistinctExpenseDaysByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(0L);
 
             ExpenseSummary result = service.calculateSummary(USER_ID, FROM, TO);
 
@@ -164,7 +164,7 @@ class ExpenseDigestServiceTest {
             when(expenseRepository.sumExpensesByUserAndDateRange(eq(USER_ID), any(LocalDate.class), any(LocalDate.class))).thenReturn(Optional.of(new BigDecimal("300")));
             when(expenseRepository.findTopExpenseCategoriesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
             when(expenseRepository.findTopExpensesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
-            when(expenseRepository.findAllByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(List.of());
+            when(expenseRepository.countDistinctExpenseDaysByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(0L);
 
             ExpenseSummary result = service.calculateSummary(USER_ID, FROM, TO);
 
@@ -176,7 +176,7 @@ class ExpenseDigestServiceTest {
             when(expenseRepository.sumExpensesByUserAndDateRange(USER_ID, FROM, TO)).thenReturn(Optional.of(BigDecimal.ZERO));
             when(expenseRepository.findTopExpenseCategoriesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
             when(expenseRepository.findTopExpensesByUserIdAndPeriod(eq(USER_ID), eq(FROM), eq(TO), eq(PageRequest.of(0, 1)))).thenReturn(List.of());
-            when(expenseRepository.findAllByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(List.of());
+            when(expenseRepository.countDistinctExpenseDaysByUserIdAndCreatedAtBetween(USER_ID, FROM, TO)).thenReturn(0L);
 
             service.calculateSummary(USER_ID, FROM, TO);
 

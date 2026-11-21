@@ -71,7 +71,7 @@ class AccountServiceTest {
 
             assertThrows(EntityAlreadyExistsException.class, () -> service.updateUsername(dto, 1L, request));
             verifyNoInteractions(riskGuardService, outboxService);
-            verify(userRepository, never()).saveAndFlush(user);
+            verify(userRepository, never()).save(user);
         }
 
         @Test
@@ -79,7 +79,7 @@ class AccountServiceTest {
             AccountSettingsDto dto = new AccountSettingsDto("bob", null, null, null, "code", "event");
             when(userManagerService.getUserByIdOrThrow(1L)).thenReturn(user);
             when(userRepository.existsByUsername("bob")).thenReturn(false);
-            when(userRepository.saveAndFlush(user)).thenThrow(new DataIntegrityViolationException("duplicate"));
+            when(userRepository.save(user)).thenThrow(new DataIntegrityViolationException("duplicate"));
 
             assertThrows(EntityAlreadyExistsException.class, () -> service.updateUsername(dto, 1L, request));
             assertEquals("bob", user.getUsername());

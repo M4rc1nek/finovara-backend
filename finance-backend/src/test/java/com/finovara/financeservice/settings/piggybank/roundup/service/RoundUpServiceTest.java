@@ -86,7 +86,7 @@ class RoundUpServiceTest {
         @ParameterizedTest
         @ValueSource(booleans = {true, false})
         void shouldSaveRoundUp(boolean active) {
-            when(piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
+            when(piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId)).thenReturn(piggyBank);
 
             RoundUpDto dto = new RoundUpDto(active, null);
 
@@ -127,7 +127,7 @@ class RoundUpServiceTest {
 
         @Test
         void shouldApplyRoundUpWhenPiggyBankActive() {
-            when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of(piggyBank));
+            when(piggyBankRepository.findAllByUserIdWithSettings(userId)).thenReturn(List.of(piggyBank));
 
             roundUpService.handleExpenseForRoundUp(userId, 1L, PiggyBankAutomationMode.APPLY);
 
@@ -137,7 +137,7 @@ class RoundUpServiceTest {
 
         @Test
         void shouldRollbackRoundUpWhenPiggyBankActive() {
-            when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of(piggyBank));
+            when(piggyBankRepository.findAllByUserIdWithSettings(userId)).thenReturn(List.of(piggyBank));
 
             roundUpService.handleExpenseForRoundUp(userId, 1L, PiggyBankAutomationMode.ROLLBACK);
 
@@ -147,7 +147,7 @@ class RoundUpServiceTest {
 
         @Test
         void shouldNotApplyRoundUpWhenNoPiggyBanksAvailable() {
-            when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(piggyBankRepository.findAllByUserIdWithSettings(userId)).thenReturn(List.of());
 
             roundUpService.handleExpenseForRoundUp(userId, 1L, PiggyBankAutomationMode.APPLY);
 
@@ -156,7 +156,7 @@ class RoundUpServiceTest {
 
         @Test
         void shouldThrowExceptionWhenWalletMissing() {
-            when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of());
+            when(piggyBankRepository.findAllByUserIdWithSettings(userId)).thenReturn(List.of());
 
             when(walletManagerService.getWalletForUpdateOrThrow(userId)).thenThrow(new RequestedEntityNotFoundException("Wallet not found for this user"));
 
@@ -169,7 +169,7 @@ class RoundUpServiceTest {
         void shouldNotApplyRoundUpWhenPiggyBankInactive() {
             piggyBank.getSettings().setRoundUpActive(false);
 
-            when(piggyBankRepository.findAllByUserId(userId)).thenReturn(List.of(piggyBank));
+            when(piggyBankRepository.findAllByUserIdWithSettings(userId)).thenReturn(List.of(piggyBank));
 
             roundUpService.handleExpenseForRoundUp(userId, 1L, PiggyBankAutomationMode.APPLY);
 

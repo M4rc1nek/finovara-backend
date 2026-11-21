@@ -33,16 +33,17 @@ public class GoalCompletionService {
 
     @Transactional
     public void setGoalCompletion(Long userId, Long piggyBankId, GoalCompletionDto goalCompletionDto) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
-        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
+        piggyBankManagerService.checkPiggyBankExistsOrThrow(piggyBankId, userId);
         authBackendClient.confirmAuthorizationCode(userId, additionalAuthorizationCodeResolver.resolve(goalCompletionDto.authorizationCode()));
 
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
+        PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
         piggyBankSettings.setGoalCompletionStrategy(goalCompletionDto.strategy());
     }
 
     @Transactional
     public void saveGoalCompletion(Long userId, Long piggyBankId, GoalCompletionDto goalCompletionDto) {
-        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankByUserIdOrThrow(piggyBankId, userId);
+        PiggyBank piggyBank = piggyBankManagerService.getPiggyBankForUpdateOrThrow(piggyBankId, userId);
         PiggyBankSettings piggyBankSettings = piggyBank.getSettings();
 
         if (piggyBank.getGoalAmount() == null || piggyBank.getGoalAmount().compareTo(BigDecimal.ZERO) <= 0) {
@@ -64,7 +65,7 @@ public class GoalCompletionService {
     @Transactional
     public void handleGoalCompletion(Long userId) {
         Wallet wallet = walletManagerService.getWalletForUpdateOrThrow(userId);
-        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserId(userId);
+        List<PiggyBank> piggyBanks = piggyBankRepository.findAllByUserIdWithSettings(userId);
         for (PiggyBank piggyBank : piggyBanks) {
             if (!PiggyBankCheckGoalCompletion.isGoalCompleted(piggyBank)) {
                 continue;
@@ -79,4 +80,3 @@ public class GoalCompletionService {
         walletRepository.save(wallet);
     }
 }
-

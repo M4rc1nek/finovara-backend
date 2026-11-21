@@ -41,6 +41,11 @@ public class InternalUserController {
         return ResponseEntity.ok(userManagerService.getUserDataWithProfileImg(userId));
     }
 
+    @PostMapping("/user-sessions")
+    public ResponseEntity<List<UserDataDto>> getUserSessions(@RequestBody List<Long> userIds) {
+        return ResponseEntity.ok(userManagerService.getUserDataByIds(userIds));
+    }
+
     @GetMapping("/user-data")
     public ResponseEntity<UserDataResponse> getUserData(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(userManagerService.getUserData(userId));
