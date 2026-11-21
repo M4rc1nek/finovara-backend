@@ -30,8 +30,10 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     @Query("SELECT e FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt BETWEEN :from AND :to AND e.category = :category ORDER BY e.createdAt DESC, e.id DESC")
     List<Expense> findAllByUserIdAndCreatedAtBetweenAndCategory(Long userId, LocalDate from, LocalDate to, ExpenseCategory category, Pageable pageable);
 
-    @Query("SELECT e From Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt BETWEEN :from AND :to")
-    List<Expense> findAllByUserIdAndCreatedAtBetween(Long userId, LocalDate from, LocalDate to);
+
+    @Query("SELECT COUNT(DISTINCT e.createdAt) FROM Expense e WHERE e.userId = :userId AND e.deletedAt IS NULL AND e.createdAt BETWEEN :from AND :to")
+    long countDistinctExpenseDaysByUserIdAndCreatedAtBetween(Long userId, LocalDate from, LocalDate to);
+
     @Query("""
         SELECT e FROM Expense e
         WHERE e.userId = :userId
