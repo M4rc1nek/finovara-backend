@@ -1,13 +1,14 @@
 package com.finovara.notificationservice.notificationemail.digest.report.finance.processor;
 
-import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.contracts.mainaccount.report.digest.finance.PiggyBankSummaryDto;
 import com.finovara.contracts.mainaccount.report.digest.finance.WeeklyFinanceDigestReportDto;
+import com.finovara.contracts.user.authorization.dto.UserDataDto;
+import com.finovara.contracts.user.authorization.dto.UserDataResponse;
 import com.finovara.notificationservice.feignclient.AuthBackendClient;
 import com.finovara.notificationservice.feignclient.FinanceBackendClient;
 import com.finovara.notificationservice.notificationemail.model.ScheduledEmailNotificationType;
-import com.finovara.notificationservice.notificationemail.util.EmailNotifier;
 import com.finovara.notificationservice.notificationemail.util.CategoryLabelResolver;
+import com.finovara.notificationservice.notificationemail.util.EmailNotifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -34,11 +36,32 @@ public class WeeklyFinanceDigestReportEmailProcessor {
 
     public void sendWeeklyFinanceDigestEmail() {
         List<WeeklyFinanceDigestReportDto> reports = financeBackendClient.getWeeklyFinanceDigestReports();
-        reports.forEach(this::sendForUser);
+        if (reports.isEmpty()) {
+            return;
+        }
+
+        List<Long> userIds = reports.stream()
+                .map(WeeklyFinanceDigestReportDto::userId)
+                .distinct()
+                .toList();
+        Map<Long, UserDataDto> usersById = authBackendClient.getUserSessions(userIds).stream()
+                .collect(Collectors.toMap(UserDataDto::id, user -> user));
+
+        reports.forEach(report -> {
+            UserDataDto user = usersById.get(report.userId());
+            if (user == null) {
+                log.warn("Skipping digest email - no user found for userId={}", report.userId());
+                return;
+            }
+            sendForUser(report, getUser(user));
+        });
     }
 
-    private void sendForUser(WeeklyFinanceDigestReportDto report) {
-        UserDataResponse user = authBackendClient.getUserData(report.userId());
+    private UserDataResponse getUser(UserDataDto user) {
+        return new UserDataResponse(user.id(), Optional.ofNullable(user.username()), Optional.ofNullable(user.email()));
+    }
+
+    private void sendForUser(WeeklyFinanceDigestReportDto report, UserDataResponse user) {
         if (user.email().isEmpty()) {
             log.warn("Skipping digest email - no email found for userId={}", report.userId());
             return;
