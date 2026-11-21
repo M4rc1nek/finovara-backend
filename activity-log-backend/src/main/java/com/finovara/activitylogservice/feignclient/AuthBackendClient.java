@@ -17,6 +17,9 @@ public interface AuthBackendClient {
     @GetMapping("/internal/user-session")
     UserDataDto getUserSession(@RequestHeader("X-User-Id") Long userId);
 
+    @PostMapping("/internal/user-sessions")
+    List<UserDataDto> getUserSessions(@RequestBody List<Long> userIds);
+
     @PostMapping("/internal/verify-password")
     Void verifyPassword(@RequestHeader("X-User-Id") Long userId, @RequestBody ConfirmPasswordDto dto);
 
