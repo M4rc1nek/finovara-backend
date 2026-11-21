@@ -16,6 +16,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -33,10 +35,10 @@ public class FinanceSettingsFactory {
 
     @Transactional
     public void deleteSettingsIfExist(Long userId) {
-        if (recurringSettingsExist(userId) && expenseSettingsRepository.existsByUserId(userId)) {
+        List<RecurringSettings> recurringSettings = recurringSettingsRepository.findAllByUserId(userId);
+        if (!recurringSettings.isEmpty() && expenseSettingsRepository.existsByUserId(userId)) {
             ExpenseSettings expenseSettings = expenseSettingsRepository.findByUserId(userId)
                     .orElseThrow(()-> new RequestedEntityNotFoundException("Expense settings not found for userId = " + userId));
-           List<RecurringSettings> recurringSettings = recurringSettingsRepository.findAllByUserId(userId);
             recurringSettingsRepository.deleteAll(recurringSettings);
             expenseSettingsRepository.delete(expenseSettings);
         }
@@ -61,13 +63,13 @@ public class FinanceSettingsFactory {
     }
 
     private void createRecurringSettingsIfMissing(Long userId) {
-        Arrays.stream(RecurringType.values()).forEach(type -> {
-            if (recurringSettingsRepository.existsByUserIdAndType(userId, type)) {
-                log.debug("Recurring settings already exist for userId={}, type={}, skipping", userId, type);
-                return;
-            }
+        Set<RecurringType> existingTypes = recurringSettingsRepository.findAllByUserId(userId).stream()
+                .map(RecurringSettings::getType)
+                .collect(Collectors.toSet());
 
-            recurringSettingsRepository.save(RecurringSettings.builder()
+        List<RecurringSettings> missingSettings = Arrays.stream(RecurringType.values())
+                .filter(type -> !existingTypes.contains(type))
+                .map(type -> RecurringSettings.builder()
                     .userId(userId)
                     .enable(false)
                     .amount(BigDecimal.ONE)
@@ -79,15 +81,13 @@ public class FinanceSettingsFactory {
                     .startDate(null)
                     .nextExecutionDate(null)
                     .createdAt(LocalDate.now())
-                    .build());
+                    .build())
+                .toList();
 
-            log.info("Recurring settings created for userId={}, type={}", userId, type);
-        });
-    }
-
-    private boolean recurringSettingsExist(Long userId) {
-        return Arrays.stream(RecurringType.values())
-                .anyMatch(type ->
-                        recurringSettingsRepository.existsByUserIdAndType(userId, type));
+        if (!missingSettings.isEmpty()) {
+            recurringSettingsRepository.saveAll(missingSettings);
+            missingSettings.forEach(settings ->
+                    log.info("Recurring settings created for userId={}, type={}", userId, settings.getType()));
+        }
     }
 }
