@@ -17,7 +17,6 @@ public class NotificationEmailSettingsService {
 
     private final NotificationEmailSettingsRepository notificationEmailSettingsRepository;
 
-    @Transactional
     public void createSettingsIfNotExist(Long userId) {
         try {
             notificationEmailSettingsRepository.save(NotificationEmailSettings.builder()
