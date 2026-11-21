@@ -31,6 +31,13 @@ public class UserManagerService {
                 .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
     }
 
+    public List<UserDataDto> getUserDataByIds(List<Long> userIds) {
+        if (userIds.isEmpty()) {
+            return List.of();
+        }
+        return userRepository.findBasicInfoByIds(userIds);
+    }
+
     public List<Long> getAllUserIds() {
         return userRepository.findAllUserIds();
     }
