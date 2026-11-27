@@ -22,11 +22,12 @@ public class ClientIp {
             if (debugIp != null && !debugIp.isBlank()) {
                 return debugIp.trim();
             }
-          
 
+            /* if (DEV_IP_RANDOM_ENABLED) {
+                return randomPublicIp();
+            }*/
 
         }
-
         String xForwardedFor = request.getHeader("X-Forwarded-For");
 
         if (xForwardedFor == null) {
@@ -35,15 +36,14 @@ public class ClientIp {
 
         return xForwardedFor.split(",")[0].trim();
     }
-
-
-
-
-
-
-
-
-
-
-
+/*   private static String randomPublicIp() {
+        int a;
+        do {
+            a = 1 + RANDOM.nextInt(223);
+        } while (a == 10 || a == 127 || a == 169 || a == 172 || a == 192);
+        int b = RANDOM.nextInt(256);
+        int c = RANDOM.nextInt(256);
+        int d = 1 + RANDOM.nextInt(254);
+        return a + "." + b + "." + c + "." + d;
+    }*/
 }

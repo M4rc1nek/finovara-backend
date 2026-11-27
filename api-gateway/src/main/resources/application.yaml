@@ -148,13 +148,13 @@ rate-limit:
       max-requests: 1
       window-hours: 1
     - path: /api/auth/register
-      max-requests: 555
+      max-requests: 555 #3
       window-hours: 1
     - path: /api/auth/login
-      max-requests: 555
+      max-requests: 555 #5
       window-hours: 1
     - path: /api/shared-account/users/send-invitation
-      max-requests: 555
+      max-requests: 555 #1
       window-hours: 1
     - path: /api/security-settings/additional-authorization/regenerate
       max-requests: 1
