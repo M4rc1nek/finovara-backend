@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -13,9 +14,10 @@ import java.util.TimeZone;
 @EnableAsync
 @EnableFeignClients
 @EnableScheduling
+@EnableAspectJAutoProxy
 @EnableJpaRepositories(basePackages = {"com.finovara.securitymonitoring", "com.finovara.contracts.outbox"})
 @EntityScan(basePackages = {"com.finovara.securitymonitoring", "com.finovara.contracts.outbox"})
-@SpringBootApplication(scanBasePackages = {"com.finovara.securitymonitoring","com.finovara.contracts.outbox"})
+@SpringBootApplication(scanBasePackages = {"com.finovara.securitymonitoring", "com.finovara.contracts.outbox", "com.finovara.contracts.logging"})
 public class SecurityMonitoringBackendApplication {
 
 	public static void main(String[] args) {

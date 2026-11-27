@@ -1,6 +1,7 @@
 package com.finovara.reportservice.report.security.controller;
 
 import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.logging.InvocationTimeLogger;
 import com.finovara.contracts.mainaccount.report.security.dto.SecurityReportDto;
 import com.finovara.reportservice.report.security.service.SecurityReportService;
 import com.finovara.reportservice.security.SecurityUtils;
@@ -18,6 +19,7 @@ public class SecurityReportController {
     private  final SecurityReportService securityReportService;
 
     @GetMapping
+    @InvocationTimeLogger
     public ResponseEntity<SecurityReportDto> getSecurityReport(@RequestParam PeriodType periodType) {
         return ResponseEntity.ok(securityReportService.buildReport(SecurityUtils.getCurrentUserId(), periodType));
     }

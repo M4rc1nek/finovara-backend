@@ -1,6 +1,7 @@
 package com.finovara.notificationservice.notification.controller;
 
 import com.finovara.contracts.util.SortType;
+import com.finovara.contracts.logging.InvocationTimeLogger;
 import com.finovara.notificationservice.notification.dto.NotificationResponse;
 import com.finovara.notificationservice.notification.NotificationPersistenceService;
 import com.finovara.notificationservice.security.SecurityUtils;
@@ -20,6 +21,7 @@ public class NotificationController {
     private final NotificationPersistenceService notificationPersistenceService;
 
     @GetMapping
+    @InvocationTimeLogger
     public ResponseEntity<List<NotificationResponse>> getAllNotifications(@RequestParam(defaultValue = "NEWEST") SortType sortType, @RequestParam(defaultValue = "0") @Min(0) int page) {
         return ResponseEntity.ok(notificationPersistenceService.getUserNotifications(SecurityUtils.getCurrentUserId(), sortType, page));
     }

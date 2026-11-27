@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -18,7 +19,8 @@ import java.util.TimeZone;
 @EnableFeignClients
 @EnableScheduling
 @EnableConfigurationProperties(SecurityProperties.class)
-@SpringBootApplication(scanBasePackages = {"com.finovara.authservice", "com.finovara.contracts.outbox", "com.finovara.contracts.user.authorization.additionalcode.resolver"})
+@EnableAspectJAutoProxy
+@SpringBootApplication(scanBasePackages = {"com.finovara.authservice", "com.finovara.contracts.outbox", "com.finovara.contracts.user.authorization.additionalcode.resolver", "com.finovara.contracts.logging"})
 @EntityScan(basePackages = {"com.finovara.authservice", "com.finovara.contracts.outbox"})
 @EnableJpaRepositories(basePackages = {"com.finovara.authservice", "com.finovara.contracts.outbox"})
 public class FinovaraAuthBackendApplication {

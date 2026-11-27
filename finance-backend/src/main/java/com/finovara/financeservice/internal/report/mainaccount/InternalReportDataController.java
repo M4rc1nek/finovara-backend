@@ -1,6 +1,7 @@
 package com.finovara.financeservice.internal.report.mainaccount;
 
 import com.finovara.contracts.mainaccount.report.financial.dto.FinancialReportDto;
+import com.finovara.contracts.logging.InvocationTimeLogger;
 import com.finovara.contracts.util.PeriodType;
 import com.finovara.financeservice.internal.report.mainaccount.financial.FinancialReportService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class InternalReportDataController {
     private final InternalReportDataService internalReportDataService;
 
     @GetMapping("/financial-report")
+    @InvocationTimeLogger
     public ResponseEntity<FinancialReportDto> financialReport(@RequestParam Long userId, @RequestParam PeriodType periodType) {
         return ResponseEntity.ok(financialReportService.buildReport(userId, periodType));
     }
