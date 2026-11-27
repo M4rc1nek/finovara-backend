@@ -1,6 +1,7 @@
 package com.finovara.activitylogservice.internal.security.mainaccount.report;
 
 import com.finovara.contracts.util.PeriodType;
+import com.finovara.contracts.logging.InvocationTimeLogger;
 import com.finovara.contracts.mainaccount.report.security.dto.SecurityReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ public class InternalSecurityReportController {
     private final InternalSecurityReportService internalSecurityReportService;
 
     @GetMapping
+    @InvocationTimeLogger
     public ResponseEntity<SecurityReportDto> getSecurityReport(@RequestHeader("X-User-Id") Long userId, @RequestParam PeriodType periodType) {
         return ResponseEntity.ok(internalSecurityReportService.getSummaryForUser(userId, periodType));
     }
