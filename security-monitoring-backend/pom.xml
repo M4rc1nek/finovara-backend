@@ -16,17 +16,17 @@
     <name>security-monitoring-backend</name>
     <description>Security monitoring service for Finovara</description>
 
-    <!-- ===== DEPENDENCIES ===== -->
+    
     <dependencies>
 
-        <!-- CONTRACTS -->
+        
 
         <dependency>
             <groupId>com.finovara</groupId>
             <artifactId>contracts-backend</artifactId>
         </dependency>
 
-        <!-- SPRING BOOT -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -48,26 +48,26 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
-        <!-- KAFKA -->
+        
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
-        <!-- SPRING CLOUD -->
+        
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
-        <!-- DATABASE -->
+        
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- LOMBOK -->
+        
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -76,7 +76,7 @@
         </dependency>
 
 
-        <!-- SHEDLOCK -->
+        
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-spring</artifactId>
@@ -88,7 +88,7 @@
             <version>${shedlock.version}</version>
         </dependency>
 
-        <!-- MONITORING -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -99,7 +99,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- TEST -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -113,7 +113,7 @@
 
     </dependencies>
 
-    <!-- ===== BUILD ===== -->
+    
     <build>
         <plugins>
             <plugin>

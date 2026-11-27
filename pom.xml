@@ -18,7 +18,7 @@
     <name>finovara</name>
     <description>Finovara – personal finance management platform (root)</description>
 
-    <!-- ===== PROPERTIES ===== -->
+    
     <properties>
         <java.version>25</java.version>
         <spring-cloud.version>2025.1.2</spring-cloud.version>
@@ -33,7 +33,7 @@
     </properties>
 
 
-    <!-- ===== MODULES ===== -->
+    
     <modules>
         <module>api-gateway</module>
         <module>auth-backend</module>
@@ -45,18 +45,18 @@
         <module>finance-backend</module>
     </modules>
 
-    <!-- ===== DEPENDENCY MANAGEMENT ===== -->
+    
     <dependencyManagement>
         <dependencies>
 
-            <!-- INTERNAL -->
+            
             <dependency>
                 <groupId>com.finovara</groupId>
                 <artifactId>contracts-backend</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
-            <!-- SPRING CLOUD -->
+            
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>

@@ -2,6 +2,9 @@ package com.finovara.financeservice.internal.report.mainaccount;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -12,10 +15,12 @@ import static java.util.Collections.emptyMap;
 import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto;
+import com.finovara.contracts.mainaccount.report.savingsplan.dto.SavingsPlanMonthDto;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto;
+import com.finovara.financeservice.internal.report.util.dto.MonthlyExpenseTotalByCategoryDto;
 import com.finovara.financeservice.internal.report.util.dto.RevenueCategorySumDto;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.wallet.model.Wallet;
@@ -29,6 +34,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -368,6 +375,53 @@ class InternalReportDataServiceTest {
             BigDecimal result = service.walletBalance(USER_ID);
 
             assertEquals(balance, result);
+        }
+    }
+
+    @Nested
+    class MonthlyData {
+
+        @Test
+        void shouldUseOneDatabaseSnapshotForMonthlyData() throws NoSuchMethodException {
+            Transactional transaction = InternalReportDataService.class
+                    .getMethod("monthlyData", Long.class)
+                    .getAnnotation(Transactional.class);
+
+            assertTrue(transaction.readOnly());
+            assertEquals(Isolation.REPEATABLE_READ, transaction.isolation());
+        }
+
+        @Test
+        void shouldReturnOnlyTheLatestMonthWithRevenue() {
+            LocalDate latestRevenueDate = LocalDate.of(2026, 9, 14);
+            LocalDate month = LocalDate.of(2026, 9, 1);
+            LocalDate lastDayOfMonth = LocalDate.of(2026, 9, 30);
+            when(revenueRepository.findLatestRevenueDateByUserId(USER_ID)).thenReturn(Optional.of(latestRevenueDate));
+            when(revenueRepository.sumRevenuesByUserAndDateRange(USER_ID, month, lastDayOfMonth))
+                    .thenReturn(Optional.of(new BigDecimal("2000.00")));
+            when(expenseRepository.sumMonthlyExpensesByUserId(USER_ID, month, lastDayOfMonth.plusDays(1)))
+                    .thenReturn(List.of(new MonthlyExpenseTotalByCategoryDto(
+                            ExpenseCategory.FOOD, new BigDecimal("500.00"))));
+
+            List<SavingsPlanMonthDto> data = service.monthlyData(USER_ID);
+
+            assertEquals(1, data.size());
+            assertEquals(month, data.getFirst().month());
+            assertEquals(new BigDecimal("2000.00"), data.getFirst().revenue());
+            assertEquals(new BigDecimal("500.00"), data.getFirst().expenses().get(ExpenseCategory.FOOD));
+            verify(revenueRepository).findLatestRevenueDateByUserId(USER_ID);
+            verify(revenueRepository).sumRevenuesByUserAndDateRange(USER_ID, month, lastDayOfMonth);
+            verify(expenseRepository).sumMonthlyExpensesByUserId(USER_ID, month, lastDayOfMonth.plusDays(1));
+        }
+
+        @Test
+        void shouldReturnNoMonthlyDataWhenUserHasNoActiveRevenue() {
+            when(revenueRepository.findLatestRevenueDateByUserId(USER_ID)).thenReturn(Optional.empty());
+
+            List<SavingsPlanMonthDto> data = service.monthlyData(USER_ID);
+
+            assertEquals(emptyList(), data);
+            verifyNoInteractions(expenseRepository);
         }
     }
 }

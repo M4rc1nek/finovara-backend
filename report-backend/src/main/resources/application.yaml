@@ -9,7 +9,7 @@ spring:
   cache:
     type: redis
     redis:
-      time-to-live: 1200000  # 20 minutes
+      time-to-live: 1200000
       cache-null-values: false
   kafka:
     bootstrap-servers: finovara-kafka:9092

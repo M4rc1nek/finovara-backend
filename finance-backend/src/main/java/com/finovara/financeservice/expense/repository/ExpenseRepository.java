@@ -6,6 +6,7 @@ import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.financeservice.expense.model.Expense;
 import com.finovara.financeservice.expense.suggestions.dto.ExpenseSuggestionDto;
 import com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto;
+import com.finovara.financeservice.internal.report.util.dto.MonthlyExpenseTotalByCategoryDto;
 import com.finovara.financeservice.limit.dto.LimitSpendingDto;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -111,6 +112,18 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
             GROUP BY e.category
             """)
     List<ExpenseCategorySumDto> sumExpensesGroupedByCategory(Long userId, LocalDate from, LocalDate to);
+
+    @Query("""
+            SELECT new com.finovara.financeservice.internal.report.util.dto.MonthlyExpenseTotalByCategoryDto(
+                e.category, SUM(e.amount))
+            FROM Expense e
+            WHERE e.userId = :userId
+              AND e.deletedAt IS NULL
+              AND e.createdAt >= :from
+              AND e.createdAt < :to
+            GROUP BY e.category
+            """)
+    List<MonthlyExpenseTotalByCategoryDto> sumMonthlyExpensesByUserId(Long userId, LocalDate from, LocalDate to);
 
     @Query("""
             SELECT new com.finovara.financeservice.limit.dto.LimitSpendingDto(

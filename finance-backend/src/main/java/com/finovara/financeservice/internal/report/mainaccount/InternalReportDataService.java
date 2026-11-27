@@ -3,26 +3,31 @@ package com.finovara.financeservice.internal.report.mainaccount;
 import com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestExpenseDto;
 import com.finovara.contracts.mainaccount.report.financial.dto.HighestRevenueDto;
+import com.finovara.contracts.mainaccount.report.savingsplan.dto.SavingsPlanMonthDto;
 import com.finovara.contracts.util.model.ExpenseCategory;
 import com.finovara.contracts.util.model.RevenueCategory;
 import com.finovara.financeservice.expense.repository.ExpenseRepository;
 import com.finovara.financeservice.internal.report.util.dto.ExpenseCategorySumDto;
+import com.finovara.financeservice.internal.report.util.dto.MonthlyExpenseTotalByCategoryDto;
 import com.finovara.financeservice.internal.report.util.dto.RevenueCategorySumDto;
 import com.finovara.financeservice.revenue.repository.RevenueRepository;
 import com.finovara.financeservice.wallet.model.Wallet;
 import com.finovara.financeservice.wallet.repository.WalletRepository;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class InternalReportDataService {
 
     private final ExpenseRepository expenseRepository;
@@ -67,5 +72,28 @@ public class InternalReportDataService {
         return walletRepository.findByUserId(userId)
                 .map(Wallet::getBalance)
                 .orElse(BigDecimal.ZERO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SavingsPlanMonthDto> monthlyData(Long userId) {
+        log.info("Loading savings plan monthly data for userId={}", userId);
+        return revenueRepository.findLatestRevenueDateByUserId(userId)
+                .map(latestRevenueDate -> latestMonthData(userId, latestRevenueDate))
+                .orElseGet(() -> {
+                    log.info("No active revenue found for userId={}", userId);
+                    return List.of();
+                });
+    }
+
+    private List<SavingsPlanMonthDto> latestMonthData(Long userId, LocalDate latestRevenueDate) {
+        LocalDate month = latestRevenueDate.withDayOfMonth(1);
+        LocalDate lastDayOfMonth = month.plusMonths(1).minusDays(1);
+        BigDecimal monthlyRevenue = revenueRepository.sumRevenuesByUserAndDateRange(userId, month, lastDayOfMonth)
+                .orElse(BigDecimal.ZERO);
+        Map<ExpenseCategory, BigDecimal> monthlyExpenses = new EnumMap<>(ExpenseCategory.class);
+        for (MonthlyExpenseTotalByCategoryDto total : expenseRepository.sumMonthlyExpensesByUserId(userId, month, lastDayOfMonth.plusDays(1))) {
+            monthlyExpenses.merge(total.category(), total.amount(), BigDecimal::add);
+        }
+        return List.of(new SavingsPlanMonthDto(month, monthlyRevenue, Map.copyOf(monthlyExpenses)));
     }
 }

@@ -96,6 +96,9 @@ public interface RevenueRepository extends JpaRepository<Revenue, Long> {
             """)
     List<RevenueCategorySumDto> sumRevenuesGroupedByCategory(Long userId, LocalDate from, LocalDate to);
 
+    @Query("SELECT MAX(r.createdAt) FROM Revenue r WHERE r.userId = :userId AND r.deletedAt IS NULL")
+    Optional<LocalDate> findLatestRevenueDateByUserId(Long userId);
+
     @Query("""
                 SELECT new com.finovara.contracts.mainaccount.report.financial.dto.DailyCashDto(
                     r.createdAt,

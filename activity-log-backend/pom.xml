@@ -16,16 +16,16 @@
     <name>activity-log-backend</name>
     <description>Activity log service for Finovara</description>
 
-    <!-- ===== DEPENDENCIES ===== -->
+    
     <dependencies>
 
-        <!-- CONTRACTS -->
+        
         <dependency>
             <groupId>com.finovara</groupId>
             <artifactId>contracts-backend</artifactId>
         </dependency>
 
-        <!-- SPRING BOOT -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -47,19 +47,19 @@
             <artifactId>spring-boot-starter-liquibase</artifactId>
         </dependency>
 
-        <!-- KAFKA -->
+        
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
-        <!-- SPRING CLOUD -->
+        
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
 
-        <!-- REDIS -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
@@ -69,7 +69,7 @@
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
 
-        <!-- DATABASE -->
+        
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -80,7 +80,7 @@
             <artifactId>liquibase-core</artifactId>
         </dependency>
 
-        <!-- SHEDLOCK -->
+        
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-spring</artifactId>
@@ -92,7 +92,7 @@
             <version>${shedlock.version}</version>
         </dependency>
 
-        <!-- LOMBOK -->
+        
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -100,7 +100,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- TEST -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -117,7 +117,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- MONITORING -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -129,7 +129,7 @@
         </dependency>
     </dependencies>
 
-    <!-- ===== BUILD ===== -->
+    
     <build>
         <plugins>
             <plugin>
