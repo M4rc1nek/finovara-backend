@@ -16,10 +16,10 @@
     <name>api-gateway</name>
     <description>API Gateway service for Finovara</description>
 
-    <!-- ===== DEPENDENCIES ===== -->
+    
     <dependencies>
 
-        <!-- CONTRACTS -->
+        
         <dependency>
             <groupId>com.finovara</groupId>
             <artifactId>contracts-backend</artifactId>
@@ -31,20 +31,20 @@
             </exclusions>
         </dependency>
 
-        <!-- SPRING CLOUD -->
+        
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway-server-webflux</artifactId>
         </dependency>
 
-        <!-- SPRING BOOT -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
 
-        <!-- JWT -->
+        
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -64,7 +64,7 @@
         </dependency>
 
 
-        <!-- LOMBOK -->
+        
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -72,7 +72,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- TEST -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -85,20 +85,20 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Rate limit -->
+        
         <dependency>
             <groupId>com.bucket4j</groupId>
             <artifactId>bucket4j_jdk17-core</artifactId>
             <version>${bucket4j.version}</version>
         </dependency>
 
-        <!-- Jackson -->
+        
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- Redis -->
+        
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-redis</artifactId>
@@ -110,7 +110,7 @@
         </dependency>
 
 
-        <!-- MONITORING -->
+        
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
@@ -122,7 +122,7 @@
         </dependency>
     </dependencies>
 
-    <!-- ===== BUILD ===== -->
+    
     <build>
         <plugins>
             <plugin>
