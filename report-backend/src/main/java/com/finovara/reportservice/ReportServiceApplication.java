@@ -7,14 +7,16 @@ import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.liquibase.autoconfigure.LiquibaseAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import java.util.TimeZone;
 
 @EnableFeignClients
 @EnableCaching
+@EnableAspectJAutoProxy
 @SpringBootApplication(
         exclude = {DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class, LiquibaseAutoConfiguration.class},
-        scanBasePackages = {"com.finovara.reportservice", "com.finovara.contracts.cache"}
+        scanBasePackages = {"com.finovara.reportservice", "com.finovara.contracts.cache", "com.finovara.contracts.logging"}
 )
 
 public class ReportServiceApplication {
