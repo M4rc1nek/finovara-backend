@@ -57,6 +57,7 @@ The platform is built as a set of independent services, each responsible for a s
 - **Java 25** - primary language of the project
 - **Spring Boot 4** - application framework
 - **Spring MVC** - REST controllers
+- **Spring AOP** - measuring selected endpoint execution times with the custom `@InvocationTimeLogger` annotation
 - **Maven** - build and dependency management
 
 ### Security
