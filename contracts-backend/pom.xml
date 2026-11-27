@@ -16,10 +16,10 @@
     <name>contracts-backend</name>
     <description>Shared contracts (DTOs, events) for Finovara</description>
 
-    <!-- ===== DEPENDENCIES ===== -->
+    
     <dependencies>
 
-        <!-- SPRING -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -37,20 +37,20 @@
             <artifactId>spring-boot-starter-liquibase</artifactId>
         </dependency>
 
-        <!-- JACKSON -->
+        
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
 
-        <!-- UA PARSER -->
+        
         <dependency>
             <groupId>com.github.ua-parser</groupId>
             <artifactId>uap-java</artifactId>
             <version>${uap-java.version}</version>
         </dependency>
 
-        <!-- LOMBOK -->
+        
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -58,7 +58,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- TEST -->
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -66,14 +66,14 @@
         </dependency>
 
 
-        <!-- FEIGN -->
+        
 
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-core</artifactId>
         </dependency>
 
-        <!-- LIQUIBASE -->
+        
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
@@ -94,7 +94,7 @@
 
     </dependencies>
 
-    <!-- ===== BUILD ===== -->
+    
     <build>
         <plugins>
             <plugin>
