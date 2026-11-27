@@ -83,3 +83,4 @@ The platform is built as a set of independent services, each responsible for a s
 - **Docker** and **Docker Compose** - containerization and local infrastructure
 - **Prometheus** - metrics collection
 - **Grafana** - dashboards and visualization
+- **@InvocationTimeLogger** - custom annotation for measuring the execution time of selected API endpoints. It logs each invocation's duration and the average duration across calls.
