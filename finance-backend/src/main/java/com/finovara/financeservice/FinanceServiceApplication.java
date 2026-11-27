@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -13,9 +14,10 @@ import java.util.TimeZone;
 @EnableFeignClients
 @EnableScheduling
 @EnableCaching
+@EnableAspectJAutoProxy
 @EntityScan(basePackages = {"com.finovara.financeservice", "com.finovara.contracts.outbox"})
 @EnableJpaRepositories(basePackages = {"com.finovara.financeservice", "com.finovara.contracts.outbox"})
-@SpringBootApplication(scanBasePackages = {"com.finovara.financeservice", "com.finovara.contracts.outbox", "com.finovara.contracts.cache", "com.finovara.contracts.user.authorization.additionalcode.resolver"})
+@SpringBootApplication(scanBasePackages = {"com.finovara.financeservice", "com.finovara.contracts.outbox", "com.finovara.contracts.cache", "com.finovara.contracts.user.authorization.additionalcode.resolver", "com.finovara.contracts.logging"})
 public class FinanceServiceApplication {
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
