@@ -2,9 +2,13 @@ package com.finovara.authservice.security.oauth2;
 
 import com.finovara.authservice.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.authservice.riskverification.service.RiskGuardService;
+import com.finovara.authservice.security.jwt.AccessTokenCookie;
 import com.finovara.authservice.security.jwt.JwtService;
 import com.finovara.authservice.security.oauth2.OAuth2PendingLoginCookie.PendingLogin;
 import com.finovara.authservice.security.oauth2.dto.OAuth2LoginResponseDto;
+import com.finovara.authservice.settings.security.SecuritySettings;
+import com.finovara.authservice.settings.security.twofactor.service.TwoFactorLoginService;
+import com.finovara.authservice.settings.security.twofactor.cookie.TokenDelivery;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.util.user.service.UserManagerService;
 import com.finovara.contracts.mainaccount.activity.event.secure.login.activity.LoginActivityEvent;
@@ -55,6 +59,9 @@ class OAuth2LoginCompletionServiceTest {
     private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Mock
+    private TwoFactorLoginService twoFactorLoginService;
+
+    @Mock
     private HttpServletRequest request;
 
     @Mock
@@ -91,8 +98,8 @@ class OAuth2LoginCompletionServiceTest {
     }
 
     private void stubHappyPath() {
-        when(pendingLoginCookie.read(request)).thenReturn(Optional.of(pendingLogin));
-        when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+        when(pendingLoginCookie.readPendingLogin(request)).thenReturn(Optional.of(pendingLogin));
+        when(userManagerService.getUserWithSecuritySettingsByIdOrThrow(USER_ID)).thenReturn(user);
         when(jwtService.generateToken(user)).thenReturn(JWT_TOKEN);
         when(request.isSecure()).thenReturn(true);
         stubValidRequest();
@@ -103,7 +110,7 @@ class OAuth2LoginCompletionServiceTest {
 
         @Test
         void shouldThrowInvalidCredentialsExceptionWhenPendingLoginCookieMissing() {
-            when(pendingLoginCookie.read(request)).thenReturn(Optional.empty());
+            when(pendingLoginCookie.readPendingLogin(request)).thenReturn(Optional.empty());
 
             assertThrows(InvalidCredentialsException.class, () -> oAuth2LoginCompletionService.complete(request, response));
 
@@ -116,19 +123,19 @@ class OAuth2LoginCompletionServiceTest {
 
             oAuth2LoginCompletionService.complete(request, response);
 
-            verify(userManagerService).getUserByIdOrThrow(USER_ID);
+            verify(userManagerService).getUserWithSecuritySettingsByIdOrThrow(USER_ID);
         }
 
         @Test
         void shouldThrowExceptionWhenUserNotFound() {
-            when(pendingLoginCookie.read(request)).thenReturn(Optional.of(pendingLogin));
-            when(userManagerService.getUserByIdOrThrow(USER_ID))
+            when(pendingLoginCookie.readPendingLogin(request)).thenReturn(Optional.of(pendingLogin));
+            when(userManagerService.getUserWithSecuritySettingsByIdOrThrow(USER_ID))
                     .thenThrow(new RequestedEntityNotFoundException("User not found"));
 
             assertThrows(RequestedEntityNotFoundException.class, () -> oAuth2LoginCompletionService.complete(request, response));
 
             verifyNoInteractions(riskGuardService, jwtService, kafkaTemplate);
-            verify(pendingLoginCookie, never()).clear(any());
+            verify(pendingLoginCookie, never()).clearPendingLogin(any());
         }
     }
 
@@ -146,8 +153,8 @@ class OAuth2LoginCompletionServiceTest {
 
         @Test
         void shouldNotPublishLoginActivityWhenRiskGuardFails() {
-            when(pendingLoginCookie.read(request)).thenReturn(Optional.of(pendingLogin));
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+            when(pendingLoginCookie.readPendingLogin(request)).thenReturn(Optional.of(pendingLogin));
+            when(userManagerService.getUserWithSecuritySettingsByIdOrThrow(USER_ID)).thenReturn(user);
             doThrow(new RuntimeException("Risk detected"))
                     .when(riskGuardService).guard(USER_ID, RiskTriggerType.LOGIN, EMAIL, SOURCE_EVENT_ID, request);
 
@@ -158,15 +165,15 @@ class OAuth2LoginCompletionServiceTest {
 
         @Test
         void shouldNotAddAccessTokenCookieWhenRiskGuardFails() {
-            when(pendingLoginCookie.read(request)).thenReturn(Optional.of(pendingLogin));
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+            when(pendingLoginCookie.readPendingLogin(request)).thenReturn(Optional.of(pendingLogin));
+            when(userManagerService.getUserWithSecuritySettingsByIdOrThrow(USER_ID)).thenReturn(user);
             doThrow(new RuntimeException("Risk detected"))
                     .when(riskGuardService).guard(USER_ID, RiskTriggerType.LOGIN, EMAIL, SOURCE_EVENT_ID, request);
 
             assertThrows(RuntimeException.class, () -> oAuth2LoginCompletionService.complete(request, response));
 
             verify(response, never()).addCookie(any(Cookie.class));
-            verify(pendingLoginCookie, never()).clear(any());
+            verify(pendingLoginCookie, never()).clearPendingLogin(any());
         }
     }
 
@@ -209,7 +216,7 @@ class OAuth2LoginCompletionServiceTest {
             verify(response).addCookie(cookieCaptor.capture());
 
             Cookie cookie = cookieCaptor.getValue();
-            assertThat(cookie.getName()).isEqualTo(OAuth2AccessTokenCookie.COOKIE_NAME);
+            assertThat(cookie.getName()).isEqualTo(AccessTokenCookie.COOKIE_NAME);
             assertThat(cookie.getValue()).isEqualTo(JWT_TOKEN);
         }
 
@@ -226,8 +233,8 @@ class OAuth2LoginCompletionServiceTest {
 
         @Test
         void shouldAddNonSecureAccessTokenCookieWhenRequestIsNotSecure() {
-            when(pendingLoginCookie.read(request)).thenReturn(Optional.of(pendingLogin));
-            when(userManagerService.getUserByIdOrThrow(USER_ID)).thenReturn(user);
+            when(pendingLoginCookie.readPendingLogin(request)).thenReturn(Optional.of(pendingLogin));
+            when(userManagerService.getUserWithSecuritySettingsByIdOrThrow(USER_ID)).thenReturn(user);
             when(jwtService.generateToken(user)).thenReturn(JWT_TOKEN);
             when(request.isSecure()).thenReturn(false);
             stubValidRequest();
@@ -249,7 +256,7 @@ class OAuth2LoginCompletionServiceTest {
 
             oAuth2LoginCompletionService.complete(request, response);
 
-            verify(pendingLoginCookie).clear(response);
+            verify(pendingLoginCookie).clearPendingLogin(response);
         }
     }
 
@@ -290,6 +297,30 @@ class OAuth2LoginCompletionServiceTest {
             OAuth2LoginResponseDto result = oAuth2LoginCompletionService.complete(request, response);
 
             assertThat(result.passwordSet()).isFalse();
+        }
+    }
+
+    @Nested
+    class TwoFactorHandoff {
+
+        @Test
+        void shouldTransferOAuthLoginToTwoFactorChallengeWithoutCompletingLogin() {
+            user.setSecuritySettings(SecuritySettings.builder().twoFactorEnabled(true).build());
+            when(pendingLoginCookie.readPendingLogin(request)).thenReturn(Optional.of(pendingLogin));
+            when(userManagerService.getUserWithSecuritySettingsByIdOrThrow(USER_ID)).thenReturn(user);
+            when(request.isSecure()).thenReturn(true);
+
+            OAuth2LoginResponseDto result = oAuth2LoginCompletionService.complete(request, response);
+
+            verify(twoFactorLoginService).startLoginChallenge(
+                    eq(USER_ID),
+                    eq(SOURCE_EVENT_ID),
+                    eq(TokenDelivery.COOKIE),
+                    eq(response),
+                    eq(true));
+            verify(pendingLoginCookie).clearPendingLogin(response);
+            verifyNoInteractions(riskGuardService, jwtService, kafkaTemplate);
+            assertThat(result.twoFactorRequired()).isTrue();
         }
     }
 }
