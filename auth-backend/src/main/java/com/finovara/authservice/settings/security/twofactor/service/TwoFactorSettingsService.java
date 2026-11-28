@@ -1,9 +1,9 @@
-package com.finovara.authservice.twofactor.service;
+package com.finovara.authservice.settings.security.twofactor.service;
 
 import com.finovara.authservice.exception.unauthorized.InvalidCredentialsException;
-import com.finovara.authservice.twofactor.dto.AuthenticatorSetupResponse;
-import com.finovara.authservice.twofactor.dto.RecoveryCodesResponse;
-import com.finovara.authservice.twofactor.dto.TwoFactorStatusResponse;
+import com.finovara.authservice.settings.security.twofactor.dto.AuthenticatorSetupResponse;
+import com.finovara.authservice.settings.security.twofactor.dto.RecoveryCodesResponse;
+import com.finovara.authservice.settings.security.twofactor.dto.TwoFactorStatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
