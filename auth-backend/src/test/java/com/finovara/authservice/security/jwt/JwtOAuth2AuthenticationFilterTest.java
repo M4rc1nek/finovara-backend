@@ -1,7 +1,6 @@
 package com.finovara.authservice.security.jwt;
 
 import com.finovara.authservice.security.SecurityProperties;
-import com.finovara.authservice.security.oauth2.OAuth2AccessTokenCookie;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
@@ -129,9 +128,9 @@ class JwtOAuth2AuthenticationFilterTest {
     }
 
     @Test
-    void shouldAuthenticateWithOAuth2AccessTokenCookie() throws ServletException, IOException {
+    void shouldAuthenticateWithAccessTokenCookie() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/dashboard");
-        request.setCookies(new Cookie(OAuth2AccessTokenCookie.COOKIE_NAME, "jwt-token"));
+        request.setCookies(new Cookie(AccessTokenCookie.COOKIE_NAME, "jwt-token"));
         MockHttpServletResponse response = new MockHttpServletResponse();
         User user = user(true);
 
