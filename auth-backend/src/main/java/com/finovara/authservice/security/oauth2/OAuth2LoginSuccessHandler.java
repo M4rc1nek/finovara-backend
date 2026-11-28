@@ -42,7 +42,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             }
 
             User user = googleOAuth2UserService.synchronize(oauth2User);
-            pendingLoginCookie.add(response, user.getId(), UUID.randomUUID().toString(), request.isSecure());
+            pendingLoginCookie.addOAuthPendingLogin(
+                    response, user.getId(), UUID.randomUUID().toString(), request.isSecure());
 
             authorizationRequestRepository.removeAuthorizationRequest(request, response);
             SecurityContextHolder.clearContext();
