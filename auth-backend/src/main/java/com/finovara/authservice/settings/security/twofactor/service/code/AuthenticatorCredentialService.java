@@ -1,4 +1,4 @@
-package com.finovara.authservice.twofactor.service.code;
+package com.finovara.authservice.settings.security.twofactor.service.code;
 
 import dev.samstevens.totp.code.CodeGenerator;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
