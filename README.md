@@ -16,7 +16,8 @@ The platform is built as a set of independent services, each responsible for a s
 
 ### Accounts and Security
 
-- **Authentication and Authorization** - stateless JWT security built on Spring Security, with an access and refresh token flow.
+- **Authentication and Authorization** - Spring Security with stateless JWT access-token authentication and Google sign-in.
+- **Two-Factor Authentication** - optional authenticator-app codes compatible with Google Authenticator and Microsoft Authenticator, plus single-use recovery codes for password and Google sign-ins.
 - **Device and Session Tracking** - user-agent detection allows every session to be associated with a specific device, so users can see where their account is being used.
 - **Security Monitoring** - tracking of sign-ins and sessions, and visibility of security-relevant events, helping users notice suspicious activity on their account.
 - **Rate Limiting** - token-bucket based request throttling that protects the API from abuse and brute-force attempts.
@@ -63,7 +64,10 @@ The platform is built as a set of independent services, each responsible for a s
 ### Security
 
 - **Spring Security** - authentication and authorization
-- **JWT** - stateless access and refresh tokens
+- **JWT** - stateless access tokens; password sign-in returns the token in its response, while Google sign-in delivers it in an HTTP-only cookie.
+- **Two-factor authentication** - optional TOTP enrollment with a QR code or manual key, encrypted authenticator secrets, and hashed single-use recovery codes for password and Google sign-ins.
+
+The auth service requires `TWO_FACTOR_ENCRYPTION_SECRET` and `TWO_FACTOR_ENCRYPTION_SALT` to encrypt authenticator secrets at rest. Configure both independently; neither has a fallback to `OAUTH2_PENDING_LOGIN_SECRET`, which separately encrypts the pending Google sign-in cookie.
 
 ### Data
 
