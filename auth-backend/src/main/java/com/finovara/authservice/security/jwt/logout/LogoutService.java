@@ -2,7 +2,7 @@ package com.finovara.authservice.security.jwt.logout;
 
 import com.finovara.authservice.security.jwt.JwtService;
 import com.finovara.authservice.security.jwt.JwtTokenResolver;
-import com.finovara.authservice.security.oauth2.OAuth2AccessTokenCookie;
+import com.finovara.authservice.security.jwt.AccessTokenCookie;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,7 +25,7 @@ public class LogoutService {
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
         jwtTokenResolver.resolve(request).ifPresent(this::blacklist);
-        OAuth2AccessTokenCookie.clear(response);
+        AccessTokenCookie.clear(response);
         SecurityContextHolder.clearContext();
         invalidateSession(request);
         log.info("User logged out successfully. Security context cleared and cookies removed.");
