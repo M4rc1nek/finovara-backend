@@ -1,11 +1,11 @@
-package com.finovara.authservice.twofactor.service;
+package com.finovara.authservice.settings.security.twofactor.service;
 
 import com.finovara.authservice.settings.security.SecuritySettings;
-import com.finovara.authservice.twofactor.service.code.AuthenticatorCredentialService;
-import com.finovara.authservice.twofactor.service.code.TwoFactorCodeVerificationService;
-import com.finovara.authservice.twofactor.dto.AuthenticatorSetupResponse;
-import com.finovara.authservice.twofactor.dto.RecoveryCodesResponse;
-import com.finovara.authservice.twofactor.dto.TwoFactorStatusResponse;
+import com.finovara.authservice.settings.security.twofactor.service.code.AuthenticatorCredentialService;
+import com.finovara.authservice.settings.security.twofactor.service.code.TwoFactorCodeVerificationService;
+import com.finovara.authservice.settings.security.twofactor.dto.AuthenticatorSetupResponse;
+import com.finovara.authservice.settings.security.twofactor.dto.RecoveryCodesResponse;
+import com.finovara.authservice.settings.security.twofactor.dto.TwoFactorStatusResponse;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
 import com.finovara.contracts.exception.conflict.EntityAlreadyExistsException;
@@ -29,9 +29,7 @@ public class TwoFactorSettingsOperations {
     @Transactional(readOnly = true)
     public TwoFactorStatusResponse getTwoFactorStatus(Long userId) {
         SecuritySettings settings = loadSecuritySettings(userId);
-        return new TwoFactorStatusResponse(
-                settings.isTwoFactorEnabled(),
-                codeVerificationService.getRemainingRecoveryCodeCount(settings));
+        return new TwoFactorStatusResponse(settings.isTwoFactorEnabled(), codeVerificationService.getRemainingRecoveryCodeCount(settings));
     }
 
     @Transactional
