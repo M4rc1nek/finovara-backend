@@ -102,6 +102,10 @@ application:
     jwt:
       secret-key: ${JWT_SECRET_KEY}
       expiration: 86400000
+    two-factor:
+      encryption-secret: ${TWO_FACTOR_ENCRYPTION_SECRET}
+      encryption-salt: ${TWO_FACTOR_ENCRYPTION_SALT}
+      pending-login-ttl-seconds: 600
   upload:
     profile-images-directory: uploads/profile-images
     profile-images-default-directory: uploads/profile-images/default

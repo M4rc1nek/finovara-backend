@@ -25,6 +25,14 @@ public class SettingsFactory {
                 .additionalAuthorizationEnabled(false)
                 .additionalAuthorizationVisible(false)
                 .additionalAuthorizationAttempts(0)
+                .twoFactorEnabled(false)
+                .twoFactorSecret(null)
+                .twoFactorPendingSecret(null)
+                .twoFactorPendingExpiresAt(null)
+                .twoFactorBackupCodes(null)
+                .twoFactorFailedAttempts(0)
+                .twoFactorLockedUntil(null)
+                .twoFactorLastUsedStep(null)
                 .build();
     }
 

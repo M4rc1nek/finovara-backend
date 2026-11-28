@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,11 +40,20 @@ class OAuth2PendingLoginCookieTest {
 
     @BeforeEach
     void setUp() {
-        pendingLoginCookie = new OAuth2PendingLoginCookie(SECRET, TTL_SECONDS);
+        pendingLoginCookie = createPendingLoginCookie(TTL_SECONDS);
+    }
+
+    private OAuth2PendingLoginCookie createPendingLoginCookie(long ttlSeconds) {
+        PendingLoginEncryptor encryptor = new PendingLoginEncryptor();
+        ReflectionTestUtils.setField(encryptor, "secret", SECRET);
+        ReflectionTestUtils.invokeMethod(encryptor, "initialize");
+        OAuth2PendingLoginCookie cookieService = new OAuth2PendingLoginCookie(encryptor);
+        ReflectionTestUtils.setField(cookieService, "ttlSeconds", ttlSeconds);
+        return cookieService;
     }
 
     private Cookie captureAddedCookie(boolean secure) {
-        pendingLoginCookie.add(response, USER_ID, SOURCE_EVENT_ID, secure);
+        pendingLoginCookie.addOAuthPendingLogin(response, USER_ID, SOURCE_EVENT_ID, secure);
 
         ArgumentCaptor<Cookie> captor = ArgumentCaptor.forClass(Cookie.class);
         verify(response).addCookie(captor.capture());
@@ -110,7 +120,7 @@ class OAuth2PendingLoginCookieTest {
         void shouldReturnEmptyWhenCookieArrayIsNull() {
             when(request.getCookies()).thenReturn(null);
 
-            Optional<PendingLogin> result = pendingLoginCookie.read(request);
+            Optional<PendingLogin> result = pendingLoginCookie.readPendingLogin(request);
 
             assertThat(result).isEmpty();
         }
@@ -119,7 +129,7 @@ class OAuth2PendingLoginCookieTest {
         void shouldReturnEmptyWhenNoCookiesPresent() {
             when(request.getCookies()).thenReturn(new Cookie[0]);
 
-            Optional<PendingLogin> result = pendingLoginCookie.read(request);
+            Optional<PendingLogin> result = pendingLoginCookie.readPendingLogin(request);
 
             assertThat(result).isEmpty();
         }
@@ -129,7 +139,7 @@ class OAuth2PendingLoginCookieTest {
             Cookie otherCookie = new Cookie("other_cookie", "value");
             when(request.getCookies()).thenReturn(new Cookie[]{otherCookie});
 
-            Optional<PendingLogin> result = pendingLoginCookie.read(request);
+            Optional<PendingLogin> result = pendingLoginCookie.readPendingLogin(request);
 
             assertThat(result).isEmpty();
         }
@@ -139,7 +149,7 @@ class OAuth2PendingLoginCookieTest {
             Cookie addedCookie = captureAddedCookie(true);
             when(request.getCookies()).thenReturn(new Cookie[]{addedCookie});
 
-            Optional<PendingLogin> result = pendingLoginCookie.read(request);
+            Optional<PendingLogin> result = pendingLoginCookie.readPendingLogin(request);
 
             assertThat(result).isPresent();
             assertThat(result.get().userId()).isEqualTo(USER_ID);
@@ -152,7 +162,7 @@ class OAuth2PendingLoginCookieTest {
             Cookie otherCookie = new Cookie("session_id", "abc123");
             when(request.getCookies()).thenReturn(new Cookie[]{otherCookie, addedCookie});
 
-            Optional<PendingLogin> result = pendingLoginCookie.read(request);
+            Optional<PendingLogin> result = pendingLoginCookie.readPendingLogin(request);
 
             assertThat(result).isPresent();
             assertThat(result.get().userId()).isEqualTo(USER_ID);
@@ -163,15 +173,15 @@ class OAuth2PendingLoginCookieTest {
             Cookie corruptedCookie = new Cookie(OAuth2PendingLoginCookie.COOKIE_NAME, "garbage-value");
             when(request.getCookies()).thenReturn(new Cookie[]{corruptedCookie});
 
-            Optional<PendingLogin> result = pendingLoginCookie.read(request);
+            Optional<PendingLogin> result = pendingLoginCookie.readPendingLogin(request);
 
             assertThat(result).isEmpty();
         }
 
         @Test
         void shouldReturnEmptyWhenCookieHasExpired() {
-            OAuth2PendingLoginCookie expiredIssuer = new OAuth2PendingLoginCookie(SECRET, -10L);
-            expiredIssuer.add(response, USER_ID, SOURCE_EVENT_ID, true);
+            OAuth2PendingLoginCookie expiredIssuer = createPendingLoginCookie(-10L);
+            expiredIssuer.addOAuthPendingLogin(response, USER_ID, SOURCE_EVENT_ID, true);
 
             ArgumentCaptor<Cookie> captor = ArgumentCaptor.forClass(Cookie.class);
             verify(response).addCookie(captor.capture());
@@ -179,7 +189,7 @@ class OAuth2PendingLoginCookieTest {
 
             when(request.getCookies()).thenReturn(new Cookie[]{expiredCookie});
 
-            Optional<PendingLogin> result = pendingLoginCookie.read(request);
+            Optional<PendingLogin> result = pendingLoginCookie.readPendingLogin(request);
 
             assertThat(result).isEmpty();
         }
@@ -190,14 +200,14 @@ class OAuth2PendingLoginCookieTest {
 
         @Test
         void shouldAddTwoCookiesWhenClearing() {
-            pendingLoginCookie.clear(response);
+            pendingLoginCookie.clearPendingLogin(response);
 
             verify(response, times(2)).addCookie(any(Cookie.class));
         }
 
         @Test
         void shouldAddOneSecureAndOneNonSecureCookieWhenClearing() {
-            pendingLoginCookie.clear(response);
+            pendingLoginCookie.clearPendingLogin(response);
 
             ArgumentCaptor<Cookie> captor = ArgumentCaptor.forClass(Cookie.class);
             verify(response, times(2)).addCookie(captor.capture());
@@ -208,7 +218,7 @@ class OAuth2PendingLoginCookieTest {
 
         @Test
         void shouldSetEmptyValueAndZeroMaxAgeWhenClearing() {
-            pendingLoginCookie.clear(response);
+            pendingLoginCookie.clearPendingLogin(response);
 
             ArgumentCaptor<Cookie> captor = ArgumentCaptor.forClass(Cookie.class);
             verify(response, times(2)).addCookie(captor.capture());

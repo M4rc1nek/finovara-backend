@@ -3,6 +3,7 @@ package com.finovara.authservice.security.jwt.logout;
 import com.finovara.authservice.security.jwt.JwtService;
 import com.finovara.authservice.security.jwt.JwtTokenResolver;
 import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,7 +95,10 @@ class LogoutServiceTest {
 
             logoutService.logout(request, response);
 
-            assertThat(response.getCookies()).hasSize(2);
+            assertThat(response.getCookies()).hasSize(4);
+            assertThat(response.getCookies())
+                    .extracting(Cookie::getName)
+                    .contains("oauth2_access_token", "access_token");
             assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
         }
     }

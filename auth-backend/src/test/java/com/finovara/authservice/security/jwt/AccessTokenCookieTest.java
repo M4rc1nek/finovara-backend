@@ -1,4 +1,4 @@
-package com.finovara.authservice.security.oauth2;
+package com.finovara.authservice.security.jwt;
 
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,7 +8,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class OAuth2AccessTokenCookieTest {
+class AccessTokenCookieTest {
 
     private MockHttpServletResponse mockHttpServletResponse;
 
@@ -21,20 +21,20 @@ class OAuth2AccessTokenCookieTest {
     class AddCookieTests {
 
         @Test
-        void shouldSetCookieNameProperly() {
-            OAuth2AccessTokenCookie.add(mockHttpServletResponse, "abc", true);
+        void shouldPreserveExistingAccessTokenCookieName() {
+            AccessTokenCookie.add(mockHttpServletResponse, "abc", true);
 
-            Cookie cookie = mockHttpServletResponse.getCookie(OAuth2AccessTokenCookie.COOKIE_NAME);
+            Cookie cookie = mockHttpServletResponse.getCookie(AccessTokenCookie.COOKIE_NAME);
 
             assertThat(cookie).isNotNull();
-            assertThat(cookie.getName()).isEqualTo(OAuth2AccessTokenCookie.COOKIE_NAME);
+            assertThat(cookie.getName()).isEqualTo("oauth2_access_token");
         }
 
         @Test
         void shouldSetPathToRoot() {
-            OAuth2AccessTokenCookie.add(mockHttpServletResponse, "token123", true);
+            AccessTokenCookie.add(mockHttpServletResponse, "token123", true);
 
-            Cookie cookie = mockHttpServletResponse.getCookie(OAuth2AccessTokenCookie.COOKIE_NAME);
+            Cookie cookie = mockHttpServletResponse.getCookie(AccessTokenCookie.COOKIE_NAME);
 
             assertThat(cookie).isNotNull();
             assertThat(cookie.getPath()).isEqualTo("/");
@@ -42,9 +42,9 @@ class OAuth2AccessTokenCookieTest {
 
         @Test
         void shouldSetSecureCookie() {
-            OAuth2AccessTokenCookie.add(mockHttpServletResponse, "token123", true);
+            AccessTokenCookie.add(mockHttpServletResponse, "token123", true);
 
-            Cookie cookie = mockHttpServletResponse.getCookie(OAuth2AccessTokenCookie.COOKIE_NAME);
+            Cookie cookie = mockHttpServletResponse.getCookie(AccessTokenCookie.COOKIE_NAME);
 
             assertThat(cookie).isNotNull();
             assertThat(cookie.getSecure()).isTrue();
@@ -52,9 +52,9 @@ class OAuth2AccessTokenCookieTest {
 
         @Test
         void shouldSetNonSecureCookie() {
-            OAuth2AccessTokenCookie.add(mockHttpServletResponse, "token123", false);
+            AccessTokenCookie.add(mockHttpServletResponse, "token123", false);
 
-            Cookie cookie = mockHttpServletResponse.getCookie(OAuth2AccessTokenCookie.COOKIE_NAME);
+            Cookie cookie = mockHttpServletResponse.getCookie(AccessTokenCookie.COOKIE_NAME);
 
             assertThat(cookie).isNotNull();
             assertThat(cookie.getSecure()).isFalse();
@@ -62,9 +62,9 @@ class OAuth2AccessTokenCookieTest {
 
         @Test
         void shouldSetHttpOnlyFlag() {
-            OAuth2AccessTokenCookie.add(mockHttpServletResponse, "token123", true);
+            AccessTokenCookie.add(mockHttpServletResponse, "token123", true);
 
-            Cookie cookie = mockHttpServletResponse.getCookie(OAuth2AccessTokenCookie.COOKIE_NAME);
+            Cookie cookie = mockHttpServletResponse.getCookie(AccessTokenCookie.COOKIE_NAME);
 
             assertThat(cookie).isNotNull();
             assertThat(cookie.isHttpOnly()).isTrue();
@@ -72,9 +72,9 @@ class OAuth2AccessTokenCookieTest {
 
         @Test
         void shouldSetCorrectMaxAge() {
-            OAuth2AccessTokenCookie.add(mockHttpServletResponse, "token123", true);
+            AccessTokenCookie.add(mockHttpServletResponse, "token123", true);
 
-            Cookie cookie = mockHttpServletResponse.getCookie(OAuth2AccessTokenCookie.COOKIE_NAME);
+            Cookie cookie = mockHttpServletResponse.getCookie(AccessTokenCookie.COOKIE_NAME);
 
             assertThat(cookie).isNotNull();
             assertThat(cookie.getMaxAge()).isEqualTo(24 * 60 * 60);
@@ -86,7 +86,7 @@ class OAuth2AccessTokenCookieTest {
 
         @BeforeEach
         void clearCookie() {
-            OAuth2AccessTokenCookie.clear(mockHttpServletResponse);
+            AccessTokenCookie.clear(mockHttpServletResponse);
         }
 
         @Test
@@ -98,8 +98,15 @@ class OAuth2AccessTokenCookieTest {
         }
 
         @Test
-        void shouldCreateTwoSetCookieHeadersWhenClearing() {
-            assertThat(mockHttpServletResponse.getHeaders("Set-Cookie")).hasSize(2);
+        void shouldClearCurrentAndLegacyCookieNames() {
+            assertThat(mockHttpServletResponse.getHeaders("Set-Cookie")).hasSize(4);
+            assertThat(mockHttpServletResponse.getCookies())
+                    .extracting(Cookie::getName)
+                    .containsExactlyInAnyOrder(
+                            AccessTokenCookie.COOKIE_NAME,
+                            AccessTokenCookie.COOKIE_NAME,
+                            AccessTokenCookie.ALTERNATE_COOKIE_NAME,
+                            AccessTokenCookie.ALTERNATE_COOKIE_NAME);
         }
 
         @Test
@@ -107,7 +114,7 @@ class OAuth2AccessTokenCookieTest {
             Cookie[] cookies = mockHttpServletResponse.getCookies();
 
             assertThat(cookies).extracting(Cookie::getSecure)
-                    .containsExactlyInAnyOrder(true, false);
+                    .containsExactlyInAnyOrder(true, true, false, false);
         }
 
         @Test

@@ -47,6 +47,11 @@ public class UserManagerService {
                 .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
     }
 
+    public User getUserWithSecuritySettingsByIdOrThrow(Long userId) {
+        return userRepository.findWithSecuritySettingsById(userId)
+                .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));
+    }
+
     public String getUsernameByIdOrThrow(Long userId) {
         return userRepository.findUsernameById(userId)
                 .orElseThrow(() -> new RequestedEntityNotFoundException("User not found"));

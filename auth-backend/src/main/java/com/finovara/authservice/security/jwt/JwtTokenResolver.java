@@ -1,10 +1,10 @@
 package com.finovara.authservice.security.jwt;
 
-import com.finovara.authservice.security.oauth2.OAuth2AccessTokenCookie;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 @Service
@@ -15,7 +15,7 @@ public class JwtTokenResolver {
 
     public Optional<String> resolve(HttpServletRequest request) {
         return extractBearerToken(request)
-                .or(() -> extractOAuth2AccessTokenCookie(request));
+                .or(() -> extractAccessTokenCookie(request));
     }
 
     private Optional<String> extractBearerToken(HttpServletRequest request) {
@@ -24,21 +24,23 @@ public class JwtTokenResolver {
             return Optional.empty();
         }
 
-        return Optional.of(authHeader.substring(BEARER_PREFIX.length()));
+        String token = authHeader.substring(BEARER_PREFIX.length()).trim();
+        return token.isEmpty() ? Optional.empty() : Optional.of(token);
     }
 
-    private Optional<String> extractOAuth2AccessTokenCookie(HttpServletRequest request) {
+    private Optional<String> extractAccessTokenCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             return Optional.empty();
         }
 
-        for (Cookie cookie : cookies) {
-            if (OAuth2AccessTokenCookie.COOKIE_NAME.equals(cookie.getName())) {
-                return Optional.of(cookie.getValue());
-            }
-        }
-
-        return Optional.empty();
+        return Arrays.stream(cookies)
+                .filter(cookie -> AccessTokenCookie.COOKIE_NAME.equals(cookie.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .or(() -> Arrays.stream(cookies)
+                        .filter(cookie -> AccessTokenCookie.ALTERNATE_COOKIE_NAME.equals(cookie.getName()))
+                        .map(Cookie::getValue)
+                        .findFirst());
     }
 }

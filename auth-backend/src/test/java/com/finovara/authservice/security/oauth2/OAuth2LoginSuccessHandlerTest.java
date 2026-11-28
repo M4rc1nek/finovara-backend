@@ -125,7 +125,8 @@ class OAuth2LoginSuccessHandlerTest {
 
             oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
 
-            verify(pendingLoginCookie).add(eq(httpServletResponse), eq(1L), anyString(), eq(true));
+            verify(pendingLoginCookie).addOAuthPendingLogin(
+                    eq(httpServletResponse), eq(1L), anyString(), eq(true));
         }
 
         @Test
@@ -138,7 +139,8 @@ class OAuth2LoginSuccessHandlerTest {
 
             oAuth2LoginSuccessHandler.onAuthenticationSuccess(httpServletRequest, httpServletResponse, authentication);
 
-            verify(pendingLoginCookie).add(eq(httpServletResponse), eq(1L), anyString(), eq(false));
+            verify(pendingLoginCookie).addOAuthPendingLogin(
+                    eq(httpServletResponse), eq(1L), anyString(), eq(false));
         }
 
         @Test

@@ -4,8 +4,11 @@ import com.finovara.authservice.user.model.OAuthProvider;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.util.user.UserDataProjection;
 import com.finovara.contracts.user.authorization.dto.UserDataDto;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -14,7 +17,17 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+
+    @EntityGraph(attributePaths = "securitySettings")
     Optional<User> findUserByEmail(String email);
+
+    @EntityGraph(attributePaths = "securitySettings")
+    @Query("SELECT u FROM User u WHERE u.id = :userId")
+    Optional<User> findWithSecuritySettingsById(Long userId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT u FROM User u JOIN FETCH u.securitySettings WHERE u.id = :userId")
+    Optional<User> findWithSecuritySettingsByIdForUpdate(Long userId);
 
     Optional<User> findUserByOauthProviderAndProviderUserId(OAuthProvider oauthProvider, String providerUserId);
 

@@ -3,9 +3,8 @@ package com.finovara.authservice.security.oauth2;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.encrypt.Encryptors;
-import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -13,31 +12,25 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class OAuth2PendingLoginCookie {
 
     public static final String COOKIE_NAME = "oauth2_pending_login";
 
-    private static final String SALT = "5c0744940b5c369b";
-
-    private final TextEncryptor encryptor;
-    private final long ttlSeconds;
-
-    public OAuth2PendingLoginCookie(
-            @Value("${oauth2.pending-login.secret}") String secret,
-            @Value("${oauth2.pending-login.ttl-seconds:600}") long ttlSeconds) {
-        this.encryptor = Encryptors.delux(secret, SALT);
-        this.ttlSeconds = ttlSeconds;
-    }
+    private final PendingLoginEncryptor encryptor;
+    @Value("${oauth2.pending-login.ttl-seconds:600}")
+    private long ttlSeconds;
 
     public record PendingLogin(Long userId, String sourceEventId) {
     }
 
-    public void add(HttpServletResponse response, Long userId, String sourceEventId, boolean secure) {
+    public void addOAuthPendingLogin(HttpServletResponse response, Long userId, String sourceEventId, boolean secure) {
         long expiresAt = Instant.now().getEpochSecond() + ttlSeconds;
-        addCookie(response, encryptor.encrypt(userId + ":" + sourceEventId + ":" + expiresAt), (int) ttlSeconds, secure);
+        writeCookie(response, encryptor.encrypt(userId + ":" + sourceEventId + ":" + expiresAt),
+                (int) ttlSeconds, secure);
     }
 
-    public Optional<PendingLogin> read(HttpServletRequest request) {
+    public Optional<PendingLogin> readPendingLogin(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             return Optional.empty();
@@ -46,15 +39,15 @@ public class OAuth2PendingLoginCookie {
         return Arrays.stream(cookies)
                 .filter(cookie -> COOKIE_NAME.equals(cookie.getName()))
                 .findFirst()
-                .flatMap(cookie -> decrypt(cookie.getValue()));
+                .flatMap(cookie -> decryptPendingLogin(cookie.getValue()));
     }
 
-    public void clear(HttpServletResponse response) {
-        addCookie(response, "", 0, false);
-        addCookie(response, "", 0, true);
+    public void clearPendingLogin(HttpServletResponse response) {
+        writeCookie(response, "", 0, false);
+        writeCookie(response, "", 0, true);
     }
 
-    private Optional<PendingLogin> decrypt(String value) {
+    private Optional<PendingLogin> decryptPendingLogin(String value) {
         try {
             String[] parts = encryptor.decrypt(value).split(":");
             if (parts.length != 3 || Instant.now().getEpochSecond() > Long.parseLong(parts[2])) {
@@ -66,7 +59,7 @@ public class OAuth2PendingLoginCookie {
         }
     }
 
-    private void addCookie(HttpServletResponse response, String value, int maxAge, boolean secure) {
+    private void writeCookie(HttpServletResponse response, String value, int maxAge, boolean secure) {
         Cookie cookie = new Cookie(COOKIE_NAME, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);

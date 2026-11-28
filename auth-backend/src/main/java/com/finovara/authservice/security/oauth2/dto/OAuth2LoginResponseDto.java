@@ -5,6 +5,7 @@ public record OAuth2LoginResponseDto(
         String username,
         String email,
         String profileImageUrl,
-        boolean passwordSet
+        boolean passwordSet,
+        boolean twoFactorRequired
 ) {
 }
