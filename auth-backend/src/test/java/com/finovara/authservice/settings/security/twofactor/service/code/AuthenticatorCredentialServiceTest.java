@@ -1,4 +1,4 @@
-package com.finovara.authservice.twofactor.service.code;
+package com.finovara.authservice.settings.security.twofactor.service.code;
 
 import dev.samstevens.totp.code.DefaultCodeGenerator;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -9,6 +9,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class AuthenticatorCredentialServiceTest {
 
+    private static final String ENCRYPTION_SALT = "5c0744940b5c369b";
+
     private final TwoFactorSecretEncryption secretEncryption = createSecretEncryption();
     private final AuthenticatorCredentialService credentialService =
             new AuthenticatorCredentialService(secretEncryption, new BCryptPasswordEncoder());
@@ -16,6 +18,7 @@ class AuthenticatorCredentialServiceTest {
     private static TwoFactorSecretEncryption createSecretEncryption() {
         TwoFactorSecretEncryption encryption = new TwoFactorSecretEncryption();
         ReflectionTestUtils.setField(encryption, "encryptionSecret", "unit-test-encryption-secret");
+        ReflectionTestUtils.setField(encryption, "encryptionSalt", ENCRYPTION_SALT);
         ReflectionTestUtils.invokeMethod(encryption, "initialize");
         return encryption;
     }
