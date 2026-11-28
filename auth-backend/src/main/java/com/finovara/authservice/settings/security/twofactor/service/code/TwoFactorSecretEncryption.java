@@ -1,4 +1,4 @@
-package com.finovara.authservice.twofactor.service.code;
+package com.finovara.authservice.settings.security.twofactor.service.code;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,11 +12,14 @@ public class TwoFactorSecretEncryption {
     @Value("${application.security.two-factor.encryption-secret}")
     private String encryptionSecret;
 
+    @Value("${application.security.two-factor.encryption-salt}")
+    private String encryptionSalt;
+
     private TextEncryptor encryptor;
 
     @PostConstruct
     void initialize() {
-        encryptor = Encryptors.delux(encryptionSecret, "5c0744940b5c369b");
+        encryptor = Encryptors.delux(encryptionSecret, encryptionSalt);
     }
 
     public String encrypt(String plaintext) {
