@@ -52,6 +52,20 @@
             </column>
             <column name="additional_authorization_email_code_expires_at" type="TIMESTAMP"/>
             <column name="additional_authorization_attempts_expires_at" type="TIMESTAMP"/>
+
+            <column name="two_factor_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="two_factor_secret" type="VARCHAR(255)"/>
+            <column name="two_factor_pending_secret" type="VARCHAR(255)"/>
+            <column name="two_factor_pending_expires_at" type="TIMESTAMP"/>
+            <column name="two_factor_backup_codes" type="TEXT"/>
+            <column name="two_factor_failed_attempts" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="two_factor_locked_until" type="TIMESTAMP"/>
+            <column name="two_factor_last_used_step" type="BIGINT"/>
+
             <column name="version" type="BIGINT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
