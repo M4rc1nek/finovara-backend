@@ -1,11 +1,11 @@
-package com.finovara.authservice.twofactor.controller;
+package com.finovara.authservice.settings.security.twofactor.controller;
 
 import com.finovara.authservice.security.SecurityUtils;
-import com.finovara.authservice.twofactor.dto.AuthenticatorSetupResponse;
-import com.finovara.authservice.twofactor.dto.RecoveryCodesResponse;
-import com.finovara.authservice.twofactor.dto.TwoFactorCodeRequest;
-import com.finovara.authservice.twofactor.dto.TwoFactorStatusResponse;
-import com.finovara.authservice.twofactor.service.TwoFactorSettingsService;
+import com.finovara.authservice.settings.security.twofactor.dto.AuthenticatorSetupResponse;
+import com.finovara.authservice.settings.security.twofactor.dto.RecoveryCodesResponse;
+import com.finovara.authservice.settings.security.twofactor.dto.TwoFactorCodeRequest;
+import com.finovara.authservice.settings.security.twofactor.dto.TwoFactorStatusResponse;
+import com.finovara.authservice.settings.security.twofactor.service.TwoFactorSettingsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
