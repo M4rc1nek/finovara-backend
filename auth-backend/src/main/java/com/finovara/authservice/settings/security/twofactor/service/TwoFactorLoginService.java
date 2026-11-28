@@ -1,12 +1,12 @@
-package com.finovara.authservice.twofactor.service;
+package com.finovara.authservice.settings.security.twofactor.service;
 
 import com.finovara.authservice.exception.unauthorized.InvalidCredentialsException;
 import com.finovara.authservice.riskverification.service.RiskGuardService;
 import com.finovara.authservice.security.jwt.AccessTokenCookie;
 import com.finovara.authservice.security.jwt.JwtService;
-import com.finovara.authservice.twofactor.cookie.TokenDelivery;
-import com.finovara.authservice.twofactor.cookie.TwoFactorPendingLoginCookie;
-import com.finovara.authservice.twofactor.dto.TwoFactorLoginResponseDto;
+import com.finovara.authservice.settings.security.twofactor.cookie.TokenDelivery;
+import com.finovara.authservice.settings.security.twofactor.cookie.TwoFactorPendingLoginCookie;
+import com.finovara.authservice.settings.security.twofactor.dto.TwoFactorLoginResponseDto;
 import com.finovara.authservice.user.dto.UserLoginDto;
 import com.finovara.authservice.user.model.User;
 import com.finovara.authservice.user.repository.UserRepository;
@@ -65,12 +65,7 @@ public class TwoFactorLoginService {
                 user.getProfileImageUrl(), jwtToken, sourceEventId, false);
     }
 
-    public void startLoginChallenge(
-            Long userId,
-            String sourceEventId,
-            TokenDelivery tokenDelivery,
-            HttpServletResponse response,
-            boolean secure) {
+    public void startLoginChallenge(Long userId, String sourceEventId, TokenDelivery tokenDelivery, HttpServletResponse response, boolean secure) {
         pendingLoginCookie.add(response, userId, sourceEventId, tokenDelivery, secure);
     }
 
