@@ -1,4 +1,4 @@
-package com.finovara.authservice.twofactor.dto;
+package com.finovara.authservice.settings.security.twofactor.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
