@@ -1,4 +1,4 @@
-package com.finovara.authservice.twofactor.service.code;
+package com.finovara.authservice.settings.security.twofactor.service.code;
 
 import com.finovara.authservice.settings.security.SecuritySettings;
 import lombok.RequiredArgsConstructor;
