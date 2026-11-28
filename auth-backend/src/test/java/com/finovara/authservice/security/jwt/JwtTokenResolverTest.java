@@ -1,6 +1,5 @@
 package com.finovara.authservice.security.jwt;
 
-import com.finovara.authservice.security.oauth2.OAuth2AccessTokenCookie;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -48,9 +47,42 @@ class JwtTokenResolverTest {
     class CookieTests {
 
         @Test
-        void shouldResolveOAuth2AccessTokenCookie() {
+        void shouldResolveAccessTokenCookie() {
             MockHttpServletRequest request = new MockHttpServletRequest();
-            request.setCookies(new Cookie(OAuth2AccessTokenCookie.COOKIE_NAME, "cookie-token"));
+            request.setCookies(new Cookie(AccessTokenCookie.COOKIE_NAME, "cookie-token"));
+
+            Optional<String> token = jwtTokenResolver.resolve(request);
+
+            assertThat(token).contains("cookie-token");
+        }
+
+        @Test
+        void shouldResolveAlternateAccessTokenCookie() {
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.setCookies(new Cookie(AccessTokenCookie.ALTERNATE_COOKIE_NAME, "alternate-cookie-token"));
+
+            Optional<String> token = jwtTokenResolver.resolve(request);
+
+            assertThat(token).contains("alternate-cookie-token");
+        }
+
+        @Test
+        void shouldPreferCurrentCookieOverLegacyCookie() {
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.setCookies(
+                    new Cookie(AccessTokenCookie.ALTERNATE_COOKIE_NAME, "alternate-cookie-token"),
+                    new Cookie(AccessTokenCookie.COOKIE_NAME, "current-cookie-token"));
+
+            Optional<String> token = jwtTokenResolver.resolve(request);
+
+            assertThat(token).contains("current-cookie-token");
+        }
+
+        @Test
+        void shouldFallBackToCookieWhenBearerHeaderIsEmpty() {
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            request.addHeader("Authorization", "Bearer ");
+            request.setCookies(new Cookie(AccessTokenCookie.COOKIE_NAME, "cookie-token"));
 
             Optional<String> token = jwtTokenResolver.resolve(request);
 
@@ -61,7 +93,7 @@ class JwtTokenResolverTest {
         void shouldPreferBearerTokenOverCookie() {
             MockHttpServletRequest request = new MockHttpServletRequest();
             request.addHeader("Authorization", "Bearer bearer-token");
-            request.setCookies(new Cookie(OAuth2AccessTokenCookie.COOKIE_NAME, "cookie-token"));
+            request.setCookies(new Cookie(AccessTokenCookie.COOKIE_NAME, "cookie-token"));
 
             Optional<String> token = jwtTokenResolver.resolve(request);
 
